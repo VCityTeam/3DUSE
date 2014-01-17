@@ -10,29 +10,35 @@ ControllerGui::ControllerGui(vcity::Application *app)
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::reset()
 {
+    Controller::reset();
     // reset all
     // unload scene
     // unload treeview
     // unload osg
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ControllerGui::addNode(const std::string& /*URI*/)
+void ControllerGui::addNode(const vcity::URI& uri)
 {
-
+    Controller::addNode(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ControllerGui::deleteNode(const std::string& /*URI*/)
+void ControllerGui::deleteNode(const vcity::URI& uri)
 {
-    //m_app->getScene()
+    Controller::deleteNode(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ControllerGui::addNode(const vcity::URI& /*URI*/)
+void ControllerGui::addLayer(const std::string& name)
 {
-
+    Controller::addLayer(name);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ControllerGui::deleteNode(const vcity::URI& /*URI*/)
+void ControllerGui::deleteLayer(const vcity::URI& uri)
 {
-
+    Controller::deleteLayer(uri);
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::setLayerName(const vcity::URI& uri, const std::string& name)
+{
+    Controller::setLayerName(uri, name);
 }
 ////////////////////////////////////////////////////////////////////////////////

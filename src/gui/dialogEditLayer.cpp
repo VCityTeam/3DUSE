@@ -1,5 +1,6 @@
 #include "moc/dialogEditLayer.hpp"
 #include "ui_dialogEditLayer.h"
+#include "controllerGui.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 DialogEditLayer::DialogEditLayer(QWidget *parent) :
     QDialog(parent),

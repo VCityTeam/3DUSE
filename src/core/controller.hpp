@@ -14,13 +14,17 @@ class Controller
 public:
     Controller(Application* app);
 
-    virtual void reset()=0;
+    // reset app
+    virtual void reset();
 
-    virtual void addNode(const std::string& URI)=0;
-    virtual void deleteNode(const std::string& URI)=0;
+    // generic nodes actions
+    virtual void addNode(const URI& URI);
+    virtual void deleteNode(const URI& URI);
 
-    virtual void addNode(const URI& URI)=0;
-    virtual void deleteNode(const URI& URI)=0;
+    // layer
+    virtual void addLayer(const std::string& name);
+    virtual void deleteLayer(const vcity::URI& URI);
+    virtual void setLayerName(const vcity::URI& URI, const std::string& name);
 
 protected:
     Application* m_app;
