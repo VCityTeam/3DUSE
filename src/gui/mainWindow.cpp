@@ -95,12 +95,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 
     // LODs signals
-    connect(m_ui->actionAll_LODs, SIGNAL(triggered()), this, SLOT(generateAllLODs));
-    connect(m_ui->actionLOD0, SIGNAL(triggered()), this, SLOT(generateAllLODs));
-    connect(m_ui->actionLOD1, SIGNAL(triggered()), this, SLOT(generateAllLODs));
-    connect(m_ui->actionLOD2, SIGNAL(triggered()), this, SLOT(generateAllLODs));
-    connect(m_ui->actionLOD3, SIGNAL(triggered()), this, SLOT(generateAllLODs));
-    connect(m_ui->actionLOD4, SIGNAL(triggered()), this, SLOT(generateAllLODs));
+    connect(m_ui->actionAll_LODs, SIGNAL(triggered()), this, SLOT(generateAllLODs()));
+    connect(m_ui->actionLOD0, SIGNAL(triggered()), this, SLOT(generateLOD0()));
+    connect(m_ui->actionLOD1, SIGNAL(triggered()), this, SLOT(generateLOD1()));
+    connect(m_ui->actionLOD2, SIGNAL(triggered()), this, SLOT(generateLOD2()));
+    connect(m_ui->actionLOD3, SIGNAL(triggered()), this, SLOT(generateLOD3()));
+    connect(m_ui->actionLOD4, SIGNAL(triggered()), this, SLOT(generateLOD4()));
 
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
