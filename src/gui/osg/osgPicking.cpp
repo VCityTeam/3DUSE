@@ -63,7 +63,9 @@ void PickHandler::updateLabel()
         std::vector<osg::ref_ptr<osg::Node> >::const_iterator it = m_osgNodesPicked.begin();
         for(; it != m_osgNodesPicked.end(); ++it)
         {
-            citygml::CityObject* obj = m_scene->findNode((*it)->getName());
+            //citygml::CityObject* obj = m_scene->findNode((*it)->getName());
+            vcity::URI uri = osgTools::getURI(*it);
+            citygml::CityObject* obj = m_scene->getNode(uri);
             if(obj)
             {
                 ss << obj->getId().c_str() << std::endl;
@@ -74,7 +76,7 @@ void PickHandler::updateLabel()
                     ss << "  + " << itAttr->first << ": " << itAttr->second << std::endl;
                     ++itAttr;
                 }
-                ss << osgTools::getURI(*it);
+                ss << uri.getStringURI(true);
             }
         }
 
@@ -212,7 +214,9 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         }
         if(m_pickingMode == 1) // building
         {
-            citygml::CityObject* obj = m_scene->findNode(node->getName());
+            vcity::URI uri = osgTools::getURI(node);
+            citygml::CityObject* obj = m_scene->getNode(uri);
+            //citygml::CityObject* obj = m_scene->findNode(node->getName());
             while(obj && obj->getTypeAsString() != "Building")
             {
                 if(node->getNumParents() > 0)
@@ -223,7 +227,9 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                 else
                     break;
 
-                obj = m_scene->findNode(node->getName());
+                uri = osgTools::getURI(node);
+                obj = m_scene->getNode(uri);
+                //obj = m_scene->findNode(node->getName());
             }
 
             if(!node) node = nodePath.back();
@@ -292,7 +298,9 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
                 }
                 if(m_pickingMode == 1) // building
                 {
-                    citygml::CityObject* obj = m_scene->findNode(node->getName());
+                    vcity::URI uri = osgTools::getURI(node);
+                    citygml::CityObject* obj = m_scene->getNode(uri);
+                    //citygml::CityObject* obj = m_scene->findNode(node->getName());
                     while(obj && obj->getTypeAsString() != "Building")
                     {
                         if(node->getNumParents() > 0)
@@ -303,7 +311,9 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
                         else
                             break;
 
-                        obj = m_scene->findNode(node->getName());
+                        uri = osgTools::getURI(node);
+                        obj = m_scene->getNode(uri);
+                        //obj = m_scene->findNode(node->getName());
                     }
 
                     if(!node) node = nodePath.back();

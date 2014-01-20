@@ -2,6 +2,7 @@
 #define __TILE_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "citygml.hpp"
+#include "URI.hpp"
 //#include <osg/Node>
 //#include <vector>
 #include <memory>
@@ -38,6 +39,11 @@ public:
     void deleteNode(const std::string& name);
     void insertNode(citygml::CityObject* node);
     void replaceNode(const std::string& name, citygml::CityObject* node);
+
+    /// \brief getNode Get a CityGML node
+    /// \param uri URI pointing to the CityGML node
+    /// \return Ptr to CityGML node or nullptr
+    citygml::CityObject* getNode(const URI& uri);
 
 private:
     //citygml::Envelope m_envelope;

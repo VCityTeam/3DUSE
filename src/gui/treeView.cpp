@@ -40,15 +40,17 @@ void TreeView::init()
     //connect(deleteNode, SIGNAL(triggered()), this, SLOT(deleteNodeHandler()));
     //connect(showInfo, SIGNAL(triggered()), this, SLOT(showInfoHandler()));
 
-    connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(editLayer()));
-    connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(editBldg()));
+    connect(m_tree, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(slotItemChanged(QTreeWidgetItem*, int)));
+
+    connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
+    connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
 
     connect(m_actionAddFlag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddFlag()));
     connect(m_actionAddDynFlag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddDynFlag()));
     connect(m_actionAddTag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddTag()));
 
     // right click handling : to activate actions depending on node type
-    connect(m_tree, SIGNAL(itemPressed(QTreeWidgetItem*, int)), this, SLOT(selectNodeCB(QTreeWidgetItem*,int)));
+    connect(m_tree, SIGNAL(itemPressed(QTreeWidgetItem*, int)), this, SLOT(SlotSelectNode(QTreeWidgetItem*,int)));
 
     // show info
     connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), m_mainWindow, SLOT(showInfoHandler()));
@@ -115,7 +117,7 @@ vcity::URI TreeView::getURI(QTreeWidgetItem* item) const
     return uri;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::selectNodeCB(QTreeWidgetItem* item, int /*column*/)
+void TreeView::slotSelectNodeCB(QTreeWidgetItem* item, int /*column*/)
 {
     std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
 
@@ -167,12 +169,12 @@ void TreeView::selectNodeCB(QTreeWidgetItem* item, int /*column*/)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::addBldg()
+void TreeView::slotAddBldg()
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::editLayer()
+void TreeView::slotEditLayer()
 {
     DialogEditLayer diag;
     diag.setName(m_tree->currentItem()->text(0));
@@ -183,7 +185,7 @@ void TreeView::editLayer()
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::editBldg()
+void TreeView::slotEditBldg()
 {
     DialogEditBldg diag;
     diag.setName(m_tree->currentItem()->text(0));

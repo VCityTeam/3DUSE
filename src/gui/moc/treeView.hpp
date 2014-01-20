@@ -15,7 +15,10 @@ class TreeView : public QObject
 public:
     TreeView(QTreeWidget* tree, MainWindow* widget);
 
+    /// \brief init Init the treeview
     void init();
+
+    /// \brief reset Reset the treeview (root item and one layer)
     void reset();
 
     QTreeWidgetItem* addItemGeneric(const QString& name, const QString& type);
@@ -33,10 +36,12 @@ public:
     vcity::URI getURI(QTreeWidgetItem* item) const;
 
 private slots:
-    void selectNodeCB(QTreeWidgetItem* item, int column);
-    void addBldg();
-    void editLayer();
-    void editBldg();
+    void slotSelectNodeCB(QTreeWidgetItem* item, int column);
+    void slotAddBldg();
+    void slotEditLayer();
+    void slotEditBldg();
+    void slotItemChanged(QTreeWidgetItem*, int);
+
 
 private:
     void resetActions();

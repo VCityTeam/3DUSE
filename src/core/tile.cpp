@@ -219,5 +219,22 @@ void Tile::replaceNode(const std::string& /*name*/, citygml::CityObject* /*node*
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+citygml::CityObject* Tile::getNode(const URI& uri)
+{
+    std::string name = uri.getURI().back();
+
+    citygml::CityObject* res = nullptr;
+
+    citygml::CityObjects& cityObjects = m_root->getCityObjectsRoots();
+    citygml::CityObjects::iterator it = cityObjects.begin();
+    for( ; it != cityObjects.end(); ++it)
+    {
+        res = findNodeRec(*it, name);
+        if(res) break;
+    }
+
+    return res;
+}
+////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
