@@ -49,7 +49,6 @@ public:
     /// \param uri URI pointing to the layer
     void deleteLayer(const URI& uri);
 
-
     /// \brief addTile Add a tile in a layer
     /// \param uriLayer URI pointing to the layer
     /// \param tile The tile to add
@@ -83,6 +82,7 @@ public:
     /// \param uri URI pointing to the CityGML node
     void deleteNode(const URI& uri);
 
+    /// \brief reset Reset the scene
     void reset();
 
     void dump();
@@ -92,7 +92,6 @@ public:
     //citygml::CityObject* getNode(const URI& uri);
 
 private:
-    //std::vector<Tile*> m_tiles;
     std::vector<Layer*> m_layers;   ///< all the layers
 };
 ////////////////////////////////////////////////////////////////////////////////

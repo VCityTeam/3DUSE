@@ -44,7 +44,7 @@ osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
     return geode;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const vcity::URI& osgTools::getURI(osg::Node* node)
+vcity::URI osgTools::getURI(osg::Node* node)
 {
     osg::Node* parent = node;
     vcity::URI uri;// = node->getName();

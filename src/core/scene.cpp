@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "scene.hpp"
-#include "tools/log.hpp"
+#include "application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -8,6 +8,7 @@ namespace vcity
 Scene::Scene()
     : m_layers()
 {
+    addLayer(new Layer("layer_CityGML"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 Scene::~Scene()
@@ -178,7 +179,7 @@ void Scene::dump()
     std::vector<Layer*>::iterator it;
     for(it=m_layers.begin(); it<m_layers.end(); ++it)
     {
-        log << (*it)->getName() << "\n";
+        log() << (*it)->getName() << "\n";
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

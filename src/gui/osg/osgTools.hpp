@@ -11,7 +11,7 @@ namespace osgTools
     /// \brief getURI Compute the uri of an osg node
     /// \param node The osg node
     /// \return URI
-    const vcity::URI& getURI(osg::Node* node);
+    vcity::URI getURI(osg::Node* node);
 }
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __OSGTOOLS_HPP__

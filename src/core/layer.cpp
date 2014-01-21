@@ -27,16 +27,28 @@ void Layer::addTile(Tile* tile)
 ////////////////////////////////////////////////////////////////////////////////
 Tile* Layer::getTile(const URI& uri)
 {
-    //if(uri.get)
+    if(uri.getType() == "Tile")
+    {
+        for(std::vector<Tile*>::iterator it = m_tiles.begin(); it < m_tiles.end(); ++it)
+        {
+            if(uri.getNode(1) == (*it)->getName())
+            {
+                return *it;
+            }
+        }
+    }
+
+    return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::vector<Tile*>& Layer::getTiles()
 {
+    return m_tiles;
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::vector<Tile*>& Layer::getTiles() const
 {
-
+    return m_tiles;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Layer::deleteTile(const URI& uri)
