@@ -2,17 +2,15 @@
 #define __CONTROLLER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <string>
-#include <core/URI.hpp>
+#include "URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-class Application;
-////////////////////////////////////////////////////////////////////////////////
 class Controller
 {
 public:
-    Controller(Application* app);
+    Controller();
 
     // reset app
     virtual void reset();
@@ -24,10 +22,7 @@ public:
     // layer
     virtual void addLayer(const std::string& name);
     virtual void deleteLayer(const vcity::URI& URI);
-    virtual void setLayerName(const vcity::URI& URI, const std::string& name);
-
-protected:
-    Application* m_app;
+    virtual void setLayerName(const vcity::URI& uri, const std::string& name);
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

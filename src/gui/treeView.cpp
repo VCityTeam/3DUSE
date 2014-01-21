@@ -203,6 +203,9 @@ void TreeView::slotItemChanged(QTreeWidgetItem*, int)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
+    if(item->text(1) == "Root")
+        return;
+
     vcity::URI uri = getURI(item);
     vcity::log() << "slotItemClicked : " << uri.getStringURI() << "\n";
 
@@ -293,12 +296,7 @@ void TreeView::slotAddLayer()
 void TreeView::slotEditLayer()
 {
     DialogEditLayer diag;
-    diag.setName(m_tree->currentItem()->text(0));
-
-    if(diag.exec())
-    {
-        diag.setName(m_tree->currentItem()->text(0));
-    }
+    diag.editLayer(getURI(m_tree->currentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteLayer()

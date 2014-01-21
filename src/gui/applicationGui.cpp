@@ -9,9 +9,9 @@ ApplicationGui::ApplicationGui()
     gAppGui = this;
 }
 ////////////////////////////////////////////////////////////////////////////////
-ControllerGui* ApplicationGui::getControllerGui()
+ControllerGui& ApplicationGui::getControllerGui()
 {
-    return m_controllerGui;
+    return *m_controllerGui;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ApplicationGui::setControllerGui(ControllerGui* cont)

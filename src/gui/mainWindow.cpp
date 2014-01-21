@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_treeView = new TreeView(m_ui->treeWidget, this);
 
     // create controller
-    m_app.setController(new ControllerGui(&m_app));
+    m_app.setController(new ControllerGui());
 
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);

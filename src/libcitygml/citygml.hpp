@@ -691,6 +691,8 @@ enum State {
 
         void checkTags();
 
+        //const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+
 	protected:
 		void finish( AppearanceManager&, const ParserParams& );
 
@@ -793,7 +795,7 @@ enum State {
 
 		inline TVec4f getDefaultColor( void ) const
 		{ 
-			std::string c = getAttribute( "class" );
+            std::string c = getAttribute( "class" );
 			if ( c != "" )
 			{
 				int cl = atoi( c.c_str() );

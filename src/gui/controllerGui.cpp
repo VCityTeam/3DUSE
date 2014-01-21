@@ -1,9 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "controllerGui.hpp"
-#include "core/application.hpp"
+#include "applicationGui.hpp"
 ////////////////////////////////////////////////////////////////////////////////
-ControllerGui::ControllerGui(vcity::Application *app)
-    : Controller(app)
+ControllerGui::ControllerGui()
 {
 
 }
@@ -40,5 +39,8 @@ void ControllerGui::deleteLayer(const vcity::URI& uri)
 void ControllerGui::setLayerName(const vcity::URI& uri, const std::string& name)
 {
     Controller::setLayerName(uri, name);
+
+    //appGui().
+
 }
 ////////////////////////////////////////////////////////////////////////////////

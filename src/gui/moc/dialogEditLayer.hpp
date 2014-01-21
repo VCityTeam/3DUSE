@@ -2,6 +2,7 @@
 #define DIALOGEDITLAYER_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogEditLayer;
@@ -14,6 +15,8 @@ class DialogEditLayer : public QDialog
 public:
     explicit DialogEditLayer(QWidget *parent = 0);
     ~DialogEditLayer();
+
+    void editLayer(const vcity::URI& uri);
 
     void setName(const QString& str);
     QString getName() const;

@@ -1,6 +1,6 @@
 #include "moc/dialogEditLayer.hpp"
 #include "ui_dialogEditLayer.h"
-#include "controllerGui.hpp"
+#include "gui/applicationGui.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 DialogEditLayer::DialogEditLayer(QWidget *parent) :
     QDialog(parent),
@@ -12,6 +12,18 @@ DialogEditLayer::DialogEditLayer(QWidget *parent) :
 DialogEditLayer::~DialogEditLayer()
 {
     delete ui;
+}
+////////////////////////////////////////////////////////////////////////////////
+void DialogEditLayer::editLayer(const vcity::URI& uri)
+{
+    vcity::Layer* layer = vcity::app().getScene().getLayer(uri);
+    setName(layer->getName().c_str());
+
+    if(exec() && !getName().isEmpty())
+    {
+        setName(getName());
+        appGui().getControllerGui().setLayerName(uri, getName().toStdString());
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void DialogEditLayer::setName(const QString& str)
