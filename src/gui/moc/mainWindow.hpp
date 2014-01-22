@@ -43,6 +43,8 @@ public:
 
     void reset();           ///< reset ui : treeview, text box...
 
+    void updateTextBox(const std::stringstream& ss);
+
 public slots:
     void loadScene();
     void loadSceneRecursive();

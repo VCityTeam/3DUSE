@@ -28,10 +28,6 @@ public:
 
    void setPickHandler(PickHandler* pickhandler);
 
-   void setPickHandlerTextBox(QTextBrowser* txt);
-   void setPickHandlerScene(vcity::Scene* scene);
-   void setPickHandlerTreeView(QTreeWidget* tree);
-
    const std::string& getNodePicked() const;
 
    void centerCamera();

@@ -56,32 +56,29 @@ PickHandler::PickHandler()
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::updateLabel()
 {
-    if(m_updateText)
+    std::stringstream ss;
+
+    std::vector<osg::ref_ptr<osg::Node> >::const_iterator it = m_osgNodesPicked.begin();
+    for(; it != m_osgNodesPicked.end(); ++it)
     {
-        std::stringstream ss;
-
-        std::vector<osg::ref_ptr<osg::Node> >::const_iterator it = m_osgNodesPicked.begin();
-        for(; it != m_osgNodesPicked.end(); ++it)
+        //citygml::CityObject* obj = m_scene->findNode((*it)->getName());
+        vcity::URI uri = osgTools::getURI(*it);
+        citygml::CityObject* obj = appGui().getScene().getNode(uri);
+        if(obj)
         {
-            //citygml::CityObject* obj = m_scene->findNode((*it)->getName());
-            vcity::URI uri = osgTools::getURI(*it);
-            citygml::CityObject* obj = m_scene->getNode(uri);
-            if(obj)
+            ss << obj->getId().c_str() << std::endl;
+            citygml::AttributesMap attribs = obj->getAttributes();
+            citygml::AttributesMap::const_iterator itAttr = attribs.begin();
+            while( itAttr != attribs.end())
             {
-                ss << obj->getId().c_str() << std::endl;
-                citygml::AttributesMap attribs = obj->getAttributes();
-                citygml::AttributesMap::const_iterator itAttr = attribs.begin();
-                while( itAttr != attribs.end())
-                {
-                    ss << "  + " << itAttr->first << ": " << itAttr->second << std::endl;
-                    ++itAttr;
-                }
-                ss << uri.getStringURI(true);
+                ss << "  + " << itAttr->first << ": " << itAttr->second << std::endl;
+                ++itAttr;
             }
+            ss << uri.getStringURI(true);
         }
-
-        m_updateText->setText(ss.str().c_str());
     }
+
+    appGui().getTextBrowser()->setText(ss.str().c_str());
 }
 ////////////////////////////////////////////////////////////////////////////////
 //osg::Node* nodePicked = 0;
@@ -215,7 +212,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         if(m_pickingMode == 1) // building
         {
             vcity::URI uri = osgTools::getURI(node);
-            citygml::CityObject* obj = m_scene->getNode(uri);
+            citygml::CityObject* obj = appGui().getScene().getNode(uri);
             //citygml::CityObject* obj = m_scene->findNode(node->getName());
             while(obj && obj->getTypeAsString() != "Building")
             {
@@ -228,7 +225,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                     break;
 
                 uri = osgTools::getURI(node);
-                obj = m_scene->getNode(uri);
+                obj = appGui().getScene().getNode(uri);
                 //obj = m_scene->findNode(node->getName());
             }
 
@@ -299,7 +296,7 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
                 if(m_pickingMode == 1) // building
                 {
                     vcity::URI uri = osgTools::getURI(node);
-                    citygml::CityObject* obj = m_scene->getNode(uri);
+                    citygml::CityObject* obj = appGui().getScene().getNode(uri);
                     //citygml::CityObject* obj = m_scene->findNode(node->getName());
                     while(obj && obj->getTypeAsString() != "Building")
                     {
@@ -312,7 +309,7 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
                             break;
 
                         uri = osgTools::getURI(node);
-                        obj = m_scene->getNode(uri);
+                        obj = appGui().getScene().getNode(uri);
                         //obj = m_scene->findNode(node->getName());
                     }
 

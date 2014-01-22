@@ -39,9 +39,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     m_ui->setupUi(this);
 
+    m_app.setMainWindow(m_ui);
+
     // create Qt treeview
     m_treeView = new TreeView(m_ui->treeWidget, this);
     m_app.setTreeView(m_treeView);
+    m_app.setTextBowser(m_ui->textBrowser);
 
     // create controller
 
@@ -60,9 +63,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // setup osgQt view
     m_osgView->setSceneData(m_osgScene);
-    m_pickhandler->setPickHandlerTextBox(m_ui->textBrowser);
-    m_pickhandler->setPickHandlerScene(&m_app.getScene());
-    m_pickhandler->setPickHandlerTreeView(m_ui->treeWidget);
 
     // init gdal
     GDALAllRegister();
@@ -646,6 +646,11 @@ void MainWindow::loadSceneBBox()
     QDialog diag;
     ui.setupUi(&diag);
     diag.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::updateTextBox(const std::stringstream& ss)
+{
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Tools

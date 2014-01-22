@@ -1,6 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/treeView.hpp"
 #include "moc/mainWindow.hpp"
+#include "moc/dialogAddLayer.hpp"
 #include "moc/dialogEditLayer.hpp"
 #include "moc/dialogEditTile.hpp"
 #include "moc/dialogEditBldg.hpp"
@@ -330,12 +331,15 @@ void TreeView::slotItemChanged(QTreeWidgetItem*, int)
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
-    vcity::log() << "slotItemClicked : " << uri.getStringURI() << "\n";
+    //vcity::log() << "slotItemClicked : " << uri.getStringURI() << "\n";
 
     citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
     if(obj)
     {
-        vcity::log() << "node : " << obj->getId() << "\n";
+        appGui().getTextBrowser()->setText(uri.getStringURI().c_str());
+        //vcity::log() << "node : " << obj->getId() << "\n";
+
+        //
     }
 
 
@@ -414,7 +418,8 @@ void TreeView::slotDeleteTile()
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddLayer()
 {
-
+    DialogAddLayer diag;
+    diag.addLayer();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotEditLayer()

@@ -30,7 +30,15 @@ void ControllerGui::deleteNode(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addLayer(const std::string& name)
 {
+    vcity::URI uri;
+    uri.append(name);
     Controller::addLayer(name);
+
+    // add layer in treeview
+    appGui().getTreeView()->addLayer(uri);
+
+    // add layer in osg
+    appGui().getOsgScene()->addLayer(name);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::deleteLayer(const vcity::URI& uri)

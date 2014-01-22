@@ -250,24 +250,6 @@ void osgQtWidget::setSceneData(osg::Node* scene)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerTextBox(QTextBrowser* txt)
-{
-    m_textBrowser = txt;
-    m_pickHandler->setPickHandlerTextBox(txt);
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerScene(vcity::Scene* scene)
-{
-    m_pickHandler->setPickHandlerScene(scene);
-    //m_scene = scene;
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerTreeView(QTreeWidget* tree)
-{
-    m_pickHandler->setPickHandlerTreeView(tree);
-    //m_tree = tree;
-}
-////////////////////////////////////////////////////////////////////////////////
 /*const std::string& osgQtWidget::getNodePicked() const
 {
     return m_pickHandler->getNodePicked();

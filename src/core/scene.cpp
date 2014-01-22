@@ -25,6 +25,16 @@ void Scene::addLayer(Layer* layer)
     m_layers.push_back(layer);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void Scene::addLayer(const std::string& name)
+{
+    // check that layer is not already in the scene
+    //URI uri
+    //getLayer();
+    //layer->getName();
+    Layer* layer = new Layer(name);
+    m_layers.push_back(layer);
+}
+////////////////////////////////////////////////////////////////////////////////
 Layer* Scene::getLayer(const URI& uri)
 {
     if(uri.getDepth() > 0)

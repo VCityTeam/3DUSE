@@ -22,6 +22,7 @@ public:
     /// \brief addLayer Add a layer
     /// \param layer Layer to add
     void addLayer(Layer* layer);
+    void addLayer(const std::string& name);
 
     /// \brief getLayer Get a layer
     /// \param uri URI pointing to the layer
