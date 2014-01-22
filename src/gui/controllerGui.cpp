@@ -39,8 +39,6 @@ void ControllerGui::deleteLayer(const vcity::URI& uri)
 void ControllerGui::setLayerName(const vcity::URI& uri, const std::string& name)
 {
     Controller::setLayerName(uri, name);
-
-    //appGui().
-
+    appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str());
 }
 ////////////////////////////////////////////////////////////////////////////////

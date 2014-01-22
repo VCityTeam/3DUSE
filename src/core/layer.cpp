@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "layer.hpp"
+#include "application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -27,7 +28,7 @@ void Layer::addTile(Tile* tile)
 ////////////////////////////////////////////////////////////////////////////////
 Tile* Layer::getTile(const URI& uri)
 {
-    if(uri.getType() == "Tile")
+    if(uri.getDepth() > 1)
     {
         for(std::vector<Tile*>::iterator it = m_tiles.begin(); it < m_tiles.end(); ++it)
         {
@@ -58,16 +59,22 @@ void Layer::deleteTile(const URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityObject* Layer::getNode(const URI& uri)
 {
-    URI uriTile;
-    uriTile.append(uri.getNode(1));
-    uriTile.setType("Tile");
-    Tile* tile = getTile(uriTile);
+    Tile* tile = getTile(uri);
     if(tile)
     {
         return tile->getNode(uri);
     }
 
     return nullptr;
+}
+////////////////////////////////////////////////////////////////////////////////
+void Layer::dump()
+{
+    for(std::vector<Tile*>::iterator it=m_tiles.begin(); it<m_tiles.end(); ++it)
+    {
+        log() << "    " << (*it)->getName() << "\n";
+        //(*it)->dump();
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

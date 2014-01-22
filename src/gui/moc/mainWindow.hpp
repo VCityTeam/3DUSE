@@ -74,6 +74,7 @@ public slots:
     void exportOsga();
     void exportJSON();
     void debugDumpOsg();
+    void slotDumpScene();
 
     void about();
 

@@ -27,7 +27,7 @@ void Scene::addLayer(Layer* layer)
 ////////////////////////////////////////////////////////////////////////////////
 Layer* Scene::getLayer(const URI& uri)
 {
-    if(uri.getType() == "Layer")
+    if(uri.getDepth() > 0)
     {
         for(std::vector<Layer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
@@ -43,7 +43,7 @@ Layer* Scene::getLayer(const URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 const Layer* Scene::getLayer(const URI& uri) const
 {
-    if(uri.getType() == "Layer")
+    if(uri.getDepth() > 0)
     {
         for(std::vector<Layer*>::const_iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
@@ -150,13 +150,17 @@ void Scene::deleteTile(const URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityObject* Scene::getNode(const URI& uri)
 {
-    URI uriLayer;
-    uriLayer.append(uri.getNode(0));
-    uriLayer.setType("Layer");
-    Layer* layer = getLayer(uriLayer);
-    if(layer)
+    if(uri.getDepth() > 2)
     {
-        return layer->getNode(uri);
+        //URI uriLayer;
+        //uriLayer.append(uri.getNode(0));
+        //log() << "debug uri : " << uri.getNode(0) << "\n";
+        //uriLayer.setType("Layer");
+        Layer* layer = getLayer(uri);
+        if(layer)
+        {
+            return layer->getNode(uri);
+        }
     }
 
     return nullptr;
@@ -176,10 +180,11 @@ void Scene::reset()
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::dump()
 {
-    std::vector<Layer*>::iterator it;
-    for(it=m_layers.begin(); it<m_layers.end(); ++it)
+    log() << "root" << "\n";
+    for(std::vector<Layer*>::iterator it=m_layers.begin(); it<m_layers.end(); ++it)
     {
-        log() << (*it)->getName() << "\n";
+        log() << "  " << (*it)->getName() << "\n";
+        (*it)->dump();
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

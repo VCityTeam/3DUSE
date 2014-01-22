@@ -53,6 +53,8 @@ public:
     /// \return Ptr to CityGML node or nullptr
     citygml::CityObject* getNode(const URI& uri);
 
+    void dump();
+
 private:
     std::string m_name;             ///< layer name
     std::vector<Tile*> m_tiles;     ///< Tiles

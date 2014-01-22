@@ -16,6 +16,7 @@ class Application
 {
 public:
     Application();
+    ~Application();
 
     /// \brief getScene Get the scene
     /// \return The scene

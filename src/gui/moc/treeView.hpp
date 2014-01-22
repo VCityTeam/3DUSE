@@ -35,6 +35,9 @@ public:
 
     vcity::URI getURI(QTreeWidgetItem* item) const;
 
+    QTreeWidget* getTree();
+    QTreeWidgetItem* getCurrentItem();
+
 private slots:
     void slotAddTile();
     void slotEditTile();

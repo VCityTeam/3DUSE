@@ -17,12 +17,14 @@ DialogEditLayer::~DialogEditLayer()
 void DialogEditLayer::editLayer(const vcity::URI& uri)
 {
     vcity::Layer* layer = vcity::app().getScene().getLayer(uri);
-    setName(layer->getName().c_str());
-
-    if(exec() && !getName().isEmpty())
+    if(layer)
     {
-        setName(getName());
-        appGui().getControllerGui().setLayerName(uri, getName().toStdString());
+        setName(layer->getName().c_str());
+
+        if(exec() && !getName().isEmpty())
+        {
+            appGui().getControllerGui().setLayerName(uri, getName().toStdString());
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

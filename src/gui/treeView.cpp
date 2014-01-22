@@ -144,9 +144,19 @@ vcity::URI TreeView::getURI(QTreeWidgetItem* item) const
     return uri;
 }
 ////////////////////////////////////////////////////////////////////////////////
+QTreeWidget* TreeView::getTree()
+{
+    return m_tree;
+}
+////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::getCurrentItem()
+{
+    return m_tree->currentItem();
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
 {
-    std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
+    //std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
 
     // insane brute force hack :
     // every right click, remove all actions on the QTreeWidget
@@ -203,9 +213,6 @@ void TreeView::slotItemChanged(QTreeWidgetItem*, int)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
-    if(item->text(1) == "Root")
-        return;
-
     vcity::URI uri = getURI(item);
     vcity::log() << "slotItemClicked : " << uri.getStringURI() << "\n";
 

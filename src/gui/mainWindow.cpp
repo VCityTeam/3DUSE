@@ -41,9 +41,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // create Qt treeview
     m_treeView = new TreeView(m_ui->treeWidget, this);
+    m_app.setTreeView(m_treeView);
 
     // create controller
-    m_app.setController(new ControllerGui());
+
+    m_app.setControllerGui(new ControllerGui());
 
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);
@@ -54,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // create osg scene
     m_osgScene = new OsgScene();
+    m_app.setOsgScene(m_osgScene);
 
     // setup osgQt view
     m_osgView->setSceneData(m_osgScene);
@@ -92,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
     //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
     connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
+    connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 
     // LODs signals
@@ -1238,14 +1242,14 @@ void MainWindow::exportCityGML()
     }
 
     // check if something is picked
-    const std::set<std::string>& nodes = m_pickhandler->getNodesPicked();
+    const std::set<std::string>& nodes = m_pickhandler->getNodesPicked(); // TODO : update this with a uri list
     if(nodes.size() > 0)
     {
         std::cout << "Citygml export cityobject : " << *nodes.begin() << std::endl;
         // use first node picked
-        citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*nodes.begin());
+        //citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*nodes.begin()); // use getNode
         //citygml::exportCitygml(model, "test.citygml");
-        if(model) exporter.exportCityObject(model, filename.toStdString());
+        //if(model) exporter.exportCityObject(model, filename.toStdString());
     }
     else
     {
@@ -1289,6 +1293,11 @@ void MainWindow::exportJSON()
 void MainWindow::debugDumpOsg()
 {
     m_osgScene->dump();
+    m_app.getScene().dump();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotDumpScene()
+{
     m_app.getScene().dump();
 }
 ////////////////////////////////////////////////////////////////////////////////

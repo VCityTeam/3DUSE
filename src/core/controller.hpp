@@ -21,7 +21,7 @@ public:
 
     // layer
     virtual void addLayer(const std::string& name);
-    virtual void deleteLayer(const vcity::URI& URI);
+    virtual void deleteLayer(const vcity::URI& uri);
     virtual void setLayerName(const vcity::URI& uri, const std::string& name);
 };
 ////////////////////////////////////////////////////////////////////////////////
