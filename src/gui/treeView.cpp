@@ -163,12 +163,21 @@ void TreeView::addLayer(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::setLayerName(const vcity::URI& uri, const std::string& name)
 {
-
+    QTreeWidgetItem* item = getNode(uri);
+    if(item)
+    {
+        item->setText(0, name.c_str());
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::deleteLayer(const vcity::URI& uri)
 {
-
+    QTreeWidgetItem* tile = getNode(uri);
+    if(tile)
+    {
+        QTreeWidgetItem* parent = tile->parent();
+        parent->removeChild(tile);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void addTileRec(QTreeWidgetItem* parent, citygml::CityObject* node)
@@ -216,7 +225,11 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::setTileName(const vcity::URI& uri, std::string& name)
 {
-
+    QTreeWidgetItem* item = getNode(uri);
+    if(item)
+    {
+        item->setText(0, name.c_str());
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::deleteTile(const vcity::URI& uri)
@@ -412,7 +425,7 @@ void TreeView::slotEditLayer()
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteLayer()
 {
-
+    appGui().getControllerGui().deleteLayer(getURI(m_tree->currentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddBuilding()

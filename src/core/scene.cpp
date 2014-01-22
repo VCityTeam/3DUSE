@@ -86,6 +86,7 @@ void Scene::deleteLayer(const URI& uri)
             if(uri.getNode(0) == (*it)->getName())
             {
                 m_layers.erase(it);
+                delete *it;
             }
         }
     }

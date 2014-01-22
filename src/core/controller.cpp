@@ -30,9 +30,9 @@ void Controller::addLayer(const std::string& name)
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Controller::deleteLayer(const vcity::URI& URI)
+void Controller::deleteLayer(const vcity::URI& uri)
 {
-
+    app().getScene().deleteLayer(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Controller::setLayerName(const vcity::URI& uri, const std::string& name)

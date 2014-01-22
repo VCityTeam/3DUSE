@@ -61,6 +61,8 @@ void Layer::deleteTile(const URI& uri)
         if((*it)->getName() == tile->getName())
         {
             log() << "Tile " << tile->getName() << " removed from layer " << uri.getNode(0) << "\n";
+            m_tiles.erase(it);
+            delete tile;
         }
     }
 }

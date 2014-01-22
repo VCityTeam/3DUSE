@@ -22,11 +22,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
-
-    void setOsgData(osg::Node* scene);
-    void fillTreeView(vcity::Tile* tile);
-
-    //virtual void resizeEvent(QResizeEvent*);
     
 private:
 public:
