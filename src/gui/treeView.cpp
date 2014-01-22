@@ -221,7 +221,12 @@ void TreeView::setTileName(const vcity::URI& uri, std::string& name)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::deleteTile(const vcity::URI& uri)
 {
-
+    QTreeWidgetItem* tile = getNode(uri);
+    if(tile)
+    {
+        QTreeWidgetItem* parent = tile->parent();
+        parent->removeChild(tile);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
@@ -230,6 +235,7 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
     QTreeWidgetItem* current = root;
 
     int depth = uri.getDepth();
+    int maxDepth = depth;
 
     do
     {
@@ -237,7 +243,8 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
         for(int i=0; i<count; ++i)
         {
             QTreeWidgetItem* item = current->child(i);
-            if(item->text(0).toStdString() == uri.getNode(i))
+            vcity::log() << item->text(0).toStdString() << " -> " << uri.getNode(maxDepth-depth) << "\n";
+            if(item->text(0).toStdString() == uri.getNode(maxDepth-depth))
             {
                 current = item;
                 if(depth == 1) return item;
@@ -389,7 +396,7 @@ void TreeView::slotEditTile()
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteTile()
 {
-
+    appGui().getControllerGui().deleteTile(getURI(m_tree->currentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddLayer()

@@ -49,7 +49,10 @@ void Controller::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
     app().getScene().addTile(uriLayer, &tile);
 }
 ////////////////////////////////////////////////////////////////////////////////
-//void Controller::deleteTile(const vcity::URI& uri);
+void Controller::deleteTile(const vcity::URI& uri)
+{
+    app().getScene().deleteTile(uri);
+}
 ////////////////////////////////////////////////////////////////////////////////
 void Controller::setTileName(const vcity::URI& uri, const std::string& name)
 {

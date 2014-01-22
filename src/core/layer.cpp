@@ -54,7 +54,15 @@ const std::vector<Tile*>& Layer::getTiles() const
 ////////////////////////////////////////////////////////////////////////////////
 void Layer::deleteTile(const URI& uri)
 {
+    Tile* tile = getTile(uri);
 
+    for(std::vector<Tile*>::iterator it=m_tiles.begin(); it<m_tiles.end(); ++it)
+    {
+        if((*it)->getName() == tile->getName())
+        {
+            log() << "Tile " << tile->getName() << " removed from layer " << uri.getNode(0) << "\n";
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityObject* Layer::getNode(const URI& uri)
