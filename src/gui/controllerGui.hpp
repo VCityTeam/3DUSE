@@ -18,6 +18,11 @@ public:
     virtual void deleteLayer(const vcity::URI& uri);
     virtual void setLayerName(const vcity::URI& uri, const std::string& name);
 
+    // tile
+    virtual void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
+    //virtual void deleteTile(const vcity::URI& uri);
+    virtual void setTileName(const vcity::URI& uri, const std::string& name);
+
 private:
 };
 ////////////////////////////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 #define DIALOGEDITTILE_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogEditTile;
@@ -14,6 +15,11 @@ class DialogEditTile : public QDialog
 public:
     explicit DialogEditTile(QWidget *parent = 0);
     ~DialogEditTile();
+
+    void editTile(const vcity::URI& uri);
+
+    void setName(const QString& str);
+    QString getName() const;
 
 private:
     Ui::DialogEditTile *ui;

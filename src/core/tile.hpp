@@ -32,6 +32,7 @@ public:
     const citygml::CityModel* getCityModel() const;
 
     const std::string& getName() const;
+    void setName(const std::string& name);
     //osg::ref_ptr<osg::Node> getOsgRoot();
 
     //citygml::CityObject* findNode(const std::string& name);

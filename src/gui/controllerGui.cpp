@@ -14,6 +14,8 @@ void ControllerGui::reset()
     // unload scene
     // unload treeview
     // unload osg
+
+    // add first layer
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addNode(const vcity::URI& uri)
@@ -39,6 +41,25 @@ void ControllerGui::deleteLayer(const vcity::URI& uri)
 void ControllerGui::setLayerName(const vcity::URI& uri, const std::string& name)
 {
     Controller::setLayerName(uri, name);
+    appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str());
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
+{
+    Controller::addTile(uriLayer, tile);
+
+    // fill treeview
+    appGui().getTreeView()->addTile(uriLayer, tile);
+
+    // fill osg scene
+    appGui().getOsgScene()->addTile(uriLayer, tile);
+}
+////////////////////////////////////////////////////////////////////////////////
+//void ControllerGui::deleteTile(const vcity::URI& uri);
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
+{
+    Controller::setTileName(uri, name);
     appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str());
 }
 ////////////////////////////////////////////////////////////////////////////////

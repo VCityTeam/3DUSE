@@ -68,6 +68,15 @@ citygml::CityObject* Layer::getNode(const URI& uri)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
+URI Layer::getURI() const
+{
+    URI uri;
+    uri.append(getName());
+    uri.setType("Layer");
+
+    return uri;
+}
+////////////////////////////////////////////////////////////////////////////////
 void Layer::dump()
 {
     for(std::vector<Tile*>::iterator it=m_tiles.begin(); it<m_tiles.end(); ++it)

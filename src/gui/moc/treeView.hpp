@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <QTreeWidget>
 #include "core/URI.hpp"
+#include "core/application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 class MainWindow;
 ////////////////////////////////////////////////////////////////////////////////
@@ -37,6 +38,16 @@ public:
 
     QTreeWidget* getTree();
     QTreeWidgetItem* getCurrentItem();
+
+    void addLayer(const vcity::URI& uri);
+    void setLayerName(const vcity::URI& uri, const std::string& name);
+    void deleteLayer(const vcity::URI& uri);
+
+    void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
+    void setTileName(const vcity::URI& uri, std::string& name);
+    void deleteTile(const vcity::URI& uri);
+
+    QTreeWidgetItem* getNode(const vcity::URI& uri);
 
 private slots:
     void slotAddTile();

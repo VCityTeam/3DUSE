@@ -503,13 +503,16 @@ bool MainWindow::loadFile(const QString& filepath)
 
         // add tile
         vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
-        m_app.getScene().getLayers()[0]->addTile(tile);
-        m_osgScene->addTile(*tile);
-        m_osgView->centerCamera();
+        vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
+        vcity::log() << uriLayer.getStringURI() << "\n";
+        appGui().getControllerGui().addTile(uriLayer, *tile);
+        //m_app.getScene().getLayers()[0]->addTile(tile);
+        //m_osgScene->addTile(*tile);
+        //m_osgView->centerCamera();
 
 
         //setOsgData(buildOsgScene(*tile));
-        fillTreeView(tile);
+        //fillTreeView(tile); -> put in controller
 
          QStringList list = settings.value("recentfiles").toStringList();
          list.append(filepath);

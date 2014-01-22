@@ -1,38 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <author/>
- <comment/>
- <exportmacro/>
  <class>DialogEditTile</class>
- <widget name="DialogEditTile" class="QDialog">
+ <widget class="QDialog" name="DialogEditTile">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>376</width>
+    <height>108</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Edit tile</string>
   </property>
-  <widget name="buttonBox" class="QDialogButtonBox">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>240</y>
-     <width>341</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string> Name : </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
- <pixmapfunction/>
  <resources/>
  <connections>
   <connection>

@@ -102,10 +102,7 @@ void Scene::addTile(const URI& uriLayer, Tile* tile)
 ////////////////////////////////////////////////////////////////////////////////
 Tile* Scene::getTile(const URI& uri)
 {
-    URI uriLayer;
-    uriLayer.append(uri.getNode(0));
-    uriLayer.setType("Layer");
-    Layer* layer = getLayer(uriLayer);
+    Layer* layer = getLayer(uri);
     if(layer)
     {
         return layer->getTile(uri);
@@ -138,10 +135,7 @@ const std::vector<Tile*>& Scene::getTiles(const URI& uriLayer) const
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::deleteTile(const URI& uri)
 {
-    URI uriLayer;
-    uriLayer.append(uri.getNode(0));
-    uriLayer.setType("Layer");
-    Layer* layer = getLayer(uriLayer);
+    Layer* layer = getLayer(uri);
     if(layer)
     {
         return layer->deleteTile(uri);

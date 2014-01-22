@@ -2,6 +2,7 @@
 #include "moc/treeView.hpp"
 #include "moc/mainWindow.hpp"
 #include "moc/dialogEditLayer.hpp"
+#include "moc/dialogEditTile.hpp"
 #include "moc/dialogEditBldg.hpp"
 #include "core/application.hpp"
 #include <iostream>
@@ -154,6 +155,101 @@ QTreeWidgetItem* TreeView::getCurrentItem()
     return m_tree->currentItem();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::addLayer(const vcity::URI& uri)
+{
+    QTreeWidgetItem* layer = addItemLayer(uri.getNode(0).c_str());
+    m_tree->topLevelItem(0)->addChild(layer);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::setLayerName(const vcity::URI& uri, const std::string& name)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::deleteLayer(const vcity::URI& uri)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void addTileRec(QTreeWidgetItem* parent, citygml::CityObject* node)
+{
+    QTreeWidgetItem* item = new QTreeWidgetItem(parent, QStringList(node->getId().c_str()));
+    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    item->setCheckState(0, Qt::Checked);
+    item->setText(1, node->getTypeAsString().c_str());
+
+    citygml::CityObjects& cityObjects = node->getChildren();
+    //std::cout << "child size : " << cityObject.size() << std::endl;
+    citygml::CityObjects::iterator it = cityObjects.begin();
+    for( ; it != cityObjects.end(); ++it)
+    {
+        addTileRec(item, *it);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
+{
+    m_tree->blockSignals(true);
+
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    //QTreeWidgetItem* root = 0;
+    QTreeWidgetItem* layer = getNode(uriLayer);
+
+    QTreeWidgetItem* item = new QTreeWidgetItem(layer, QStringList(tile.getName().c_str()));
+    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    item->setCheckState(0, Qt::Checked);
+    item->setText(1, "Tile");
+
+    citygml::CityModel* citymodel = tile.getCityModel();
+    citygml::CityObjects& cityObjects = citymodel->getCityObjectsRoots();
+    //std::cout << "root size : " << cityObjects.size() << std::endl;
+    citygml::CityObjects::iterator it = cityObjects.begin();
+    for( ; it != cityObjects.end(); ++it)
+    {
+        addTileRec(item, *it);
+    }
+
+    m_tree->expandToDepth(0);
+
+    m_tree->blockSignals(false);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::setTileName(const vcity::URI& uri, std::string& name)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::deleteTile(const vcity::URI& uri)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
+{
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    QTreeWidgetItem* current = root;
+
+    int depth = uri.getDepth();
+
+    do
+    {
+        int count = current->childCount();
+        for(int i=0; i<count; ++i)
+        {
+            QTreeWidgetItem* item = current->child(i);
+            if(item->text(0).toStdString() == uri.getNode(i))
+            {
+                current = item;
+                if(depth == 1) return item;
+                break;
+            }
+        }
+        --depth;
+    } while(depth >= 0);
+
+    return nullptr;
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
 {
     //std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
@@ -287,7 +383,8 @@ void TreeView::slotAddTile()
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotEditTile()
 {
-
+    DialogEditTile diag;
+    diag.editTile(getURI(m_tree->currentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteTile()

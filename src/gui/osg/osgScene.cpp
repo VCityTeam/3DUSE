@@ -140,12 +140,12 @@ void OsgScene::init()
     m_effectNone->addChild(m_layers);
 
     // build first default layer
-    osg::ref_ptr<osg::Switch> layer0 = new osg::Switch();
-    layer0->setName("layer0");
+    osg::ref_ptr<osg::Group> layer0 = new osg::Group();
+    layer0->setName("layer_CityGML");
     m_layers->addChild(layer0);
 
     // build lods node
-    m_lods = new osg::Group();
+    /*m_lods = new osg::Group();
     m_lods->setName("lods");
     layer0->addChild(m_lods);
 
@@ -189,7 +189,7 @@ void OsgScene::init()
 
     m_tilesLod4 = new osg::Group();
     m_tilesLod4->setName("tiles_lod4");
-    lod4->addChild(m_tilesLod4);
+    lod4->addChild(m_tilesLod4);*/
 
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
@@ -199,15 +199,61 @@ void OsgScene::init()
     //m_layers->addChild(bbox);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::addTile(const vcity::Tile &tile)
+void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
 {
-    osg::ref_ptr<osg::Node> node = buildTile(tile);
-    m_tilesLod3->addChild(node);
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+        {
+            osg::ref_ptr<osg::Node> osgTile = buildTile(tile);
+            layerGroup->addChild(osgTile);
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::addLayer(const std::string& /*name*/)
+void OsgScene::setTileName(const vcity::URI& uriTile, const std::string& name)
 {
-
+    osg::ref_ptr<osg::Node> tile = getNode(uriTile);
+    if(tile)
+    {
+        tile->setName(name);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::deleteTile(const vcity::URI& uriTile)
+{
+    osg::ref_ptr<osg::Node> tile = getNode(uriTile);
+    if(tile)
+    {
+        tile->getParent(0)->removeChild(tile);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addLayer(const std::string& name)
+{
+    osg::ref_ptr<osg::Group> layer = new osg::Group();
+    layer->setName(name);
+    m_layers->addChild(layer);
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::setLayerName(const vcity::URI& uriLayer, const std::string& name)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        layer->setName(name);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::deleteLayer(const vcity::URI& uriLayer)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        layer->getParent(0)->removeChild(layer);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 int OsgScene::getNbTiles() const
@@ -425,6 +471,13 @@ osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
 
     //m_rootOsg = root;
     return root;
+}
+////////////////////////////////////////////////////////////////////////////////
+osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
+{
+    FindNamedNode f(uri.getLastNode());
+    accept(f);
+    return f.getNode();
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n)

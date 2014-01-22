@@ -53,6 +53,8 @@ public:
     /// \return Ptr to CityGML node or nullptr
     citygml::CityObject* getNode(const URI& uri);
 
+    URI getURI() const;
+
     void dump();
 
 private:
