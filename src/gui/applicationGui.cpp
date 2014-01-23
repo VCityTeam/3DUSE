@@ -57,12 +57,12 @@ void ApplicationGui::setTextBowser(QTextBrowser* textBrowser)
     m_textBrowser = textBrowser;
 }
 ////////////////////////////////////////////////////////////////////////////////
-Ui::MainWindow* ApplicationGui::getMainWindow()
+MainWindow* ApplicationGui::getMainWindow()
 {
     return m_mainWindow;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ApplicationGui::setMainWindow(Ui::MainWindow* window)
+void ApplicationGui::setMainWindow(MainWindow* window)
 {
     m_mainWindow = window;
 }

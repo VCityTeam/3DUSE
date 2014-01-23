@@ -4,10 +4,21 @@
 #include <osgFX/Scribe>
 #include <iostream>
 #include <algorithm>
+#include "gui/moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::addNodePicked(const std::string& name)
 {
     m_nodesPicked.insert(name);
+}
+////////////////////////////////////////////////////////////////////////////////
+void PickHandler::addNodePicked(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+    if(node)
+    {
+        addNodePicked(node);
+        toggleSelected(node);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::removeNodePicked(const std::string& name)
@@ -79,6 +90,11 @@ void PickHandler::updateLabel()
     }
 
     appGui().getTextBrowser()->setText(ss.str().c_str());
+}
+////////////////////////////////////////////////////////////////////////////////
+void PickHandler::updateLabel(const vcity::URI& uri)
+{
+    appGui().getMainWindow()->updateTextBox(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 //osg::Node* nodePicked = 0;
@@ -214,7 +230,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             vcity::URI uri = osgTools::getURI(node);
             citygml::CityObject* obj = appGui().getScene().getNode(uri);
             //citygml::CityObject* obj = m_scene->findNode(node->getName());
-            while(obj && obj->getTypeAsString() != "Building")
+            while(obj && (obj->getTypeAsString() != "Building"))// || obj->getTypeAsString() != "TINRelief" ))
             {
                 if(node->getNumParents() > 0)
                 {
@@ -244,7 +260,9 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             toggleSelected(node);
         }
 
-        updateLabel();
+        node = node->getParent(0);
+        appGui().getTreeView()->selectItem(osgTools::getURI(node));
+        updateLabel(osgTools::getURI(node));
 
         //toggleSelected(node);
         //nodePicked = node;

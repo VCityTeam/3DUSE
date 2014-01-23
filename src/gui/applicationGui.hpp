@@ -7,9 +7,7 @@
 #include "osg/osgScene.hpp"
 #include "moc/treeView.hpp"
 ////////////////////////////////////////////////////////////////////////////////
-namespace Ui {
-class MainWindow;
-}
+//class MainWindow;
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ApplicationGui class
 /// Stores Common gui application data
@@ -31,15 +29,15 @@ public:
     QTextBrowser* getTextBrowser();
     void setTextBowser(QTextBrowser* textBrowser);
 
-    Ui::MainWindow* getMainWindow();
-    void setMainWindow(Ui::MainWindow* window);
+    MainWindow* getMainWindow();
+    void setMainWindow(MainWindow* window);
 
 private:
     ControllerGui* m_controllerGui;     ///< controller, needs to be allocated outside
     osg::ref_ptr<OsgScene> m_osgScene;  ///< osg scene (for rendering)
     TreeView* m_treeView;               ///< Qt treeview
     QTextBrowser* m_textBrowser;        ///< Text browser to wrtite msg
-    Ui::MainWindow* m_mainWindow;       ///< Main window
+    MainWindow* m_mainWindow;       ///< Main window
 };
 ////////////////////////////////////////////////////////////////////////////////
 ApplicationGui& appGui();

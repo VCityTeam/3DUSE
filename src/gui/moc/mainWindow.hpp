@@ -44,6 +44,7 @@ public:
     void reset();           ///< reset ui : treeview, text box...
 
     void updateTextBox(const std::stringstream& ss);
+    void updateTextBox(const vcity::URI& uri);
 
 public slots:
     void loadScene();

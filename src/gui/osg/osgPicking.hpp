@@ -81,19 +81,22 @@ public:
 
     void resetPicking();
 
-protected:
+public:
     void pickPoint(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
     void pickRectangle(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
     void toggleSelected(osg::Node* node, osg::Group* parent = NULL, bool forceUnselect = false);
 
     void addNodePicked(const std::string& name);
+    void addNodePicked(const vcity::URI& uri);
     void removeNodePicked(const std::string& name);
 
     void addNodePicked(osg::ref_ptr<osg::Node> node);
     void removeNodePicked(osg::ref_ptr<osg::Node> node);
 
     void updateLabel();
+    void updateLabel(const vcity::URI& uri);
 
+protected:
     float m_mx, m_my;
 
     int m_pickingMode;  ///< 0: face, 1: building

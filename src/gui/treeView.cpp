@@ -122,13 +122,14 @@ QTreeWidgetItem* TreeView::addItemLayer(const QString& name)
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::deleteItem(const std::string& /*URI*/)
+void TreeView::deleteItem(const vcity::URI& uri)
 {
-}
-////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::findItem(const vcity::URI& /*URI*/) const
-{
-    return 0;
+    QTreeWidgetItem* tile = getNode(uri);
+    if(tile)
+    {
+        QTreeWidgetItem* parent = tile->parent();
+        parent->removeChild(tile);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 vcity::URI TreeView::getURI(QTreeWidgetItem* item) const
@@ -243,6 +244,12 @@ void TreeView::deleteTile(const vcity::URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::selectItem(const vcity::URI& uri)
+{
+    QTreeWidgetItem* item = getNode(uri);
+    item->setSelected(true);
+}
+////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 {
     QTreeWidgetItem* root = m_tree->topLevelItem(0);
@@ -281,43 +288,43 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
 
     resetActions();
 
-    if(item->text(1).toStdString() == "Root")
+    if(item->text(1) == "Root")
     {
-        std::cout << "Root" << std::endl;
+        //std::cout << "Root" << std::endl;
         m_tree->addAction(m_actionAddLayer);
     }
-    else if(item->text(1).toStdString() == "Layer")
+    else if(item->text(1) == "Layer")
     {
-        std::cout << "Layer" << std::endl;
+        //std::cout << "Layer" << std::endl;
         m_tree->addAction(m_actionDeleteLayer);
         m_tree->addAction(m_actionEditLayer);
         m_tree->addAction(m_actionAddTile);
     }
-    else if(item->text(1).toStdString() == "Tile")
+    else if(item->text(1) == "Tile")
     {
-        std::cout << "Layer" << std::endl;
+        //std::cout << "Layer" << std::endl;
         m_tree->addAction(m_actionDeleteTile);
         m_tree->addAction(m_actionEditTile);
         m_tree->addAction(m_actionAddBuilding);
     }
-    else if(item->text(1).toStdString() == "Building")
+    else if(item->text(1) == "Building")
     {
-        std::cout << "Building" << std::endl;
+        //std::cout << "Building" << std::endl;
         m_tree->addAction(m_actionDeleteBuilding);
         m_tree->addAction(m_actionEditBuilding);
         m_tree->addAction(m_actionAddTag);
         m_tree->addAction(m_actionAddFlag);
         m_tree->addAction(m_actionAddDynFlag);
     }
-    else if(item->text(1).toStdString() == "Tag")
+    else if(item->text(1) == "Tag")
     {
-        std::cout << "Tag" << std::endl;
+        //std::cout << "Tag" << std::endl;
         m_tree->addAction(m_actionDeleteTag);
         m_tree->addAction(m_actionEditTag);
     }
-    else if(item->text(1).toStdString() == "Flag")
+    else if(item->text(1) == "Flag")
     {
-        std::cout << "Flag" << std::endl;
+        //std::cout << "Flag" << std::endl;
         m_tree->addAction(m_actionDeleteFlag);
         m_tree->addAction(m_actionEditFlag);
     }
@@ -331,16 +338,32 @@ void TreeView::slotItemChanged(QTreeWidgetItem*, int)
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
+    m_mainWindow->updateTextBox(uri);
     //vcity::log() << "slotItemClicked : " << uri.getStringURI() << "\n";
+
+    /*std::stringstream ss;
+    ss << uri.getStringURI() << std::endl;
 
     citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
     if(obj)
     {
-        appGui().getTextBrowser()->setText(uri.getStringURI().c_str());
-        //vcity::log() << "node : " << obj->getId() << "\n";
+        ss << "Node id : " << obj->getId() << std::endl;
 
-        //
+        ss << "Attributes : " << std::endl;
+        citygml::AttributesMap attribs = obj->getAttributes();
+        citygml::AttributesMap::const_iterator it = attribs.begin();
+        while ( it != attribs.end() )
+        {
+            ss << " + " << it->first << ": " << it->second << std::endl;
+            ++it;
+        }
+
+        m_mainWindow->m_pickhandler->resetPicking();
+        m_mainWindow->m_pickhandler->addNodePicked(uri);
     }
+
+    //appGui().getMainWindow()->updateTextBox(ss);
+    m_mainWindow->updateTextBox(ss);*/
 
 
     /*std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;

@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     m_ui->setupUi(this);
 
-    m_app.setMainWindow(m_ui);
+    m_app.setMainWindow(this);
 
     // create Qt treeview
     m_treeView = new TreeView(m_ui->treeWidget, this);
@@ -115,26 +115,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui->menuDebug->setVisible(false);
 
     reset();
-
-    // set context menu
-    //m_ui->treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-
-    //QAction* select = new QAction("Select", NULL);
-    //QAction* insertChild = new QAction("Insert child", NULL);
-    //QAction* deleteNode = new QAction("Delete node", NULL);
-    //QAction* showInfo = new QAction("Show info", NULL);
-
-    //m_ui->treeWidget->addAction(select);
-    //m_ui->treeWidget->addAction(insertChild);
-    //m_ui->treeWidget->addAction(deleteNode);
-    //m_ui->treeWidget->addAction(showInfo);
-
-    //connect(select, SIGNAL(triggered()), this, SLOT(selectNodeHandler()));
-    //connect(insertChild, SIGNAL(triggered()), this, SLOT(insertChildHandler()));
-    //connect(deleteNode, SIGNAL(triggered()), this, SLOT(deleteNodeHandler()));
-    //connect(showInfo, SIGNAL(triggered()), this, SLOT(showInfoHandler()));
-
-    //connect(m_ui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(selectNodeHandler(QTreeWidgetItem*, int)));
 
     updateRecentFiles();
 
@@ -650,30 +630,39 @@ void MainWindow::loadSceneBBox()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTextBox(const std::stringstream& ss)
 {
+    m_ui->textBrowser->setText(ss.str().c_str());
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::updateTextBox(const vcity::URI& uri)
+{
+    std::stringstream ss;
+    ss << uri.getStringURI() << std::endl;
 
+    citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
+    if(obj)
+    {
+        ss << "Node id : " << obj->getId() << std::endl;
+
+        ss << "Attributes : " << std::endl;
+        citygml::AttributesMap attribs = obj->getAttributes();
+        citygml::AttributesMap::const_iterator it = attribs.begin();
+        while ( it != attribs.end() )
+        {
+            ss << " + " << it->first << ": " << it->second << std::endl;
+            ++it;
+        }
+
+        m_pickhandler->resetPicking();
+        m_pickhandler->addNodePicked(uri);
+    }
+
+    updateTextBox(ss);
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Tools
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::reset()
 {
-    // reset treeview
-    /*m_ui->treeWidget->clear();
-
-    // add root element
-    QTreeWidgetItem* item = new QTreeWidgetItem(m_ui->treeWidget, QStringList("root"));
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Checked);
-    item->setText(1, "Root");
-
-    //item = 0;
-    //item->setText(1, "new");
-
-    QTreeWidgetItem* itemlayer = new QTreeWidgetItem(item, QStringList("layer0"));
-    itemlayer->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    itemlayer->setCheckState(0, Qt::Checked);
-    itemlayer->setText(1, "Layer");*/
-
     // reset text box
     m_ui->textBrowser->clear();
 }
@@ -1106,14 +1095,6 @@ void MainWindow::optionShowAdvancedTools()
         m_ui->menuDebug->hide();
     }
 }
-////////////////////////////////////////////////////////////////////////////////
-/*void MainWindow::resizeEvent(QResizeEvent* event)
-{
-    QWidget::resizeEvent(event);
-    //m_ui->widget->resize(event->size());
-    //m_ui->widget->setGeometry(0, 0, event->size().width(), event->size().height());
-    std::cout << "resize main window" << std::endl;
-}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {

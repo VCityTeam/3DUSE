@@ -32,8 +32,6 @@ public:
     void deleteItem(const std::string& URI);
     void deleteItem(const vcity::URI& URI);
 
-    QTreeWidgetItem* findItem(const vcity::URI& URI) const;
-
     vcity::URI getURI(QTreeWidgetItem* item) const;
 
     QTreeWidget* getTree();
@@ -46,6 +44,10 @@ public:
     void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
     void setTileName(const vcity::URI& uri, std::string& name);
     void deleteTile(const vcity::URI& uri);
+
+    /// \brief selectItem Select item in treeview
+    /// \param uri
+    void selectItem(const vcity::URI& uri);
 
     QTreeWidgetItem* getNode(const vcity::URI& uri);
 
