@@ -330,9 +330,12 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotItemChanged(QTreeWidgetItem*, int)
+void TreeView::slotItemChanged(QTreeWidgetItem* item, int column)
 {
-
+    Qt::CheckState state = item->checkState(0);
+    bool show = true;
+    if(state == Qt::CheckState::Unchecked) show = false;
+    appGui().getOsgScene()->showNode(getURI(item), show);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)

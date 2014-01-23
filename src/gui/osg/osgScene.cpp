@@ -402,6 +402,27 @@ void OsgScene::reset()
     init();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
+{
+    if(node)
+    {
+        node->setNodeMask(0xffffffff - node->getNodeMask());
+        /*if(show)
+        {
+            node->setNodeMask(~0x0);
+        }
+        else
+        {
+            node->setNodeMask(0x0);
+        }*/
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::showNode(const vcity::URI& uri, bool show)
+{
+    showNode(getNode(uri), show);
+}
+////////////////////////////////////////////////////////////////////////////////
 void OsgScene::dump(std::ostream& out, osg::ref_ptr<osg::Node> node, int depth)
 {
     if(node == NULL)

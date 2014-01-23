@@ -81,6 +81,9 @@ public:
 
     void reset();
 
+    void showNode(osg::ref_ptr<osg::Node> node, bool show);
+    void showNode(const vcity::URI& uri, bool show);
+
     void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth=0);
 
     osg::ref_ptr<osg::Geode> buildGrid(osg::Vec3 origin, float step, int n);
