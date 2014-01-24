@@ -6,6 +6,11 @@
 #include <algorithm>
 #include "gui/moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
+PickHandler::PickHandler()
+    : m_mx(0.0),m_my(0.0), m_pickingMode(1), m_addToSelection(false)
+{
+}
+////////////////////////////////////////////////////////////////////////////////
 void PickHandler::addNodePicked(const std::string& name)
 {
     m_nodesPicked.insert(name);
@@ -58,11 +63,6 @@ void PickHandler::resetPicking()
 
     m_osgNodesPicked.clear();
     m_nodesPicked.clear();
-}
-////////////////////////////////////////////////////////////////////////////////
-PickHandler::PickHandler()
-    : m_mx(0.0),m_my(0.0), m_pickingMode(1), m_addToSelection(false)
-{
 }
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::updateLabel()
@@ -160,6 +160,10 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
                  toggleSelected(m_osgNodesPicked[0]); // unselect last node
                  m_osgNodesPicked[0] = (m_osgNodesPicked[0]->getNumParents() > 0) ? m_osgNodesPicked[0]->getParent(0) : m_osgNodesPicked[0];
                  toggleSelected(m_osgNodesPicked[0]);
+
+                 //std::cout << "+ picking uri : " << osgTools::getURI(m_osgNodesPicked[0]).getStringURI() << std::endl;
+                 //appGui().getTreeView()->selectItem(osgTools::getURI(m_osgNodesPicked[0]));
+                 //updateLabel(osgTools::getURI(m_osgNodesPicked[0]));
              }
              return true;
              break;
@@ -260,7 +264,8 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             toggleSelected(node);
         }
 
-        node = node->getParent(0);
+        //node = node->getParent(0);
+        std::cout << "picking uri : " << osgTools::getURI(node).getStringURI() << std::endl;
         appGui().getTreeView()->selectItem(osgTools::getURI(node));
         updateLabel(osgTools::getURI(node));
 

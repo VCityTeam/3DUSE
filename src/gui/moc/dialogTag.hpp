@@ -2,6 +2,7 @@
 #define DIALOGTAG_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogTag;
@@ -14,6 +15,8 @@ class DialogTag : public QDialog
 public:
     explicit DialogTag(QWidget *parent = 0);
     ~DialogTag();
+
+    void addTag(const vcity::URI& uri);
 
 private:
     Ui::DialogTag *ui;

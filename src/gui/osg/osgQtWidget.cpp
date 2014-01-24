@@ -34,6 +34,8 @@ public:
     }
 };
 ////////////////////////////////////////////////////////////////////////////////
+osg::Matrixd mat;
+////////////////////////////////////////////////////////////////////////////////
 class CameraHandler : public osgGA::GUIEventHandler
 {
 public:
@@ -114,6 +116,16 @@ public:
                         m_speed += 5.0f;
                     else
                         fpsCam->moveRight(m_speed);
+                    break;
+                }
+                case osgGA::GUIEventAdapter::KEY_I:
+                {
+                    mat = fpsCam->getMatrix();
+                    break;
+                }
+                case osgGA::GUIEventAdapter::KEY_O:
+                {
+                    fpsCam->setByMatrix(mat);
                     break;
                 }
                 default:

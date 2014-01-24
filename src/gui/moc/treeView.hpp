@@ -23,6 +23,7 @@ public:
     void reset();
 
     QTreeWidgetItem* addItemGeneric(const QString& name, const QString& type);
+    QTreeWidgetItem* addItemGeneric(const vcity::URI& uri, const QString& name, const QString& type);
     QTreeWidgetItem* addItemRoot();
     QTreeWidgetItem* addItemLayer(const QString& name);
 
@@ -74,6 +75,8 @@ private slots:
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem*, int);
     void slotItemClicked(QTreeWidgetItem*,int);
+
+    void slotFilter();
 
 private:
     void resetActions();
