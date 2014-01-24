@@ -445,7 +445,29 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
     if(obj)
     {
-        ss << "Node id : " << obj->getId() << std::endl;
+        ss << "ID : " << obj->getId() << std::endl;
+        ss << "Type : " << obj->getTypeAsString() << std::endl;
+        ss << "Temporal : " << obj->isTemporal() << std::endl;
+
+        // get textures
+        // parse geometry
+        std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
+        std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin();
+        for(; itGeom != geoms.end(); ++itGeom)
+        {
+            // parse polygons
+            std::vector<citygml::Polygon*>& polys = (*itGeom)->getPolygons();
+            std::vector<citygml::Polygon*>::iterator itPoly = polys.begin();
+            for(; itPoly != polys.end(); ++itPoly)
+            {
+                const citygml::Texture* tex = (*itPoly)->getTexture();
+                if(tex)
+                {
+                    ss << "Texture : " << tex->getUrl() << std::endl;
+                }
+            }
+
+        }
 
         ss << "Attributes : " << std::endl;
         citygml::AttributesMap attribs = obj->getAttributes();
@@ -728,6 +750,11 @@ void MainWindow::test2()
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13724/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13725/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13724/export-CityGML/ZoneAExporter.gml");
+
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13726/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
