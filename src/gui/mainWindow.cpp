@@ -77,7 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
     connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
     connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
-    connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
+    //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
     connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
     connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
     connect(m_ui->actionBuilding, SIGNAL(triggered()), this, SLOT(optionPickBuiling()));
@@ -85,12 +85,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
     connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
     connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(optionSettings()));
-    connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
-    connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
+    //connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
+    //connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
     connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
     connect(m_ui->checkBoxTemporalTools, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
     connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
-    connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
+    //connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
     connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
     connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
     //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
@@ -456,8 +456,8 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
             ++it;
         }
 
-        m_pickhandler->resetPicking();
-        m_pickhandler->addNodePicked(uri);
+        //m_pickhandler->resetPicking();
+        //m_pickhandler->addNodePicked(uri);
     }
 
     updateTextBox(ss);

@@ -406,15 +406,21 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 {
     if(node)
     {
-        node->setNodeMask(0xffffffff - node->getNodeMask());
-        /*if(show)
+        std::cout << "mask : " << 0xffffffff - node->getNodeMask() << std::endl;
+        std::cout << "node : " << node.operator->() << std::endl;
+
+        //node->setNodeMask(0xffffffff - node->getNodeMask());
+        //node->setNodeMask(0x0);
+        //node->setNodeMask(0xffffffff);
+        if(show)
         {
-            node->setNodeMask(~0x0);
+            //node->setNodeMask(~0x0);
+            node->setNodeMask(0xffffffff);
         }
         else
         {
             node->setNodeMask(0x0);
-        }*/
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

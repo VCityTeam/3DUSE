@@ -284,7 +284,7 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
         for(int i=0; i<count; ++i)
         {
             QTreeWidgetItem* item = current->child(i);
-            vcity::log() << item->text(0).toStdString() << " -> " << uri.getNode(maxDepth-depth) << "\n";
+            //vcity::log() << item->text(0).toStdString() << " -> " << uri.getNode(maxDepth-depth) << "\n";
             if(item->text(0).toStdString() == uri.getNode(maxDepth-depth))
             {
                 current = item;
@@ -293,7 +293,7 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
             }
         }
         --depth;
-    } while(depth >= 0);
+    } while(depth > 0);
 
     return nullptr;
 }
