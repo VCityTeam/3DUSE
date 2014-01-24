@@ -22,11 +22,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
-
-    void setOsgData(osg::Node* scene);
-    void fillTreeView(vcity::Tile* tile);
-
-    //virtual void resizeEvent(QResizeEvent*);
     
 private:
 public:
@@ -48,12 +43,15 @@ public:
 
     void reset();           ///< reset ui : treeview, text box...
 
+    void updateTextBox(const std::stringstream& ss);
+    void updateTextBox(const vcity::URI& uri);
+
+    QLineEdit* getFilter();
+
 public slots:
     void loadScene();
     void loadSceneRecursive();
     void loadSceneBBox();
-    void handleTreeView(QTreeWidgetItem* item, int column);
-    void deleteNode();
     void resetScene();
     void clearSelection();
     void optionPickBuiling();
@@ -61,9 +59,6 @@ public slots:
     void optionInfoBubbles();
     void optionShadow();
     void optionSettings();
-    void optionAddTag();
-    void optionAddFlag();
-    void optionAddDynFlag();
     void optionShowTemporalTools();
     void optionShowAdvancedTools();
     void clearRecentFiles(bool removeAll = true);
@@ -74,6 +69,7 @@ public slots:
     void exportOsga();
     void exportJSON();
     void debugDumpOsg();
+    void slotDumpScene();
 
     void about();
 
@@ -85,12 +81,6 @@ public slots:
 
 private slots:
     void openRecentFile();
-
-    void selectNodeHandler();
-    void selectNodeHandler(QTreeWidgetItem* item, int column);
-    void insertChildHandler();
-    void deleteNodeHandler();
-    void showInfoHandler();
 
     void generateAllLODs();
     void generateLOD0();

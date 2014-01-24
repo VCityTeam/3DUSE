@@ -39,11 +39,16 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     m_ui->setupUi(this);
 
+    m_app.setMainWindow(this);
+
     // create Qt treeview
     m_treeView = new TreeView(m_ui->treeWidget, this);
+    m_app.setTreeView(m_treeView);
+    m_app.setTextBowser(m_ui->textBrowser);
 
     // create controller
-    m_app.setController(new ControllerGui(&m_app));
+
+    m_app.setControllerGui(new ControllerGui());
 
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);
@@ -54,12 +59,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // create osg scene
     m_osgScene = new OsgScene();
+    m_app.setOsgScene(m_osgScene);
 
     // setup osgQt view
     m_osgView->setSceneData(m_osgScene);
-    m_pickhandler->setPickHandlerTextBox(m_ui->textBrowser);
-    m_pickhandler->setPickHandlerScene(&m_app.getScene());
-    m_pickhandler->setPickHandlerTreeView(m_ui->treeWidget);
 
     // init gdal
     GDALAllRegister();
@@ -92,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
     //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
     connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
+    connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 
     // LODs signals
@@ -108,29 +112,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionTest_4, SIGNAL(triggered()), this, SLOT(test4()));
     connect(m_ui->actionTest_5, SIGNAL(triggered()), this, SLOT(test5()));
 
+    // filter search
+    connect(m_ui->filterButton, SIGNAL(clicked()), m_treeView, SLOT(slotFilter()));
+
     m_ui->menuDebug->setVisible(false);
 
     reset();
-
-    // set context menu
-    //m_ui->treeWidget->setContextMenuPolicy(Qt::ActionsContextMenu);
-
-    //QAction* select = new QAction("Select", NULL);
-    //QAction* insertChild = new QAction("Insert child", NULL);
-    //QAction* deleteNode = new QAction("Delete node", NULL);
-    //QAction* showInfo = new QAction("Show info", NULL);
-
-    //m_ui->treeWidget->addAction(select);
-    //m_ui->treeWidget->addAction(insertChild);
-    //m_ui->treeWidget->addAction(deleteNode);
-    //m_ui->treeWidget->addAction(showInfo);
-
-    //connect(select, SIGNAL(triggered()), this, SLOT(selectNodeHandler()));
-    //connect(insertChild, SIGNAL(triggered()), this, SLOT(insertChildHandler()));
-    //connect(deleteNode, SIGNAL(triggered()), this, SLOT(deleteNodeHandler()));
-    //connect(showInfo, SIGNAL(triggered()), this, SLOT(showInfoHandler()));
-
-    //connect(m_ui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*, int)), this, SLOT(selectNodeHandler(QTreeWidgetItem*, int)));
 
     updateRecentFiles();
 
@@ -141,292 +128,6 @@ MainWindow::~MainWindow()
 {
     delete m_osgView;
     delete m_ui;
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::setOsgData(osg::Node* scene)
-{
-    m_osgScene->addChild(scene);
-    //m_osgView->setSceneData(scene);
-
-    // force camera recenter
-    //m_osgView->m_osgView->getCamera()->
-}
-////////////////////////////////////////////////////////////////////////////////
-void fillTreeViewRec(QTreeWidgetItem* parent, citygml::CityObject* node)
-{
-    QTreeWidgetItem* item = new QTreeWidgetItem(parent, QStringList(node->getId().c_str()));
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Checked);
-    item->setText(1, node->getTypeAsString().c_str());
-
-    citygml::CityObjects& cityObjects = node->getChildren();
-    //std::cout << "child size : " << cityObject.size() << std::endl;
-    citygml::CityObjects::iterator it = cityObjects.begin();
-    for( ; it != cityObjects.end(); ++it)
-    {
-        fillTreeViewRec(item, *it);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::fillTreeView(vcity::Tile* tile)
-{
-    // need fix !
-    //disconnect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
-    m_ui->treeWidget->blockSignals(true);
-
-    /*std::vector<Tile*>& tiles = m_scene.getTiles();
-    std::vector<Tile*>::iterator it = tiles.begin();
-    for(; it != tiles.end(); ++it)
-    {
-        citygml::CityModel* citymodel = (*it)->getCityModel();
-
-        citygml::CityObjectsMap& cityObjects = citymodel->getCityObjectsMap();
-        std::cout << "map size : " << cityObjects.size() << std::endl;
-        citygml::CityObjectsMap::iterator it = cityObjects.begin();
-        for( ; it != cityObjects.end(); ++it)
-        {
-            citygml::CityObjects& cityObject = it->second;
-            std::cout << "child size : " << cityObject.size() << std::endl;
-            citygml::CityObjects::iterator itObj = cityObject.begin();
-            for( ; itObj != cityObject.end(); ++itObj)
-            {
-                QTreeWidgetItem* a = new QTreeWidgetItem(m_ui->treeWidget, QStringList((*itObj)->getId().c_str()));
-                a->setFlags(a->flags() | Qt::ItemIsUserCheckable);
-                a->setCheckState(0, Qt::Checked);
-
-                ++count;
-            }
-        }
-    }*/
-
-    //std::vector<Tile*>& tiles = m_scene.getTiles();
-    //std::vector<Tile*>::iterator it = tiles.begin();
-    //for(; it != tiles.end(); ++it)
-    //{
-        QTreeWidgetItem* root = m_ui->treeWidget->topLevelItem(0);
-        //QTreeWidgetItem* root = 0;
-        QTreeWidgetItem* layer0 = root->child(0);
-
-        QTreeWidgetItem* item = new QTreeWidgetItem(layer0, QStringList(tile->getName().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Tile");
-
-        citygml::CityModel* citymodel = tile->getCityModel();
-        citygml::CityObjects& cityObjects = citymodel->getCityObjectsRoots();
-        //std::cout << "root size : " << cityObjects.size() << std::endl;
-        citygml::CityObjects::iterator it = cityObjects.begin();
-        for( ; it != cityObjects.end(); ++it)
-        {
-            fillTreeViewRec(item, *it);
-        }
-    //}
-
-    m_ui->treeWidget->expandToDepth(0);
-
-    // need fix !
-    //connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
-
-    m_ui->treeWidget->blockSignals(false);
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::handleTreeView(QTreeWidgetItem* item, int /*column*/)
-{
-    std::cout << "clic : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
-
-    std::vector<vcity::Tile*>& tiles = m_app.getScene().getTiles();
-    std::vector<vcity::Tile*>::iterator it = tiles.begin();
-    for(; it != tiles.end(); ++it)
-    {
-        citygml::CityObject* obj = (*it)->findNode(item->text(0).toStdString());
-        if(obj != NULL)
-        {
-            osg::ref_ptr<osg::Node> node = obj->getOsgNode();
-            std::cout << "found : " << item->text(0).toStdString() << " : " << node->getNodeMask() << std::endl;
-
-            node->setNodeMask(0xffffffff - node->getNodeMask());
-        }
-        // check root
-        /*if((*it)->getOsgRoot()->getName() == item->text(0).toStdString())
-        {
-            osg::ref_ptr<osg::Node> node = (*it)->getOsgRoot();
-            std::cout << "found : " << item->text(0).toStdString() << " : " << node->getNodeMask() << std::endl;
-
-            node->setNodeMask(0xffffffff - node->getNodeMask());
-        }*/
-
-        // else continue
-
-        /*citygml::CityModel* citymodel = (*it)->getCityModel();
-
-        citygml::CityObjectsMap& cityObjects = citymodel->getCityObjectsMap();
-        citygml::CityObjectsMap::iterator it = cityObjects.begin();
-        for( ; it != cityObjects.end(); ++it)
-        {
-            citygml::CityObjects& cityObject = it->second;
-            citygml::CityObjects::iterator itObj = cityObject.begin();
-            for( ; itObj != cityObject.end(); ++itObj)
-            {
-                if((*itObj)->getId() == item->text(0).toStdString())
-                {
-                    osg::ref_ptr<osg::Node> node = (*itObj)->getOsgNode();
-                    std::cout << "found : " << item->text(0).toStdString() << " : " << node->getNodeMask() << std::endl;
-
-                    node->setNodeMask(0xffffffff - node->getNodeMask());
-                }
-            }
-        }*/
-    }
-
-    // test node mask
-    //osg::ref_ptr<osg::Node> node = (*it)->getOsgNode();
-    //node->setNodeMask(0);*/
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::selectNodeHandler()
-{
-    std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::selectNodeHandler(QTreeWidgetItem* item, int /*column*/)
-{
-    std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
-    citygml::CityObject* obj = m_app.getScene().findNode(item->text(0).toStdString());
-
-    if(obj)
-    {
-        m_pickhandler->setLabel(item->text(0).toStdString());
-    }
-
-
-    /*std::string uri = item->text(0).toStdString();
-    QTreeWidgetItem* parent = item;
-    while((parent = parent->parent()) != NULL)
-    {
-        uri.insert(0, parent->text(0).toStdString()+'.');
-        //URI += parent->text(0).toStdString();
-    }
-    uri.insert(0, item->text(1).toStdString()+':');*/
-
-    std::stringstream ss;
-
-    std::string type = item->text(1).toStdString();
-    if(type == "Root")
-    {
-        ss << "Root" << std::endl;
-    }
-    else if(type == "Layer")
-    {
-        ss << "Layer : " << item->text(0).toStdString() << std::endl;
-    }
-    else if(type == "Tile")
-    {
-        ss << "Tile : " << item->text(0).toStdString() << std::endl;
-    }
-    else if(type == "Building")
-    {
-        ss << "Building : " << item->text(0).toStdString() << std::endl;
-    }
-    else if(type == "TAG")
-    {
-        ss << "TAG : " << item->text(0).toStdString() << std::endl;
-    }
-    else if(type == "FLAG")
-    {
-        ss << "FLAG : " << item->text(0).toStdString() << std::endl;
-    }
-    else
-    {
-    }
-
-    //ss << "URI : " << uri << std::endl;
-
-    vcity::URI uri = m_treeView->getURI(item);
-    std::cout << uri.getStringURI() << std::endl;
-
-    m_pickhandler->setLabel(ss.str());
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::insertChildHandler()
-{
-    std::cout << "insert node under : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::deleteNodeHandler()
-{
-    std::cout << "delete node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::showInfoHandler()
-{
-    std::cout << "node info : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << "," << m_ui->treeWidget->currentItem()->text(1).toStdString() << std::endl;
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::deleteNode()
-{
-   /* std::string name = m_osgView->getNodePicked();
-
-    //m_scene
-
-    std::vector<Tile*>& tiles = m_scene.getTiles();
-    std::vector<Tile*>::iterator it = tiles.begin();
-    for(; it != tiles.end(); ++it)
-    {
-        // check root
-        if((*it)->getOsgRoot()->getName() == name)
-        {
-            osg::ref_ptr<osg::Node> node = (*it)->getOsgRoot();
-            //std::cout << "found : " << item->text(0).toStdString() << " : " << node->getNodeMask() << std::endl;
-
-            node->setNodeMask(0xffffffff - node->getNodeMask());
-            //node->clear();
-            osg::ref_ptr<osg::Group> grp = node->asGroup();
-            std::vector<osg::Node*> nodes;
-            for(unsigned int i=0; i<grp->getNumChildren(); ++i)
-            {
-                nodes.push_back(grp->getChild(i));
-            }
-            std::vector<osg::Node*>::iterator it = nodes.begin();
-            for(;it != nodes.end(); ++it)
-            {
-                grp->removeChild(*it);
-            }
-        }
-
-        // else continue
-
-        citygml::CityModel* citymodel = (*it)->getCityModel();
-
-        citygml::CityObjectsMap& cityObjects = citymodel->getCityObjectsMap();
-        citygml::CityObjectsMap::iterator it = cityObjects.begin();
-        for( ; it != cityObjects.end(); ++it)
-        {
-            citygml::CityObjects& cityObject = it->second;
-            citygml::CityObjects::iterator itObj = cityObject.begin();
-            for( ; itObj != cityObject.end(); ++itObj)
-            {
-                if((*itObj)->getId() == name)
-                {
-                    osg::ref_ptr<osg::Node> node = (*itObj)->getOsgNode();
-                    //std::cout << "found : " << item->text(0).toStdString() << " : " << node->getNodeMask() << std::endl;
-
-                    node->setNodeMask(0xffffffff - node->getNodeMask());
-
-                    osg::ref_ptr<osg::Group> grp = node->asGroup();
-                    std::vector<osg::Node*> nodes;
-                    for(unsigned int i=0; i<grp->getNumChildren(); ++i)
-                    {
-                        nodes.push_back(grp->getChild(i));
-                    }
-                    std::vector<osg::Node*>::iterator it = nodes.begin();
-                    for(;it != nodes.end(); ++it)
-                    {
-                        grp->removeChild(*it);
-                    }
-                }
-            }
-        }
-    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Recent files
@@ -499,13 +200,16 @@ bool MainWindow::loadFile(const QString& filepath)
 
         // add tile
         vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
-        m_app.getScene().addTile(tile);
-        m_osgScene->addTile(*tile);
-        m_osgView->centerCamera();
+        vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
+        vcity::log() << uriLayer.getStringURI() << "\n";
+        appGui().getControllerGui().addTile(uriLayer, *tile);
+        //m_app.getScene().getLayers()[0]->addTile(tile);
+        //m_osgScene->addTile(*tile);
+        //m_osgView->centerCamera();
 
 
         //setOsgData(buildOsgScene(*tile));
-        fillTreeView(tile);
+        //fillTreeView(tile); -> put in controller
 
          QStringList list = settings.value("recentfiles").toStringList();
          list.append(filepath);
@@ -728,27 +432,46 @@ void MainWindow::loadSceneBBox()
     diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::updateTextBox(const std::stringstream& ss)
+{
+    m_ui->textBrowser->setText(ss.str().c_str());
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::updateTextBox(const vcity::URI& uri)
+{
+    std::stringstream ss;
+    ss << uri.getStringURI() << std::endl;
+
+    citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
+    if(obj)
+    {
+        ss << "Node id : " << obj->getId() << std::endl;
+
+        ss << "Attributes : " << std::endl;
+        citygml::AttributesMap attribs = obj->getAttributes();
+        citygml::AttributesMap::const_iterator it = attribs.begin();
+        while ( it != attribs.end() )
+        {
+            ss << " + " << it->first << ": " << it->second << std::endl;
+            ++it;
+        }
+
+        m_pickhandler->resetPicking();
+        m_pickhandler->addNodePicked(uri);
+    }
+
+    updateTextBox(ss);
+}
+////////////////////////////////////////////////////////////////////////////////
+QLineEdit* MainWindow::getFilter()
+{
+    return m_ui->filterLineEdit;
+}
+////////////////////////////////////////////////////////////////////////////////
 // Tools
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::reset()
 {
-    // reset treeview
-    /*m_ui->treeWidget->clear();
-
-    // add root element
-    QTreeWidgetItem* item = new QTreeWidgetItem(m_ui->treeWidget, QStringList("root"));
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Checked);
-    item->setText(1, "Root");
-
-    //item = 0;
-    //item->setText(1, "new");
-
-    QTreeWidgetItem* itemlayer = new QTreeWidgetItem(item, QStringList("layer0"));
-    itemlayer->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    itemlayer->setCheckState(0, Qt::Checked);
-    itemlayer->setText(1, "Layer");*/
-
     // reset text box
     m_ui->textBrowser->clear();
 }
@@ -824,337 +547,6 @@ void MainWindow::optionSettings()
     m_app.getDataProfile().m_yStep = ui.lineTileSizeY->text().toFloat();
 }
 ////////////////////////////////////////////////////////////////////////////////
-#include "libcitygml/readerOsgCityGML.hpp"
-void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, ReaderOsgCityGML& reader)
-{
-    osg::ref_ptr<osg::Group> grp = reader.createCityObject(node);
-    parent->addChild(grp);
-    citygml::CityObjects& cityObjects = node->getChildren();
-    citygml::CityObjects::iterator it = cityObjects.begin();
-    for( ; it != cityObjects.end(); ++it)
-    {
-        loadRecTest(*it, grp, reader);
-    }
-}
-void MainWindow::optionAddTag()
-{
-    Ui::DialogTag ui;
-    QDialog diag;
-    ui.setupUi(&diag);
-    citygml::CityObject* obj = 0;
-
-    std::map<std::string, citygml::CityObject*> geoms;
-
-    if(m_ui->treeWidget->currentItem())
-    {
-        std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
-        obj = m_app.getScene().findNode(m_ui->treeWidget->currentItem()->text(0).toStdString());
-
-        if(obj)
-        {
-            // add lod
-            ui.comboBox->addItem(m_ui->treeWidget->currentItem()->text(0));
-            geoms[m_ui->treeWidget->currentItem()->text(0).toStdString()] = 0;
-
-            // add all bldg
-
-
-            // add flags
-            std::vector<citygml::BuildingFlag*>::const_iterator it = obj->getFlags().begin();
-            for(; it < obj->getFlags().end(); ++it)
-            {
-                ui.comboBox->addItem(QString(((*it)->getStringId()).c_str()));
-                geoms[(*it)->getStringId()] = (*it)->getGeom();
-            }
-
-
-        }
-        ui.comboBox->addItem("NULL");
-        geoms["NULL"] = 0;
-    }
-
-    int res = diag.exec();
-
-    //std::cout << "diag res : " << res << std::endl;
-
-    if(res && obj && m_ui->treeWidget->currentItem())
-    {
-        citygml::CityObject* geom = 0;
-        if(ui.comboBox->currentText().size() > 4 && ui.comboBox->currentText().left(4) == "FLAG")
-        {
-            citygml::BuildingFlag* f = obj->getFlag(ui.comboBox->currentText().toStdString());
-            if(f) geom = f->getGeom();
-            std::cout << "use flag geom : " << ui.comboBox->currentText().toStdString() << " : " << f << " : " << geom << std::endl;
-        }
-        else if(ui.comboBox->currentText() != "NULL")
-        {
-            // use existing
-            geom = m_app.getScene().findNode(ui.comboBox->currentText().toStdString());
-            std::cout << "use existing : " << geom << std::endl;
-        }
-
-        citygml::BuildingTag* tag = new citygml::BuildingTag(ui.dateTimeEdit->date().year(), geom);
-        tag->m_date = ui.dateTimeEdit->dateTime();
-        tag->m_name = ui.lineEdit->text().toStdString();
-        tag->m_parent = obj;
-        //tag->m_year = ui.dateTimeEdit->date().year();
-
-
-        if(geom)
-        {
-            if(obj->getTags().size() == 0)
-            {
-                // mark osg tagged
-                obj->getOsgNode()->getChild(0)->setUserValue("TAGGED", 1);
-                //obj->getOsgNode()->setUserValue("TAGGED", 1);
-                std::cout << "osg parent tagged" << std::endl;
-            }
-
-            std::string path = ".";
-            /*if(geom->m_path != "")
-            {
-                path = geom->m_path;
-                size_t pos = path.find_last_of("/\\");
-                path = path.substr(0, pos);
-            }*/
-            //size_t pos = filename.toStdString().find_last_of("/\\");
-            //std::string path = filename.toStdString().substr(0, pos);
-            ReaderOsgCityGML readerOsgGml(path);
-            osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(geom);
-
-            citygml::CityObjects& cityObjects = geom->getChildren();
-            citygml::CityObjects::iterator it = cityObjects.begin();
-            for( ; it != cityObjects.end(); ++it)
-            {
-                loadRecTest(*it, grp, readerOsgGml);
-            }
-
-            grp->setName(tag->getStringId()+tag->getGeom()->getId());
-            grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
-            grp->setUserValue("TAG", 1);
-
-            std::cout << "insert osg geom" << std::endl;
-            //obj->getOsgNode()->addChild(grp);
-            obj->getOsgNode()->getParent(0)->addChild(grp);
-            geom->setOsgNode(grp);
-            //m_osgScene->addChild(grp);
-            //obj->getOsgNode()->setNodeMask(0);
-        }
-
-        obj->addTag(tag);
-
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(tag->getStringId().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Tag");
-
-        QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(ui.comboBox->currentText()));
-        item->addChild(item2);
-
-        obj->checkTags();
-
-        m_ui->treeWidget->currentItem()->addChild(item);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::optionAddFlag()
-{
-    Ui::DialogFlag ui;
-    QDialog diag;
-    ui.setupUi(&diag);
-    citygml::CityObject* obj = 0;
-
-    if(m_ui->treeWidget->currentItem())
-    {
-        std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
-        obj = m_app.getScene().findNode(m_ui->treeWidget->currentItem()->text(0).toStdString());
-
-        if(obj)
-        {
-            // add lod
-            ui.comboBox->addItem(m_ui->treeWidget->currentItem()->text(0));
-        }
-        ui.comboBox->addItem("NULL");
-        ui.comboBox->addItem("NEW");
-    }
-
-    int res = diag.exec();
-
-    //std::cout << "diag res : " << res << std::endl;
-
-    if(res && obj && m_ui->treeWidget->currentItem())
-    {
-        citygml::CityObject* geom = 0;
-        std::cout << ui.comboBox->currentText().toStdString() << std::endl;
-
-        QString item2text;
-
-        if(ui.comboBox->currentText() == "NEW")
-        {
-            // load
-            std::cout << "load new" << std::endl;
-
-            QSettings settings("liris", "virtualcity");
-            QString lastdir = settings.value("lastdir").toString();
-            QString filename = QFileDialog::getOpenFileName(0, "Load scene file", lastdir);
-            citygml::ParserParams params;
-            citygml::CityModel* mdl = citygml::load(filename.toStdString(), params);
-            citygml::CityObject* bldg = mdl->getCityObjectsRoots()[0];
-            geom = bldg;
-            geom->m_path = filename.toStdString();
-            std::cout << "nb : " << mdl->getCityObjectsRoots().size()<< std::endl;
-
-            // create osg geometry
-            /*size_t pos = filename.toStdString().find_last_of("/\\");
-            std::string path = filename.toStdString().substr(0, pos);
-            ReaderOsgCityGML readerOsgGml(path);
-
-            osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(bldg);
-
-            if(bldg->getType() == citygml::COT_Building)
-            {
-                int yearOfConstruction;
-                int yearOfDemolition;
-
-                std::istringstream(bldg->getAttribute("yearOfConstruction")) >> yearOfConstruction;
-                std::istringstream(bldg->getAttribute("yearOfDemolition")) >> yearOfDemolition;
-
-                grp->setUserValue("yearOfConstruction", yearOfConstruction);
-                grp->setUserValue("yearOfDemolition", yearOfDemolition);
-            }
-
-            bldg->setOsgNode(grp);*/
-            item2text = bldg->getId().c_str();
-        }
-        else if(ui.comboBox->currentText() == "NULL")
-        {
-            geom = NULL;
-            item2text = "NULL";
-        }
-        else
-        {
-            // use existing
-            geom = m_app.getScene().findNode(ui.comboBox->currentText().toStdString());
-            std::cout << "use existing : " << geom << std::endl;
-            item2text = ui.comboBox->currentText();
-        }
-
-        citygml::BuildingFlag* flag = new citygml::BuildingFlag(geom);
-        flag->m_name = ui.lineEdit->text().toStdString();
-        flag->m_parent = obj;
-        obj->addFlag(flag);
-
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(flag->getStringId().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Flag");
-
-        QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(item2text));
-        item->addChild(item2);
-
-        m_ui->treeWidget->currentItem()->addChild(item);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::optionAddDynFlag()
-{
-    Ui::DialogDynFlag ui;
-    QDialog diag;
-    ui.setupUi(&diag);
-    citygml::CityObject* obj = 0;
-
-    if(m_ui->treeWidget->currentItem())
-    {
-        std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
-        obj = m_app.getScene().findNode(m_ui->treeWidget->currentItem()->text(0).toStdString());
-
-        if(obj)
-        {
-            // add lod
-            ui.comboBox->addItem(m_ui->treeWidget->currentItem()->text(0));
-        }
-        ui.comboBox->addItem("NULL");
-        ui.comboBox->addItem("NEW");
-    }
-
-    int res = diag.exec();
-
-    //std::cout << "diag res : " << res << std::endl;
-
-    if(res && obj && m_ui->treeWidget->currentItem())
-    {
-        citygml::CityObject* geom = 0;
-        std::cout << ui.comboBox->currentText().toStdString() << std::endl;
-
-        QString item2text;
-
-        if(ui.comboBox->currentText() == "NEW")
-        {
-            // load
-            std::cout << "load new" << std::endl;
-
-            QSettings settings("liris", "virtualcity");
-            QString lastdir = settings.value("lastdir").toString();
-            QString filename = QFileDialog::getOpenFileName(0, "Load scene file", lastdir);
-            citygml::ParserParams params;
-            citygml::CityModel* mdl = citygml::load(filename.toStdString(), params);
-            citygml::CityObject* bldg = mdl->getCityObjectsRoots()[0];
-            geom = bldg;
-            geom->m_path = filename.toStdString();
-            std::cout << "nb : " << mdl->getCityObjectsRoots().size()<< std::endl;
-
-            // create osg geometry
-            /*size_t pos = filename.toStdString().find_last_of("/\\");
-            std::string path = filename.toStdString().substr(0, pos);
-            ReaderOsgCityGML readerOsgGml(path);
-
-            osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(bldg);
-
-            if(bldg->getType() == citygml::COT_Building)
-            {
-                int yearOfConstruction;
-                int yearOfDemolition;
-
-                std::istringstream(bldg->getAttribute("yearOfConstruction")) >> yearOfConstruction;
-                std::istringstream(bldg->getAttribute("yearOfDemolition")) >> yearOfDemolition;
-
-                grp->setUserValue("yearOfConstruction", yearOfConstruction);
-                grp->setUserValue("yearOfDemolition", yearOfDemolition);
-            }
-
-            bldg->setOsgNode(grp);*/
-            item2text = bldg->getId().c_str();
-        }
-        else if(ui.comboBox->currentText() == "NULL")
-        {
-            geom = NULL;
-            item2text = "NULL";
-        }
-        else
-        {
-            // use existing
-            geom = m_app.getScene().findNode(ui.comboBox->currentText().toStdString());
-            std::cout << "use existing : " << geom << std::endl;
-            item2text = ui.comboBox->currentText();
-        }
-
-        citygml::BuildingFlag* flag = new citygml::BuildingFlag(geom);
-        flag->m_name = ui.lineEdit->text().toStdString();
-        flag->m_parent = obj;
-        obj->addFlag(flag);
-
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(flag->getStringId().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Flag");
-
-        QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(item2text));
-        item->addChild(item2);
-
-        m_ui->treeWidget->currentItem()->addChild(item);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
 void MainWindow::optionShowTemporalTools()
 {
     if(m_ui->actionShow_temporal_tools->isChecked())
@@ -1181,14 +573,6 @@ void MainWindow::optionShowAdvancedTools()
         m_ui->menuDebug->hide();
     }
 }
-////////////////////////////////////////////////////////////////////////////////
-/*void MainWindow::resizeEvent(QResizeEvent* event)
-{
-    QWidget::resizeEvent(event);
-    //m_ui->widget->resize(event->size());
-    //m_ui->widget->setGeometry(0, 0, event->size().width(), event->size().height());
-    std::cout << "resize main window" << std::endl;
-}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
@@ -1238,20 +622,20 @@ void MainWindow::exportCityGML()
     }
 
     // check if something is picked
-    const std::set<std::string>& nodes = m_pickhandler->getNodesPicked();
+    const std::set<std::string>& nodes = m_pickhandler->getNodesPicked(); // TODO : update this with a uri list
     if(nodes.size() > 0)
     {
         std::cout << "Citygml export cityobject : " << *nodes.begin() << std::endl;
         // use first node picked
-        citygml::CityObject* model = m_app.getScene().getTiles()[0]->findNode(*nodes.begin());
+        //citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*nodes.begin()); // use getNode
         //citygml::exportCitygml(model, "test.citygml");
-        if(model) exporter.exportCityObject(model, filename.toStdString());
+        //if(model) exporter.exportCityObject(model, filename.toStdString());
     }
     else
     {
         std::cout << "Citygml export citymodel" << std::endl;
         // use first tile
-        citygml::CityModel* model = m_app.getScene().getTiles()[0]->getCityModel();
+        citygml::CityModel* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->getCityModel();
         //citygml::exportCitygml(model, "test.citygml");
         exporter.exportCityModel(model, filename.toStdString());
     }
@@ -1289,6 +673,11 @@ void MainWindow::exportJSON()
 void MainWindow::debugDumpOsg()
 {
     m_osgScene->dump();
+    m_app.getScene().dump();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotDumpScene()
+{
     m_app.getScene().dump();
 }
 ////////////////////////////////////////////////////////////////////////////////

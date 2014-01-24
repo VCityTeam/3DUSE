@@ -164,17 +164,22 @@ const std::string& Tile::getName() const
     return m_name;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void Tile::setName(const std::string& name)
+{
+    m_name = name;
+}
+////////////////////////////////////////////////////////////////////////////////
 /*osg::ref_ptr<osg::Node> Tile::getOsgRoot()
 {
     return m_rootOsg;
 }*/
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityObject* findNodeRec(citygml::CityObject* node, const std::string& name)
+citygml::CityObject* getNodeRec(citygml::CityObject* node, const std::string& name)
 {
-    citygml::CityObject* res = NULL;
+    citygml::CityObject* res = nullptr;
     if(node->getId() == name)
     {
-        std::cout << "found node " << name << std::endl;
+        //std::cout << "found node " << name << std::endl;
         return node;
     }
 
@@ -182,14 +187,14 @@ citygml::CityObject* findNodeRec(citygml::CityObject* node, const std::string& n
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        res = findNodeRec(*it, name);
+        res = getNodeRec(*it, name);
         if(res) break;
     }
 
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityObject* Tile::findNode(const std::string& name)
+/*citygml::CityObject* Tile::findNode(const std::string& name)
 {
     citygml::CityObject* res = NULL;
 
@@ -202,7 +207,7 @@ citygml::CityObject* Tile::findNode(const std::string& name)
     }
 
     return res;
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void Tile::deleteNode(const std::string& /*name*/)
 {
@@ -217,6 +222,23 @@ void Tile::insertNode(citygml::CityObject* /*node*/)
 void Tile::replaceNode(const std::string& /*name*/, citygml::CityObject* /*node*/)
 {
 
+}
+////////////////////////////////////////////////////////////////////////////////
+citygml::CityObject* Tile::getNode(const URI& uri)
+{
+    std::string name = uri.getLastNode();
+
+    citygml::CityObject* res = nullptr;
+
+    citygml::CityObjects& cityObjects = m_root->getCityObjectsRoots();
+    citygml::CityObjects::iterator it = cityObjects.begin();
+    for( ; it != cityObjects.end(); ++it)
+    {
+        res = getNodeRec(*it, name);
+        if(res) break;
+    }
+
+    return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

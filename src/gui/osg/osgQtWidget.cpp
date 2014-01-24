@@ -34,6 +34,8 @@ public:
     }
 };
 ////////////////////////////////////////////////////////////////////////////////
+osg::Matrixd mat;
+////////////////////////////////////////////////////////////////////////////////
 class CameraHandler : public osgGA::GUIEventHandler
 {
 public:
@@ -114,6 +116,16 @@ public:
                         m_speed += 5.0f;
                     else
                         fpsCam->moveRight(m_speed);
+                    break;
+                }
+                case osgGA::GUIEventAdapter::KEY_I:
+                {
+                    mat = fpsCam->getMatrix();
+                    break;
+                }
+                case osgGA::GUIEventAdapter::KEY_O:
+                {
+                    fpsCam->setByMatrix(mat);
                     break;
                 }
                 default:
@@ -248,24 +260,6 @@ void osgQtWidget::setSceneData(osg::Node* scene)
         //m_osgView->addEventHandler(new osgGA::StateSetManipulator(m_osgScene->getOrCreateStateSet()));
         m_osgView->addEventHandler(new osgGA::StateSetManipulator(scene->getOrCreateStateSet()));
     }
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerTextBox(QTextBrowser* txt)
-{
-    m_textBrowser = txt;
-    m_pickHandler->setPickHandlerTextBox(txt);
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerScene(vcity::Scene* scene)
-{
-    m_pickHandler->setPickHandlerScene(scene);
-    //m_scene = scene;
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerTreeView(QTreeWidget* tree)
-{
-    m_pickHandler->setPickHandlerTreeView(tree);
-    //m_tree = tree;
 }
 ////////////////////////////////////////////////////////////////////////////////
 /*const std::string& osgQtWidget::getNodePicked() const

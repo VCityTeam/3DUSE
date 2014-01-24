@@ -6,16 +6,22 @@
 class ControllerGui : public vcity::Controller
 {
 public:
-    ControllerGui(vcity::Application* app);
+    ControllerGui();
 
     virtual void reset();
-    virtual void addNode(const std::string& URI);
-    virtual void deleteNode(const std::string& URI);
 
-    virtual void addNode(const vcity::URI& URI);
-    virtual void deleteNode(const vcity::URI& URI);
+    virtual void addNode(const vcity::URI& uri);
+    virtual void deleteNode(const vcity::URI& uri);
 
-    //virtual void editLayer();
+    // layer
+    virtual void addLayer(const std::string& name);
+    virtual void deleteLayer(const vcity::URI& uri);
+    virtual void setLayerName(const vcity::URI& uri, const std::string& name);
+
+    // tile
+    virtual void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
+    virtual void deleteTile(const vcity::URI& uri);
+    virtual void setTileName(const vcity::URI& uri, const std::string& name);
 
 private:
 };

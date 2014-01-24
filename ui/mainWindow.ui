@@ -37,10 +37,10 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QLineEdit" name="lineEdit"/>
+           <widget class="QLineEdit" name="filterLineEdit"/>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="filterButton">
             <property name="text">
              <string>filter</string>
             </property>
@@ -317,6 +317,7 @@
      <string>Debug</string>
     </property>
     <addaction name="actionDump_osg"/>
+    <addaction name="actionDump_scene"/>
    </widget>
    <widget class="QMenu" name="menuTest">
     <property name="title">
@@ -585,6 +586,11 @@
   <action name="actionTest_5">
    <property name="text">
     <string>Test 5</string>
+   </property>
+  </action>
+  <action name="actionDump_scene">
+   <property name="text">
+    <string>Dump scene</string>
    </property>
   </action>
  </widget>

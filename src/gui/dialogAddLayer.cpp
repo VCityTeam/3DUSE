@@ -1,0 +1,24 @@
+#include "moc/dialogAddLayer.hpp"
+#include "ui_dialogAddLayer.h"
+#include "gui/applicationGui.hpp"
+////////////////////////////////////////////////////////////////////////////////
+DialogAddLayer::DialogAddLayer(QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::DialogAddLayer)
+{
+    ui->setupUi(this);
+}
+////////////////////////////////////////////////////////////////////////////////
+DialogAddLayer::~DialogAddLayer()
+{
+    delete ui;
+}
+////////////////////////////////////////////////////////////////////////////////
+void DialogAddLayer::addLayer()
+{
+    if(exec() && !ui->lineEdit->text().isEmpty())
+    {
+        appGui().getControllerGui().addLayer(ui->lineEdit->text().toStdString());
+    }
+}
+////////////////////////////////////////////////////////////////////////////////

@@ -4,10 +4,26 @@
 #include <osgFX/Scribe>
 #include <iostream>
 #include <algorithm>
+#include "gui/moc/mainWindow.hpp"
+////////////////////////////////////////////////////////////////////////////////
+PickHandler::PickHandler()
+    : m_mx(0.0),m_my(0.0), m_pickingMode(1), m_addToSelection(false)
+{
+}
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::addNodePicked(const std::string& name)
 {
     m_nodesPicked.insert(name);
+}
+////////////////////////////////////////////////////////////////////////////////
+void PickHandler::addNodePicked(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+    if(node)
+    {
+        addNodePicked(node);
+        toggleSelected(node);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::removeNodePicked(const std::string& name)
@@ -49,37 +65,36 @@ void PickHandler::resetPicking()
     m_nodesPicked.clear();
 }
 ////////////////////////////////////////////////////////////////////////////////
-PickHandler::PickHandler()
-    : m_mx(0.0),m_my(0.0), m_pickingMode(1), m_addToSelection(false)
-{
-}
-////////////////////////////////////////////////////////////////////////////////
 void PickHandler::updateLabel()
 {
-    if(m_updateText)
+    std::stringstream ss;
+
+    std::vector<osg::ref_ptr<osg::Node> >::const_iterator it = m_osgNodesPicked.begin();
+    for(; it != m_osgNodesPicked.end(); ++it)
     {
-        std::stringstream ss;
-
-        std::vector<osg::ref_ptr<osg::Node> >::const_iterator it = m_osgNodesPicked.begin();
-        for(; it != m_osgNodesPicked.end(); ++it)
+        //citygml::CityObject* obj = m_scene->findNode((*it)->getName());
+        vcity::URI uri = osgTools::getURI(*it);
+        citygml::CityObject* obj = appGui().getScene().getNode(uri);
+        if(obj)
         {
-            citygml::CityObject* obj = m_scene->findNode((*it)->getName());
-            if(obj)
+            ss << obj->getId().c_str() << std::endl;
+            citygml::AttributesMap attribs = obj->getAttributes();
+            citygml::AttributesMap::const_iterator itAttr = attribs.begin();
+            while( itAttr != attribs.end())
             {
-                ss << obj->getId().c_str() << std::endl;
-                citygml::AttributesMap attribs = obj->getAttributes();
-                citygml::AttributesMap::const_iterator itAttr = attribs.begin();
-                while( itAttr != attribs.end())
-                {
-                    ss << "  + " << itAttr->first << ": " << itAttr->second << std::endl;
-                    ++itAttr;
-                }
-                ss << osgTools::getURI(*it);
+                ss << "  + " << itAttr->first << ": " << itAttr->second << std::endl;
+                ++itAttr;
             }
+            ss << uri.getStringURI(true);
         }
-
-        m_updateText->setText(ss.str().c_str());
     }
+
+    appGui().getTextBrowser()->setText(ss.str().c_str());
+}
+////////////////////////////////////////////////////////////////////////////////
+void PickHandler::updateLabel(const vcity::URI& uri)
+{
+    appGui().getMainWindow()->updateTextBox(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 //osg::Node* nodePicked = 0;
@@ -145,6 +160,10 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
                  toggleSelected(m_osgNodesPicked[0]); // unselect last node
                  m_osgNodesPicked[0] = (m_osgNodesPicked[0]->getNumParents() > 0) ? m_osgNodesPicked[0]->getParent(0) : m_osgNodesPicked[0];
                  toggleSelected(m_osgNodesPicked[0]);
+
+                 //std::cout << "+ picking uri : " << osgTools::getURI(m_osgNodesPicked[0]).getStringURI() << std::endl;
+                 //appGui().getTreeView()->selectItem(osgTools::getURI(m_osgNodesPicked[0]));
+                 //updateLabel(osgTools::getURI(m_osgNodesPicked[0]));
              }
              return true;
              break;
@@ -212,8 +231,10 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         }
         if(m_pickingMode == 1) // building
         {
-            citygml::CityObject* obj = m_scene->findNode(node->getName());
-            while(obj && obj->getTypeAsString() != "Building")
+            vcity::URI uri = osgTools::getURI(node);
+            citygml::CityObject* obj = appGui().getScene().getNode(uri);
+            //citygml::CityObject* obj = m_scene->findNode(node->getName());
+            while(obj && (obj->getTypeAsString() != "Building"))// || obj->getTypeAsString() != "TINRelief" ))
             {
                 if(node->getNumParents() > 0)
                 {
@@ -223,7 +244,9 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                 else
                     break;
 
-                obj = m_scene->findNode(node->getName());
+                uri = osgTools::getURI(node);
+                obj = appGui().getScene().getNode(uri);
+                //obj = m_scene->findNode(node->getName());
             }
 
             if(!node) node = nodePath.back();
@@ -241,7 +264,10 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             toggleSelected(node);
         }
 
-        updateLabel();
+        //node = node->getParent(0);
+        std::cout << "picking uri : " << osgTools::getURI(node).getStringURI() << std::endl;
+        appGui().getTreeView()->selectItem(osgTools::getURI(node));
+        updateLabel(osgTools::getURI(node));
 
         //toggleSelected(node);
         //nodePicked = node;
@@ -292,7 +318,9 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
                 }
                 if(m_pickingMode == 1) // building
                 {
-                    citygml::CityObject* obj = m_scene->findNode(node->getName());
+                    vcity::URI uri = osgTools::getURI(node);
+                    citygml::CityObject* obj = appGui().getScene().getNode(uri);
+                    //citygml::CityObject* obj = m_scene->findNode(node->getName());
                     while(obj && obj->getTypeAsString() != "Building")
                     {
                         if(node->getNumParents() > 0)
@@ -303,7 +331,9 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
                         else
                             break;
 
-                        obj = m_scene->findNode(node->getName());
+                        uri = osgTools::getURI(node);
+                        obj = appGui().getScene().getNode(uri);
+                        //obj = m_scene->findNode(node->getName());
                     }
 
                     if(!node) node = nodePath.back();

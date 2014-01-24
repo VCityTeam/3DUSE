@@ -36,9 +36,32 @@ public:
 
     void init();
 
-    void addTile(const vcity::Tile& tile);
+    /// \brief addTile Add a tile in a layer of the osg scene
+    /// \param uriLayer URI pointing to the layer
+    /// \param tile Tile to add
+    void addTile(const vcity::URI& uriLayer, const vcity::Tile& tile);
 
+    /// \brief setTileName Set the name of a tile
+    /// \param uriTile URI pointing to the tile
+    /// \param name Tile name
+    void setTileName(const vcity::URI& uriTile, const std::string& name);
+
+    /// \brief deleteTile Delete a layer in the osg scene
+    /// \param uriTile URI pointing to the tile
+    void deleteTile(const vcity::URI& uriTile);
+
+    /// \brief addLayer Add a layer to the osg scene
+    /// \param name Layer name
     void addLayer(const std::string& name);
+
+    /// \brief setLayerName Set the name of a layer in the osg scene
+    /// \param uriLayer URI pointing to the layer
+    /// \param name Layer name
+    void setLayerName(const vcity::URI& uriLayer, const std::string& name);
+
+    /// \brief deleteLayer Delete a layer in the osg scene
+    /// \param uriLayer URI pointing to the layer
+    void deleteLayer(const vcity::URI& uriLayer);
 
     int getNbTiles() const;
 
@@ -58,10 +81,15 @@ public:
 
     void reset();
 
+    void showNode(osg::ref_ptr<osg::Node> node, bool show);
+    void showNode(const vcity::URI& uri, bool show);
+
     void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth=0);
 
     osg::ref_ptr<osg::Geode> buildGrid(osg::Vec3 origin, float step, int n);
     //osg::ref_ptr<osg::Geode> buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound);
+
+    osg::ref_ptr<osg::Node> getNode(const vcity::URI& uri);
 
 public:
     osg::ref_ptr<osg::Node> buildTile(const vcity::Tile& tile);
@@ -70,18 +98,10 @@ public:
     bool m_shadow;
     osg::Vec4 m_shadowVec;
 
-    osg::ref_ptr<osg::Group> m_layers;
-    osg::ref_ptr<osg::Group> m_lods;
-    osg::ref_ptr<osg::Group> m_tilesLod0;
-    osg::ref_ptr<osg::Group> m_tilesLod1;
-    osg::ref_ptr<osg::Group> m_tilesLod2;
-    osg::ref_ptr<osg::Group> m_tilesLod3;
-    osg::ref_ptr<osg::Group> m_tilesLod4;
+    osg::ref_ptr<osg::Group> m_layers;      ///< Group holding all layers, and below, all tiles, ...
 
     osg::ref_ptr<osg::Group> m_effectNone;
     osg::ref_ptr<osg::Group> m_effectShadow;
-
-    // handle lod here ? as attr ? and switch lod using member func ?
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief osgSceneBuild will create an osg tree (for rendering with osg) from a tile

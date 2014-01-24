@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <QTreeWidget>
 #include "core/URI.hpp"
+#include "core/application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 class MainWindow;
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,10 +16,14 @@ class TreeView : public QObject
 public:
     TreeView(QTreeWidget* tree, MainWindow* widget);
 
+    /// \brief init Init the treeview
     void init();
+
+    /// \brief reset Reset the treeview (root item and one layer)
     void reset();
 
     QTreeWidgetItem* addItemGeneric(const QString& name, const QString& type);
+    QTreeWidgetItem* addItemGeneric(const vcity::URI& uri, const QString& name, const QString& type);
     QTreeWidgetItem* addItemRoot();
     QTreeWidgetItem* addItemLayer(const QString& name);
 
@@ -28,15 +33,50 @@ public:
     void deleteItem(const std::string& URI);
     void deleteItem(const vcity::URI& URI);
 
-    QTreeWidgetItem* findItem(const vcity::URI& URI) const;
-
     vcity::URI getURI(QTreeWidgetItem* item) const;
 
+    QTreeWidget* getTree();
+    QTreeWidgetItem* getCurrentItem();
+
+    void addLayer(const vcity::URI& uri);
+    void setLayerName(const vcity::URI& uri, const std::string& name);
+    void deleteLayer(const vcity::URI& uri);
+
+    void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
+    void setTileName(const vcity::URI& uri, std::string& name);
+    void deleteTile(const vcity::URI& uri);
+
+    /// \brief selectItem Select item in treeview
+    /// \param uri
+    void selectItem(const vcity::URI& uri);
+
+    QTreeWidgetItem* getNode(const vcity::URI& uri);
+
 private slots:
-    void selectNodeCB(QTreeWidgetItem* item, int column);
-    void addBldg();
-    void editLayer();
-    void editBldg();
+    void slotAddTile();
+    void slotEditTile();
+    void slotDeleteTile();
+    void slotAddLayer();
+    void slotEditLayer();
+    void slotDeleteLayer();
+    void slotAddBuilding();
+    void slotEditBuilding();
+    void slotDeleteBuilding();
+    void slotAddFlag();
+    void slotAddDynFlag();
+    void slotAddTag();
+    void slotEditFlag();
+    void slotEditDynFlag();
+    void slotEditTag();
+    void slotDeleteFlag();
+    void slotDeleteDynFlag();
+    void slotDeleteTag();
+
+    void slotSelectNode(QTreeWidgetItem* item, int column);
+    void slotItemChanged(QTreeWidgetItem*, int);
+    void slotItemClicked(QTreeWidgetItem*,int);
+
+    void slotFilter();
 
 private:
     void resetActions();
@@ -58,8 +98,10 @@ private:
     QAction* m_actionAddDynFlag;
     QAction* m_actionAddTag;
     QAction* m_actionEditFlag;
+    QAction* m_actionEditDynFlag;
     QAction* m_actionEditTag;
     QAction* m_actionDeleteFlag;
+    QAction* m_actionDeleteDynFlag;
     QAction* m_actionDeleteTag;
 };
 ////////////////////////////////////////////////////////////////////////////////

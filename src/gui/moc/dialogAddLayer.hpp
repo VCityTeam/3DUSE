@@ -1,28 +1,25 @@
-#ifndef DIALOGEDITLAYER_HPP
-#define DIALOGEDITLAYER_HPP
+#ifndef DIALOGADDLAYER_HPP
+#define DIALOGADDLAYER_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogEditLayer;
+class DialogAddLayer;
 }
 ////////////////////////////////////////////////////////////////////////////////
-class DialogEditLayer : public QDialog
+class DialogAddLayer : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit DialogEditLayer(QWidget *parent = 0);
-    ~DialogEditLayer();
+    explicit DialogAddLayer(QWidget *parent = 0);
+    ~DialogAddLayer();
 
-    void editLayer(const vcity::URI& uri);
-
-    void setName(const QString& str);
-    QString getName() const;
+    void addLayer();
 
 private:
-    Ui::DialogEditLayer *ui;
+    Ui::DialogAddLayer *ui;
 };
 ////////////////////////////////////////////////////////////////////////////////
-#endif // DIALOGEDITLAYER_HPP
+#endif // DIALOGAddLAYER_HPP

@@ -1,5 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "layer.hpp"
+#include "application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -18,6 +19,81 @@ void Layer::setName(const std::string& name)
 const std::string& Layer::getName() const
 {
     return m_name;
+}
+////////////////////////////////////////////////////////////////////////////////
+void Layer::addTile(Tile* tile)
+{
+    m_tiles.push_back(tile);
+}
+////////////////////////////////////////////////////////////////////////////////
+Tile* Layer::getTile(const URI& uri)
+{
+    if(uri.getDepth() > 1)
+    {
+        for(std::vector<Tile*>::iterator it = m_tiles.begin(); it < m_tiles.end(); ++it)
+        {
+            if(uri.getNode(1) == (*it)->getName())
+            {
+                return *it;
+            }
+        }
+    }
+
+    return nullptr;
+}
+////////////////////////////////////////////////////////////////////////////////
+std::vector<Tile*>& Layer::getTiles()
+{
+    return m_tiles;
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::vector<Tile*>& Layer::getTiles() const
+{
+    return m_tiles;
+}
+////////////////////////////////////////////////////////////////////////////////
+void Layer::deleteTile(const URI& uri)
+{
+    Tile* tile = getTile(uri);
+
+    for(std::vector<Tile*>::iterator it=m_tiles.begin(); it<m_tiles.end(); ++it)
+    {
+        if((*it)->getName() == tile->getName())
+        {
+            log() << "Tile " << tile->getName() << " removed from layer " << uri.getNode(0) << "\n";
+            m_tiles.erase(it);
+            delete tile;
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+citygml::CityObject* Layer::getNode(const URI& uri)
+{
+    Tile* tile = getTile(uri);
+    if(tile)
+    {
+        return tile->getNode(uri);
+    }
+
+    return nullptr;
+}
+////////////////////////////////////////////////////////////////////////////////
+URI Layer::getURI() const
+{
+    URI uri;
+    uri.append(getName());
+    uri.setType("Layer");
+
+    return uri;
+}
+////////////////////////////////////////////////////////////////////////////////
+void Layer::dump()
+{
+    for(std::vector<Tile*>::iterator it=m_tiles.begin(); it<m_tiles.end(); ++it)
+    {
+        log() << "    " << (*it)->getName() << "\n";
+        //(*it)->dump();
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

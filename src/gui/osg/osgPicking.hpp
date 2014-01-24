@@ -6,6 +6,7 @@
 #include <QTextBrowser>
 #include <QTreeWidget>
 #include "core/scene.hpp"
+#include "gui/applicationGui.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 // class to handle events with a pick
 /*class PickHandler : public osgGA::GUIEventHandler
@@ -42,33 +43,14 @@ public:
 
     bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa);
 
-    void setPickHandlerTextBox(QTextBrowser* updateText)
-    {
-        m_updateText = updateText;
-    }
-
-    void setPickHandlerScene(vcity::Scene* scene)
-    {
-        m_scene = scene;
-    }
-
-    void setPickHandlerTreeView(QTreeWidget* tree)
-    {
-        m_tree = tree;
-    }
-
-
     void setLabel(const std::string& name)
     {
-        if(m_updateText)
-        {
-            m_updateText->setText(name.c_str());
-        }
+        appGui().getTextBrowser()->setText(name.c_str());
     }
 
     void setLabel(citygml::CityObject* node)
     {
-        if(m_updateText && node)
+        if(node)
         {
             std::stringstream ss;
             ss << node->getId().c_str() << std::endl;
@@ -79,11 +61,16 @@ public:
                 ss << "  + " << it->first << ": " << it->second << std::endl;
                 it++;
             }
-            m_updateText->setText(ss.str().c_str());
+            appGui().getTextBrowser()->setText(ss.str().c_str());
         }
     }
 
     const std::set<std::string>& getNodesPicked() const
+    {
+        return m_nodesPicked;
+    }
+
+    const std::set<std::string>& getNodesPickedURI() const
     {
         return m_nodesPicked;
     }
@@ -94,30 +81,29 @@ public:
 
     void resetPicking();
 
-protected:
+public:
     void pickPoint(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
     void pickRectangle(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
     void toggleSelected(osg::Node* node, osg::Group* parent = NULL, bool forceUnselect = false);
 
     void addNodePicked(const std::string& name);
+    void addNodePicked(const vcity::URI& uri);
     void removeNodePicked(const std::string& name);
 
     void addNodePicked(osg::ref_ptr<osg::Node> node);
     void removeNodePicked(osg::ref_ptr<osg::Node> node);
 
-
     void updateLabel();
+    void updateLabel(const vcity::URI& uri);
 
+protected:
     float m_mx, m_my;
 
     int m_pickingMode;  ///< 0: face, 1: building
     bool m_addToSelection;
 
-    QTextBrowser* m_updateText;
-    vcity::Scene* m_scene;
-    QTreeWidget* m_tree;
-
     std::set<std::string> m_nodesPicked;
+    std::set<vcity::URI> m_nodesPickedURI;
     std::vector<osg::ref_ptr<osg::Node> > m_osgNodesPicked;
 };
 ////////////////////////////////////////////////////////////////////////////////

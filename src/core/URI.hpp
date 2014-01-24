@@ -22,6 +22,19 @@ public:
     /// \param type Teh type of the final node
     void setType(const std::string& type);
 
+    /// \brief getDepth Get the number of depth level
+    /// \return The number of depth level
+    int getDepth() const;
+
+    /// \brief getNode Get a node name given a depth level
+    /// \param depth Depth level, starting from 0
+    /// \return std::string with the name of the node at depth depth
+    const std::string& getNode(int depth) const;
+
+    /// \brief getLastNode Get last node name, eg leaf name
+    /// \return std::string with the name of the node
+    const std::string& getLastNode() const;
+
     /// \brief getType Get the type of the final node pointed by the URI
     /// \return The type of the final node pointed by the URI as a string
     const std::string& getType() const;
@@ -41,6 +54,7 @@ public:
     std::string getStringURI(bool includeType = true) const;
 
 private:
+    int m_depth;                    ///< Depth of the uri
     std::string m_type;             ///< Pointed node type
     std::vector<std::string> m_uri; ///< String array. One string per node name, one per depth level.
 };
