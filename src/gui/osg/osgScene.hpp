@@ -63,17 +63,8 @@ public:
     /// \param uriLayer URI pointing to the layer
     void deleteLayer(const vcity::URI& uriLayer);
 
-    int getNbTiles() const;
-
-    osg::ref_ptr<osg::Group> getTile(int id);
-
-    osg::ref_ptr<osg::Group> getTile(const std::string& name);
 
     osg::ref_ptr<osg::Node> findNode(const std::string& name);
-
-    osg::ref_ptr<osg::Node> findNode(const vcity::URI& uri);
-
-    void deleteNode(const std::string& name);
 
     void setShadow(bool shadow);
 

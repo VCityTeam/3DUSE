@@ -44,7 +44,11 @@ public:
     FindNamedNode( const std::string& name )
       : osg::NodeVisitor( // Traverse all children.
                 osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ),
-        _name( name ) {}
+        _name( name )
+    {
+        setTraversalMask(0xffffffff);
+        setNodeMaskOverride(0xffffffff);
+    }
 
     // This method gets called for every node in the scene
     //   graph. Check each node to see if its name matches
@@ -144,53 +148,6 @@ void OsgScene::init()
     layer0->setName("layer_CityGML");
     m_layers->addChild(layer0);
 
-    // build lods node
-    /*m_lods = new osg::Group();
-    m_lods->setName("lods");
-    layer0->addChild(m_lods);
-
-    // build lod0, lod1, lod2, lod3, lod4
-    osg::ref_ptr<osg::Switch> lod0 = new osg::Switch();
-    lod0->setName("lod0");
-    m_lods->addChild(lod0);
-
-    osg::ref_ptr<osg::Switch> lod1 = new osg::Switch();
-    lod1->setName("lod1");
-    m_lods->addChild(lod1);
-
-    osg::ref_ptr<osg::Switch> lod2 = new osg::Switch();
-    lod2->setName("lod2");
-    m_lods->addChild(lod2);
-
-    osg::ref_ptr<osg::Switch> lod3 = new osg::Switch();
-    lod3->setName("lod3");
-    m_lods->addChild(lod3);
-
-    osg::ref_ptr<osg::Switch> lod4 = new osg::Switch();
-    lod4->setName("lod4");
-    m_lods->addChild(lod4);
-
-    // build tiles node
-    m_tilesLod0 = new osg::Group();
-    m_tilesLod0->setName("tiles_lod0");
-    lod0->addChild(m_tilesLod0);
-
-    m_tilesLod1 = new osg::Group();
-    m_tilesLod1->setName("tiles_lod1");
-    lod1->addChild(m_tilesLod1);
-
-    m_tilesLod2 = new osg::Group();
-    m_tilesLod2->setName("tiles_lod2");
-    lod2->addChild(m_tilesLod2);
-
-    m_tilesLod3 = new osg::Group();
-    m_tilesLod3->setName("tiles_lod3");
-    lod3->addChild(m_tilesLod3);
-
-    m_tilesLod4 = new osg::Group();
-    m_tilesLod4->setName("tiles_lod4");
-    lod4->addChild(m_tilesLod4);*/
-
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
     //m_layers->addChild(grid);
@@ -256,58 +213,11 @@ void OsgScene::deleteLayer(const vcity::URI& uriLayer)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-int OsgScene::getNbTiles() const
-{
-    /*osg::ref_ptr<const osg::Group> effect = getChild(0)->asGroup();
-    if(effect)
-    {
-        osg::ref_ptr<const osg::Group> tiles = effect->getChild(0)->asGroup();
-        if(tiles)
-        {
-            return tiles->getNumChildren();
-        }
-    }*/
-
-    return 0;
-}
-////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Group> OsgScene::getTile(int /*id*/)
-{
-    /*osg::ref_ptr<osg::Group> effect = getChild(0)->asGroup();
-    if(effect)
-    {
-        osg::ref_ptr<osg::Group> tiles = effect->getChild(0)->asGroup();
-        if(tiles)
-        {
-            return tiles->getChild(id)->asGroup();
-        }
-    }*/
-
-    return NULL;
-}
-////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Group> OsgScene::getTile(const std::string& /*name*/)
-{
-    return NULL;
-}
-////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::findNode(const std::string& name)
 {
     FindNamedNode f(name);
     accept(f);
     return f.getNode();
-    //return NULL;
-}
-////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Node> findNode(const vcity::URI& /*uri*/)
-{
-    return NULL;
-}
-////////////////////////////////////////////////////////////////////////////////
-void OsgScene::deleteNode(const std::string& name)
-{
-    osg::ref_ptr<osg::Node> node = findNode(name);
-
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setShadow(bool shadow)
