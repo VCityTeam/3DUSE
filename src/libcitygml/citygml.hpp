@@ -691,6 +691,8 @@ enum State {
 
         void checkTags();
 
+        bool isTemporal() const { return m_Tags.size(); }
+
         //const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
 
 	protected:

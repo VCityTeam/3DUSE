@@ -47,12 +47,10 @@ MainWindow::MainWindow(QWidget *parent) :
     m_app.setTextBowser(m_ui->textBrowser);
 
     // create controller
-
     m_app.setControllerGui(new ControllerGui());
 
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);
-    //m_osgView = 0;
     m_pickhandler = new PickHandler();
     m_osgView->setPickHandler(m_pickhandler);
     m_ui->mainGridLayout->addWidget(m_osgView->getWidget(), 0, 0);
@@ -445,7 +443,29 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
     if(obj)
     {
-        ss << "Node id : " << obj->getId() << std::endl;
+        ss << "ID : " << obj->getId() << std::endl;
+        ss << "Type : " << obj->getTypeAsString() << std::endl;
+        ss << "Temporal : " << obj->isTemporal() << std::endl;
+
+        // get textures
+        // parse geometry
+        std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
+        std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin();
+        for(; itGeom != geoms.end(); ++itGeom)
+        {
+            // parse polygons
+            std::vector<citygml::Polygon*>& polys = (*itGeom)->getPolygons();
+            std::vector<citygml::Polygon*>::iterator itPoly = polys.begin();
+            for(; itPoly != polys.end(); ++itPoly)
+            {
+                const citygml::Texture* tex = (*itPoly)->getTexture();
+                if(tex)
+                {
+                    ss << "Texture : " << tex->getUrl() << std::endl;
+                }
+            }
+
+        }
 
         ss << "Attributes : " << std::endl;
         citygml::AttributesMap attribs = obj->getAttributes();
@@ -688,12 +708,34 @@ void MainWindow::generateAllLODs()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
 {
-    // call real function. In algo.cpp ?
+    // get all selected nodes (with a uri)
+    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        // do all nodes selected
+        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+        {
+            vcity::app().getAlgo().generateLOD0(*it);
+            // TODO
+            //appGui().getControllerGui().update(uri);
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
-
+    // get all selected nodes (with a uri)
+    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        // do all nodes selected
+        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+        {
+            vcity::app().getAlgo().generateLOD1(*it);
+            // TODO
+            //appGui().getControllerGui().update(uri);
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
@@ -728,6 +770,11 @@ void MainWindow::test2()
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13724/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13725/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13724/export-CityGML/ZoneAExporter.gml");
+
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13726/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
