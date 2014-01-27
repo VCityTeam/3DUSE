@@ -65,33 +65,6 @@ void PickHandler::resetPicking()
     m_nodesPicked.clear();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void PickHandler::updateLabel()
-{
-    std::stringstream ss;
-
-    std::vector<osg::ref_ptr<osg::Node> >::const_iterator it = m_osgNodesPicked.begin();
-    for(; it != m_osgNodesPicked.end(); ++it)
-    {
-        //citygml::CityObject* obj = m_scene->findNode((*it)->getName());
-        vcity::URI uri = osgTools::getURI(*it);
-        citygml::CityObject* obj = appGui().getScene().getNode(uri);
-        if(obj)
-        {
-            ss << obj->getId().c_str() << std::endl;
-            citygml::AttributesMap attribs = obj->getAttributes();
-            citygml::AttributesMap::const_iterator itAttr = attribs.begin();
-            while( itAttr != attribs.end())
-            {
-                ss << "  + " << itAttr->first << ": " << itAttr->second << std::endl;
-                ++itAttr;
-            }
-            ss << uri.getStringURI(true);
-        }
-    }
-
-    appGui().getTextBrowser()->setText(ss.str().c_str());
-}
-////////////////////////////////////////////////////////////////////////////////
 void PickHandler::updateLabel(const vcity::URI& uri)
 {
     appGui().getMainWindow()->updateTextBox(uri);
@@ -264,7 +237,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             toggleSelected(node);
         }
 
-        node = node->getParent(0);
+        //node = node->getParent(0);
         std::cout << "picking uri : " << osgTools::getURI(node).getStringURI() << std::endl;
         appGui().getTreeView()->selectItem(osgTools::getURI(node));
         updateLabel(osgTools::getURI(node));
@@ -280,7 +253,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::View *viewer)
 {
-    osg::Node* scene = viewer->getSceneData();
+    /*osg::Node* scene = viewer->getSceneData();
     if(!scene) return;
 
     // use non dimensional coordinates - in projection/clip space
@@ -344,12 +317,12 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
                     addNodePicked(node);
                     toggleSelected(node);
                 }
-                /*else
-                {
-                    resetPicking();
-                    addNodePicked(node);
-                    toggleSelected(node);
-                }*/
+                //else
+                //{
+                //    resetPicking();
+                //    addNodePicked(node);
+                //    toggleSelected(node);
+                //}
 
                 updateLabel();
 
@@ -361,7 +334,7 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
     else
     {
         resetPicking();
-    }
+    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 // toggle osgFX::Scribe to show picking
@@ -404,6 +377,12 @@ void PickHandler::toggleSelected(osg::Node *node, osg::Group *parent, bool /*for
             (*itr)->replaceChild(parentAsSelected, node);
         }
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void PickHandler::toggleSelected(const vcity::URI& uri)
+{
+    appGui().addSelectedNode(uri);
+    toggleSelected(appGui().getOsgScene()->getNode(uri));
 }
 ////////////////////////////////////////////////////////////////////////////////
 //const std::string& PickHandler::getNodePicked() const

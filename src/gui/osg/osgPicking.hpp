@@ -85,6 +85,7 @@ public:
     void pickPoint(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
     void pickRectangle(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
     void toggleSelected(osg::Node* node, osg::Group* parent = NULL, bool forceUnselect = false);
+    void toggleSelected(const vcity::URI& uri);
 
     void addNodePicked(const std::string& name);
     void addNodePicked(const vcity::URI& uri);
@@ -93,7 +94,6 @@ public:
     void addNodePicked(osg::ref_ptr<osg::Node> node);
     void removeNodePicked(osg::ref_ptr<osg::Node> node);
 
-    void updateLabel();
     void updateLabel(const vcity::URI& uri);
 
 protected:

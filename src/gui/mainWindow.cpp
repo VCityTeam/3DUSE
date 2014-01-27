@@ -47,12 +47,10 @@ MainWindow::MainWindow(QWidget *parent) :
     m_app.setTextBowser(m_ui->textBrowser);
 
     // create controller
-
     m_app.setControllerGui(new ControllerGui());
 
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);
-    //m_osgView = 0;
     m_pickhandler = new PickHandler();
     m_osgView->setPickHandler(m_pickhandler);
     m_ui->mainGridLayout->addWidget(m_osgView->getWidget(), 0, 0);
@@ -710,12 +708,34 @@ void MainWindow::generateAllLODs()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
 {
-    // call real function. In algo.cpp ?
+    // get all selected nodes (with a uri)
+    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        // do all nodes selected
+        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+        {
+            vcity::app().getAlgo().generateLOD0(*it);
+            // TODO
+            //appGui().getControllerGui().update(uri);
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
-
+    // get all selected nodes (with a uri)
+    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        // do all nodes selected
+        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+        {
+            vcity::app().getAlgo().generateLOD1(*it);
+            // TODO
+            //appGui().getControllerGui().update(uri);
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()

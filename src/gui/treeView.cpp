@@ -368,6 +368,8 @@ void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
     m_mainWindow->updateTextBox(uri);
+    // TODO : osg code to highlight node (it will also update selected nodes list)
+    appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void searchNode(QTreeWidgetItem* node, const QString& filter)
