@@ -62,7 +62,12 @@ const std::vector<URI>& Application::getSelectedNodes() const
 ////////////////////////////////////////////////////////////////////////////////
 void Application::setSelectedNodes(const std::vector<URI>& uris)
 {
-    m_selectedNodes = uris;
+    resetSelectedNodes();
+    for(std::vector<URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+    {
+        //std::find_if(m_selectedNodes.begin(), m_selectedNodes.end(), *it);
+        m_selectedNodes.push_back(*it);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Application::addSelectedNode(const URI& uri)

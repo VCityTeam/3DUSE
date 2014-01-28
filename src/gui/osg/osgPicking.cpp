@@ -227,14 +227,18 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
 
         if(m_addToSelection)
         {
-            addNodePicked(node);
-            toggleSelected(node);
+            //addNodePicked(node);
+            //toggleSelected(node);
+            appGui().getControllerGui().addSelection(osgTools::getURI(node));
         }
         else
         {
-            resetPicking();
-            addNodePicked(node);
-            toggleSelected(node);
+            //resetPicking();
+            //addNodePicked(node);
+            //toggleSelected(node);
+
+            appGui().getControllerGui().resetSelection();
+            appGui().getControllerGui().addSelection(osgTools::getURI(node));
         }
 
         //node = node->getParent(0);

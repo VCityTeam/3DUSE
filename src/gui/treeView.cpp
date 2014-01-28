@@ -89,6 +89,9 @@ void TreeView::init()
     //connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), m_mainWindow, SLOT(showInfoHandler()));
     connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemClicked(QTreeWidgetItem*,int)));
 
+    //
+    //connect(m_tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(slotItemActivated(QTreeWidgetItem*,int)));
+
 
 
     reset();
@@ -368,11 +371,23 @@ void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
     m_mainWindow->updateTextBox(uri);
+
+    appGui().getControllerGui().resetSelection();
+    appGui().getControllerGui().addSelection(uri);
+
     // TODO : osg code to highlight node (it will also update selected nodes list)
-    appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
+    //appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void searchNode(QTreeWidgetItem* node, const QString& filter)
+/*void TreeView::slotItemActivated(QTreeWidgetItem* item, int)
+{
+    vcity::URI uri = getURI(item);
+    m_mainWindow->updateTextBox(uri);
+    // TODO : osg code to highlight node (it will also update selected nodes list)
+    appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
+}*/
+////////////////////////////////////////////////////////////////////////////////
+void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 {
     if(node)
     {
@@ -383,8 +398,13 @@ void searchNode(QTreeWidgetItem* node, const QString& filter)
             if(item->text(0).contains(filter, Qt::CaseSensitivity::CaseInsensitive))
             {
                 item->setSelected(true);
+
+                // select node
+                appGui().getControllerGui().addSelection(tv->getURI(item));
+                //vcity::URI uri = tv->getURI(item);
+                //appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
             }
-            searchNode(item, filter);
+            searchNode(tv, item, filter);
         }
     }
 }
@@ -393,7 +413,8 @@ void TreeView::slotFilter()
 {
     //std::cout << "filter : " << appGui().getMainWindow()->getFilter()->text().toStdString() << std::endl;
 
-    searchNode(m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
+    appGui().getControllerGui().resetSelection();
+    searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddTile()

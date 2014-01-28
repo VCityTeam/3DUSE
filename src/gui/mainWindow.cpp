@@ -445,6 +445,7 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     {
         ss << "ID : " << obj->getId() << std::endl;
         ss << "Type : " << obj->getTypeAsString() << std::endl;
+        //obj->l
         ss << "Temporal : " << obj->isTemporal() << std::endl;
 
         // get textures
@@ -461,7 +462,7 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
                 const citygml::Texture* tex = (*itPoly)->getTexture();
                 if(tex)
                 {
-                    ss << "Texture : " << tex->getUrl() << std::endl;
+                    //ss << "Texture (" << (*itGeom)->getId() << " : " << ") : " << tex->getUrl() << std::endl;
                 }
             }
 
@@ -481,6 +482,11 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     }
 
     updateTextBox(ss);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::updateTextBoxWithSelectedNodes()
+{
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 QLineEdit* MainWindow::getFilter()
@@ -733,7 +739,7 @@ void MainWindow::generateLOD1()
         {
             vcity::app().getAlgo().generateLOD1(*it);
             // TODO
-            //appGui().getControllerGui().update(uri);
+            //appGui().getControllerGui().update(*it);
         }
     }
 }

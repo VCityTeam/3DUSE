@@ -91,3 +91,26 @@ void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
     appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str());
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::resetSelection()
+{
+    // reset in treeview
+
+
+    // reset in osg scene
+
+
+    // must be done last
+    Controller::resetSelection();
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addSelection(const vcity::URI& uri)
+{
+    Controller::addSelection(uri);
+
+    // select in treeview
+
+
+    // select in osg
+
+}
+////////////////////////////////////////////////////////////////////////////////

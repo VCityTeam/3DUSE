@@ -45,6 +45,8 @@ public:
 
     void updateTextBox(const std::stringstream& ss);
     void updateTextBox(const vcity::URI& uri);
+    //const std::stringstream& genSelectedNodes
+    void updateTextBoxWithSelectedNodes();
 
     QLineEdit* getFilter();
 

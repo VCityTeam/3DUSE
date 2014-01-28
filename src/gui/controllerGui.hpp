@@ -23,6 +23,10 @@ public:
     virtual void deleteTile(const vcity::URI& uri);
     virtual void setTileName(const vcity::URI& uri, const std::string& name);
 
+    // selection
+    virtual void resetSelection();
+    virtual void addSelection(const vcity::URI& uri);
+
 private:
 };
 ////////////////////////////////////////////////////////////////////////////////
