@@ -1,6 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "controllerGui.hpp"
 #include "applicationGui.hpp"
+#include "moc/mainWindow.hpp"
+#include "osg/osgPicking.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 ControllerGui::ControllerGui()
 {
@@ -94,23 +96,28 @@ void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
 void ControllerGui::resetSelection()
 {
     // reset in treeview
-
+    appGui().getTreeView()->resetSelection();
 
     // reset in osg scene
-
+    appGui().getPickHandler()->resetPicking();
 
     // must be done last
     Controller::resetSelection();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ControllerGui::addSelection(const vcity::URI& uri)
+bool ControllerGui::addSelection(const vcity::URI& uri)
 {
-    Controller::addSelection(uri);
+    if(Controller::addSelection(uri))
+    {
+        // select in treeview
+        appGui().getTreeView()->selectItem(uri);
 
-    // select in treeview
+        // select in osg
+        appGui().getPickHandler()->toggleSelected(uri);
 
+        return true;
+    }
 
-    // select in osg
-
+    return false;
 }
 ////////////////////////////////////////////////////////////////////////////////

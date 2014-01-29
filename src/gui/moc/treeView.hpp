@@ -33,6 +33,9 @@ public:
     void deleteItem(const std::string& URI);
     void deleteItem(const vcity::URI& URI);
 
+    /// \brief getURI Compute URI of a treeview item
+    /// \param item TreeView item
+    /// \return URI
     vcity::URI getURI(QTreeWidgetItem* item) const;
 
     QTreeWidget* getTree();
@@ -47,9 +50,15 @@ public:
     void deleteTile(const vcity::URI& uri);
 
     /// \brief selectItem Select item in treeview
-    /// \param uri
+    /// \param uri URI pointing to selected node
     void selectItem(const vcity::URI& uri);
 
+    /// \brief resetSelection Deselect all items
+    void resetSelection();
+
+    /// \brief getNode Find an item using a URI
+    /// \param uri URI pointing to the wanted item/node
+    /// \return QTreeWidgetItem corresponding to uri
     QTreeWidgetItem* getNode(const vcity::URI& uri);
 
 private slots:

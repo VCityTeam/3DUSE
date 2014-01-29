@@ -65,14 +65,20 @@ void Application::setSelectedNodes(const std::vector<URI>& uris)
     resetSelectedNodes();
     for(std::vector<URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
     {
-        //std::find_if(m_selectedNodes.begin(), m_selectedNodes.end(), *it);
-        m_selectedNodes.push_back(*it);
+        addSelectedNode(*it);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Application::addSelectedNode(const URI& uri)
+bool Application::addSelectedNode(const URI& uri)
 {
-    m_selectedNodes.push_back(uri);
+    // check that node is not already selected
+    if(std::find(m_selectedNodes.begin(), m_selectedNodes.end(), uri) == m_selectedNodes.end())
+    {
+        m_selectedNodes.push_back(uri);
+        return true;
+    }
+
+    return false;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Application::resetSelectedNodes()

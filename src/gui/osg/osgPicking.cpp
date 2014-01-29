@@ -11,58 +11,13 @@ PickHandler::PickHandler()
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
-void PickHandler::addNodePicked(const std::string& name)
-{
-    m_nodesPicked.insert(name);
-}
-////////////////////////////////////////////////////////////////////////////////
-void PickHandler::addNodePicked(const vcity::URI& uri)
-{
-    osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
-    if(node)
-    {
-        addNodePicked(node);
-        toggleSelected(node);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
-void PickHandler::removeNodePicked(const std::string& name)
-{
-    m_nodesPicked.erase(name);
-}
-////////////////////////////////////////////////////////////////////////////////
-void PickHandler::addNodePicked(osg::ref_ptr<osg::Node> node)
-{
-    std::vector<osg::ref_ptr<osg::Node> >::iterator it = std::find(m_osgNodesPicked.begin(), m_osgNodesPicked.end(), node);
-    if(it == m_osgNodesPicked.end())
-    {
-        // if not found, ok, add
-        m_osgNodesPicked.push_back(node);
-        addNodePicked(node->getName());
-    }
-    else
-    {
-        // already picked, need to unpick
-        m_osgNodesPicked.erase(it);
-        removeNodePicked(node->getName());
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
-void PickHandler::removeNodePicked(osg::ref_ptr<osg::Node> /*node*/)
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
 void PickHandler::resetPicking()
 {
-    std::vector<osg::ref_ptr<osg::Node> >::const_iterator it = m_osgNodesPicked.begin();
-    for(; it != m_osgNodesPicked.end(); ++it)
+    std::vector<vcity::URI>::const_iterator it = appGui().getSelectedNodes().begin();
+    for(; it != appGui().getSelectedNodes().end(); ++it)
     {
         toggleSelected(*it);
     }
-
-    m_osgNodesPicked.clear();
-    m_nodesPicked.clear();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::updateLabel(const vcity::URI& uri)
@@ -70,7 +25,6 @@ void PickHandler::updateLabel(const vcity::URI& uri)
     appGui().getMainWindow()->updateTextBox(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
-//osg::Node* nodePicked = 0;
 bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa)
 {
     osgViewer::View* viewer = dynamic_cast<osgViewer::View*>(&aa);
@@ -126,9 +80,21 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
           case osgGA::GUIEventAdapter::KEY_Plus:
           case osgGA::GUIEventAdapter::KEY_KP_Add:
           case osgGA::GUIEventAdapter::KEY_P:
-             std::cout << "pick parent" << std::endl;
 
-             if(m_osgNodesPicked.size() > 0)
+            if(appGui().getSelectedNodes().size() > 0)
+            {
+                vcity::URI uri = appGui().getSelectedNodes()[0];
+                appGui().getControllerGui().resetSelection();
+
+                uri.pop();
+                appGui().getControllerGui().addSelection(uri);
+                std::cout << "pick parent" << std::endl;
+                std::cout << "pick parent : " << uri.getStringURI() << std::endl;
+
+                updateLabel(uri);
+            }
+
+             /*if(m_osgNodesPicked.size() > 0)
              {
                  toggleSelected(m_osgNodesPicked[0]); // unselect last node
                  m_osgNodesPicked[0] = (m_osgNodesPicked[0]->getNumParents() > 0) ? m_osgNodesPicked[0]->getParent(0) : m_osgNodesPicked[0];
@@ -137,7 +103,7 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
                  std::cout << "+ picking uri : " << osgTools::getURI(m_osgNodesPicked[0]).getStringURI() << std::endl;
                  appGui().getTreeView()->selectItem(osgTools::getURI(m_osgNodesPicked[0]));
                  updateLabel(osgTools::getURI(m_osgNodesPicked[0]));
-             }
+             }*/
              return true;
              break;
           /*case osgGA::GUIEventAdapter::KEY_Control_L:
@@ -227,31 +193,26 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
 
         if(m_addToSelection)
         {
-            //addNodePicked(node);
-            //toggleSelected(node);
             appGui().getControllerGui().addSelection(osgTools::getURI(node));
         }
         else
         {
-            //resetPicking();
-            //addNodePicked(node);
-            //toggleSelected(node);
-
             appGui().getControllerGui().resetSelection();
             appGui().getControllerGui().addSelection(osgTools::getURI(node));
         }
+        updateLabel(osgTools::getURI(node));
 
         //node = node->getParent(0);
-        std::cout << "picking uri : " << osgTools::getURI(node).getStringURI() << std::endl;
-        appGui().getTreeView()->selectItem(osgTools::getURI(node));
-        updateLabel(osgTools::getURI(node));
+        //std::cout << "picking uri : " << osgTools::getURI(node).getStringURI() << std::endl;
+        //appGui().getTreeView()->selectItem(osgTools::getURI(node));
+        //updateLabel(osgTools::getURI(node));
 
         //toggleSelected(node);
         //nodePicked = node;
     }
     else
     {
-        resetPicking();
+        appGui().getControllerGui().resetSelection();
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -355,7 +316,8 @@ void PickHandler::toggleSelected(osg::Node *node, osg::Group *parent, bool /*for
         return;
     }
 
-    std::cout << "  parent " << parent->className() << std::endl;
+    //std::cout << "  parent " << parent->className() << std::endl;
+    //std::cout << "osg toggleSelected : " << node->getName() << std::endl;
 
     osgFX::Scribe* parentAsSelected = dynamic_cast<osgFX::Scribe*>(parent);
     if (!parentAsSelected)
@@ -385,14 +347,10 @@ void PickHandler::toggleSelected(osg::Node *node, osg::Group *parent, bool /*for
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::toggleSelected(const vcity::URI& uri)
 {
-    appGui().addSelectedNode(uri);
+    //appGui().addSelectedNode(uri);
+    std::cout << "toggleSelected : " << uri.getStringURI() << std::endl;
     toggleSelected(appGui().getOsgScene()->getNode(uri));
 }
-////////////////////////////////////////////////////////////////////////////////
-//const std::string& PickHandler::getNodePicked() const
-//{
-    //return nodePicked->getName();
-//}
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::setPickingMode(int mode)
 {

@@ -273,6 +273,24 @@ void TreeView::selectItem(const vcity::URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void resetSelectionRec(QTreeWidgetItem* item)
+{
+    item->setSelected(false);
+
+    int count = item->childCount();
+    for(int i=0; i<count; ++i)
+    {
+        QTreeWidgetItem* current = item->child(i);
+        resetSelectionRec(current);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::resetSelection()
+{
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    resetSelectionRec(root);
+}
+////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 {
     QTreeWidgetItem* root = m_tree->topLevelItem(0);
@@ -280,6 +298,11 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 
     int depth = uri.getDepth();
     int maxDepth = depth;
+
+    if(depth == 0)
+    {
+        return nullptr;
+    }
 
     do
     {
@@ -370,22 +393,15 @@ void TreeView::slotItemChanged(QTreeWidgetItem* item, int column)
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
-    m_mainWindow->updateTextBox(uri);
 
-    appGui().getControllerGui().resetSelection();
-    appGui().getControllerGui().addSelection(uri);
+    if(uri.getDepth() > 0)
+    {
+        m_mainWindow->updateTextBox(uri);
 
-    // TODO : osg code to highlight node (it will also update selected nodes list)
-    //appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
+        appGui().getControllerGui().resetSelection();
+        appGui().getControllerGui().addSelection(uri);
+    }
 }
-////////////////////////////////////////////////////////////////////////////////
-/*void TreeView::slotItemActivated(QTreeWidgetItem* item, int)
-{
-    vcity::URI uri = getURI(item);
-    m_mainWindow->updateTextBox(uri);
-    // TODO : osg code to highlight node (it will also update selected nodes list)
-    appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
-}*/
 ////////////////////////////////////////////////////////////////////////////////
 void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 {
@@ -425,12 +441,12 @@ void TreeView::slotAddTile()
 void TreeView::slotEditTile()
 {
     DialogEditTile diag;
-    diag.editTile(getURI(m_tree->currentItem()));
+    diag.editTile(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteTile()
 {
-    appGui().getControllerGui().deleteTile(getURI(m_tree->currentItem()));
+    appGui().getControllerGui().deleteTile(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddLayer()
@@ -442,12 +458,12 @@ void TreeView::slotAddLayer()
 void TreeView::slotEditLayer()
 {
     DialogEditLayer diag;
-    diag.editLayer(getURI(m_tree->currentItem()));
+    diag.editLayer(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteLayer()
 {
-    appGui().getControllerGui().deleteLayer(getURI(m_tree->currentItem()));
+    appGui().getControllerGui().deleteLayer(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddBuilding()
@@ -461,7 +477,9 @@ void TreeView::slotEditBuilding()
     diag.setName(m_tree->currentItem()->text(0));
     //diag.setEnvelope(0, 1, 0, 1);
 
-    osg::ref_ptr<osg::Node> node = m_mainWindow->m_osgScene->findNode(m_tree->currentItem()->text(0).toStdString());
+    vcity::URI uri = getURI(getCurrentItem());
+
+    osg::ref_ptr<osg::Node> node = m_mainWindow->m_osgScene->getNode(uri);
 
     if(node && node->asGeode())
     {
@@ -487,7 +505,7 @@ void TreeView::slotEditBuilding()
     {
         //diag.setName(m_tree->currentItem()->text(0));
 
-        osg::ref_ptr<osg::Node> node = m_mainWindow->m_osgScene->findNode(m_tree->currentItem()->text(0).toStdString());
+        osg::ref_ptr<osg::Node> node = m_mainWindow->m_osgScene->getNode(uri);
 
         if(node && node->asGeode())
         {

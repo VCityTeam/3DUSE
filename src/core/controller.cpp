@@ -68,9 +68,9 @@ void Controller::resetSelection()
     app().resetSelectedNodes();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Controller::addSelection(const vcity::URI& uri)
+bool Controller::addSelection(const vcity::URI& uri)
 {
-    app().addSelectedNode(uri);
+    return app().addSelectedNode(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

@@ -72,6 +72,7 @@ public slots:
     void exportJSON();
     void debugDumpOsg();
     void slotDumpScene();
+    void slotDumpSelectedNodes();
 
     void about();
 

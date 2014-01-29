@@ -58,7 +58,7 @@ public:
 
     /// \brief addSelectedNode Add a selected node
     /// \param uri URI pointing to the selected node to add
-    void addSelectedNode(const URI& uri);
+    bool addSelectedNode(const URI& uri);
 
     /// \brief resetSelectedNode Rest seleceted nodes list
     void resetSelectedNodes();

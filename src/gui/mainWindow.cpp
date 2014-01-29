@@ -94,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
     connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
     connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
+    connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 
     // LODs signals
@@ -648,10 +649,11 @@ void MainWindow::exportCityGML()
     }
 
     // check if something is picked
-    const std::set<std::string>& nodes = m_pickhandler->getNodesPicked(); // TODO : update this with a uri list
+    //const std::set<std::string>& nodes = m_pickhandler->getNodesPicked(); // TODO : update this with a uri list
+    const std::vector<vcity::URI>& nodes = appGui().getSelectedNodes();
     if(nodes.size() > 0)
     {
-        std::cout << "Citygml export cityobject : " << *nodes.begin() << std::endl;
+        //std::cout << "Citygml export cityobject : " << *nodes.begin() << std::endl;
         // use first node picked
         //citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*nodes.begin()); // use getNode
         //citygml::exportCitygml(model, "test.citygml");
@@ -705,6 +707,15 @@ void MainWindow::debugDumpOsg()
 void MainWindow::slotDumpScene()
 {
     m_app.getScene().dump();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotDumpSelectedNodes()
+{
+    vcity::log() << "Selected nodes uri : \n";
+    for(std::vector<vcity::URI>::const_iterator it = appGui().getSelectedNodes().begin(); it < appGui().getSelectedNodes().end(); ++it)
+    {
+        vcity::log() << it->getStringURI() << "\n";
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateAllLODs()

@@ -213,13 +213,6 @@ void OsgScene::deleteLayer(const vcity::URI& uriLayer)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Node> OsgScene::findNode(const std::string& name)
-{
-    FindNamedNode f(name);
-    accept(f);
-    return f.getNode();
-}
-////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setShadow(bool shadow)
 {
     if(shadow)
@@ -316,16 +309,14 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 {
     if(node)
     {
-        std::cout << "mask : " << 0xffffffff - node->getNodeMask() << std::endl;
-        std::cout << "node : " << node.operator->() << std::endl;
-
-        //node->setNodeMask(0xffffffff - node->getNodeMask());
-        //node->setNodeMask(0x0);
-        //node->setNodeMask(0xffffffff);
         if(show)
         {
             //node->setNodeMask(~0x0);
             node->setNodeMask(0xffffffff);
+            if(node->asGroup())
+            {
+                node->asGroup()->getChild(0)->setNodeMask(0xffffffff);
+            }
         }
         else
         {
@@ -412,9 +403,43 @@ osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
 {
-    FindNamedNode f(uri.getLastNode());
+    osg::ref_ptr<osg::Group> current = m_layers;
+
+    int depth = uri.getDepth();
+    int maxDepth = depth;
+
+    if(depth == 0)
+    {
+        return nullptr;
+    }
+
+    do
+    {
+        int count = current->getNumChildren();
+        for(int i=0; i<count; ++i)
+        {
+            osg::ref_ptr<osg::Node> child = current->getChild(i);
+            if(child->getName() == uri.getNode(maxDepth-depth))
+            {
+                if(depth == 1)
+                {
+                    return child;
+                }
+                else if(!(current = child->asGroup()))
+                {
+                    return nullptr;
+                }
+                break;
+            }
+        }
+        --depth;
+    } while(depth > 0);
+
+    return nullptr;
+
+    /*FindNamedNode f(uri.getLastNode());
     accept(f);
-    return f.getNode();
+    return f.getNode();*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n)

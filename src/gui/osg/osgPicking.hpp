@@ -43,40 +43,6 @@ public:
 
     bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa);
 
-    /*void setLabel(const std::string& name)
-    {
-        appGui().getTextBrowser()->setText(name.c_str());
-    }
-
-    void setLabel(citygml::CityObject* node)
-    {
-        if(node)
-        {
-            std::stringstream ss;
-            ss << node->getId().c_str() << std::endl;
-            citygml::AttributesMap attribs = node->getAttributes();
-            citygml::AttributesMap::const_iterator it = attribs.begin();
-            while( it != attribs.end())
-            {
-                ss << "  + " << it->first << ": " << it->second << std::endl;
-                it++;
-            }
-            appGui().getTextBrowser()->setText(ss.str().c_str());
-        }
-    }*/
-
-    const std::set<std::string>& getNodesPicked() const
-    {
-        return m_nodesPicked;
-    }
-
-    const std::set<std::string>& getNodesPickedURI() const
-    {
-        return m_nodesPicked;
-    }
-
-    //const std::string& getNodePicked() const;
-
     void setPickingMode(int mode);
 
     void resetPicking();
@@ -98,12 +64,6 @@ public:
     /// \param uri URI pointing to the node
     void toggleSelected(const vcity::URI& uri);
 
-    void addNodePicked(const std::string& name); // remove
-    void addNodePicked(const vcity::URI& uri); // remove
-    void removeNodePicked(const std::string& name); // remove
-
-    void addNodePicked(osg::ref_ptr<osg::Node> node); // remove
-    void removeNodePicked(osg::ref_ptr<osg::Node> node); // remove
 
     void updateLabel(const vcity::URI& uri); // remove
 
@@ -119,10 +79,6 @@ protected:
 
     int m_pickingMode;              ///< 0: face, 1: building
     bool m_addToSelection;          ///< are we pressing ctrl key ?
-
-    std::set<std::string> m_nodesPicked;    // remove
-    std::set<vcity::URI> m_nodesPickedURI;  // remove
-    std::vector<osg::ref_ptr<osg::Node> > m_osgNodesPicked; // remove
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __OSGPICKING_HPP__

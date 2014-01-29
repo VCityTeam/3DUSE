@@ -64,7 +64,7 @@ public:
     void deleteLayer(const vcity::URI& uriLayer);
 
 
-    osg::ref_ptr<osg::Node> findNode(const std::string& name);
+    //osg::ref_ptr<osg::Node> findNode(const std::string& name);
 
     void setShadow(bool shadow);
 

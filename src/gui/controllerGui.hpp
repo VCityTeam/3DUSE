@@ -25,7 +25,7 @@ public:
 
     // selection
     virtual void resetSelection();
-    virtual void addSelection(const vcity::URI& uri);
+    virtual bool addSelection(const vcity::URI& uri) override;
 
 private:
 };

@@ -35,6 +35,9 @@ public:
     /// \return std::string with the name of the node
     const std::string& getLastNode() const;
 
+    /// \brief pop Change uri to make it point to its father. (remove last node and --depth)
+    void pop();
+
     /// \brief getType Get the type of the final node pointed by the URI
     /// \return The type of the final node pointed by the URI as a string
     const std::string& getType() const;
@@ -59,8 +62,8 @@ private:
     std::vector<std::string> m_uri; ///< String array. One string per node name, one per depth level.
 };
 ////////////////////////////////////////////////////////////////////////////////
-} // namespace vcity
+bool operator==(const vcity::URI& rhs, const vcity::URI& lhs);
 ////////////////////////////////////////////////////////////////////////////////
-//bool operator==(const vcity::URI& a, const vcity::URI& b);
+} // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __URI_HPP__

@@ -119,6 +119,8 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
     geode->setName(object->getId());
     grp->setName(object->getId());
 
+    //std::cout << "createCityObject : " << object->getId() << std::endl;
+
     /*if(settings._recursive)
     {
         osg::Group* grp = new osg::Group;
