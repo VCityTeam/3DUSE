@@ -113,7 +113,8 @@ bool ControllerGui::addSelection(const vcity::URI& uri)
         appGui().getTreeView()->selectItem(uri);
 
         // select in osg
-        appGui().getPickHandler()->toggleSelected(uri);
+        //appGui().getPickHandler()->toggleSelected(uri);
+        appGui().getPickHandler()->selectNode(uri);
 
         return true;
     }

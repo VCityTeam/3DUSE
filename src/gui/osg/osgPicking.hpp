@@ -64,6 +64,10 @@ public:
     /// \param uri URI pointing to the node
     void toggleSelected(const vcity::URI& uri);
 
+    void selectNode(const vcity::URI& uri);
+
+    void deselectNode(const vcity::URI& uri);
+
 
     void updateLabel(const vcity::URI& uri); // remove
 

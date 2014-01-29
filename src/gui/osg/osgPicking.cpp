@@ -16,7 +16,8 @@ void PickHandler::resetPicking()
     std::vector<vcity::URI>::const_iterator it = appGui().getSelectedNodes().begin();
     for(; it != appGui().getSelectedNodes().end(); ++it)
     {
-        toggleSelected(*it);
+        //toggleSelected(*it);
+        deselectNode(*it);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -323,11 +324,12 @@ void PickHandler::toggleSelected(osg::Node *node, osg::Group *parent, bool /*for
     if (!parentAsSelected)
     {
         // node not already picked, so highlight it with an osgFX::Scribe
-        osgFX::Scribe* selected = new osgFX::Scribe();
+        /*osgFX::Scribe* selected = new osgFX::Scribe();
         selected->setName(node->getName());
         selected->addChild(node);
-        parent->replaceChild(node, selected);
+        parent->replaceChild(node, selected);*/
 
+        node->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
         //setLabel(node->getName());
         //setLabel(m_scene->findNode(node->getName()));
@@ -335,13 +337,13 @@ void PickHandler::toggleSelected(osg::Node *node, osg::Group *parent, bool /*for
     else
     {
         // node already picked so we want to remove scribe to unpick it.
-        osg::Node::ParentList parentList = parentAsSelected->getParents();
+        /*osg::Node::ParentList parentList = parentAsSelected->getParents();
         for(osg::Node::ParentList::iterator itr=parentList.begin();
             itr!=parentList.end();
             ++itr)
         {
             (*itr)->replaceChild(parentAsSelected, node);
-        }
+        }*/
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -350,6 +352,24 @@ void PickHandler::toggleSelected(const vcity::URI& uri)
     //appGui().addSelectedNode(uri);
     std::cout << "toggleSelected : " << uri.getStringURI() << std::endl;
     toggleSelected(appGui().getOsgScene()->getNode(uri));
+}
+////////////////////////////////////////////////////////////////////////////////
+void PickHandler::selectNode(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+    if(node)
+    {
+        node->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void PickHandler::deselectNode(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+    if(node)
+    {
+        node->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::setPickingMode(int mode)
