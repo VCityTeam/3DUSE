@@ -51,12 +51,12 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
         {
             if((ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0)
             {
-                std::cout << "start pick add" << std::endl;
+                //std::cout << "start pick add" << std::endl;
                 m_addToSelection = true;
             }
             else
             {
-                std::cout << "stop pick add" << std::endl;
+                //std::cout << "stop pick add" << std::endl;
                 m_addToSelection = false;
             }
 
@@ -69,8 +69,8 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
             }
             else
             {
-                std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getX() << ", " << ea.getY() << ")"  << std::endl;
-                std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getXnormalized() << ", " << ea.getYnormalized() << ")"  << std::endl;
+                //std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getX() << ", " << ea.getY() << ")"  << std::endl;
+                //std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getXnormalized() << ", " << ea.getYnormalized() << ")"  << std::endl;
                 //pickRectangle(ea,viewer);
             }
             return true;
@@ -79,6 +79,9 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
        {
           switch(ea.getKey())
           {
+          case osgGA::GUIEventAdapter::KEY_Escape:
+              return true;
+              break;
           case osgGA::GUIEventAdapter::KEY_Plus:
           case osgGA::GUIEventAdapter::KEY_KP_Add:
           case osgGA::GUIEventAdapter::KEY_P:
@@ -90,8 +93,8 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
 
                 uri.pop();
                 appGui().getControllerGui().addSelection(uri);
-                std::cout << "pick parent" << std::endl;
-                std::cout << "pick parent : " << uri.getStringURI() << std::endl;
+                //std::cout << "pick parent" << std::endl;
+                //std::cout << "pick parent : " << uri.getStringURI() << std::endl;
 
                 updateLabel(uri);
             }

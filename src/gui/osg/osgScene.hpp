@@ -78,7 +78,13 @@ public:
     void showNode(osg::ref_ptr<osg::Node> node, bool show);
     void showNode(const vcity::URI& uri, bool show);
 
+    /// \brief centerOn Home camera on a node
+    /// \param uri URI pointing to the node
+    void centerOn(const vcity::URI& uri);
+
     void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth=0);
+
+    void optim();
 
     osg::ref_ptr<osg::Geode> buildGrid(osg::Vec3 origin, float step, int n);
     //osg::ref_ptr<osg::Geode> buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound);

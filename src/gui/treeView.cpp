@@ -89,6 +89,9 @@ void TreeView::init()
     //connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), m_mainWindow, SLOT(showInfoHandler()));
     connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemClicked(QTreeWidgetItem*,int)));
 
+    // double click
+    connect(m_tree, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemDoubleClicked(QTreeWidgetItem*,int)));
+
     reset();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -399,6 +402,11 @@ void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
         appGui().getControllerGui().resetSelection();
         appGui().getControllerGui().addSelection(uri);
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotItemDoubleClicked(QTreeWidgetItem* item, int)
+{
+    appGui().getOsgScene()->centerOn(getURI(item));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)

@@ -84,6 +84,7 @@ private slots:
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
     void slotItemClicked(QTreeWidgetItem* item,int column);
+    void slotItemDoubleClicked(QTreeWidgetItem* item,int column);
     //void slotItemActivated(QTreeWidgetItem* item, int column);
 
     void slotFilter();

@@ -1,6 +1,7 @@
 #include "moc/dialogSettings.hpp"
 #include "ui_dialogSettings.h"
 #include "core/application.hpp"
+#include <QSettings>
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::DialogSettings(QWidget *parent) :
     QDialog(parent),
@@ -35,6 +36,8 @@ void DialogSettings::doSettings()
         vcity::app().getDataProfile().m_yStep = ui->lineTileSizeY->text().toFloat();
 
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
+        QSettings settings("liris", "virtualcity");
+        settings.setValue("loadtextures", vcity::app().getSettings().m_loadTextures);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -97,6 +97,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
     connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
+    connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
+
 
     // render lod signals
     connect(m_ui->actionForce_LOD0, SIGNAL(triggered()), this, SLOT(slotRenderLOD0()));
@@ -164,7 +166,7 @@ void MainWindow::updateRecentFiles()
     list = list.toSet().toList();
     settings.setValue("recentfiles", list);
 
-    clearRecentFiles();
+    //clearRecentFiles();
 
     foreach(QString str, list)
     {
@@ -315,6 +317,8 @@ bool MainWindow::loadFile(const QString& filepath)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadScene()
 {
+    m_osgView->setActive(false);
+
     std::cout<<"Load Scene"<<std::endl;
 
     QSettings settings("liris", "virtualcity");
@@ -336,6 +340,8 @@ void MainWindow::loadScene()
     //std::cout << "lastdir set : " << settings.value("lastdir").toString().toStdString() << std::endl;
 
     updateRecentFiles();
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void buildRecursiveFileList(const QDir& dir, QStringList& list)
@@ -358,7 +364,9 @@ void buildRecursiveFileList(const QDir& dir, QStringList& list)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadSceneRecursive()
 {
-    std::cout<<"Load Scene recursive"<<std::endl;
+    m_osgView->setActive(false);
+
+    //std::cout<<"Load Scene recursive"<<std::endl;
     /*QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
 
@@ -404,33 +412,37 @@ void MainWindow::loadSceneRecursive()
     {
         t->setSelectionMode(QAbstractItemView::MultiSelection);
     }
-    w.exec();
-    QStringList file = w.selectedFiles();
-    foreach (QString s, file)
+    if(w.exec())
     {
-        QFileInfo file(s);
-        // do some useful stuff here
-        std::cout << "Working on file " << s.toStdString() << " type : " << file.isDir()<< ", " << file.isFile() << std::endl;
-        if(file.isDir())
+        QStringList file = w.selectedFiles();
+        foreach (QString s, file)
         {
-            QDir dir(s);
-            QStringList files;
-            buildRecursiveFileList(dir, files);
-
-            for(int i = 0; i < files.count(); ++i)
+            QFileInfo file(s);
+            // do some useful stuff here
+            std::cout << "Working on file " << s.toStdString() << " type : " << file.isDir()<< ", " << file.isFile() << std::endl;
+            if(file.isDir())
             {
-                loadFile(files[i]);
+                QDir dir(s);
+                QStringList files;
+                buildRecursiveFileList(dir, files);
+
+                for(int i = 0; i < files.count(); ++i)
+                {
+                    loadFile(files[i]);
+                }
+            }
+            else if(file.isFile())
+            {
+                loadFile(s);
+            }
+            else
+            {
+                // fail
             }
         }
-        else if(file.isFile())
-        {
-            loadFile(s);
-        }
-        else
-        {
-            // fail
-        }
     }
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadSceneBBox()
@@ -777,6 +789,11 @@ void MainWindow::slotFixBuilding()
             //appGui().getControllerGui().update(uri);
         }
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotOptimOSG()
+{
+    appGui().getOsgScene()->optim();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotRenderLOD0()

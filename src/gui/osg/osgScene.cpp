@@ -9,6 +9,9 @@
 //#include <osgShadow/ParallelSplitShadowMap>
 #include <osg/ValueObject>
 #include <osgText/Text>
+#include <osgUtil/Optimizer>
+#include "gui/applicationGui.hpp"
+#include "gui/moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -361,6 +364,17 @@ void OsgScene::showNode(const vcity::URI& uri, bool show)
     showNode(getNode(uri), show);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void OsgScene::centerOn(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> node = getNode(uri);
+    if(node)
+    {
+        appGui().getMainWindow()->m_osgView->m_osgView->getCameraManipulator()->setNode(node);
+        appGui().getMainWindow()->m_osgView->m_osgView->getCameraManipulator()->computeHomePosition();
+        appGui().getMainWindow()->m_osgView->m_osgView->home();
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void OsgScene::dump(std::ostream& out, osg::ref_ptr<osg::Node> node, int depth)
 {
     if(node == NULL)
@@ -388,7 +402,11 @@ void OsgScene::dump(std::ostream& out, osg::ref_ptr<osg::Node> node, int depth)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-
+void OsgScene::optim()
+{
+    osgUtil::Optimizer optimizer;
+    optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
+}
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::buildTileRec(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, int depth)
 {
@@ -450,7 +468,7 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
         for(int i=0; i<count; ++i)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);
-            std::cout << child->getName() << " -> " << uri.getNode(maxDepth-depth) << std::endl;
+            //std::cout << child->getName() << " -> " << uri.getNode(maxDepth-depth) << std::endl;
             if(child->getName() == uri.getNode(maxDepth-depth))
             {
                 if(depth == 1)

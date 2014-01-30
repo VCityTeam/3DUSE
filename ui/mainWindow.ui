@@ -317,6 +317,7 @@
     <property name="title">
      <string>Debug</string>
     </property>
+    <addaction name="actionOptim_osg"/>
     <addaction name="actionDump_osg"/>
     <addaction name="actionDump_scene"/>
     <addaction name="actionDump_selected_nodes"/>
@@ -603,6 +604,11 @@
   <action name="actionFix_building">
    <property name="text">
     <string>Fix building</string>
+   </property>
+  </action>
+  <action name="actionOptim_osg">
+   <property name="text">
+    <string>Optim osg</string>
    </property>
   </action>
  </widget>
