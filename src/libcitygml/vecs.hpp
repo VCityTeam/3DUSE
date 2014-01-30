@@ -276,7 +276,7 @@ template< class T >	inline TVec3<T> operator*( const T& val, const TVec3<T>& vec
 
 template<class T> inline std::ostream& operator<<(std::ostream & os, TVec3<T> const & v)
 {
-	return os << std::fixed << v.x << " " << std::fixed << v.y << " " << std::fixed << v.z;
+    return os << "(" << std::fixed << v.x << "," << std::fixed << v.y << "," << std::fixed << v.z << ")";
 }
 
 template<class T> inline std::istream& operator>>(std::istream & is, TVec3<T> & v)

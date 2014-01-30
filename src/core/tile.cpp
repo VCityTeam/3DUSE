@@ -45,7 +45,7 @@ void Tile::computeEnvelope()
 void loadRec(citygml::CityObject* node, ReaderOsgCityGML& reader)
 {
     //node->computeEnvelope();
-    osg::ref_ptr<osg::Group> grp = reader.createCityObject(node);
+    /*osg::ref_ptr<osg::Group> grp = reader.createCityObject(node);
 
     if(node->getType() == citygml::COT_Building)
     {
@@ -61,7 +61,7 @@ void loadRec(citygml::CityObject* node, ReaderOsgCityGML& reader)
         {
             std::istringstream(node->getAttribute("yearOfDemolition")) >> yearOfDemolition;
             grp->setUserValue("yearOfDemolition", yearOfDemolition);
-        }
+        }*/
 
 
 
@@ -74,16 +74,16 @@ void loadRec(citygml::CityObject* node, ReaderOsgCityGML& reader)
 
         std::cout << "yearOfConstruction2 : " << node->getAttribute("yearOfConstruction") << std::endl;
         std::cout << "yearOfDemolition2 : " << node->getAttribute("yearOfDemolition") << std::endl;*/
-    }
+    //}
 
-    node->setOsgNode(grp);
+    //node->setOsgNode(grp);
 
-    citygml::CityObjects& cityObjects = node->getChildren();
+    /*citygml::CityObjects& cityObjects = node->getChildren();
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
         loadRec(*it, reader);
-    }
+    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Tile::load(const std::string& filepath)
@@ -92,18 +92,20 @@ void Tile::load(const std::string& filepath)
     citygml::CityModel* citygmlmodel = citygml::load(filepath, params);
     m_root = citygmlmodel;
 
+    m_citygmlFilePath = filepath;
+
     // create osg geometry
-    size_t pos = filepath.find_last_of("/\\");
+    /*size_t pos = filepath.find_last_of("/\\");
     std::string path = filepath.substr(0, pos);
     ReaderOsgCityGML readerOsgGml(path);
-    readerOsgGml.m_settings.m_useTextures = app().getSettings().m_loadTextures;
+    readerOsgGml.m_settings.m_useTextures = app().getSettings().m_loadTextures;*/
 
-    citygml::CityObjects& cityObjects = m_root->getCityObjectsRoots();
+    /*citygml::CityObjects& cityObjects = m_root->getCityObjectsRoots();
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
         loadRec(*it, readerOsgGml);
-    }
+    }*/
 
     ////////////////////////////////////////////
 
@@ -241,6 +243,11 @@ citygml::CityObject* Tile::getNode(const URI& uri)
     }
 
     return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::string& Tile::getCityGMLfilePath() const
+{
+    return m_citygmlFilePath;
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

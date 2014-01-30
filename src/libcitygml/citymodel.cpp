@@ -716,7 +716,7 @@ namespace citygml
         size_t i;
         for(i=0; i<m_Tags.size(); ++i)
         {
-            CityObject* geom = m_Tags[i]->getGeom();
+            /*CityObject* geom = m_Tags[i]->getGeom();
             if(geom && geom->getOsgNode())
             {
                 geom->getOsgNode()->setUserValue("yearOfConstruction", m_Tags[i]->m_date.date().year());
@@ -728,7 +728,7 @@ namespace citygml
                 if(i < m_Tags.size()-1)
                     y = m_Tags[i+1]->m_date.date().year();
                 geom->getOsgNode()->setUserValue("yearOfDemolition", y);
-            }
+            }*/
         }
     }
 }

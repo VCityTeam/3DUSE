@@ -471,6 +471,15 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
         //obj->l
         ss << "Temporal : " << obj->isTemporal() << std::endl;
 
+        ss << "Attributes : " << std::endl;
+        citygml::AttributesMap attribs = obj->getAttributes();
+        citygml::AttributesMap::const_iterator it = attribs.begin();
+        while ( it != attribs.end() )
+        {
+            ss << " + " << it->first << ": " << it->second << std::endl;
+            ++it;
+        }
+
         // get textures
         // parse geometry
         std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
@@ -482,22 +491,25 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
             std::vector<citygml::Polygon*>::iterator itPoly = polys.begin();
             for(; itPoly != polys.end(); ++itPoly)
             {
+                citygml::LinearRing* ring = (*itPoly)->getExteriorRing();
+                std::vector<TVec3d>& vertices = ring->getVertices();
+                std::vector<TVec3d>::iterator itVertices = vertices.begin();
+                ss << "Linear ring (" << (*itGeom)->getId() << " : " << (*itPoly)->getId() << ") : ";
+                for(; itVertices != vertices.end(); ++itVertices)
+                {
+                    // do stuff with points...
+                    TVec3d point = *itVertices;
+                    ss << point;
+                }
+                ss << std::endl;
+
                 const citygml::Texture* tex = (*itPoly)->getTexture();
                 if(tex)
                 {
-                    //ss << "Texture (" << (*itGeom)->getId() << " : " << ") : " << tex->getUrl() << std::endl;
+                    ss << "Texture (" << (*itGeom)->getId() << " : " << (*itPoly)->getId() << ") : " << tex->getUrl() << std::endl;
                 }
             }
 
-        }
-
-        ss << "Attributes : " << std::endl;
-        citygml::AttributesMap attribs = obj->getAttributes();
-        citygml::AttributesMap::const_iterator it = attribs.begin();
-        while ( it != attribs.end() )
-        {
-            ss << " + " << it->first << ": " << it->second << std::endl;
-            ++it;
         }
 
         //m_pickhandler->resetPicking();
@@ -852,8 +864,67 @@ void MainWindow::test4()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
+{
+    citygml::LinearRing* ringOffset = new citygml::LinearRing(ring->getId()+"_offset", true);
+
+    std::vector<TVec3d>& vertices = ring->getVertices();
+    std::vector<TVec3d>::iterator itVertices = vertices.begin();
+    for(; itVertices != vertices.end(); ++itVertices)
+    {
+        TVec3d point = *itVertices;
+        point.z += offset;
+        ringOffset->addVertex(point);
+    }
+
+    return ringOffset;
+}
+///////////////////////////////////////////////////////////////////////////////////
+void test5rec(citygml::CityObject* obj)
+{
+    std::vector<citygml::Polygon*> polyBuf;
+
+    // parse geometry
+    std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
+    std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin();
+    for(; itGeom != geoms.end(); ++itGeom)
+    {
+        // parse polygons
+        std::vector<citygml::Polygon*>& polys = (*itGeom)->getPolygons();
+        std::vector<citygml::Polygon*>::iterator itPoly = polys.begin();
+        for(; itPoly != polys.end(); ++itPoly)
+        {
+            // get linear ring
+            citygml::LinearRing* ring = (*itPoly)->getExteriorRing();
+            citygml::LinearRing* ringOffset = cpyOffsetLinearRing(ring, 100);
+
+            citygml::Polygon* poly = new citygml::Polygon((*itPoly)->getId()+"_"+ringOffset->getId());
+            poly->addRing(ringOffset);
+            //(*itGeom)->addPolygon(poly);
+            polyBuf.push_back(poly);
+        }
+
+        for(std::vector<citygml::Polygon*>::iterator it = polyBuf.begin(); it < polyBuf.end(); ++it)
+        {
+            (*itGeom)->addPolygon(*it);
+        }
+    }
+
+    citygml::CityObjects& cityObjects = obj->getChildren();
+    citygml::CityObjects::iterator itObj = cityObjects.begin();
+    for(; itObj != cityObjects.end(); ++itObj)
+    {
+        test5rec(*itObj);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test5()
 {
-
+    if(appGui().getSelectedNodes().size() > 0)
+    {
+        citygml::CityObject* obj = appGui().getScene().getNode(appGui().getSelectedNodes()[0]);
+        test5rec(obj);
+        appGui().getControllerGui().update(appGui().getSelectedNodes()[0]);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////

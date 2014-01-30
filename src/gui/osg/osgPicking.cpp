@@ -404,7 +404,7 @@ void PickHandler::deselectNode(const vcity::URI& uri)
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
     if(node)
     {
-        node->getStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
+        node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
 
         vcity::URI uriInfo = uri;
         uriInfo.prepend("infobubble");

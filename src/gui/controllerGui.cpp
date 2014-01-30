@@ -122,3 +122,39 @@ bool ControllerGui::addSelection(const vcity::URI& uri)
     return false;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::update(const vcity::URI& uri_)
+{
+    vcity::URI uri = uri_;
+
+    appGui().resetSelectedNodes();
+
+    // delete in treeview
+    appGui().getTreeView()->deleteItem(uri);
+    // delete in osg
+    appGui().getOsgScene()->deleteNode(uri);
+
+    // refill treeview
+    vcity::URI uriTile = uri;
+    while(uriTile.getDepth() > 2)
+    {
+        uriTile.pop();
+    }
+    uriTile.setType("Tile");
+    //std::cout << uriTile.getStringURI() << std::endl;
+
+    citygml::CityObject* obj = appGui().getScene().getNode(uri);
+
+    appGui().getTreeView()->addCityObject(appGui().getTreeView()->getNode(uriTile), obj);
+
+    // refill osg
+
+    // create osg geometry builder
+    size_t pos = vcity::app().getScene().getTile(uriTile)->getCityGMLfilePath().find_last_of("/\\");
+    std::string path = vcity::app().getScene().getTile(uriTile)->getCityGMLfilePath().substr(0, pos);
+    ReaderOsgCityGML readerOsgGml(path);
+    readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
+
+
+    appGui().getOsgScene()->buildCityObject(appGui().getOsgScene()->getNode(uriTile)->asGroup(), obj, readerOsgGml);
+}
+////////////////////////////////////////////////////////////////////////////////

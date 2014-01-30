@@ -95,7 +95,7 @@ void DialogTag::addTag(const vcity::URI& uri)
             if(obj->getTags().size() == 0)
             {
                 // mark osg tagged
-                obj->getOsgNode()->getChild(0)->setUserValue("TAGGED", 1);
+                //obj->getOsgNode()->getChild(0)->setUserValue("TAGGED", 1); //
                 //obj->getOsgNode()->setUserValue("TAGGED", 1);
                 std::cout << "osg parent tagged" << std::endl;
             }
@@ -119,14 +119,14 @@ void DialogTag::addTag(const vcity::URI& uri)
                 loadRecTest(*it, grp, readerOsgGml);
             }
 
-            grp->setName(tag->getStringId()+tag->getGeom()->getId());
-            grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
-            grp->setUserValue("TAG", 1);
+            //grp->setName(tag->getStringId()+tag->getGeom()->getId());
+            //grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
+            //grp->setUserValue("TAG", 1);
 
             std::cout << "insert osg geom" << std::endl;
             //obj->getOsgNode()->addChild(grp);
-            obj->getOsgNode()->getParent(0)->addChild(grp);
-            geom->setOsgNode(grp);
+            // obj->getOsgNode()->getParent(0)->addChild(grp);
+            // geom->setOsgNode(grp);
             //m_osgScene->addChild(grp);
             //obj->getOsgNode()->setNodeMask(0);
         }

@@ -28,6 +28,7 @@
 #include <osg/Group>
 #include <osg/Geode>
 #include <osg/Geometry>
+#include "libcitygml/readerOsgCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 class OsgScene : public osg::Group
 {
@@ -98,7 +99,7 @@ public:
 
 public:
     osg::ref_ptr<osg::Node> buildTile(const vcity::Tile& tile);
-    void buildTileRec(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, int depth=0);
+    void buildCityObject(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0);
 
     bool m_shadow;
     osg::Vec4 m_shadowVec;

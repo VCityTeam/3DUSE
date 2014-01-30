@@ -206,8 +206,8 @@ enum State {
 
 		inline AttributesMap& getAttributes() { return _attributes; }
 
-        inline osg::ref_ptr<osg::Group> getOsgNode() { return m_osgNode; }
-        inline void setOsgNode(osg::ref_ptr<osg::Group> node) { m_osgNode = node; }
+        //inline osg::ref_ptr<osg::Group> getOsgNode() { return m_osgNode; }
+        //inline void setOsgNode(osg::ref_ptr<osg::Group> node) { m_osgNode = node; }
 
         //inline osg::Group* getOsgNode() { return m_osgNode; }
         //inline void setOsgNode(osg::Group* node) { m_osgNode->ref(); m_osgNode = node; }
@@ -229,7 +229,7 @@ enum State {
 
 		AttributesMap _attributes;
 
-        osg::ref_ptr<osg::Group> m_osgNode;
+        //osg::ref_ptr<osg::Group> m_osgNode;
         //osg::Group* m_osgNode;
 	};
 
@@ -430,7 +430,6 @@ enum State {
         // Return the envelope (ie. the bounding box) of the object
         inline const Envelope& getEnvelope( void ) const { return _envelope; }
 
-	protected:
 		inline std::vector<TVec3d>& getVertices( void ) { return _vertices; }
 
 		void finish( TexCoords* );
@@ -501,7 +500,7 @@ enum State {
         // Return the envelope (ie. the bounding box) of the object
         inline const Envelope& getEnvelope( void ) const { return _envelope; }
 
-	protected:
+//	protected:
 		void finish( AppearanceManager&, bool doTesselate );
 		void finish( AppearanceManager&, Appearance*,  bool doTesselate );
 
@@ -578,7 +577,7 @@ enum State {
 
         CityObject* getParent() { return _parent; }
 
-	protected:
+//	protected:
 		void addPolygon( Polygon* );
 
 		void finish( AppearanceManager&, Appearance*, const ParserParams& );

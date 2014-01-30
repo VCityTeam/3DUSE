@@ -12,6 +12,7 @@
 #include <osgUtil/Optimizer>
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
+#include "libcitygml/readerOsgCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -408,45 +409,36 @@ void OsgScene::optim()
     optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildTileRec(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, int depth)
+void OsgScene::buildCityObject(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
 {
-    citygml::CityObjects& cityObjects = node->getChildren();
+    osg::ref_ptr<osg::Group> node = reader.createCityObject(obj);
+    nodeOsg->addChild(node);
+
+    citygml::CityObjects& cityObjects = obj->getChildren();
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        nodeOsg->addChild((*it)->getOsgNode());
-        buildTileRec((*it)->getOsgNode(), *it, depth+1);
+        buildCityObject(node, *it, reader, depth+1);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
 {
-    //osg::ref_ptr<osg::Group> grp = new osg::Group();
     osg::ref_ptr<osg::PositionAttitudeTransform> root = new osg::PositionAttitudeTransform();
     root->setName(tile.getName());
-    //const TVec3d& t = m_root->getTranslationParameters();
-    //const TVec3d& t = (tile.getCityModel()->getEnvelope().getLowerBound() + tile.getCityModel()->getEnvelope().getUpperBound())/2;
-    //const TVec3d& t = tile.getCityModel()->getEnvelope().getUpperBound();
-    //const TVec3d& t = tile.getCityModel()->getTranslationParameters();
-    //t = t + tile.getCityModel()->getTranslationParameters();
-    //osg::Vec3d pos = osg::Vec3d(t.x, t.y, 0);
-    //root->setPosition(pos);
 
-    //std::cout << "tile pos : " << t.x << ", " << t.y << ", " << t.z << std::endl;
+    // create osg geometry builder
+    size_t pos = tile.getCityGMLfilePath().find_last_of("/\\");
+    std::string path = tile.getCityGMLfilePath().substr(0, pos);
+    ReaderOsgCityGML readerOsgGml(path);
+    readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
     const citygml::CityObjects& cityObjects = tile.getCityModel()->getCityObjectsRoots();
     citygml::CityObjects::const_iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        osg::ref_ptr<osg::Group> node = (*it)->getOsgNode();
-        root->addChild(node);
-        //root->setUserValue("citygml", tile.getCityModel());
-        buildTileRec(node, *it);
+        buildCityObject(root, *it, readerOsgGml);
     }
-
-    //dumpOsgTree(root);
-
-    //m_rootOsg = root;
     return root;
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -27,6 +27,9 @@ public:
     virtual void resetSelection();
     virtual bool addSelection(const vcity::URI& uri) override;
 
+    // update a node after model modifs (update tree & osg)
+    void update(const vcity::URI& uri);
+
 private:
 };
 ////////////////////////////////////////////////////////////////////////////////

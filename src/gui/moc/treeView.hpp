@@ -22,10 +22,11 @@ public:
     /// \brief reset Reset the treeview (root item and one layer)
     void reset();
 
-    QTreeWidgetItem* addItemGeneric(const QString& name, const QString& type);
     QTreeWidgetItem* addItemGeneric(const vcity::URI& uri, const QString& name, const QString& type);
-    QTreeWidgetItem* addItemRoot();
-    QTreeWidgetItem* addItemLayer(const QString& name);
+
+    QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type);
+    QTreeWidgetItem* createItemRoot();
+    QTreeWidgetItem* createItemLayer(const QString& name);
 
     QTreeWidgetItem* addItemTag();
     QTreeWidgetItem* addItemFlag();
@@ -48,6 +49,8 @@ public:
     void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
     void setTileName(const vcity::URI& uri, std::string& name);
     void deleteTile(const vcity::URI& uri);
+
+    void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 
     /// \brief selectItem Select item in treeview
     /// \param uri URI pointing to selected node
