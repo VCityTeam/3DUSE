@@ -6,6 +6,7 @@
 #include "ui_dialogTag.h"
 #include "ui_dialogFlag.h"
 #include "ui_dialogDynFlag.h"
+#include "moc/dialogSettings.hpp"
 
 #include "controllerGui.hpp"
 
@@ -82,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
     connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
     connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
-    connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(optionSettings()));
+    connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
     //connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
     //connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
     connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
@@ -97,13 +98,22 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
 
-    // LODs signals
+    // render lod signals
+    connect(m_ui->actionForce_LOD0, SIGNAL(triggered()), this, SLOT(slotRenderLOD0()));
+    connect(m_ui->actionForce_LOD1, SIGNAL(triggered()), this, SLOT(slotRenderLOD1()));
+    connect(m_ui->actionForce_LOD2, SIGNAL(triggered()), this, SLOT(slotRenderLOD2()));
+    connect(m_ui->actionForce_LOD3, SIGNAL(triggered()), this, SLOT(slotRenderLOD3()));
+    connect(m_ui->actionForce_LOD4, SIGNAL(triggered()), this, SLOT(slotRenderLOD4()));
+
+    // generate LODs signals
     connect(m_ui->actionAll_LODs, SIGNAL(triggered()), this, SLOT(generateAllLODs()));
     connect(m_ui->actionLOD0, SIGNAL(triggered()), this, SLOT(generateLOD0()));
     connect(m_ui->actionLOD1, SIGNAL(triggered()), this, SLOT(generateLOD1()));
     connect(m_ui->actionLOD2, SIGNAL(triggered()), this, SLOT(generateLOD2()));
     connect(m_ui->actionLOD3, SIGNAL(triggered()), this, SLOT(generateLOD3()));
     connect(m_ui->actionLOD4, SIGNAL(triggered()), this, SLOT(generateLOD4()));
+
+    connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
@@ -551,27 +561,10 @@ void MainWindow::optionShadow()
     std::cout << "toggle shadow" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::optionSettings()
+void MainWindow::slotSettings()
 {
-    Ui::DialogSettings ui;
-    QDialog diag;
-    ui.setupUi(&diag);
-
-    ui.lineEditLowerBoundX->setText("0");
-    ui.lineEditLowerBoundY->setText("0");
-    ui.lineEditUpperBoundX->setText("0");
-    ui.lineEditUpperBoundY->setText("0");
-
-    ui.lineTileSizeX->setText("500");
-    ui.lineTileSizeY->setText("500");
-
-    diag.exec();
-
-    m_app.getDataProfile().m_bboxLowerBound = TVec3d(ui.lineEditLowerBoundX->text().toDouble(), ui.lineEditLowerBoundY->text().toDouble());
-    m_app.getDataProfile().m_bboxUpperBound = TVec3d(ui.lineEditUpperBoundX->text().toDouble(), ui.lineEditUpperBoundY->text().toDouble());
-
-    m_app.getDataProfile().m_xStep = ui.lineTileSizeX->text().toFloat();
-    m_app.getDataProfile().m_yStep = ui.lineTileSizeY->text().toFloat();
+    DialogSettings diag;
+    diag.doSettings();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::optionShowTemporalTools()
@@ -768,6 +761,47 @@ void MainWindow::generateLOD3()
 void MainWindow::generateLOD4()
 {
 
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotFixBuilding()
+{
+    // get all selected nodes (with a uri)
+    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        // do all nodes selected
+        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+        {
+            vcity::app().getAlgo2().fixBuilding(*it);
+            // TODO
+            //appGui().getControllerGui().update(uri);
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotRenderLOD0()
+{
+    appGui().getOsgScene()->forceLOD(0);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotRenderLOD1()
+{
+    appGui().getOsgScene()->forceLOD(1);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotRenderLOD2()
+{
+    appGui().getOsgScene()->forceLOD(2);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotRenderLOD3()
+{
+    appGui().getOsgScene()->forceLOD(3);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotRenderLOD4()
+{
+    appGui().getOsgScene()->forceLOD(4);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::about()

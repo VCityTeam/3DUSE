@@ -16,6 +16,12 @@ void URI::append(const std::string& node)
     ++m_depth;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void URI::prepend(const std::string& node)
+{
+    m_uri.insert(m_uri.begin(), node);
+    ++m_depth;
+}
+////////////////////////////////////////////////////////////////////////////////
 void URI::setType(const std::string& type)
 {
     m_type = type;

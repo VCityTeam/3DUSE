@@ -89,11 +89,6 @@ void TreeView::init()
     //connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), m_mainWindow, SLOT(showInfoHandler()));
     connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemClicked(QTreeWidgetItem*,int)));
 
-    //
-    //connect(m_tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(slotItemActivated(QTreeWidgetItem*,int)));
-
-
-
     reset();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -104,6 +99,9 @@ void TreeView::reset()
 
     QTreeWidgetItem* root = addItemRoot();
     m_tree->addTopLevelItem(root);
+
+    QTreeWidgetItem* grid = addItemGeneric("grid", "Grid");
+    root->addChild(grid);
 
     QTreeWidgetItem* layer = addItemLayer("layer_CityGML");
     root->addChild(layer);

@@ -2,6 +2,7 @@
 #include "osgPicking.hpp"
 #include "osgTools.hpp"
 #include <osgFX/Scribe>
+#include <osg/PolygonMode>
 #include <iostream>
 #include <algorithm>
 #include "gui/moc/mainWindow.hpp"
@@ -171,6 +172,9 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         }
         if(m_pickingMode == 1) // building
         {
+            // backup node
+            osg::Node* nodeOri = node;
+
             vcity::URI uri = osgTools::getURI(node);
             citygml::CityObject* obj = appGui().getScene().getNode(uri);
             //citygml::CityObject* obj = m_scene->findNode(node->getName());
@@ -179,7 +183,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                 if(node->getNumParents() > 0)
                 {
                     node = node->getParent(0);
-                    std::cout << "parent node " << node->getName() << std::endl;
+                    //std::cout << "parent node " << node->getName() << std::endl;
                 }
                 else
                     break;
@@ -190,6 +194,20 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             }
 
             if(!node) node = nodePath.back();
+
+            // check we found a building, else keep first found node
+            uri = osgTools::getURI(node);
+            obj = appGui().getScene().getNode(uri);
+            if(!obj || obj->getTypeAsString() != "Building")
+            {
+                node = nodeOri;
+            }
+        }
+
+        // check that we are not on a geode
+        if(node->asGeode())
+        {
+            node = node->getParent(0);
         }
 
         if(m_addToSelection)
@@ -359,7 +377,22 @@ void PickHandler::selectNode(const vcity::URI& uri)
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
     if(node)
     {
-        node->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+        //osg::ref_ptr<osg::PolygonMode> pm = new osg::PolygonMode;
+        //pm->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+        //node->getOrCreateStateSet()->setAttribute(pm.get());
+
+        osg::ref_ptr<osg::Material> mat = (osg::Material*)node->getOrCreateStateSet()->getAttribute(osg::StateAttribute::MATERIAL);
+        if(!mat.valid())
+        {
+            mat = new osg::Material;
+        }
+        //mat->setColorMode(osg::Material::EMISSION);
+        mat->setAmbient(osg::Material::FRONT_AND_BACK, osg::Vec4(1,0,0,1));
+        mat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(1,0,0,1));
+        mat->setEmission(osg::Material::FRONT_AND_BACK, osg::Vec4(1,0,0,1));
+        //mat->setShininess(osg::Material::FRONT_AND_BACK, 128);
+        node->getStateSet()->setAttribute(mat);
+        appGui().getOsgScene()->createInfoBubble(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -368,7 +401,11 @@ void PickHandler::deselectNode(const vcity::URI& uri)
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
     if(node)
     {
-        node->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+        node->getStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
+
+        vcity::URI uriInfo = uri;
+        uriInfo.prepend("infobubble");
+        appGui().getOsgScene()->deleteNode(uriInfo);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

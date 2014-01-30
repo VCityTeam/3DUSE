@@ -120,10 +120,11 @@ void OsgScene::init()
     lightSource->setName("lightsource");
     osg::ref_ptr<osg::Light> light = new osg::Light();
     light->setName("light");
-    light->setAmbient(osg::Vec4(1.0,0.0,0.0,1.0));
+    light->setAmbient(osg::Vec4(0.0,0.0,0.0,1.0));
     lightSource->setLight(light);
     light->setPosition(m_shadowVec);
     shadowedScene->addChild(lightSource);
+    m_effectNone->addChild(lightSource);
     m_effectShadow = shadowedScene;
 
     // add first depth node, to handle effect (shadow)
@@ -150,7 +151,7 @@ void OsgScene::init()
 
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
-    //m_layers->addChild(grid);
+    m_layers->addChild(grid);
 
     //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
     //m_layers->addChild(bbox);
@@ -210,6 +211,15 @@ void OsgScene::deleteLayer(const vcity::URI& uriLayer)
     if(layer)
     {
         layer->getParent(0)->removeChild(layer);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::deleteNode(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> node = getNode(uri);
+    if(node)
+    {
+        node->getParent(0)->removeChild(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -303,6 +313,27 @@ void OsgScene::reset()
     }
 
     init();
+}
+////////////////////////////////////////////////////////////////////////////////
+void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
+    if(grp)
+    {
+        int count = grp->getNumChildren();
+        for(int i=0; i<count; ++i)
+        {
+
+
+            osg::ref_ptr<osg::Node> child = grp->getChild(i);
+            forceLODrec(lod, child);
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::forceLOD(int lod)
+{
+    forceLODrec(lod, m_layers);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
@@ -419,6 +450,7 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
         for(int i=0; i<count; ++i)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);
+            std::cout << child->getName() << " -> " << uri.getNode(maxDepth-depth) << std::endl;
             if(child->getName() == uri.getNode(maxDepth-depth))
             {
                 if(depth == 1)
@@ -442,9 +474,42 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
     return f.getNode();*/
 }
 ////////////////////////////////////////////////////////////////////////////////
+osg::ref_ptr<osg::Node> OsgScene::createInfoBubble(osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
+    if(grp)
+    {
+        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+        geode->setName("infobubble");
+
+        // Print the city object name on top of it
+        geode->getBoundingBox().center();
+        osg::ref_ptr<osgText::Text> text = new osgText::Text;
+        text->setFont( "arial.ttf" );
+        text->setCharacterSize( 24 );
+        text->setBackdropType( osgText::Text::OUTLINE );
+        text->setFontResolution( 64, 64 );
+        text->setText( node->getName(), osgText::String::ENCODING_UTF8 );
+        //text->setCharacterSizeMode( osgText::TextBase::OBJECT_COORDS_WITH_MAXIMUM_SCREEN_SIZE_CAPPED_BY_FONT_HEIGHT );
+        text->setCharacterSizeMode( osgText::TextBase::SCREEN_COORDS );
+        text->setAxisAlignment( osgText::TextBase::SCREEN );
+        text->setAlignment( osgText::TextBase::CENTER_BOTTOM );
+        text->setPosition( node->getBound().center() + osg::Vec3( 0, 0, node->getBound().radius() ) );
+        text->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE|osg::StateAttribute::OFF );
+        geode->addDrawable( text.get() );
+
+        grp->addChild(geode);
+
+        return geode;
+    }
+
+    return nullptr;
+}
+////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+    geode->setName("grid");
 
     osg::Geometry* geom = new osg::Geometry;
     osg::Vec3Array* vertices = new osg::Vec3Array;

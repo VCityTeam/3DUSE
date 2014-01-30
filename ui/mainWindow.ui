@@ -311,6 +311,7 @@
      <addaction name="actionLOD4"/>
     </widget>
     <addaction name="menuGenerate"/>
+    <addaction name="actionFix_building"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -597,6 +598,11 @@
   <action name="actionDump_selected_nodes">
    <property name="text">
     <string>Dump selected nodes</string>
+   </property>
+  </action>
+  <action name="actionFix_building">
+   <property name="text">
+    <string>Fix building</string>
    </property>
   </action>
  </widget>

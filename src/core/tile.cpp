@@ -4,6 +4,7 @@
 #include <osg/PositionAttitudeTransform>
 //#include <osg/UserDataContainer>
 #include <osg/ValueObject>
+#include "application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -95,6 +96,7 @@ void Tile::load(const std::string& filepath)
     size_t pos = filepath.find_last_of("/\\");
     std::string path = filepath.substr(0, pos);
     ReaderOsgCityGML readerOsgGml(path);
+    readerOsgGml.m_settings.m_useTextures = app().getSettings().m_loadTextures;
 
     citygml::CityObjects& cityObjects = m_root->getCityObjectsRoots();
     citygml::CityObjects::iterator it = cityObjects.begin();

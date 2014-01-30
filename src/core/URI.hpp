@@ -18,6 +18,10 @@ public:
     /// \param node The node name to append
     void append(const std::string& node);
 
+    /// \brief prepend prepend a node name to the URI
+    /// \param node The node name to prepend
+    void prepend(const std::string& node);
+
     /// \brief setType Set the type of the final node
     /// \param type Teh type of the final node
     void setType(const std::string& type);

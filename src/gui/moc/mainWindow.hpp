@@ -60,7 +60,7 @@ public slots:
     void optionPickFace();
     void optionInfoBubbles();
     void optionShadow();
-    void optionSettings();
+    void slotSettings();
     void optionShowTemporalTools();
     void optionShowAdvancedTools();
     void clearRecentFiles(bool removeAll = true);
@@ -92,6 +92,13 @@ private slots:
     void generateLOD3();
     void generateLOD4();
 
+    void slotFixBuilding();
+
+    void slotRenderLOD0();
+    void slotRenderLOD1();
+    void slotRenderLOD2();
+    void slotRenderLOD3();
+    void slotRenderLOD4();
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // MAINWINDOW_HPP

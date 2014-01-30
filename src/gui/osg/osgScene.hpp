@@ -63,14 +63,17 @@ public:
     /// \param uriLayer URI pointing to the layer
     void deleteLayer(const vcity::URI& uriLayer);
 
-
-    //osg::ref_ptr<osg::Node> findNode(const std::string& name);
+    /// \brief deleteNode Delete a node in the osg scene
+    /// \param uri URI pointing to the node
+    void deleteNode(const vcity::URI& uri);
 
     void setShadow(bool shadow);
 
     void setYear(int year);
 
     void reset();
+
+    void forceLOD(int lod);
 
     void showNode(osg::ref_ptr<osg::Node> node, bool show);
     void showNode(const vcity::URI& uri, bool show);
@@ -80,7 +83,12 @@ public:
     osg::ref_ptr<osg::Geode> buildGrid(osg::Vec3 origin, float step, int n);
     //osg::ref_ptr<osg::Geode> buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound);
 
+    /// \brief getNode Get a node in the osg scene with a URI
+    /// \param uri URI pointing to the wanted node
+    /// \return Node
     osg::ref_ptr<osg::Node> getNode(const vcity::URI& uri);
+
+    osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
 
 public:
     osg::ref_ptr<osg::Node> buildTile(const vcity::Tile& tile);

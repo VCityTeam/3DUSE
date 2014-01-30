@@ -36,7 +36,7 @@ public:
     osg::ref_ptr<osg::Node> readCity(const citygml::CityModel*);
     osg::ref_ptr<osg::Group> createCityObject(const citygml::CityObject*, unsigned int minimumLODToConsider = 0);
 
-private:
+public:
     Settings m_settings;
 };
 ////////////////////////////////////////////////////////////////////////////////
