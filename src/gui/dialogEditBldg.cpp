@@ -1,5 +1,7 @@
 #include "moc/dialogEditBldg.hpp"
 #include "ui_dialogEditBldg.h"
+#include "applicationGui.hpp"
+#include <osg/PositionAttitudeTransform>
 ////////////////////////////////////////////////////////////////////////////////
 DialogEditBldg::DialogEditBldg(QWidget *parent) :
     QDialog(parent),
@@ -11,6 +13,62 @@ DialogEditBldg::DialogEditBldg(QWidget *parent) :
 DialogEditBldg::~DialogEditBldg()
 {
     delete ui;
+}
+////////////////////////////////////////////////////////////////////////////////
+void DialogEditBldg::edit(const vcity::URI& uri)
+{
+    DialogEditBldg diag;
+    //diag.setName(m_tree->currentItem()->text(0));
+    //diag.setEnvelope(0, 1, 0, 1);
+
+    osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+
+    if(node && node->asGeode())
+    {
+        //std::cout << "geode" << std::endl;
+        node = node->getParent(0);
+    }
+
+    if(node)
+        if(node->asTransform())
+            if(node->asTransform()->asPositionAttitudeTransform())
+            {
+                osg::ref_ptr<osg::PositionAttitudeTransform> pos = node->asTransform()->asPositionAttitudeTransform();
+                osg::Vec3d v = pos->getPosition();
+                diag.setOffset(v.x(),v.y());
+                //pos->setPosition(osg::Vec3d(x, y, 0));
+                //std::cout << "pos : " << pos << std::endl;
+            }
+
+
+    //diag.setOffset(2, 2);
+
+    if(diag.exec())
+    {
+        //diag.setName(m_tree->currentItem()->text(0));
+
+        osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+
+        if(node && node->asGeode())
+        {
+            //std::cout << "geode" << std::endl;
+            node = node->getParent(0);
+        }
+
+        if(node)
+            if(node->asTransform())
+                if(node->asTransform()->asPositionAttitudeTransform())
+                {
+                    osg::ref_ptr<osg::PositionAttitudeTransform> pos = node->asTransform()->asPositionAttitudeTransform();
+                    double x,y;
+                    diag.getOffset(x,y);
+                    pos->setPosition(osg::Vec3d(x, y, 0));
+                    //std::cout << "pos : " << pos << std::endl;
+                }
+
+
+        //std::cout << node << std::endl;
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void DialogEditBldg::setName(const QString& str)

@@ -8,7 +8,7 @@ namespace vcity
 class Algo2
 {
 public:
-    void fixBuilding(const URI& uri);
+    void fixBuilding(const std::vector<URI>& uris);
 
 private:
 

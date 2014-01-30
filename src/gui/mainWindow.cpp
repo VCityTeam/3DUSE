@@ -779,16 +779,10 @@ void MainWindow::slotFixBuilding()
 {
     // get all selected nodes (with a uri)
     const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        // do all nodes selected
-        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
-        {
-            vcity::app().getAlgo2().fixBuilding(*it);
-            // TODO
-            //appGui().getControllerGui().update(uri);
-        }
-    }
+    vcity::app().getAlgo2().fixBuilding(uris);
+
+    // TODO
+    //appGui().getControllerGui().update(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotOptimOSG()

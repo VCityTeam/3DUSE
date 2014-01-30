@@ -264,7 +264,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                                     texture = new osg::Texture2D;
                                     texture->setImage( image );
                                     texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-                                    texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::NEAREST );
+                                    texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
                                     texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
                                     texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
                                     texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
