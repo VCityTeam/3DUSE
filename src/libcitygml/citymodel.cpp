@@ -626,6 +626,33 @@ namespace citygml
 		}
 	}
 
+    /*void CityObject::finish()
+    {
+        Appearance* myappearance = appearanceManager.getAppearance( getId() );
+        std::vector< Geometry* >::const_iterator it = _geometries.begin();
+        for(; it != _geometries.end(); ++it)
+        {
+            (*it)->finish( appearanceManager, myappearance ? myappearance : 0, params );
+        }
+
+        bool finish = false;
+        while ( !finish && params.optimize )
+        {
+            finish = true;
+            int len = _geometries.size();
+            for ( int i = 0; finish && i < len - 2; i++ )
+            {
+                for ( int j = i+1; finish && j < len - 1; j++ )
+                {
+                    if ( !_geometries[i]->merge( _geometries[j] ) ) continue;
+                    delete _geometries[j];
+                    _geometries.erase( _geometries.begin() + j );
+                    finish = false;
+                }
+            }
+        }
+    }*/
+
     void CityObject::computeEnvelope()
     {
         // compute envelope

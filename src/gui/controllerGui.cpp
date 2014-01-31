@@ -122,6 +122,17 @@ bool ControllerGui::addSelection(const vcity::URI& uri)
     return false;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void finish(citygml::CityModel* model, citygml::ParserParams &params, citygml::CityObject* obj)
+{
+    obj->finish(*model->getAppearanceManager(), params);
+
+    std::vector<citygml::CityObject*> objs = obj->getChildren();
+    for(std::vector<citygml::CityObject*>::iterator it = objs.begin(); it < objs.end(); ++it)
+    {
+        finish(model, params, *it);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::update(const vcity::URI& uri_)
 {
     vcity::URI uri = uri_;
@@ -142,18 +153,23 @@ void ControllerGui::update(const vcity::URI& uri_)
     uriTile.setType("Tile");
     //std::cout << uriTile.getStringURI() << std::endl;
 
+    vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
+    citygml::CityModel* model = tile->getCityModel();
+
     citygml::CityObject* obj = appGui().getScene().getNode(uri);
+    citygml::ParserParams params;
+    //obj->finish(*model->getAppearanceManager(), params);
+    finish(model, params, obj);
 
     appGui().getTreeView()->addCityObject(appGui().getTreeView()->getNode(uriTile), obj);
 
     // refill osg
 
     // create osg geometry builder
-    size_t pos = vcity::app().getScene().getTile(uriTile)->getCityGMLfilePath().find_last_of("/\\");
-    std::string path = vcity::app().getScene().getTile(uriTile)->getCityGMLfilePath().substr(0, pos);
+    size_t pos = tile->getCityGMLfilePath().find_last_of("/\\");
+    std::string path = tile->getCityGMLfilePath().substr(0, pos);
     ReaderOsgCityGML readerOsgGml(path);
     readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
-
 
     appGui().getOsgScene()->buildCityObject(appGui().getOsgScene()->getNode(uriTile)->asGroup(), obj, readerOsgGml);
 }

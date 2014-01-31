@@ -82,6 +82,9 @@
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <attribute name="headerDefaultSectionSize">
+                <number>200</number>
+               </attribute>
                <column>
                 <property name="text">
                  <string>Name</string>
@@ -181,6 +184,13 @@
         <widget class="QDateTimeEdit" name="dateTimeEdit">
          <property name="calendarPopup">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="toolButton">
+         <property name="text">
+          <string>P</string>
          </property>
         </widget>
        </item>

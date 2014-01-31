@@ -3,6 +3,7 @@
 #include "gui/applicationGui.hpp"
 #include <QSettings>
 #include <QFileDialog>
+#include "moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 DialogFlag::DialogFlag(QWidget *parent) :
     QDialog(parent),
@@ -18,6 +19,8 @@ DialogFlag::~DialogFlag()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogFlag::addFlag(const vcity::URI& uri)
 {
+    appGui().getMainWindow()->m_osgView->setActive(false);
+
     citygml::CityObject* obj = 0;
 
     //if(m_ui->treeWidget->currentItem())
@@ -110,6 +113,8 @@ void DialogFlag::addFlag(const vcity::URI& uri)
 
         //appGui().m_ui treeWidget->currentItem()->addChild(item);
         appGui().getTreeView()->addItemGeneric(uri, flag->getStringId().c_str(), "Flag");
+
+        appGui().getMainWindow()->m_osgView->setActive(true);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

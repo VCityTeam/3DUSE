@@ -660,6 +660,8 @@ enum State {
 
 		inline std::vector< CityObject* >& getChildren( void ) { return _children; }
 
+        void addGeometry(Geometry* geom) { _geometries.push_back(geom); }
+
         void computeEnvelope();
 
         void computeCentroid();
@@ -694,7 +696,7 @@ enum State {
 
         //const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
 
-	protected:
+    //protected:
 		void finish( AppearanceManager&, const ParserParams& );
 
 	protected:
@@ -858,6 +860,8 @@ enum State {
 		inline const std::string& getSRSName( void ) const { return _srsName; }
 
         void computeEnvelope();
+
+        AppearanceManager* getAppearanceManager() { return &_appearanceManager; }
 
 	protected:
 		void addCityObject( CityObject* o );

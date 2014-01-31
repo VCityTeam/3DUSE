@@ -36,7 +36,7 @@
 #include "osg/osgGDAL.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false)
+    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
 {
     m_ui->setupUi(this);
 
@@ -99,6 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
     connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
 
+    connect(m_ui->toolButton, SIGNAL(clicked()), this, SLOT(slotTemporalAnim()));
 
     // render lod signals
     connect(m_ui->actionForce_LOD0, SIGNAL(triggered()), this, SLOT(slotRenderLOD0()));
@@ -126,7 +127,12 @@ MainWindow::MainWindow(QWidget *parent) :
     // filter search
     connect(m_ui->filterButton, SIGNAL(clicked()), m_treeView, SLOT(slotFilter()));
 
+    connect(&m_timer, SIGNAL(timeout()), this, SLOT(slotTemporalAnimUpdate()));
+
     m_ui->menuDebug->setVisible(false);
+    m_ui->horizontalSlider->setEnabled(m_useTemporal);
+    m_ui->dateTimeEdit->setEnabled(m_useTemporal);
+    m_ui->toolButton->setEnabled(m_useTemporal);
 
     reset();
 
@@ -648,6 +654,7 @@ void MainWindow::toggleUseTemporal()
 
     m_ui->horizontalSlider->setEnabled(m_useTemporal);
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
+    m_ui->toolButton->setEnabled(m_useTemporal);
 
     std::cout << "toggle temporal tool" << std::endl;
 }
@@ -827,6 +834,25 @@ void MainWindow::slotRenderLOD4()
     appGui().getOsgScene()->forceLOD(4);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotTemporalAnim()
+{
+    m_temporalAnim = !m_temporalAnim;
+    if(m_temporalAnim)
+    {
+        m_timer.start(500);
+    }
+    else
+    {
+        m_timer.stop();
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotTemporalAnimUpdate()
+{
+    m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+1);
+    //std::cout << m_ui->horizontalSlider->value() << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::about()
 {
     QMessageBox::about(this, "VCity", "VCity is an environment editor");
@@ -869,8 +895,7 @@ citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset
     citygml::LinearRing* ringOffset = new citygml::LinearRing(ring->getId()+"_offset", true);
 
     std::vector<TVec3d>& vertices = ring->getVertices();
-    std::vector<TVec3d>::iterator itVertices = vertices.begin();
-    for(; itVertices != vertices.end(); ++itVertices)
+    for(std::vector<TVec3d>::iterator itVertices = vertices.begin(); itVertices != vertices.end(); ++itVertices)
     {
         TVec3d point = *itVertices;
         point.z += offset;
@@ -886,19 +911,17 @@ void test5rec(citygml::CityObject* obj)
 
     // parse geometry
     std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
-    std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin();
-    for(; itGeom != geoms.end(); ++itGeom)
+    for(std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin(); itGeom != geoms.end(); ++itGeom)
     {
         // parse polygons
         std::vector<citygml::Polygon*>& polys = (*itGeom)->getPolygons();
-        std::vector<citygml::Polygon*>::iterator itPoly = polys.begin();
-        for(; itPoly != polys.end(); ++itPoly)
+        for(std::vector<citygml::Polygon*>::iterator itPoly = polys.begin(); itPoly != polys.end(); ++itPoly)
         {
             // get linear ring
             citygml::LinearRing* ring = (*itPoly)->getExteriorRing();
             citygml::LinearRing* ringOffset = cpyOffsetLinearRing(ring, 100);
 
-            citygml::Polygon* poly = new citygml::Polygon((*itPoly)->getId()+"_"+ringOffset->getId());
+            citygml::Polygon* poly = new citygml::Polygon((*itPoly)->getId()); // ((*itPoly)->getId()+"_"+ringOffset->getId());
             poly->addRing(ringOffset);
             //(*itGeom)->addPolygon(poly);
             polyBuf.push_back(poly);
@@ -911,8 +934,7 @@ void test5rec(citygml::CityObject* obj)
     }
 
     citygml::CityObjects& cityObjects = obj->getChildren();
-    citygml::CityObjects::iterator itObj = cityObjects.begin();
-    for(; itObj != cityObjects.end(); ++itObj)
+    for(citygml::CityObjects::iterator itObj = cityObjects.begin(); itObj != cityObjects.end(); ++itObj)
     {
         test5rec(*itObj);
     }
