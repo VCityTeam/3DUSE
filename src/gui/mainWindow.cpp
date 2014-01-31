@@ -634,7 +634,8 @@ void MainWindow::updateTemporalParams(int value)
 
     //std::cout << "set year : " << date.year() << std::endl;
 
-    if(m_useTemporal)   m_osgScene->setYear(date.year());
+    QDateTime datetime(date);
+    if(m_useTemporal)   m_osgScene->setDate(datetime);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
@@ -645,11 +646,14 @@ void MainWindow::toggleUseTemporal()
     {
         QDate date(1900, 1, 1);
         date = date.addDays(m_ui->horizontalSlider->value());
-        m_osgScene->setYear(date.year());
+        QDateTime datetime(date);
+        m_osgScene->setDate(datetime);
     }
     else
     {
-        m_osgScene->setYear(-1); // reset
+        QDate date(0, 0, 0);
+        QDateTime datetime(date);
+        m_osgScene->setDate(datetime); // reset
     }
 
     m_ui->horizontalSlider->setEnabled(m_useTemporal);
@@ -849,7 +853,7 @@ void MainWindow::slotTemporalAnim()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotTemporalAnimUpdate()
 {
-    m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+1);
+    m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+365);
     //std::cout << m_ui->horizontalSlider->value() << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -887,7 +891,10 @@ void MainWindow::test3()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 {
-
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13719/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13719/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13720/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13720/export-CityGML/ZoneAExporter.gml");
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

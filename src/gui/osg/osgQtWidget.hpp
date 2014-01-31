@@ -38,7 +38,7 @@ public:
 
    /// \brief setActive Enable or disable rendering update
    /// \param val true or false
-   void setActive(bool val);
+   void setActive(bool val, int freq=1000);
 
 protected:
    QTimer m_timer;

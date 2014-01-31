@@ -70,7 +70,7 @@ public:
 
     void setShadow(bool shadow);
 
-    void setYear(int year);
+    void setDate(const QDateTime& date);
 
     void reset();
 

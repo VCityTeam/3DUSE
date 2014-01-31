@@ -4,6 +4,8 @@
 #include "libcitygml/readerOsgCityGML.hpp"
 #include <QSettings>
 #include <QFileDialog>
+#include <osg/ValueObject>
+#include "moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 DialogTag::DialogTag(QWidget *parent) :
     QDialog(parent),
@@ -31,7 +33,9 @@ void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, Rea
 ////////////////////////////////////////////////////////////////////////////////
 void DialogTag::addTag(const vcity::URI& uri)
 {
-    citygml::CityObject* obj = 0;
+    appGui().getMainWindow()->m_osgView->setActive(false);
+
+    citygml::CityObject* obj = nullptr;
 
     std::map<std::string, citygml::CityObject*> geoms;
 
@@ -69,7 +73,7 @@ void DialogTag::addTag(const vcity::URI& uri)
 
     if(res && obj) // && m_ui->treeWidget->currentItem())
     {
-        citygml::CityObject* geom = 0;
+        citygml::CityObject* geom = nullptr;
         if(ui->comboBox->currentText().size() > 4 && ui->comboBox->currentText().left(4) == "FLAG")
         {
             citygml::BuildingFlag* f = obj->getFlag(ui->comboBox->currentText().toStdString());
@@ -92,24 +96,32 @@ void DialogTag::addTag(const vcity::URI& uri)
 
         if(geom)
         {
+            osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
             if(obj->getTags().size() == 0)
             {
                 // mark osg tagged
-                //obj->getOsgNode()->getChild(0)->setUserValue("TAGGED", 1); //
-                //obj->getOsgNode()->setUserValue("TAGGED", 1);
-                std::cout << "osg parent tagged" << std::endl;
+                //osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
+                if(osgNode->asGroup())
+                {
+                    osgNode->asGroup()->getChild(0)->setUserValue("TAGGED", 1);
+                    //obj->getOsgNode()->getChild(0)->setUserValue("TAGGED", 1); //
+                    //obj->getOsgNode()->setUserValue("TAGGED", 1);
+                    std::cout << "osg parent tagged" << std::endl;
+                }
             }
 
-            std::string path = ".";
-            /*if(geom->m_path != "")
+            /*vcity::URI uriTile = uri;
+            while(uriTile.getDepth() > 2)
             {
-                path = geom->m_path;
-                size_t pos = path.find_last_of("/\\");
-                path = path.substr(0, pos);
-            }*/
-            //size_t pos = filename.toStdString().find_last_of("/\\");
-            //std::string path = filename.toStdString().substr(0, pos);
+                uriTile.pop();
+            }
+            uriTile.setType("Tile");
+            vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);*/
+
+            size_t pos = geom->m_path.find_last_of("/\\");
+            std::string path = geom->m_path.substr(0, pos);
             ReaderOsgCityGML readerOsgGml(path);
+            readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
             osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(geom);
 
             citygml::CityObjects& cityObjects = geom->getChildren();
@@ -119,16 +131,19 @@ void DialogTag::addTag(const vcity::URI& uri)
                 loadRecTest(*it, grp, readerOsgGml);
             }
 
-            //grp->setName(tag->getStringId()+tag->getGeom()->getId());
-            //grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
-            //grp->setUserValue("TAG", 1);
+            grp->setName(tag->getStringId()+tag->getGeom()->getId());
+            grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
+            grp->setUserValue("TAG", 1);
 
             std::cout << "insert osg geom" << std::endl;
             //obj->getOsgNode()->addChild(grp);
+            osgNode->getParent(0)->addChild(grp);
             // obj->getOsgNode()->getParent(0)->addChild(grp);
             // geom->setOsgNode(grp);
             //m_osgScene->addChild(grp);
             //obj->getOsgNode()->setNodeMask(0);
+
+            tag->setOsg(grp);
         }
 
         obj->addTag(tag);
@@ -146,5 +161,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         //m_ui->treeWidget->currentItem()->addChild(item);
         appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
     }
+
+    appGui().getMainWindow()->m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////

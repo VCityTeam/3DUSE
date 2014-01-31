@@ -26,6 +26,8 @@
 #include <set>
 #include <algorithm>
 
+#include "gui/applicationGui.hpp"
+
 #ifndef min
 #	define min( a, b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
 #endif
@@ -743,19 +745,24 @@ namespace citygml
         size_t i;
         for(i=0; i<m_Tags.size(); ++i)
         {
-            /*CityObject* geom = m_Tags[i]->getGeom();
-            if(geom && geom->getOsgNode())
+            CityObject* geom = m_Tags[i]->getGeom();
+            if(geom) // && geom->getOsgNode())
             {
-                geom->getOsgNode()->setUserValue("yearOfConstruction", m_Tags[i]->m_date.date().year());
-                int y = 9999; // temp hack
-                if(m_Tags[i]->getGeom() == NULL)
+                osg::ref_ptr<osg::Group> grp = m_Tags[i]->getOsg();
+                if(grp)
                 {
-                    y = m_Tags[i]->m_date.date().year();
+                    //osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+                    grp->setUserValue("yearOfConstruction", m_Tags[i]->m_date.date().year());
+                    int y = 9999; // temp hack
+                    if(m_Tags[i]->getGeom() == NULL)
+                    {
+                        y = m_Tags[i]->m_date.date().year();
+                    }
+                    if(i < m_Tags.size()-1)
+                        y = m_Tags[i+1]->m_date.date().year();
+                    grp->setUserValue("yearOfDemolition", y);
                 }
-                if(i < m_Tags.size()-1)
-                    y = m_Tags[i+1]->m_date.date().year();
-                geom->getOsgNode()->setUserValue("yearOfDemolition", y);
-            }*/
+            }
         }
     }
 }

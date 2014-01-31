@@ -14,6 +14,7 @@
 #include <QResizeEvent>
 #include <iostream>
 #include <sstream>
+#include "gui/moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 class MyFirstPersonManipulator : public osgGA::FirstPersonManipulator
 {
@@ -66,6 +67,16 @@ public:
             return true;
             break;
         }*/
+        case(osgGA::GUIEventAdapter::DRAG):
+        {
+            appGui().getMainWindow()->m_osgView->setActive(true);
+            break;
+        }
+        case(osgGA::GUIEventAdapter::RELEASE):
+        {
+            appGui().getMainWindow()->m_osgView->setActive(false, 100);
+            break;
+        }
         case(osgGA::GUIEventAdapter::KEYDOWN):
         {
             if((ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0)
@@ -133,6 +144,7 @@ public:
                 }
             }
         }
+            break;
         default:
             break;
         }
@@ -289,7 +301,7 @@ QWidget* osgQtWidget::getWidget()
     return m_widget;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setActive(bool val)
+void osgQtWidget::setActive(bool val, int freq)
 {
     if(val)
     {
@@ -297,7 +309,7 @@ void osgQtWidget::setActive(bool val)
     }
     else
     {
-        m_timer.setInterval(1000);
+        m_timer.setInterval(freq);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

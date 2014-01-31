@@ -241,8 +241,10 @@ void OsgScene::setShadow(bool shadow)
     m_shadow = shadow;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void setYearRec(int year, osg::ref_ptr<osg::Node> node)
+void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 {
+    int year = date.date().year();
+
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if(grp)
     {
@@ -261,7 +263,7 @@ void setYearRec(int year, osg::ref_ptr<osg::Node> node)
 
             if(a && b)
             {
-                if((yearOfConstruction < year && year < yearOfDemolition) || year == -1)
+                if((yearOfConstruction < year && year < yearOfDemolition) || year == 0)
                 {
                     node->setNodeMask(0xffffffff);
                 }
@@ -272,14 +274,12 @@ void setYearRec(int year, osg::ref_ptr<osg::Node> node)
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
             }
 
-
-
-            if(year == -1)
+            if(date.date().year() == 0)
             {
                 node->setNodeMask(0xffffffff);
             }
 
-            setYearRec(year, child);
+            setDateRec(date, child);
         }
     }
 
@@ -298,9 +298,9 @@ void setYearRec(int year, osg::ref_ptr<osg::Node> node)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::setYear(int year)
+void OsgScene::setDate(const QDateTime& date)
 {
-    setYearRec(year, this);
+    setDateRec(date, this);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::reset()

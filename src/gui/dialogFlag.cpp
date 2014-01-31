@@ -21,7 +21,7 @@ void DialogFlag::addFlag(const vcity::URI& uri)
 {
     appGui().getMainWindow()->m_osgView->setActive(false);
 
-    citygml::CityObject* obj = 0;
+    citygml::CityObject* obj = nullptr;
 
     //if(m_ui->treeWidget->currentItem())
     {
@@ -43,7 +43,7 @@ void DialogFlag::addFlag(const vcity::URI& uri)
 
     if(res && obj) // && m_ui->treeWidget->currentItem())
     {
-        citygml::CityObject* geom = 0;
+        citygml::CityObject* geom = nullptr;
         //std::cout << ui.comboBox->currentText().toStdString() << std::endl;
 
         QString item2text;
@@ -56,34 +56,37 @@ void DialogFlag::addFlag(const vcity::URI& uri)
             QSettings settings("liris", "virtualcity");
             QString lastdir = settings.value("lastdir").toString();
             QString filename = QFileDialog::getOpenFileName(0, "Load scene file", lastdir);
-            citygml::ParserParams params;
-            citygml::CityModel* mdl = citygml::load(filename.toStdString(), params);
-            citygml::CityObject* bldg = mdl->getCityObjectsRoots()[0];
-            geom = bldg;
-            geom->m_path = filename.toStdString();
-            std::cout << "nb : " << mdl->getCityObjectsRoots().size()<< std::endl;
-
-            // create osg geometry
-            /*size_t pos = filename.toStdString().find_last_of("/\\");
-            std::string path = filename.toStdString().substr(0, pos);
-            ReaderOsgCityGML readerOsgGml(path);
-
-            osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(bldg);
-
-            if(bldg->getType() == citygml::COT_Building)
+            if(!filename.isEmpty())
             {
-                int yearOfConstruction;
-                int yearOfDemolition;
+                citygml::ParserParams params;
+                citygml::CityModel* mdl = citygml::load(filename.toStdString(), params);
+                citygml::CityObject* bldg = mdl->getCityObjectsRoots()[0];
+                geom = bldg;
+                geom->m_path = filename.toStdString();
+                std::cout << "nb : " << mdl->getCityObjectsRoots().size()<< std::endl;
 
-                std::istringstream(bldg->getAttribute("yearOfConstruction")) >> yearOfConstruction;
-                std::istringstream(bldg->getAttribute("yearOfDemolition")) >> yearOfDemolition;
+                // create osg geometry
+                /*size_t pos = filename.toStdString().find_last_of("/\\");
+                std::string path = filename.toStdString().substr(0, pos);
+                ReaderOsgCityGML readerOsgGml(path);
 
-                grp->setUserValue("yearOfConstruction", yearOfConstruction);
-                grp->setUserValue("yearOfDemolition", yearOfDemolition);
+                osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(bldg);
+
+                if(bldg->getType() == citygml::COT_Building)
+                {
+                    int yearOfConstruction;
+                    int yearOfDemolition;
+
+                    std::istringstream(bldg->getAttribute("yearOfConstruction")) >> yearOfConstruction;
+                    std::istringstream(bldg->getAttribute("yearOfDemolition")) >> yearOfDemolition;
+
+                    grp->setUserValue("yearOfConstruction", yearOfConstruction);
+                    grp->setUserValue("yearOfDemolition", yearOfDemolition);
+                }
+
+                bldg->setOsgNode(grp);*/
+                item2text = bldg->getId().c_str();
             }
-
-            bldg->setOsgNode(grp);*/
-            item2text = bldg->getId().c_str();
         }
         else if(ui->comboBox->currentText() == "NULL")
         {
@@ -113,8 +116,7 @@ void DialogFlag::addFlag(const vcity::URI& uri)
 
         //appGui().m_ui treeWidget->currentItem()->addChild(item);
         appGui().getTreeView()->addItemGeneric(uri, flag->getStringId().c_str(), "Flag");
-
-        appGui().getMainWindow()->m_osgView->setActive(true);
     }
+    appGui().getMainWindow()->m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
