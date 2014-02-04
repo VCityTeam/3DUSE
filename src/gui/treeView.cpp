@@ -234,7 +234,7 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
         addCityObject(item, *it);
     }
 
-    m_tree->expandToDepth(2);
+    m_tree->expandToDepth(1);
 
     m_tree->blockSignals(false);
 }

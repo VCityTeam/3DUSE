@@ -654,6 +654,7 @@ void MainWindow::toggleUseTemporal()
         QDate date(0, 0, 0);
         QDateTime datetime(date);
         m_osgScene->setDate(datetime); // reset
+        m_timer.stop();
     }
 
     m_ui->horizontalSlider->setEnabled(m_useTemporal);
@@ -891,7 +892,7 @@ void MainWindow::test3()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 {
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13719/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13719/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13719/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13720/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13720/export-CityGML/ZoneAExporter.gml");

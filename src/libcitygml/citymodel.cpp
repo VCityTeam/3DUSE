@@ -429,6 +429,8 @@ namespace citygml
 	{	
 		if ( !appearanceManager.getTexCoords( getId(), _texCoords ) ) 
 			appearanceManager.getTexCoords( _geometry->getId(), _texCoords );
+
+        // handle georeferencedtextures here ?
 				
 		finish( appearanceManager, doTesselate );
 		
