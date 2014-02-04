@@ -264,6 +264,7 @@ void TreeView::selectItem(const vcity::URI& uri)
     if(item)
     {
         item->setSelected(true);
+        getTree()->scrollToItem(item);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -412,12 +413,8 @@ void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
             QTreeWidgetItem* item = node->child(i);
             if(item->text(0).contains(filter, Qt::CaseSensitivity::CaseInsensitive))
             {
-                item->setSelected(true);
-
                 // select node
                 appGui().getControllerGui().addSelection(tv->getURI(item));
-                //vcity::URI uri = tv->getURI(item);
-                //appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
             }
             searchNode(tv, item, filter);
         }
