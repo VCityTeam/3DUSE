@@ -77,6 +77,14 @@ public:
             appGui().getMainWindow()->m_osgView->setActive(false, 100);
             break;
         }
+        case(osgGA::GUIEventAdapter::DOUBLECLICK):
+        {
+            if(appGui().getSelectedNodes().size() > 0)
+            {
+                appGui().getOsgScene()->centerOn(appGui().getSelectedNodes()[0]);
+            }
+            break;
+        }
         case(osgGA::GUIEventAdapter::KEYDOWN):
         {
             if((ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0)
