@@ -22,10 +22,11 @@ public:
     /// \brief reset Reset the treeview (root item and one layer)
     void reset();
 
-    QTreeWidgetItem* addItemGeneric(const QString& name, const QString& type);
     QTreeWidgetItem* addItemGeneric(const vcity::URI& uri, const QString& name, const QString& type);
-    QTreeWidgetItem* addItemRoot();
-    QTreeWidgetItem* addItemLayer(const QString& name);
+
+    QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type);
+    QTreeWidgetItem* createItemRoot();
+    QTreeWidgetItem* createItemLayer(const QString& name);
 
     QTreeWidgetItem* addItemTag();
     QTreeWidgetItem* addItemFlag();
@@ -33,6 +34,9 @@ public:
     void deleteItem(const std::string& URI);
     void deleteItem(const vcity::URI& URI);
 
+    /// \brief getURI Compute URI of a treeview item
+    /// \param item TreeView item
+    /// \return URI
     vcity::URI getURI(QTreeWidgetItem* item) const;
 
     QTreeWidget* getTree();
@@ -46,10 +50,18 @@ public:
     void setTileName(const vcity::URI& uri, std::string& name);
     void deleteTile(const vcity::URI& uri);
 
+    void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
+
     /// \brief selectItem Select item in treeview
-    /// \param uri
+    /// \param uri URI pointing to selected node
     void selectItem(const vcity::URI& uri);
 
+    /// \brief resetSelection Deselect all items
+    void resetSelection();
+
+    /// \brief getNode Find an item using a URI
+    /// \param uri URI pointing to the wanted item/node
+    /// \return QTreeWidgetItem corresponding to uri
     QTreeWidgetItem* getNode(const vcity::URI& uri);
 
 private slots:
@@ -73,8 +85,10 @@ private slots:
     void slotDeleteTag();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
-    void slotItemChanged(QTreeWidgetItem*, int);
-    void slotItemClicked(QTreeWidgetItem*,int);
+    void slotItemChanged(QTreeWidgetItem* item, int column);
+    void slotItemClicked(QTreeWidgetItem* item,int column);
+    void slotItemDoubleClicked(QTreeWidgetItem* item,int column);
+    //void slotItemActivated(QTreeWidgetItem* item, int column);
 
     void slotFilter();
 

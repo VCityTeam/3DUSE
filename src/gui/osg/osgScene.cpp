@@ -9,6 +9,10 @@
 //#include <osgShadow/ParallelSplitShadowMap>
 #include <osg/ValueObject>
 #include <osgText/Text>
+#include <osgUtil/Optimizer>
+#include "gui/applicationGui.hpp"
+#include "gui/moc/mainWindow.hpp"
+#include "libcitygml/readerOsgCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -120,10 +124,11 @@ void OsgScene::init()
     lightSource->setName("lightsource");
     osg::ref_ptr<osg::Light> light = new osg::Light();
     light->setName("light");
-    light->setAmbient(osg::Vec4(1.0,0.0,0.0,1.0));
+    light->setAmbient(osg::Vec4(0.0,0.0,0.0,1.0));
     lightSource->setLight(light);
     light->setPosition(m_shadowVec);
     shadowedScene->addChild(lightSource);
+    m_effectNone->addChild(lightSource);
     m_effectShadow = shadowedScene;
 
     // add first depth node, to handle effect (shadow)
@@ -150,7 +155,7 @@ void OsgScene::init()
 
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
-    //m_layers->addChild(grid);
+    m_layers->addChild(grid);
 
     //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
     //m_layers->addChild(bbox);
@@ -213,11 +218,13 @@ void OsgScene::deleteLayer(const vcity::URI& uriLayer)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Node> OsgScene::findNode(const std::string& name)
+void OsgScene::deleteNode(const vcity::URI& uri)
 {
-    FindNamedNode f(name);
-    accept(f);
-    return f.getNode();
+    osg::ref_ptr<osg::Node> node = getNode(uri);
+    if(node)
+    {
+        node->getParent(0)->removeChild(node);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setShadow(bool shadow)
@@ -234,8 +241,10 @@ void OsgScene::setShadow(bool shadow)
     m_shadow = shadow;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void setYearRec(int year, osg::ref_ptr<osg::Node> node)
+void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 {
+    int year = date.date().year();
+
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if(grp)
     {
@@ -254,7 +263,7 @@ void setYearRec(int year, osg::ref_ptr<osg::Node> node)
 
             if(a && b)
             {
-                if((yearOfConstruction < year && year < yearOfDemolition) || year == -1)
+                if((yearOfConstruction < year && year < yearOfDemolition) || year == 0)
                 {
                     node->setNodeMask(0xffffffff);
                 }
@@ -265,14 +274,12 @@ void setYearRec(int year, osg::ref_ptr<osg::Node> node)
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
             }
 
-
-
-            if(year == -1)
+            if(date.date().year() == 0)
             {
                 node->setNodeMask(0xffffffff);
             }
 
-            setYearRec(year, child);
+            setDateRec(date, child);
         }
     }
 
@@ -291,9 +298,9 @@ void setYearRec(int year, osg::ref_ptr<osg::Node> node)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::setYear(int year)
+void OsgScene::setDate(const QDateTime& date)
 {
-    setYearRec(year, this);
+    setDateRec(date, this);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::reset()
@@ -312,20 +319,39 @@ void OsgScene::reset()
     init();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
+    if(grp)
+    {
+        int count = grp->getNumChildren();
+        for(int i=0; i<count; ++i)
+        {
+
+
+            osg::ref_ptr<osg::Node> child = grp->getChild(i);
+            forceLODrec(lod, child);
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::forceLOD(int lod)
+{
+    forceLODrec(lod, m_layers);
+}
+////////////////////////////////////////////////////////////////////////////////
 void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 {
     if(node)
     {
-        std::cout << "mask : " << 0xffffffff - node->getNodeMask() << std::endl;
-        std::cout << "node : " << node.operator->() << std::endl;
-
-        //node->setNodeMask(0xffffffff - node->getNodeMask());
-        //node->setNodeMask(0x0);
-        //node->setNodeMask(0xffffffff);
         if(show)
         {
             //node->setNodeMask(~0x0);
             node->setNodeMask(0xffffffff);
+            if(node->asGroup())
+            {
+                node->asGroup()->getChild(0)->setNodeMask(0xffffffff);
+            }
         }
         else
         {
@@ -337,6 +363,17 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 void OsgScene::showNode(const vcity::URI& uri, bool show)
 {
     showNode(getNode(uri), show);
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::centerOn(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> node = getNode(uri);
+    if(node)
+    {
+        appGui().getMainWindow()->m_osgView->m_osgView->getCameraManipulator()->setNode(node);
+        appGui().getMainWindow()->m_osgView->m_osgView->getCameraManipulator()->computeHomePosition();
+        appGui().getMainWindow()->m_osgView->m_osgView->home();
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::dump(std::ostream& out, osg::ref_ptr<osg::Node> node, int depth)
@@ -366,60 +403,123 @@ void OsgScene::dump(std::ostream& out, osg::ref_ptr<osg::Node> node, int depth)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildTileRec(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, int depth)
+void OsgScene::optim()
 {
-    citygml::CityObjects& cityObjects = node->getChildren();
+    osgUtil::Optimizer optimizer;
+    optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::buildCityObject(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
+{
+    osg::ref_ptr<osg::Group> node = reader.createCityObject(obj);
+    nodeOsg->addChild(node);
+
+    citygml::CityObjects& cityObjects = obj->getChildren();
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        nodeOsg->addChild((*it)->getOsgNode());
-        buildTileRec((*it)->getOsgNode(), *it, depth+1);
+        buildCityObject(node, *it, reader, depth+1);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
 {
-    //osg::ref_ptr<osg::Group> grp = new osg::Group();
     osg::ref_ptr<osg::PositionAttitudeTransform> root = new osg::PositionAttitudeTransform();
     root->setName(tile.getName());
-    //const TVec3d& t = m_root->getTranslationParameters();
-    //const TVec3d& t = (tile.getCityModel()->getEnvelope().getLowerBound() + tile.getCityModel()->getEnvelope().getUpperBound())/2;
-    //const TVec3d& t = tile.getCityModel()->getEnvelope().getUpperBound();
-    //const TVec3d& t = tile.getCityModel()->getTranslationParameters();
-    //t = t + tile.getCityModel()->getTranslationParameters();
-    //osg::Vec3d pos = osg::Vec3d(t.x, t.y, 0);
-    //root->setPosition(pos);
 
-    //std::cout << "tile pos : " << t.x << ", " << t.y << ", " << t.z << std::endl;
+    // create osg geometry builder
+    size_t pos = tile.getCityGMLfilePath().find_last_of("/\\");
+    std::string path = tile.getCityGMLfilePath().substr(0, pos);
+    ReaderOsgCityGML readerOsgGml(path);
+    readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
     const citygml::CityObjects& cityObjects = tile.getCityModel()->getCityObjectsRoots();
     citygml::CityObjects::const_iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        osg::ref_ptr<osg::Group> node = (*it)->getOsgNode();
-        root->addChild(node);
-        //root->setUserValue("citygml", tile.getCityModel());
-        buildTileRec(node, *it);
+        buildCityObject(root, *it, readerOsgGml);
     }
-
-    //dumpOsgTree(root);
-
-    //m_rootOsg = root;
     return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
 {
-    FindNamedNode f(uri.getLastNode());
+    osg::ref_ptr<osg::Group> current = m_layers;
+
+    int depth = uri.getDepth();
+    int maxDepth = depth;
+
+    if(depth == 0)
+    {
+        return nullptr;
+    }
+
+    do
+    {
+        int count = current->getNumChildren();
+        for(int i=0; i<count; ++i)
+        {
+            osg::ref_ptr<osg::Node> child = current->getChild(i);
+            //std::cout << child->getName() << " -> " << uri.getNode(maxDepth-depth) << std::endl;
+            if(child->getName() == uri.getNode(maxDepth-depth))
+            {
+                if(depth == 1)
+                {
+                    return child;
+                }
+                else if(!(current = child->asGroup()))
+                {
+                    return nullptr;
+                }
+                break;
+            }
+        }
+        --depth;
+    } while(depth > 0);
+
+    return nullptr;
+
+    /*FindNamedNode f(uri.getLastNode());
     accept(f);
-    return f.getNode();
+    return f.getNode();*/
+}
+////////////////////////////////////////////////////////////////////////////////
+osg::ref_ptr<osg::Node> OsgScene::createInfoBubble(osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
+    if(grp)
+    {
+        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+        geode->setName("infobubble");
+
+        // Print the city object name on top of it
+        geode->getBoundingBox().center();
+        osg::ref_ptr<osgText::Text> text = new osgText::Text;
+        text->setFont( "arial.ttf" );
+        text->setCharacterSize( 24 );
+        text->setBackdropType( osgText::Text::OUTLINE );
+        text->setFontResolution( 64, 64 );
+        text->setText( node->getName(), osgText::String::ENCODING_UTF8 );
+        //text->setCharacterSizeMode( osgText::TextBase::OBJECT_COORDS_WITH_MAXIMUM_SCREEN_SIZE_CAPPED_BY_FONT_HEIGHT );
+        text->setCharacterSizeMode( osgText::TextBase::SCREEN_COORDS );
+        text->setAxisAlignment( osgText::TextBase::SCREEN );
+        text->setAlignment( osgText::TextBase::CENTER_BOTTOM );
+        text->setPosition( node->getBound().center() + osg::Vec3( 0, 0, node->getBound().radius() ) );
+        text->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE|osg::StateAttribute::OFF );
+        geode->addDrawable( text.get() );
+
+        grp->addChild(geode);
+
+        return geode;
+    }
+
+    return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+    geode->setName("grid");
 
     osg::Geometry* geom = new osg::Geometry;
     osg::Vec3Array* vertices = new osg::Vec3Array;

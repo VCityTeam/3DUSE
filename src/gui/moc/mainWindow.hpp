@@ -36,6 +36,9 @@ public:
     int m_forceLod;         ///< -1: auto, 0 1 2 3 4 : lod x
     int m_pickingMode;      ///< 0: face, 1: building
     bool m_useTemporal;     ///< use temporal slider (also used for citygml temporal export)
+    bool m_temporalAnim;    ///< temporal animation ? (play button clicked ?)
+
+    QTimer m_timer;         ///< anim timer
 
     void addRecentFile(const QString& filepath);
     void updateRecentFiles();
@@ -45,6 +48,8 @@ public:
 
     void updateTextBox(const std::stringstream& ss);
     void updateTextBox(const vcity::URI& uri);
+    //const std::stringstream& genSelectedNodes
+    void updateTextBoxWithSelectedNodes();
 
     QLineEdit* getFilter();
 
@@ -58,7 +63,7 @@ public slots:
     void optionPickFace();
     void optionInfoBubbles();
     void optionShadow();
-    void optionSettings();
+    void slotSettings();
     void optionShowTemporalTools();
     void optionShowAdvancedTools();
     void clearRecentFiles(bool removeAll = true);
@@ -70,6 +75,7 @@ public slots:
     void exportJSON();
     void debugDumpOsg();
     void slotDumpScene();
+    void slotDumpSelectedNodes();
 
     void about();
 
@@ -89,6 +95,18 @@ private slots:
     void generateLOD3();
     void generateLOD4();
 
+    void slotFixBuilding();
+
+    void slotOptimOSG();
+
+    void slotRenderLOD0();
+    void slotRenderLOD1();
+    void slotRenderLOD2();
+    void slotRenderLOD3();
+    void slotRenderLOD4();
+
+    void slotTemporalAnim();
+    void slotTemporalAnimUpdate();
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // MAINWINDOW_HPP

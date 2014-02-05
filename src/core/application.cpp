@@ -40,6 +40,16 @@ const DataProfile& Application::getDataProfile() const
     return m_dataprofile;
 }
 ////////////////////////////////////////////////////////////////////////////////
+Settings& Application::getSettings()
+{
+    return m_settings;
+}
+////////////////////////////////////////////////////////////////////////////////
+const Settings& Application::getSettings() const
+{
+    return m_settings;
+}
+////////////////////////////////////////////////////////////////////////////////
 Controller* Application::getController()
 {
     return m_controller;
@@ -55,6 +65,11 @@ Algo& Application::getAlgo()
     return m_algo;
 }
 ////////////////////////////////////////////////////////////////////////////////
+Algo2& Application::getAlgo2()
+{
+    return m_algo2;
+}
+////////////////////////////////////////////////////////////////////////////////
 const std::vector<URI>& Application::getSelectedNodes() const
 {
     return m_selectedNodes;
@@ -62,12 +77,23 @@ const std::vector<URI>& Application::getSelectedNodes() const
 ////////////////////////////////////////////////////////////////////////////////
 void Application::setSelectedNodes(const std::vector<URI>& uris)
 {
-    m_selectedNodes = uris;
+    resetSelectedNodes();
+    for(std::vector<URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+    {
+        addSelectedNode(*it);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Application::addSelectedNode(const URI& uri)
+bool Application::addSelectedNode(const URI& uri)
 {
-    m_selectedNodes.push_back(uri);
+    // check that node is not already selected
+    if(std::find(m_selectedNodes.begin(), m_selectedNodes.end(), uri) == m_selectedNodes.end())
+    {
+        m_selectedNodes.push_back(uri);
+        return true;
+    }
+
+    return false;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Application::resetSelectedNodes()

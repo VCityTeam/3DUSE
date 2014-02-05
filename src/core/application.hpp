@@ -6,6 +6,7 @@
 #include "settings.hpp"
 #include "tools/log.hpp"
 #include "algo.hpp"
+#include "algo2.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -36,6 +37,14 @@ public:
     /// \return The data profile
     const DataProfile& getDataProfile() const;
 
+    /// \brief getSettings Get app settings
+    /// \return Settings class instance
+    Settings& getSettings();
+
+    /// \brief getSettings Get app settings
+    /// \return Settings class instance
+    const Settings& getSettings() const;
+
     /// \brief getController Get the controller
     /// \return The controller
     Controller* getController();
@@ -48,6 +57,10 @@ public:
     /// \return Ref on Aglo instance
     Algo& getAlgo();
 
+    /// \brief getAlgo2 Get algo2 class
+    /// \return Ref on Aglo2 instance
+    Algo2& getAlgo2();
+
     /// \brief getSelectedNodes Get selected nodes (in treeview or in osg)
     /// \return Array of URI
     const std::vector<URI>& getSelectedNodes() const;
@@ -58,7 +71,7 @@ public:
 
     /// \brief addSelectedNode Add a selected node
     /// \param uri URI pointing to the selected node to add
-    void addSelectedNode(const URI& uri);
+    bool addSelectedNode(const URI& uri);
 
     /// \brief resetSelectedNode Rest seleceted nodes list
     void resetSelectedNodes();
@@ -70,6 +83,7 @@ protected:
     Controller* m_controller;           ///< controller, needs to be allocated outside
     Log m_log;                          ///< Log manager
     Algo m_algo;                        ///< Algo class
+    Algo2 m_algo2;                        ///< Algo class
     std::vector<URI> m_selectedNodes;   ///< Selected nodes
 };
 ////////////////////////////////////////////////////////////////////////////////

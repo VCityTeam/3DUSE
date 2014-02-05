@@ -8,6 +8,7 @@
 #include "moc/treeView.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 //class MainWindow;
+class PickHandler;
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ApplicationGui class
 /// Stores Common gui application data
@@ -22,6 +23,8 @@ public:
 
     osg::ref_ptr<OsgScene> getOsgScene();
     void setOsgScene(osg::ref_ptr<OsgScene> scene);
+
+    PickHandler* getPickHandler();
 
     TreeView* getTreeView();
     void setTreeView(TreeView* treeview);

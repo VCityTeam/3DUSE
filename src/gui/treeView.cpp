@@ -89,7 +89,8 @@ void TreeView::init()
     //connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), m_mainWindow, SLOT(showInfoHandler()));
     connect(m_tree, SIGNAL(itemClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemClicked(QTreeWidgetItem*,int)));
 
-
+    // double click
+    connect(m_tree, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(slotItemDoubleClicked(QTreeWidgetItem*,int)));
 
     reset();
 }
@@ -99,14 +100,17 @@ void TreeView::reset()
     m_tree->clear();
     m_tree->reset();
 
-    QTreeWidgetItem* root = addItemRoot();
+    QTreeWidgetItem* root = createItemRoot();
     m_tree->addTopLevelItem(root);
 
-    QTreeWidgetItem* layer = addItemLayer("layer_CityGML");
+    QTreeWidgetItem* grid = createItemGeneric("grid", "Grid");
+    root->addChild(grid);
+
+    QTreeWidgetItem* layer = createItemLayer("layer_CityGML");
     root->addChild(layer);
 }
 ////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::addItemGeneric(const QString& name, const QString& type) // TODO : rename createItemGeneric
+QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type)
 {
     QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(name));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
@@ -121,21 +125,21 @@ QTreeWidgetItem* TreeView::addItemGeneric(const vcity::URI& uri, const QString& 
     QTreeWidgetItem* item = getNode(uri);
     if(item)
     {
-        item->addChild(addItemGeneric(name, type));
+        item->addChild(createItemGeneric(name, type));
     }
 
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::addItemRoot()
+QTreeWidgetItem* TreeView::createItemRoot()
 {
-    QTreeWidgetItem* item = addItemGeneric("root", "Root");
+    QTreeWidgetItem* item = createItemGeneric("root", "Root");
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::addItemLayer(const QString& name)
+QTreeWidgetItem* TreeView::createItemLayer(const QString& name)
 {
-    QTreeWidgetItem* item = addItemGeneric(name, "Layer");
+    QTreeWidgetItem* item = createItemGeneric(name, "Layer");
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +180,7 @@ QTreeWidgetItem* TreeView::getCurrentItem()
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addLayer(const vcity::URI& uri)
 {
-    QTreeWidgetItem* layer = addItemLayer(uri.getNode(0).c_str());
+    QTreeWidgetItem* layer = createItemLayer(uri.getNode(0).c_str());
     m_tree->topLevelItem(0)->addChild(layer);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,19 +203,16 @@ void TreeView::deleteLayer(const vcity::URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void addTileRec(QTreeWidgetItem* parent, citygml::CityObject* node)
+void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem(parent, QStringList(node->getId().c_str()));
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Checked);
-    item->setText(1, node->getTypeAsString().c_str());
+    QTreeWidgetItem* item = createItemGeneric(node->getId().c_str(), node->getTypeAsString().c_str());
+    parent->addChild(item);
 
     citygml::CityObjects& cityObjects = node->getChildren();
-    //std::cout << "child size : " << cityObject.size() << std::endl;
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        addTileRec(item, *it);
+        addCityObject(item, *it);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -220,24 +221,20 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
     m_tree->blockSignals(true);
 
     QTreeWidgetItem* root = m_tree->topLevelItem(0);
-    //QTreeWidgetItem* root = 0;
     QTreeWidgetItem* layer = getNode(uriLayer);
 
-    QTreeWidgetItem* item = new QTreeWidgetItem(layer, QStringList(tile.getName().c_str()));
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Checked);
-    item->setText(1, "Tile");
+    QTreeWidgetItem* item = createItemGeneric(tile.getName().c_str(), "Tile");
+    layer->addChild(item);
 
     citygml::CityModel* citymodel = tile.getCityModel();
     citygml::CityObjects& cityObjects = citymodel->getCityObjectsRoots();
-    //std::cout << "root size : " << cityObjects.size() << std::endl;
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        addTileRec(item, *it);
+        addCityObject(item, *it);
     }
 
-    m_tree->expandToDepth(0);
+    m_tree->expandToDepth(1);
 
     m_tree->blockSignals(false);
 }
@@ -267,7 +264,26 @@ void TreeView::selectItem(const vcity::URI& uri)
     if(item)
     {
         item->setSelected(true);
+        getTree()->scrollToItem(item);
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void resetSelectionRec(QTreeWidgetItem* item)
+{
+    item->setSelected(false);
+
+    int count = item->childCount();
+    for(int i=0; i<count; ++i)
+    {
+        QTreeWidgetItem* current = item->child(i);
+        resetSelectionRec(current);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::resetSelection()
+{
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    resetSelectionRec(root);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
@@ -277,6 +293,11 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 
     int depth = uri.getDepth();
     int maxDepth = depth;
+
+    if(depth == 0)
+    {
+        return nullptr;
+    }
 
     do
     {
@@ -367,12 +388,22 @@ void TreeView::slotItemChanged(QTreeWidgetItem* item, int column)
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
-    m_mainWindow->updateTextBox(uri);
-    // TODO : osg code to highlight node (it will also update selected nodes list)
-    appGui().getMainWindow()->m_pickhandler->toggleSelected(uri);
+
+    if(uri.getDepth() > 0)
+    {
+        m_mainWindow->updateTextBox(uri);
+
+        appGui().getControllerGui().resetSelection();
+        appGui().getControllerGui().addSelection(uri);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void searchNode(QTreeWidgetItem* node, const QString& filter)
+void TreeView::slotItemDoubleClicked(QTreeWidgetItem* item, int)
+{
+    appGui().getOsgScene()->centerOn(getURI(item));
+}
+////////////////////////////////////////////////////////////////////////////////
+void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 {
     if(node)
     {
@@ -382,9 +413,10 @@ void searchNode(QTreeWidgetItem* node, const QString& filter)
             QTreeWidgetItem* item = node->child(i);
             if(item->text(0).contains(filter, Qt::CaseSensitivity::CaseInsensitive))
             {
-                item->setSelected(true);
+                // select node
+                appGui().getControllerGui().addSelection(tv->getURI(item));
             }
-            searchNode(item, filter);
+            searchNode(tv, item, filter);
         }
     }
 }
@@ -393,7 +425,8 @@ void TreeView::slotFilter()
 {
     //std::cout << "filter : " << appGui().getMainWindow()->getFilter()->text().toStdString() << std::endl;
 
-    searchNode(m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
+    appGui().getControllerGui().resetSelection();
+    searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddTile()
@@ -404,12 +437,12 @@ void TreeView::slotAddTile()
 void TreeView::slotEditTile()
 {
     DialogEditTile diag;
-    diag.editTile(getURI(m_tree->currentItem()));
+    diag.editTile(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteTile()
 {
-    appGui().getControllerGui().deleteTile(getURI(m_tree->currentItem()));
+    appGui().getControllerGui().deleteTile(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddLayer()
@@ -421,12 +454,12 @@ void TreeView::slotAddLayer()
 void TreeView::slotEditLayer()
 {
     DialogEditLayer diag;
-    diag.editLayer(getURI(m_tree->currentItem()));
+    diag.editLayer(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteLayer()
 {
-    appGui().getControllerGui().deleteLayer(getURI(m_tree->currentItem()));
+    appGui().getControllerGui().deleteLayer(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddBuilding()
@@ -437,57 +470,7 @@ void TreeView::slotAddBuilding()
 void TreeView::slotEditBuilding()
 {
     DialogEditBldg diag;
-    diag.setName(m_tree->currentItem()->text(0));
-    //diag.setEnvelope(0, 1, 0, 1);
-
-    osg::ref_ptr<osg::Node> node = m_mainWindow->m_osgScene->findNode(m_tree->currentItem()->text(0).toStdString());
-
-    if(node && node->asGeode())
-    {
-        //std::cout << "geode" << std::endl;
-        node = node->getParent(0);
-    }
-
-    if(node)
-        if(node->asTransform())
-            if(node->asTransform()->asPositionAttitudeTransform())
-            {
-                osg::ref_ptr<osg::PositionAttitudeTransform> pos = node->asTransform()->asPositionAttitudeTransform();
-                osg::Vec3d v = pos->getPosition();
-                diag.setOffset(v.x(),v.y());
-                //pos->setPosition(osg::Vec3d(x, y, 0));
-                //std::cout << "pos : " << pos << std::endl;
-            }
-
-
-    //diag.setOffset(2, 2);
-
-    if(diag.exec())
-    {
-        //diag.setName(m_tree->currentItem()->text(0));
-
-        osg::ref_ptr<osg::Node> node = m_mainWindow->m_osgScene->findNode(m_tree->currentItem()->text(0).toStdString());
-
-        if(node && node->asGeode())
-        {
-            //std::cout << "geode" << std::endl;
-            node = node->getParent(0);
-        }
-
-        if(node)
-            if(node->asTransform())
-                if(node->asTransform()->asPositionAttitudeTransform())
-                {
-                    osg::ref_ptr<osg::PositionAttitudeTransform> pos = node->asTransform()->asPositionAttitudeTransform();
-                    double x,y;
-                    diag.getOffset(x,y);
-                    pos->setPosition(osg::Vec3d(x, y, 0));
-                    //std::cout << "pos : " << pos << std::endl;
-                }
-
-
-        //std::cout << node << std::endl;
-    }
+    diag.edit(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteBuilding()
@@ -498,19 +481,19 @@ void TreeView::slotDeleteBuilding()
 void TreeView::slotAddFlag()
 {
     DialogFlag diag;
-    diag.addFlag(getURI(m_tree->currentItem()));
+    diag.addFlag(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddDynFlag()
 {
     DialogDynFlag diag;
-    diag.addDynFlag(getURI(m_tree->currentItem()));
+    diag.addDynFlag(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddTag()
 {
     DialogTag diag;
-    diag.addTag(getURI(m_tree->currentItem()));
+    diag.addTag(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotEditFlag()

@@ -16,6 +16,12 @@ void URI::append(const std::string& node)
     ++m_depth;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void URI::prepend(const std::string& node)
+{
+    m_uri.insert(m_uri.begin(), node);
+    ++m_depth;
+}
+////////////////////////////////////////////////////////////////////////////////
 void URI::setType(const std::string& type)
 {
     m_type = type;
@@ -34,6 +40,15 @@ const std::string& URI::getNode(int depth) const
 const std::string& URI::getLastNode() const
 {
     return m_uri[0];
+}
+////////////////////////////////////////////////////////////////////////////////
+void URI::pop()
+{
+    if(m_depth > 0)
+    {
+        m_uri.erase(m_uri.begin());
+        --m_depth;
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::string& URI::getType() const
@@ -60,6 +75,11 @@ std::string URI::getStringURI(bool includeType) const
         res += *it + '.';
     }
     return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+bool operator==(const vcity::URI& rhs, const vcity::URI& lhs)
+{
+    return rhs.getStringURI() == lhs.getStringURI();
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

@@ -119,6 +119,8 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
     geode->setName(object->getId());
     grp->setName(object->getId());
 
+    //std::cout << "createCityObject : " << object->getId() << std::endl;
+
     /*if(settings._recursive)
     {
         osg::Group* grp = new osg::Group;
@@ -218,20 +220,24 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 				if ( const citygml::Material* m = dynamic_cast<const citygml::Material*>( mat ) )
 				{
 #define TOVEC4(_t_) osg::Vec4( _t_.r, _t_.g, _t_.b, _t_.a ) 
-					osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-					TVec4f diffuse( m->getDiffuse(), 0.f );
-					TVec4f emissive( m->getEmissive(), 0.f );
-					TVec4f specular( m->getSpecular(), 0.f );
-					float ambient = m->getAmbientIntensity();
+                    //osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+                    //TVec4f diffuse( m->getDiffuse(), 0.f );
+                    //TVec4f emissive( m->getEmissive(), 0.f );
+                    //TVec4f specular( m->getSpecular(), 0.f );
+                    //float ambient = m->getAmbientIntensity();
 
 					osg::Material* material = new osg::Material;
 					material->setColorMode( osg::Material::OFF );
-					material->setDiffuse( osg::Material::FRONT_AND_BACK, TOVEC4( diffuse ) );
-					material->setSpecular( osg::Material::FRONT_AND_BACK, TOVEC4( specular ) );
-					material->setEmission( osg::Material::FRONT_AND_BACK, TOVEC4( emissive ) );					
-					material->setShininess( osg::Material::FRONT_AND_BACK, m->getShininess() );					
-					material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4( ambient, ambient, ambient, 1.0 ) );
-					material->setTransparency( osg::Material::FRONT_AND_BACK, m->getTransparency() );
+                    //material->setDiffuse( osg::Material::FRONT_AND_BACK, TOVEC4( diffuse ) );
+                    //material->setSpecular( osg::Material::FRONT_AND_BACK, TOVEC4( specular ) );
+                    //material->setEmission( osg::Material::FRONT_AND_BACK, TOVEC4( emissive ) );
+                    //material->setShininess( osg::Material::FRONT_AND_BACK, m->getShininess() );
+                    //material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4( ambient, ambient, ambient, 1.0 ) );
+                    material->setDiffuse( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    material->setSpecular( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    material->setEmission( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    //material->setTransparency( osg::Material::FRONT_AND_BACK, m->getTransparency() );
 					stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 					stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
@@ -252,14 +258,13 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                                 // Load a new texture
                                 osg::notify(osg::NOTICE) << "  Loading texture " << t->getUrl() << "..." << std::endl;
 
-                                //if(osg::Image* image = osgDB::readImageFile("/mnt/docs2/liris/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13726/export-CityGML/"+t->getUrl()))
                                 if(osg::Image* image = osgDB::readImageFile(m_settings.m_filepath+"/"+t->getUrl()))
                                 {
                                     //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
                                     texture = new osg::Texture2D;
                                     texture->setImage( image );
                                     texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-                                    texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::NEAREST );
+                                    texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
                                     texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
                                     texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
                                     texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );

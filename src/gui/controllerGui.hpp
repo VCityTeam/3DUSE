@@ -23,6 +23,13 @@ public:
     virtual void deleteTile(const vcity::URI& uri);
     virtual void setTileName(const vcity::URI& uri, const std::string& name);
 
+    // selection
+    virtual void resetSelection();
+    virtual bool addSelection(const vcity::URI& uri) override;
+
+    // update a node after model modifs (update tree & osg)
+    void update(const vcity::URI& uri);
+
 private:
 };
 ////////////////////////////////////////////////////////////////////////////////

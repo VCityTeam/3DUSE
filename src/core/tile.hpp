@@ -46,12 +46,15 @@ public:
     /// \return Ptr to CityGML node or nullptr
     citygml::CityObject* getNode(const URI& uri);
 
+    const std::string& getCityGMLfilePath() const;
+
 private:
     //citygml::Envelope m_envelope;
     //std::map<std::string, citygml::CityObject*> m_cityObjects;
     std::map<std::string, citygml::CityModel*> m_citygml;   ///< citygml data
     std::map<std::string, int> m_shape;    ///< shape data
     std::string m_name; ///< tile name
+    std::string m_citygmlFilePath;
 
     citygml::CityModel* m_root; // TODO : remove
 

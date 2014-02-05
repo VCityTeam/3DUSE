@@ -2,6 +2,7 @@
 #define DIALOGEDITBLDG_H
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogEditBldg;
@@ -14,6 +15,8 @@ class DialogEditBldg : public QDialog
 public:
     explicit DialogEditBldg(QWidget *parent = 0);
     ~DialogEditBldg();
+
+    void edit(const vcity::URI& uri);
 
     void setName(const QString& str);
     QString getName() const;

@@ -26,6 +26,8 @@
 #include <set>
 #include <algorithm>
 
+#include "gui/applicationGui.hpp"
+
 #ifndef min
 #	define min( a, b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
 #endif
@@ -427,6 +429,8 @@ namespace citygml
 	{	
 		if ( !appearanceManager.getTexCoords( getId(), _texCoords ) ) 
 			appearanceManager.getTexCoords( _geometry->getId(), _texCoords );
+
+        // handle georeferencedtextures here ?
 				
 		finish( appearanceManager, doTesselate );
 		
@@ -626,6 +630,33 @@ namespace citygml
 		}
 	}
 
+    /*void CityObject::finish()
+    {
+        Appearance* myappearance = appearanceManager.getAppearance( getId() );
+        std::vector< Geometry* >::const_iterator it = _geometries.begin();
+        for(; it != _geometries.end(); ++it)
+        {
+            (*it)->finish( appearanceManager, myappearance ? myappearance : 0, params );
+        }
+
+        bool finish = false;
+        while ( !finish && params.optimize )
+        {
+            finish = true;
+            int len = _geometries.size();
+            for ( int i = 0; finish && i < len - 2; i++ )
+            {
+                for ( int j = i+1; finish && j < len - 1; j++ )
+                {
+                    if ( !_geometries[i]->merge( _geometries[j] ) ) continue;
+                    delete _geometries[j];
+                    _geometries.erase( _geometries.begin() + j );
+                    finish = false;
+                }
+            }
+        }
+    }*/
+
     void CityObject::computeEnvelope()
     {
         // compute envelope
@@ -717,17 +748,22 @@ namespace citygml
         for(i=0; i<m_Tags.size(); ++i)
         {
             CityObject* geom = m_Tags[i]->getGeom();
-            if(geom && geom->getOsgNode())
+            if(geom) // && geom->getOsgNode())
             {
-                geom->getOsgNode()->setUserValue("yearOfConstruction", m_Tags[i]->m_date.date().year());
-                int y = 9999; // temp hack
-                if(m_Tags[i]->getGeom() == NULL)
+                osg::ref_ptr<osg::Group> grp = m_Tags[i]->getOsg();
+                if(grp)
                 {
-                    y = m_Tags[i]->m_date.date().year();
+                    //osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+                    grp->setUserValue("yearOfConstruction", m_Tags[i]->m_date.date().year());
+                    int y = 9999; // temp hack
+                    if(m_Tags[i]->getGeom() == NULL)
+                    {
+                        y = m_Tags[i]->m_date.date().year();
+                    }
+                    if(i < m_Tags.size()-1)
+                        y = m_Tags[i+1]->m_date.date().year();
+                    grp->setUserValue("yearOfDemolition", y);
                 }
-                if(i < m_Tags.size()-1)
-                    y = m_Tags[i+1]->m_date.date().year();
-                geom->getOsgNode()->setUserValue("yearOfDemolition", y);
             }
         }
     }

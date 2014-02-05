@@ -43,68 +43,46 @@ public:
 
     bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa);
 
-    void setLabel(const std::string& name)
-    {
-        appGui().getTextBrowser()->setText(name.c_str());
-    }
-
-    void setLabel(citygml::CityObject* node)
-    {
-        if(node)
-        {
-            std::stringstream ss;
-            ss << node->getId().c_str() << std::endl;
-            citygml::AttributesMap attribs = node->getAttributes();
-            citygml::AttributesMap::const_iterator it = attribs.begin();
-            while( it != attribs.end())
-            {
-                ss << "  + " << it->first << ": " << it->second << std::endl;
-                it++;
-            }
-            appGui().getTextBrowser()->setText(ss.str().c_str());
-        }
-    }
-
-    const std::set<std::string>& getNodesPicked() const
-    {
-        return m_nodesPicked;
-    }
-
-    const std::set<std::string>& getNodesPickedURI() const
-    {
-        return m_nodesPicked;
-    }
-
-    //const std::string& getNodePicked() const;
-
     void setPickingMode(int mode);
 
     void resetPicking();
 
 public:
+    /// \brief pickPoint Picking with a point click
+    /// \param ea
+    /// \param viewer
     void pickPoint(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
     void pickRectangle(const osgGA::GUIEventAdapter& ea, osgViewer::View* viewer);
+
+    /// \brief toggleSelected Toggle selection of a node
+    /// \param node
+    /// \param parent
+    /// \param forceUnselect
     void toggleSelected(osg::Node* node, osg::Group* parent = NULL, bool forceUnselect = false);
+
+    /// \brief toggleSelected Toggle selection of a node
+    /// \param uri URI pointing to the node
     void toggleSelected(const vcity::URI& uri);
 
-    void addNodePicked(const std::string& name);
-    void addNodePicked(const vcity::URI& uri);
-    void removeNodePicked(const std::string& name);
+    void selectNode(const vcity::URI& uri);
 
-    void addNodePicked(osg::ref_ptr<osg::Node> node);
-    void removeNodePicked(osg::ref_ptr<osg::Node> node);
+    void deselectNode(const vcity::URI& uri);
 
-    void updateLabel(const vcity::URI& uri);
+
+    void updateLabel(const vcity::URI& uri); // remove
+
+    /// \brief resetSelection Reset selection. Deselect all nodes
+    void resetSelection();
+
+    /// \brief addSelection Add a node to selection
+    /// \param uri URI pointing to the node
+    void addSelection(const vcity::URI& uri);
 
 protected:
     float m_mx, m_my;
 
-    int m_pickingMode;  ///< 0: face, 1: building
-    bool m_addToSelection;
-
-    std::set<std::string> m_nodesPicked;
-    std::set<vcity::URI> m_nodesPickedURI;
-    std::vector<osg::ref_ptr<osg::Node> > m_osgNodesPicked;
+    int m_pickingMode;              ///< 0: face, 1: building
+    bool m_addToSelection;          ///< are we pressing ctrl key ?
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __OSGPICKING_HPP__

@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <map>
 #include <string>
+#include <osg/Group>
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -19,6 +20,8 @@ public:
     std::string getStringId() const;
     //std::string getGeomName() const { std::string a = m_geom?m_geom->getId():0; return getStringId()+a; }
     CityObject* getGeom();
+    osg::ref_ptr<osg::Group> getOsg();
+    void setOsg(osg::ref_ptr<osg::Group> node);
 
     const std::string& getAttribute(const std::string& attribName, QDateTime date) const;
 
@@ -31,6 +34,7 @@ public:
 private:
 
     CityObject* m_geom;
+    osg::ref_ptr<osg::Group> m_osg;
     //int m_year;
 };
 ////////////////////////////////////////////////////////////////////////////////
