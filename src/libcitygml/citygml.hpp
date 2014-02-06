@@ -363,6 +363,11 @@ enum State {
 			return getAppearance< Texture* >( nodeid );
 		}
 
+        inline GeoreferencedTexture* getGeoreferencedTexture( const std::string& nodeid ) const
+        {
+            return getAppearance< GeoreferencedTexture* >( nodeid );
+        }
+
 		// Getter for the front&back material if there is any.
 		inline Material* getMaterialFront( const std::string& nodeid ) const
 		{
@@ -533,6 +538,8 @@ enum State {
 		Geometry *_geometry;
 
         Envelope _envelope;
+
+        std::string m_matId;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////

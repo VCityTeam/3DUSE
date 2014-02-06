@@ -110,7 +110,7 @@ osg::ref_ptr<osg::Node> ReaderOsgCityGML::readCity(const citygml::CityModel* cit
 osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityObject* object, unsigned int minimumLODToConsider)
 {
 	// Skip objects without geometry
-    if(!object) return NULL;
+    if(!object) return nullptr;
 
     //osg::ref_ptr<osg::Group> grp = new osg::Group;
     osg::ref_ptr<osg::PositionAttitudeTransform> grp = new osg::PositionAttitudeTransform;
@@ -251,16 +251,17 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
                         if ( texCoords.size() > 0 )
                         {
-                            osg::Texture2D* texture = 0;
+                            osg::Texture2D* texture = nullptr;
 
                             if(m_settings._textureMap.find(t->getUrl()) == m_settings._textureMap.end())
                             {
                                 // Load a new texture
-                                osg::notify(osg::NOTICE) << "  Loading texture " << t->getUrl() << "..." << std::endl;
+                                //osg::notify(osg::NOTICE) << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
 
                                 if(osg::Image* image = osgDB::readImageFile(m_settings.m_filepath+"/"+t->getUrl()))
                                 {
                                     //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
+                                    std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
                                     texture = new osg::Texture2D;
                                     texture->setImage( image );
                                     texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
@@ -283,7 +284,10 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
                                 tex->reserve( texCoords.size() );
                                 for ( unsigned int k = 0; k < texCoords.size(); k++ )
+                                {
+                                    //std::cout << texCoords[k] << std::endl;
                                     tex->push_back( osg::Vec2( texCoords[k].x, texCoords[k].y ) );
+                                }
 
                                 geom->setTexCoordArray( 0, tex );
 

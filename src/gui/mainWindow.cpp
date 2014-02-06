@@ -136,6 +136,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     reset();
 
+    clearRecentFiles(false);
     updateRecentFiles();
 
     m_treeView->init();
@@ -153,16 +154,18 @@ void MainWindow::addRecentFile(const QString& filepath)
 {
     QSettings settings("liris", "virtualcity");
     QStringList list = settings.value("recentfiles").toStringList();
-    list.insert(0, filepath);
 
     if(!list.contains(filepath, Qt::CaseInsensitive))
     {
+        list.insert(0, filepath);
+
         if(list.size() >= 10)
         {
-            list.insert(0, filepath);
             list.removeLast();
         }
     }
+
+    settings.setValue("recentfiles", list);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateRecentFiles()
@@ -172,7 +175,7 @@ void MainWindow::updateRecentFiles()
     list = list.toSet().toList();
     settings.setValue("recentfiles", list);
 
-    //clearRecentFiles();
+    clearRecentFiles(false);
 
     foreach(QString str, list)
     {
@@ -220,17 +223,12 @@ bool MainWindow::loadFile(const QString& filepath)
         vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
         vcity::log() << uriLayer.getStringURI() << "\n";
         appGui().getControllerGui().addTile(uriLayer, *tile);
-        //m_app.getScene().getLayers()[0]->addTile(tile);
-        //m_osgScene->addTile(*tile);
-        //m_osgView->centerCamera();
 
+        addRecentFile(filepath);
 
-        //setOsgData(buildOsgScene(*tile));
-        //fillTreeView(tile); -> put in controller
-
-         QStringList list = settings.value("recentfiles").toStringList();
+        /* QStringList list = settings.value("recentfiles").toStringList();
          list.append(filepath);
-         settings.setValue("recentfiles", list);
+         settings.setValue("recentfiles", list);*/
     }
     else if(ext == "shp")
     {
@@ -506,6 +504,14 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
                     // do stuff with points...
                     TVec3d point = *itVertices;
                     ss << point;
+                }
+                ss << std::endl;
+
+                ss << "Texcoords : ";
+                citygml::TexCoords texCoords = (*itPoly)->getTexCoords();
+                for(citygml::TexCoords::const_iterator itTC = texCoords.begin(); itTC < texCoords.end(); ++itTC)
+                {
+                    ss << *itTC;
                 }
                 ss << std::endl;
 

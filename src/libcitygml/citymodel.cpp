@@ -425,12 +425,38 @@ namespace citygml
 			_normals[i] = TVec3f( (float)normal.x, (float)normal.y, (float)normal.z );
 	}
 
+    class WorldParams
+    {
+    public:
+        WorldParams()
+            : xPixelSize(0.0), yRotation(0.0), xRotation(0.0), yPixelSize(0.0), xOrigin(0.0), yOrigin(0.0)
+        {
+
+        }
+
+        double xPixelSize;
+        double yRotation;
+        double xRotation;
+        double yPixelSize;
+        double xOrigin;
+        double yOrigin;
+    };
+
+    std::ostream& operator<<( std::ostream& os, const WorldParams& wp)
+    {
+        os << "xPixelSize : " << wp.xPixelSize << std::endl;
+        os << "yRotation  : " << wp.yRotation << std::endl;
+        os << "xRotation  : " << wp.xRotation << std::endl;
+        os << "yPixelSize : " << wp.yPixelSize << std::endl;
+        os << "xOrigin    : " << wp.xOrigin << std::endl;
+        os << "yOrigin    : " << wp.yOrigin << std::endl;
+        return os;
+    }
+
 	void Polygon::finish( AppearanceManager& appearanceManager, Appearance* defAppearance, bool doTesselate )
 	{	
 		if ( !appearanceManager.getTexCoords( getId(), _texCoords ) ) 
 			appearanceManager.getTexCoords( _geometry->getId(), _texCoords );
-
-        // handle georeferencedtextures here ?
 				
 		finish( appearanceManager, doTesselate );
 		
@@ -445,8 +471,69 @@ namespace citygml
  		if ( !_materials[ FRONT ]  && !_materials[ BACK ])
  			_materials[ FRONT ] = dynamic_cast< Material * >( defAppearance );
 
-		_texture = appearanceManager.getTexture( id );
-		if ( !_texture ) _texture = dynamic_cast< Texture * >( defAppearance );
+        // handle georeferencedtextures here ?
+        GeoreferencedTexture* geoTexture = appearanceManager.getGeoreferencedTexture(m_matId);
+        if(geoTexture)
+        {
+            //std::cout << "has GeoreferencedTexture : " << m_matId << std::endl;
+            _texture = geoTexture;
+
+            // open jgw file
+            std::string basePath = "/mnt/docs/data/dd_backup/Donnees_GrandLyon/MNT_CITYGML/";
+            //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_Sathonay/";
+            std::string worldFileUrl(basePath);
+            worldFileUrl.append(_texture->getUrl());
+            char lastChar = worldFileUrl.back();
+            worldFileUrl.pop_back();
+            worldFileUrl.pop_back();
+            worldFileUrl.push_back(lastChar);
+            worldFileUrl.push_back('w');
+            //worldFileUrl = worldFileUrl.substr(0, worldFileUrl.find_last_of('.')) + ".jgw";
+            //std::cout << "worldFileUrl : " << worldFileUrl << std::endl;
+            std::ifstream worldFile(worldFileUrl);
+
+            WorldParams wParams;
+            worldFile >> wParams.xPixelSize;
+            worldFile >> wParams.yRotation;
+            worldFile >> wParams.xRotation;
+            worldFile >> wParams.yPixelSize;
+            worldFile >> wParams.xOrigin;
+            worldFile >> wParams.yOrigin;
+
+            //std::cout << wParams;
+
+            worldFile.close();
+
+            // compute tex coords
+            _texCoords.clear();
+            const std::vector<TVec3d>& vertices = _exteriorRing->getVertices();
+            for(std::vector<TVec3d>::const_iterator it = vertices.begin(); it < vertices.end(); ++it)
+            {
+                TVec3d point = *it;
+                TVec2f tc;
+
+                tc.x = ((wParams.yPixelSize*point.x)-(wParams.xRotation*point.y)+(wParams.xRotation*wParams.yOrigin)-(wParams.yPixelSize*wParams.xOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
+                tc.y = ((-wParams.yRotation*point.x)+(wParams.xPixelSize*point.y)+(wParams.yRotation*wParams.xOrigin)-(wParams.xPixelSize*wParams.yOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
+
+                tc.y = 1.0 - tc.y;
+
+                //*
+                tc.x /= 4096.0;
+                tc.y /= 4096.0;
+                /*/
+                tc.x /= 8192.0;
+                tc.y /= 8192.0;
+                //*/
+
+                //std::cout << tc << std::endl;
+                _texCoords.push_back(tc);
+            }
+        }
+        else
+        {
+            _texture = appearanceManager.getTexture( id );
+            if ( !_texture ) _texture = dynamic_cast< Texture * >( defAppearance );
+        }
 	}
 
 	void Polygon::addRing( LinearRing* ring ) 

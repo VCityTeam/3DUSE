@@ -415,7 +415,12 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	case NODETYPE( Triangle ):
 	case NODETYPE( Polygon ):
 		LOD_FILTER();
-		_currentPolygon = new Polygon( getGmlIdAttribute( attributes ) );
+        _currentPolygon = new Polygon( getGmlIdAttribute( attributes ) );
+        if(getGmlIdAttribute( attributes ) == "")
+        {
+            _currentPolygon->m_matId = _currentGeometry->getId();
+            //std::cout << "Polygon " << _currentPolygon->m_matId << std::endl;
+        }
 		pushObject( _currentPolygon );
 		break;
 
