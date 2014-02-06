@@ -515,11 +515,11 @@ namespace citygml
                 tc.x = ((wParams.yPixelSize*point.x)-(wParams.xRotation*point.y)+(wParams.xRotation*wParams.yOrigin)-(wParams.yPixelSize*wParams.xOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
                 tc.y = ((-wParams.yRotation*point.x)+(wParams.xPixelSize*point.y)+(wParams.yRotation*wParams.xOrigin)-(wParams.xPixelSize*wParams.yOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
 
-                tc.y = 1.0 - tc.y;
+                tc.y = 1.0f - tc.y;
 
                 //*
-                tc.x /= 4096.0;
-                tc.y /= 4096.0;
+                tc.x /= 4096.0f;
+                tc.y /= 4096.0f;
                 /*/
                 tc.x /= 8192.0;
                 tc.y /= 8192.0;
