@@ -136,7 +136,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     reset();
 
-    clearRecentFiles(false);
     updateRecentFiles();
 
     m_treeView->init();
@@ -165,6 +164,14 @@ void MainWindow::addRecentFile(const QString& filepath)
     settings.setValue("recentfiles", list);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::removeRecentFile(const QString& filepath)
+{
+    QSettings settings("liris", "virtualcity");
+    QStringList list = settings.value("recentfiles").toStringList();
+    list.removeAll(filepath);
+    settings.setValue("recentfiles", list);
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateRecentFiles()
 {
     QSettings settings("liris", "virtualcity");
@@ -181,14 +188,16 @@ void MainWindow::updateRecentFiles()
         connect(action, SIGNAL(triggered()), this, SLOT(openRecentFile()));
         action->setData(str);
     }
+
+    // add reset item last
+    QAction* action = new QAction("Clear", this);
+    m_ui->menuRecent_files->addAction(action);
+    connect(action, SIGNAL(triggered()), this, SLOT(clearRecentFiles()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::clearRecentFiles(bool removeAll)
 {
     m_ui->menuRecent_files->clear();
-    QAction* action = new QAction("Clear", this);
-    m_ui->menuRecent_files->addAction(action);
-    connect(action, SIGNAL(triggered()), this, SLOT(clearRecentFiles()));
 
     if(removeAll)
     {
@@ -216,6 +225,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
     if(!file.exists())
     {
+        removeRecentFile(filepath);
         return false;
     }
 

@@ -261,7 +261,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                                 if(osg::Image* image = osgDB::readImageFile(m_settings.m_filepath+"/"+t->getUrl()))
                                 {
                                     //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
-                                    std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
+                                    //std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
                                     texture = new osg::Texture2D;
                                     texture->setImage( image );
                                     texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
@@ -283,10 +283,29 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                                 osg::ref_ptr<osg::Vec2Array> tex = new osg::Vec2Array;
 
                                 tex->reserve( texCoords.size() );
-                                for ( unsigned int k = 0; k < texCoords.size(); k++ )
+
+                                // georeferencedtexture special case : need to divide texccords by image size
+                                if(dynamic_cast<const citygml::GeoreferencedTexture*>( mat ))
                                 {
-                                    //std::cout << texCoords[k] << std::endl;
-                                    tex->push_back( osg::Vec2( texCoords[k].x, texCoords[k].y ) );
+                                    float w = texture->getImage()->s();
+                                    float h = texture->getImage()->t();
+                                    /*citygml::TexCoords& tc = p->getTexCoords(); // fail, cityobject is const...
+                                    for ( unsigned int k = 0; k < tc.size(); k++ )
+                                    {
+                                        tc[k].x /= w;
+                                        tc[k].x /= h;
+                                    }*/
+                                    for ( unsigned int k = 0; k < texCoords.size(); k++ )
+                                    {
+                                        tex->push_back( osg::Vec2( texCoords[k].x/w, texCoords[k].y/h ) );
+                                    }
+                                }
+                                else
+                                {
+                                    for ( unsigned int k = 0; k < texCoords.size(); k++ )
+                                    {
+                                        tex->push_back( osg::Vec2( texCoords[k].x, texCoords[k].y ) );
+                                    }
                                 }
 
                                 geom->setTexCoordArray( 0, tex );

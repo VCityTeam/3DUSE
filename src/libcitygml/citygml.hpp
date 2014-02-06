@@ -131,11 +131,12 @@ enum State {
 		bool pruneEmptyObjects; 
 		bool tesselate;
 		std::string destSRS;
+        std::string m_basePath;
 	};
 
 	LIBCITYGML_EXPORT CityModel* load( std::istream& stream, const ParserParams& params );
 
-	LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, const ParserParams& params );
+    LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& params );
 
 	///////////////////////////////////////////////////////////////////////////////
 
@@ -389,6 +390,8 @@ enum State {
 
 		inline Tesselator* getTesselator( void ) { return _tesselator; }
 
+        std::string m_basePath;
+
 	protected:
 		void refresh( void );
 
@@ -483,7 +486,8 @@ enum State {
 		inline const std::vector<TVec3f>& getNormals( void ) const { return _normals; }
 
 		// Get texture coordinates
-		inline const TexCoords& getTexCoords( void ) const { return _texCoords; }
+        inline TexCoords& getTexCoords( void ) { return _texCoords; }
+        inline const TexCoords& getTexCoords( void ) const { return _texCoords; }
 
 		// Get the appearance
 		inline const Appearance* getAppearance( void ) const { return _appearance; } // Deprecated! Use getMaterial and getTexture instead
@@ -869,6 +873,8 @@ enum State {
         void computeEnvelope();
 
         AppearanceManager* getAppearanceManager() { return &_appearanceManager; }
+
+        std::string m_basePath;
 
 	protected:
 		void addCityObject( CityObject* o );

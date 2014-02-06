@@ -394,7 +394,10 @@ void PickHandler::selectNode(const vcity::URI& uri)
         //mat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(1,0,0,1));
         mat->setEmission(osg::Material::FRONT_AND_BACK, osg::Vec4(1,0,0,1));
         //mat->setShininess(osg::Material::FRONT_AND_BACK, 128);
+
         node->getStateSet()->setAttribute(mat);
+        //node->getStateSet()->setAttributeAndModes( mat, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+        //node->getStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
         appGui().getOsgScene()->createInfoBubble(node);
     }
 }

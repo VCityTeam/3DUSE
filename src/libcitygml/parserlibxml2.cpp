@@ -163,8 +163,11 @@ namespace citygml
 		return model;	
 	}
 
-	CityModel* load( const std::string& fname, const ParserParams& params )
+    CityModel* load( const std::string& fname, ParserParams& params )
 	{
+        params.m_basePath = fname.substr(0, fname.find_last_of('/')+1);
+        //params.m_basePath.push_back('/');
+
 		CityGMLHandlerLibXml2* handler = new CityGMLHandlerLibXml2( params );
 
         xmlSAXHandler sh = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
@@ -175,7 +178,6 @@ namespace citygml
 		sh.characters = characters;
 		sh.error = fatalError;
         sh.fatalError = fatalError;
-
 
 		xmlParserInputBufferPtr inputBuffer = xmlParserInputBufferCreateFilename( fname.c_str(), XML_CHAR_ENCODING_NONE );
 		xmlParserCtxtPtr context = xmlCreateIOParserCtxt( &sh, handler, inputBuffer->readcallback, inputBuffer->closecallback, inputBuffer->context, XML_CHAR_ENCODING_NONE );

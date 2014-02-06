@@ -344,6 +344,8 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	{
 	case NODETYPE( CityModel ):
 		_model = new CityModel();
+        _model->m_basePath = _params.m_basePath;
+        _model->getAppearanceManager()->m_basePath = _model->m_basePath;
 		pushObject( _model );
 		break;
 

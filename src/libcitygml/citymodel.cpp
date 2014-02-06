@@ -478,8 +478,9 @@ namespace citygml
             //std::cout << "has GeoreferencedTexture : " << m_matId << std::endl;
             _texture = geoTexture;
 
-            // open jgw file
-            std::string basePath = "/mnt/docs/data/dd_backup/Donnees_GrandLyon/MNT_CITYGML/";
+            // open world file file
+            std::string basePath = appearanceManager.m_basePath;
+            //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_GrandLyon/MNT_CITYGML/";
             //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_Sathonay/";
             std::string worldFileUrl(basePath);
             worldFileUrl.append(_texture->getUrl());
@@ -517,9 +518,10 @@ namespace citygml
 
                 tc.y = 1.0f - tc.y;
 
+                // normalize later ? when converting to osg (because we can have image size at this time) ?
                 //*
-                tc.x /= 4096.0f;
-                tc.y /= 4096.0f;
+                //tc.x /= 4096.0f;
+                //tc.y /= 4096.0f;
                 /*/
                 tc.x /= 8192.0;
                 tc.y /= 8192.0;
