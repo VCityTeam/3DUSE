@@ -155,14 +155,11 @@ void MainWindow::addRecentFile(const QString& filepath)
     QSettings settings("liris", "virtualcity");
     QStringList list = settings.value("recentfiles").toStringList();
 
-    if(!list.contains(filepath, Qt::CaseInsensitive))
+    list.removeAll(filepath);
+    list.prepend(filepath);
+    if(list.size() >= 10)
     {
-        list.insert(0, filepath);
-
-        if(list.size() >= 10)
-        {
-            list.removeLast();
-        }
+        list.removeLast();
     }
 
     settings.setValue("recentfiles", list);
@@ -172,7 +169,7 @@ void MainWindow::updateRecentFiles()
 {
     QSettings settings("liris", "virtualcity");
     QStringList list = settings.value("recentfiles").toStringList();
-    list = list.toSet().toList();
+    list.removeDuplicates();
     settings.setValue("recentfiles", list);
 
     clearRecentFiles(false);
@@ -204,7 +201,10 @@ void MainWindow::openRecentFile()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(action)
+    {
         loadFile(action->data().toString());
+        updateRecentFiles();
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Open files
@@ -213,6 +213,12 @@ bool MainWindow::loadFile(const QString& filepath)
 {
     QSettings settings("liris", "virtualcity");
     QFileInfo file(filepath);
+
+    if(!file.exists())
+    {
+        return false;
+    }
+
     QString ext = file.suffix().toLower();
     if(ext == "citygml" || ext == "gml")
     {
