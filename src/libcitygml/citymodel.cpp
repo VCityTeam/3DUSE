@@ -425,24 +425,7 @@ namespace citygml
 			_normals[i] = TVec3f( (float)normal.x, (float)normal.y, (float)normal.z );
 	}
 
-    class WorldParams
-    {
-    public:
-        WorldParams()
-            : xPixelSize(0.0), yRotation(0.0), xRotation(0.0), yPixelSize(0.0), xOrigin(0.0), yOrigin(0.0)
-        {
-
-        }
-
-        double xPixelSize;
-        double yRotation;
-        double xRotation;
-        double yPixelSize;
-        double xOrigin;
-        double yOrigin;
-    };
-
-    std::ostream& operator<<( std::ostream& os, const WorldParams& wp)
+    std::ostream& operator<<( std::ostream& os, const GeoreferencedTexture::WorldParams& wp)
     {
         os << "xPixelSize : " << wp.xPixelSize << std::endl;
         os << "yRotation  : " << wp.yRotation << std::endl;
@@ -478,35 +461,40 @@ namespace citygml
             //std::cout << "has GeoreferencedTexture : " << m_matId << std::endl;
             _texture = geoTexture;
 
-            // open world file file
-            std::string basePath = appearanceManager.m_basePath;
-            //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_GrandLyon/MNT_CITYGML/";
-            //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_Sathonay/";
-            std::string worldFileUrl(basePath);
-            worldFileUrl.append(_texture->getUrl());
-            char lastChar = worldFileUrl.back();
-            worldFileUrl.pop_back();
-            worldFileUrl.pop_back();
-            worldFileUrl.push_back(lastChar);
-            worldFileUrl.push_back('w');
-            //worldFileUrl = worldFileUrl.substr(0, worldFileUrl.find_last_of('.')) + ".jgw";
-            //std::cout << "worldFileUrl : " << worldFileUrl << std::endl;
-            std::ifstream worldFile(worldFileUrl);
+            if(!geoTexture->m_initWParams)
+            {
+                // open world file file
+                std::string basePath = appearanceManager.m_basePath;
+                //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_GrandLyon/MNT_CITYGML/";
+                //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_Sathonay/";
+                std::string worldFileUrl(basePath);
+                worldFileUrl.append(_texture->getUrl());
+                char lastChar = worldFileUrl.back();
+                worldFileUrl.pop_back();
+                worldFileUrl.pop_back();
+                worldFileUrl.push_back(lastChar);
+                worldFileUrl.push_back('w');
+                //worldFileUrl = worldFileUrl.substr(0, worldFileUrl.find_last_of('.')) + ".jgw";
+                //std::cout << "worldFileUrl : " << worldFileUrl << std::endl;
+                std::ifstream worldFile(worldFileUrl);
 
-            WorldParams wParams;
-            worldFile >> wParams.xPixelSize;
-            worldFile >> wParams.yRotation;
-            worldFile >> wParams.xRotation;
-            worldFile >> wParams.yPixelSize;
-            worldFile >> wParams.xOrigin;
-            worldFile >> wParams.yOrigin;
+                worldFile >> geoTexture->m_wParams.xPixelSize;
+                worldFile >> geoTexture->m_wParams.yRotation;
+                worldFile >> geoTexture->m_wParams.xRotation;
+                worldFile >> geoTexture->m_wParams.yPixelSize;
+                worldFile >> geoTexture->m_wParams.xOrigin;
+                worldFile >> geoTexture->m_wParams.yOrigin;
 
-            //std::cout << wParams;
+                //std::cout << geoTexture->m_wParams;
 
-            worldFile.close();
+                worldFile.close();
+
+                geoTexture->m_initWParams = true;
+            }
 
             // compute tex coords
             _texCoords.clear();
+            GeoreferencedTexture::WorldParams& wParams = geoTexture->m_wParams;
             const std::vector<TVec3d>& vertices = _exteriorRing->getVertices();
             for(std::vector<TVec3d>::const_iterator it = vertices.begin(); it < vertices.end(); ++it)
             {
@@ -523,8 +511,8 @@ namespace citygml
                 //tc.x /= 4096.0f;
                 //tc.y /= 4096.0f;
                 /*/
-                tc.x /= 8192.0;
-                tc.y /= 8192.0;
+                tc.x /= 8192.0f;
+                tc.y /= 8192.0f;
                 //*/
 
                 //std::cout << tc << std::endl;

@@ -295,11 +295,30 @@ enum State {
 		friend class CityGMLHandler;
 
 	public:
-		GeoreferencedTexture( const std::string& id ) : Appearance( id, "GeoreferencedTexture" ), Texture( id ), _preferWorldFile(true) {}
+        GeoreferencedTexture( const std::string& id ) : Appearance( id, "GeoreferencedTexture" ), Texture( id ), m_initWParams(false), _preferWorldFile(true) {}
 
 		inline bool getPreferWorldFile( void ) const { return _preferWorldFile; }
 
 		// TODO support referencePoint and orientation
+        class WorldParams
+        {
+        public:
+            WorldParams()
+                : xPixelSize(0.0), yRotation(0.0), xRotation(0.0), yPixelSize(0.0), xOrigin(0.0), yOrigin(0.0)
+            {
+
+            }
+
+            double xPixelSize;
+            double yRotation;
+            double xRotation;
+            double yPixelSize;
+            double xOrigin;
+            double yOrigin;
+        };
+
+        bool m_initWParams;
+        WorldParams m_wParams;
 
 	protected:
 		bool _preferWorldFile;
