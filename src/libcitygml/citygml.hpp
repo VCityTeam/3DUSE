@@ -131,11 +131,12 @@ enum State {
 		bool pruneEmptyObjects; 
 		bool tesselate;
 		std::string destSRS;
+        std::string m_basePath;
 	};
 
 	LIBCITYGML_EXPORT CityModel* load( std::istream& stream, const ParserParams& params );
 
-	LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, const ParserParams& params );
+    LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& params );
 
 	///////////////////////////////////////////////////////////////////////////////
 
@@ -294,11 +295,30 @@ enum State {
 		friend class CityGMLHandler;
 
 	public:
-		GeoreferencedTexture( const std::string& id ) : Appearance( id, "GeoreferencedTexture" ), Texture( id ), _preferWorldFile(true) {}
+        GeoreferencedTexture( const std::string& id ) : Appearance( id, "GeoreferencedTexture" ), Texture( id ), m_initWParams(false), _preferWorldFile(true) {}
 
 		inline bool getPreferWorldFile( void ) const { return _preferWorldFile; }
 
 		// TODO support referencePoint and orientation
+        class WorldParams
+        {
+        public:
+            WorldParams()
+                : xPixelSize(0.0), yRotation(0.0), xRotation(0.0), yPixelSize(0.0), xOrigin(0.0), yOrigin(0.0)
+            {
+
+            }
+
+            double xPixelSize;
+            double yRotation;
+            double xRotation;
+            double yPixelSize;
+            double xOrigin;
+            double yOrigin;
+        };
+
+        bool m_initWParams;
+        WorldParams m_wParams;
 
 	protected:
 		bool _preferWorldFile;
@@ -363,6 +383,11 @@ enum State {
 			return getAppearance< Texture* >( nodeid );
 		}
 
+        inline GeoreferencedTexture* getGeoreferencedTexture( const std::string& nodeid ) const
+        {
+            return getAppearance< GeoreferencedTexture* >( nodeid );
+        }
+
 		// Getter for the front&back material if there is any.
 		inline Material* getMaterialFront( const std::string& nodeid ) const
 		{
@@ -383,6 +408,8 @@ enum State {
 		}
 
 		inline Tesselator* getTesselator( void ) { return _tesselator; }
+
+        std::string m_basePath;
 
 	protected:
 		void refresh( void );
@@ -478,7 +505,8 @@ enum State {
 		inline const std::vector<TVec3f>& getNormals( void ) const { return _normals; }
 
 		// Get texture coordinates
-		inline const TexCoords& getTexCoords( void ) const { return _texCoords; }
+        inline TexCoords& getTexCoords( void ) { return _texCoords; }
+        inline const TexCoords& getTexCoords( void ) const { return _texCoords; }
 
 		// Get the appearance
 		inline const Appearance* getAppearance( void ) const { return _appearance; } // Deprecated! Use getMaterial and getTexture instead
@@ -533,6 +561,8 @@ enum State {
 		Geometry *_geometry;
 
         Envelope _envelope;
+
+        std::string m_matId;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -862,6 +892,8 @@ enum State {
         void computeEnvelope();
 
         AppearanceManager* getAppearanceManager() { return &_appearanceManager; }
+
+        std::string m_basePath;
 
 	protected:
 		void addCityObject( CityObject* o );

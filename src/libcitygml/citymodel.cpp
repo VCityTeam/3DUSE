@@ -425,12 +425,21 @@ namespace citygml
 			_normals[i] = TVec3f( (float)normal.x, (float)normal.y, (float)normal.z );
 	}
 
+    std::ostream& operator<<( std::ostream& os, const GeoreferencedTexture::WorldParams& wp)
+    {
+        os << "xPixelSize : " << wp.xPixelSize << std::endl;
+        os << "yRotation  : " << wp.yRotation << std::endl;
+        os << "xRotation  : " << wp.xRotation << std::endl;
+        os << "yPixelSize : " << wp.yPixelSize << std::endl;
+        os << "xOrigin    : " << wp.xOrigin << std::endl;
+        os << "yOrigin    : " << wp.yOrigin << std::endl;
+        return os;
+    }
+
 	void Polygon::finish( AppearanceManager& appearanceManager, Appearance* defAppearance, bool doTesselate )
 	{	
 		if ( !appearanceManager.getTexCoords( getId(), _texCoords ) ) 
 			appearanceManager.getTexCoords( _geometry->getId(), _texCoords );
-
-        // handle georeferencedtextures here ?
 				
 		finish( appearanceManager, doTesselate );
 		
@@ -445,8 +454,76 @@ namespace citygml
  		if ( !_materials[ FRONT ]  && !_materials[ BACK ])
  			_materials[ FRONT ] = dynamic_cast< Material * >( defAppearance );
 
-		_texture = appearanceManager.getTexture( id );
-		if ( !_texture ) _texture = dynamic_cast< Texture * >( defAppearance );
+        // handle georeferencedtextures here ?
+        GeoreferencedTexture* geoTexture = appearanceManager.getGeoreferencedTexture(m_matId);
+        if(geoTexture)
+        {
+            //std::cout << "has GeoreferencedTexture : " << m_matId << std::endl;
+            _texture = geoTexture;
+
+            if(!geoTexture->m_initWParams)
+            {
+                // open world file file
+                std::string basePath = appearanceManager.m_basePath;
+                //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_GrandLyon/MNT_CITYGML/";
+                //std::string basePath = "/mnt/docs/data/dd_backup/Donnees_Sathonay/";
+                std::string worldFileUrl(basePath);
+                worldFileUrl.append(_texture->getUrl());
+                char lastChar = worldFileUrl.back();
+                worldFileUrl.pop_back();
+                worldFileUrl.pop_back();
+                worldFileUrl.push_back(lastChar);
+                worldFileUrl.push_back('w');
+                //worldFileUrl = worldFileUrl.substr(0, worldFileUrl.find_last_of('.')) + ".jgw";
+                //std::cout << "worldFileUrl : " << worldFileUrl << std::endl;
+                std::ifstream worldFile(worldFileUrl);
+
+                worldFile >> geoTexture->m_wParams.xPixelSize;
+                worldFile >> geoTexture->m_wParams.yRotation;
+                worldFile >> geoTexture->m_wParams.xRotation;
+                worldFile >> geoTexture->m_wParams.yPixelSize;
+                worldFile >> geoTexture->m_wParams.xOrigin;
+                worldFile >> geoTexture->m_wParams.yOrigin;
+
+                //std::cout << geoTexture->m_wParams;
+
+                worldFile.close();
+
+                geoTexture->m_initWParams = true;
+            }
+
+            // compute tex coords
+            _texCoords.clear();
+            GeoreferencedTexture::WorldParams& wParams = geoTexture->m_wParams;
+            const std::vector<TVec3d>& vertices = _exteriorRing->getVertices();
+            for(std::vector<TVec3d>::const_iterator it = vertices.begin(); it < vertices.end(); ++it)
+            {
+                TVec3d point = *it;
+                TVec2f tc;
+
+                tc.x = ((wParams.yPixelSize*point.x)-(wParams.xRotation*point.y)+(wParams.xRotation*wParams.yOrigin)-(wParams.yPixelSize*wParams.xOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
+                tc.y = ((-wParams.yRotation*point.x)+(wParams.xPixelSize*point.y)+(wParams.yRotation*wParams.xOrigin)-(wParams.xPixelSize*wParams.yOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
+
+                tc.y = 1.0f - tc.y;
+
+                // normalize later ? when converting to osg (because we can have image size at this time) ?
+                //*
+                //tc.x /= 4096.0f;
+                //tc.y /= 4096.0f;
+                /*/
+                tc.x /= 8192.0f;
+                tc.y /= 8192.0f;
+                //*/
+
+                //std::cout << tc << std::endl;
+                _texCoords.push_back(tc);
+            }
+        }
+        else
+        {
+            _texture = appearanceManager.getTexture( id );
+            if ( !_texture ) _texture = dynamic_cast< Texture * >( defAppearance );
+        }
 	}
 
 	void Polygon::addRing( LinearRing* ring ) 

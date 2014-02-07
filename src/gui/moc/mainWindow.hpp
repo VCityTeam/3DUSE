@@ -41,6 +41,7 @@ public:
     QTimer m_timer;         ///< anim timer
 
     void addRecentFile(const QString& filepath);
+    void removeRecentFile(const QString& filepath);
     void updateRecentFiles();
     bool loadFile(const QString& filepath);
 

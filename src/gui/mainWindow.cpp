@@ -153,26 +153,33 @@ void MainWindow::addRecentFile(const QString& filepath)
 {
     QSettings settings("liris", "virtualcity");
     QStringList list = settings.value("recentfiles").toStringList();
-    list.insert(0, filepath);
 
-    if(!list.contains(filepath, Qt::CaseInsensitive))
+    list.removeAll(filepath);
+    list.prepend(filepath);
+    if(list.size() >= 10)
     {
-        if(list.size() >= 10)
-        {
-            list.insert(0, filepath);
-            list.removeLast();
-        }
+        list.removeLast();
     }
+
+    settings.setValue("recentfiles", list);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::removeRecentFile(const QString& filepath)
+{
+    QSettings settings("liris", "virtualcity");
+    QStringList list = settings.value("recentfiles").toStringList();
+    list.removeAll(filepath);
+    settings.setValue("recentfiles", list);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateRecentFiles()
 {
     QSettings settings("liris", "virtualcity");
     QStringList list = settings.value("recentfiles").toStringList();
-    list = list.toSet().toList();
+    list.removeDuplicates();
     settings.setValue("recentfiles", list);
 
-    //clearRecentFiles();
+    clearRecentFiles(false);
 
     foreach(QString str, list)
     {
@@ -181,14 +188,16 @@ void MainWindow::updateRecentFiles()
         connect(action, SIGNAL(triggered()), this, SLOT(openRecentFile()));
         action->setData(str);
     }
+
+    // add reset item last
+    QAction* action = new QAction("Clear", this);
+    m_ui->menuRecent_files->addAction(action);
+    connect(action, SIGNAL(triggered()), this, SLOT(clearRecentFiles()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::clearRecentFiles(bool removeAll)
 {
     m_ui->menuRecent_files->clear();
-    QAction* action = new QAction("Clear", this);
-    m_ui->menuRecent_files->addAction(action);
-    connect(action, SIGNAL(triggered()), this, SLOT(clearRecentFiles()));
 
     if(removeAll)
     {
@@ -201,7 +210,10 @@ void MainWindow::openRecentFile()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(action)
+    {
         loadFile(action->data().toString());
+        updateRecentFiles();
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Open files
@@ -210,6 +222,13 @@ bool MainWindow::loadFile(const QString& filepath)
 {
     QSettings settings("liris", "virtualcity");
     QFileInfo file(filepath);
+
+    if(!file.exists())
+    {
+        removeRecentFile(filepath);
+        return false;
+    }
+
     QString ext = file.suffix().toLower();
     if(ext == "citygml" || ext == "gml")
     {
@@ -220,17 +239,12 @@ bool MainWindow::loadFile(const QString& filepath)
         vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
         vcity::log() << uriLayer.getStringURI() << "\n";
         appGui().getControllerGui().addTile(uriLayer, *tile);
-        //m_app.getScene().getLayers()[0]->addTile(tile);
-        //m_osgScene->addTile(*tile);
-        //m_osgView->centerCamera();
 
+        addRecentFile(filepath);
 
-        //setOsgData(buildOsgScene(*tile));
-        //fillTreeView(tile); -> put in controller
-
-         QStringList list = settings.value("recentfiles").toStringList();
+        /* QStringList list = settings.value("recentfiles").toStringList();
          list.append(filepath);
-         settings.setValue("recentfiles", list);
+         settings.setValue("recentfiles", list);*/
     }
     else if(ext == "shp")
     {
@@ -506,6 +520,14 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
                     // do stuff with points...
                     TVec3d point = *itVertices;
                     ss << point;
+                }
+                ss << std::endl;
+
+                ss << "Texcoords : ";
+                citygml::TexCoords texCoords = (*itPoly)->getTexCoords();
+                for(citygml::TexCoords::const_iterator itTC = texCoords.begin(); itTC < texCoords.end(); ++itTC)
+                {
+                    ss << *itTC;
                 }
                 ss << std::endl;
 
