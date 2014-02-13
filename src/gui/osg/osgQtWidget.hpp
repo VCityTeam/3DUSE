@@ -28,10 +28,6 @@ public:
 
    void setPickHandler(PickHandler* pickhandler);
 
-   void setPickHandlerTextBox(QTextBrowser* txt);
-   void setPickHandlerScene(vcity::Scene* scene);
-   void setPickHandlerTreeView(QTreeWidget* tree);
-
    const std::string& getNodePicked() const;
 
    void centerCamera();
@@ -39,6 +35,10 @@ public:
    PickHandler* getPickHandler();
 
    QWidget* getWidget();
+
+   /// \brief setActive Enable or disable rendering update
+   /// \param val true or false
+   void setActive(bool val, int freq=1000);
 
 protected:
    QTimer m_timer;

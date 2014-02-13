@@ -14,6 +14,7 @@
 #include <QResizeEvent>
 #include <iostream>
 #include <sstream>
+#include "gui/moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 class MyFirstPersonManipulator : public osgGA::FirstPersonManipulator
 {
@@ -33,6 +34,8 @@ public:
         osgGA::FirstPersonManipulator::moveUp(distance);
     }
 };
+////////////////////////////////////////////////////////////////////////////////
+osg::Matrixd mat;
 ////////////////////////////////////////////////////////////////////////////////
 class CameraHandler : public osgGA::GUIEventHandler
 {
@@ -64,6 +67,24 @@ public:
             return true;
             break;
         }*/
+        case(osgGA::GUIEventAdapter::DRAG):
+        {
+            appGui().getMainWindow()->m_osgView->setActive(true);
+            break;
+        }
+        case(osgGA::GUIEventAdapter::RELEASE):
+        {
+            appGui().getMainWindow()->m_osgView->setActive(false, 100);
+            break;
+        }
+        case(osgGA::GUIEventAdapter::DOUBLECLICK):
+        {
+            if(appGui().getSelectedNodes().size() > 0)
+            {
+                appGui().getOsgScene()->centerOn(appGui().getSelectedNodes()[0]);
+            }
+            break;
+        }
         case(osgGA::GUIEventAdapter::KEYDOWN):
         {
             if((ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0)
@@ -116,11 +137,22 @@ public:
                         fpsCam->moveRight(m_speed);
                     break;
                 }
+                case osgGA::GUIEventAdapter::KEY_I:
+                {
+                    mat = fpsCam->getMatrix();
+                    break;
+                }
+                case osgGA::GUIEventAdapter::KEY_O:
+                {
+                    fpsCam->setByMatrix(mat);
+                    break;
+                }
                 default:
                     break;
                 }
             }
         }
+            break;
         default:
             break;
         }
@@ -135,11 +167,12 @@ private:
 osgQtWidget::osgQtWidget(QWidget* parent)
     : QWidget(parent)//, m_osgScene(new osg::Group())
 {
-   //setThreadingModel(osgViewer::ViewerBase::CullDrawThreadPerContext);
-   setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
+   setThreadingModel(osgViewer::ViewerBase::CullThreadPerCameraDrawThreadPerContext);
+   //setThreadingModel(osgViewer::ViewerBase::AutomaticSelection);
+   //setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
    m_widget = addViewWidget(createGraphicsWindow(0,0,100,100), parent);
    connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
-   m_timer.start(50);
+   m_timer.start(15);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QWidget* osgQtWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, QWidget* /*parent*/)
@@ -192,8 +225,8 @@ QWidget* osgQtWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, QWidget* /*pare
 
        //keyswitchManipulator->getCurrentMatrixManipulator()->
    }
-   //view->addEventHandler(new osgViewer::ThreadingHandler);
-   //view->addEventHandler(new osgViewer::WindowSizeHandler);
+   view->addEventHandler(new osgViewer::ThreadingHandler);
+   view->addEventHandler(new osgViewer::WindowSizeHandler);
    view->addEventHandler(new osgViewer::HelpHandler());
    view->addEventHandler(new osgViewer::ScreenCaptureHandler);
    view->addEventHandler(new osgViewer::LODScaleHandler);
@@ -202,6 +235,9 @@ QWidget* osgQtWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, QWidget* /*pare
 
    //m_pickHandler = new PickHandler();
    //view->addEventHandler(m_pickHandler);
+
+   // disable escape key
+   setKeyEventSetsDone(0);
 
    view->addEventHandler(new CameraHandler);
 
@@ -224,7 +260,7 @@ osgQt::GraphicsWindowQt* osgQtWidget::createGraphicsWindow(int x, int y, int w, 
    traits->stencil = ds->getMinimumNumStencilBits();
    traits->sampleBuffers = ds->getMultiSamples();
    //traits->samples = ds->getNumMultiSamples();
-   traits->samples = 16;
+   traits->samples = 4;
 
    return new osgQt::GraphicsWindowQt(traits.get());
 }
@@ -246,26 +282,11 @@ void osgQtWidget::setSceneData(osg::Node* scene)
     {
         m_osgView->setSceneData(scene);
         //m_osgView->addEventHandler(new osgGA::StateSetManipulator(m_osgScene->getOrCreateStateSet()));
-        m_osgView->addEventHandler(new osgGA::StateSetManipulator(scene->getOrCreateStateSet()));
+
+        osg::ref_ptr<osgGA::StateSetManipulator> manip = new osgGA::StateSetManipulator(scene->getOrCreateStateSet());
+        //manip->set
+        m_osgView->addEventHandler(manip);
     }
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerTextBox(QTextBrowser* txt)
-{
-    m_textBrowser = txt;
-    m_pickHandler->setPickHandlerTextBox(txt);
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerScene(vcity::Scene* scene)
-{
-    m_pickHandler->setPickHandlerScene(scene);
-    //m_scene = scene;
-}
-////////////////////////////////////////////////////////////////////////////////
-void osgQtWidget::setPickHandlerTreeView(QTreeWidget* tree)
-{
-    m_pickHandler->setPickHandlerTreeView(tree);
-    //m_tree = tree;
 }
 ////////////////////////////////////////////////////////////////////////////////
 /*const std::string& osgQtWidget::getNodePicked() const
@@ -286,5 +307,17 @@ PickHandler* osgQtWidget::getPickHandler()
 QWidget* osgQtWidget::getWidget()
 {
     return m_widget;
+}
+////////////////////////////////////////////////////////////////////////////////
+void osgQtWidget::setActive(bool val, int freq)
+{
+    if(val)
+    {
+        m_timer.setInterval(15);
+    }
+    else
+    {
+        m_timer.setInterval(freq);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////

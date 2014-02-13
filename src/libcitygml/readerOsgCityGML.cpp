@@ -110,7 +110,7 @@ osg::ref_ptr<osg::Node> ReaderOsgCityGML::readCity(const citygml::CityModel* cit
 osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityObject* object, unsigned int minimumLODToConsider)
 {
 	// Skip objects without geometry
-    if(!object) return NULL;
+    if(!object) return nullptr;
 
     //osg::ref_ptr<osg::Group> grp = new osg::Group;
     osg::ref_ptr<osg::PositionAttitudeTransform> grp = new osg::PositionAttitudeTransform;
@@ -118,6 +118,8 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
     grp->addChild(geode);
     geode->setName(object->getId());
     grp->setName(object->getId());
+
+    //std::cout << "createCityObject : " << object->getId() << std::endl;
 
     /*if(settings._recursive)
     {
@@ -218,20 +220,24 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 				if ( const citygml::Material* m = dynamic_cast<const citygml::Material*>( mat ) )
 				{
 #define TOVEC4(_t_) osg::Vec4( _t_.r, _t_.g, _t_.b, _t_.a ) 
-					osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-					TVec4f diffuse( m->getDiffuse(), 0.f );
-					TVec4f emissive( m->getEmissive(), 0.f );
-					TVec4f specular( m->getSpecular(), 0.f );
-					float ambient = m->getAmbientIntensity();
+                    //osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+                    //TVec4f diffuse( m->getDiffuse(), 0.f );
+                    //TVec4f emissive( m->getEmissive(), 0.f );
+                    //TVec4f specular( m->getSpecular(), 0.f );
+                    //float ambient = m->getAmbientIntensity();
 
 					osg::Material* material = new osg::Material;
 					material->setColorMode( osg::Material::OFF );
-					material->setDiffuse( osg::Material::FRONT_AND_BACK, TOVEC4( diffuse ) );
-					material->setSpecular( osg::Material::FRONT_AND_BACK, TOVEC4( specular ) );
-					material->setEmission( osg::Material::FRONT_AND_BACK, TOVEC4( emissive ) );					
-					material->setShininess( osg::Material::FRONT_AND_BACK, m->getShininess() );					
-					material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4( ambient, ambient, ambient, 1.0 ) );
-					material->setTransparency( osg::Material::FRONT_AND_BACK, m->getTransparency() );
+                    //material->setDiffuse( osg::Material::FRONT_AND_BACK, TOVEC4( diffuse ) );
+                    //material->setSpecular( osg::Material::FRONT_AND_BACK, TOVEC4( specular ) );
+                    //material->setEmission( osg::Material::FRONT_AND_BACK, TOVEC4( emissive ) );
+                    //material->setShininess( osg::Material::FRONT_AND_BACK, m->getShininess() );
+                    //material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4( ambient, ambient, ambient, 1.0 ) );
+                    material->setDiffuse( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    material->setSpecular( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    material->setEmission( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
+                    //material->setTransparency( osg::Material::FRONT_AND_BACK, m->getTransparency() );
 					stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 					stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
@@ -245,21 +251,21 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
                         if ( texCoords.size() > 0 )
                         {
-                            osg::Texture2D* texture = 0;
+                            osg::Texture2D* texture = nullptr;
 
                             if(m_settings._textureMap.find(t->getUrl()) == m_settings._textureMap.end())
                             {
                                 // Load a new texture
-                                osg::notify(osg::NOTICE) << "  Loading texture " << t->getUrl() << "..." << std::endl;
+                                //osg::notify(osg::NOTICE) << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
 
-                                //if(osg::Image* image = osgDB::readImageFile("/mnt/docs2/liris/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13726/export-CityGML/"+t->getUrl()))
                                 if(osg::Image* image = osgDB::readImageFile(m_settings.m_filepath+"/"+t->getUrl()))
                                 {
                                     //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
+                                    //std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
                                     texture = new osg::Texture2D;
                                     texture->setImage( image );
                                     texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-                                    texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::NEAREST );
+                                    texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
                                     texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
                                     texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
                                     texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
@@ -277,8 +283,30 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                                 osg::ref_ptr<osg::Vec2Array> tex = new osg::Vec2Array;
 
                                 tex->reserve( texCoords.size() );
-                                for ( unsigned int k = 0; k < texCoords.size(); k++ )
-                                    tex->push_back( osg::Vec2( texCoords[k].x, texCoords[k].y ) );
+
+                                // georeferencedtexture special case : need to divide texccords by image size
+                                if(dynamic_cast<const citygml::GeoreferencedTexture*>( mat ))
+                                {
+                                    float w = texture->getImage()->s();
+                                    float h = texture->getImage()->t();
+                                    /*citygml::TexCoords& tc = p->getTexCoords(); // fail, cityobject is const...
+                                    for ( unsigned int k = 0; k < tc.size(); k++ )
+                                    {
+                                        tc[k].x /= w;
+                                        tc[k].x /= h;
+                                    }*/
+                                    for ( unsigned int k = 0; k < texCoords.size(); k++ )
+                                    {
+                                        tex->push_back( osg::Vec2( texCoords[k].x/w, texCoords[k].y/h ) );
+                                    }
+                                }
+                                else
+                                {
+                                    for ( unsigned int k = 0; k < texCoords.size(); k++ )
+                                    {
+                                        tex->push_back( osg::Vec2( texCoords[k].x, texCoords[k].y ) );
+                                    }
+                                }
 
                                 geom->setTexCoordArray( 0, tex );
 

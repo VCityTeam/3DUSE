@@ -244,13 +244,15 @@ else(WIN32)
   endif(OSG_FOUND)
 endif(WIN32)
 
-# Find OpenThreads
-find_package(OpenThreads)
-if(OPENTHREADS_FOUND)
-  include_directories(${OPENTHREADS_INCLUDE_DIR})
-else(OPENTHREADS_FOUND)
-  message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
-endif(OPENTHREADS_FOUND)
+# Find OpenThreads (only for QT5)
+if (WITH_QT5)
+  find_package(OpenThreads)
+  if(OPENTHREADS_FOUND)
+    include_directories(${OPENTHREADS_INCLUDE_DIR})
+  else(OPENTHREADS_FOUND)
+    message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
+  endif(OPENTHREADS_FOUND)
+endif(WITH_QT5)
 
 # Find GDAL
 find_package(GDAL)
@@ -332,13 +334,13 @@ SET( VCITY_GUI_LIB
   ${OSGFX_LIBRARIES}
   ${OSGSHADOW_LIBRARIES}
   ${OSGQT_LIBRARIES}
-  ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
   ${PROJ_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
 if (WITH_QT5)
+  SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${OPENTHREADS_LIBRARY} )
 else(WITH_QT5)
   SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT_LIBRARIES} )
   if (WITH_QT3D)

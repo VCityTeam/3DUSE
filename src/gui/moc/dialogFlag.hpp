@@ -2,6 +2,7 @@
 #define DIALOGFLAG_H
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogFlag;
@@ -14,6 +15,8 @@ class DialogFlag : public QDialog
 public:
     explicit DialogFlag(QWidget *parent = 0);
     ~DialogFlag();
+
+    void addFlag(const vcity::URI& uri);
 
 private:
     Ui::DialogFlag *ui;

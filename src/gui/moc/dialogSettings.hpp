@@ -15,6 +15,8 @@ public:
     explicit DialogSettings(QWidget *parent = 0);
     ~DialogSettings();
 
+    void doSettings();
+
 private:
     Ui::DialogSettings *ui;
 };

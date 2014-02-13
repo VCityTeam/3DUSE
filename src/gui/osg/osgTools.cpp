@@ -44,17 +44,21 @@ osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
     return geode;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::string osgTools::getURI(osg::Node* node)
+vcity::URI osgTools::getURI(osg::Node* node)
 {
     osg::Node* parent = node;
-    std::string URI = node->getName();
-    while((parent = (osg::Node*)(parent->getParent(0))) != NULL)
+    vcity::URI uri;// = node->getName();
+    uri.append(node->getName());
+    //uri.setType("Layer");
+    //while((parent = (osg::Node*)(parent->getParent(0))) != NULL)
+    while(parent->getNumParents() > 0 && (parent = (osg::Node*)(parent->getParent(0))) != NULL)
     {
         if(parent->getName() == "layers")
             break;
-        URI.insert(0, parent->getName());
+        //URI.insert(0, parent->getName());
+        uri.append(parent->getName());
     }
 
-    return URI;
+    return uri;
 }
 ////////////////////////////////////////////////////////////////////////////////

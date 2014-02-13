@@ -2,6 +2,7 @@
 #define DIALOGDYNFLAG_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogDynFlag;
@@ -14,6 +15,8 @@ class DialogDynFlag : public QDialog
 public:
     explicit DialogDynFlag(QWidget *parent = 0);
     ~DialogDynFlag();
+
+    void addDynFlag(const vcity::URI& uri);
 
 private:
     Ui::DialogDynFlag *ui;
