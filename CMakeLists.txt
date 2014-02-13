@@ -3,6 +3,7 @@ if (WITH_QT5)
 endif(WITH_QT5)
 
 if (COMMAND cmake_policy)
+  cmake_policy(SET CMP0003 NEW)
   IF(POLICY CMP0020)
     cmake_policy(SET CMP0020 NEW)
   ENDIF()
@@ -42,10 +43,43 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   endif( ${CMAKE_BUILD_TYPE} MATCHES "Debug" )
 endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #------------------------------------------------------------------------------
+# MSVC
+#------------------------------------------------------------------------------
+# If you are compiling on Windows, the preprocessor symbols 'min' or 'max' are defined. Do #define NOMINMAX to prevent windows.h from defining these symbols.
+if(MSVC)
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D \"NOMINMAX\"")
+endif()
+#------------------------------------------------------------------------------
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# WIN32 x64 VCity binary kit
+IF(WIN32)
+	if( NOT DEFINED VCITY_KIT_ROOT )
+		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
+	endif( NOT DEFINED VCITY_KIT_ROOT )
+
+	# with qt5
+	set(WITH_QT5				"ON")
+	set(QT5_DIR					${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
+
+	# with qt4
+	#set(QTDIR					${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
+
+	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.0-bin-without-qt)
+
+	set(GDAL_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
+	set(GDAL_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/gdal_i.lib)
+
+	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
+	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
+
+	set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
+	set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
+ENDIF(WIN32)
+
+# Find Qt
 if (WITH_QT5)
   # QT5 Handling
   if(DEFINED ENV{QT5_DIR})
@@ -90,11 +124,11 @@ if (WITH_QT5)
   endif(${Qt5Core_FOUND})
 else(WITH_QT5)
   # QT4 Handling
-  if(DEFINED ENV{QTDIR})
-    set( QTDIR $ENV{QTDIR} )
+  if (QTDIR)
+    set( ENV{QTDIR} ${QTDIR} )
   endif()
   set( QT_USE_QTMAIN	TRUE )
-  set( QT_USE_QTXML	TRUE )
+  set( QT_USE_QTXML		TRUE )
   set( QT_USE_QTOPENGL	TRUE )
   FIND_PACKAGE(Qt4)
   if(QT4_FOUND)
@@ -139,7 +173,7 @@ find_package(osg)
 if(OSG_FOUND)
   include_directories(${OSG_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osg not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osg not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
 # Find osgViewer
@@ -147,7 +181,7 @@ find_package(osgViewer)
 if(OSG_FOUND)
   include_directories(${OSGVIEWER_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osgViewer not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osgViewer not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
 # Find osgUtil
@@ -155,7 +189,7 @@ find_package(osgUtil)
 if(OSG_FOUND)
   include_directories(${OSGUTIL_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osgUtil not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osgUtil not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
 # Find osgText
@@ -163,7 +197,7 @@ find_package(osgText)
 if(OSG_FOUND)
   include_directories(${OSGTEXT_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osgText not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osgText not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
 # Find osgGA
@@ -171,7 +205,7 @@ find_package(osgGA)
 if(OSG_FOUND)
   include_directories(${OSGGA_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osgGA not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osgGA not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
 # Find osgDB
@@ -179,7 +213,7 @@ find_package(osgDB)
 if(OSG_FOUND)
   include_directories(${OSGDB_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osgDB not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osgDB not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
 # Find osgFX
@@ -187,7 +221,7 @@ find_package(osgFX)
 if(OSG_FOUND)
   include_directories(${OSGFX_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osgFX not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osgFX not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
 # Find osgShadow
@@ -195,20 +229,20 @@ find_package(osgShadow)
 if(OSG_FOUND)
   include_directories(${OSGSHADOW_INCLUDE_DIR})
 else(OSG_FOUND)
-  message(FATAL_ERROR "osgShadow not found. Please set OSGDIR.")
+  message(FATAL_ERROR "osgShadow not found. Please set OSG_DIR.")
 endif(OSG_FOUND)
 
-# Find osgQt (only for QT4)
-if (WITH_QT5)
+# Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows)
+if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
-else(WITH_QT5)
+else(WIN32)
   find_package(osgQt)
   if(OSG_FOUND)
     include_directories(${OSGQT_INCLUDE_DIR})
   else(OSG_FOUND)
-    message(FATAL_ERROR "osgQt not found. Please set OSGDIR.")
+    message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
   endif(OSG_FOUND)
-endif(WITH_QT5)
+endif(WIN32)
 
 # Find OpenThreads (only for QT5)
 if (WITH_QT5)
@@ -282,8 +316,10 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_UI_CPP}
   ${VCITY_GUI_RES_H}
 )
-if (WITH_QT5)
+if (WIN32)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} src/gui/osgQt/GraphicsWindowQt.cxx )
+endif(WIN32)
+if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
 endif(WITH_QT5)

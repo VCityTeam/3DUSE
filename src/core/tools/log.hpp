@@ -2,7 +2,8 @@
 #define __LOG_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <string>
-#include <fstream>
+//#include <fstream> // MT 31/01/2014
+#include <osgDB/fstream>
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -25,7 +26,7 @@ public:
 private:
     bool m_logFile;         ///< enable file logging ?
     bool m_logStdout;       ///< enable stdout logging ?
-    std::ofstream m_file;  ///< file for logging
+    /*std*/osgDB::ofstream m_file;  ///< file for logging  // MT 31/01/2014
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
