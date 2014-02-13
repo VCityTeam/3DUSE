@@ -129,7 +129,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(slotTemporalAnimUpdate()));
 
-    m_ui->menuDebug->setVisible(false);
+    //m_ui->menuDebug->menuAction()->setVisible(false);
     m_ui->horizontalSlider->setEnabled(m_useTemporal);
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
@@ -722,7 +722,7 @@ void MainWindow::exportCityGML()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOsg()
 {
-    osg::ref_ptr<osg::Node> node = m_osgScene;
+    osg::ref_ptr<osg::Node> node = m_osgScene->m_layers;
     bool res = osgDB::writeNodeFile(*node, "scene.osg");
     std::cout << "export osg : " << res << std::endl;
 }

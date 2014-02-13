@@ -561,8 +561,6 @@ enum State {
 		Geometry *_geometry;
 
         Envelope _envelope;
-
-        std::string m_matId;
 	};
 
 	///////////////////////////////////////////////////////////////////////////////

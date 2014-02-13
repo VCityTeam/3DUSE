@@ -260,7 +260,7 @@ osgQt::GraphicsWindowQt* osgQtWidget::createGraphicsWindow(int x, int y, int w, 
    traits->stencil = ds->getMinimumNumStencilBits();
    traits->sampleBuffers = ds->getMultiSamples();
    //traits->samples = ds->getNumMultiSamples();
-   traits->samples = 16;
+   traits->samples = 4;
 
    return new osgQt::GraphicsWindowQt(traits.get());
 }

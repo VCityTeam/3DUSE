@@ -455,7 +455,8 @@ namespace citygml
  			_materials[ FRONT ] = dynamic_cast< Material * >( defAppearance );
 
         // handle georeferencedtextures here ?
-        GeoreferencedTexture* geoTexture = appearanceManager.getGeoreferencedTexture(m_matId);
+        //GeoreferencedTexture* geoTexture = appearanceManager.getGeoreferencedTexture(m_matId);
+        GeoreferencedTexture* geoTexture = dynamic_cast<GeoreferencedTexture*>(defAppearance);
         if(geoTexture)
         {
             //std::cout << "has GeoreferencedTexture : " << m_matId << std::endl;
