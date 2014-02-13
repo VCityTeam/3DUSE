@@ -60,12 +60,15 @@ IF(WIN32)
 		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
 	endif( NOT DEFINED VCITY_KIT_ROOT )
 
-	# with qt5
-	set(WITH_QT5				"ON")
-	set(QT5_DIR					${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
-
-	# with qt4
-	#set(QTDIR					${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
+	if(WITH_QT4)
+		# with qt4
+		set(WITH_QT5			"OFF")
+		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
+	else(WITH_QT4)
+		# with qt5
+		set(WITH_QT5			"ON")
+		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
+	endif(WITH_QT4)
 
 	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.0-bin-without-qt)
 
@@ -244,15 +247,13 @@ else(WIN32)
   endif(OSG_FOUND)
 endif(WIN32)
 
-# Find OpenThreads (only for QT5)
-if (WITH_QT5)
-  find_package(OpenThreads)
-  if(OPENTHREADS_FOUND)
-    include_directories(${OPENTHREADS_INCLUDE_DIR})
-  else(OPENTHREADS_FOUND)
-    message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
-  endif(OPENTHREADS_FOUND)
-endif(WITH_QT5)
+# Find OpenThreads
+find_package(OpenThreads)
+if(OPENTHREADS_FOUND)
+  include_directories(${OPENTHREADS_INCLUDE_DIR})
+else(OPENTHREADS_FOUND)
+  message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
+endif(OPENTHREADS_FOUND)
 
 # Find GDAL
 find_package(GDAL)
@@ -334,13 +335,13 @@ SET( VCITY_GUI_LIB
   ${OSGFX_LIBRARIES}
   ${OSGSHADOW_LIBRARIES}
   ${OSGQT_LIBRARIES}
+  ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
   ${PROJ_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
 if (WITH_QT5)
-  SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${OPENTHREADS_LIBRARY} )
 else(WITH_QT5)
   SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT_LIBRARIES} )
   if (WITH_QT3D)
