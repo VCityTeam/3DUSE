@@ -1,7 +1,7 @@
 #ifndef __APPLICATIONGUI_HPP__
 #define __APPLICATIONGUI_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include <QtGui/QTextBrowser>
+#include <QTextBrowser>
 #include "core/application.hpp"
 #include "controllerGui.hpp"
 #include "osg/osgScene.hpp"
