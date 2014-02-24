@@ -699,7 +699,9 @@ enum State {
         void deleteNode(const std::string& node);
         void deleteNode(CityObject* node);
 
-        void insertNode(CityObject* node);
+        void insertNode(CityObject* node){
+            _children.push_back(node);
+        }
 
         void addFlag(BuildingFlag* flag) { flag->m_id = m_Flags.size(); m_Flags.push_back(flag); }
         std::vector<BuildingFlag*>& getFlags() { return m_Flags; }

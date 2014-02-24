@@ -785,7 +785,7 @@ void MainWindow::generateLOD0()
         {
             vcity::app().getAlgo().generateLOD0(*it);
             // TODO
-            //appGui().getControllerGui().update(uri);
+            appGui().getControllerGui().update(*it);
         }
     }
 }
