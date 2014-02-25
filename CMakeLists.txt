@@ -9,6 +9,12 @@ if (COMMAND cmake_policy)
   ENDIF()
 endif (COMMAND cmake_policy)
 
+# Project configuration
+set(PRJ_NAME VCity)
+set(PRJ_VERSION 0.1.0-master) # TODO
+project( ${PRJ_NAME} )
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy")
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 #------------------------------------------------------------------------------
@@ -56,6 +62,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # WIN32 x64 VCity binary kit
 IF(WIN32)
+	if(DEFINED ENV{VCITY_KIT_ROOT})
+		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
+	endif()
 	if( NOT DEFINED VCITY_KIT_ROOT )
 		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
 	endif( NOT DEFINED VCITY_KIT_ROOT )
@@ -361,7 +370,7 @@ endif(WITH_QT3D)
 
 if (WITH_QT5)
   if( NOT DEFINED QT_PLUGINS_DIR )
-    set( QT_PLUGINS_DIR "${QT5_DIR}/plugins/" )
+    set( QT_PLUGINS_DIR "${QT5_DIR}/plugins" )
   endif( NOT DEFINED QT_PLUGINS_DIR )
 endif(WITH_QT5)
 
@@ -373,8 +382,8 @@ IF(WIN32)
  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/QtPlugins")
  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/QtPlugins")
  foreach (qtplugin ${qtplugin_dirs})
-    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/QtPlugins/")
-    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/QtPlugins/")
+    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/QtPlugins")
+    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/QtPlugins")
  endforeach ()
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/qt.conf" "[Paths]\nPlugins = QtPlugins")
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/qt.conf" "[Paths]\nPlugins = QtPlugins")
@@ -404,3 +413,105 @@ if (WITH_QT5)
   endif(WITH_QT3D)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(VCity PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
+
+	#--------------------------------------------------------------------------------
+	# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
+	#--------------------------------------------------------------------------------
+	SET(plugin_dest_dir .)
+	SET(qtconf_dest_dir .)
+	SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}")
+	IF(APPLE)
+		SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
+		SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
+		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
+	ENDIF(APPLE)
+	IF(WIN32)
+		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
+	ENDIF(WIN32)
+		
+	#--------------------------------------------------------------------------------
+	# Install the application, on Apple, the bundle is at the root of the
+	# install tree, and on other platforms it'll go to the same directory.
+	INSTALL(TARGETS ${PRJ_NAME} 
+		BUNDLE DESTINATION . COMPONENT Runtime
+		RUNTIME DESTINATION . COMPONENT Runtime
+	)
+
+	#--------------------------------------------------------------------------------
+	# Install needed Qt plugins by copying directories from the qt installation
+	# One can cull what gets copied by using 'REGEX "..." EXCLUDE'
+	INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
+	if (WITH_QT5)
+		INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
+	endif(WITH_QT5)
+
+	#--------------------------------------------------------------------------------
+	# install a qt.conf file
+	# this inserts some cmake code into the install script to write the file
+	INSTALL(CODE "
+		file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = plugins\")
+		" COMPONENT Runtime)
+	IF(APPLE)
+		INSTALL(CODE "
+			file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = MacOS/plugins\")
+			" COMPONENT Runtime)
+	ENDIF(APPLE)
+
+	# install qt_menu.nib (APPLE)
+	IF(APPLE)
+		IF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+			INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+				 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
+		ELSE(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+			IF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+				INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+					 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
+			ENDIF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+		ENDIF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+	ENDIF(APPLE)
+		
+	#--------------------------------------------------------------------------------
+	# Use BundleUtilities to get all other dependencies for the application to work.
+	# It takes a bundle or executable along with possible plugins and inspects it
+	# for dependencies.  If they are not system dependencies, they are copied.
+
+	# directories to look for dependencies
+	SET(DIRS ${QT_LIBRARY_DIRS})
+
+	# Now the work of copying dependencies into the bundle/package
+	# The quotes are escaped and variables to use at install time have their $ escaped
+	# An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
+	# Note that the image plugins depend on QtSvg and QtXml, and it got those copied
+	# over.
+	INSTALL(CODE "
+		file(GLOB_RECURSE QTPLUGINS
+		\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/libcomponent_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+		include(BundleUtilities)
+		fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
+		" COMPONENT Runtime)
+
+	# CPack Configuration
+	set(CPACK_PACKAGE_NAME ${PRJ_NAME})
+	set(CPACK_PACKAGE_VERSION ${PRJ_VERSION})
+	set(CPACK_PACKAGE_VENDOR "Liris / CNRS")
+	#set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/README)
+	#set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/licence_gpl_v3.txt)
+
+	# To Create a package, one can run "cpack -G DragNDrop CPackConfig.cmake" on Mac OS X
+	# where CPackConfig.cmake is created by including CPack
+	# And then there's ways to customize this as well
+	IF(APPLE)
+		set(CPACK_BINARY_DRAGNDROP ON)
+		set(CPACK_BINARY_TGZ "OFF")
+		set(CPACK_BINARY_STGZ "OFF")
+		set(CPACK_BINARY_PACKAGEMAKER "OFF")
+		include(CPack)
+	ENDIF(APPLE)
+
+	IF(WIN32)
+		set(CPACK_GENERATOR "NSIS64")
+		include(CPack)
+	ENDIF(WIN32)
+	#--------------------------------------------------------------------------------
+	# Now the installation stuff : end
+	#--------------------------------------------------------------------------------
