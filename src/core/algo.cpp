@@ -85,11 +85,50 @@ namespace vcity
      * @param poly2 le second polygone
      * @return poly1 adjacent à poly 2?
      */
+    double cosinus(Point pointA, Point pointB, Point pointC, Point pointD){
+        double distAB,distCD,cosAB_CD;
+        /*calcul du cosinus de l'angle entre les vecteurs AB et CD*/
+        distAB=sqrt((pow(pointB.first-pointA.first,2)+pow(pointB.second-pointA.second,2)));
+        distCD=sqrt((pow(pointD.first-pointC.first,2)+pow(pointD.second-pointC.second,2)));
+        if(distAB==0 || distCD ==0){
+            return 2; //si un des vecteurs est nul, retourne une valeur impossible
+        }
+        cosAB_CD=(pointB.first-pointA.first)*(pointD.first-pointC.first)+(pointB.second-pointA.second)*(pointD.second-pointC.second);
+        cosAB_CD/=(distAB*distCD);
+
+        return cosAB_CD;
+    }
+
+    bool segmentIntersect(Point pointA, Point pointB, Point pointC, Point pointD){ //idée : http://eli.thegreenplace.net/2008/08/15/intersection-of-1d-segments/
+        double projA,projB,projC,projD;
+        double tmp;
+        Point pointH=pointA;
+        pointH.first=pointB.first;
+        //Angle entre AB et l'axe Ox
+        if(fabs(cosinus(pointA,pointB,pointA,pointH))>0.71){ //Angle de 45degré ou moins, projection sur Ox
+            projA=pointA.first; projB=pointB.first;
+            projC=pointC.first;	projD=pointD.first;
+        }
+        else{  //Angle entre 45 et 90degré, projection sur Oy
+            projA=pointA.second; projB=pointB.second;
+            projC=pointC.second; projD=pointD.second;
+        }
+        //
+        if(projB<projA){ //swap de A et B pour que A<B
+            tmp=projA;projA=projB;projB=tmp;
+        }
+        if(projD<projC){ //swap de C et D pour que C<D
+            tmp=projC;projC=projD;projD=tmp;
+        }
+
+    return (projB >= projC-0.07 && projD >= projA-0.07);
+
+    }
+
     std::pair<bool,std::pair<int,int>> estAdjacent(const Polygon2D &poly1, const Polygon2D &poly2){
         double a,b; //y=ax+b
-        double distAB, distCD,distPoly;
-        double cosAB_CD;
-        Point pointA, pointB, pointC, pointD,pointI;
+        double distDroites;
+        Point pointA, pointB, pointC, pointD;
         std::pair<int,int> indices = std::make_pair(-1,-1);
         for(unsigned int i=0;i<poly1.size();++i){
 
@@ -99,7 +138,6 @@ namespace vcity
             else{
                 pointA=poly1[i]; pointB=poly1[0];
             }
-            //a = (y2-y1)/(x2-x1) //b = y1-a*x1
             for(unsigned int j=0; j< poly2.size(); ++j){
                 if(j<poly2.size()-1){
                     pointC=poly2[j]; pointD=poly2[j+1];
@@ -107,25 +145,24 @@ namespace vcity
                 else{
                     pointC=poly2[j]; pointD=poly2[0];
                 }
-                a= (pointD.second - pointC.second)/(pointD.first - pointC.first);
-                b= pointC.second - a * pointC.first;
-                /*calcul du cosinus de l'angle*/
-                //longueur des vecteurs
-                distAB=sqrt((pow(pointB.first-pointA.first,2)+pow(pointB.second-pointA.second,2)));
-                distCD=sqrt((pow(pointD.first-pointC.first,2)+pow(pointD.second-pointC.second,2)));
-                //Produit scalaire
-                cosAB_CD=(pointB.first-pointA.first)*(pointD.first-pointC.first)+(pointB.second-pointA.second)*(pointD.second-pointC.second);
-                cosAB_CD/=(distAB*distCD);
-                if(fabs(cosAB_CD)>0.99){
-                    pointI.first=(pointC.first+pointD.first)/2;
-                    pointI.second=(pointC.second+pointD.second)/2;
-                    a= (pointB.second - pointA.second)/(pointB.first - pointA.first);
-                    b= pointA.second - a * pointA.first;
-                    distPoly=fabs(a*pointI.first-pointI.second+b)/sqrt(1+pow(a,2)); //distance a la droite, pas au segment
-                    if((distPoly)<0.1){
-                        std::cout << "Indices : " << i << "," << j << std::endl;
-                        indices = std::make_pair(i,j);
-                        return std::make_pair(true,indices);
+                //Si les droites générées par les 2 segments sont colineaires
+                if(fabs(cosinus(pointA,pointB,pointC,pointD))>0.99){
+                    if(pointB.first==pointA.first){
+                        distDroites=fabs(pointC.first-pointA.first);
+                    }
+                    else{
+                        a= (pointB.second - pointA.second)/(pointB.first - pointA.first);
+                        b= pointA.second - a * pointA.first;
+                        distDroites=fabs(a*pointC.first-pointC.second+b)/sqrt(1+pow(a,2));
+                    }
+
+                    //Si les droites générées par les 2 segments sont suffisamment proches
+                    if((distDroites)<0.1){
+                        //et si les 2 segments on une zone en commun
+                        if(segmentIntersect(pointA, pointB, pointC, pointD)){
+                            indices = std::make_pair(i,j);
+                            return std::make_pair(true,indices);
+                        }
                     }
                 }
             }
@@ -183,22 +220,10 @@ namespace vcity
         while(polyset.size()>1 && poly1 !=polyset.end()){ //Tant qu'il y a plusieurs polygone et qu'on peut fusionner
             change=false;
             while(poly2!=polyset.end()){  //on parcourt tout les polygones suivants
-                if(isInPoly(*poly1,*poly2)){
-                    //Poly 1 inside, remove poly1
-                    polyset.erase(poly1);
-                    change=true; //On annonce un changement
-                    break; //et on sort de la boucle
-                }
-                if(isInPoly(*poly2,*poly1)){
-                    //Poly 2 inside, remove poly2;
-                    polyset.erase(poly2);
-                    change=true; //On annonce un changement
-                    break; //et on sort de la boucle
-                }
                 adjRes = estAdjacent(*poly1,*poly2);
                 if(adjRes.first){ //si les 2 polygones sont adjacents
                     i=adjRes.second.first; j=adjRes.second.second;
-                    std::cout << "i : " << i << "/ j : " << j << std::endl;
+                    //std::cout << "i : " << i << "/ j : " << j << std::endl;
                     poly3.resize(poly1->size()+poly2->size());
                     /// fusion de deux polygones
                     ///on prend le premier polygon, on va jusqu'au point  numéro i,
@@ -208,19 +233,19 @@ namespace vcity
                     tmpPoly=*poly1;
                     for(unsigned int k=0;k<poly1->size();++k){
                         if(k!=i){
-                            std::cout << "Poly 1-" << k << " (" << tmpPoly[k].first << "," << tmpPoly[k].second << ")" << std::endl;
+                            //std::cout << "Poly 1-" << k << " (" << tmpPoly[k].first << "," << tmpPoly[k].second << ")" << std::endl;
                             poly3[h++]=tmpPoly[k];
                         }
                         else{
-                            std::cout << "Poly 1-" << k << " (" << tmpPoly[k].first << "," << tmpPoly[k].second << ")" << std::endl;
+                            //std::cout << "Poly 1-" << k << " (" << tmpPoly[k].first << "," << tmpPoly[k].second << ")" << std::endl;
                             poly3[h++]=tmpPoly[k];
                             tmpPoly=*poly2;
                             for(unsigned int l=j+1;l<poly2->size();++l){
-                                  std::cout << "Poly 2-" << l << " (" << tmpPoly[l].first << "," << tmpPoly[l].second << ")" << std::endl;
+                                  //std::cout << "Poly 2-" << l << " (" << tmpPoly[l].first << "," << tmpPoly[l].second << ")" << std::endl;
                                   poly3[h++]=tmpPoly[l];
                              }
                              for(unsigned int l=0;l<j+1;++l){
-                                 std::cout << "Poly 2-" << l << " (" << tmpPoly[l].first << "," << tmpPoly[l].second << ")" << std::endl;
+                                 //std::cout << "Poly 2-" << l << " (" << tmpPoly[l].first << "," << tmpPoly[l].second << ")" << std::endl;
                                  poly3[h++]=tmpPoly[l];
 
                              }
@@ -259,7 +284,7 @@ namespace vcity
 //                    }
                     polyset.erase(poly1);
                     polyset.erase(poly2);
-                    polyset.insert(poly3);
+                    polyset.insert(polyset.begin(),poly3);
                     change=true; //On annonce un changement
                     break; //et on sort de la boucle
                 }
@@ -274,6 +299,28 @@ namespace vcity
                 poly2=poly1; ++poly2;
             }
         }
+        //Suppression des poly a l'intérieur
+        for(poly1=polyset.begin();poly1!=polyset.end();poly1++){ //
+            poly2=poly1;poly2++;
+            for(;poly2!=polyset.end();){
+                if(isInPoly(*poly1,*poly2)){
+                    //Poly 1 inside, remove poly1
+                    polyset.erase(poly1);
+                    poly1=polyset.begin();
+                    poly2=poly1;poly2++;
+                }
+                else if(isInPoly(*poly2,*poly1)){
+                    //Poly 2 inside, remove poly2;
+                    polyset.erase(poly2);
+                    poly2=poly1;poly2++;
+                }
+                else{
+                    poly2++;
+                }
+            }
+        }
+
+
     }
 
     citygml::Polygon* convertPoly(const Polygon2D& poly){
@@ -291,42 +338,29 @@ namespace vcity
     }
 
         void lissagePoly(Polygon2D & poly){
-        double distAB, distAC, cosAB_AC;
         if(poly.size()>4){
+            unsigned int size=poly.size();
             Point pointA,pointB,pointC;
-            for(unsigned int i=0; i<poly.size();){
-                if(i==poly.size()-2){
-                    pointA=poly[i]; pointB=poly[i+1]; pointC=poly[0];
-                }
-                else if(i==poly.size()-1){
-                    pointA=poly[i]; pointB=poly[0]; pointC=poly[1];
-                }
-                else{
-                    pointA=poly[i]; pointB=poly[i+1]; pointC=poly[i+2];
-                }
-                /*std::cout<< "A(" << pointA.first << "," << pointA.second << ")" << std::endl;
-                std::cout<< "B(" << pointB.first << "," << pointB.second << ")" << std::endl;
-                std::cout<< "C(" << pointC.first << "," << pointC.second << ")" << std::endl;*/
-                if(distPtoP(pointA,pointB)<0.05){
-                    poly.erase(poly.begin()+i+1);
-                }
-                else if(distPtoP(pointC,pointB)<0.05){
-                    poly.erase(poly.begin()+i+1);
+            for(unsigned int k=0,j=size-1,i=size-2; k<size;){
+                std::cout << "i/j/k : " << i << "/" << j << "/" << k << std::endl;
+                pointA=poly[i]; pointB=poly[j]; pointC=poly[k];
+                std::cout << distPtoP(pointA,pointB) << "/" << distPtoP(pointA,pointC) << "/" << distPtoP(pointC,pointB) <<"/" << cosinus(pointA,pointB,pointA,pointC) << std::endl;
+                if(distPtoP(pointA,pointB)<0.05 || distPtoP(pointB,pointC)<0.05 || distPtoP(pointA,pointC)<0.05){
+                    poly.erase(poly.begin()+j);
+                    size=poly.size();
+                    std::cout << "eraser " << poly.size() << std::endl;
+                    k=0;j=size-1;i=size-2;
                 }
                 else{
-                    distAB=sqrt((pow(pointB.first-pointA.first,2)+pow(pointB.second-pointA.second,2)));
-                    distAC=sqrt((pow(pointC.first-pointA.first,2)+pow(pointC.second-pointA.second,2)));
-                    cosAB_AC=(pointB.first-pointA.first)*(pointC.first-pointA.first)+(pointB.second-pointA.second)*(pointC.second-pointA.second);
-                    cosAB_AC/=(distAB*distAC);
-
-                    if(fabs(cosAB_AC)>0.999){
-                        int k=i+1;
-                        if(k>poly.size()-1) k-=poly.size();
-                        poly.erase(poly.begin()+k);
-                        //i=0;
+                    if(fabs(cosinus(pointA,pointB,pointA,pointC))>0.999){
+                        poly.erase(poly.begin()+j);
+                        size=poly.size();
+                        std::cout << "eraser2 " << poly.size() << std::endl;
+                        k=0;j=size-1;i=size-2;
                     }
                     else{
-                        ++i;
+                        i=j;
+                        j=k++;
                     }
                 }
             }
@@ -367,7 +401,7 @@ namespace vcity
 
                        // Si Sn > S min:
                        // Si 3 angles droit ou angles 45 degres
-                       if((fabs(cosAB_BC)<0.5)&&(fabs(cosBC_CD)<0.5)&&(fabs(cosDE_EF)<0.5)){
+                       if((fabs(cosAB_BC)<0.2)&&(fabs(cosBC_CD)<0.2)&&(fabs(cosDE_EF)<0.2)){
                                /*                       Sn-2=AB Sn-1=BC Sn=CD Sn+1=DE Sn+2=EF
                                 *  ATTENTION : il faut que Sn > S min (à déterminer)
                                 Si Sn-1 et Sn+1 parallèles
@@ -393,15 +427,34 @@ namespace vcity
                                    newPoly.push_back(B);
 
                                    // on trouve l'intersection entre le prolongement de EF et BC, ce qui va nous donner un nouveau point à insérer
-                                   a= (F.second - E.second)/(F.first - E.first);
+                                   if((F.first - E.first)==0){
+                                       // On veut éviter la division par zéro, on met donc arbitrairement une petite valeur, 0.01
+                                       a= (F.second - E.second)/0.01;
+                                   }
+                                   else{
+                                        a= (F.second - E.second)/(F.first - E.first);
+                                   }
                                    b= E.second - a * E.first;
                                    // ax+b, equation de (EF)
-                                   c= (C.second - B.second)/(C.first - B.first);
+                                    std::cout<< (C.first - B.first) << std::endl;
+                                    if((C.first - B.first)==0){
+                                        // On veut éviter la division par zéro, on met donc arbitrairement une petite valeur, 0.01
+                                         c= (C.second - B.second)/0.01;
+                                 }
+                                 else{
+                                    c= (C.second - B.second)/(C.first - B.first);
+                                  }
                                    d= B.second - c * B.first;
                                    // cx+d, equation de (BC)
                                    // y = ax+b et y=cx+d donc ax+b=cx+d, donc  x=(d-b)/(a-c)
                                    //Soit Z le point d'intersection :
-                                   Z.first = (d-b)/(a-c); //x, attention a-c doit être différent de 0
+
+                                  if((a-c)==0){ // on prend 0.01 pour le moment
+                                  Z.first = (d-b)/0.01; //x
+                                  }
+                                  else{
+                                   Z.first = (d-b)/(a-c); //x
+                                  }
                                    Z.second = a*Z.first+b; //y
                                    newPoly.push_back(Z);
                                    cond=true;
@@ -416,12 +469,22 @@ namespace vcity
                                    a= (B.second - A.second)/(B.first - A.first);
                                    b= A.second - a * A.first;
                                    // ax+b, equation de (AB)
-                                   c= (E.second - D.second)/(E.first - D.first);
+                                   if((E.first - D.first)==0){
+                                        c= (E.second - D.second)/(0.01);
+                                   }
+                                   else{
+                                        c= (E.second - D.second)/(E.first - D.first);
+                                   }
                                    d= D.second - c * D.first;
                                    // cx+d, equation de (DE)
                                    // y = ax+b et y=cx+d donc ax+b=cx+d, donc  x=(d-b)/(a-c)
                                    //Soit Z le point d'intersection :
-                                   Z.first = (d-b)/(a-c); //x, attention a-c doit être différent de 0
+                                   if((a-c)==0){
+                                        Z.first = (d-b)/0.01; //x
+                                   }
+                                   else{
+                                        Z.first = (d-b)/(a-c); //x
+                                   }
                                    Z.second = a*Z.first+b; //y
                                    newPoly.push_back(Z);
                                    cond=true;
@@ -480,9 +543,13 @@ namespace vcity
             citygml::Geometry* geom = new citygml::Geometry("idGeoTest",citygml::GT_Ground,0);
 
             for(PolySet::iterator it= roofPoints.begin(); it!= roofPoints.end(); ++it){
-                //tmp=simplification(*it);
                 tmp=(*it);
                 lissagePoly(tmp);
+                for(unsigned int i=0;i<tmp.size();++i){
+                      std::cout << tmp[i].first << ";" << tmp[i].second << std::endl;
+                 }
+                //tmp=simplification(tmp); //fonction non exhaustive, il reste à fixer la distance S min pour déterminer si oui ou non on traite le dépassement
+                lissagePoly(tmp); // on lisse une nouvelle fois les points suite à la simplification
                 geom->addPolygon(convertPoly(tmp));
             }
             obj2->addGeometry(geom);
