@@ -342,20 +342,17 @@ namespace vcity
             unsigned int size=poly.size();
             Point pointA,pointB,pointC;
             for(unsigned int k=0,j=size-1,i=size-2; k<size;){
-                std::cout << "i/j/k : " << i << "/" << j << "/" << k << std::endl;
                 pointA=poly[i]; pointB=poly[j]; pointC=poly[k];
-                std::cout << distPtoP(pointA,pointB) << "/" << distPtoP(pointA,pointC) << "/" << distPtoP(pointC,pointB) <<"/" << cosinus(pointA,pointB,pointA,pointC) << std::endl;
+
                 if(distPtoP(pointA,pointB)<0.05 || distPtoP(pointB,pointC)<0.05 || distPtoP(pointA,pointC)<0.05){
                     poly.erase(poly.begin()+j);
                     size=poly.size();
-                    std::cout << "eraser " << poly.size() << std::endl;
                     k=0;j=size-1;i=size-2;
                 }
                 else{
-                    if(fabs(cosinus(pointA,pointB,pointA,pointC))>0.999){
+                    if(fabs(cosinus(pointA,pointB,pointB,pointC))>0.999 || fabs(cosinus(pointA,pointB,pointA,pointC))>0.999 || fabs(cosinus(pointA,pointC,pointB,pointC))>0.999){
                         poly.erase(poly.begin()+j);
                         size=poly.size();
-                        std::cout << "eraser2 " << poly.size() << std::endl;
                         k=0;j=size-1;i=size-2;
                     }
                     else{
@@ -367,23 +364,52 @@ namespace vcity
         }
     }
 
-    ////////////SIMPLFIFICATION////////////////////
+        ////////////SIMPLFIFICATION////////////////////
+        /// \brief simplification
+        /// \param poly
+        /// \return
+        ///
+        ///
+        /*
+         *Sn-2=AB Sn-1=BC Sn=CD Sn+1=DE Sn+2=EF
+        *  ATTENTION : il faut que Sn > S min (à déterminer)
+        Si Sn-1 et Sn+1 parallèles
+             Si Sn-1 plus long que Sn+1
+                     Suppression de Sn, Sn+1, raccourcissement de Sn-1 et prolongation de Sn+2
+                     (attention, erreur dans le shéma, c'est l'inverse)
+             Sinon
+                     Suppression de Sn, Sn-1, raccourcissement de Sn+1 et prolongation de Sn-2
+        Sinon
+             Si intersection d'un point entre le prolongement de Sn-1 et Sn+1 éloignée
+                     Supprision de Sn, connection de Sn-1 avec Sn+1 au milieu de Sn.
+             Sinon
+                     Suppression de Sn, polongement de Sn+1 et Sn jusqu'à intersection
+     */
      Polygon2D simplification(const Polygon2D &poly){
-               Polygon2D newPoly;
+               Polygon2D newPoly=poly;
                Point A, B, C, D, E, F, Z;
                double a, b, c, d;
+               int i1, i2, i3, i4, i5, i6;
                double cosAB_BC, cosBC_CD, cosDE_EF, cosBC_DE;
                double distAB, distBC, distCD, distDE, distEF;
                int i=0;
                bool cond = false;
-               while(i<poly.size()){ // pour tout points
-                   if(poly.size()>=i+5){ //on verifie qu'il reste 6 points
-                       A = poly[i];
-                       B = poly[i+1];
-                       C = poly[i+2];
-                       D = poly[i+3];
-                       E = poly[i+4];
-                       F = poly[i+5];
+
+               i1=newPoly.size()-5;
+               i2=newPoly.size()-4;
+               i3=newPoly.size()-3;
+               i4=newPoly.size()-2;
+               i5=newPoly.size()-1;
+               i6=0;
+               while(i6<newPoly.size()){ // pour tout points
+
+                   if(newPoly.size()>=6){ //on verifie qu'il reste 6 points
+                       A = newPoly[i1];
+                       B = newPoly[i2];
+                       C = newPoly[i3];
+                       D = newPoly[i4];
+                       E = newPoly[i5];
+                       F = newPoly[i6];
                        //Produit scalaire pour trouver angles droits entre AB et BC; BC et CD; DE et EF :
                        cosAB_BC=(B.first-A.first)*(C.first-B.first)+(B.second-A.second)*(C.second-B.second);
                        cosBC_CD=(C.first-B.first)*(D.first-C.first)+(C.second-B.second)*(D.second-C.second);
@@ -402,117 +428,97 @@ namespace vcity
                        // Si Sn > S min:
                        // Si 3 angles droit ou angles 45 degres
                        if((fabs(cosAB_BC)<0.2)&&(fabs(cosBC_CD)<0.2)&&(fabs(cosDE_EF)<0.2)){
-                               /*                       Sn-2=AB Sn-1=BC Sn=CD Sn+1=DE Sn+2=EF
-                                *  ATTENTION : il faut que Sn > S min (à déterminer)
-                                Si Sn-1 et Sn+1 parallèles
-                                     Si Sn-1 plus long que Sn+1
-                                             Suppression de Sn, Sn+1, raccourcissement de Sn-1 et prolongation de Sn+2
-                                             (attention, erreur dans le shéma, c'est l'inverse)
-                                     Sinon
-                                             Suppression de Sn, Sn-1, raccourcissement de Sn+1 et prolongation de Sn-2
-                                Sinon
-                                     Si intersection d'un point entre le prolongement de Sn-1 et Sn+1 éloignée
-                                             Supprision de Sn, connection de Sn-1 avec Sn+1 au milieu de Sn.
-                                     Sinon
-                                             Suppression de Sn, polongement de Sn+1 et Sn jusqu'à intersection
-                             */
 
-                           // BC et DE parallèles ?
-                           cosBC_DE=(C.first-B.first)*(E.first-D.first)+(C.second-B.second)*(E.second-D.second);
-                           cosBC_DE/=(distBC*distDE);
-                           if(fabs(cosBC_DE)==1){ //parallèle
-                               if(distBC>distDE){
-                                   //on enlève CD, DE, rallonge EF
-                                   newPoly.push_back(A);
-                                   newPoly.push_back(B);
-
-                                   // on trouve l'intersection entre le prolongement de EF et BC, ce qui va nous donner un nouveau point à insérer
-                                   if((F.first - E.first)==0){
-                                       // On veut éviter la division par zéro, on met donc arbitrairement une petite valeur, 0.01
-                                       a= (F.second - E.second)/0.01;
-                                   }
-                                   else{
-                                        a= (F.second - E.second)/(F.first - E.first);
-                                   }
-                                   b= E.second - a * E.first;
-                                   // ax+b, equation de (EF)
-                                    std::cout<< (C.first - B.first) << std::endl;
-                                    if((C.first - B.first)==0){
-                                        // On veut éviter la division par zéro, on met donc arbitrairement une petite valeur, 0.01
-                                         c= (C.second - B.second)/0.01;
-                                 }
-                                 else{
-                                    c= (C.second - B.second)/(C.first - B.first);
-                                  }
-                                   d= B.second - c * B.first;
-                                   // cx+d, equation de (BC)
-                                   // y = ax+b et y=cx+d donc ax+b=cx+d, donc  x=(d-b)/(a-c)
-                                   //Soit Z le point d'intersection :
-
-                                  if((a-c)==0){ // on prend 0.01 pour le moment
-                                  Z.first = (d-b)/0.01; //x
-                                  }
-                                  else{
-                                   Z.first = (d-b)/(a-c); //x
-                                  }
-                                   Z.second = a*Z.first+b; //y
-                                   newPoly.push_back(Z);
-                                   cond=true;
-
-                                   //pas F car il aura la même valeur que le prochain A
+                           if(distBC>distDE){
+                               //on enlève CD, DE, rallonge EF
+                               // on trouve l'intersection entre le prolongement de EF et BC, ce qui va nous donner un nouveau point à insérer
+                               if((F.first - E.first)==0){
+                                   a= (C.second - B.second)/(C.first - B.first);
+                                   b= C.second - a * C.first;
+                                   Z.first=E.first;
+                                   Z.second=a*Z.first+b;
                                }
                                else{
-                                   //on enlève BC, CD, rallonge AB
-                                   newPoly.push_back(A);
-
-                                   // on trouve l'intersection entre le prolongement de AB et DE, ce qui va nous donner un nouveau point à insérer
-                                   a= (B.second - A.second)/(B.first - A.first);
-                                   b= A.second - a * A.first;
-                                   // ax+b, equation de (AB)
-                                   if((E.first - D.first)==0){
-                                        c= (E.second - D.second)/(0.01);
-                                   }
-                                   else{
-                                        c= (E.second - D.second)/(E.first - D.first);
-                                   }
-                                   d= D.second - c * D.first;
-                                   // cx+d, equation de (DE)
-                                   // y = ax+b et y=cx+d donc ax+b=cx+d, donc  x=(d-b)/(a-c)
-                                   //Soit Z le point d'intersection :
-                                   if((a-c)==0){
-                                        Z.first = (d-b)/0.01; //x
-                                   }
-                                   else{
-                                        Z.first = (d-b)/(a-c); //x
-                                   }
-                                   Z.second = a*Z.first+b; //y
-                                   newPoly.push_back(Z);
-                                   cond=true;
-                                   newPoly.push_back(E);
-                                   //pas F car il aura la même valeur que le prochain A
+                                    a= (F.second - E.second)/(F.first - E.first);
+                                    b= E.second - a * E.first;
+                                    // ax+b, equation de (EF)
+                                    if((C.first - B.first)==0){
+                                        Z.first=C.first;
+                                        Z.second=a*Z.first+b;
+                                    }
+                                    else{
+                                        c= (C.second - B.second)/(C.first - B.first);
+                                        d= B.second - c * B.first;
+                                        // cx+d, equation de (BC)
+                                        // y = ax+b et y=cx+d donc ax+b=cx+d, donc  x=(d-b)/(a-c)
+                                        Z.first=(d-b)/(a-c); //x
+                                        Z.second=a*Z.first+b; //y
+                                    }
                                }
+                               newPoly[i3]=Z;
+                               newPoly.erase(newPoly.begin()+i4);
+                               newPoly.erase(newPoly.begin()+i5);
+                               i1=newPoly.size()-5;
+                               i2=newPoly.size()-4;
+                               i3=newPoly.size()-3;
+                               i4=newPoly.size()-2;
+                               i5=newPoly.size()-1;
+                               i6=0;
+
                            }
                            else{
-                               // Angle 45 degres, pas encore fait
+                               //on enlève BC, CD, rallonge AB
+
+                               // on trouve l'intersection entre le prolongement de AB et DE, ce qui va nous donner un nouveau point à insérer
+                               if((A.first - B.first)==0){
+                                   a= (D.second - E.second)/(D.first - E.first);
+                                   b= D.second - a * D.first;
+                                   Z.first=B.first;
+                                   Z.second=a*Z.first+b;
+                               }
+                               else{
+                                    a= (A.second - B.second)/(A.first - B.first);
+                                    b= A.second - a * A.first;
+                                    // ax+b, equation de (AB)
+                                    if((D.first - E.first)==0){
+                                        Z.first=D.first;
+                                        Z.second=a*Z.first+b;
+                                    }
+                                    else{
+                                        c= (D.second - E.second)/(D.first - E.first);
+                                        d= D.second - c * D.first;
+                                        // cx+d, equation de (DE)
+                                        // y = ax+b et y=cx+d donc ax+b=cx+d, donc  x=(d-b)/(a-c)
+                                        Z.first=(d-b)/(a-c); //x
+                                        Z.second=a*Z.first+b; //y
+                                    }
+
+                               }
+                               newPoly[i2]=Z;
+                               newPoly.erase(newPoly.begin()+i3);
+                               newPoly.erase(newPoly.begin()+i4);
+                               i1=newPoly.size()-5;
+                               i2=newPoly.size()-4;
+                               i3=newPoly.size()-3;
+                               i4=newPoly.size()-2;
+                               i5=newPoly.size()-1;
+                               i6=0;
                            }
-
-                       i=i+5; // on positionne i sur le dernier point
                        }
+                       // Angle 45 degres, pas encore fait
                        else{
-                           i++;
-                           newPoly.push_back(A);
+                           i1=i2;
+                           i2=i3;
+                           i3=i4;
+                           i4=i5;
+                           i5=i6++;
                        }
-                  }
-                   else{
-                       //on insère les points qui restent et on oublie pas d'insérer le point d'avant (F)
-                       if(cond){
-                         newPoly.push_back(poly[i-1]);
-                         cond=false;
-                       }
-                       newPoly.push_back(poly[i]);
-                       i++;
                    }
-
+                   i1=i2;
+                   i2=i3;
+                   i3=i4;
+                   i4=i5;
+                   i5=i6++;
                }
                return newPoly;
            }
@@ -545,10 +551,8 @@ namespace vcity
             for(PolySet::iterator it= roofPoints.begin(); it!= roofPoints.end(); ++it){
                 tmp=(*it);
                 lissagePoly(tmp);
-                for(unsigned int i=0;i<tmp.size();++i){
-                      std::cout << tmp[i].first << ";" << tmp[i].second << std::endl;
-                 }
-                //tmp=simplification(tmp); //fonction non exhaustive, il reste à fixer la distance S min pour déterminer si oui ou non on traite le dépassement
+
+                tmp=simplification(tmp); //fonction non exhaustive, il reste à fixer la distance S min pour déterminer si oui ou non on traite le dépassement
                 lissagePoly(tmp); // on lisse une nouvelle fois les points suite à la simplification
                 geom->addPolygon(convertPoly(tmp));
             }
