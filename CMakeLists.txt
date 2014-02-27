@@ -180,6 +180,14 @@ include_directories(${OPENGL_INCLUDE_DIR})
 #  INCLUDE_DIRECTORIES(/usr/X11/include)
 #endif (APPLE)
 
+# Find OpenSceneGraph
+find_package(OpenSceneGraph)
+if(OPENSCENEGRAPH_FOUND)
+  include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
+else(OPENSCENEGRAPH_FOUND)
+  message(FATAL_ERROR "OpenSceneGraph not found. Please set OSG_DIR.")
+endif(OPENSCENEGRAPH_FOUND)
+
 # Find osg
 find_package(osg)
 if(OSG_FOUND)
@@ -190,70 +198,70 @@ endif(OSG_FOUND)
 
 # Find osgViewer
 find_package(osgViewer)
-if(OSG_FOUND)
+if(OSGVIEWER_FOUND)
   include_directories(${OSGVIEWER_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGVIEWER_FOUND)
   message(FATAL_ERROR "osgViewer not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGVIEWER_FOUND)
 
 # Find osgUtil
 find_package(osgUtil)
-if(OSG_FOUND)
+if(OSGUTIL_FOUND)
   include_directories(${OSGUTIL_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGUTIL_FOUND)
   message(FATAL_ERROR "osgUtil not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGUTIL_FOUND)
 
 # Find osgText
 find_package(osgText)
-if(OSG_FOUND)
+if(OSGTEXT_FOUND)
   include_directories(${OSGTEXT_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGTEXT_FOUND)
   message(FATAL_ERROR "osgText not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGTEXT_FOUND)
 
 # Find osgGA
 find_package(osgGA)
-if(OSG_FOUND)
+if(OSGGA_FOUND)
   include_directories(${OSGGA_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGGA_FOUND)
   message(FATAL_ERROR "osgGA not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGGA_FOUND)
 
 # Find osgDB
 find_package(osgDB)
-if(OSG_FOUND)
+if(OSGDB_FOUND)
   include_directories(${OSGDB_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGDB_FOUND)
   message(FATAL_ERROR "osgDB not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGDB_FOUND)
 
 # Find osgFX
 find_package(osgFX)
-if(OSG_FOUND)
+if(OSGFX_FOUND)
   include_directories(${OSGFX_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGFX_FOUND)
   message(FATAL_ERROR "osgFX not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGFX_FOUND)
 
 # Find osgShadow
 find_package(osgShadow)
-if(OSG_FOUND)
+if(OSGSHADOW_FOUND)
   include_directories(${OSGSHADOW_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGSHADOW_FOUND)
   message(FATAL_ERROR "osgShadow not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGSHADOW_FOUND)
 
 # Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows)
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
 else(WIN32)
   find_package(osgQt)
-  if(OSG_FOUND)
+  if(OSGQT_FOUND)
     include_directories(${OSGQT_INCLUDE_DIR})
-  else(OSG_FOUND)
+  else(OSGQT_FOUND)
     message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
-  endif(OSG_FOUND)
+  endif(OSGQT_FOUND)
 endif(WIN32)
 
 # Find OpenThreads
@@ -433,28 +441,35 @@ SET_TARGET_PROPERTIES(VCity PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINIT
 	# Install the application, on Apple, the bundle is at the root of the
 	# install tree, and on other platforms it'll go to the same directory.
 	INSTALL(TARGETS ${PRJ_NAME} 
-		BUNDLE DESTINATION . COMPONENT Runtime
-		RUNTIME DESTINATION . COMPONENT Runtime
+		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
+		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
 	)
 
 	#--------------------------------------------------------------------------------
 	# Install needed Qt plugins by copying directories from the qt installation
 	# One can cull what gets copied by using 'REGEX "..." EXCLUDE'
-	INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
+	INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
 	if (WITH_QT5)
-		INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT Runtime)
+		INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
 	endif(WITH_QT5)
+
+	# OSG plugins
+	if(OPENSCENEGRAPH_FOUND)
+		INCLUDE(BundleOSGPlugins)
+		install_osg_plugins( osg_plugins )
+		MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
+	endif(OPENSCENEGRAPH_FOUND)
 
 	#--------------------------------------------------------------------------------
 	# install a qt.conf file
 	# this inserts some cmake code into the install script to write the file
 	INSTALL(CODE "
 		file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = plugins\")
-		" COMPONENT Runtime)
+		" COMPONENT ${PRJ_NAME})
 	IF(APPLE)
 		INSTALL(CODE "
 			file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = MacOS/plugins\")
-			" COMPONENT Runtime)
+			" COMPONENT ${PRJ_NAME})
 	ENDIF(APPLE)
 
 	# install qt_menu.nib (APPLE)
@@ -484,11 +499,11 @@ SET_TARGET_PROPERTIES(VCity PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINIT
 	# Note that the image plugins depend on QtSvg and QtXml, and it got those copied
 	# over.
 	INSTALL(CODE "
-		file(GLOB_RECURSE QTPLUGINS
-		\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/libcomponent_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+		file(GLOB_RECURSE PLUGINS
+		\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/osgPlugins-${OPENSCENEGRAPH_VERSION}/osgdb_*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/libcomponent_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
 		include(BundleUtilities)
-		fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
-		" COMPONENT Runtime)
+		fixup_bundle(\"${APPS}\" \"\${PLUGINS}\" \"${DIRS}\")
+		" COMPONENT ${PRJ_NAME})
 
 	# CPack Configuration
 	set(CPACK_PACKAGE_NAME ${PRJ_NAME})
