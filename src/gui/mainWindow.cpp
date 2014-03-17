@@ -34,6 +34,10 @@
 #include "cpl_conv.h" // for CPLMalloc()
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
+
+#include "assimp/Importer.hpp"
+#include "assimp/PostProcess.h"
+#include "assimp/Scene.h"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
@@ -246,6 +250,13 @@ bool MainWindow::loadFile(const QString& filepath)
          list.append(filepath);
          settings.setValue("recentfiles", list);*/
     }
+	else if(ext == "obj")
+    {
+		Assimp::Importer importer;
+		const aiScene *scene = importer.ReadFile(filepath.toStdString(), aiProcessPreset_TargetRealtime_Fast); // aiProcessPreset_TargetRealtime_Quality
+ 
+		aiMesh *mesh = scene->mMeshes[0]; // assuming you only want the first mesh
+	}
     else if(ext == "shp")
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
