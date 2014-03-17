@@ -79,6 +79,8 @@ IF(WIN32)
 		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
 	endif(WITH_QT4)
 
+	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270 )
+
 	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.0-bin-without-qt)
 
 	set(GDAL_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
@@ -179,6 +181,14 @@ include_directories(${OPENGL_INCLUDE_DIR})
 #if (APPLE) # for OpenGL and maybe other things
 #  INCLUDE_DIRECTORIES(/usr/X11/include)
 #endif (APPLE)
+
+# Find ASSIMP
+find_package(ASSIMP)
+if(ASSIMP_FOUND)
+  include_directories(${ASSIMP_INCLUDE_PATH})
+else(ASSIMP_FOUND)
+  message(FATAL_ERROR "ASSIMP not found. Please set ASSIMP_ROOT_DIR.")
+endif(ASSIMP_FOUND)
 
 # Find OpenSceneGraph
 find_package(OpenSceneGraph)
@@ -343,6 +353,7 @@ else(WITH_QT5)
 endif(WITH_QT5)
  
 SET( VCITY_GUI_LIB
+  ${ASSIMP_LIBRARY}
   ${OSG_LIBRARIES}
   ${OSGVIEWER_LIBRARIES}
   ${OSGUTIL_LIBRARIES}
