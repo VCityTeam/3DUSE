@@ -18,6 +18,9 @@ public:
 
     void addFlag(const vcity::URI& uri);
 
+private slots:
+    void addFeatureBox();
+
 private:
     Ui::DialogFlag *ui;
 };

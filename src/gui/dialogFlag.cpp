@@ -10,6 +10,7 @@ DialogFlag::DialogFlag(QWidget *parent) :
     ui(new Ui::DialogFlag)
 {
     ui->setupUi(this);
+    connect(ui->toolButton,SIGNAL(clicked()), this, SLOT(addFeatureBox()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 DialogFlag::~DialogFlag()
@@ -118,5 +119,17 @@ void DialogFlag::addFlag(const vcity::URI& uri)
         appGui().getTreeView()->addItemGeneric(uri, flag->getStringId().c_str(), "Flag");
     }
     appGui().getMainWindow()->m_osgView->setActive(true);
+}
+////////////////////////////////////////////////////////////////////////////////
+void DialogFlag::addFeatureBox()
+{
+    QHBoxLayout* hb = new QHBoxLayout();
+    QLineEdit* key = new QLineEdit();
+    QLineEdit* val = new QLineEdit();
+    key->setToolTip("Feature name");
+    val->setToolTip("Value");
+    hb->addWidget(key);
+    hb->addWidget(val);
+    ui->verticalLayout_2->addLayout(hb);
 }
 ////////////////////////////////////////////////////////////////////////////////

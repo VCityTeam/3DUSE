@@ -353,9 +353,6 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Building" << std::endl;
         m_tree->addAction(m_actionDeleteBuilding);
         m_tree->addAction(m_actionEditBuilding);
-        m_tree->addAction(m_actionAddTag);
-        m_tree->addAction(m_actionAddFlag);
-        m_tree->addAction(m_actionAddDynFlag);
     }
     else if(item->text(1) == "Tag")
     {
@@ -374,6 +371,15 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Flag" << std::endl;
         m_tree->addAction(m_actionDeleteDynFlag);
         m_tree->addAction(m_actionEditDynFlag);
+    }
+
+    if(item->text(1) == "Building" || item->text(1) == "BuildingPart" ||
+       item->text(1) == "WallSurface" || item->text(1) == "RoofSurface" ||
+       item->text(1) == "TINRelief")
+    {
+        m_tree->addAction(m_actionAddTag);
+        m_tree->addAction(m_actionAddFlag);
+        m_tree->addAction(m_actionAddDynFlag);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

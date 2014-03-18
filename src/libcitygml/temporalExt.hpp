@@ -23,7 +23,7 @@ public:
     osg::ref_ptr<osg::Group> getOsg();
     void setOsg(osg::ref_ptr<osg::Group> node);
 
-    const std::string& getAttribute(const std::string& attribName, QDateTime date) const;
+    virtual const std::string& getAttribute(const std::string& attribName, QDateTime date) const;
 
     int m_year;
     QDateTime m_date;
@@ -49,7 +49,7 @@ public:
     //std::string getGeomName() const { std::string a = m_geom?m_geom->getId():0; return getStringId()+a; }
     CityObject* getGeom();
 
-    const std::string& getAttribute(const std::string& attribName, QDateTime date) const;
+    virtual const std::string& getAttribute(const std::string& attribName, QDateTime date) const;
 
     std::map<std::string, std::string> m_attributes;    ///< attributes map
 
@@ -65,30 +65,48 @@ private:
 class DataSource
 {
 public:
-    virtual const std::string& getAttribute(const QDateTime& date) const=0;
+    DataSource(const std::string& attributeName);
+    virtual ~DataSource() {}
+
+    virtual const std::string& getAttribute(const QDateTime& date) const;
+
+
+   void dump() const;
+
+//protected:
+    std::string m_attribute;
+
+    std::vector<QDateTime> m_dates;
+    std::vector<std::string> m_values;
 };
 ////////////////////////////////////////////////////////////////////////////////
 class DataSourceArray : public DataSource
 {
 public:
-    virtual const std::string& getAttribute(const QDateTime& date) const;
+    DataSourceArray(const std::string& attributeName, const std::string& data);
+    //virtual const std::string& getAttribute(const QDateTime& date) const;
+    void parse(const std::string& data);
 };
 ////////////////////////////////////////////////////////////////////////////////
 class DataSourceFile : public DataSource
 {
 public:
-    virtual const std::string& getAttribute(const QDateTime& date) const;
+    DataSourceFile(const std::string& attributeName, const std::string& filePath);
+    //virtual const std::string& getAttribute(const QDateTime& date) const;
+    void parse(const std::string& filePath);
+
+    std::string m_filePath;
 };
 ////////////////////////////////////////////////////////////////////////////////
 class BuildingDynFlag : public BuildingFlag
 {
 public:
     BuildingDynFlag(CityObject* geom);
-    ~BuildingDynFlag();
+    virtual ~BuildingDynFlag() {}
 
     void addDataSource(DataSource* dsrc);
 
-    const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+    virtual const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
 
 private:
     std::map<std::string, DataSource*> m_attributes;    ///< attributes map
