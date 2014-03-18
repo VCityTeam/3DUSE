@@ -140,7 +140,7 @@ void DialogDynFlag::addFeatureArray()
     QLineEdit* key = new QLineEdit(); m_featureArrayNames.push_back(key);
     QLineEdit* val = new QLineEdit(); m_featureArrayValues.push_back(val);
     key->setToolTip("Feature name");
-    val->setToolTip("Values : date value (space separated)");
+    val->setToolTip("Values : date(format : yyyy/MM/dd-HH:mm:ss) value (separator : |)");
     hb->addWidget(key);
     hb->addWidget(val);
     ui->verticalLayout_3->addLayout(hb);

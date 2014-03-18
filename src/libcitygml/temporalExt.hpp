@@ -9,7 +9,7 @@
 namespace citygml
 {
 class CityObject;
-
+class BuildingFlag;
 class BuildingTag
 {
 public:
@@ -23,13 +23,15 @@ public:
     osg::ref_ptr<osg::Group> getOsg();
     void setOsg(osg::ref_ptr<osg::Group> node);
 
-    virtual const std::string& getAttribute(const std::string& attribName, QDateTime date) const;
+    virtual const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
 
     int m_year;
     QDateTime m_date;
     int m_id;
     std::string m_name;
     CityObject* m_parent;
+
+    BuildingFlag* m_flag;
 
 private:
 
@@ -42,14 +44,15 @@ class BuildingFlag
 {
 public:
     BuildingFlag(CityObject* geom);
+    virtual ~BuildingFlag() {}
 
     int getId() const;
     //std::string getStringId() const { std::stringstream ss; ss << "FLAG" << m_id << m_name; return "";/*ss.str();*/ }
-    std::string getStringId() const;
+    virtual std::string getStringId() const;
     //std::string getGeomName() const { std::string a = m_geom?m_geom->getId():0; return getStringId()+a; }
     CityObject* getGeom();
 
-    virtual const std::string& getAttribute(const std::string& attribName, QDateTime date) const;
+    virtual const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
 
     std::map<std::string, std::string> m_attributes;    ///< attributes map
 
@@ -103,6 +106,8 @@ class BuildingDynFlag : public BuildingFlag
 public:
     BuildingDynFlag(CityObject* geom);
     virtual ~BuildingDynFlag() {}
+
+    virtual std::string getStringId() const;
 
     void addDataSource(DataSource* dsrc);
 
