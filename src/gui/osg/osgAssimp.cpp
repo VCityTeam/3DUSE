@@ -21,7 +21,7 @@
 #include <osgDB/FileNameUtils>
 #include <osgDB/ReadFile>
 ////////////////////////////////////////////////////////////////////////////////
-//Adapted from osgEarth/VPB
+// Adapted from osgEarth/VPB
 static std::string getFullPath(const std::string& relativeTo, const std::string &relativePath)
 {
     if ( osgDB::isAbsolutePath(relativePath) || relativeTo.empty() )
@@ -29,12 +29,12 @@ static std::string getFullPath(const std::string& relativeTo, const std::string 
         return relativePath;
     }
 
-    //If they didn't specify a relative path, just return the relativeTo
+    // If they didn't specify a relative path, just return the relativeTo
     if ( relativePath.empty() ) return relativeTo;
     
-    //Note:  Modified from VPB
+    // Note:  Modified from VPB
 
-    //Concatinate the paths together
+    // Concatenate the paths together
     std::string filename;
     if ( !osgDB::containsServerAddress( relativeTo ) )
         filename = osgDB::concatPaths( osgDB::getFilePath( osgDB::getRealPath( relativeTo )), relativePath );
@@ -47,7 +47,7 @@ static std::string getFullPath(const std::string& relativeTo, const std::string 
     {
         if ( filename[i] == '\\' || filename[i] == '/' )
         {
-            //Get the current directory
+            // Get the current directory
             std::string dir = filename.substr(start, i-start);
             if (dir != "..")
             {
@@ -79,10 +79,10 @@ osg::Texture::WrapMode getWrapMode( aiTextureMapMode mode )
 {
     switch ( mode )
     {
-    case aiTextureMapMode_Wrap: return osg::Texture::REPEAT;
-    case aiTextureMapMode_Clamp: return osg::Texture::CLAMP;
-    case aiTextureMapMode_Decal: return osg::Texture::CLAMP_TO_BORDER;
-    case aiTextureMapMode_Mirror: return osg::Texture::MIRROR;
+		case aiTextureMapMode_Wrap: return osg::Texture::REPEAT;
+		case aiTextureMapMode_Clamp: return osg::Texture::CLAMP;
+		case aiTextureMapMode_Decal: return osg::Texture::CLAMP_TO_BORDER;
+		case aiTextureMapMode_Mirror: return osg::Texture::MIRROR;
     }
     return osg::Texture::CLAMP;
 }
@@ -91,11 +91,11 @@ osg::TexEnv::Mode getEnvMode( aiTextureOp mode )
 {
     switch ( mode )
     {
-    case aiTextureOp_Multiply: return osg::TexEnv::MODULATE;
-    case aiTextureOp_Add: return osg::TexEnv::ADD;
-    case aiTextureOp_Subtract: return osg::TexEnv::DECAL;
-    case aiTextureOp_SmoothAdd: case aiTextureOp_SignedAdd:
-        return osg::TexEnv::ADD;
+		case aiTextureOp_Multiply: return osg::TexEnv::MODULATE;
+		case aiTextureOp_Add: return osg::TexEnv::ADD;
+		case aiTextureOp_Subtract: return osg::TexEnv::DECAL;
+		case aiTextureOp_SmoothAdd: case aiTextureOp_SignedAdd:
+			return osg::TexEnv::ADD;
     }
     return osg::TexEnv::REPLACE;
 }
@@ -314,7 +314,7 @@ ReadResult readNode( const std::string& file, const osgDB::ReaderWriter::Options
     const aiScene* aiScene = importer.ReadFile( fileName.c_str(), aiProcessPreset_TargetRealtime_Quality );
     if ( !aiScene )
     {
-        OSG_WARN << "ReaderWriterAssImp:: fail to load " + file << ", because of "
+        OSG_WARN << "osgAssimp:: fail to load " + file << ", because of "
                     << importer.GetErrorString() << std::endl;
         return ReadResult::ERROR_IN_READING_FILE;
     }
