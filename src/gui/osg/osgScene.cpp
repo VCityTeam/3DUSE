@@ -258,7 +258,7 @@ void setTexture(osg::ref_ptr<osg::Node> node, citygml::BuildingTag* tag, osg::re
     osg::ref_ptr<osg::Geode> geode = node->asGeode();
     if(geode)
     {
-        for(int i=0; i<geode->getNumDrawables(); ++i)
+        for(unsigned int i=0; i<geode->getNumDrawables(); ++i)
         {
             osg::StateSet* stateset = geode->getDrawable(i)->getOrCreateStateSet();
             //if(texture) stateset->setTextureAttributeAndModes( 0, texture, osg::StateAttribute::ON );

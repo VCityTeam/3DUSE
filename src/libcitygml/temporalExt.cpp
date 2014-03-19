@@ -1,6 +1,7 @@
 #include "temporalExt.hpp"
 #include <iostream>
-#include <fstream>
+//#include <fstream> // MT 19/03/2014
+#include <osgDB/fstream>
 #include <sstream>
 ////////////////////////////////////////////////////////////////////////////////
 std::string none("none");
