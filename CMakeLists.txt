@@ -9,6 +9,12 @@ if (COMMAND cmake_policy)
   ENDIF()
 endif (COMMAND cmake_policy)
 
+# Project configuration
+set(PRJ_NAME VCity)
+set(PRJ_VERSION 0.1.0-master) # TODO
+project( ${PRJ_NAME} )
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy")
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 #------------------------------------------------------------------------------
@@ -56,16 +62,22 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # WIN32 x64 VCity binary kit
 IF(WIN32)
+	if(DEFINED ENV{VCITY_KIT_ROOT})
+		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
+	endif()
 	if( NOT DEFINED VCITY_KIT_ROOT )
 		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
 	endif( NOT DEFINED VCITY_KIT_ROOT )
 
-	# with qt5
-	set(WITH_QT5				"ON")
-	set(QT5_DIR					${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
-
-	# with qt4
-	#set(QTDIR					${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
+	if(WITH_QT4)
+		# with qt4
+		set(WITH_QT5			"OFF")
+		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
+	else(WITH_QT4)
+		# with qt5
+		set(WITH_QT5			"ON")
+		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
+	endif(WITH_QT4)
 
 	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.0-bin-without-qt)
 
@@ -168,6 +180,14 @@ include_directories(${OPENGL_INCLUDE_DIR})
 #  INCLUDE_DIRECTORIES(/usr/X11/include)
 #endif (APPLE)
 
+# Find OpenSceneGraph
+find_package(OpenSceneGraph)
+if(OPENSCENEGRAPH_FOUND)
+  include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS})
+else(OPENSCENEGRAPH_FOUND)
+  message(FATAL_ERROR "OpenSceneGraph not found. Please set OSG_DIR.")
+endif(OPENSCENEGRAPH_FOUND)
+
 # Find osg
 find_package(osg)
 if(OSG_FOUND)
@@ -178,81 +198,79 @@ endif(OSG_FOUND)
 
 # Find osgViewer
 find_package(osgViewer)
-if(OSG_FOUND)
+if(OSGVIEWER_FOUND)
   include_directories(${OSGVIEWER_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGVIEWER_FOUND)
   message(FATAL_ERROR "osgViewer not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGVIEWER_FOUND)
 
 # Find osgUtil
 find_package(osgUtil)
-if(OSG_FOUND)
+if(OSGUTIL_FOUND)
   include_directories(${OSGUTIL_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGUTIL_FOUND)
   message(FATAL_ERROR "osgUtil not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGUTIL_FOUND)
 
 # Find osgText
 find_package(osgText)
-if(OSG_FOUND)
+if(OSGTEXT_FOUND)
   include_directories(${OSGTEXT_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGTEXT_FOUND)
   message(FATAL_ERROR "osgText not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGTEXT_FOUND)
 
 # Find osgGA
 find_package(osgGA)
-if(OSG_FOUND)
+if(OSGGA_FOUND)
   include_directories(${OSGGA_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGGA_FOUND)
   message(FATAL_ERROR "osgGA not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGGA_FOUND)
 
 # Find osgDB
 find_package(osgDB)
-if(OSG_FOUND)
+if(OSGDB_FOUND)
   include_directories(${OSGDB_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGDB_FOUND)
   message(FATAL_ERROR "osgDB not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGDB_FOUND)
 
 # Find osgFX
 find_package(osgFX)
-if(OSG_FOUND)
+if(OSGFX_FOUND)
   include_directories(${OSGFX_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGFX_FOUND)
   message(FATAL_ERROR "osgFX not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGFX_FOUND)
 
 # Find osgShadow
 find_package(osgShadow)
-if(OSG_FOUND)
+if(OSGSHADOW_FOUND)
   include_directories(${OSGSHADOW_INCLUDE_DIR})
-else(OSG_FOUND)
+else(OSGSHADOW_FOUND)
   message(FATAL_ERROR "osgShadow not found. Please set OSG_DIR.")
-endif(OSG_FOUND)
+endif(OSGSHADOW_FOUND)
 
 # Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows)
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
 else(WIN32)
   find_package(osgQt)
-  if(OSG_FOUND)
+  if(OSGQT_FOUND)
     include_directories(${OSGQT_INCLUDE_DIR})
-  else(OSG_FOUND)
+  else(OSGQT_FOUND)
     message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
-  endif(OSG_FOUND)
+  endif(OSGQT_FOUND)
 endif(WIN32)
 
-# Find OpenThreads (only for QT5)
-if (WITH_QT5)
-  find_package(OpenThreads)
-  if(OPENTHREADS_FOUND)
-    include_directories(${OPENTHREADS_INCLUDE_DIR})
-  else(OPENTHREADS_FOUND)
-    message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
-  endif(OPENTHREADS_FOUND)
-endif(WITH_QT5)
+# Find OpenThreads
+find_package(OpenThreads)
+if(OPENTHREADS_FOUND)
+  include_directories(${OPENTHREADS_INCLUDE_DIR})
+else(OPENTHREADS_FOUND)
+  message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
+endif(OPENTHREADS_FOUND)
 
 # Find GDAL
 find_package(GDAL)
@@ -334,13 +352,13 @@ SET( VCITY_GUI_LIB
   ${OSGFX_LIBRARIES}
   ${OSGSHADOW_LIBRARIES}
   ${OSGQT_LIBRARIES}
+  ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
   ${PROJ_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
 if (WITH_QT5)
-  SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${OPENTHREADS_LIBRARY} )
 else(WITH_QT5)
   SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT_LIBRARIES} )
   if (WITH_QT3D)
@@ -360,7 +378,7 @@ endif(WITH_QT3D)
 
 if (WITH_QT5)
   if( NOT DEFINED QT_PLUGINS_DIR )
-    set( QT_PLUGINS_DIR "${QT5_DIR}/plugins/" )
+    set( QT_PLUGINS_DIR "${QT5_DIR}/plugins" )
   endif( NOT DEFINED QT_PLUGINS_DIR )
 endif(WITH_QT5)
 
@@ -372,8 +390,8 @@ IF(WIN32)
  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/QtPlugins")
  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/QtPlugins")
  foreach (qtplugin ${qtplugin_dirs})
-    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/QtPlugins/")
-    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/QtPlugins/")
+    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/QtPlugins")
+    file(COPY "${QT_PLUGINS_DIR}/${qtplugin}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/QtPlugins")
  endforeach ()
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/qt.conf" "[Paths]\nPlugins = QtPlugins")
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/qt.conf" "[Paths]\nPlugins = QtPlugins")
@@ -403,3 +421,114 @@ if (WITH_QT5)
   endif(WITH_QT3D)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(VCity PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
+
+	#--------------------------------------------------------------------------------
+	# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
+	#--------------------------------------------------------------------------------
+	SET(plugin_dest_dir .)
+	SET(qtconf_dest_dir .)
+	SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}")
+	IF(APPLE)
+		SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
+		SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
+		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
+	ENDIF(APPLE)
+	IF(WIN32)
+		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
+	ENDIF(WIN32)
+		
+	#--------------------------------------------------------------------------------
+	# Install the application, on Apple, the bundle is at the root of the
+	# install tree, and on other platforms it'll go to the same directory.
+	INSTALL(TARGETS ${PRJ_NAME} 
+		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
+		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
+	)
+
+	#--------------------------------------------------------------------------------
+	# Install needed Qt plugins by copying directories from the qt installation
+	# One can cull what gets copied by using 'REGEX "..." EXCLUDE'
+	INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
+	if (WITH_QT5)
+		INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
+	endif(WITH_QT5)
+
+	# OSG plugins
+	if(OPENSCENEGRAPH_FOUND)
+		INCLUDE(BundleOSGPlugins)
+		install_osg_plugins( osg_plugins )
+		MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
+	endif(OPENSCENEGRAPH_FOUND)
+
+	#--------------------------------------------------------------------------------
+	# install a qt.conf file
+	# this inserts some cmake code into the install script to write the file
+	INSTALL(CODE "
+		file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = plugins\")
+		" COMPONENT ${PRJ_NAME})
+	IF(APPLE)
+		INSTALL(CODE "
+			file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = MacOS/plugins\")
+			" COMPONENT ${PRJ_NAME})
+	ENDIF(APPLE)
+
+	# install qt_menu.nib (APPLE)
+	IF(APPLE)
+		IF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+			INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+				 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
+		ELSE(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+			IF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+				INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+					 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
+			ENDIF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+		ENDIF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+	ENDIF(APPLE)
+		
+	#--------------------------------------------------------------------------------
+	# Use BundleUtilities to get all other dependencies for the application to work.
+	# It takes a bundle or executable along with possible plugins and inspects it
+	# for dependencies.  If they are not system dependencies, they are copied.
+
+	# directories to look for dependencies
+	SET(DIRS ${QT_LIBRARY_DIRS})
+
+	# Now the work of copying dependencies into the bundle/package
+	# The quotes are escaped and variables to use at install time have their $ escaped
+	# An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
+	# Note that the image plugins depend on QtSvg and QtXml, and it got those copied
+	# over.
+	INSTALL(CODE "
+		file(GLOB_RECURSE PLUGINS
+		\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/osgPlugins-${OPENSCENEGRAPH_VERSION}/osgdb_*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*component_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+		include(BundleUtilities)
+		fixup_bundle(\"${APPS}\" \"\${PLUGINS}\" \"${DIRS}\")
+		" COMPONENT ${PRJ_NAME})
+
+	# CPack Configuration
+	set(CPACK_PACKAGE_NAME ${PRJ_NAME})
+	set(CPACK_PACKAGE_VERSION ${PRJ_VERSION})
+	set(CPACK_PACKAGE_VENDOR "Liris / CNRS")
+	#set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/README)
+	#set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/licence_gpl_v3.txt)
+
+	# To Create a package, one can run "cpack -G DragNDrop CPackConfig.cmake" on Mac OS X
+	# where CPackConfig.cmake is created by including CPack
+	# And then there's ways to customize this as well
+	IF(APPLE)
+		set(CPACK_BINARY_DRAGNDROP ON)
+		set(CPACK_BINARY_TGZ "OFF")
+		set(CPACK_BINARY_STGZ "OFF")
+		set(CPACK_BINARY_PACKAGEMAKER "OFF")
+		include(CPack)
+	ENDIF(APPLE)
+
+	IF(WIN32)
+		set(CPACK_GENERATOR "NSIS64")
+		set(CPACK_NSIS_MENU_LINKS "${PRJ_NAME}" "${PRJ_NAME}")
+		#MESSAGE( STATUS "PRJ_NAME: " ${PRJ_NAME} )
+		include(CPack)
+	ENDIF(WIN32)
+	#--------------------------------------------------------------------------------
+	# Now the installation stuff : end
+	#--------------------------------------------------------------------------------
