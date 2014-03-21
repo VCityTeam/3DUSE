@@ -24,7 +24,7 @@ public:
 
     QTreeWidgetItem* addItemGeneric(const vcity::URI& uri, const QString& name, const QString& type);
 
-    QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type);
+    QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type, const bool checkable = true);
     QTreeWidgetItem* createItemRoot();
     QTreeWidgetItem* createItemLayer(const QString& name);
 
@@ -49,6 +49,9 @@ public:
     void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
     void setTileName(const vcity::URI& uri, std::string& name);
     void deleteTile(const vcity::URI& uri);
+
+	void addNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
+	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 

@@ -110,11 +110,14 @@ void TreeView::reset()
     root->addChild(layer);
 }
 ////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type)
+QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)
 {
     QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(name));
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Checked);
+	if (checkable)
+	{
+		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+		item->setCheckState(0, Qt::Checked);
+	}
     item->setText(1, type);
 
     return item;
@@ -256,6 +259,66 @@ void TreeView::deleteTile(const vcity::URI& uri)
         QTreeWidgetItem* parent = tile->parent();
         parent->removeChild(tile);
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel)
+{
+	if (node->asGroup())
+	{
+		//std::cout << strLevel << node->className() << ": " << node->asGroup()->getNumChildren() << " children" << std::endl;
+
+		QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), node->className());
+		parent->addChild(item);
+
+		for ( unsigned int i=0; i<node->asGroup()->getNumChildren(); ++i )
+			addNodeRecursively(item, node->asGroup()->getChild(i), strLevel+"-");
+	}
+	else
+	{
+		if (node->className() == std::string("Geode"))
+		{
+			if (node->asGeode()->getNumDrawables())
+			{
+				//std::cout << strLevel << node->className() << ": drawable(s): ";
+
+				QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), node->className());
+				parent->addChild(item);
+
+				for ( unsigned int i=0; i<node->asGeode()->getNumDrawables(); ++i )
+				{
+					//std::cout << node->asGeode()->getDrawable(i)->getName() << " ";
+
+					QTreeWidgetItem* itemD = createItemGeneric(node->asGeode()->getDrawable(i)->getName().c_str(), node->asGeode()->getDrawable(i)->className(), false);
+					item->addChild(itemD);
+				}
+				//std::cout << std::endl;
+			}
+			else
+			{
+				//std::cout << strLevel << node->className() << ": no drawable" << std::endl;
+
+				/*QTreeWidgetItem* item = createItemGeneric("empty", node->className());
+				parent->addChild(item);*/
+			}
+		}
+	}
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    m_tree->blockSignals(true);
+
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    QTreeWidgetItem* layer = getNode(uriLayer);
+
+    /*QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), QString("AssimpNode (")+node->className()+")");
+    layer->addChild(item);*/
+
+	addNodeRecursively(layer/*item*/, node, "");
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::selectItem(const vcity::URI& uri)

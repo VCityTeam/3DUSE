@@ -138,14 +138,34 @@ void createMaterialData( osg::StateSet* ss, const aiMaterial* aiMtl )
 }
 
 osg::Node* traverseAIScene( const std::string& filename, const struct aiScene* aiScene, const struct aiNode* aiNode,
-                            TextureMap& textures, const osgDB::Options* options )
+                            TextureMap& textures, const osgDB::Options* options, std::string strLevel ) // MT
 {
-    osg::Geode* geode = new osg::Geode;
+	// MT
+	/*if (aiNode->mNumMeshes == 0)
+		std::cout << "empty" << std::endl;
+	else
+		std::cout << "not empty" << std::endl;*/
+	// MT
+
+	osg::Geode* geode = new osg::Geode;
+	// MT : set geode name
+		std::stringstream ssNameG;
+		ssNameG << "geode" << strLevel;// << aiNode->mName.C_Str();
+		geode->setName(ssNameG.str());
+	// MT
     for ( unsigned int n=0; n<aiNode->mNumMeshes; ++n )
     {
         // Create geometry basic properties
         const struct aiMesh* mesh = aiScene->mMeshes[ aiNode->mMeshes[n] ];
         osg::Geometry* geom = new osg::Geometry;
+
+		// MT : set geom name
+		std::stringstream ssName;
+		ssName << "geom" << n+1;		
+		geom->setName(ssName.str());
+		//std::cout << "assimpNode -> " << geom->getName() << std::endl;
+		// MT
+
         geode->addDrawable( geom );
             
         osg::Vec3Array* va = new osg::Vec3Array(mesh->mNumVertices);
@@ -292,9 +312,23 @@ osg::Node* traverseAIScene( const std::string& filename, const struct aiScene* a
     osg::ref_ptr<osg::MatrixTransform> mt;
     mt = new osg::MatrixTransform;
     mt->setMatrix( osg::Matrixf((float*)&m) );
+	// MT : set matrix name
+		std::stringstream ssNameM;
+		ssNameM << "matrix" << strLevel;		
+		mt->setName(ssNameM.str());
+	// MT
     for ( unsigned int n=0; n<aiNode->mNumChildren; ++n )
     {
-        osg::Node* child = traverseAIScene( filename, aiScene, aiNode->mChildren[n], textures, options );
+		// MT : set new level name
+		std::stringstream ssNewLevel;
+		ssNewLevel << n+1;
+		std::string strNewLevel = ssNewLevel.str();
+
+		/*if (strLevel!="")
+			strNewLevel = strLevel+":"+strNewLevel;*/
+		// MT
+
+        osg::Node* child = traverseAIScene( filename, aiScene, aiNode->mChildren[n], textures, options, strNewLevel ); // MT
         if ( child ) mt->addChild( child );
     }
     mt->addChild( geode );
@@ -321,7 +355,7 @@ ReadResult readNode( const std::string& file, const osgDB::ReaderWriter::Options
         
     // Read scene nodes recursively
     TextureMap textures;
-    osg::Node* root = traverseAIScene( fileName, aiScene, aiScene->mRootNode, textures, options );
+    osg::Node* root = traverseAIScene( fileName, aiScene, aiScene->mRootNode, textures, options, "" ); // MT
     return root;
 }
 ////////////////////////////////////////////////////////////////////////////////

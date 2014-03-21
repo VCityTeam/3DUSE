@@ -271,9 +271,17 @@ bool MainWindow::loadFile(const QString& filepath)
 		{
 			osg::ref_ptr<osg::Node> node = readResult.getNode();
 
+			// set assimpNode name
+			static int id = 0;
+			std::stringstream ss;
+			ss << "assimpNode" << id++;
+			node->setName(ss.str());
+
 			vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
 			vcity::log() << uriLayer.getStringURI() << "\n";
-			appGui()./*getControllerGui().*/getOsgScene()->addAssimpNode(uriLayer, node);
+			appGui().getControllerGui().addAssimpNode(uriLayer, node);
+
+			addRecentFile(filepath);
 		}
 	}
     else if(ext == "shp")

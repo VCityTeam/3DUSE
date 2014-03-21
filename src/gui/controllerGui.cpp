@@ -93,6 +93,17 @@ void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
     appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str());
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    //Controller::addAssimpNode(uriLayer, node);
+
+    // fill treeview
+    appGui().getTreeView()->addAssimpNode(uriLayer, node);
+
+    // fill osg scene
+    appGui().getOsgScene()->addAssimpNode(uriLayer, node);
+}
+////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::resetSelection()
 {
     // reset in treeview
