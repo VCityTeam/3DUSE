@@ -11,9 +11,15 @@ endif (COMMAND cmake_policy)
 
 # Project configuration
 set(PRJ_NAME VCity)
-set(PRJ_VERSION 0.1.0-master) # TODO
+
+SET(PRJ_VERSION_MAJOR 0)
+SET(PRJ_VERSION_MINOR 1)
+SET(PRJ_VERSION_PATCH beta)
+SET(PRJ_VERSION "${PRJ_VERSION_MAJOR}.${PRJ_VERSION_MINOR}.${PRJ_VERSION_PATCH}")
+message(STATUS "${PRJ_NAME} ${PRJ_VERSION}")
+
 project( ${PRJ_NAME} )
-set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy")
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy_${PRJ_VERSION}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -69,15 +75,13 @@ IF(WIN32)
 		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
 	endif( NOT DEFINED VCITY_KIT_ROOT )
 
-	if(WITH_QT4)
-		# with qt4
-		set(WITH_QT5			"OFF")
-		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
-	else(WITH_QT4)
+	if(WITH_QT5)
 		# with qt5
-		set(WITH_QT5			"ON")
-		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
-	endif(WITH_QT4)
+		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)		
+	else(WITH_QT5)
+		# with qt4
+		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
+	endif(WITH_QT5)
 
 	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270 )
 
