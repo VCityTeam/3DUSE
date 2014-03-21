@@ -28,6 +28,7 @@ void TreeView::init()
     m_actionAddTile = new QAction("Add tile", NULL);
     m_actionEditTile = new QAction("Edit tile", NULL);
     m_actionDeleteTile = new QAction("Delete tile", NULL);
+    m_actionDeleteAssimpNode = new QAction("Delete matrix transform - assimp node", NULL);
     m_actionAddLayer = new QAction("Add layer", NULL);
     m_actionEditLayer = new QAction("Edit layer", NULL);
     m_actionDeleteLayer = new QAction("Delete layer", NULL);
@@ -48,6 +49,7 @@ void TreeView::init()
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
     connect(m_actionEditTile, SIGNAL(triggered()), this, SLOT(slotEditTile()));
     connect(m_actionDeleteTile, SIGNAL(triggered()), this, SLOT(slotDeleteTile()));
+	connect(m_actionDeleteAssimpNode, SIGNAL(triggered()), this, SLOT(slotDeleteAssimpNode()));
     connect(m_actionAddLayer, SIGNAL(triggered()), this, SLOT(slotAddLayer()));
     connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionDeleteLayer, SIGNAL(triggered()), this, SLOT(slotDeleteLayer()));
@@ -242,7 +244,7 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
     m_tree->blockSignals(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::setTileName(const vcity::URI& uri, std::string& name)
+void TreeView::setTileName(const vcity::URI& uri, const std::string& name)
 {
     QTreeWidgetItem* item = getNode(uri);
     if(item)
@@ -261,7 +263,7 @@ void TreeView::deleteTile(const vcity::URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::addNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel)
+void TreeView::addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel)
 {
 	if (node->asGroup())
 	{
@@ -271,7 +273,7 @@ void TreeView::addNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<os
 		parent->addChild(item);
 
 		for ( unsigned int i=0; i<node->asGroup()->getNumChildren(); ++i )
-			addNodeRecursively(item, node->asGroup()->getChild(i), strLevel+"-");
+			addAssimpNodeRecursively(item, node->asGroup()->getChild(i), strLevel+"-");
 	}
 	else
 	{
@@ -311,14 +313,33 @@ void TreeView::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg:
     QTreeWidgetItem* root = m_tree->topLevelItem(0);
     QTreeWidgetItem* layer = getNode(uriLayer);
 
-    /*QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), QString("AssimpNode (")+node->className()+")");
+    /*QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "AssimpNode");
     layer->addChild(item);*/
 
-	addNodeRecursively(layer/*item*/, node, "");
+	addAssimpNodeRecursively(layer/*item*/, node, "");
 
     m_tree->expandToDepth(1);
 
     m_tree->blockSignals(false);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::setAssimpNodeName(const vcity::URI& uri, const std::string& name)
+{
+    QTreeWidgetItem* item = getNode(uri);
+    if(item)
+    {
+        item->setText(0, name.c_str());
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::deleteAssimpNode(const vcity::URI& uri)
+{
+    QTreeWidgetItem* assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        QTreeWidgetItem* parent = assimpNode->parent();
+        parent->removeChild(assimpNode);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::selectItem(const vcity::URI& uri)
@@ -406,10 +427,15 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
     }
     else if(item->text(1) == "Tile")
     {
-        //std::cout << "Layer" << std::endl;
+        //std::cout << "Tile" << std::endl;
         m_tree->addAction(m_actionDeleteTile);
         m_tree->addAction(m_actionEditTile);
         m_tree->addAction(m_actionAddBuilding);
+    }
+	else if(item->text(1) == "MatrixTransform")
+    {
+        std::cout << "MatrixTransform (AssimpNode)" << std::endl;
+        m_tree->addAction(m_actionDeleteAssimpNode);
     }
     else if(item->text(1) == "Building")
     {
@@ -508,6 +534,11 @@ void TreeView::slotDeleteTile()
     appGui().getControllerGui().deleteTile(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotDeleteAssimpNode()
+{
+    appGui().getControllerGui().deleteAssimpNode(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddLayer()
 {
     DialogAddLayer diag;
@@ -594,6 +625,7 @@ void TreeView::slotDeleteTag()
      m_tree->removeAction(m_actionAddTile);
      m_tree->removeAction(m_actionEditTile);
      m_tree->removeAction(m_actionDeleteTile);
+     m_tree->removeAction(m_actionDeleteAssimpNode);
      m_tree->removeAction(m_actionAddLayer);
      m_tree->removeAction(m_actionEditLayer);
      m_tree->removeAction(m_actionDeleteLayer);

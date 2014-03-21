@@ -47,11 +47,13 @@ public:
     void deleteLayer(const vcity::URI& uri);
 
     void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
-    void setTileName(const vcity::URI& uri, std::string& name);
+    void setTileName(const vcity::URI& uri, const std::string& name);
     void deleteTile(const vcity::URI& uri);
 
-	void addNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
+	void addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
 	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+	void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
+    void deleteAssimpNode(const vcity::URI& uri);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 
@@ -71,6 +73,7 @@ private slots:
     void slotAddTile();
     void slotEditTile();
     void slotDeleteTile();
+    void slotDeleteAssimpNode();
     void slotAddLayer();
     void slotEditLayer();
     void slotDeleteLayer();
@@ -105,6 +108,7 @@ private:
     QAction* m_actionAddTile;
     QAction* m_actionEditTile;
     QAction* m_actionDeleteTile;
+    QAction* m_actionDeleteAssimpNode;
     QAction* m_actionAddLayer;
     QAction* m_actionEditLayer;
     QAction* m_actionDeleteLayer;

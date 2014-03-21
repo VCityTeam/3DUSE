@@ -207,6 +207,24 @@ void OsgScene::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg:
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void OsgScene::setAssimpNodeName(const vcity::URI& uri, const std::string& name)
+{
+    osg::ref_ptr<osg::Node> assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        assimpNode->setName(name);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::deleteAssimpNode(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        assimpNode->getParent(0)->removeChild(assimpNode);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addLayer(const std::string& name)
 {
     osg::ref_ptr<osg::Group> layer = new osg::Group();

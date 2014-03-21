@@ -47,7 +47,7 @@ public:
     /// \param name Tile name
     void setTileName(const vcity::URI& uriTile, const std::string& name);
 
-    /// \brief deleteTile Delete a layer in the osg scene
+    /// \brief deleteTile Delete a tile in the osg scene
     /// \param uriTile URI pointing to the tile
     void deleteTile(const vcity::URI& uriTile);
 
@@ -55,6 +55,15 @@ public:
     /// \param uriLayer URI pointing to the layer
     /// \param node Node to add
 	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+
+	/// \brief setAssimpNodeName Set the name of an assimpNode
+    /// \param uri URI pointing to the assimpNode
+    /// \param name AssimpNode name
+    void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
+
+    /// \brief deleteAssimpNode Delete an assimpNode in the osg scene
+    /// \param uri URI pointing to the assimpNode
+    void deleteAssimpNode(const vcity::URI& uri);
 
     /// \brief addLayer Add a layer to the osg scene
     /// \param name Layer name

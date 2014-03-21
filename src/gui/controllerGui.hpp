@@ -25,6 +25,8 @@ public:
 
 	// Assimp
 	virtual void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+	virtual void deleteAssimpNode(const vcity::URI& uri);
+	virtual void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
 
     // selection
     virtual void resetSelection();
