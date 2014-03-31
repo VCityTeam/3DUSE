@@ -73,6 +73,7 @@ private slots:
     void slotAddTile();
     void slotEditTile();
     void slotDeleteTile();
+    void slotEditAssimpNode();
     void slotDeleteAssimpNode();
     void slotAddLayer();
     void slotEditLayer();
@@ -108,6 +109,7 @@ private:
     QAction* m_actionAddTile;
     QAction* m_actionEditTile;
     QAction* m_actionDeleteTile;
+    QAction* m_actionEditAssimpNode;
     QAction* m_actionDeleteAssimpNode;
     QAction* m_actionAddLayer;
     QAction* m_actionEditLayer;

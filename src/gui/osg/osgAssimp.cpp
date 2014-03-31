@@ -356,6 +356,12 @@ ReadResult readNode( const std::string& file, const osgDB::ReaderWriter::Options
     // Read scene nodes recursively
     TextureMap textures;
     osg::Node* root = traverseAIScene( fileName, aiScene, aiScene->mRootNode, textures, options, "" ); // MT
-    return root;
+
+	// MT
+	osg::ref_ptr<osg::Group> group;
+    group = new osg::Group;
+	group->addChild( root );
+
+    return group.release(); // root // MT
 }
 ////////////////////////////////////////////////////////////////////////////////

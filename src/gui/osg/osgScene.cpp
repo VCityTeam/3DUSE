@@ -155,13 +155,13 @@ void OsgScene::init()
 
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
-    //m_layers->addChild(grid);
+    m_layers->addChild(grid);
 
     //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
     //m_layers->addChild(bbox);
 
-	osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(-10.0, -10.0, -10.0), osg::Vec3(10.0, 10.0, 10.0));
-    m_layers->addChild(bbox);
+	//osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(-10.0, -10.0, -10.0), osg::Vec3(10.0, 10.0, 10.0));
+    //m_layers->addChild(bbox);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
