@@ -34,6 +34,12 @@
 #include "cpl_conv.h" // for CPLMalloc()
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
+
+/*#include "assimp/Importer.hpp"
+#include "assimp/PostProcess.h"
+#include "assimp/Scene.h"*/
+
+#include "osg/osgAssimp.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
@@ -246,6 +252,38 @@ bool MainWindow::loadFile(const QString& filepath)
          list.append(filepath);
          settings.setValue("recentfiles", list);*/
     }
+	// Assimp importer
+	else if(ext == "assimp" || ext ==  "dae" || ext ==  "blend" || ext ==  "3ds" || ext ==  "ase" || ext ==  "obj" || ext ==  "xgl" || ext ==  "ply" || ext ==  "dxf" || ext ==  "lwo" || ext ==  "lws" ||
+		ext == "lxo" || ext ==  "stl" || ext ==  "x" || ext ==  "ac" || ext ==  "ms3d" || ext ==  "scn" || ext ==  "xml" || ext ==  "irrmesh" || ext ==  "irr" ||
+		ext == "mdl" || ext ==  "md2" || ext ==  "md3" || ext ==  "pk3" || ext ==  "md5" || ext ==  "smd" || ext ==  "m3" || ext ==  "3d" || ext ==  "q3d" || ext ==  "off" || ext ==  "ter")
+    {
+		/*Assimp::Importer importer;
+		const aiScene *scene = importer.ReadFile(filepath.toStdString(), aiProcessPreset_TargetRealtime_Fast); // aiProcessPreset_TargetRealtime_Quality
+ 
+		aiMesh *mesh = scene->mMeshes[0]; // assuming you only want the first mesh*/
+
+		// ---
+
+		std::string readOptionString = "";
+		osg::ref_ptr<osgDB::Options> readOptions = new osgDB::Options(readOptionString.c_str());
+		ReadResult readResult = readNode(filepath.toStdString(), readOptions);
+		if (readResult.success())
+		{
+			osg::ref_ptr<osg::Node> node = readResult.getNode();
+
+			// set assimpNode name
+			static int id = 0;
+			std::stringstream ss;
+			ss << "assimpNode" << id++;
+			node->setName(ss.str());
+
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
+			vcity::log() << uriLayer.getStringURI() << "\n";
+			appGui().getControllerGui().addAssimpNode(uriLayer, node);
+
+			addRecentFile(filepath);
+		}
+	}
     else if(ext == "shp")
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;

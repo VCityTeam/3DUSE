@@ -90,7 +90,42 @@ void ControllerGui::deleteTile(const vcity::URI& uri)
 void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
 {
     Controller::setTileName(uri, name);
-    appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str());
+
+    //appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str()); // MT
+	appGui().getTreeView()->setTileName(uri, name); // MT
+
+	appGui().getOsgScene()->setTileName(uri, name); // MT
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    //Controller::addAssimpNode(uriLayer, node);
+
+    // fill treeview
+    appGui().getTreeView()->addAssimpNode(uriLayer, node);
+
+    // fill osg scene
+    appGui().getOsgScene()->addAssimpNode(uriLayer, node);
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::deleteAssimpNode(const vcity::URI& uri)
+{
+    //Controller::deleteAssimpNode(uri);
+
+    // delete in treeview
+    appGui().getTreeView()->deleteAssimpNode(uri);
+
+    // delete in osg scene
+    appGui().getOsgScene()->deleteAssimpNode(uri);
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::setAssimpNodeName(const vcity::URI& uri, const std::string& name)
+{
+    //Controller::setAssimpNodeName(uri, name);
+
+	appGui().getTreeView()->setAssimpNodeName(uri, name);
+
+	appGui().getOsgScene()->setAssimpNodeName(uri, name);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::resetSelection()

@@ -159,6 +159,9 @@ void OsgScene::init()
 
     //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
     //m_layers->addChild(bbox);
+
+	//osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(-10.0, -10.0, -10.0), osg::Vec3(10.0, 10.0, 10.0));
+    //m_layers->addChild(bbox);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
@@ -190,6 +193,35 @@ void OsgScene::deleteTile(const vcity::URI& uriTile)
     if(tile)
     {
         tile->getParent(0)->removeChild(tile);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+			layerGroup->addChild(node);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::setAssimpNodeName(const vcity::URI& uri, const std::string& name)
+{
+    osg::ref_ptr<osg::Node> assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        assimpNode->setName(name);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::deleteAssimpNode(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        assimpNode->getParent(0)->removeChild(assimpNode);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -562,7 +594,7 @@ osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n
     return geode;
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*osg::ref_ptr<osg::Geode> OsgScene::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
+osg::ref_ptr<osg::Geode> OsgScene::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
 {
     osg::Vec3 step = upperBound - lowerBound;
 
@@ -601,5 +633,5 @@ osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n
     geode->addDrawable(geom);
 
     return geode;
-}*/
+}
 ////////////////////////////////////////////////////////////////////////////////
