@@ -1,5 +1,5 @@
-#include "moc/DialogEditAssimpNode.hpp"
-#include "ui_DialogEditAssimpNode.h"
+#include "moc/dialogEditAssimpNode.hpp"
+#include "ui_dialogEditAssimpNode.h"
 #include "applicationGui.hpp"
 #include <osg/MatrixTransform>
 ////////////////////////////////////////////////////////////////////////////////
