@@ -51,8 +51,8 @@ public:
 private:
     //citygml::Envelope m_envelope;
     //std::map<std::string, citygml::CityObject*> m_cityObjects;
-    std::map<std::string, citygml::CityModel*> m_citygml;   ///< citygml data
-    std::map<std::string, int> m_shape;    ///< shape data
+    //std::map<std::string, citygml::CityModel*> m_citygml;   ///< citygml data	// MT
+    //std::map<std::string, int> m_shape;    ///< shape data	// MT
     std::string m_name; ///< tile name
     std::string m_citygmlFilePath;
 

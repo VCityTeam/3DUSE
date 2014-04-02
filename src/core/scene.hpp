@@ -2,7 +2,9 @@
 #define __SCENE_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <vector>
-#include "layer.hpp"
+#include "abstractlayer.hpp"
+#include "layerCityGML.hpp"
+#include "layerAssimp.hpp"
 #include "tile.hpp"
 #include "URI.hpp"
 #include <memory>
@@ -19,32 +21,33 @@ public:
     Scene();
     ~Scene();
 
-    /// \brief addLayer Add a layer
-    /// \param layer Layer to add
-    void addLayer(Layer* layer);
-    void addLayer(const std::string& name);
+    /// \brief addLayer Add a abstractlayer
+    /// \param abstractlayer abstractLayer to add
+    void addLayer(abstractLayer* abstractlayer);
+    //void addLayer(const std::string& name);
 
     /// \brief getLayer Get a layer
     /// \param uri URI pointing to the layer
     /// \return The layer
-    Layer* getLayer(const URI& uri);
+    abstractLayer* getLayer(const URI& uri);
 
     /// \brief getLayer Get a layer (const)
     /// \param uri URI pointing to the layer
     /// \return The const layer
-    const Layer* getLayer(const URI& uri) const;
+    const abstractLayer* getLayer(const URI& uri) const;
 
     /// \brief getDefaultLayer Get default layer
+    /// \param type layer type
     /// \return The default layer
-    Layer* getDefaultLayer();
+    abstractLayer* getDefaultLayer(const std::string& type);
 
     /// \brief getLayers Get all layer
     /// \return A vector of Layer
-    std::vector<Layer*>& getLayers();
+    std::vector<abstractLayer*>& getLayers();
 
     /// \brief getLayers Get all layers (const)
     /// \return A const vector of Layer
-    const std::vector<Layer*>& getLayers() const;
+    const std::vector<abstractLayer*>& getLayers() const;
 
     /// \brief deleteLayer Delete a layer
     /// \param uri URI pointing to the layer
@@ -74,10 +77,10 @@ public:
     /// \param uri URI pointing to the tile
     void deleteTile(const URI& uri);
 
-    /// \brief getNode Get a CityGML node
+    /// \brief getCityObjectNode Get a CityGML node
     /// \param uri URI pointing to the CityGML node
     /// \return Ptr to CityGML node or nullptr
-    citygml::CityObject* getNode(const URI& uri);
+    citygml::CityObject* getCityObjectNode(const URI& uri);
 
     /// \brief deleteNode Delete a CityGML node
     /// \param uri URI pointing to the CityGML node
@@ -93,7 +96,7 @@ public:
     //citygml::CityObject* getNode(const URI& uri);
 
 private:
-    std::vector<Layer*> m_layers;   ///< all the layers
+    std::vector<abstractLayer*> m_layers;   ///< all the layers
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

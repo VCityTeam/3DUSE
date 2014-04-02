@@ -191,7 +191,7 @@ void ControllerGui::update(const vcity::URI& uri_)
     vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
     citygml::CityModel* model = tile->getCityModel();
 
-    citygml::CityObject* obj = appGui().getScene().getNode(uri);
+    citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
     citygml::ParserParams params;
     //obj->finish(*model->getAppearanceManager(), params);
     finish(model, params, obj);

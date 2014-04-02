@@ -242,7 +242,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
         // add tile
         vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
-        vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
+        vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerCityGML")->getURI();
         vcity::log() << uriLayer.getStringURI() << "\n";
         appGui().getControllerGui().addTile(uriLayer, *tile);
 
@@ -277,7 +277,7 @@ bool MainWindow::loadFile(const QString& filepath)
 			ss << "assimpNode" << id++;
 			node->setName(ss.str());
 
-			vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerAssimp")->getURI();
 			vcity::log() << uriLayer.getStringURI() << "\n";
 			appGui().getControllerGui().addAssimpNode(uriLayer, node);
 
@@ -521,7 +521,7 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     std::stringstream ss;
     ss << uri.getStringURI() << std::endl;
 
-    citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
+    citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
     if(obj)
     {
         ss << "ID : " << obj->getId() << std::endl;
@@ -752,7 +752,8 @@ void MainWindow::exportCityGML()
     {
         std::cout << "Citygml export citymodel" << std::endl;
         // use first tile
-        citygml::CityModel* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->getCityModel();
+		vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+        citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
         //citygml::exportCitygml(model, "test.citygml");
         exporter.exportCityModel(model, filename.toStdString());
     }
@@ -1012,7 +1013,7 @@ void MainWindow::test5()
 {
     if(appGui().getSelectedNodes().size() > 0)
     {
-        citygml::CityObject* obj = appGui().getScene().getNode(appGui().getSelectedNodes()[0]);
+        citygml::CityObject* obj = appGui().getScene().getCityObjectNode(appGui().getSelectedNodes()[0]);
         test5rec(obj);
         appGui().getControllerGui().update(appGui().getSelectedNodes()[0]);
     }

@@ -27,7 +27,7 @@ void Controller::deleteNode(const URI& URI)
 ////////////////////////////////////////////////////////////////////////////////
 void Controller::addLayer(const std::string& name)
 {
-    app().getScene().addLayer(name);
+    //app().getScene().addLayer(name); // MT TODO
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Controller::deleteLayer(const vcity::URI& uri)
@@ -37,10 +37,10 @@ void Controller::deleteLayer(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void Controller::setLayerName(const vcity::URI& uri, const std::string& name)
 {
-    Layer* layer = app().getScene().getLayer(uri);
-    if(layer)
+    abstractLayer* abstractlayer = app().getScene().getLayer(uri);
+    if(abstractlayer)
     {
-        layer->setName(name);
+        abstractlayer->setName(name);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

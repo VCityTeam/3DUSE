@@ -111,8 +111,11 @@ void TreeView::reset()
     QTreeWidgetItem* grid = createItemGeneric("grid", "Grid");
     root->addChild(grid);
 
-    QTreeWidgetItem* layer = createItemLayer("layer_CityGML");
-    root->addChild(layer);
+	QTreeWidgetItem* layer0 = createItemLayer("layer_CityGML", "LayerCityGML");
+    root->addChild(layer0);
+
+    QTreeWidgetItem* layer1 = createItemLayer("layer_Assimp", "LayerAssimp");
+    root->addChild(layer1);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)
@@ -145,9 +148,9 @@ QTreeWidgetItem* TreeView::createItemRoot()
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::createItemLayer(const QString& name)
+QTreeWidgetItem* TreeView::createItemLayer(const QString& name, const QString& type)
 {
-    QTreeWidgetItem* item = createItemGeneric(name, "Layer");
+    QTreeWidgetItem* item = createItemGeneric(name, type);
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -188,8 +191,8 @@ QTreeWidgetItem* TreeView::getCurrentItem()
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addLayer(const vcity::URI& uri)
 {
-    QTreeWidgetItem* layer = createItemLayer(uri.getNode(0).c_str());
-    m_tree->topLevelItem(0)->addChild(layer);
+    /*QTreeWidgetItem* layer = createItemLayer(uri.getNode(0).c_str());
+    m_tree->topLevelItem(0)->addChild(layer);*/	// MT TODO
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::setLayerName(const vcity::URI& uri, const std::string& name)
@@ -425,12 +428,13 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Root" << std::endl;
         m_tree->addAction(m_actionAddLayer);
     }
-    else if(item->text(1) == "Layer")
+    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp")
     {
-        //std::cout << "Layer" << std::endl;
+        std::cout << item->text(1).toStdString() << std::endl;
         m_tree->addAction(m_actionDeleteLayer);
         m_tree->addAction(m_actionEditLayer);
-        m_tree->addAction(m_actionAddTile);
+		if(item->text(1) == "LayerCityGML")
+			m_tree->addAction(m_actionAddTile);
     }
     else if(item->text(1) == "Tile")
     {

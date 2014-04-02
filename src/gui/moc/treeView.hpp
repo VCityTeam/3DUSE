@@ -26,7 +26,7 @@ public:
 
     QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type, const bool checkable = true);
     QTreeWidgetItem* createItemRoot();
-    QTreeWidgetItem* createItemLayer(const QString& name);
+    QTreeWidgetItem* createItemLayer(const QString& name, const QString& type);
 
     QTreeWidgetItem* addItemTag();
     QTreeWidgetItem* addItemFlag();
