@@ -14,11 +14,11 @@ public :
 	bool charge( const char* nom_fichier, const char* type_fichier );
 	unsigned int  get_numVertices()  { return dim_x*dim_y; }
 	int  get_altitude(const int x, const int y)  { return altitudes[x+y*dim_x]; }
-	osg::Node* MNT::getNode();
+	osg::Node* getNode();
 
-	void sauve_log( char* nom_fichier_log, char* nom_fichier_tga );
-	bool sauve_partie( char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y );
-	bool sauve_partie_XML( char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y);
+	void sauve_log( const char* nom_fichier_log, const char* nom_fichier_tga );
+	bool sauve_partie( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y );
+	bool sauve_partie_XML( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y);
 
 	bool est_charge() { return mnt_charge; }
 	int  get_dim_x()  { return dim_x; }

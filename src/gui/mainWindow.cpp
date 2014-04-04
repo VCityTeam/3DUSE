@@ -307,9 +307,9 @@ bool MainWindow::loadFile(const QString& filepath)
 
 			addRecentFile(filepath);
 
-			mnt.sauve_log("mntAsc.txt", "mntAsc.tga"); // mntAsc.tga bidon
-			mnt.sauve_partie("mntAsc_partie.txt", 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
-			mnt.sauve_partie_XML("mntAsc_partie_xml.txt", 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+			mnt.sauve_log(std::string("mntAsc.txt").c_str(), std::string("mntAsc.tga").c_str()); // mntAsc.tga bidon
+			mnt.sauve_partie(std::string("mntAsc_partie.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+			mnt.sauve_partie_XML(std::string("mntAsc_partie_xml.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
 		}
 	}
     else if(ext == "shp")

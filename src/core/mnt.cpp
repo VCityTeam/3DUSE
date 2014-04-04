@@ -240,7 +240,7 @@ osg::Node* MNT::getNode()
     return geode.release();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MNT::sauve_log( char* nom_fichier_log, char* nom_fichier_tga )
+void MNT::sauve_log( const char* nom_fichier_log, const char* nom_fichier_tga )
 {
 	FILE	*fp;
 
@@ -259,7 +259,7 @@ void MNT::sauve_log( char* nom_fichier_log, char* nom_fichier_tga )
 	//save_tga( nom_fichier_tga, dim_x, dim_y, image );
 }
 ////////////////////////////////////////////////////////////////////////////////
-bool MNT::sauve_partie( char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y )
+bool MNT::sauve_partie( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y )
 {
 	FILE	*fp;
 
@@ -285,7 +285,7 @@ bool MNT::sauve_partie( char* nom_fichier, int xpos, int ypos, int nb_pt_x, int 
 	return true;
 }
 ////////////////////////////////////////////////////////////////////////////////
-bool MNT::sauve_partie_XML( char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y )
+bool MNT::sauve_partie_XML( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y )
 {
 	FILE	*fp;
 
