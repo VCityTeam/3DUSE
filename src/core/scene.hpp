@@ -5,6 +5,7 @@
 #include "abstractlayer.hpp"
 #include "layerCityGML.hpp"
 #include "layerAssimp.hpp"
+#include "layerMnt.hpp"
 #include "tile.hpp"
 #include "URI.hpp"
 #include <memory>

@@ -116,6 +116,9 @@ void TreeView::reset()
 
     QTreeWidgetItem* layer1 = createItemLayer("layer_Assimp", "LayerAssimp");
     root->addChild(layer1);
+
+    QTreeWidgetItem* layer2 = createItemLayer("layer_Mnt", "LayerMnt");
+    root->addChild(layer2);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)
@@ -428,7 +431,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Root" << std::endl;
         m_tree->addAction(m_actionAddLayer);
     }
-    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp")
+    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp" || item->text(1) == "LayerMnt")
     {
         std::cout << item->text(1).toStdString() << std::endl;
         m_tree->addAction(m_actionDeleteLayer);

@@ -284,6 +284,26 @@ bool MainWindow::loadFile(const QString& filepath)
 			addRecentFile(filepath);
 		}
 	}
+	// MntAsc importer
+	else if(ext ==  "asc")
+    {
+		if (0)
+		{
+			osg::ref_ptr<osg::Node> node;
+
+			// set assimpNode name
+			static int id = 0;
+			std::stringstream ss;
+			ss << "mntascNode" << id++;
+			node->setName(ss.str());
+
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerMnt")->getURI();
+			vcity::log() << uriLayer.getStringURI() << "\n";
+			//appGui().getControllerGui().addMntAscNode(uriLayer, node);
+
+			addRecentFile(filepath);
+		}
+	}
     else if(ext == "shp")
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;

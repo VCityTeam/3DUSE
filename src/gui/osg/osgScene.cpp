@@ -158,6 +158,11 @@ void OsgScene::init()
     layer1->setName("layer_Assimp");
     m_layers->addChild(layer1);
 
+	// build third default layer
+    osg::ref_ptr<osg::Group> layer2 = new osg::Group();
+    layer2->setName("layer_Mnt");
+    m_layers->addChild(layer2);
+
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
     m_layers->addChild(grid);
