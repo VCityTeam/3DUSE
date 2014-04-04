@@ -55,6 +55,8 @@ public:
 	void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
     void deleteAssimpNode(const vcity::URI& uri);
 
+	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 
     /// \brief selectItem Select item in treeview

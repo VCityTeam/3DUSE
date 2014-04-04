@@ -40,6 +40,8 @@
 #include "assimp/Scene.h"*/
 
 #include "osg/osgAssimp.hpp"
+
+#include "../core/mnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
@@ -287,21 +289,27 @@ bool MainWindow::loadFile(const QString& filepath)
 	// MntAsc importer
 	else if(ext ==  "asc")
     {
-		if (0)
-		{
-			osg::ref_ptr<osg::Node> node;
+		MNT mnt;
 
-			// set assimpNode name
+		if (mnt.charge(filepath.toStdString().c_str(), "ASC"))
+		{
+			osg::ref_ptr<osg::Node> node = mnt.getNode();
+
+			// set mntAscNode name
 			static int id = 0;
 			std::stringstream ss;
-			ss << "mntascNode" << id++;
+			ss << "mntAscNode" << id++;
 			node->setName(ss.str());
 
 			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerMnt")->getURI();
 			vcity::log() << uriLayer.getStringURI() << "\n";
-			//appGui().getControllerGui().addMntAscNode(uriLayer, node);
+			appGui().getControllerGui().addMntAscNode(uriLayer, node);
 
 			addRecentFile(filepath);
+
+			mnt.sauve_log("mntAsc.txt", "mntAsc.tga"); // mntAsc.tga bidon
+			mnt.sauve_partie("mntAsc_partie.txt", 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+			mnt.sauve_partie_XML("mntAsc_partie_xml.txt", 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
 		}
 	}
     else if(ext == "shp")

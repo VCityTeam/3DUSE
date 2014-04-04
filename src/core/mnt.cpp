@@ -4,6 +4,8 @@
 #include <string.h>
 //#include "tga.h"
 
+#include <osg/Geometry>
+
 #ifdef _MSC_VER
 #pragma warning(disable : 4996) // TEMP MT
 #endif
@@ -26,10 +28,12 @@ MNT::~MNT()
 		delete[] image;
 }
 ////////////////////////////////////////////////////////////////////////////////
-bool MNT::charge( char* nom_fichier )
+bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 {
 	FILE	*fp;
 	char	chaine[500];
+
+	NODATA_value = -9999;
 
 	if( altitudes )
 		delete[] altitudes;
@@ -43,25 +47,80 @@ bool MNT::charge( char* nom_fichier )
 	if( !fp )
 		return false;
 
-	fscanf( fp, "%s", chaine );					// "MNT"
-	if( strcmp( chaine, "MNT" ) != 0 )
+	if( strcmp( type_fichier, "MNT" ) == 0 )
+	{
+		fscanf( fp, "%s", chaine );					// "MNT"
+		if( strcmp( chaine, "MNT" ) != 0 )
+			return false;
+
+		fscanf( fp, "%s", chaine );					// Numéro de version
+		fscanf( fp, "%s", nom_chantier );			// Nom du chantier
+		fscanf( fp, "%s", unites_xy );				// Unité des xy
+		fscanf( fp, "%f", &precision_xy );			// Précision de l'unité
+		fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
+		fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
+		fscanf( fp, "%f", &pas_x );					// pas en x
+		fscanf( fp, "%f", &pas_y );					// pas en y
+		fscanf( fp, "%d", &dim_y );					// nombre de lignes
+		fscanf( fp, "%d", &dim_x );					// nombre de colonnes
+		fscanf( fp, "%s", unites_z );				// Unité des z
+		fscanf( fp, "%f", &precision_z );			// Précision de l'unité
+
+
+		y_noeud_NO -= 3000000;
+	}
+	else if( strcmp( type_fichier, "ASC" ) == 0 )
+	{
+		strcpy( nom_chantier, "empty" );
+
+		fscanf( fp, "%s", chaine );
+		if( strcmp( chaine, "ncols" ) == 0 )
+		{
+			fscanf( fp, "%d", &dim_x );					// nombre de colonnes
+			printf("ncols: %d\n", dim_x);
+		}
+		fscanf( fp, "%s", chaine );
+		if( strcmp( chaine, "nrows" ) == 0 )
+		{
+			fscanf( fp, "%d", &dim_y );					// nombre de lignes
+			printf("nrows: %d\n", dim_y);
+		}
+		fscanf( fp, "%s", chaine );
+		if( strcmp( chaine, "xllcorner" ) == 0 )
+		{
+			fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
+			printf("xllcorner: %f\n", x_noeud_NO);
+		}
+		fscanf( fp, "%s", chaine );
+		if( strcmp( chaine, "yllcorner" ) == 0 )
+		{
+			fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
+			printf("yllcorner: %f\n", y_noeud_NO);
+		}
+		fscanf( fp, "%s", chaine );
+		if( strcmp( chaine, "cellsize" ) == 0 )
+		{
+			fscanf( fp, "%f", &pas_x );					// pas en x
+			printf("cellsize: %f\n", pas_x);
+			pas_y = pas_x;								// pas en y
+		}
+		fscanf( fp, "%s", chaine );
+		if( strcmp( chaine, "NODATA_value" ) == 0 )
+		{
+			fscanf( fp, "%d", &NODATA_value );			// NODATA_value
+			printf("NODATA_value: %d\n", NODATA_value);
+		}
+		else
+		{
+			fclose(fp);
+			return false;
+		}
+	}
+	else
+	{
+		fclose(fp);
 		return false;
-
-	fscanf( fp, "%s", chaine );					// Numéro de version
-	fscanf( fp, "%s", nom_chantier );			// Nom du chantier
-	fscanf( fp, "%s", unites_xy );				// Unité des xy
-	fscanf( fp, "%f", &precision_xy );			// Précision de l'unité
-	fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
-	fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
-	fscanf( fp, "%f", &pas_x );					// pas en x
-	fscanf( fp, "%f", &pas_y );					// pas en y
-	fscanf( fp, "%d", &dim_y );					// nombre de lignes
-	fscanf( fp, "%d", &dim_x );					// nombre de colonnes
-	fscanf( fp, "%s", unites_z );				// Unité des z
-	fscanf( fp, "%f", &precision_z );			// Précision de l'unité
-
-
-	y_noeud_NO -= 3000000;
+	}
 
 	printf( "origine = (%f, %f)\n", x_noeud_NO, y_noeud_NO );
 
@@ -94,7 +153,7 @@ bool MNT::charge( char* nom_fichier )
 
 	for( i=0; i<dim_x*dim_y; i++ )
 	{
-		if( altitudes[i] != -9999 )
+		if( altitudes[i] != NODATA_value )
 		{
 			if( altitudes[i] < altitude_min )
 				altitude_min = altitudes[i];
@@ -106,7 +165,7 @@ bool MNT::charge( char* nom_fichier )
 
 	for( i=0; i<dim_x*dim_y; i++ )
 	{
-		if( altitudes[i] == -9999 )
+		if( altitudes[i] == NODATA_value )
 		{
 			r=0; g=0; b=255;
 		}
@@ -130,6 +189,55 @@ bool MNT::charge( char* nom_fichier )
 
 
 	return true;
+}
+////////////////////////////////////////////////////////////////////////////////
+osg::Node* MNT::getNode()
+{
+    osg::ref_ptr<osg::Geode> geode;
+	geode = new osg::Geode;
+
+	geode->setName("geode");
+
+        // Create geometry basic properties
+        osg::Geometry* geom = new osg::Geometry;
+		geom->setName("geom");
+
+        geode->addDrawable( geom );
+            
+        osg::Vec3Array* va = new osg::Vec3Array(get_numVertices());
+		unsigned int i=0;
+        for( int y=0; y<get_dim_y(); y++ )
+			for( int x=0; x<get_dim_x(); x++ )
+				(*va)[i++].set( x_noeud_NO+(pas_x * x), y_noeud_NO+(pas_y * y), get_altitude(x, y) );
+
+        geom->setVertexArray( va );
+
+		// Create geometry primitives
+        osg::ref_ptr<osg::DrawElementsUInt> de[5];
+        de[1] = new osg::DrawElementsUInt(GL_POINTS);
+        de[2] = new osg::DrawElementsUInt(GL_LINES);
+        de[3] = new osg::DrawElementsUInt(GL_TRIANGLES);
+        de[4] = new osg::DrawElementsUInt(GL_QUADS);
+        de[0] = new osg::DrawElementsUInt(GL_POLYGON);
+            
+        /*osg::DrawElementsUInt* current = NULL;
+        for ( unsigned int f=0; f<mesh->mNumFaces; ++f )
+        {
+            const struct aiFace& face = mesh->mFaces[f];
+            if ( face.mNumIndices>4 ) current = de[0].get();
+            else current = de[face.mNumIndices].get();
+                
+            for ( unsigned i=0; i<face.mNumIndices; ++i )
+                current->push_back( face.mIndices[i] );
+        }*/
+            
+        for ( unsigned int i=0; i<5; ++i )
+        {
+            if ( de[i]->size()>0 )
+                geom->addPrimitiveSet( de[i].get() );
+        }
+
+    return geode.release();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MNT::sauve_log( char* nom_fichier_log, char* nom_fichier_tga )
@@ -198,13 +306,13 @@ bool MNT::sauve_partie_XML( char* nom_fichier, int xpos, int ypos, int nb_pt_x, 
     </TERRAIN>
 	*/
 
-	fprintf( fp, "<origine> %f \t %f </origine> \n", x_noeud_NO+(pas_x * xpos), y_noeud_NO+(pas_y*ypos) );
+	fprintf( fp, "<origine> %f \t %f </origine> \n", x_noeud_NO+(pas_x * xpos), y_noeud_NO+(pas_y * ypos) );
 	fprintf( fp, "<valx> %d </valx> \n <valy> %d </valy> \n", nb_pt_x, nb_pt_y );
 	for( int y=ypos; y<ypos+nb_pt_y; y++ )
 	{
 		for( int x=xpos; x<xpos+nb_pt_x; x++ )
 		{
-			fprintf( fp, "<POINT> %f %f %d </POINT>\n", x_noeud_NO+(pas_x * x), y_noeud_NO+(pas_y*y), altitudes[x+y*dim_x] );
+			fprintf( fp, "<POINT> %f %f %d </POINT>\n", x_noeud_NO+(pas_x * x), y_noeud_NO+(pas_y * y), altitudes[x+y*dim_x] );
 		}
 		//fprintf( fp, "\n" );
 	}

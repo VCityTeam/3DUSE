@@ -235,6 +235,17 @@ void OsgScene::deleteAssimpNode(const vcity::URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+			layerGroup->addChild(node);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addLayer(const std::string& name)
 {
     osg::ref_ptr<osg::Group> layer = new osg::Group();

@@ -355,6 +355,21 @@ void TreeView::deleteAssimpNode(const vcity::URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    m_tree->blockSignals(true);
+
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    QTreeWidgetItem* layer = getNode(uriLayer);
+
+    QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "MntAscNode");
+    layer->addChild(item);
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::selectItem(const vcity::URI& uri)
 {
     QTreeWidgetItem* item = getNode(uri);
