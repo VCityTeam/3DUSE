@@ -147,6 +147,8 @@ MainWindow::MainWindow(QWidget *parent) :
     updateRecentFiles();
 
     m_treeView->init();
+    
+    setlocale(LC_ALL, "C"); // MT : important for Linux
 }
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::~MainWindow()
