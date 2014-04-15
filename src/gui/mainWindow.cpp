@@ -41,7 +41,7 @@
 
 #include "osg/osgAssimp.hpp"
 
-#include "../core/mnt.hpp"
+#include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
@@ -295,7 +295,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
 		if (mnt.charge(filepath.toStdString().c_str(), "ASC"))
 		{
-			osg::ref_ptr<osg::Node> node = mnt.getNode();
+			osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(10);
 
 			// set mntAscNode name
 			static int id = 0;
@@ -309,9 +309,9 @@ bool MainWindow::loadFile(const QString& filepath)
 
 			addRecentFile(filepath);
 
-			mnt.sauve_log(std::string("mntAsc.txt").c_str(), std::string("mntAsc.tga").c_str()); // mntAsc.tga bidon
-			mnt.sauve_partie(std::string("mntAsc_partie.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
-			mnt.sauve_partie_XML(std::string("mntAsc_partie_xml.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+			//mnt.sauve_log(std::string("mntAsc.txt").c_str(), std::string("mntAsc.tga").c_str()); // mntAsc.tga bidon
+			//mnt.sauve_partie(std::string("mntAsc_partie.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+			//mnt.sauve_partie_XML(std::string("mntAsc_partie_xml.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
 		}
 	}
     else if(ext == "shp")
