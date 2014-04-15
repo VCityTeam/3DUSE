@@ -4,6 +4,7 @@
 #include "moc/dialogAddLayer.hpp"
 #include "moc/dialogEditLayer.hpp"
 #include "moc/dialogEditTile.hpp"
+#include "moc/dialogEditAssimpNode.hpp"
 #include "moc/dialogEditBldg.hpp"
 #include "moc/dialogDynFlag.hpp"
 #include "moc/dialogFlag.hpp"
@@ -28,6 +29,8 @@ void TreeView::init()
     m_actionAddTile = new QAction("Add tile", NULL);
     m_actionEditTile = new QAction("Edit tile", NULL);
     m_actionDeleteTile = new QAction("Delete tile", NULL);
+	m_actionEditAssimpNode = new QAction("Edit assimp node", NULL);
+    m_actionDeleteAssimpNode = new QAction("Delete assimp node", NULL);
     m_actionAddLayer = new QAction("Add layer", NULL);
     m_actionEditLayer = new QAction("Edit layer", NULL);
     m_actionDeleteLayer = new QAction("Delete layer", NULL);
@@ -48,6 +51,8 @@ void TreeView::init()
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
     connect(m_actionEditTile, SIGNAL(triggered()), this, SLOT(slotEditTile()));
     connect(m_actionDeleteTile, SIGNAL(triggered()), this, SLOT(slotDeleteTile()));
+	connect(m_actionEditAssimpNode, SIGNAL(triggered()), this, SLOT(slotEditAssimpNode()));
+	connect(m_actionDeleteAssimpNode, SIGNAL(triggered()), this, SLOT(slotDeleteAssimpNode()));
     connect(m_actionAddLayer, SIGNAL(triggered()), this, SLOT(slotAddLayer()));
     connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionDeleteLayer, SIGNAL(triggered()), this, SLOT(slotDeleteLayer()));
@@ -106,15 +111,24 @@ void TreeView::reset()
     QTreeWidgetItem* grid = createItemGeneric("grid", "Grid");
     root->addChild(grid);
 
-    QTreeWidgetItem* layer = createItemLayer("layer_CityGML");
-    root->addChild(layer);
+	QTreeWidgetItem* layer0 = createItemLayer("layer_CityGML", "LayerCityGML");
+    root->addChild(layer0);
+
+    QTreeWidgetItem* layer1 = createItemLayer("layer_Assimp", "LayerAssimp");
+    root->addChild(layer1);
+
+    QTreeWidgetItem* layer2 = createItemLayer("layer_Mnt", "LayerMnt");
+    root->addChild(layer2);
 }
 ////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type)
+QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)
 {
     QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(name));
-    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-    item->setCheckState(0, Qt::Checked);
+	if (checkable)
+	{
+		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+		item->setCheckState(0, Qt::Checked);
+	}
     item->setText(1, type);
 
     return item;
@@ -137,9 +151,9 @@ QTreeWidgetItem* TreeView::createItemRoot()
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
-QTreeWidgetItem* TreeView::createItemLayer(const QString& name)
+QTreeWidgetItem* TreeView::createItemLayer(const QString& name, const QString& type)
 {
-    QTreeWidgetItem* item = createItemGeneric(name, "Layer");
+    QTreeWidgetItem* item = createItemGeneric(name, type);
     return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -180,8 +194,8 @@ QTreeWidgetItem* TreeView::getCurrentItem()
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addLayer(const vcity::URI& uri)
 {
-    QTreeWidgetItem* layer = createItemLayer(uri.getNode(0).c_str());
-    m_tree->topLevelItem(0)->addChild(layer);
+    /*QTreeWidgetItem* layer = createItemLayer(uri.getNode(0).c_str());
+    m_tree->topLevelItem(0)->addChild(layer);*/	// MT TODO
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::setLayerName(const vcity::URI& uri, const std::string& name)
@@ -239,7 +253,7 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
     m_tree->blockSignals(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::setTileName(const vcity::URI& uri, std::string& name)
+void TreeView::setTileName(const vcity::URI& uri, const std::string& name)
 {
     QTreeWidgetItem* item = getNode(uri);
     if(item)
@@ -256,6 +270,104 @@ void TreeView::deleteTile(const vcity::URI& uri)
         QTreeWidgetItem* parent = tile->parent();
         parent->removeChild(tile);
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel)
+{
+	if (node->asGroup())
+	{
+		//std::cout << strLevel << node->className() << ": " << node->asGroup()->getNumChildren() << " children" << std::endl;
+
+		QString className = node->className();
+		if (strLevel == "")
+			className = "AssimpNode";
+
+		QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), className);
+		parent->addChild(item);
+
+		for ( unsigned int i=0; i<node->asGroup()->getNumChildren(); ++i )
+			addAssimpNodeRecursively(item, node->asGroup()->getChild(i), strLevel+"-");
+	}
+	else
+	{
+		if (node->className() == std::string("Geode"))
+		{
+			if (node->asGeode()->getNumDrawables())
+			{
+				//std::cout << strLevel << node->className() << ": drawable(s): ";
+
+				QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), node->className());
+				parent->addChild(item);
+
+				for ( unsigned int i=0; i<node->asGeode()->getNumDrawables(); ++i )
+				{
+					//std::cout << node->asGeode()->getDrawable(i)->getName() << " ";
+
+					QTreeWidgetItem* itemD = createItemGeneric(node->asGeode()->getDrawable(i)->getName().c_str(), node->asGeode()->getDrawable(i)->className(), false);
+					item->addChild(itemD);
+				}
+				//std::cout << std::endl;
+			}
+			else
+			{
+				//std::cout << strLevel << node->className() << ": no drawable" << std::endl;
+
+				/*QTreeWidgetItem* item = createItemGeneric("empty", node->className());
+				parent->addChild(item);*/
+			}
+		}
+	}
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    m_tree->blockSignals(true);
+
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    QTreeWidgetItem* layer = getNode(uriLayer);
+
+    /*QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "AssimpNode");
+    layer->addChild(item);*/
+
+	addAssimpNodeRecursively(layer/*item*/, node, "");
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::setAssimpNodeName(const vcity::URI& uri, const std::string& name)
+{
+    QTreeWidgetItem* item = getNode(uri);
+    if(item)
+    {
+        item->setText(0, name.c_str());
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::deleteAssimpNode(const vcity::URI& uri)
+{
+    QTreeWidgetItem* assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        QTreeWidgetItem* parent = assimpNode->parent();
+        parent->removeChild(assimpNode);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    m_tree->blockSignals(true);
+
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    QTreeWidgetItem* layer = getNode(uriLayer);
+
+    QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "MntAscNode");
+    layer->addChild(item);
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::selectItem(const vcity::URI& uri)
@@ -334,19 +446,26 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Root" << std::endl;
         m_tree->addAction(m_actionAddLayer);
     }
-    else if(item->text(1) == "Layer")
+    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp" || item->text(1) == "LayerMnt")
     {
-        //std::cout << "Layer" << std::endl;
+        std::cout << item->text(1).toStdString() << std::endl;
         m_tree->addAction(m_actionDeleteLayer);
         m_tree->addAction(m_actionEditLayer);
-        m_tree->addAction(m_actionAddTile);
+		if(item->text(1) == "LayerCityGML")
+			m_tree->addAction(m_actionAddTile);
     }
     else if(item->text(1) == "Tile")
     {
-        //std::cout << "Layer" << std::endl;
+        //std::cout << "Tile" << std::endl;
         m_tree->addAction(m_actionDeleteTile);
         m_tree->addAction(m_actionEditTile);
         m_tree->addAction(m_actionAddBuilding);
+    }
+	else if(item->text(1) == "AssimpNode")
+    {
+        //std::cout << "AssimpNode" << std::endl;
+        m_tree->addAction(m_actionDeleteAssimpNode);
+		m_tree->addAction(m_actionEditAssimpNode);
     }
     else if(item->text(1) == "Building")
     {
@@ -451,6 +570,17 @@ void TreeView::slotDeleteTile()
     appGui().getControllerGui().deleteTile(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotEditAssimpNode()
+{
+    DialogEditAssimpNode diag;
+    diag.editAssimpNode(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotDeleteAssimpNode()
+{
+    appGui().getControllerGui().deleteAssimpNode(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddLayer()
 {
     DialogAddLayer diag;
@@ -537,6 +667,8 @@ void TreeView::slotDeleteTag()
      m_tree->removeAction(m_actionAddTile);
      m_tree->removeAction(m_actionEditTile);
      m_tree->removeAction(m_actionDeleteTile);
+	 m_tree->removeAction(m_actionEditAssimpNode);
+     m_tree->removeAction(m_actionDeleteAssimpNode);
      m_tree->removeAction(m_actionAddLayer);
      m_tree->removeAction(m_actionEditLayer);
      m_tree->removeAction(m_actionDeleteLayer);

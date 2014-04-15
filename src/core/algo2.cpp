@@ -85,7 +85,6 @@ namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
     void Algo2::recupTerrainBat(citygml::CityObject* noeud2, int s)
     {
-
         std::vector<citygml::Polygon*> polyTer;
 
         // parse geometry
@@ -194,8 +193,8 @@ namespace vcity
             citygml::CityObject* building = nullptr;
             citygml::CityObject* terrain = nullptr;
 
-            building = app().getScene().getNode(uris[0]);
-            terrain = app().getScene().getNode(uris[1]);
+            building = app().getScene().getCityObjectNode(uris[0]);
+            terrain = app().getScene().getCityObjectNode(uris[1]);
 
             //Si le type n'est pas bon, on permute les 2
             if(building->getType() != citygml::COT_Building)

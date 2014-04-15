@@ -532,8 +532,7 @@ namespace vcity
         std::cout << "void Algo::generateLOD0(const URI& uri)" << std::endl;
         Polygon2D tmp;
         log() << "generateLOD0 on "<< uri.getStringURI() << "\n";
-        citygml::CityObject* obj = app().getScene().getNode(uri);
-
+        citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
         if(obj)
         {
             log() << uri.getStringURI() << "CityObject found\n";
@@ -565,7 +564,7 @@ namespace vcity
     void Algo::generateLOD1(const URI& uri)
     {
         log() << "generateLOD1 on "<< uri.getStringURI() << "\n";
-        citygml::CityObject* obj = app().getScene().getNode(uri);
+        citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
         if(obj)
         {
             log() << uri.getStringURI() << "CityObject found\n";

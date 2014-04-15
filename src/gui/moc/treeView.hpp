@@ -24,9 +24,9 @@ public:
 
     QTreeWidgetItem* addItemGeneric(const vcity::URI& uri, const QString& name, const QString& type);
 
-    QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type);
+    QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type, const bool checkable = true);
     QTreeWidgetItem* createItemRoot();
-    QTreeWidgetItem* createItemLayer(const QString& name);
+    QTreeWidgetItem* createItemLayer(const QString& name, const QString& type);
 
     QTreeWidgetItem* addItemTag();
     QTreeWidgetItem* addItemFlag();
@@ -47,8 +47,15 @@ public:
     void deleteLayer(const vcity::URI& uri);
 
     void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
-    void setTileName(const vcity::URI& uri, std::string& name);
+    void setTileName(const vcity::URI& uri, const std::string& name);
     void deleteTile(const vcity::URI& uri);
+
+	void addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
+	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+	void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
+    void deleteAssimpNode(const vcity::URI& uri);
+
+	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 
@@ -68,6 +75,8 @@ private slots:
     void slotAddTile();
     void slotEditTile();
     void slotDeleteTile();
+    void slotEditAssimpNode();
+    void slotDeleteAssimpNode();
     void slotAddLayer();
     void slotEditLayer();
     void slotDeleteLayer();
@@ -102,6 +111,8 @@ private:
     QAction* m_actionAddTile;
     QAction* m_actionEditTile;
     QAction* m_actionDeleteTile;
+    QAction* m_actionEditAssimpNode;
+    QAction* m_actionDeleteAssimpNode;
     QAction* m_actionAddLayer;
     QAction* m_actionEditLayer;
     QAction* m_actionDeleteLayer;

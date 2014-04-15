@@ -8,7 +8,9 @@ namespace vcity
 Scene::Scene()
     : m_layers()
 {
-    addLayer(new Layer("layer_CityGML"));
+    addLayer(new LayerCityGML("layer_CityGML"));
+	addLayer(new LayerAssimp("layer_Assimp"));
+	addLayer(new LayerMnt("layer_Mnt"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 Scene::~Scene()
@@ -16,16 +18,16 @@ Scene::~Scene()
     reset();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Scene::addLayer(Layer* layer)
+void Scene::addLayer(abstractLayer* abstractlayer)
 {
     // check that layer is not already in the scene
     //URI uri
     //getLayer();
     //layer->getName();
-    m_layers.push_back(layer);
+    m_layers.push_back(abstractlayer);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Scene::addLayer(const std::string& name)
+/*void Scene::addLayer(const std::string& name)
 {
     // check that layer is not already in the scene
     //URI uri
@@ -33,13 +35,13 @@ void Scene::addLayer(const std::string& name)
     //layer->getName();
     Layer* layer = new Layer(name);
     m_layers.push_back(layer);
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
-Layer* Scene::getLayer(const URI& uri)
+abstractLayer* Scene::getLayer(const URI& uri)
 {
     if(uri.getDepth() > 0)
     {
-        for(std::vector<Layer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
+        for(std::vector<abstractLayer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
             if(uri.getNode(0) == (*it)->getName())
             {
@@ -51,11 +53,11 @@ Layer* Scene::getLayer(const URI& uri)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const Layer* Scene::getLayer(const URI& uri) const
+const abstractLayer* Scene::getLayer(const URI& uri) const
 {
     if(uri.getDepth() > 0)
     {
-        for(std::vector<Layer*>::const_iterator it = m_layers.begin(); it < m_layers.end(); ++it)
+        for(std::vector<abstractLayer*>::const_iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
             if(uri.getNode(0) == (*it)->getName())
             {
@@ -67,56 +69,65 @@ const Layer* Scene::getLayer(const URI& uri) const
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-Layer* Scene::getDefaultLayer()
+abstractLayer* Scene::getDefaultLayer(const std::string& type)
 {
     if(m_layers.size() > 0)
     {
-        return m_layers[0];
+        for(std::vector<abstractLayer*>::const_iterator it = m_layers.begin(); it < m_layers.end(); ++it)
+        {
+            if(type == (*it)->getType())
+            {
+                return *it;
+            }
+        }
     }
 
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::vector<Layer*>& Scene::getLayers()
+std::vector<abstractLayer*>& Scene::getLayers()
 {
     return m_layers;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::vector<Layer*>& Scene::getLayers() const
+const std::vector<abstractLayer*>& Scene::getLayers() const
 {
     return m_layers;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::deleteLayer(const URI& uri)
 {
-    if(uri.getType() == "Layer")
+    for(std::vector<abstractLayer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
     {
-        for(std::vector<Layer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
+        if(uri.getNode(0) == (*it)->getName())
         {
-            if(uri.getNode(0) == (*it)->getName())
-            {
-                m_layers.erase(it);
-                delete *it;
-            }
+            m_layers.erase(it);
+            delete *it;
         }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::addTile(const URI& uriLayer, Tile* tile)
 {
-    Layer* layer = getLayer(uriLayer);
-    if(layer)
+    abstractLayer* abstractlayer = getLayer(uriLayer);
+    if(abstractlayer)
     {
-        layer->addTile(tile);
+		LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
+		if (layer)
+			layer->addTile(tile);
+		else std::cout << "layer is NULL in addTile" << std::endl;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
 Tile* Scene::getTile(const URI& uri)
 {
-    Layer* layer = getLayer(uri);
-    if(layer)
+    abstractLayer* abstractlayer = getLayer(uri);
+    if(abstractlayer)
     {
-        return layer->getTile(uri);
+		LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
+		if (layer)
+			return layer->getTile(uri);
+		else std::cout << "layer is NULL in getTile" << std::endl;
     }
 
     return nullptr;
@@ -124,10 +135,13 @@ Tile* Scene::getTile(const URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 std::vector<Tile*>& Scene::getTiles(const URI& uriLayer)
 {
-    Layer* layer = getLayer(uriLayer);
-    if(layer)
+    abstractLayer* abstractlayer = getLayer(uriLayer);
+    if(abstractlayer)
     {
-        return layer->getTiles();
+		LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
+		if (layer)
+			return layer->getTiles();
+		else std::cout << "layer is NULL in getTiles" << std::endl;
     }
 
     //return 0; // fail
@@ -135,10 +149,13 @@ std::vector<Tile*>& Scene::getTiles(const URI& uriLayer)
 ////////////////////////////////////////////////////////////////////////////////
 const std::vector<Tile*>& Scene::getTiles(const URI& uriLayer) const
 {
-    const Layer* layer = getLayer(uriLayer);
-    if(layer)
+    const abstractLayer* abstractlayer = getLayer(uriLayer);
+    if(abstractlayer)
     {
-        return layer->getTiles();
+		const LayerCityGML* layer = dynamic_cast<const LayerCityGML*>(abstractlayer);
+		if (layer)
+			return layer->getTiles();
+		else std::cout << "layer is NULL in const getTiles" << std::endl;
     }
 
     //return 0; // fail
@@ -146,25 +163,30 @@ const std::vector<Tile*>& Scene::getTiles(const URI& uriLayer) const
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::deleteTile(const URI& uri)
 {
-    Layer* layer = getLayer(uri);
-    if(layer)
+    abstractLayer* abstractlayer = getLayer(uri);
+    if(abstractlayer)
     {
-        return layer->deleteTile(uri);
+		LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
+		if (layer)
+			return layer->deleteTile(uri);
+		else std::cout << "layer is NULL in deleteTile" << std::endl;
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityObject* Scene::getNode(const URI& uri)
+citygml::CityObject* Scene::getCityObjectNode(const URI& uri)
 {
     if(uri.getDepth() > 2)
     {
         //URI uriLayer;
         //uriLayer.append(uri.getNode(0));
         //log() << "debug uri : " << uri.getNode(0) << "\n";
-        //uriLayer.setType("Layer");
-        Layer* layer = getLayer(uri);
-        if(layer)
+        abstractLayer* abstractlayer = getLayer(uri);
+        if(abstractlayer)
         {
-            return layer->getNode(uri);
+			LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
+			if (layer)
+				return layer->getCityObjectNode(uri);
+			else std::cout << "layer is NULL in getCityObjectNode" << std::endl;
         }
     }
 
@@ -174,7 +196,7 @@ citygml::CityObject* Scene::getNode(const URI& uri)
 void Scene::reset()
 {
     // clear layers
-    std::vector<Layer*>::iterator it;
+    std::vector<abstractLayer*>::iterator it;
     for(it=m_layers.begin(); it<m_layers.end(); ++it)
     {
         // this will this the layer, including the tiles inside
@@ -186,7 +208,7 @@ void Scene::reset()
 void Scene::dump()
 {
     log() << "root" << "\n";
-    for(std::vector<Layer*>::iterator it=m_layers.begin(); it<m_layers.end(); ++it)
+    for(std::vector<abstractLayer*>::iterator it=m_layers.begin(); it<m_layers.end(); ++it)
     {
         log() << "  " << (*it)->getName() << "\n";
         (*it)->dump();

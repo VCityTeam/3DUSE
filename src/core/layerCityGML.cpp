@@ -1,32 +1,22 @@
 ////////////////////////////////////////////////////////////////////////////////
-#include "layer.hpp"
+#include "layerCityGML.hpp"
 #include "application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-Layer::Layer(const std::string& name)
-    : m_name(name)
+LayerCityGML::LayerCityGML(const std::string& name)
+    : abstractLayer(name)
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Layer::setName(const std::string& name)
-{
-    m_name = name;
-}
-////////////////////////////////////////////////////////////////////////////////
-const std::string& Layer::getName() const
-{
-    return m_name;
-}
-////////////////////////////////////////////////////////////////////////////////
-void Layer::addTile(Tile* tile)
+void LayerCityGML::addTile(Tile* tile)
 {
     m_tiles.push_back(tile);
 }
 ////////////////////////////////////////////////////////////////////////////////
-Tile* Layer::getTile(const URI& uri)
+Tile* LayerCityGML::getTile(const URI& uri)
 {
     if(uri.getDepth() > 1)
     {
@@ -42,17 +32,17 @@ Tile* Layer::getTile(const URI& uri)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::vector<Tile*>& Layer::getTiles()
+std::vector<Tile*>& LayerCityGML::getTiles()
 {
     return m_tiles;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::vector<Tile*>& Layer::getTiles() const
+const std::vector<Tile*>& LayerCityGML::getTiles() const
 {
     return m_tiles;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Layer::deleteTile(const URI& uri)
+void LayerCityGML::deleteTile(const URI& uri)
 {
     Tile* tile = getTile(uri);
 
@@ -67,7 +57,7 @@ void Layer::deleteTile(const URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityObject* Layer::getNode(const URI& uri)
+citygml::CityObject* LayerCityGML::getCityObjectNode(const URI& uri)
 {
     Tile* tile = getTile(uri);
     if(tile)
@@ -78,16 +68,21 @@ citygml::CityObject* Layer::getNode(const URI& uri)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-URI Layer::getURI() const
+const std::string LayerCityGML::getType() const
+{
+    return "LayerCityGML";
+}
+////////////////////////////////////////////////////////////////////////////////
+URI LayerCityGML::getURI() const
 {
     URI uri;
     uri.append(getName());
-    uri.setType("Layer");
+    uri.setType(getType());
 
     return uri;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Layer::dump()
+void LayerCityGML::dump()
 {
     for(std::vector<Tile*>::iterator it=m_tiles.begin(); it<m_tiles.end(); ++it)
     {

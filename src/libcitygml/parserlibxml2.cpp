@@ -25,6 +25,10 @@
 #include <libxml/parser.h>
 #include <libxml/SAX.h>
 
+#ifdef _MSC_VER
+#pragma warning(disable : 4996) // TEMP MT
+#endif
+
 using namespace citygml;
 
 // CityGML LibXml2 SAX parsing handler

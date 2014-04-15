@@ -153,11 +153,24 @@ void OsgScene::init()
     layer0->setName("layer_CityGML");
     m_layers->addChild(layer0);
 
+	// build second default layer
+    osg::ref_ptr<osg::Group> layer1 = new osg::Group();
+    layer1->setName("layer_Assimp");
+    m_layers->addChild(layer1);
+
+	// build third default layer
+    osg::ref_ptr<osg::Group> layer2 = new osg::Group();
+    layer2->setName("layer_Mnt");
+    m_layers->addChild(layer2);
+
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
     m_layers->addChild(grid);
 
     //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
+    //m_layers->addChild(bbox);
+
+	//osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(-10.0, -10.0, -10.0), osg::Vec3(10.0, 10.0, 10.0));
     //m_layers->addChild(bbox);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,6 +203,46 @@ void OsgScene::deleteTile(const vcity::URI& uriTile)
     if(tile)
     {
         tile->getParent(0)->removeChild(tile);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+			layerGroup->addChild(node);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::setAssimpNodeName(const vcity::URI& uri, const std::string& name)
+{
+    osg::ref_ptr<osg::Node> assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        assimpNode->setName(name);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::deleteAssimpNode(const vcity::URI& uri)
+{
+    osg::ref_ptr<osg::Node> assimpNode = getNode(uri);
+    if(assimpNode)
+    {
+        assimpNode->getParent(0)->removeChild(assimpNode);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+			layerGroup->addChild(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -631,7 +684,7 @@ osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n
     return geode;
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*osg::ref_ptr<osg::Geode> OsgScene::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
+osg::ref_ptr<osg::Geode> OsgScene::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
 {
     osg::Vec3 step = upperBound - lowerBound;
 
@@ -670,5 +723,5 @@ osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n
     geode->addDrawable(geom);
 
     return geode;
-}*/
+}
 ////////////////////////////////////////////////////////////////////////////////

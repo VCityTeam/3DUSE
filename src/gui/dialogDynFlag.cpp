@@ -31,7 +31,7 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
     //if(m_ui->treeWidget->currentItem())
     {
         //std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
-        obj = vcity::app().getScene().getNode(uri);
+        obj = vcity::app().getScene().getCityObjectNode(uri);
 
         if(obj)
         {
@@ -98,7 +98,7 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
         else
         {
             // use existing
-            geom = vcity::app().getScene().getNode(uri); //findNode(ui.comboBox->currentText().toStdString());
+            geom = vcity::app().getScene().getCityObjectNode(uri); //findNode(ui.comboBox->currentText().toStdString());
             std::cout << "use existing : " << geom << std::endl;
             item2text = ui->comboBox->currentText();
         }
