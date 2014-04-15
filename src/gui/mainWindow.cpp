@@ -18,14 +18,6 @@
 #include <QMessageBox>
 #include <QDate>
 
-#include <osg/PositionAttitudeTransform>
-#include <osgShadow/ShadowedScene>
-#include <osgShadow/ShadowMap>
-//#include <osgShadow/ParallelSplitShadowMap>
-#include <osgDB/Archive>
-#include <osgDB/ReaderWriter>
-#include <osgDB/WriteFile>
-
 #include "citygml.hpp"
 #include "export.hpp"
 
@@ -252,63 +244,6 @@ bool MainWindow::loadFile(const QString& filepath)
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
 
         m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
-
-
-        /*if(poDS)
-        {
-            OGRLayer *poLayer;
-            int nbLayers = poDS->GetLayerCount();
-            printf("%d layer\n", nbLayers);
-            if(nbLayers > 0)
-            {
-                poLayer = poDS->GetLayer(0);
-                printf("layer %s\n", poLayer->GetName());
-                //poLayer = poDS->GetLayerByName( "point" );
-
-                OGRFeature *poFeature;
-
-                poLayer->ResetReading();
-                while( (poFeature = poLayer->GetNextFeature()) != NULL )
-                {
-                    OGRFeatureDefn *poFDefn = poLayer->GetLayerDefn();
-                    int iField;
-
-                    for( iField = 0; iField < poFDefn->GetFieldCount(); iField++ )
-                    {
-                        OGRFieldDefn *poFieldDefn = poFDefn->GetFieldDefn( iField );
-
-                        if( poFieldDefn->GetType() == OFTInteger )
-                            printf( "%d,", poFeature->GetFieldAsInteger( iField ) );
-                        else if( poFieldDefn->GetType() == OFTReal )
-                            printf( "%.3f,", poFeature->GetFieldAsDouble(iField) );
-                        else if( poFieldDefn->GetType() == OFTString )
-                            printf( "%s,", poFeature->GetFieldAsString(iField) );
-                        else
-                            printf( "%s,", poFeature->GetFieldAsString(iField) );
-                    }
-
-                    OGRGeometry *poGeometry;
-
-                    poGeometry = poFeature->GetGeometryRef();
-                    if(poGeometry != NULL && wkbFlatten(poGeometry->getGeometryType()) == wkbPoint)
-                    {
-                        OGRPoint *poPoint = (OGRPoint *) poGeometry;
-                        printf( "%.3f,%3.f\n", poPoint->getX(), poPoint->getY() );
-                    }
-                    else
-                    {
-                        printf( "%ud %s no point geometry\n", poGeometry->getGeometryType(), poGeometry->getGeometryName() );
-                    }
-                    OGRFeature::DestroyFeature( poFeature );
-                }
-
-                OGRDataSource::DestroyDataSource( poDS );
-
-                QStringList list = settings.value("recentfiles").toStringList();
-                list.append(filepath);
-                settings.setValue("recentfiles", list);
-            }
-        }*/
     }
     else if(ext == "dxf")
     {

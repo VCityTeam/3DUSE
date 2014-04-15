@@ -12,7 +12,7 @@
 #include <osgUtil/Optimizer>
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
-#include "libcitygml/readerOsgCityGML.hpp"
+#include "osgCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer

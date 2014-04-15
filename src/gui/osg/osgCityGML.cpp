@@ -3,7 +3,7 @@
 // http://code.google.com/p/libcitygml
 // Copyright(c) 2010 Joachim Pouderoux, BRGM
 ////////////////////////////////////////////////////////////////////////////////
-#include "readerOsgCityGML.hpp"
+#include "osgCityGML.hpp"
 
 #include <osg/Array>
 #include <osg/Node>

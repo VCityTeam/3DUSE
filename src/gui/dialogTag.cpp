@@ -1,7 +1,7 @@
 #include "moc/dialogTag.hpp"
 #include "ui_dialogTag.h"
 #include "gui/applicationGui.hpp"
-#include "libcitygml/readerOsgCityGML.hpp"
+#include "osg/osgCityGML.hpp"
 #include <QSettings>
 #include <QFileDialog>
 #include <osg/ValueObject>
