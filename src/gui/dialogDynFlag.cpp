@@ -9,6 +9,9 @@ DialogDynFlag::DialogDynFlag(QWidget *parent) :
     ui(new Ui::DialogDynFlag)
 {
     ui->setupUi(this);
+
+    connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(addFeatureArray()));
+    connect(ui->pushButton_2, SIGNAL(clicked()), this, SLOT(addFeatureFile()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 DialogDynFlag::~DialogDynFlag()
@@ -19,6 +22,11 @@ DialogDynFlag::~DialogDynFlag()
 void DialogDynFlag::addDynFlag(const vcity::URI& uri)
 {
     citygml::CityObject* obj = 0;
+
+    m_featureArrayNames.clear();
+    m_featureArrayValues.clear();
+    m_featureFileNames.clear();
+    m_featureFilePaths.clear();
 
     //if(m_ui->treeWidget->currentItem())
     {
@@ -95,15 +103,28 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
             item2text = ui->comboBox->currentText();
         }
 
-        citygml::BuildingFlag* flag = new citygml::BuildingFlag(geom);
+        citygml::BuildingDynFlag* flag = new citygml::BuildingDynFlag(geom);
         flag->m_name = ui->lineEdit->text().toStdString();
         flag->m_parent = obj;
+
+        // parse features
+        for(int i=0; i<m_featureArrayNames.size(); ++i)
+        {
+            citygml::DataSourceArray* ds = new citygml::DataSourceArray(m_featureArrayNames[i]->text().toStdString(), m_featureArrayValues[i]->text().toStdString());
+            flag->addDataSource(ds);
+        }
+        for(int i=0; i<m_featureFileNames.size(); ++i)
+        {
+            citygml::DataSourceFile* ds = new citygml::DataSourceFile(m_featureFileNames[i]->text().toStdString(), m_featureFilePaths[i]->text().toStdString());
+            flag->addDataSource(ds);
+        }
+
         obj->addFlag(flag);
 
         QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(flag->getStringId().c_str()));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Flag");
+        item->setText(1, "DynFlag");
 
         QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(item2text));
         item->addChild(item2);
@@ -111,5 +132,29 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
         //appGui().m_ui treeWidget->currentItem()->addChild(item);
         appGui().getTreeView()->addItemGeneric(uri, flag->getStringId().c_str(), "DynFlag");
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void DialogDynFlag::addFeatureArray()
+{
+    QHBoxLayout* hb = new QHBoxLayout();
+    QLineEdit* key = new QLineEdit(); m_featureArrayNames.push_back(key);
+    QLineEdit* val = new QLineEdit(); m_featureArrayValues.push_back(val);
+    key->setToolTip("Feature name");
+    val->setToolTip("Values : date(format : yyyy/MM/dd-HH:mm:ss) value (separator : |)");
+    hb->addWidget(key);
+    hb->addWidget(val);
+    ui->verticalLayout_3->addLayout(hb);
+}
+////////////////////////////////////////////////////////////////////////////////
+void DialogDynFlag::addFeatureFile()
+{
+    QHBoxLayout* hb = new QHBoxLayout();
+    QLineEdit* key = new QLineEdit(); m_featureFileNames.push_back(key);
+    QLineEdit* val = new QLineEdit(); m_featureFilePaths.push_back(val);
+    key->setToolTip("Feature name");
+    val->setToolTip("file path");
+    hb->addWidget(key);
+    hb->addWidget(val);
+    ui->verticalLayout_4->addLayout(hb);
 }
 ////////////////////////////////////////////////////////////////////////////////

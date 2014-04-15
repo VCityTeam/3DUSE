@@ -28,7 +28,7 @@
 #include <osg/Group>
 #include <osg/Geode>
 #include <osg/Geometry>
-#include "libcitygml/readerOsgCityGML.hpp"
+#include "osgCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 class OsgScene : public osg::Group
 {

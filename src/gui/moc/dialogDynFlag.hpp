@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include "core/URI.hpp"
+class QLineEdit;
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogDynFlag;
@@ -18,8 +19,17 @@ public:
 
     void addDynFlag(const vcity::URI& uri);
 
+private slots:
+    void addFeatureArray();
+    void addFeatureFile();
+
 private:
     Ui::DialogDynFlag *ui;
+    std::vector<QLineEdit*> m_featureArrayNames;
+    std::vector<QLineEdit*> m_featureArrayValues;
+
+    std::vector<QLineEdit*> m_featureFileNames;
+    std::vector<QLineEdit*> m_featureFilePaths;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGDYNFLAG_HPP

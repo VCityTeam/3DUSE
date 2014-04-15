@@ -1,5 +1,5 @@
-#ifndef __READEROSGCITYGML_HPP__
-#define __READEROSGCITYGML_HPP__
+#ifndef __OSGCITYGML_HPP__
+#define __OSGCITYGML_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <osgDB/Registry>
 #include <osgDB/ReadFile>
@@ -40,4 +40,4 @@ public:
     Settings m_settings;
 };
 ////////////////////////////////////////////////////////////////////////////////
-#endif // __READEROSGCITYGML_HPP__
+#endif // __OSGCITYGML_HPP__

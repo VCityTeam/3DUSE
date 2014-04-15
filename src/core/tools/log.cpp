@@ -39,8 +39,16 @@ Log& Log::operator<<(const std::string& str)
 ////////////////////////////////////////////////////////////////////////////////
 Log& Log::operator<<(int val)
 {
-    if(m_logFile) m_file << val;
-    if(m_logStdout) std::cout << val;
+    if(m_logFile)
+    {
+        m_file << val;
+        m_file.flush();
+    }
+    if(m_logStdout)
+    {
+        std::cout << val;
+        std::cout.flush();
+    }
 
     return *this;
 }

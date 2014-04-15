@@ -12,7 +12,7 @@
 #include <osgUtil/Optimizer>
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
-#include "libcitygml/readerOsgCityGML.hpp"
+#include "osgCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -124,7 +124,7 @@ void OsgScene::init()
     lightSource->setName("lightsource");
     osg::ref_ptr<osg::Light> light = new osg::Light();
     light->setName("light");
-    light->setAmbient(osg::Vec4(0.0,0.0,0.0,1.0));
+    light->setAmbient(osg::Vec4(0.6,0.6,0.6,1.0));
     lightSource->setLight(light);
     light->setPosition(m_shadowVec);
     shadowedScene->addChild(lightSource);
@@ -294,6 +294,33 @@ void OsgScene::setShadow(bool shadow)
     m_shadow = shadow;
 }
 ////////////////////////////////////////////////////////////////////////////////
+std::map<std::string, osg::ref_ptr<osg::Texture2D> > texManager;
+////////////////////////////////////////////////////////////////////////////////
+void setTexture(osg::ref_ptr<osg::Node> node, citygml::BuildingTag* tag, osg::ref_ptr<osg::Texture2D> texture)
+{
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
+    if(grp)
+    {
+        for(unsigned int i=0; i<grp->getNumChildren(); ++i)
+        {
+            osg::ref_ptr<osg::Node> child = grp->getChild(i);
+            setTexture(child, tag, texture);
+        }
+    }
+
+    osg::ref_ptr<osg::Geode> geode = node->asGeode();
+    if(geode)
+    {
+        for(unsigned int i=0; i<geode->getNumDrawables(); ++i)
+        {
+            osg::StateSet* stateset = geode->getDrawable(i)->getOrCreateStateSet();
+            //if(texture) stateset->setTextureAttributeAndModes( 0, texture, osg::StateAttribute::ON );
+            std::cout << "texture : " << texture << std::endl;
+            if(texture) stateset->setTextureAttribute( 0, texture, osg::StateAttribute::ON );
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 {
     int year = date.date().year();
@@ -304,6 +331,48 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
         for(unsigned int i=0; i<grp->getNumChildren(); ++i)
         {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
+
+            double val;
+            bool hasFlag = node->getUserValue("TAGPTR", val);
+            if(hasFlag)
+            {
+                citygml::BuildingTag* tag;
+                memcpy(&tag, &val, sizeof(tag));
+                std::string texturePath = tag->getAttribute("texture", date);
+                if(texturePath != "none")
+                {
+                    std::cout << date.toString().toStdString() << " : texture : " << texturePath << std::endl;
+
+                    // check cache
+                    osg::ref_ptr<osg::Texture2D> texture = nullptr;
+                    std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = texManager.find(texturePath);
+                    if(it!=texManager.end())
+                    {
+                        texture = it->second;
+                    }
+                    else
+                    {
+                        if(osg::Image* image = osgDB::readImageFile(texturePath))
+                        {
+                            //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
+                            //std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
+                            texture = new osg::Texture2D;
+                            texture->setImage( image );
+                            texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+                            texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+                            texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+                            texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+                            texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
+
+                            texManager[texturePath] = texture;
+                        }
+                        else
+                            osg::notify(osg::NOTICE) << "  Warning: Texture " << texturePath << " not found!" << std::endl;
+                    }
+
+                    setTexture(node, tag, texture);
+                }
+            }
 
             int yearOfConstruction;
             int yearOfDemolition;
