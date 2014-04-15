@@ -26,7 +26,7 @@ public:
 
     QTreeWidgetItem* createItemGeneric(const QString& name, const QString& type, const bool checkable = true);
     QTreeWidgetItem* createItemRoot();
-    QTreeWidgetItem* createItemLayer(const QString& name);
+    QTreeWidgetItem* createItemLayer(const QString& name, const QString& type);
 
     QTreeWidgetItem* addItemTag();
     QTreeWidgetItem* addItemFlag();
@@ -54,6 +54,8 @@ public:
 	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 	void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
     void deleteAssimpNode(const vcity::URI& uri);
+
+	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 

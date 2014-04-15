@@ -1,7 +1,9 @@
-#ifndef __LAYER_HPP__
-#define __LAYER_HPP__
+#ifndef __LAYERCITYGML_HPP__
+#define __LAYERCITYGML_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include "abstractlayer.hpp"
 #include "tile.hpp"
+
 #include "URI.hpp"
 #include <string>
 #include <memory>
@@ -9,23 +11,15 @@
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Layer class : it holds all the tiles
+/// \brief LayerCityGML class : it holds all the tiles
 /// A layer contains a set of tiles. Tiles are identified by a name and a position on a grid.
 /// Grid info is in the data profile
-class Layer
+class LayerCityGML : public abstractLayer
 {
 public:
     /// \brief Layer Build empty layer
     /// \param name Layer name
-    Layer(const std::string& name);
-
-    /// \brief setName Set layer name
-    /// \param name Layer name
-    void setName(const std::string& name);
-
-    /// \brief getName Get layer name
-    /// \return Layer name string
-    const std::string& getName() const;
+    LayerCityGML(const std::string& name);
 
     /// \brief addTile Add a tile in a layer
     /// \param tile The tile to add
@@ -48,22 +42,23 @@ public:
     /// \param uri URI pointing to the tile
     void deleteTile(const URI& uri);
 
-    /// \brief getNode Get a CityGML node
+    /// \brief getCityObjectNode Get a CityGML node
     /// \param uri URI pointing to the CityGML node
     /// \return Ptr to CityGML node or nullptr
-    citygml::CityObject* getNode(const URI& uri);
+    citygml::CityObject* getCityObjectNode(const URI& uri);
 
-    URI getURI() const;
+	const std::string getType() const;
+
+	URI getURI() const;
 
     void dump();
 
 private:
-    std::string m_name;             ///< layer name
     std::vector<Tile*> m_tiles;     ///< Tiles
 };
 ////////////////////////////////////////////////////////////////////////////////
-typedef std::shared_ptr<Layer> LayerPtr;
+typedef std::shared_ptr<LayerCityGML> LayerCityGMLPtr;
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
-#endif // __LAYER_HPP__
+#endif // __LAYERCITYGML_HPP__

@@ -13,8 +13,8 @@ void Algo2::fixBuilding(const std::vector<URI>& uris)
         citygml::CityObject* building = nullptr;
         citygml::CityObject* terrain = nullptr;
 
-        building = app().getScene().getNode(uris[0]);
-        terrain = app().getScene().getNode(uris[1]);
+        building = app().getScene().getCityObjectNode(uris[0]);
+        terrain = app().getScene().getCityObjectNode(uris[1]);
 
         if(building->getType() != citygml::COT_Building)
         {

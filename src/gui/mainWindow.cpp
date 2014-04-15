@@ -40,6 +40,8 @@
 #include "assimp/Scene.h"*/
 
 #include "osg/osgAssimp.hpp"
+
+#include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
@@ -145,6 +147,8 @@ MainWindow::MainWindow(QWidget *parent) :
     updateRecentFiles();
 
     m_treeView->init();
+    
+    setlocale(LC_ALL, "C"); // MT : important for Linux
 }
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::~MainWindow()
@@ -242,7 +246,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
         // add tile
         vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
-        vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
+        vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerCityGML")->getURI();
         vcity::log() << uriLayer.getStringURI() << "\n";
         appGui().getControllerGui().addTile(uriLayer, *tile);
 
@@ -277,11 +281,37 @@ bool MainWindow::loadFile(const QString& filepath)
 			ss << "assimpNode" << id++;
 			node->setName(ss.str());
 
-			vcity::URI uriLayer = m_app.getScene().getDefaultLayer()->getURI();
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerAssimp")->getURI();
 			vcity::log() << uriLayer.getStringURI() << "\n";
 			appGui().getControllerGui().addAssimpNode(uriLayer, node);
 
 			addRecentFile(filepath);
+		}
+	}
+	// MntAsc importer
+	else if(ext ==  "asc")
+    {
+		MNT mnt;
+
+		if (mnt.charge(filepath.toStdString().c_str(), "ASC"))
+		{
+			osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(-643000.0, -6857000.0);
+
+			// set mntAscNode name
+			static int id = 0;
+			std::stringstream ss;
+			ss << "mntAscNode" << id++;
+			node->setName(ss.str());
+
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerMnt")->getURI();
+			vcity::log() << uriLayer.getStringURI() << "\n";
+			appGui().getControllerGui().addMntAscNode(uriLayer, node);
+
+			addRecentFile(filepath);
+
+			//mnt.sauve_log(std::string("mntAsc.txt").c_str(), std::string("mntAsc.tga").c_str()); // mntAsc.tga bidon
+			//mnt.sauve_partie(std::string("mntAsc_partie.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+			//mnt.sauve_partie_XML(std::string("mntAsc_partie_xml.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
 		}
 	}
     else if(ext == "shp")
@@ -521,7 +551,7 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     std::stringstream ss;
     ss << uri.getStringURI() << std::endl;
 
-    citygml::CityObject* obj = vcity::app().getScene().getNode(uri);
+    citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
     if(obj)
     {
         ss << "ID : " << obj->getId() << std::endl;
@@ -752,7 +782,8 @@ void MainWindow::exportCityGML()
     {
         std::cout << "Citygml export citymodel" << std::endl;
         // use first tile
-        citygml::CityModel* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->getCityModel();
+		vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+        citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
         //citygml::exportCitygml(model, "test.citygml");
         exporter.exportCityModel(model, filename.toStdString());
     }
@@ -1012,7 +1043,7 @@ void MainWindow::test5()
 {
     if(appGui().getSelectedNodes().size() > 0)
     {
-        citygml::CityObject* obj = appGui().getScene().getNode(appGui().getSelectedNodes()[0]);
+        citygml::CityObject* obj = appGui().getScene().getCityObjectNode(appGui().getSelectedNodes()[0]);
         test5rec(obj);
         appGui().getControllerGui().update(appGui().getSelectedNodes()[0]);
     }

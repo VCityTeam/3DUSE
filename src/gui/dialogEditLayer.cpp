@@ -16,10 +16,10 @@ DialogEditLayer::~DialogEditLayer()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogEditLayer::editLayer(const vcity::URI& uri)
 {
-    vcity::Layer* layer = vcity::app().getScene().getLayer(uri);
-    if(layer)
+    vcity::abstractLayer* abstractlayer = vcity::app().getScene().getLayer(uri);
+    if(abstractlayer)
     {
-        setName(layer->getName().c_str());
+        setName(abstractlayer->getName().c_str());
 
         if(exec() && !getName().isEmpty())
         {

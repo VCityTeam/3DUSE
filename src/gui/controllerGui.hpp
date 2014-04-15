@@ -28,6 +28,9 @@ public:
 	virtual void deleteAssimpNode(const vcity::URI& uri);
 	virtual void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
 
+	// MntAsc
+	virtual void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+
     // selection
     virtual void resetSelection();
     virtual bool addSelection(const vcity::URI& uri) override;

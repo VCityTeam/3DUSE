@@ -128,6 +128,17 @@ void ControllerGui::setAssimpNodeName(const vcity::URI& uri, const std::string& 
 	appGui().getOsgScene()->setAssimpNodeName(uri, name);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    //Controller::addMntAscNode(uriLayer, node);
+
+    // fill treeview
+    appGui().getTreeView()->addMntAscNode(uriLayer, node);
+
+    // fill osg scene
+    appGui().getOsgScene()->addMntAscNode(uriLayer, node);
+}
+////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::resetSelection()
 {
     // reset in treeview
@@ -191,7 +202,7 @@ void ControllerGui::update(const vcity::URI& uri_)
     vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
     citygml::CityModel* model = tile->getCityModel();
 
-    citygml::CityObject* obj = appGui().getScene().getNode(uri);
+    citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
     citygml::ParserParams params;
     //obj->finish(*model->getAppearanceManager(), params);
     finish(model, params, obj);

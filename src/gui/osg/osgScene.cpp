@@ -153,6 +153,16 @@ void OsgScene::init()
     layer0->setName("layer_CityGML");
     m_layers->addChild(layer0);
 
+	// build second default layer
+    osg::ref_ptr<osg::Group> layer1 = new osg::Group();
+    layer1->setName("layer_Assimp");
+    m_layers->addChild(layer1);
+
+	// build third default layer
+    osg::ref_ptr<osg::Group> layer2 = new osg::Group();
+    layer2->setName("layer_Mnt");
+    m_layers->addChild(layer2);
+
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
     m_layers->addChild(grid);
@@ -222,6 +232,17 @@ void OsgScene::deleteAssimpNode(const vcity::URI& uri)
     if(assimpNode)
     {
         assimpNode->getParent(0)->removeChild(assimpNode);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+			layerGroup->addChild(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
