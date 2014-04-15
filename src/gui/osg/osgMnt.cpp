@@ -191,7 +191,7 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 	return true;
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(int zfactor)
+osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(float offset_x, float offset_y, int zfactor)
 {
     osg::ref_ptr<osg::Geode> geode;
 	geode = new osg::Geode;
@@ -205,7 +205,7 @@ osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(int zfactor)
 		unsigned int i=0;
         for( int y=0; y<get_dim_y(); y++ )
 			for( int x=0; x<get_dim_x(); x++ )
-				(*va)[i++].set( x_noeud_NO+(pas_x * x), y_noeud_NO+(pas_y * y), get_altitude(x, y) * zfactor );
+				(*va)[i++].set( x_noeud_NO+offset_x+(pas_x * x), y_noeud_NO+offset_y+(pas_y * y), get_altitude(x, y) * zfactor );
 
         geom->setVertexArray( va );
 

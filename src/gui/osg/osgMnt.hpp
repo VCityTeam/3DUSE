@@ -14,7 +14,7 @@ public :
 	bool charge( const char* nom_fichier, const char* type_fichier );
 	unsigned int  get_numVertices()  { return dim_x*dim_y; }
 	int  get_altitude(const int x, const int y)  { return altitudes[x+y*dim_x]; }
-	osg::ref_ptr<osg::Geode> buildAltitudesGrid(int zfactor);
+	osg::ref_ptr<osg::Geode> buildAltitudesGrid(float offset_x, float offset_y, int zfactor=1);
 
 	void sauve_log( const char* nom_fichier_log, const char* nom_fichier_tga );
 	bool sauve_partie( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y );
