@@ -76,7 +76,7 @@ namespace vcity
         citygml::CityObjects::iterator itObj = cityObjects.begin();
         for(; itObj != cityObjects.end(); ++itObj)
         {
-            forme2 = stockeForme(*itObj,val); //Appel récursif
+            forme = stockeForme(*itObj,val); //Appel récursif
         }
 
     }
