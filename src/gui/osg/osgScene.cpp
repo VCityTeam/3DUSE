@@ -76,7 +76,7 @@ protected:
 
 
 OsgScene::OsgScene()
-    : osg::Group(), m_shadow(false), m_shadowVec(-1,-1,1,0)
+    : osg::Group(), m_shadow(false), m_shadowVec(-1,-1,0.1,0)
 {
     init();
 }
