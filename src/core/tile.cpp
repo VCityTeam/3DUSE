@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "tile.hpp"
-#include "libcitygml/readerOsgCityGML.hpp"
+#include "gui/osg/osgCityGML.hpp"
 #include <osg/PositionAttitudeTransform>
 //#include <osg/UserDataContainer>
 #include <osg/ValueObject>

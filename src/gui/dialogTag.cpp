@@ -1,11 +1,77 @@
 #include "moc/dialogTag.hpp"
 #include "ui_dialogTag.h"
 #include "gui/applicationGui.hpp"
-#include "libcitygml/readerOsgCityGML.hpp"
+#include "osg/osgCityGML.hpp"
 #include <QSettings>
 #include <QFileDialog>
 #include <osg/ValueObject>
 #include "moc/mainWindow.hpp"
+////////////////////////////////////////////////////////////////////////////////
+/** Provide an simple example of customizing the default UserDataContainer.*/
+class MyUserDataContainer : public osg::DefaultUserDataContainer
+{
+    public:
+        MyUserDataContainer() {}
+        MyUserDataContainer(const MyUserDataContainer& udc, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY):
+            DefaultUserDataContainer(udc, copyop) {}
+
+        META_Object(MyNamespace, MyUserDataContainer)
+
+        virtual Object* getUserObject(unsigned int i)
+        {
+            OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<")"<<std::endl;
+            return osg::DefaultUserDataContainer::getUserObject(i);
+        }
+
+        virtual const Object* getUserObject(unsigned int i) const
+        {
+            OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<") const"<<std::endl;
+            return osg::DefaultUserDataContainer::getUserObject(i);
+        }
+
+
+    protected:
+        virtual ~MyUserDataContainer() {}
+};
+////////////////////////////////////////////////////////////////////////////////
+REGISTER_OBJECT_WRAPPER( MyUserDataContainer,
+                         new MyUserDataContainer,
+                         MyUserDataContainer,
+                         "osg::Object osg::UserDataContainer osg::DefaultUserDataContainer MyUserDataContainer" )
+{
+}
+////////////////////////////////////////////////////////////////////////////////
+class MyGetValueVisitor : public osg::ValueObject::GetValueVisitor
+{
+    public:
+        virtual void apply(void* value) { OSG_NOTICE<<" void* "<<value; }
+};
+////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+class GetNumeric : public osg::ValueObject::GetValueVisitor
+{
+    public:
+        GetNumeric():
+            _set(false),
+            _value(0) {}
+
+        virtual void apply(void* value) { _value = value; _set = true; }
+
+        bool _set;
+        T _value;
+};
+////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+T getNumeric(osg::Object* object)
+{
+    osg::ValueObject* bvo = dynamic_cast<osg::ValueObject*>(object);
+    if (bvo)
+    {
+        GetNumeric<T> gn;
+        if (bvo->get(gn) && gn._set) return gn._value;
+    }
+    return T(0);
+}
 ////////////////////////////////////////////////////////////////////////////////
 DialogTag::DialogTag(QWidget *parent) :
     QDialog(parent),
@@ -74,9 +140,12 @@ void DialogTag::addTag(const vcity::URI& uri)
     if(res && obj) // && m_ui->treeWidget->currentItem())
     {
         citygml::CityObject* geom = nullptr;
-        if(ui->comboBox->currentText().size() > 4 && ui->comboBox->currentText().left(4) == "FLAG")
+        citygml::BuildingFlag* f = nullptr;
+        if((ui->comboBox->currentText().size() > 4 && ui->comboBox->currentText().left(4) == "FLAG") ||
+           (ui->comboBox->currentText().size() > 7 && ui->comboBox->currentText().left(7) == "DYNFLAG"))
         {
-            citygml::BuildingFlag* f = obj->getFlag(ui->comboBox->currentText().toStdString());
+            // get geom from flag
+            f = obj->getFlag(ui->comboBox->currentText().toStdString());
             if(f) geom = f->getGeom();
             std::cout << "use flag geom : " << ui->comboBox->currentText().toStdString() << " : " << f << " : " << geom << std::endl;
         }
@@ -88,6 +157,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         }
 
         citygml::BuildingTag* tag = new citygml::BuildingTag(ui->dateTimeEdit->date().year(), geom);
+        if(f) tag->m_flag = f; // set flag
         tag->m_date = ui->dateTimeEdit->dateTime();
         tag->m_name = ui->lineEdit->text().toStdString();
         tag->m_parent = obj;
@@ -96,6 +166,7 @@ void DialogTag::addTag(const vcity::URI& uri)
 
         if(geom)
         {
+            // get parent osg geom
             osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
             if(obj->getTags().size() == 0)
             {
@@ -110,6 +181,8 @@ void DialogTag::addTag(const vcity::URI& uri)
                 }
             }
 
+            // build osg geom for tag
+
             /*vcity::URI uriTile = uri;
             while(uriTile.getDepth() > 2)
             {
@@ -120,6 +193,7 @@ void DialogTag::addTag(const vcity::URI& uri)
 
             size_t pos = geom->m_path.find_last_of("/\\");
             std::string path = geom->m_path.substr(0, pos);
+            path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
             ReaderOsgCityGML readerOsgGml(path);
             readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
             osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(geom);
@@ -133,7 +207,12 @@ void DialogTag::addTag(const vcity::URI& uri)
 
             grp->setName(tag->getStringId()+tag->getGeom()->getId());
             grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
+            //grp->setUserDataContainer(new MyUserDataContainer);
+            //grp->getOrCreateUserDataContainer();
             grp->setUserValue("TAG", 1);
+            double ptr;
+            memcpy(&ptr, &tag, sizeof(tag));
+            grp->setUserValue("TAGPTR", ptr);
 
             std::cout << "insert osg geom" << std::endl;
             //obj->getOsgNode()->addChild(grp);
