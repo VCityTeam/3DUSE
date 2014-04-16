@@ -17,6 +17,8 @@ MNT::MNT()
 	altitudes = 0;
 	image = 0;
 	mnt_charge = false;
+
+	normales = 0;
 }
 ////////////////////////////////////////////////////////////////////////////////
 MNT::~MNT()
@@ -26,6 +28,9 @@ MNT::~MNT()
 
 	if( image )
 		delete[] image;
+
+	if( normales )
+		delete[] normales;
 }
 ////////////////////////////////////////////////////////////////////////////////
 bool MNT::charge( const char* nom_fichier, const char* type_fichier )
@@ -40,6 +45,9 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 
 	if( image )
 		delete[] image;
+
+	if( normales )
+		delete[] normales;
 
 	mnt_charge = false;
 
@@ -125,15 +133,18 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 	printf( "origine = (%f, %f)\n", x_noeud_NO, y_noeud_NO );
 
 	altitudes = new int[dim_x*dim_y];
-
-	int i, offset = 0;
+	normales = new osg::Vec3[dim_x*dim_y];
 
 	// Lecture des altitudes
+	int offset = 0;
 	for( int y=0; y<dim_y; y++ )
 	{
 		for( int x=0; x<dim_x; x++ )
 		{
-			fscanf( fp, "%d", &altitudes[offset++] );
+			fscanf( fp, "%d", &altitudes[offset] );
+			normales[offset] = osg::Vec3(0.0, 0.0, 0.0);
+
+			offset++;
 		}
 		printf( "Chargement (%d%%)\r", (int)(y*100.0/dim_y) );
 		fflush(stdout);
@@ -144,7 +155,8 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 
 	mnt_charge = true;
 
-
+	// tga
+	/*int i;
 	image = new byte[dim_x*dim_y*3];
 	byte	r,g,b;
 	float	val;
@@ -185,8 +197,51 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 		image[i*3  ] = r;
 		image[i*3+1] = g;
 		image[i*3+2] = b;
-	}
+	}*/
 
+	// normals
+	unsigned int n=0;
+	for( int y=0; y<get_dim_y()-1; y++ )
+		for( int x=0; x<get_dim_x()-1; x++ )
+		{
+			osg::Vec3 v0, v1, v2;
+			v0.set( x_noeud_NO+(pas_x * x), y_noeud_NO+(pas_y * y), get_altitude(x, y) );
+			v1.set( x_noeud_NO+(pas_x * (x+1)), y_noeud_NO+(pas_y * y), get_altitude((x+1), y) );
+			v2.set( x_noeud_NO+(pas_x * x), y_noeud_NO+(pas_y * (y+1)), get_altitude(x, (y+1)) );
+
+			// facet normal
+			osg::Vec3 vector1, vector2, normal;
+			vector1.set(v0 - v1);
+			vector2.set(v1 - v2);
+			normal = vector1 ^ vector2;  // cross product
+			normal.normalize();
+
+			// normal of the 3 vertices of the facet
+			normales[x+y*dim_x] += normal;
+			normales[(x+1)+y*dim_x] += normal;
+			normales[x+(y+1)*dim_x] += normal;
+
+			// ---
+
+			osg::Vec3 v3;
+			v3.set( x_noeud_NO+(pas_x * (x+1)), y_noeud_NO+(pas_y * (y+1)), get_altitude((x+1), (y+1)) );
+
+			// facet normal
+			vector1.set(v1 - v3);
+			vector2.set(v3 - v2);
+			normal = vector1 ^ vector2;  // cross product
+			normal.normalize();
+
+			// normal of the 3 vertices of the facet
+			normales[(x+1)+y*dim_x] += normal;
+			normales[(x+1)+(y+1)*dim_x] += normal;
+			normales[x+(y+1)*dim_x] += normal;
+		}
+
+	// normalize normal of the vertices
+	for( int y=0; y<get_dim_y(); y++ )
+		for( int x=0; x<get_dim_x(); x++ )
+			normales[x+y*dim_x].normalize();
 
 	return true;
 }
@@ -200,32 +255,40 @@ osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(float offset_x, float offset_y,
         // Create geometry basic properties
         osg::Geometry* geom = new osg::Geometry;
         geode->addDrawable( geom );
-            
+    
+		// vertices
         osg::Vec3Array* va = new osg::Vec3Array(get_numVertices());
 		unsigned int i=0;
         for( int y=0; y<get_dim_y(); y++ )
 			for( int x=0; x<get_dim_x(); x++ )
 				(*va)[i++].set( x_noeud_NO+offset_x+(pas_x * x), y_noeud_NO+offset_y+(pas_y * y), get_altitude(x, y) * zfactor );
-
         geom->setVertexArray( va );
 
-		// Create geometry primitives
-        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES);
-
-		for( int y=0; y<get_dim_y(); y++ )
+		// normals
+        osg::Vec3Array* na = new osg::Vec3Array(get_numVertices());
+		unsigned int n=0;
+        for( int y=0; y<get_dim_y(); y++ )
 			for( int x=0; x<get_dim_x(); x++ )
 			{
-				if ( (x+1)<get_dim_x() )
-				{
-					indices->push_back( y*get_dim_x()+x );
-					indices->push_back( y*get_dim_x()+(x+1) );
-				}
+				(*na)[n] = get_normale(n);
+				n++;
+			}
+        geom->setNormalArray( na );
+        geom->setNormalBinding( osg::Geometry::BIND_PER_VERTEX );
 
-				if ( (y+1)<get_dim_y() )
-				{
-					indices->push_back( y*get_dim_x()+x );
-					indices->push_back( (y+1)*get_dim_x()+x );
-				}
+		// Create geometry primitives
+        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES);
+
+		for( int y=0; y<get_dim_y()-1; y++ )
+			for( int x=0; x<get_dim_x()-1; x++ )
+			{
+				indices->push_back( y*get_dim_x()+x );
+				indices->push_back( y*get_dim_x()+(x+1) );
+				indices->push_back( (y+1)*get_dim_x()+x );
+
+				indices->push_back( y*get_dim_x()+(x+1) );
+				indices->push_back( (y+1)*get_dim_x()+(x+1) );					
+				indices->push_back( (y+1)*get_dim_x()+x );
 			}
             
         geom->addPrimitiveSet( indices );

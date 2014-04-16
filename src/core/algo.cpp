@@ -244,7 +244,7 @@ namespace vcity
                                   //std::cout << "Poly 2-" << l << " (" << tmpPoly[l].first << "," << tmpPoly[l].second << ")" << std::endl;
                                   poly3[h++]=tmpPoly[l];
                              }
-                             for(unsigned int l=0;l<j+1;++l){
+                             for(/*unsigned*/ int l=0;l<j+1;++l){ // MT
                                  //std::cout << "Poly 2-" << l << " (" << tmpPoly[l].first << "," << tmpPoly[l].second << ")" << std::endl;
                                  poly3[h++]=tmpPoly[l];
 
@@ -390,7 +390,7 @@ namespace vcity
                Point A, B, C, D, E, F, Z;
                double a, b, c, d;
                int i1, i2, i3, i4, i5, i6;
-               double cosAB_BC, cosBC_CD, cosDE_EF, cosBC_DE;
+               double cosAB_BC, cosBC_CD, cosDE_EF;//, cosBC_DE; // MT
                double distAB, distBC, distCD, distDE, distEF;
                int i=0;
                bool cond = false;
