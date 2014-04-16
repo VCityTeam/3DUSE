@@ -287,7 +287,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
 		if (mnt.charge(filepath.toStdString().c_str(), "ASC"))
 		{
-			osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(-643000.0, -6857000.0);
+            osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(-643000.0, -6857000.0);
 
 			// set mntAscNode name
 			static int id = 0;

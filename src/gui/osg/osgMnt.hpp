@@ -15,7 +15,7 @@ public :
 	unsigned int  get_numVertices()  { return dim_x*dim_y; }
 	int  get_altitude(const int x, const int y)  { return altitudes[x+y*dim_x]; }
 	osg::Vec3 get_normale(const int n)  { return normales[n]; }
-	osg::ref_ptr<osg::Geode> buildAltitudesGrid(float offset_x, float offset_y, int zfactor=1);
+    osg::ref_ptr<osg::Geode> buildAltitudesGrid(float offset_x, float offset_y, float offset_z=5.0f, int zfactor=1);
 
 	void sauve_log( const char* nom_fichier_log, const char* nom_fichier_tga );
 	bool sauve_partie( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y );
