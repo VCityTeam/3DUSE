@@ -14,6 +14,7 @@ public :
 	bool charge( const char* nom_fichier, const char* type_fichier );
 	unsigned int  get_numVertices()  { return dim_x*dim_y; }
 	int  get_altitude(const int x, const int y)  { return altitudes[x+y*dim_x]; }
+	osg::Vec3 get_normale(const int n)  { return normales[n]; }
 	osg::ref_ptr<osg::Geode> buildAltitudesGrid(float offset_x, float offset_y, int zfactor=1);
 
 	void sauve_log( const char* nom_fichier_log, const char* nom_fichier_tga );
@@ -40,6 +41,8 @@ private:
 
 	int		*altitudes;
 	bool	mnt_charge;
+
+	osg::Vec3	*normales;
 
 public :
 	byte	*image;
