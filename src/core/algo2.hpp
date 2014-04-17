@@ -13,7 +13,7 @@ namespace vcity
     {
         public:
             void fixBuilding(const std::vector<URI>& uris);
-            citygml::CityObject* stockeForme(citygml::CityObject *, int val);
+            void stockeForme(citygml::CityObject *, int val);
             void recupTerrainBat(citygml::CityObject* node, int s);
             float sign(TVec3d p1, TVec3d p2, TVec3d p3);
             bool pointDansTriangle(TVec3d pt, TVec3d v1, TVec3d v2, TVec3d v3);

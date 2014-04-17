@@ -95,6 +95,10 @@ IF(WIN32)
 
 	set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
 	set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
+
+	set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
+	set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
+	set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
 ENDIF(WIN32)
 
 # Find Qt
@@ -311,6 +315,14 @@ else(PROJ_FOUND)
   message(FATAL_ERROR "Proj not found.")
 endif(PROJ_FOUND)
 
+# Find GEOS
+find_package(GEOS)
+if(GEOS_FOUND)
+  include_directories(${GEOS_INCLUDE_DIR})
+else(GEOS_FOUND)
+  message(FATAL_ERROR "GEOS not found.")
+endif(GEOS_FOUND)
+
 file(
   GLOB_RECURSE
   VCITY_GUI_Qt_SRC
@@ -371,6 +383,7 @@ SET( VCITY_GUI_LIB
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
   ${PROJ_LIBRARY}
+  ${GEOS_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
 if (WITH_QT5)

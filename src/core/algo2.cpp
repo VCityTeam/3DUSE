@@ -28,13 +28,12 @@ namespace vcity
     }
 
 ////////////////////////////////////////////////////////////////////////////////
-    citygml::CityObject* Algo2::stockeForme(citygml::CityObject* noeud1, int val)
+    void Algo2::stockeForme(citygml::CityObject* noeud1, int val)
     {
         if(noeud1->getType() == citygml::COT_WallSurface)
         {
 //            log() << "MUR \n";
         }
-        citygml::CityObject* forme;
 
         std::vector<citygml::Polygon*> polyBat;
 
@@ -76,9 +75,8 @@ namespace vcity
         citygml::CityObjects::iterator itObj = cityObjects.begin();
         for(; itObj != cityObjects.end(); ++itObj)
         {
-            forme = stockeForme(*itObj,val); //Appel récursif
+            stockeForme(*itObj,val); //Appel récursif
         }
-
     }
 
 
@@ -217,7 +215,7 @@ namespace vcity
             **********************************************************************************/
             contour = new citygml::LinearRing("linearRingContour",true);
 
-            building = stockeForme(building,100);
+            stockeForme(building,100);
 /*
             citygml::Geometry * geom = new citygml::Geometry("fixBuildingGeom",citygml::GT_Floor,2);
             citygml::Polygon * poly = new citygml::Polygon("fixBuildingPoly");
