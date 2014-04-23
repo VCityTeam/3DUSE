@@ -19,7 +19,9 @@
 #include <QDate>
 
 #include "citygml.hpp"
-#include "export.hpp"
+#include "export/exportCityGML.hpp"
+#include "export/exportJSON.hpp"
+#include "export/exportOBJ.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
@@ -36,7 +38,7 @@
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
+    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_adminMode(false)
 {
     m_ui->setupUi(this);
 
@@ -76,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
     connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
     connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
+    connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
     //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
     connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
     connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
@@ -129,7 +132,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(slotTemporalAnimUpdate()));
 
-    //m_ui->menuDebug->menuAction()->setVisible(false);
     m_ui->horizontalSlider->setEnabled(m_useTemporal);
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
@@ -555,6 +557,13 @@ void MainWindow::updateTextBoxWithSelectedNodes()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::adminMode(bool val)
+{
+    m_adminMode = val;
+    m_ui->menuDebug->menuAction()->setVisible(m_adminMode);
+    m_ui->menuTest->menuAction()->setVisible(m_adminMode);
+}
+////////////////////////////////////////////////////////////////////////////////
 QLineEdit* MainWindow::getFilter()
 {
     return m_ui->filterLineEdit;
@@ -566,6 +575,9 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
+    adminMode(m_adminMode);
+    m_ui->mainToolBar->hide();
+    m_ui->statusBar->hide();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::resetScene()
@@ -693,7 +705,7 @@ void MainWindow::exportCityGML()
 {
     QString filename = QFileDialog::getSaveFileName();
 
-    citygml::Exporter exporter;
+    citygml::ExporterCityGML exporter;
 
     // check temporal params
     if(m_useTemporal)
@@ -704,12 +716,12 @@ void MainWindow::exportCityGML()
 
     // check if something is picked
     //const std::set<std::string>& nodes = m_pickhandler->getNodesPicked(); // TODO : update this with a uri list
-    const std::vector<vcity::URI>& nodes = appGui().getSelectedNodes();
-    if(nodes.size() > 0)
+    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
+    if(uris.size() > 0)
     {
-        //std::cout << "Citygml export cityobject : " << *nodes.begin() << std::endl;
+        //std::cout << "Citygml export cityobject : " << *uris.begin() << std::endl;
         // use first node picked
-        //citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*nodes.begin()); // use getNode
+        //citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*uris.begin()); // use getNode
         //citygml::exportCitygml(model, "test.citygml");
         //if(model) exporter.exportCityObject(model, filename.toStdString());
     }
@@ -750,7 +762,26 @@ void MainWindow::exportOsga()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportJSON()
 {
+    QString filename = QFileDialog::getSaveFileName();
+    citygml::ExporterJSON exporter;
 
+    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+    exporter.exportCityModel(model, filename.toStdString());
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::exportOBJ()
+{
+    QString filename = QFileDialog::getSaveFileName();
+    citygml::ExporterOBJ exporter;
+
+    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+        citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
+        exporter.exportCityObject(obj, filename.toStdString());
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::debugDumpOsg()
@@ -886,6 +917,7 @@ void MainWindow::slotTemporalAnimUpdate()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::about()
 {
+    // TODO : add Liris image and text
     QMessageBox::about(this, "VCity", "VCity is an environment editor");
 }
 ////////////////////////////////////////////////////////////////////////////////

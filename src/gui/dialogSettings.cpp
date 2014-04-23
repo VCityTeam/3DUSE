@@ -1,13 +1,18 @@
 #include "moc/dialogSettings.hpp"
 #include "ui_dialogSettings.h"
-#include "core/application.hpp"
+#include "gui/applicationGui.hpp"
 #include <QSettings>
+#include "moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::DialogSettings(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogSettings)
 {
     ui->setupUi(this);
+    if(!appGui().getMainWindow()->m_adminMode)
+    {
+        ui->tabWidget->removeTab(2); // hide debug tab if not admin
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::~DialogSettings()
@@ -38,6 +43,12 @@ void DialogSettings::doSettings()
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
         QSettings settings("liris", "virtualcity");
         settings.setValue("loadtextures", vcity::app().getSettings().m_loadTextures);
+
+        // admin
+        if(!ui->lineEdit_AdminPass->text().isEmpty())
+        {
+            appGui().getMainWindow()->adminMode(ui->lineEdit_AdminPass->text() == "pass");
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

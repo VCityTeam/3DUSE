@@ -176,7 +176,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                     m_settings._first = false;
 				}
                 //vertices->push_back( pt - m_settings._origin );
-                vertices->push_back(pt - osg::Vec3d(643000.0, 6857000.0, 0.0));
+                vertices->push_back(pt);// - osg::Vec3d(643000.0, 6857000.0, 0.0));
 			}
 
 			geom->setVertexArray( vertices );

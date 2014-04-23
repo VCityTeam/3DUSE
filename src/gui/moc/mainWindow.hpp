@@ -37,6 +37,7 @@ public:
     int m_pickingMode;      ///< 0: face, 1: building
     bool m_useTemporal;     ///< use temporal slider (also used for citygml temporal export)
     bool m_temporalAnim;    ///< temporal animation ? (play button clicked ?)
+    bool m_adminMode;       ///< admin mode (to hide dev menus)
 
     QTimer m_timer;         ///< anim timer
 
@@ -51,6 +52,9 @@ public:
     void updateTextBox(const vcity::URI& uri);
     //const std::stringstream& genSelectedNodes
     void updateTextBoxWithSelectedNodes();
+
+    // admin mode (show all menus)
+    void adminMode(bool val);
 
     QLineEdit* getFilter();
 
@@ -74,6 +78,7 @@ public slots:
     void exportOsg();
     void exportOsga();
     void exportJSON();
+    void exportOBJ();
     void debugDumpOsg();
     void slotDumpScene();
     void slotDumpSelectedNodes();

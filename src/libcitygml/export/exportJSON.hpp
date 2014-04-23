@@ -1,6 +1,7 @@
 #ifndef __JSON_EXPORT_HPP_
 #define __JSON_EXPORT_HPP_
 ////////////////////////////////////////////////////////////////////////////////
+#include "export.hpp"
 #include <QDateTime>
 #include "citygml.hpp"
 ////////////////////////////////////////////////////////////////////////////////
@@ -9,7 +10,7 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterJSON class
 /// Export JSON
-class ExporterJSON
+class ExporterJSON : public Export
 {
 public:
     ExporterJSON();
@@ -26,15 +27,7 @@ public:
     /// \param fileName
     void exportCityObject(CityObject* model, const std::string& fileName);
 
-    /// Enable or disable temporal export
-    void setTemporalExport(bool param);
-
-    /// Set temporal export date
-    void setDate(const QDateTime& date);
-
 private:
-    bool m_temporalExport;  ///< enable temporal export
-    QDateTime m_date;       ///< date for temporal export
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml
