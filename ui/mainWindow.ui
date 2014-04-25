@@ -259,6 +259,7 @@
     <addaction name="actionExport_tiled_osga"/>
     <addaction name="actionExport_JSON"/>
     <addaction name="actionExport_OBJ"/>
+    <addaction name="actionExport_OBJ_split"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -635,6 +636,11 @@
   <action name="actionExport_OBJ">
    <property name="text">
     <string>Export OBJ</string>
+   </property>
+  </action>
+  <action name="actionExport_OBJ_split">
+   <property name="text">
+    <string>Export OBJ split</string>
    </property>
   </action>
  </widget>

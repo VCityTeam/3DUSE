@@ -7,135 +7,12 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 ExporterJSON::ExporterJSON()
+    : m_indentDepth(0)
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*void ExporterJSON::genConfigFiles()
-{
-    uint ct = tilesPerSide();
-        if(ct == NAN || ct == INFINITY || ct == 0){
-            return;
-        }
-        //Informations for the general configuration folder
-        double sizeTuileX;
-        double sizeTuileY;
-        uint rangeCameraTuile = 2;//ct/2-1;
-        (rangeCameraTuile <=0)? rangeCameraTuile = 1 : true ;
-        uint distanceTuileBox = 2;
-        uint mainTuileX = rangeCameraTuile;
-        uint mainTuileY = rangeCameraTuile;
-        const TVec3d* sceneMin = &bbox->getLowerBound();
-        const TVec3d* sceneMax = &bbox->getUpperBound();
-        TVec3d* axisX = new TVec3d((sceneMax->x - sceneMin->x), 0, 0);
-        TVec3d* axisY = new TVec3d(0, (sceneMax->y - sceneMin->y), 0);
-        TVec3d* axisZ = new TVec3d(0, 0, (sceneMax->z - sceneMin->z));
-
-        double xLength = axisX->length();
-        double yLength = axisY->length();
-
-        sizeTuileX = xLength / ct;
-        sizeTuileY = yLength / ct;
-        //normalize axis
-        axisX->normalEq();
-        axisY->normalEq();
-        axisZ->normalEq();
-
-        //creation of the scene configuration file
-        QString fileName = whereTo;
-        fileName += "/tiling.conf";
-        QFile config(fileName);
-        if (!config.open(QIODevice::WriteOnly | QIODevice::Text))
-            return;
-        QTextStream out(&config);
-        out.setRealNumberNotation(QTextStream::FixedNotation);
-        out << "sizeTuile " << sizeTuileX << "\n";
-        out << "rangeCameraTuile " << rangeCameraTuile << "\n";
-        out << "distanceTuileBox " << distanceTuileBox << "\n";
-        out << "mainTuileX " << mainTuileX << "\n";
-        out << "mainTuileY " << mainTuileY << "\n";
-        out << "boundingBoxSceneMin " << sceneMin->x << " " << sceneMin->y << " " << sceneMin->z << "\n";
-        out << "boundingBoxSceneMax " << sceneMax->x << " " << sceneMax->y << " " << sceneMax->z  << "\n";
-        out << "axisX " << axisX->x << " " << axisX->y << " " << axisX->z << "\n";
-        out << "axisY " << axisY->x << " " << axisY->y << " " << axisY->z << "\n";
-        out << "axisZ " << axisZ->x << " " << axisZ->y << " " << axisZ->z << "\n";
-
-        config.close();
-
-        QString tileDir = QObject::tr("TUILES%1_%1/").arg(ct);
-        QDir base(whereTo);
-        base.mkdir(tileDir);
-
-        uint xCoord;
-        uint yCoord;
-        //let's write !
-        foreach(Tuile tuile, tiles){
-            fileName = whereTo+"/"+tileDir;
-            xCoord = (tuile.min.x - sceneMin->x + util::depsi) / sizeTuileX;
-            yCoord = (tuile.min.y - sceneMin->y + util::depsi) / sizeTuileY;
-
-            //create tile file and put bbox data into it
-            fileName += QObject::tr("tile%1_%2.conf").arg(xCoord).arg(yCoord);
-            QFile currentConf(fileName);
-            if (!currentConf.open(QIODevice::WriteOnly | QIODevice::Text))
-                return;
-            QTextStream outFile(&currentConf);
-            outFile.setRealNumberNotation(QTextStream::FixedNotation);
-            outFile << "boundingBoxTuileMin " << tuile.min.x << " " << tuile.min.y << " " << sceneMin->z << "\n";
-            outFile << "boundingBoxTuileMax " << tuile.max.x << " " << tuile.max.y << " " << sceneMax->z << "\n";
-
-            //start getting and writing objects
-            QString bati;
-            int nbBati = 0;
-            QString autre;
-            int nbAutre = 0;
-            QMap<IOLayer*, vector<uint> >::const_iterator itr;
-
-            //we look for land to store
-            if(tuile.ground != NULL && !tuile.ground->empty()){
-                bati += QObject::tr(" land_nv%3_t%1_%2").arg(tuile.id.x).arg(tuile.id.y).arg(subIterations);
-                nbBati++;
-            }
-
-            for(itr = tuile.batiments.constBegin(); itr != tuile.batiments.constEnd(); ++itr){
-                //check if the current object is into a subdirectory
-                IOLayer* jsexp = itr.key();
-                QString dir = "";
-                if(!jsexp->srcFile.isEmpty()){
-                    dir= jsexp->srcFile.remove(0,jsexp->srcFile.lastIndexOf("/"));
-                    dir.truncate(dir.lastIndexOf("."));
-                    dir+= "/";
-                }
-                //put informations into temp strings
-                foreach(uint ind, itr.value()){
-                    IOFeature* obj = jsexp->featureList->at(ind);
-    //                if( obj->getType()== COT_Building){
-                        //bati += " " + dir + obj->getId();
-                        bati += " " + obj->getId();
-                        nbBati++;
-    //                }
-    //                else {
-    //                    autre += " " + dir + obj->getId();
-    //                    nbAutre ++;
-    //                }
-                }
-            }
-            if(type.contains("JSON")){
-                outFile << "nbBuilding" << QObject::tr(" %1\n").arg(nbBati);
-                outFile << "building" << bati << "\n";
-            }
-            else if(type.contains("CAO")) {
-                outFile << "nbbati" << QObject::tr(" %1\n").arg(nbBati);
-                outFile << "bati" << bati << "\n";
-                outFile << "nbdivers" << QObject::tr(" %1\n").arg(nbAutre);
-                outFile << "divers" << autre << "\n";
-            }
-
-            currentConf.close();
-        }
-}
-////////////////////////////////////////////////////////////////////////////////
-void exportNode()
+/*void exportNode()
 {
     QString json;
     json += QString::fromUtf8("\"nbFaces\":") + QString::number(nbFaces) + QString::fromUtf8(",");
@@ -169,13 +46,257 @@ void exportNode()
     return json;
 }*/
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterJSON::exportCityModel(CityModel* model, const std::string& fileName)
+void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName, const std::string& id)
 {
+    m_id = id;
+    model.computeEnvelope();
 
+    m_outFile.open(fileName+".json");
+    m_outFile << std::fixed;
+    openScope(); // global scope
+    indent(); m_outFile << "\"id\":\"" << id << "\",\n";
+    indent(); m_outFile << "\"nbBldg\":" << getNbBldg(model) << ",\n";
+    TVec3d p = model.getEnvelope().getLowerBound();
+    indent(); m_outFile << "\"min\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    p = model.getEnvelope().getUpperBound();
+    indent(); m_outFile << "\"max\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    indent(); m_outFile << "\"listBldg\":";
+    openScope(); // listBldg scope
+    for(CityObject* obj : model.getCityObjectsRoots())
+        if(obj && obj->getType() == COT_Building) exportCityObject(*obj);
+    closeScope();  // listBldg scope
+    closeScope(); // global scope
+    m_outFile.close();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterJSON::exportCityObject(CityObject* model, const std::string& fileName)
+void ExporterJSON::exportCityObject(CityObject& obj)
 {
+    indent(); m_outFile << "\"" << obj.getId() << "\":";
+    openScope(); // bldg scope
+    TVec3d p = obj.getEnvelope().getLowerBound();
+    indent(); m_outFile << "\"min\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    p = obj.getEnvelope().getUpperBound();
+    indent(); m_outFile << "\"max\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+
+    indent(); m_outFile << "\"walls\":";
+    openScope(); // walls scope
+    //indent(); m_outFile << "\"nbFace\":" << getNbFaces(obj, COT_WallSurface) << ",\n";
+    m_needComma = false;
+    exportWallsAndRoofs(obj, COT_WallSurface);
+    m_outFile << "\n";
+    closeScope(true);  // walls scope
+
+    indent(); m_outFile << "\"roofs\":";
+    openScope(); // roofs scope
+    indent(); m_outFile << "\"nbFace\":" << getNbFaces(obj, COT_RoofSurface) << ",\n";
+    m_needComma = false;
+    exportWallsAndRoofs(obj, COT_RoofSurface);
+    m_outFile << "\n";
+    closeScope(true);  // roofs scope
+
+    //indent(); m_outFile << "\"listGeometries\":[" << 10 << "],\n";
+    //indent(); m_outFile << "\"listNormals\":[" << 10 << "],\n";
+    //indent(); m_outFile << "\"listUVs\":[" << 10 << "],\n";
+    indent(); m_outFile << "\"semantique\":";
+    openScope(); // semantique scope
+    int nb = obj.getAttributes().size();
+    int i = 0;
+    for(auto& attr : obj.getAttributes())
+    {
+        indent(); m_outFile << "\"" << attr.first << "\":\"" << attr.second << "\"";
+        if(++i != nb)
+            m_outFile << ",";
+        m_outFile << "\n";
+    }
+    closeScope(); // semantique scope
+
+    closeScope(true);  // bldg scope
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::exportWallsAndRoofs(CityObject& obj, CityObjectsType type)
+{
+    if(obj.getType() == type)
+    {
+        std::string texture;
+        for(Geometry* geom : obj.getGeometries())
+        {
+            for(Polygon* poly : geom->getPolygons())
+            {
+                if(poly->getTexture())
+                {
+                    if(!texture.empty() && texture != poly->getTexture()->getUrl())
+                        std::cout << "Multiple textures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                    texture = poly->getTexture()->getUrl();
+                }
+            }
+        }
+
+        if(!texture.empty())
+        {
+            if(m_needComma)
+            {
+                m_outFile << ",\n";
+            }
+            else
+            {
+                m_needComma = true;
+            }
+            indent(); m_outFile << "\"" << obj.getId() << "\":";
+            openScope(); // feature scope
+            //indent(); m_outFile << "\"nbTri\":" << getNbTris(obj) << ",\n";
+
+            indent(); m_outFile << "\"listGeometries\":[";
+            for(Geometry* geom : obj.getGeometries())
+            {
+                for(Polygon* poly : geom->getPolygons())
+                {
+                    //for(const auto& vertex : poly->getVertices())
+                    for(int i=0; i<poly->getVertices().size(); ++i)
+                    {
+                        const TVec3d& vertex = poly->getVertices()[i];
+                        m_outFile << vertex.x << "," << vertex.y << "," << vertex.z;
+                        if(i != poly->getVertices().size()-1) m_outFile << ",";
+                    }
+                }
+            }
+            m_outFile << "],\n";
+
+            indent(); m_outFile << "\"listNormals\":[";
+            for(Geometry* geom : obj.getGeometries())
+            {
+                for(Polygon* poly : geom->getPolygons())
+                {
+                    //for(const auto& normal : poly->getNormals())
+                    for(int i=0; i<poly->getNormals().size(); ++i)
+                    {
+                        const TVec3f& normal = poly->getNormals()[i];
+                        m_outFile << normal.x << "," << normal.y << "," << normal.z;
+                        if(i != poly->getNormals().size()-1) m_outFile << ",";
+                    }
+                }
+            }
+            m_outFile << "],\n";
+
+            indent(); m_outFile << "\"listUVs\":[";
+            for(Geometry* geom : obj.getGeometries())
+            {
+                for(Polygon* poly : geom->getPolygons())
+                {
+                    /*if(poly->getTexture())
+                    {
+                        if(!texture.empty() && texture != poly->getTexture()->getUrl())
+                            std::cout << "Multiple textures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                        texture = poly->getTexture()->getUrl();
+                    }*/
+
+                    //for(const auto& uv : poly->getTexCoords())
+                    for(int i=0; i<poly->getTexCoords().size(); ++i)
+                    {
+                        const TVec2f& uv = poly->getTexCoords()[i];
+                        m_outFile << uv.x << "," << uv.y;
+                        if(i != poly->getTexCoords().size()-1) m_outFile << ",";
+                    }
+                }
+            }
+            m_outFile << "],\n";
+
+            indent(); m_outFile << "\"listIndices\":[";
+            for(Geometry* geom : obj.getGeometries())
+            {
+                for(Polygon* poly : geom->getPolygons())
+                {
+                    //for(auto index : poly->getIndices())
+                    for(int i=0; i<poly->getIndices().size(); ++i)
+                    {
+                        unsigned int index = poly->getIndices()[i];
+                        m_outFile << index;
+                        if(i != poly->getIndices().size()-1) m_outFile << ",";
+                    }
+                }
+            }
+            m_outFile << "],\n";
+
+            indent(); m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+            //if(!texture.empty())
+            //    m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+            //else
+            //    m_outFile << "\"texture\":\"\"\n";
+            //closeScope(); // feature scope
+            --m_indentDepth;indent();m_outFile << "}";
+        }
+    }
+
+    for(CityObject* child : obj.getChildren())
+    {
+        if(child) exportWallsAndRoofs(*child, type);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+int ExporterJSON::getNbBldg(CityModel& model) const
+{
+    int nb = 0;
+    for(CityObject* obj : model.getCityObjectsRoots())
+    {
+        if(obj && obj->getType() == COT_Building)
+        {
+            ++nb;
+        }
+    }
+
+    return nb;
+}
+////////////////////////////////////////////////////////////////////////////////
+int ExporterJSON::getNbFaces(CityObject& obj, CityObjectsType type) const
+{
+    int nb = 0;
+    if(obj.getType() == type)
+    {
+        ++nb;
+    }
+
+    for(citygml::CityObject* child : obj.getChildren())
+    {
+        nb += getNbFaces(*child, type);
+    }
+
+    return nb;
+}
+////////////////////////////////////////////////////////////////////////////////
+int ExporterJSON::getNbTris(CityObject& obj) const
+{
+    int nb = 0;
+    for(Geometry* geom : obj.getGeometries())
+    {
+        for(Polygon* poly : geom->getPolygons())
+        {
+            nb += poly->getIndices().size()/3;
+        }
+    }
+    return nb;
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::openScope()
+{
+    m_outFile << "{\n";
+    ++m_indentDepth;
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::closeScope(bool comma)
+{
+    --m_indentDepth;
+    indent();
+    if(comma)
+        m_outFile << "},\n";
+    else
+        m_outFile << "}\n";
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::indent()
+{
+    for(int i=0; i<m_indentDepth; ++i)
+    {
+        m_outFile << "    ";
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

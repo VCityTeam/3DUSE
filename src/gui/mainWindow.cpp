@@ -38,7 +38,7 @@
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_adminMode(false)
+    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_adminMode(true)
 {
     m_ui->setupUi(this);
 
@@ -79,6 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
     connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
     connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
+    connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
     //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
     connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
     connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
@@ -224,12 +225,14 @@ void MainWindow::openRecentFile()
 ////////////////////////////////////////////////////////////////////////////////
 bool MainWindow::loadFile(const QString& filepath)
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     QSettings settings("liris", "virtualcity");
     QFileInfo file(filepath);
 
     if(!file.exists())
     {
         removeRecentFile(filepath);
+        QApplication::restoreOverrideCursor();
         return false;
     }
 
@@ -334,8 +337,11 @@ bool MainWindow::loadFile(const QString& filepath)
     else
     {
         std::cout << "bad file : " << filepath.toStdString() << std::endl;
+        QApplication::restoreOverrideCursor();
         return false;
     }
+
+    QApplication::restoreOverrideCursor();
 
     return true;
 }
@@ -763,24 +769,74 @@ void MainWindow::exportOsga()
 void MainWindow::exportJSON()
 {
     QString filename = QFileDialog::getSaveFileName();
+    QFileInfo fileInfo(filename);
+    filename = fileInfo.path() + "/" + fileInfo.baseName();
     citygml::ExporterJSON exporter;
 
-    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-    exporter.exportCityModel(model, filename.toStdString());
+    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        if(uris[0].getType() == "Tile")
+        {
+            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
+            if(model) exporter.exportCityModel(*model, filename.toStdString(), "test");
+        }
+        else
+        {
+            // only tiles
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOBJ()
 {
     QString filename = QFileDialog::getSaveFileName();
+    QFileInfo fileInfo(filename);
+    filename = fileInfo.path() + "/" + fileInfo.baseName();
     citygml::ExporterOBJ exporter;
 
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-        citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
-        exporter.exportCityObject(obj, filename.toStdString());
+        if(uris[0].getType() == "Tile")
+        {
+            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
+            if(model) exporter.exportCityModel(*model, filename.toStdString());
+        }
+        else
+        {
+            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
+            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::exportOBJsplit()
+{
+    QString filename = QFileDialog::getSaveFileName();
+    QFileInfo fileInfo(filename);
+    filename = fileInfo.path() + "/" + fileInfo.baseName();
+    citygml::ExporterOBJ exporter;
+    exporter.addFilter(citygml::COT_All, "");
+    exporter.addFilter(citygml::COT_WallSurface, "Wall");
+    exporter.addFilter(citygml::COT_RoofSurface, "Roof");
+    exporter.addFilter(citygml::COT_TINRelief, "Terrain");
+    exporter.addFilter(citygml::COT_LandUse, "LandUse");
+    exporter.addFilter(citygml::COT_Road, "Road");
+
+    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        if(uris[0].getType() == "Tile")
+        {
+            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
+            if(model) exporter.exportCityModel(*model, filename.toStdString());
+        }
+        else
+        {
+            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
+            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -951,9 +1007,41 @@ void MainWindow::test3()
 void MainWindow::test4()
 {
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13719/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13719/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13720/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13720/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13719/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1305-13720/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13720/export-CityGML/ZoneAExporter.gml");
+
+    // test json
+    int i = 0;
+    QDirIterator iterator("/mnt/docs/data/dd_backup/Donnees_IGN/", QDirIterator::Subdirectories);
+    while(iterator.hasNext())
+    {
+        iterator.next();
+        if(!iterator.fileInfo().isDir())
+        {
+            QString filename = iterator.filePath();
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+            {
+                QFileInfo fileInfo(filename);
+                std::string id = filename.toStdString().substr(44, 4) + "_" + filename.toStdString().substr(49, 5);
+                //qDebug("Found %s matching pattern.", qPrintable(filename));
+                std::stringstream ss;
+                //ss << "/mnt/docs/upload/json/" << fileInfo.baseName().toStdString() << "_" << id;
+                ss << "/tmp/json/" << fileInfo.baseName().toStdString() << "_" << id;
+                std::string f = ss.str();
+                std::cout << filename.toStdString() << " -> " << f << "\n";
+
+                //std::cout << "id : " << id << std::endl;
+
+                citygml::ParserParams params;
+                citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
+                citygml::ExporterJSON exporter;
+                if(citygmlmodel) exporter.exportCityModel(*citygmlmodel, f, id);
+                delete citygmlmodel;
+            }
+        }
+    }
+    std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
