@@ -1,7 +1,7 @@
 #ifndef __SETTINGS_HPP__
 #define __SETTINGS_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-
+#include "dataprofile.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -13,10 +13,18 @@ class Settings
 public:
     Settings();
 
+    /// \brief getDataProfile Get the data profile
+    /// \return The data profile
+    DataProfile& getDataProfile();
+
+    /// \brief getDataProfile Get the data profile
+    /// \return The data profile
+    const DataProfile& getDataProfile() const;
+
     bool m_loadTextures;
+    DataProfile m_dataprofile;          ///< data profile
 
 private:
-    // dataprofile ?
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

@@ -9,7 +9,7 @@ DialogSettings::DialogSettings(QWidget *parent) :
     ui(new Ui::DialogSettings)
 {
     ui->setupUi(this);
-    if(!appGui().getMainWindow()->m_adminMode)
+    if(appGui().getMainWindow()->m_unlockLevel < 1)
     {
         ui->tabWidget->removeTab(2); // hide debug tab if not admin
     }
@@ -22,23 +22,26 @@ DialogSettings::~DialogSettings()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogSettings::doSettings()
 {
-    ui->lineEditLowerBoundX->setText("0");
-    ui->lineEditLowerBoundY->setText("0");
-    ui->lineEditUpperBoundX->setText("0");
-    ui->lineEditUpperBoundY->setText("0");
+    ui->lineEditLowerBoundX->setText(QString::number(vcity::app().getSettings().getDataProfile().m_bboxLowerBound.x, 'g', 15));
+    ui->lineEditLowerBoundY->setText(QString::number(vcity::app().getSettings().getDataProfile().m_bboxLowerBound.y, 'g', 15));
+    ui->lineEditUpperBoundX->setText(QString::number(vcity::app().getSettings().getDataProfile().m_bboxUpperBound.x, 'g', 15));
+    ui->lineEditUpperBoundY->setText(QString::number(vcity::app().getSettings().getDataProfile().m_bboxUpperBound.y, 'g', 15));
 
-    ui->lineTileSizeX->setText("500");
-    ui->lineTileSizeY->setText("500");
+    ui->lineEditOffsetX->setText(QString::number(vcity::app().getSettings().getDataProfile().m_offset.x, 'g', 15));
+    ui->lineEditOffsetY->setText(QString::number(vcity::app().getSettings().getDataProfile().m_offset.y, 'g', 15));
+
+    ui->lineTileSizeX->setText(QString::number(vcity::app().getSettings().getDataProfile().m_xStep));
+    ui->lineTileSizeY->setText(QString::number(vcity::app().getSettings().getDataProfile().m_yStep));
 
     ui->checkBoxTextures->setChecked(vcity::app().getSettings().m_loadTextures);
 
     if(exec())
     {
-        vcity::app().getDataProfile().m_bboxLowerBound = TVec3d(ui->lineEditLowerBoundX->text().toDouble(), ui->lineEditLowerBoundY->text().toDouble());
-        vcity::app().getDataProfile().m_bboxUpperBound = TVec3d(ui->lineEditUpperBoundX->text().toDouble(), ui->lineEditUpperBoundY->text().toDouble());
+        vcity::app().getSettings().getDataProfile().m_bboxLowerBound = TVec3d(ui->lineEditLowerBoundX->text().toDouble(), ui->lineEditLowerBoundY->text().toDouble());
+        vcity::app().getSettings().getDataProfile().m_bboxUpperBound = TVec3d(ui->lineEditUpperBoundX->text().toDouble(), ui->lineEditUpperBoundY->text().toDouble());
 
-        vcity::app().getDataProfile().m_xStep = ui->lineTileSizeX->text().toFloat();
-        vcity::app().getDataProfile().m_yStep = ui->lineTileSizeY->text().toFloat();
+        vcity::app().getSettings().getDataProfile().m_xStep = ui->lineTileSizeX->text().toFloat();
+        vcity::app().getSettings().getDataProfile().m_yStep = ui->lineTileSizeY->text().toFloat();
 
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
         QSettings settings("liris", "virtualcity");
@@ -47,7 +50,7 @@ void DialogSettings::doSettings()
         // admin
         if(!ui->lineEdit_AdminPass->text().isEmpty())
         {
-            appGui().getMainWindow()->adminMode(ui->lineEdit_AdminPass->text() == "pass");
+            appGui().getMainWindow()->unlockFeatures(ui->lineEdit_AdminPass->text());
         }
     }
 }

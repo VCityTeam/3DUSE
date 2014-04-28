@@ -38,7 +38,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>32</height>
+        <height>85</height>
        </size>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -58,49 +58,55 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QCheckBox" name="checkBoxTemporalTools">
-         <property name="text">
-          <string>Enable time</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDateTimeEdit" name="dateTimeEdit">
-         <property name="calendarPopup">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="toolButton">
-         <property name="text">
-          <string>P</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSlider" name="horizontalSlider">
-         <property name="minimumSize">
-          <size>
-           <width>256</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="maximum">
-          <number>73049</number>
-         </property>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
+        <widget class="QWidget" name="widgetTemporal" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QCheckBox" name="checkBoxTemporalTools">
+            <property name="text">
+             <string>Enable time</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDateTimeEdit" name="dateTimeEdit">
+            <property name="calendarPopup">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButton">
+            <property name="text">
+             <string>P</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="horizontalSlider">
+            <property name="minimumSize">
+             <size>
+              <width>256</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <number>73049</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -110,6 +116,9 @@
          </property>
          <property name="pixmap">
           <pixmap resource="../resources/vcity.qrc">:/images/LirisLogo.png</pixmap>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -150,7 +159,7 @@
             </sizepolicy>
            </property>
            <attribute name="title">
-            <string>Tree 1</string>
+            <string>Tree</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_2">
             <item row="0" column="0">
@@ -268,9 +277,6 @@
      <string>Edit</string>
     </property>
     <addaction name="actionClearSelection"/>
-    <addaction name="actionDelete_node"/>
-    <addaction name="actionAdd_Tag"/>
-    <addaction name="actionAdd_Flag"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">

@@ -1,26 +1,33 @@
+#ifndef __LAYERSHP_HPP__
+#define __LAYERSHP_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "settings.hpp"
-#include <QSettings>
+#include "abstractlayer.hpp"
+#include "URI.hpp"
+#include <string>
+#include <memory>
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-Settings::Settings()
-    : m_loadTextures(true)
+/// \brief LayerShp class : it holds shp objects
+class LayerShp : public abstractLayer
 {
-    QSettings settings("liris", "virtualcity");
-    m_loadTextures = settings.value("loadtextures").toBool();
-}
+public:
+    /// \brief Layer Build empty layer
+    /// \param name Layer name
+    LayerShp(const std::string& name);
+
+	const std::string getType() const;
+
+	URI getURI() const;
+
+    void dump();
+
+private:
+};
 ////////////////////////////////////////////////////////////////////////////////
-DataProfile& Settings::getDataProfile()
-{
-    return m_dataprofile;
-}
-////////////////////////////////////////////////////////////////////////////////
-const DataProfile& Settings::getDataProfile() const
-{
-    return m_dataprofile;
-}
+typedef std::shared_ptr<LayerShp> LayerShpPtr;
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
+#endif // __LAYERSHP_HPP__

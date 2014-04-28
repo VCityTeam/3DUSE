@@ -38,7 +38,7 @@
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_adminMode(true)
+    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
 {
     m_ui->setupUi(this);
 
@@ -563,11 +563,58 @@ void MainWindow::updateTextBoxWithSelectedNodes()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::adminMode(bool val)
+void MainWindow::unlockFeatures(const QString& pass)
 {
-    m_adminMode = val;
-    m_ui->menuDebug->menuAction()->setVisible(m_adminMode);
-    m_ui->menuTest->menuAction()->setVisible(m_adminMode);
+    if(pass == "pass1")
+    {
+        m_unlockLevel = 1;
+    }
+    else if(pass == "pass2")
+    {
+        m_unlockLevel = 2;
+    }
+    else
+    {
+        m_unlockLevel = 0;
+    }
+
+    switch(m_unlockLevel)
+    {
+    case 2:
+        m_ui->menuDebug->menuAction()->setVisible(true);
+        m_ui->menuTest->menuAction()->setVisible(true);
+        m_ui->menuTools->menuAction()->setVisible(true);
+        m_ui->menuRender->menuAction()->setVisible(true);
+        m_ui->actionExport_osg->setVisible(true);
+        m_ui->actionExport_tiled_osga->setVisible(true);
+        m_ui->actionLoad_bbox->setVisible(true);
+        m_ui->actionLoad_recursive->setVisible(true);
+        m_ui->actionShow_advanced_tools->setVisible(true);
+        m_ui->actionHelp->setVisible(true);
+        //m_ui->tab_16->setVisible(true);
+        //break; // missing break on purpose
+    case 1:
+        m_ui->widgetTemporal->setVisible(true);
+        m_ui->actionShow_temporal_tools->setVisible(true);
+        break;
+    case 0:
+        m_ui->menuDebug->menuAction()->setVisible(false);
+        m_ui->menuTest->menuAction()->setVisible(false);
+        m_ui->menuTools->menuAction()->setVisible(false);
+        m_ui->menuRender->menuAction()->setVisible(false);
+        m_ui->actionExport_osg->setVisible(false);
+        m_ui->actionExport_tiled_osga->setVisible(false);
+        m_ui->actionLoad_bbox->setVisible(false);
+        m_ui->actionLoad_recursive->setVisible(false);
+        m_ui->actionShow_advanced_tools->setVisible(false);
+        m_ui->actionHelp->setVisible(false);
+        m_ui->tab_16->setVisible(false); m_ui->tabWidget->removeTab(1);
+        m_ui->widgetTemporal->setVisible(false);
+        m_ui->actionShow_temporal_tools->setVisible(false);
+        break;
+    default:
+        break;
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 QLineEdit* MainWindow::getFilter()
@@ -581,7 +628,7 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    adminMode(m_adminMode);
+    unlockFeatures("none");
     m_ui->mainToolBar->hide();
     m_ui->statusBar->hide();
 }
@@ -600,7 +647,7 @@ void MainWindow::resetScene()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::clearSelection()
 {
-    m_pickhandler->resetPicking();
+    appGui().getControllerGui().resetSelection();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::optionPickBuiling()
@@ -656,7 +703,7 @@ void MainWindow::optionShowTemporalTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::optionShowAdvancedTools()
 {
-    bool v = m_ui->actionShow_advanced_tools->isChecked();
+    /*bool v = m_ui->actionShow_advanced_tools->isChecked();
     if(v)
     {
         m_ui->menuDebug->show();
@@ -664,7 +711,7 @@ void MainWindow::optionShowAdvancedTools()
     else
     {
         m_ui->menuDebug->hide();
-    }
+    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
