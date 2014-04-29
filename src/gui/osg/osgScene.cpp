@@ -164,8 +164,9 @@ void OsgScene::init()
     m_layers->addChild(layer2);
 
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
-    osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
-    m_layers->addChild(grid);
+    //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
+	osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(643000.0, 6857000.0, 0.0), 500.0, 30);
+    //m_layers->addChild(grid);
 
     //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
     //m_layers->addChild(bbox);
