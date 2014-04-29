@@ -2,6 +2,7 @@
 #include "osgGDAL.hpp"
 #include <osg/Geode>
 #include <osg/Geometry>
+#include "libcitygml/tesselator.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 {
@@ -18,6 +19,8 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
             poLayer = poDS->GetLayer(0);
             printf("layer %s. Type : %d\n", poLayer->GetName(), poLayer->GetGeomType());
             //poLayer = poDS->GetLayerByName( "point" );
+
+            Tesselator tess;
 
             OGRFeature *poFeature;
             poLayer->ResetReading();
@@ -49,6 +52,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                 }
                 else if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
                 {
+                    /*
                     osg::Geometry* geom = new osg::Geometry;
                     osg::Vec3Array* vertices = new osg::Vec3Array;
                     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::POLYGON, 0);
@@ -69,6 +73,64 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                     geom->setVertexArray(vertices);
                     geom->addPrimitiveSet(indices);
                     geode->addDrawable(geom);
+                    /*/
+                    osg::Geometry* geom = new osg::Geometry;
+                    osg::Vec3Array* vertices = new osg::Vec3Array;
+                    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES , 0);
+
+                    OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+                    OGRLinearRing* poLR = poPG->getExteriorRing();
+
+                    // count vertices
+                    unsigned int verticesCount = poLR->getNumPoints();
+                    for(int i=0; i<poPG->getNumInteriorRings(); ++i)
+                    {
+                        verticesCount += poPG->getInteriorRing(i)->getNumPoints();
+                    }
+                    tess.init(verticesCount, TVec3d(0.0, 0.0, 1.0));
+
+                    // feed data
+                    OGRPoint p;
+                    TVec3d v;
+                    std::vector<TVec3d> pts;
+                    std::vector<TVec2f> texcoords;
+                    for(int i=0; i<poLR->getNumPoints(); ++i)
+                    {
+                        poLR->getPoint(i, &p);
+                        v = TVec3d(p.getX(), p.getY(), p.getZ());
+                        pts.push_back(v);
+                    }
+                    tess.addContour(pts, texcoords);
+
+                    for(int j=0; j<poPG->getNumInteriorRings(); ++j)
+                    {
+                        pts.clear();
+                        poLR = poPG->getInteriorRing(j);
+                        for(int i=0; i<poLR->getNumPoints(); ++i)
+                        {
+                            poLR->getPoint(i, &p);
+                            v = TVec3d(p.getX(), p.getY(), p.getZ());
+                            pts.push_back(v);
+                        }
+                        tess.addContour(pts, texcoords);
+                    }
+                    tess.compute();
+
+                    // feed data to osg
+                    for(const TVec3d& v : tess.getVertices())
+                    {
+                        osg::Vec3d pt = osg::Vec3d(v.x, v.y, v.z) - osg::Vec3d(643000.0, 6857000.0, 50.0);
+                        vertices->push_back(pt);
+                    }
+                    for(unsigned int id : tess.getIndices())
+                    {
+                        indices->push_back(id);
+                    }
+
+                    geom->setVertexArray(vertices);
+                    geom->addPrimitiveSet(indices);
+                    geode->addDrawable(geom);
+                    //*/
                 }
                 else
                 {
