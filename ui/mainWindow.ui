@@ -109,19 +109,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <widget class="QLabel" name="label_logo">
-         <property name="text">
-          <string/>
-         </property>
-         <property name="pixmap">
-          <pixmap resource="../resources/vcity.qrc">:/images/LirisLogo.png</pixmap>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
@@ -211,6 +198,19 @@
             <string>Tree 2</string>
            </attribute>
           </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelLogo">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="../resources/vcity.qrc">:/images/LirisLogo.png</pixmap>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
          </widget>
         </item>
        </layout>

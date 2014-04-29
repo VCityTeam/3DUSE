@@ -27,7 +27,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_general">
       <attribute name="title">
@@ -194,7 +194,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Offset : </string>
+               <string> Offset : </string>
               </property>
              </widget>
             </item>
@@ -220,6 +220,12 @@
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QLabel" name="label_5">
+            <property name="minimumSize">
+             <size>
+              <width>104</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string> Tile size : </string>
             </property>

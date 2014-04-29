@@ -1,12 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/mainWindow.hpp"
 #include "ui_mainWindow.h"
-#include "ui_dialogLoadBBox.h"
-#include "ui_dialogSettings.h"
-#include "ui_dialogTag.h"
-#include "ui_dialogFlag.h"
-#include "ui_dialogDynFlag.h"
+#include "moc/dialogLoadBBox.hpp"
 #include "moc/dialogSettings.hpp"
+#include "moc/dialogAbout.hpp"
 
 #include "controllerGui.hpp"
 
@@ -478,9 +475,7 @@ void MainWindow::loadSceneRecursive()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadSceneBBox()
 {
-    Ui::DialogLoadBBox ui;
-    QDialog diag;
-    ui.setupUi(&diag);
+    DialogLoadBBox diag;
     diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -594,6 +589,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         //m_ui->tab_16->setVisible(true);
         //break; // missing break on purpose
     case 1:
+        m_ui->hsplitter_bottom->setVisible(true);
         m_ui->widgetTemporal->setVisible(true);
         m_ui->actionShow_temporal_tools->setVisible(true);
         break;
@@ -610,6 +606,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->actionHelp->setVisible(false);
         m_ui->tab_16->setVisible(false); m_ui->tabWidget->removeTab(1);
         m_ui->widgetTemporal->setVisible(false);
+        m_ui->hsplitter_bottom->setVisible(false);
         m_ui->actionShow_temporal_tools->setVisible(false);
         break;
     default:
@@ -1021,7 +1018,9 @@ void MainWindow::slotTemporalAnimUpdate()
 void MainWindow::about()
 {
     // TODO : add Liris image and text
-    QMessageBox::about(this, "VCity", "VCity is an environment editor");
+    //QMessageBox::about(this, "VCity", "VCity is an environment editor");
+    DialogAbout diag;
+    diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
