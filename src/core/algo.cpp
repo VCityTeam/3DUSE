@@ -594,6 +594,7 @@ namespace vcity
 								FirstPoint[0] = -1;
 								isHole = true;
 								tempcoord.clear();
+
 							}
 							else
 							{
