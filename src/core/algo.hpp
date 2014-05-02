@@ -11,7 +11,7 @@ class Algo
 {
 public:
 	void generateLOD0(const URI& uri);
-    void generateLOD0Scene(const URI& uri, geos::geom::Geometry ** ShapeGeo);
+    void generateLOD0Scene(geos::geom::Geometry ** ShapeGeo);
 
 private:
 

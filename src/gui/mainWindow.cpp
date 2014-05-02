@@ -802,6 +802,7 @@ void MainWindow::generateLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
+	vcity::app().getAlgo().generateLOD0Scene(&ShapeGeo);/*
     // get all selected nodes (with a uri)
     const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
     if(uris.size() > 0)
@@ -809,11 +810,11 @@ void MainWindow::generateLOD1()
         // do all nodes selected
         for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
         {
-            vcity::app().getAlgo().generateLOD0Scene(*it, &ShapeGeo);
+            vcity::app().getAlgo().generateLOD0Scene(&ShapeGeo);
             // TODO
             //appGui().getControllerGui().update(*it);
         }
-    }
+    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()

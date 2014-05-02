@@ -378,7 +378,7 @@ namespace vcity
 	}
 
 	/**
-     * @brief Sauvegarde une image 8bits dans un fichier pgm
+     * @brief Sauvegarde une image binaire dans un fichier pgm
      */
 	void SaveImage(std::string name, int* Im, int width, int height)
 	{
@@ -387,15 +387,40 @@ namespace vcity
 		name = name + ".pgm";
 		char* nameC = (char*)name.c_str();
 		err = fopen_s(&out, nameC,"w"); 
-		fprintf(out,"P2\n%d %d\1\n", width, height); 
+		fprintf(out,"P2\n%d %d\n1\n", width, height); 
 		for(int h = height - 1; h >= 0; h--)
 		{
 			fprintf(out, "\n");
 			for(int w = 0; w < width; w++)
 			{
 				int pos = w + h*width;
-				//fwrite(&Im[pos], 2, 1, out);
 				fprintf(out,"%d ",Im[pos]);
+			}
+		}
+
+		fclose(out); 
+
+		std::cout<<"Image " << name << " creee !"<<std::endl;
+	}
+
+	/**
+     * @brief Sauvegarde une image RGB dans un fichier ppm
+     */
+	void SaveImageRGB(std::string name, int* ImR, int* ImG, int* ImB, int width, int height)
+	{
+		FILE *out;
+		errno_t err;
+		name = name + ".ppm";
+		char* nameC = (char*)name.c_str();
+		err = fopen_s(&out, nameC,"w"); 
+		fprintf(out,"P3\n%d %d\n255\n", width, height); 
+		for(int h = height - 1; h >= 0; h--)
+		{
+			fprintf(out, "\n");
+			for(int w = 0; w < width; w++)
+			{
+				int pos = w + h*width;
+				fprintf(out,"%d %d %d ", 255*ImR[pos], 255*ImG[pos], 255*ImB[pos]);
 			}
 		}
 
@@ -535,6 +560,192 @@ namespace vcity
 		
 		delete [] Im;
 		delete [] ImHoles;
+	}
+
+	/**
+     * @brief Sauvegarde 3 geometry dans un même fichier image dans les trois canaux RGB
+     */
+	void Save3GeometryRGB(std::string name, const geos::geom::Geometry* G1,  const geos::geom::Geometry* G2,  const geos::geom::Geometry* G3)
+	{	
+		const geos::geom::CoordinateSequence *coord;
+
+		int Xmin = -1, Ymin = -1, Xmax = 0, Ymax = 0;
+
+		for(int g = 0; g < 3; g ++)
+		{
+			if(g==0)
+				coord = G1->getCoordinates();
+			else if(g==1)
+				coord = G2->getCoordinates();
+			else
+				coord = G3->getCoordinates();
+
+			for(int i = 0; i < coord->size(); i++)
+			{
+				int x = coord->getAt(i).x * Scale;
+				int y = coord->getAt(i).y * Scale;
+
+				if(Xmin == -1 || x < Xmin)
+					Xmin = x;
+				if(Ymin == -1 || y < Ymin)
+					Ymin = y;
+				if(x > Xmax)
+					Xmax = x;
+				if(y > Ymax)
+					Ymax = y;
+			}
+		}		
+
+		Xmin --;
+		Ymin --;
+
+		int width = Xmax - Xmin + Scale;
+		int height = Ymax - Ymin + Scale;
+
+		int* Im = new int[width * height];
+		int* ImR = new int[width * height];
+		int* ImG = new int[width * height];
+		int* ImB = new int[width * height];
+		int* ImHoles = new int[width * height];
+		int* ImHolesR = new int[width * height];
+		int* ImHolesG = new int[width * height];
+		int* ImHolesB = new int[width * height];
+		bool Holes = false; //Passe à true en présence d'holes
+
+		for(int g = 0; g < 3; g ++)
+		{			
+			memset(Im, 1, width*height*sizeof(int));			
+			memset(ImHoles, 1, width*height*sizeof(int));
+
+			int NbGeo;
+
+			if(g==0)
+				NbGeo = G1->getNumGeometries();
+			else if(g==1)
+				NbGeo = G2->getNumGeometries();
+			else
+				NbGeo = G3->getNumGeometries();			
+
+			for(int i = 0; i < NbGeo; i++)
+			{
+				const geos::geom::Geometry *Geo;
+
+				if(g==0)
+					Geo = G1->getGeometryN(i);
+				else if(g==1)
+					Geo = G2->getGeometryN(i);
+				else
+					Geo = G3->getGeometryN(i);
+
+				const geos::geom::Polygon *p = dynamic_cast<const geos::geom::Polygon*>(Geo);
+				if(p)
+				{
+					coord = p->getExteriorRing()->getCoordinates();
+					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+					{
+						int x1 = Scale*coord->getAt(j).x - Xmin;
+						int y1 = Scale*coord->getAt(j).y - Ymin;
+
+						int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+						int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+					
+						std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+
+						for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+						{
+							int pos = it->first + it->second * width;
+							if(pos >= width * height || pos < 0)
+								std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+							else
+							{
+								Im[pos] = 0;
+								ImHoles[pos] = 0;
+							}
+						}
+					}
+
+					for(int k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
+					{
+						Holes = true;
+						coord = p->getInteriorRingN(k)->getCoordinates();
+						for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+						{
+							int x1 = Scale*coord->getAt(j).x - Xmin;
+							int y1 = Scale*coord->getAt(j).y - Ymin;
+
+							int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+							int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+						
+							std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+							//Points.push_back(std::make_pair(x1, y1));
+
+							for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+							{
+								int pos = it->first + it->second * width;
+								if(pos >= width * height || pos < 0)
+									std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+								else
+									ImHoles[pos] = 0;
+							}
+						}
+					}
+				}
+				else
+				{
+					std::cout << "Geometry n'est pas un polygon. \n";
+					coord = Geo->getCoordinates();
+
+					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+					{
+						int x1 = Scale*coord->getAt(j).x - Xmin;
+						int y1 = Scale*coord->getAt(j).y - Ymin;
+
+						int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+						int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+					
+						std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+
+						for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+						{
+							int pos = it->first + it->second * width;
+							if(pos >= width * height || pos < 0)
+								std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+							else
+								Im[pos] = 0;
+						}
+					}
+				}
+			}
+			if(g==0)
+			{
+				memcpy(ImR, Im, width*height*sizeof(int));
+				memcpy(ImHolesR, ImHoles, width*height*sizeof(int));
+			}
+			else if(g==1)
+			{
+				memcpy(ImG, Im, width*height*sizeof(int));
+				memcpy(ImHolesG, ImHoles, width*height*sizeof(int));
+			}
+			else
+			{
+				memcpy(ImB, Im, width*height*sizeof(int));
+				memcpy(ImHolesB, ImHoles, width*height*sizeof(int));
+			}
+		}
+		
+		if(Holes)
+			SaveImageRGB(name + "withHoles", ImHolesR, ImHolesG, ImHolesB, width, height);
+		else
+			SaveImageRGB(name, ImR, ImG, ImB, width, height);
+		
+		delete [] Im;
+		delete [] ImR;
+		delete [] ImG;
+		delete [] ImB;
+		delete [] ImHoles;
+		delete [] ImHolesR;
+		delete [] ImHolesG;
+		delete [] ImHolesB;
 	}
 
 	/**
@@ -749,26 +960,18 @@ namespace vcity
         }
     }
 
-    void Algo::generateLOD0Scene(const URI& uri, geos::geom::Geometry ** ShapeGeo)
+    void Algo::generateLOD0Scene(geos::geom::Geometry ** ShapeGeo)
     {
         //LOD0 sur toute la scène
 
 		geos::geom::Geometry * Shape = (*ShapeGeo);
-		geos::geom::Geometry * ShapeU = NULL; //Contient tous les polygons de Shape dans une geometry valide
+		geos::geom::Geometry * ShapeU; //Contient tous les polygons de Shape dans une geometry valide
 
 		std::cout << "Creation de ShapeU ... \n";
-		
-		/*for(int i = 0; i < Shape->getNumGeometries(); i++)
-		{
-			if(ShapeU == NULL)
-				ShapeU = Shape->getGeometryN(i)->clone();
-			else
-				ShapeU = ShapeU->Union(Shape->getGeometryN(i));
-		}*/
 
 		ShapeU = geos::operation::geounion::CascadedPolygonUnion::Union(dynamic_cast<geos::geom::MultiPolygon*>(Shape));
 
-		std::cout << "Creation de ShapeU terminée. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
+		std::cout << "Creation de ShapeU terminee. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
@@ -805,11 +1008,9 @@ namespace vcity
 					//Pour affiché le ground dans VCity
 					//citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
 					//geom = ConvertToCityGML(name, Enveloppe);
-
 					//citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
 					//obj2->addGeometry(geom);
 					//obj->insertNode(obj2);
-
 					//std::cout << "Lod 0 exporte en cityGML" << std::endl;
 				}
 				cpt++;
@@ -825,24 +1026,24 @@ namespace vcity
 		geos::geom::Geometry * TempGeo;
 
 		std::cout << "Creation de l'Union ..." << std::endl;
-		try
-		{
-			TempGeo = ShapeU->Union(EnveloppeCity);
-		}
-		catch(std::exception& e)
-		{
-			std::cout << e.what() << '\n';
-		}
-		std::cout << "Sauvegarde ..." << std::endl;
+		TempGeo = ShapeU->Union(EnveloppeCity);
 		SaveGeometry("Union", TempGeo);
+		Save3GeometryRGB("Shape_Enveloppe_Union", ShapeU, EnveloppeCity, TempGeo);
+
 		std::cout << "Creation de l'intersection ..." << std::endl;
-		SaveGeometry("intersection", ShapeU->intersection(EnveloppeCity));
+		TempGeo = ShapeU->intersection(EnveloppeCity);
+		SaveGeometry("Intersection", TempGeo);
+		Save3GeometryRGB("Shape_Enveloppe_Intersection", ShapeU, EnveloppeCity, TempGeo);
+
 		std::cout << "Creation de la SymDifference ..." << std::endl;
-		SaveGeometry("SymDifference", ShapeU->symDifference(EnveloppeCity));
-		std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
+		TempGeo = ShapeU->symDifference(EnveloppeCity);
+		SaveGeometry("SymDifference", TempGeo);
+		Save3GeometryRGB("Shape_Enveloppe_SymDifference", ShapeU, EnveloppeCity, TempGeo);
+
+		/*std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
 		SaveGeometry("S-E", ShapeU->difference(EnveloppeCity));
 		std::cout << "Creation de Enveloppe - Shape ..." << std::endl;
-		SaveGeometry("E-S", EnveloppeCity->difference(ShapeU));
+		SaveGeometry("E-S", EnveloppeCity->difference(ShapeU));*/
 
 		//SaveGeometry("Enveloppe_City", EnveloppeCity);
 
