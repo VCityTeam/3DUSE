@@ -468,11 +468,12 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
 							Ring->getPoint(j, &p);
 							temp.add(geos::geom::Coordinate(p.getX(), p.getY()));
 						}
-						Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
+						if(temp.size() > 3)
+							Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
 						temp.clear();
 					}
 					
-                    for(int i=0; i<nbPoints; ++i)
+                    for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
                     {
                         OGRPoint p;
                         poLR->getPoint(i, &p);
@@ -482,10 +483,13 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
 
 						temp.add(geos::geom::Coordinate(p.getX(), p.getY()));//
                     }
-
-					shell=factory->createLinearRing(temp);//
-					P = factory->createPolygon(shell, Holes);//
-					Polys.push_back(P);//
+					if(temp.size() > 3)//
+					{
+						shell=factory->createLinearRing(temp);
+						P = factory->createPolygon(shell, Holes);
+						if(P->isValid())
+							Polys.push_back(P);
+					}
 
                     geom->setVertexArray(vertices);
                     geom->addPrimitiveSet(indices);

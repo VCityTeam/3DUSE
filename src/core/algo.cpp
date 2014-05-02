@@ -32,14 +32,6 @@ typedef std::pair<double,double> Point;
 typedef std::vector<Point> Polygon2D;
 typedef std::set<Polygon2D> PolySet;
 
-
-/*
-1. Projection sur le plan (xy)
-2. Fusion des polygones
-3. Simplfication du polygone
-4. Alignement au sol et généralisation du bloc (Lod1)
-*/
-
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -704,9 +696,79 @@ namespace vcity
 		return Geom;
 	}
 
-	void Algo::generateLOD0(const URI& uri, geos::geom::Geometry ** ShapeGeo)
+	void Algo::generateLOD0(const URI& uri)
     {
+		/////////////////////////////////// Traitement bâtiment par bâtiment 
+
+        std::cout << "void Algo::generateLOD0(const URI& uri)" << std::endl;
+        Polygon2D tmp;
+        log() << "generateLOD0 on "<< uri.getStringURI() << "\n";
+        citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
+
+        if(obj)
+        {
+            log() << uri.getStringURI() << "CityObject found\n";
+            PolySet roofPoints;
+            projectRoof(obj,roofPoints);
+
+			std::string name = obj->getId();
+
+			geos::geom::MultiPolygon * GeosObj = ConvertToGeos(name, roofPoints);
+			geos::geom::Geometry * Enveloppe = GetEnveloppe(name, GeosObj);
+
+			
+
+			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
+			geom = ConvertToCityGML(name, Enveloppe);
+
+
+			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
+			obj2->addGeometry(geom);
+			obj->insertNode(obj2);
+
+			std::cout << "Lod 0 exporte en cityGML" << std::endl;
+
+			//for(PolySet::const_iterator poly=roofPoints.begin(); poly!= roofPoints.end(); ++poly){ //Affichage des points récupérés
+			//	for(Polygon2D::const_iterator point = poly->begin(); point!= poly->end(); ++point){
+			//		std::cout << " (x,y) = (" << point->first << "," << point->second << ")" << std::endl;
+			//	}
+			//}
+
+            //fusionPoly(roofPoints);
+            //citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
+            //citygml::Geometry* geom = new citygml::Geometry("idGeoTest",citygml::GT_Ground,0);
+
+            //for(PolySet::iterator it= roofPoints.begin(); it!= roofPoints.end(); ++it){
+                ////tmp=simplification(*it);
+                //tmp=(*it);
+                //lissagePoly(tmp);
+                //geom->addPolygon(convertPoly(tmp));
+            //}
+            //obj2->addGeometry(geom);
+            //obj->insertNode(obj2);
+        }
+    }
+
+    void Algo::generateLOD0Scene(const URI& uri, geos::geom::Geometry ** ShapeGeo)
+    {
+        //LOD0 sur toute la scène
+
 		geos::geom::Geometry * Shape = (*ShapeGeo);
+		geos::geom::Geometry * ShapeU = NULL; //Contient tous les polygons de Shape dans une geometry valide
+
+		std::cout << "Creation de ShapeU ... \n";
+		
+		/*for(int i = 0; i < Shape->getNumGeometries(); i++)
+		{
+			if(ShapeU == NULL)
+				ShapeU = Shape->getGeometryN(i)->clone();
+			else
+				ShapeU = ShapeU->Union(Shape->getGeometryN(i));
+		}*/
+
+		ShapeU = geos::operation::geounion::CascadedPolygonUnion::Union(dynamic_cast<geos::geom::MultiPolygon*>(Shape));
+
+		std::cout << "Creation de ShapeU terminée. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
@@ -756,15 +818,16 @@ namespace vcity
 		}
 
 		std::cout << "Creation de Shape ..." << std::endl;
-		SaveGeometry("Shape", Shape);
+		SaveGeometry("Shape", ShapeU);
 		std::cout << "Creation de EnveloppeCity ..." << std::endl;
 		SaveGeometry("EnveloppeCity", EnveloppeCity);
 
 		geos::geom::Geometry * TempGeo;
 
 		std::cout << "Creation de l'Union ..." << std::endl;
-		try{
-		TempGeo = Shape->Union(EnveloppeCity);
+		try
+		{
+			TempGeo = ShapeU->Union(EnveloppeCity);
 		}
 		catch(std::exception& e)
 		{
@@ -773,79 +836,17 @@ namespace vcity
 		std::cout << "Sauvegarde ..." << std::endl;
 		SaveGeometry("Union", TempGeo);
 		std::cout << "Creation de l'intersection ..." << std::endl;
-		SaveGeometry("intersection", Shape->intersection(EnveloppeCity));
+		SaveGeometry("intersection", ShapeU->intersection(EnveloppeCity));
 		std::cout << "Creation de la SymDifference ..." << std::endl;
-		SaveGeometry("SymDifference", Shape->symDifference(EnveloppeCity));
+		SaveGeometry("SymDifference", ShapeU->symDifference(EnveloppeCity));
 		std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
-		SaveGeometry("S-E", Shape->difference(EnveloppeCity));
+		SaveGeometry("S-E", ShapeU->difference(EnveloppeCity));
 		std::cout << "Creation de Enveloppe - Shape ..." << std::endl;
-		SaveGeometry("E-S", EnveloppeCity->difference(Shape));
+		SaveGeometry("E-S", EnveloppeCity->difference(ShapeU));
 
 		//SaveGeometry("Enveloppe_City", EnveloppeCity);
 
 		//SaveGeometry("Enveloppe_City_Simplified", geos::simplify::TopologyPreservingSimplifier::simplify(EnveloppeCity, 2).get());
-
-
-
-		/////////////////////////////////// Traitement bâtiment par bâtiment 
-
-       /* std::cout << "void Algo::generateLOD0(const URI& uri)" << std::endl;
-        Polygon2D tmp;
-        log() << "generateLOD0 on "<< uri.getStringURI() << "\n";
-        citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
-
-        if(obj)
-        {
-            log() << uri.getStringURI() << "CityObject found\n";
-            PolySet roofPoints;
-            projectRoof(obj,roofPoints);
-
-			std::string name = obj->getId();
-
-			geos::geom::MultiPolygon * GeosObj = ConvertToGeos(name, roofPoints);
-			geos::geom::Geometry * Enveloppe = GetEnveloppe(name, GeosObj);
-
-			
-
-			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
-			geom = ConvertToCityGML(name, Enveloppe);
-
-
-			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
-			obj2->addGeometry(geom);
-			obj->insertNode(obj2);
-
-			std::cout << "Lod 0 exporte en cityGML" << std::endl;
-
-			//for(PolySet::const_iterator poly=roofPoints.begin(); poly!= roofPoints.end(); ++poly){ //Affichage des points récupérés
-			//	for(Polygon2D::const_iterator point = poly->begin(); point!= poly->end(); ++point){
-			//		std::cout << " (x,y) = (" << point->first << "," << point->second << ")" << std::endl;
-			//	}
-			//}
-
-            //fusionPoly(roofPoints);
-            //citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
-            //citygml::Geometry* geom = new citygml::Geometry("idGeoTest",citygml::GT_Ground,0);
-
-            //for(PolySet::iterator it= roofPoints.begin(); it!= roofPoints.end(); ++it){
-                ////tmp=simplification(*it);
-                //tmp=(*it);
-                //lissagePoly(tmp);
-                //geom->addPolygon(convertPoly(tmp));
-            //}
-            //obj2->addGeometry(geom);
-            //obj->insertNode(obj2);
-        }*/
-    }
-
-    void Algo::generateLOD1(const URI& uri)
-    {
-        log() << "generateLOD1 on "<< uri.getStringURI() << "\n";
-		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
-        if(obj)
-        {
-            log() << uri.getStringURI() << "CityObject found\n";
-        }
     }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
