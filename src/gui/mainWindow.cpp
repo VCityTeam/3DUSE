@@ -39,7 +39,7 @@
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
-geos::geom::Geometry* ShapeGeo;
+geos::geom::Geometry* ShapeGeo = NULL;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
@@ -802,9 +802,10 @@ void MainWindow::generateLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
-	vcity::app().getAlgo().generateLOD0Scene(&ShapeGeo);/*
-    // get all selected nodes (with a uri)
-    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+	vcity::app().getAlgo().generateLOD0Scene(&ShapeGeo); 
+	
+	// get all selected nodes (with a uri)
+    /*const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
     if(uris.size() > 0)
     {
         // do all nodes selected

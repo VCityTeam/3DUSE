@@ -36,20 +36,18 @@ typedef std::set<Polygon2D> PolySet;
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-	
-	int Xmin = -1, Xmax = 0, Ymin = -1, Ymax = 0;
 
-	double Scale = 1;
+	double Scale = 10;
 
     /**
      * @brief projete les toits du CityObject selectioné sur le plan (xy)
      * @param obj CityObject séléctioné
      * @param roofProj un set de Polygon, le résultat de la projection
      */
-    void projectRoof(citygml::CityObject* obj, PolySet &roofProj){
-        if(obj->getType() == citygml::COT_RoofSurface) //Si surface de toit
+    void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax, double * heightmin)
+	{
+        if(obj->getType() == citygml::COT_RoofSurface) //Si surface de toit : COT_RoofSurface COT_WallSurface
 		{
-            //std::cout << "Nouveau Toit trouvé" << std::endl;
             std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
             std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin();
             for(; itGeom != geoms.end(); ++itGeom) //pour toute les géométries ( /!\ gestion des LoD/LoA encore non présente)
@@ -66,15 +64,8 @@ namespace vcity
 					{
                         TVec3d point = *itVertices;
                         poly.push_back(std::make_pair(point.x,point.y)); //on récupere le point
-
-						if(Xmin > (int)point.x || Xmin == -1)
-							Xmin = (int)point.x;
-						if(Ymin > (int)point.y || Ymin == -1)
-							Ymin = (int)point.y;
-						if(Xmax < (int)point.x)
-							Xmax = (int)point.x;
-						if(Ymax < (int)point.y)
-							Ymax = (int)point.y;
+						if(point.z > *heightmax)
+							*heightmax = point.z;
 
                        //std::cout << " (x,y) = (" << point.x<< "," << point.y<< ")" << std::endl;
                     }
@@ -82,11 +73,34 @@ namespace vcity
                 }
             }
         }
+		else if(obj->getType() == citygml::COT_WallSurface)
+		{
+			std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
+            std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin();
+            for(; itGeom != geoms.end(); ++itGeom) //pour toute les géométries ( /!\ gestion des LoD/LoA encore non présente)
+			{
+                std::vector<citygml::Polygon*>& polys = (*itGeom)->getPolygons();
+                std::vector<citygml::Polygon*>::iterator itPoly = polys.begin();
+                for(; itPoly != polys.end(); ++itPoly) //Pour chaque polygone
+				{
+                    citygml::LinearRing* ring = (*itPoly)->getExteriorRing();
+                    const std::vector<TVec3d>& vertices = ring->getVertices();
+                    std::vector<TVec3d>::const_iterator itVertices = vertices.begin();
+                    for(; itVertices != vertices.end(); ++itVertices)//pour Chaque sommet
+					{
+                        TVec3d point = *itVertices;
+						if(point.z < *heightmin || *heightmin == -1)
+							*heightmin = point.z;
+
+                    }
+                }
+            }
+		}
         citygml::CityObjects& cityObjects = obj->getChildren();
         citygml::CityObjects::iterator itObj = cityObjects.begin();
         for(; itObj != cityObjects.end(); ++itObj)
 		{
-            projectRoof(*itObj,roofProj);
+            projectRoof(*itObj,roofProj, heightmax, heightmin);
         }
 
     }
@@ -298,83 +312,6 @@ namespace vcity
 		}
 
 		return Points;
-	}
-
-	/**
-     * @brief sauvegarde les projections dans un fichier image. !!! Echelle xScale, précision à 100/Scale cm !!!
-	 * @param name nom du CityObject sélectionné
-	 * @param roofPoints un set de Polygon, le résultat de la projection
-     */
-	void SaveProjection(std::string name, PolySet &roofPoints)
-	{
-		std::cout<<"Mise en place de l'image des projections"<<std::endl;
-		
-		std::cout << "Min(" << Xmin <<","<< Ymin<<") - "<< "Max(" << Xmax <<","<< Ymax<<")"<<std::endl;
-
-		Xmin *= Scale;
-		Ymin *= Scale;
-		Xmax *= Scale;
-		Ymax *= Scale;
-
-		int width = Xmax - Xmin + Scale; //Scale : erreur dû aux arrondies double -> int
-		int height = Ymax - Ymin + Scale;
-		int* ImProj = new int[width*height];
-		memset(ImProj, 255, width*height*sizeof(int));
-
-		std::cout << "Width : " << width << "/ Height : " << height << std::endl;
-
-		for(PolySet::const_iterator poly=roofPoints.begin(); poly!= roofPoints.end(); ++poly)
-		{
-            for(Polygon2D::const_iterator point = poly->begin(); point!= poly->end(); ++point)
-			{
-				int x1 = Scale * point->first - Xmin, y1 = Scale * point->second - Ymin;
-				
-				Polygon2D::const_iterator point2 = point + 1;
-
-				if(point2 == poly->end())
-					point2 = poly->begin();
-
-				int x2 = Scale*point2->first - Xmin, y2 = Scale*point2->second - Ymin;
-
-				std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-				for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-				{
-					int pos = it->first + it->second * width;
-					if(pos >= width * height || pos < 0)
-						std::cout << "Probleme creation image des projections ! " << it->first << ";" << it->second << std::endl;
-					else
-						ImProj[pos] = 0;
-				}
-            }
-        }
-
-		FILE *out;
-		errno_t err;
-		name = name + ".pgm";
-		char* nameC = (char*)name.c_str();
-		err = fopen_s(&out, nameC,"w"); 
-
-		fprintf(out,"P2\n%d %d\n255", width, height); 
-
-		for(int h = 0; h < height; h++)
-		{
-			fprintf(out, "\n");
-			for(int w = width-1; w >=0; w--) //Parcours inversé pour remettre l'image à l'endroit (? D'où vient l'inversion initiale ?)
-			{
-				int pos = w + h*width;
-
-				fprintf(out,"%d ",ImProj[pos]);
-			}
-		}
-
-		fclose(out); 
-
-		std::cout<<"Image creee !"<<std::endl;
-
-		delete [] ImProj;
-
-		Xmin = -1, Xmax = 0, Ymin = -1, Ymax = 0;
 	}
 
 	/**
@@ -799,7 +736,8 @@ namespace vcity
 								FirstPoint[0] = -1;
 								isHole = true;
 								tempcoord.clear();
-
+								
+								break;//////////////////////// A ENLEVER POUR AVOIR LES TROUS DANS LES POLYGONS
 							}
 							else
 							{
@@ -828,7 +766,7 @@ namespace vcity
 			}
 		}
 
-		//SaveGeometry(name + "_Enveloppe", ResUnion);
+		SaveGeometry(name + "_Enveloppe", ResUnion);
 
 		return ResUnion;
 	}
@@ -877,9 +815,59 @@ namespace vcity
 		if(MP->getNumGeometries() == 0)
 			return NULL;
 
-		//SaveGeometry(name + "_MP", MP);
+		SaveGeometry(name + "_MP", MP);
 
 		return MP;
+	}
+
+	/**
+     * @brief Convertit les données GEOS en LOD0 de CityGML
+     */
+	citygml::Geometry* BuildLOD0FromGEOS(std::string name, geos::geom::Geometry * Geometry, double heightmax, double heightmin)
+	{
+		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
+		for(int i = 0; i < Geometry->getNumGeometries(); i++)	//Pour chaque polygon de MP
+		{
+			citygml::Polygon * Poly = new citygml::Polygon("PolyTest");
+			citygml::LinearRing * Ring = new citygml::LinearRing("RingTest",true);
+
+			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();	//clone pour récupérer un const
+			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points du polygon courant de MP
+
+			for(int j = 0; j < Coords->size(); j++)
+			{
+				citygml::Polygon * Poly2 = new citygml::Polygon("PolyTest2");
+				citygml::LinearRing * Ring2 = new citygml::LinearRing("RingTest2",true);
+
+				int x1 = Coords->getAt(j).x;
+				int y1 = Coords->getAt(j).y;
+				
+				Ring->addVertex(TVec3d(x1, y1, heightmax));
+
+				int x2, y2;
+				if(j < Coords->size() - 1)
+				{
+					x2 = Coords->getAt(j+1).x;
+					y2 = Coords->getAt(j+1).y;
+				}
+				else
+				{
+					x2 = Coords->getAt(0).x;
+					y2 = Coords->getAt(0).y;
+				}
+
+				Ring2->addVertex(TVec3d(x1, y1, heightmin));
+				Ring2->addVertex(TVec3d(x2, y2, heightmin));
+				Ring2->addVertex(TVec3d(x2, y2, heightmax));
+				Ring2->addVertex(TVec3d(x1, y1, heightmax));
+				Poly2->addRing(Ring2);
+				Geom->addPolygon(Poly2);
+			}
+			Poly->addRing(Ring);
+			Geom->addPolygon(Poly);
+		}
+
+		return Geom;
 	}
 
 	/**
@@ -919,59 +907,47 @@ namespace vcity
         if(obj)
         {
             log() << uri.getStringURI() << "CityObject found\n";
-            PolySet roofPoints;
-            projectRoof(obj,roofPoints);
+            PolySet roofPoints;			
+			double heightmax = 0, heightmin = -1;
+            projectRoof(obj,roofPoints, &heightmax, &heightmin);
 
 			std::string name = obj->getId();
 
 			geos::geom::MultiPolygon * GeosObj = ConvertToGeos(name, roofPoints);
-			geos::geom::Geometry * Enveloppe = GetEnveloppe(name, GeosObj);
+			geos::geom::Geometry * Enveloppe = GetEnveloppe(name, GeosObj);	
 
-			
-
-			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
-			geom = ConvertToCityGML(name, Enveloppe);
-
-
-			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
+			//Afficher le LOD0 dans le fenêtre VCITY
+					
+			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Wall, 0);
+			geom = BuildLOD0FromGEOS(name, Enveloppe, heightmax, heightmin);
+			citygml::CityObject* obj2 = new citygml::WallSurface("tmpObj");
 			obj2->addGeometry(geom);
 			obj->insertNode(obj2);
-
 			std::cout << "Lod 0 exporte en cityGML" << std::endl;
 
-			//for(PolySet::const_iterator poly=roofPoints.begin(); poly!= roofPoints.end(); ++poly){ //Affichage des points récupérés
-			//	for(Polygon2D::const_iterator point = poly->begin(); point!= poly->end(); ++point){
-			//		std::cout << " (x,y) = (" << point->first << "," << point->second << ")" << std::endl;
-			//	}
-			//}
-
-            //fusionPoly(roofPoints);
-            //citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
-            //citygml::Geometry* geom = new citygml::Geometry("idGeoTest",citygml::GT_Ground,0);
-
-            //for(PolySet::iterator it= roofPoints.begin(); it!= roofPoints.end(); ++it){
-                ////tmp=simplification(*it);
-                //tmp=(*it);
-                //lissagePoly(tmp);
-                //geom->addPolygon(convertPoly(tmp));
-            //}
-            //obj2->addGeometry(geom);
-            //obj->insertNode(obj2);
+			//Pour afficher le ground dans VCity
+			/*citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
+			geom = ConvertToCityGML(name, Enveloppe);
+			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
+			obj2->addGeometry(geom);
+			obj->insertNode(obj2)
+			std::cout << "Lod 0 exporte en cityGML" << std::endl;*/
         }
     }
 
     void Algo::generateLOD0Scene(geos::geom::Geometry ** ShapeGeo)
     {
         //LOD0 sur toute la scène
-
+		
 		geos::geom::Geometry * Shape = (*ShapeGeo);
 		geos::geom::Geometry * ShapeU; //Contient tous les polygons de Shape dans une geometry valide
 
-		std::cout << "Creation de ShapeU ... \n";
-
-		ShapeU = geos::operation::geounion::CascadedPolygonUnion::Union(dynamic_cast<geos::geom::MultiPolygon*>(Shape));
-
-		std::cout << "Creation de ShapeU terminee. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
+		if(Shape != NULL)
+		{
+			std::cout << "Creation de ShapeU ... \n";
+			ShapeU = geos::operation::geounion::CascadedPolygonUnion::Union(dynamic_cast<geos::geom::MultiPolygon*>(Shape));
+			std::cout << "Creation de ShapeU terminee. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
+		}
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
@@ -993,7 +969,9 @@ namespace vcity
 				if(obj->getType() == citygml::COT_Building)
 				{
 					PolySet roofPoints;
-					projectRoof(obj,roofPoints);
+					
+					double heightmax = 0, heightmin = -1;
+					projectRoof(obj,roofPoints, &heightmax, &heightmin);
 
 					std::string name = obj->getId();
 
@@ -1005,7 +983,17 @@ namespace vcity
 					else
 						EnveloppeCity = EnveloppeCity->Union(Enveloppe);
 
-					//Pour affiché le ground dans VCity
+					//Afficher le LOD0 dans le fenêtre VCITY
+					
+					citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Wall, 0);
+					geom = BuildLOD0FromGEOS(name, Enveloppe, heightmax, heightmin);
+					citygml::CityObject* obj2 = new citygml::WallSurface("tmpObj");
+					obj2->addGeometry(geom);
+					obj->insertNode(obj2);
+					std::cout << "Lod 0 exporte en cityGML" << std::endl;
+					
+
+					////Pour afficher le ground dans VCity
 					//citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
 					//geom = ConvertToCityGML(name, Enveloppe);
 					//citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
@@ -1018,27 +1006,30 @@ namespace vcity
 			}
 		}
 
-		std::cout << "Creation de Shape ..." << std::endl;
-		SaveGeometry("Shape", ShapeU);
-		std::cout << "Creation de EnveloppeCity ..." << std::endl;
-		SaveGeometry("EnveloppeCity", EnveloppeCity);
+		if(Shape != NULL)
+		{
+			std::cout << "Creation de Shape ..." << std::endl;
+			SaveGeometry("Shape", ShapeU);
+			std::cout << "Creation de EnveloppeCity ..." << std::endl;
+			SaveGeometry("EnveloppeCity", EnveloppeCity);
 
-		geos::geom::Geometry * TempGeo;
+			geos::geom::Geometry * TempGeo;
 
-		std::cout << "Creation de l'Union ..." << std::endl;
-		TempGeo = ShapeU->Union(EnveloppeCity);
-		SaveGeometry("Union", TempGeo);
-		Save3GeometryRGB("Shape_Enveloppe_Union", ShapeU, EnveloppeCity, TempGeo);
+			std::cout << "Creation de l'Union ..." << std::endl;
+			TempGeo = ShapeU->Union(EnveloppeCity);
+			SaveGeometry("Union", TempGeo);
+			Save3GeometryRGB("Shape_Enveloppe_Union", ShapeU, EnveloppeCity, TempGeo);
 
-		std::cout << "Creation de l'intersection ..." << std::endl;
-		TempGeo = ShapeU->intersection(EnveloppeCity);
-		SaveGeometry("Intersection", TempGeo);
-		Save3GeometryRGB("Shape_Enveloppe_Intersection", ShapeU, EnveloppeCity, TempGeo);
+			std::cout << "Creation de l'intersection ..." << std::endl;
+			TempGeo = ShapeU->intersection(EnveloppeCity);
+			SaveGeometry("Intersection", TempGeo);
+			Save3GeometryRGB("Shape_Enveloppe_Intersection", ShapeU, EnveloppeCity, TempGeo);
 
-		std::cout << "Creation de la SymDifference ..." << std::endl;
-		TempGeo = ShapeU->symDifference(EnveloppeCity);
-		SaveGeometry("SymDifference", TempGeo);
-		Save3GeometryRGB("Shape_Enveloppe_SymDifference", ShapeU, EnveloppeCity, TempGeo);
+			std::cout << "Creation de la SymDifference ..." << std::endl;
+			TempGeo = ShapeU->symDifference(EnveloppeCity);
+			SaveGeometry("SymDifference", TempGeo);
+			Save3GeometryRGB("Shape_Enveloppe_SymDifference", ShapeU, EnveloppeCity, TempGeo);
+		}
 
 		/*std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
 		SaveGeometry("S-E", ShapeU->difference(EnveloppeCity));
