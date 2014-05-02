@@ -5,6 +5,7 @@
 #include "URI.hpp"
 #include <string>
 #include <memory>
+#include "ogrsf_frmts.h"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -23,7 +24,8 @@ public:
 
     void dump();
 
-private:
+public:
+    OGRDataSource* m_shp;
 };
 ////////////////////////////////////////////////////////////////////////////////
 typedef std::shared_ptr<LayerShp> LayerShpPtr;

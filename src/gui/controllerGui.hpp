@@ -31,6 +31,9 @@ public:
 	// MntAsc
 	virtual void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
+    // Shp
+    virtual void addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS);
+
     // selection
     virtual void resetSelection();
     virtual bool addSelection(const vcity::URI& uri) override;

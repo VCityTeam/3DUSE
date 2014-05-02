@@ -78,6 +78,7 @@ public slots:
     void exportOsg();
     void exportOsga();
     void exportJSON();
+    void exportOBJAssimp();
     void exportOBJ();
     void exportOBJsplit();
     void debugDumpOsg();

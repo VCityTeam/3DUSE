@@ -29,9 +29,11 @@ void ExporterOBJ::exportCityModel(CityModel& model, const std::string& fileName)
         m_outFile << std::fixed;
         m_outFile << "# CityGML test export\n\n";
         m_outFile << "o " << model.getId() << "\n\n";
+        m_outFile << "mtllib " << fileName+m_filterNames[i] << ".mtl" << "\n\n";
         for(CityObject* obj : model.getCityObjectsRoots())
             if(obj) exportCityObject(*obj, m_filters[i]);
         m_outFile.close();
+        exportMaterials(fileName+m_filterNames[i]+".mtl");
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,8 +50,10 @@ void ExporterOBJ::exportCityObject(CityObject& obj, const std::string& fileName)
         m_outFile << std::fixed;
         m_outFile << "# CityGML test export\n\n";
         m_outFile << "o " << obj.getId() << "\n\n";
+        m_outFile << "mtllib " << fileName+m_filterNames[i] << ".mtl" << "\n\n";
         exportCityObject(obj, m_filters[i]);
         m_outFile.close();
+        exportMaterials(fileName+m_filterNames[i]+".mtl");
     }
 
     /*exportCityObject(obj); // fill arrays
@@ -130,37 +134,51 @@ void ExporterOBJ::exportCityObject(CityObject& obj, citygml::CityObjectsType fil
         {
             for(citygml::Polygon* poly : geom->getPolygons())
             {
+                if(poly->getTexture())
+                {
+                    std::string mat = poly->getTexture()->getUrl();
+                    mat = mat.substr(mat.find_last_of('/')+1);
+                    mat = mat.substr(0, mat.find_last_of('.'));
+                    m_outFile << "usemtl " << mat << "\n";
+                    m_materials[mat] = poly->getTexture()->getUrl();
+                }
+
+                m_outFile << "g " << poly->getId() << "\n\n";
+
                 for(const TVec3d& v : poly->getVertices())
                 {
-                    //m_outFile << "v " << v.x-651550.0 << " " << v.y-6863615.0 << " " << v.z << "\n";
-                    m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n";
+                    m_outFile << "v " << v.x-m_offsetX << " " << v.y-m_offsetY << " " << v.z << "\n";
+                    //m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n";
                 }
                 for(const TVec3f& vn : poly->getNormals())
                 {
                     m_outFile << "vn " << vn.x << " " << vn.y << " " << vn.z << "\n";
                 }
-                //for(const TVec2f& vt : poly->getTexCoords())
-                //{
-                //    m_outFile << "vt " << vt.x << " " << vt.y << "\n";
-                //}
-                //if(poly->getTexCoords().size() > 0)
-                //{
-                //    for(int i=0; i<poly->getIndices().size(); i+=3)
-                //    {
-                //        m_outFile << "f " << offset+poly->getIndices()[i+0] << "/" << offset+poly->getIndices()[i+0] << "/" << offset+poly->getIndices()[i+0] << " " <<
-                //                             offset+poly->getIndices()[i+1] << "/" << offset+poly->getIndices()[i+1] << "/" << offset+poly->getIndices()[i+1] << " " <<
-                //                             offset+poly->getIndices()[i+2] << "/" << offset+poly->getIndices()[i+2] << "/" << offset+poly->getIndices()[i+2] << "\n";
-                //    }
-                //}
-                //else
-                //{
+                //*
+                for(const TVec2f& vt : poly->getTexCoords())
+                {
+                    m_outFile << "vt " << vt.x << " " << vt.y << "\n";
+                }
+                if(poly->getTexCoords().size() > 0)
+                {
+                    for(int i=0; i<poly->getIndices().size(); i+=3)
+                    {
+                        m_outFile << "f " << offset+poly->getIndices()[i+0] << "/" << offset+poly->getIndices()[i+0] << "/" << offset+poly->getIndices()[i+0] << " " <<
+                                             offset+poly->getIndices()[i+1] << "/" << offset+poly->getIndices()[i+1] << "/" << offset+poly->getIndices()[i+1] << " " <<
+                                             offset+poly->getIndices()[i+2] << "/" << offset+poly->getIndices()[i+2] << "/" << offset+poly->getIndices()[i+2] << "\n";
+                    }
+                }
+                else
+                {
+                //*/
                     for(int i=0; i<poly->getIndices().size(); i+=3)
                     {
                         m_outFile << "f " << offset+poly->getIndices()[i+0] << "//" << offset+poly->getIndices()[i+0] << " " <<
                                              offset+poly->getIndices()[i+1] << "//" << offset+poly->getIndices()[i+1] << " " <<
                                              offset+poly->getIndices()[i+2] << "//" << offset+poly->getIndices()[i+2] << "\n";
                     }
-                //}
+                }
+                //*/
                 offset += poly->getVertices().size();
             }
         }
@@ -216,6 +234,22 @@ void ExporterOBJ::exportCityObject(CityObject& obj, citygml::CityObjectsType fil
     }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ExporterOBJ::exportMaterials(const std::string& filename)
+{
+    std::ofstream mat(filename);
+    for(auto& it : m_materials)
+    {
+        mat << "newmtl " << it.first << "\n";
+        mat << "Ka 1.000000 1.000000 1.000000\n";
+        mat << "Kd 1.000000 1.000000 1.000000\n";
+        mat << "Ks 0.000000 0.000000 0.000000\n";
+        mat << "Tr 1.000000\n";
+        mat << "illum 1\n";
+        mat << "Ns 0.000000\n";
+        mat << "map_Kd " << it.second << "\n\n";
+    }
+    mat.close();
+}
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml
 ////////////////////////////////////////////////////////////////////////////////

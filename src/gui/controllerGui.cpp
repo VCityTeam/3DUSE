@@ -3,6 +3,7 @@
 #include "applicationGui.hpp"
 #include "moc/mainWindow.hpp"
 #include "osg/osgPicking.hpp"
+#include "osg/osgGDAL.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 ControllerGui::ControllerGui()
 {
@@ -149,6 +150,18 @@ void ControllerGui::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr
 
     // fill osg scene
     appGui().getOsgScene()->addMntAscNode(uriLayer, node);
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
+{
+    Controller::addShpNode(uriLayer, poDS);
+
+    // fill treeview
+    appGui().getTreeView()->addShpNode(uriLayer, poDS->GetName());
+
+    // fill osg scene
+    osg::ref_ptr<osg::Node> osgNode = buildOsgGDAL(poDS);
+    appGui().getOsgScene()->addShpNode(uriLayer, osgNode);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::resetSelection()

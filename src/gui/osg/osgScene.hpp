@@ -66,6 +66,7 @@ public:
     void deleteAssimpNode(const vcity::URI& uri);
 
 	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addShpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     /// \brief addLayer Add a layer to the osg scene
     /// \param name Layer name

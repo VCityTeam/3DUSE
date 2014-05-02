@@ -19,6 +19,7 @@
 #include "export/exportCityGML.hpp"
 #include "export/exportJSON.hpp"
 #include "export/exportOBJ.hpp"
+#include "export/exportOBJAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
@@ -75,6 +76,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
     connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
     connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
+    connect(m_ui->actionExport_OBJ_Assimp, SIGNAL(triggered()), this, SLOT(exportOBJAssimp()));
     connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
     connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
     //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
@@ -289,7 +291,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
 		if (mnt.charge(filepath.toStdString().c_str(), "ASC"))
 		{
-            osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(-643000.0, -6857000.0);
+            osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(-m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
 
 			// set mntAscNode name
 			static int id = 0;
@@ -313,7 +315,15 @@ bool MainWindow::loadFile(const QString& filepath)
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+        if(poDS)
+        {
+            vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+            appGui().getControllerGui().addShpNode(uriLayer, poDS);
+
+            addRecentFile(filepath);
+
+            //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+        }
     }
     else if(ext == "dxf")
     {
@@ -351,7 +361,7 @@ void MainWindow::loadScene()
 
     QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
-    QStringList filenames = QFileDialog::getOpenFileNames(0, "Load scene files", lastdir);
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Load scene files", lastdir);
 
     for(int i = 0; i < filenames.count(); ++i)
     {
@@ -580,6 +590,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->menuTest->menuAction()->setVisible(true);
         m_ui->menuTools->menuAction()->setVisible(true);
         m_ui->menuRender->menuAction()->setVisible(true);
+        m_ui->actionExport_OBJ_Assimp->setVisible(true);
         m_ui->actionExport_osg->setVisible(true);
         m_ui->actionExport_tiled_osga->setVisible(true);
         m_ui->actionLoad_bbox->setVisible(true);
@@ -598,6 +609,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->menuTest->menuAction()->setVisible(false);
         m_ui->menuTools->menuAction()->setVisible(false);
         m_ui->menuRender->menuAction()->setVisible(false);
+        m_ui->actionExport_OBJ_Assimp->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
@@ -832,12 +844,37 @@ void MainWindow::exportJSON()
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::exportOBJAssimp()
+{
+    /*QString filename = QFileDialog::getSaveFileName();
+    QFileInfo fileInfo(filename);
+    filename = fileInfo.path() + "/" + fileInfo.baseName();
+    citygml::ExporterOBJAssimp exporter;
+    exporter.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+
+    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        if(uris[0].getType() == "Tile")
+        {
+            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
+            if(model) exporter.exportCityModel(*model, filename.toStdString());
+        }
+        else
+        {
+            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
+            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
+        }
+    }*/
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOBJ()
 {
     QString filename = QFileDialog::getSaveFileName();
     QFileInfo fileInfo(filename);
     filename = fileInfo.path() + "/" + fileInfo.baseName();
     citygml::ExporterOBJ exporter;
+    exporter.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
 
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
@@ -861,6 +898,7 @@ void MainWindow::exportOBJsplit()
     QFileInfo fileInfo(filename);
     filename = fileInfo.path() + "/" + fileInfo.baseName();
     citygml::ExporterOBJ exporter;
+    exporter.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
     exporter.addFilter(citygml::COT_All, "");
     exporter.addFilter(citygml::COT_WallSurface, "Wall");
     exporter.addFilter(citygml::COT_RoofSurface, "Roof");
@@ -1044,10 +1082,12 @@ void MainWindow::test2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13728/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13728/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13727/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1297-13727/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13728/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13728/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13727/export-CityGML/ZoneAExporter.gml");
+    //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1297-13727/export-CityGML/ZoneAExporter.gml");
+
+    // test obj
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()

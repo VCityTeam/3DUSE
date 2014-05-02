@@ -20,9 +20,15 @@ public:
     /// Set temporal export date
     void setDate(const QDateTime& date);
 
+    /// Set offset
+    void setOffset(double offsetX, double offsetY);
+
 protected:
     bool m_temporalExport;  ///< enable temporal export
     QDateTime m_date;       ///< date for temporal export
+
+    double m_offsetX;
+    double m_offsetY;
 
 private:
 };

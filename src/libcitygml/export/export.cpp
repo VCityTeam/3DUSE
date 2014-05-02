@@ -5,7 +5,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 Export::Export()
-    : m_temporalExport(false), m_date()
+    : m_temporalExport(false), m_date(), m_offsetX(0.0), m_offsetY(0.0)
 {
 
 }
@@ -23,6 +23,12 @@ void Export::setTemporalExport(bool param)
 void Export::setDate(const QDateTime& date)
 {
     m_date = date;
+}
+////////////////////////////////////////////////////////////////////////////////
+void Export::setOffset(double offsetX, double offsetY)
+{
+    m_offsetX = offsetX;
+    m_offsetY = offsetY;
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

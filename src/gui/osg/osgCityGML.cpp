@@ -35,6 +35,8 @@
 
 #include <algorithm>
 #include <cctype> 
+
+#include "core/application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 ReaderOsgCityGML::ReaderOsgCityGML(const std::string& filepath)
     : m_settings()
@@ -112,6 +114,9 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 	// Skip objects without geometry
     if(!object) return nullptr;
 
+    TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
+    osg::Vec3d offset(offset_.x, offset_.y, offset_.z);
+
     //osg::ref_ptr<osg::Group> grp = new osg::Group;
     osg::ref_ptr<osg::PositionAttitudeTransform> grp = new osg::PositionAttitudeTransform;
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
@@ -176,7 +181,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                     m_settings._first = false;
 				}
                 //vertices->push_back( pt - m_settings._origin );
-                vertices->push_back(pt - osg::Vec3d(643000.0, 6857000.0, 0.0));
+                vertices->push_back(pt - offset);
 			}
 
 			geom->setVertexArray( vertices );

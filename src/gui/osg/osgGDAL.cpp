@@ -3,9 +3,13 @@
 #include <osg/Geode>
 #include <osg/Geometry>
 #include "libcitygml/tesselator.hpp"
+#include "core/application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 {
+    TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
+    osg::Vec3d offset(offset_.x, offset_.y, offset_.z);
+
     if(poDS)
     {
         printf("Load using Gdal / OGR\n");
@@ -41,7 +45,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                         OGRPoint p;
                         poLS->getPoint(i, &p);
                         //printf( "%f, %f; %f\n", p.getX(), p.getY(), p.getZ() );
-                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 0);
+                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
                         vertices->push_back(pt);
                         indices->push_back(i);
                     }
@@ -119,7 +123,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                     // feed data to osg
                     for(const TVec3d& v : tess.getVertices())
                     {
-                        osg::Vec3d pt = osg::Vec3d(v.x, v.y, v.z) - osg::Vec3d(643000.0, 6857000.0, 50.0);
+                        osg::Vec3d pt = osg::Vec3d(v.x, v.y, v.z) - offset;
                         vertices->push_back(pt);
                     }
                     for(unsigned int id : tess.getIndices())

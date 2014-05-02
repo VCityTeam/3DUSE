@@ -267,6 +267,7 @@
     <addaction name="actionExport_osg"/>
     <addaction name="actionExport_tiled_osga"/>
     <addaction name="actionExport_JSON"/>
+    <addaction name="actionExport_OBJ_Assimp"/>
     <addaction name="actionExport_OBJ"/>
     <addaction name="actionExport_OBJ_split"/>
     <addaction name="separator"/>
@@ -647,6 +648,11 @@
   <action name="actionExport_OBJ_split">
    <property name="text">
     <string>Export OBJ split</string>
+   </property>
+  </action>
+  <action name="actionExport_OBJ_Assimp">
+   <property name="text">
+    <string>Export OBJ (Assimp)</string>
    </property>
   </action>
  </widget>
