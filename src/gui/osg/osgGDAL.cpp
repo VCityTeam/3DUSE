@@ -267,7 +267,7 @@ std::vector<std::pair<int,int>> TracerSegment(int x1, int y1, int x2, int y2)
     */
 void SaveGeometry(std::string name, const geos::geom::Geometry* G)
 {	
-	int Scale = 10;
+	int Scale = 1;
 	const geos::geom::CoordinateSequence *coord;
 
 	coord = G->getCoordinates();
@@ -289,11 +289,17 @@ void SaveGeometry(std::string name, const geos::geom::Geometry* G)
 			Ymax = y;
 	}
 
+	Xmin--;
+	Ymin--;
+
 	int width = Xmax - Xmin + Scale;
 	int height = Ymax - Ymin + Scale;
 
 	int* Im = new int[width * height];
 	memset(Im, 1, width*height*sizeof(int));
+	int* ImHoles = new int[width * height];
+	memset(ImHoles, 1, width*height*sizeof(int));
+	bool Holes = false; //Passe à true en présence d'holes
 
 	int NbGeo = G->getNumGeometries();
 
@@ -301,39 +307,96 @@ void SaveGeometry(std::string name, const geos::geom::Geometry* G)
 	{
 		const geos::geom::Geometry *Geo = G->getGeometryN(i);
 
-		coord = Geo->getCoordinates();
-
-		for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+		const geos::geom::Polygon *p = dynamic_cast<const geos::geom::Polygon*>(Geo);
+		if(p)
 		{
-			int x1 = Scale*coord->getAt(j).x - Xmin;
-			int y1 = Scale*coord->getAt(j).y - Ymin;
-
-			int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-			int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-
-			//std::cout << j << " PointAffichage : " << x1 + Xmin << ";" << y1 + Ymin << std::endl;
-
-			std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-			for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+			coord = p->getExteriorRing()->getCoordinates();
+			for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
 			{
-				int pos = it->first + it->second * width;
-				if(pos >= width * height || pos < 0)
-					std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-				else
-					Im[pos] = 0;
+				int x1 = Scale*coord->getAt(j).x - Xmin;
+				int y1 = Scale*coord->getAt(j).y - Ymin;
+
+				int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+				int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+					
+				std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+
+				for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+				{
+					int pos = it->first + it->second * width;
+					if(pos >= width * height || pos < 0)
+						std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+					else
+					{
+						Im[pos] = 0;
+						ImHoles[pos] = 0;
+					}
+				}
+			}
+
+			for(int k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
+			{
+				Holes = true;
+				coord = p->getInteriorRingN(k)->getCoordinates();
+				for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+				{
+					int x1 = Scale*coord->getAt(j).x - Xmin;
+					int y1 = Scale*coord->getAt(j).y - Ymin;
+
+					int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+					int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+						
+					std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+					//Points.push_back(std::make_pair(x1, y1));
+
+					for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+					{
+						int pos = it->first + it->second * width;
+						if(pos >= width * height || pos < 0)
+							std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+						else
+							ImHoles[pos] = 0;
+					}
+				}
+			}
+		}
+		else
+		{
+			std::cout << "Geometry n'est pas un polygon. \n";
+			coord = Geo->getCoordinates();
+
+			for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+			{
+				int x1 = Scale*coord->getAt(j).x - Xmin;
+				int y1 = Scale*coord->getAt(j).y - Ymin;
+
+				int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+				int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+					
+				std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+
+				for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+				{
+					int pos = it->first + it->second * width;
+					if(pos >= width * height || pos < 0)
+						std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+					else
+						Im[pos] = 0;
+				}
 			}
 		}
 	}
 
-	SaveImage(name, Im, width, height);
+	if(Holes)
+		SaveImage(name + "withHoles", ImHoles, width, height);
+	else
+		SaveImage(name, Im, width, height);
 		
-	//Xmin = -1, Xmax = 0, Ymin = -1, Ymax = 0;
-
 	delete [] Im;
+	delete [] ImHoles;
 }
 
-osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
+osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo)
 {
     if(poDS)
     {
@@ -393,12 +456,26 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                     int nbPoints = poLR->getNumPoints();
 
 					geos::geom::CoordinateArraySequence temp;//
+					std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
+
+					for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
+					{
+						OGRLinearRing* Ring = poPG->getInteriorRing(i);
+
+						for(int j = 0; j < Ring->getNumPoints(); j++)
+						{
+							OGRPoint p;
+							Ring->getPoint(j, &p);
+							temp.add(geos::geom::Coordinate(p.getX(), p.getY()));
+						}
+						Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
+						temp.clear();
+					}
 					
                     for(int i=0; i<nbPoints; ++i)
                     {
                         OGRPoint p;
                         poLR->getPoint(i, &p);
-                        //printf( "%f, %f; %f\n", p.getX(), p.getY(), p.getZ() );
                         osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 50.0);
                         vertices->push_back(pt);
                         indices->push_back(i);
@@ -407,7 +484,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                     }
 
 					shell=factory->createLinearRing(temp);//
-					P = factory->createPolygon(shell, NULL);//
+					P = factory->createPolygon(shell, Holes);//
 					Polys.push_back(P);//
 
                     geom->setVertexArray(vertices);
@@ -423,7 +500,9 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 
 			geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
 
-			SaveGeometry(poDS->GetName(), MP);
+			//SaveGeometry(poDS->GetName(), MP);
+
+			*ShapeGeo = MP;
         }
 
         return geode;

@@ -27,6 +27,9 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
+
+#include <geos/geom/GeometryFactory.h>
+
 /*#include "assimp/Importer.hpp"
 #include "assimp/PostProcess.h"
 #include "assimp/Scene.h"*/
@@ -35,6 +38,9 @@
 
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
+
+geos::geom::Geometry* ShapeGeo;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
 {
@@ -311,14 +317,14 @@ bool MainWindow::loadFile(const QString& filepath)
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo));
     }
     else if(ext == "dxf")
     {
         std::cout << "load dxf file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo));
     }
     else if(ext == "ecw")
     {
@@ -787,7 +793,7 @@ void MainWindow::generateLOD0()
         // do all nodes selected
         for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
         {
-            vcity::app().getAlgo().generateLOD0(*it);
+            vcity::app().getAlgo().generateLOD0(*it, &ShapeGeo);
             // TODO
             appGui().getControllerGui().update(*it);
         }

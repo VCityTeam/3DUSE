@@ -2,13 +2,15 @@
 #define __ALGO_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "URI.hpp"
+
+#include <geos/geom/GeometryFactory.h>
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
 class Algo
 {
 public:
-    void generateLOD0(const URI& uri);
+	void generateLOD0(const URI& uri, geos::geom::Geometry ** ShapeGeo);
     void generateLOD1(const URI& uri);
 
 private:
