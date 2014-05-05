@@ -12,7 +12,7 @@ Application::Application()
 {
     gApp = this;
     gLog = &m_log;
-    m_dataprofile = createDefaultDataProfile();
+    m_settings.m_dataprofile = createDataProfileDefault();
 }
 ////////////////////////////////////////////////////////////////////////////////
 Application::~Application()
@@ -28,16 +28,6 @@ Scene& Application::getScene()
 const Scene& Application::getScene() const
 {
     return m_scene;
-}
-////////////////////////////////////////////////////////////////////////////////
-DataProfile& Application::getDataProfile()
-{
-    return m_dataprofile;
-}
-////////////////////////////////////////////////////////////////////////////////
-const DataProfile& Application::getDataProfile() const
-{
-    return m_dataprofile;
 }
 ////////////////////////////////////////////////////////////////////////////////
 Settings& Application::getSettings()

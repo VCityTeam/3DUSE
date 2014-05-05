@@ -1,7 +1,7 @@
 #ifndef __CITYGML_EXPORT_HPP_
 #define __CITYGML_EXPORT_HPP_
 ////////////////////////////////////////////////////////////////////////////////
-#include <QDateTime>
+#include "export.hpp"
 #include <libxml/tree.h>
 #include "citygml.hpp"
 ////////////////////////////////////////////////////////////////////////////////
@@ -10,10 +10,10 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The Exporter class
 /// Export citygml
-class Exporter
+class ExporterCityGML : public Export
 {
 public:
-    Exporter();
+    ExporterCityGML();
 
     /// \brief exportCityModel
     /// \param model
@@ -24,12 +24,6 @@ public:
     /// \param model
     /// \param fileName
     void exportCityObject(CityObject* model, const std::string& fileName);
-
-    /// Enable or disable temporal export
-    void setTemporalExport(bool param);
-
-    /// Set temporal export date
-    void setDate(const QDateTime& date);
 
 private:
     xmlNodePtr exportCityObjectModelXml(const citygml::CityObject& obj);
@@ -45,10 +39,6 @@ private:
     xmlNodePtr exportBuildingXml(const citygml::Building& bldg);
     xmlNodePtr exportSurfaceXml(const citygml::CityObject& srf, const std::string& nodeType, xmlNodePtr parent);
     xmlNodePtr exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent);
-
-    bool m_temporalExport;  ///< enable temporal export
-    QDateTime m_date;       ///< date for temporal export
-
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

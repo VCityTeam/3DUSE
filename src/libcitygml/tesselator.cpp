@@ -61,7 +61,7 @@ void Tesselator::addContour( const std::vector<TVec3d>& pts, const std::vector<T
 	unsigned int len = pts.size();
 	if ( len < 3 ) return;
 
-	unsigned int pos = _vertices.size();
+    size_t pos = _vertices.size();
 
 	gluTessBeginContour( _tobj );
 
@@ -69,7 +69,7 @@ void Tesselator::addContour( const std::vector<TVec3d>& pts, const std::vector<T
 	{
 		_vertices.push_back( pts[i] );
 
-		gluTessVertex( _tobj, &(_vertices[pos+i][0]), (void*)(pos+i) );
+        gluTessVertex( _tobj, &(_vertices[pos+i][0]), (GLvoid*)(pos+i) );
 	}
 
 	gluTessEndContour( _tobj );
@@ -90,7 +90,7 @@ void CALLBACK Tesselator::vertexCallback( GLvoid *data, void* userData )
 void CALLBACK Tesselator::combineCallback( GLdouble coords[3], void* /*vertex_data*/[4], GLfloat /*weight*/[4], void** outData, void* userData )
 {
 	Tesselator *tess = (Tesselator*)userData;
-	unsigned int npoint = tess->_vertices.size();
+    size_t npoint = tess->_vertices.size();
 	tess->_vertices.push_back( TVec3d( coords[0], coords[1], coords[2] ) );
 
 	*outData = (void*)npoint;

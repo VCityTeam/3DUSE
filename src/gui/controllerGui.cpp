@@ -3,6 +3,7 @@
 #include "applicationGui.hpp"
 #include "moc/mainWindow.hpp"
 #include "osg/osgPicking.hpp"
+#include "osg/osgGDAL.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 ControllerGui::ControllerGui()
 {
@@ -56,6 +57,9 @@ void ControllerGui::deleteLayer(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::setLayerName(const vcity::URI& uri, const std::string& name)
 {
+    // fix info bubbles bug when renaming MM
+    resetSelection();
+
     Controller::setLayerName(uri, name);
 
     // set name in treeview
@@ -63,6 +67,9 @@ void ControllerGui::setLayerName(const vcity::URI& uri, const std::string& name)
 
     // set name in osg scene
     appGui().getOsgScene()->getNode(uri)->setName(name);
+
+    // restore selection MM
+    addSelection(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
@@ -89,12 +96,18 @@ void ControllerGui::deleteTile(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
 {
+    // fix info bubbles bug when renaming MM
+    resetSelection();
+
     Controller::setTileName(uri, name);
 
     //appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str()); // MT
 	appGui().getTreeView()->setTileName(uri, name); // MT
 
 	appGui().getOsgScene()->setTileName(uri, name); // MT
+
+    // restore selection MM
+    addSelection(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
@@ -137,6 +150,18 @@ void ControllerGui::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr
 
     // fill osg scene
     appGui().getOsgScene()->addMntAscNode(uriLayer, node);
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
+{
+    Controller::addShpNode(uriLayer, poDS);
+
+    // fill treeview
+    appGui().getTreeView()->addShpNode(uriLayer, poDS->GetName());
+
+    // fill osg scene
+    osg::ref_ptr<osg::Node> osgNode = buildOsgGDAL(poDS);
+    appGui().getOsgScene()->addShpNode(uriLayer, osgNode);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::resetSelection()

@@ -11,6 +11,7 @@ Scene::Scene()
     addLayer(new LayerCityGML("layer_CityGML"));
 	addLayer(new LayerAssimp("layer_Assimp"));
 	addLayer(new LayerMnt("layer_Mnt"));
+    addLayer(new LayerShp("layer_Shp"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 Scene::~Scene()

@@ -763,7 +763,7 @@ namespace citygml
             _envelope.merge((*it)->getEnvelope());
         }
 
-        std::cout << getId() << " : " << _envelope << std::endl;
+        //std::cout << getId() << " : " << _envelope << std::endl;
     }
 
     void CityObject::computeCentroid()

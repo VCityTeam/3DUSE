@@ -63,6 +63,19 @@ void Controller::setTileName(const vcity::URI& uri, const std::string& name)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void Controller::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
+{
+    abstractLayer* layer = app().getScene().getLayer(uriLayer);
+    if(layer)
+    {
+        LayerShp* layerShp = dynamic_cast<LayerShp*>(layer);
+        if(layerShp)
+        {
+            layerShp->m_shp = poDS;
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void Controller::resetSelection()
 {
     app().resetSelectedNodes();
