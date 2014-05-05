@@ -12,6 +12,7 @@ class Algo
 public:
 	void generateLOD0(const URI& uri);
     void generateLOD0Scene(geos::geom::Geometry ** ShapeGeo);
+	void CompareTiles();
 
 private:
 

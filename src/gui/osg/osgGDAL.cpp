@@ -502,11 +502,11 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
                 OGRFeature::DestroyFeature( poFeature );
             }
 
-			geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
+			//geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
+			
+			*ShapeGeo = factory->createGeometryCollection(Polys);
 
-			//SaveGeometry(poDS->GetName(), MP);
-
-			*ShapeGeo = MP;
+			//*ShapeGeo = MP;
         }
 
         return geode;

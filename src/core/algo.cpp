@@ -37,7 +37,7 @@ namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
 
-	double Scale = 10;
+	double Scale = 2;
 
     /**
      * @brief projete les toits du CityObject selectioné sur le plan (xy)
@@ -688,7 +688,7 @@ namespace vcity
 	/**
      * @brief Récupère l'enveloppe d'une geometry
      */
-	geos::geom::Geometry * GetEnveloppe(std::string name, geos::geom::MultiPolygon * MP)
+	geos::geom::Geometry * GetEnveloppe(geos::geom::MultiPolygon * MP)
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
@@ -737,7 +737,7 @@ namespace vcity
 								isHole = true;
 								tempcoord.clear();
 								
-								break;//////////////////////// A ENLEVER POUR AVOIR LES TROUS DANS LES POLYGONS
+								//break;//////////////////////// A ENLEVER POUR AVOIR LES TROUS DANS LES POLYGONS
 							}
 							else
 							{
@@ -766,15 +766,13 @@ namespace vcity
 			}
 		}
 
-		SaveGeometry(name + "_Enveloppe", ResUnion);
-
 		return ResUnion;
 	}
 
 	/**
      * @brief Convertit les données citygml de projection au sol en multipolygon pour GEOS
      */
-	geos::geom::MultiPolygon * ConvertToGeos(std::string name, PolySet &roofPoints)
+	geos::geom::MultiPolygon * ConvertToGeos(PolySet &roofPoints)
 	{
 		//std::cout << "Debut de ConvertToGeos" << std::endl;
 		
@@ -814,8 +812,6 @@ namespace vcity
 
 		if(MP->getNumGeometries() == 0)
 			return NULL;
-
-		SaveGeometry(name + "_MP", MP);
 
 		return MP;
 	}
@@ -913,8 +909,10 @@ namespace vcity
 
 			std::string name = obj->getId();
 
-			geos::geom::MultiPolygon * GeosObj = ConvertToGeos(name, roofPoints);
-			geos::geom::Geometry * Enveloppe = GetEnveloppe(name, GeosObj);	
+			geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
+			SaveGeometry(name + "_MP", GeosObj);
+			geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
+			SaveGeometry(name + "_Enveloppe", Enveloppe);
 
 			//Afficher le LOD0 dans le fenêtre VCITY
 					
@@ -939,9 +937,11 @@ namespace vcity
     {
         //LOD0 sur toute la scène
 		
+		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+		
 		geos::geom::Geometry * Shape = (*ShapeGeo);
-		geos::geom::Geometry * ShapeU; //Contient tous les polygons de Shape dans une geometry valide
-
+		geos::geom::Geometry * ShapeU = Shape; //Contient tous les polygons de Shape dans une geometry valide
+				
 		if(Shape != NULL)
 		{
 			std::cout << "Creation de ShapeU ... \n";
@@ -975,22 +975,21 @@ namespace vcity
 
 					std::string name = obj->getId();
 
-					geos::geom::MultiPolygon * GeosObj = ConvertToGeos(name, roofPoints);
-					geos::geom::Geometry * Enveloppe = GetEnveloppe(name, GeosObj);
+					geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
+					geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
 
 					if(EnveloppeCity == NULL)
 						EnveloppeCity = Enveloppe;
 					else
 						EnveloppeCity = EnveloppeCity->Union(Enveloppe);
 
-					//Afficher le LOD0 dans le fenêtre VCITY
-					
-					citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Wall, 0);
+					//Afficher le LOD0 dans le fenêtre VCITY					
+					/*citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Wall, 0);
 					geom = BuildLOD0FromGEOS(name, Enveloppe, heightmax, heightmin);
 					citygml::CityObject* obj2 = new citygml::WallSurface("tmpObj");
 					obj2->addGeometry(geom);
 					obj->insertNode(obj2);
-					std::cout << "Lod 0 exporte en cityGML" << std::endl;
+					std::cout << "Lod 0 exporte en cityGML" << std::endl;*/
 					
 
 					////Pour afficher le ground dans VCity
@@ -1009,14 +1008,23 @@ namespace vcity
 		if(Shape != NULL)
 		{
 			std::cout << "Creation de Shape ..." << std::endl;
-			SaveGeometry("Shape", ShapeU);
+			SaveGeometry("ShapeU", ShapeU);
 			std::cout << "Creation de EnveloppeCity ..." << std::endl;
 			SaveGeometry("EnveloppeCity", EnveloppeCity);
 
-			geos::geom::Geometry * TempGeo;
+			geos::geom::Geometry * TempGeo = factory->createEmptyGeometry();
+			
+			Save3GeometryRGB("Shape_Enveloppe", Shape, EnveloppeCity, TempGeo);
 
 			std::cout << "Creation de l'Union ..." << std::endl;
-			TempGeo = ShapeU->Union(EnveloppeCity);
+			try
+			{
+				TempGeo = ShapeU->Union(EnveloppeCity);
+			}
+			catch(std::exception& e)
+			{
+				std::cout << e.what() << '\n';
+			}
 			SaveGeometry("Union", TempGeo);
 			Save3GeometryRGB("Shape_Enveloppe_Union", ShapeU, EnveloppeCity, TempGeo);
 
@@ -1040,6 +1048,51 @@ namespace vcity
 
 		//SaveGeometry("Enveloppe_City_Simplified", geos::simplify::TopologyPreservingSimplifier::simplify(EnveloppeCity, 2).get());
     }
+
+	void Algo::CompareTiles()
+	{
+		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+
+		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
+
+		if(tiles.size() != 2)
+			return;
+		
+		geos::geom::Geometry * EnveloppeCity[2];
+		EnveloppeCity[0] = NULL;
+		EnveloppeCity[1] = NULL;
+		
+		for(int i = 0; i < 2; i++)
+		{
+			citygml::CityModel* model = tiles[i]->getCityModel();
+						
+			citygml::CityObjects& objs = model->getCityObjectsRoots();
+
+			int cpt = 0;
+		
+			for(citygml::CityObjects::iterator it = objs.begin(); it < objs.end(); ++it)
+			{
+				citygml::CityObject* obj = *it;
+				if(obj->getType() == citygml::COT_Building)
+				{
+					PolySet roofPoints;
+					
+					double heightmax = 0, heightmin = -1;
+					projectRoof(obj,roofPoints, &heightmax, &heightmin);
+					
+					geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
+					geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
+					if(EnveloppeCity[i] == NULL)
+						EnveloppeCity[i] = Enveloppe;
+					else
+						EnveloppeCity[i] = EnveloppeCity[i]->Union(Enveloppe);
+				}
+				cpt++;
+				std::cout << "Avancement tuile " << i+1 << " : " << cpt << "/" << objs.size() << " batiments traites.\n";
+			}
+		}
+		Save3GeometryRGB("CompareTiles", EnveloppeCity[0], EnveloppeCity[1], factory->createEmptyGeometry());		
+	}
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
