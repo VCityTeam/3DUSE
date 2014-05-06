@@ -26,6 +26,7 @@
 #include <geos/operation/union/CascadedPolygonUnion.h>
 #include <geos/simplify/DouglasPeuckerSimplifier.h>
 #include <geos/simplify/TopologyPreservingSimplifier.h>
+#include <geos/operation/distance/DistanceOp.h>
 
 
 typedef std::pair<double,double> Point;
@@ -37,7 +38,7 @@ namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
 
-	double Scale = 2;
+	double Scale = 10;
 
     /**
      * @brief projete les toits du CityObject selectioné sur le plan (xy)
@@ -491,7 +492,7 @@ namespace vcity
 		}
 		
 		if(Holes)
-			SaveImage(name + "withHoles", ImHoles, width, height);
+			SaveImage(name/* + "withHoles"*/, ImHoles, width, height);
 		else
 			SaveImage(name, Im, width, height);
 		
@@ -671,7 +672,7 @@ namespace vcity
 		}
 		
 		if(Holes)
-			SaveImageRGB(name + "withHoles", ImHolesR, ImHolesG, ImHolesB, width, height);
+			SaveImageRGB(name/* + "withHoles"*/, ImHolesR, ImHolesG, ImHolesB, width, height);
 		else
 			SaveImageRGB(name, ImR, ImG, ImB, width, height);
 		
@@ -1023,8 +1024,7 @@ namespace vcity
 					citygml::CityObject* obj2 = new citygml::WallSurface("tmpObj");
 					obj2->addGeometry(geom);
 					obj->insertNode(obj2);
-					std::cout << "Lod 0 exporte en cityGML" << std::endl;*/
-					
+					std::cout << "Lod 0 exporte en cityGML" << std::endl;*/					
 
 					////Pour afficher le ground dans VCity
 					//citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
@@ -1048,15 +1048,26 @@ namespace vcity
 			if(Link.second[i].size() > 0)
 			{				
 				std::vector<geos::geom::Geometry *> Geos;
+				std::vector<geos::geom::Geometry *> Geos2;
 				for(int j = 0; j < Link.second[i].size(); j++)
 				{
+					const geos::geom::LineString * GeoLS = dynamic_cast<geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j])->clone())->getExteriorRing();
+					geos::geom::CoordinateArraySequence newcoord;
+					const geos::geom::CoordinateSequence *coordGeo = GeoLS->getCoordinates();
+					for(int k = 0; k < GeoLS->getNumPoints(); k++)
+					{
+						newcoord.add(geos::operation::distance::DistanceOp::nearestPoints(dynamic_cast<geos::geom::Polygon*>(EnveloppeCity->getGeometryN(i)->clone())->getExteriorRing(),GeoLS->getPointN(k))->getAt(0));
+						//newcoord.add(geos::operation::distance::DistanceOp::nearestPoints(EnveloppeCity->getGeometryN(i),GeoLS->getPointN(k))->getAt(0));
+					}
+					Geos2.push_back(factory->createPolygon(factory->createLinearRing(newcoord), NULL));
 					Geos.push_back(Shape->getGeometryN(Link.second[i][j])->clone());
 				}
-				geos::geom::Geometry * temp = factory->createGeometryCollection(Geos);
-				cpt++; 
-				Save3GeometryRGB("Poly" + std::to_string(cpt), EnveloppeCity->getGeometryN(i)->clone(), temp, factory->createEmptyGeometry());
+				cpt++;
+				Save3GeometryRGB("Poly" + std::to_string(cpt), EnveloppeCity->getGeometryN(i)->clone(), factory->createEmptyGeometry(), factory->createEmptyGeometry());
+				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_", EnveloppeCity->getGeometryN(i)->clone(), factory->createGeometryCollection(Geos), factory->createEmptyGeometry());
+				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_test", EnveloppeCity->getGeometryN(i)->clone(), factory->createGeometryCollection(Geos2), factory->createEmptyGeometry());
 			}
-		}		
+		}
 
 		/*if(Shape != NULL)
 		{
@@ -1098,9 +1109,9 @@ namespace vcity
 		std::cout << "Creation de Enveloppe - Shape ..." << std::endl;
 		SaveGeometry("E-S", EnveloppeCity->difference(ShapeU));*/
 
-		//SaveGeometry("Enveloppe_City", EnveloppeCity);
+		/*SaveGeometry("Enveloppe_City", EnveloppeCity);
 
-		//SaveGeometry("Enveloppe_City_Simplified", geos::simplify::TopologyPreservingSimplifier::simplify(EnveloppeCity, 2).get());
+		//SaveGeometry("Enveloppe_City_Simplified", geos::simplify::TopologyPreservingSimplifier::simplify(EnveloppeCity, 2).get());*/
     }
 
 	void Algo::CompareTiles()//Lorsqu'il y a deux tuiles dans VCity, cette fonction crée une image les regroupant pour pouvoir les comparer
