@@ -891,6 +891,40 @@ namespace vcity
 		return Geom;
 	}
 
+	/**
+     * @brief Relie deux ensembles de geometrys en assignant aux geometrys de l'une celles qui lui correspondent dans l'autre
+     */
+	std::pair<std::vector<int>*, std::vector<int>*> LinkGeos(geos::geom::Geometry * Shape, geos::geom::Geometry * Enveloppe)
+	{
+		std::pair<std::vector<int>*, std::vector<int>*> Res;
+
+		int NbGeoS = Shape->getNumGeometries();
+		int NbGeoE = Enveloppe->getNumGeometries();
+
+		Res.first = new std::vector<int>[NbGeoS];
+		Res.second = new std::vector<int>[NbGeoE];
+
+		for(int i = 0; i < NbGeoS; i++)
+		{
+			geos::geom::Geometry * GeoS = Shape->getGeometryN(i)->clone();
+			for(int j = 0; j < NbGeoE; j++)
+			{
+				geos::geom::Geometry * GeoE = Enveloppe->getGeometryN(j)->clone();
+
+				double Area = GeoS->intersection(GeoE)->getArea();
+
+				if(Area > 0 && ((Area/GeoS->getArea()) > 0.1 || (Area/GeoE->getArea()) > 0.1))
+				{
+					//std::cout << "Area : " << GeoS->getArea() << " ; " << GeoE->getArea() << " ; " << Area << std::endl;
+					Res.first[i].push_back(j);
+					Res.second[j].push_back(i);
+				}
+			}
+		}
+
+		return Res;
+	}
+
 	void Algo::generateLOD0(const URI& uri)
     {
 		/////////////////////////////////// Traitement bâtiment par bâtiment 
@@ -940,7 +974,7 @@ namespace vcity
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		
 		geos::geom::Geometry * Shape = (*ShapeGeo);
-		geos::geom::Geometry * ShapeU = Shape; //Contient tous les polygons de Shape dans une geometry valide
+		geos::geom::Geometry * ShapeU; //Contient tous les polygons de Shape dans une geometry valide
 				
 		if(Shape != NULL)
 		{
@@ -1005,9 +1039,29 @@ namespace vcity
 			}
 		}
 
-		if(Shape != NULL)
+		std::pair<std::vector<int>*, std::vector<int>*> Link = LinkGeos(Shape, EnveloppeCity);
+
+		int cpt = 0;
+
+		for(int i = 0; i < EnveloppeCity->getNumGeometries(); i++)
+		{
+			if(Link.second[i].size() > 0)
+			{				
+				std::vector<geos::geom::Geometry *> Geos;
+				for(int j = 0; j < Link.second[i].size(); j++)
+				{
+					Geos.push_back(Shape->getGeometryN(Link.second[i][j])->clone());
+				}
+				geos::geom::Geometry * temp = factory->createGeometryCollection(Geos);
+				cpt++; 
+				Save3GeometryRGB("Poly" + std::to_string(cpt), EnveloppeCity->getGeometryN(i)->clone(), temp, factory->createEmptyGeometry());
+			}
+		}		
+
+		/*if(Shape != NULL)
 		{
 			std::cout << "Creation de Shape ..." << std::endl;
+			SaveGeometry("Shape", Shape);
 			SaveGeometry("ShapeU", ShapeU);
 			std::cout << "Creation de EnveloppeCity ..." << std::endl;
 			SaveGeometry("EnveloppeCity", EnveloppeCity);
@@ -1037,7 +1091,7 @@ namespace vcity
 			TempGeo = ShapeU->symDifference(EnveloppeCity);
 			SaveGeometry("SymDifference", TempGeo);
 			Save3GeometryRGB("Shape_Enveloppe_SymDifference", ShapeU, EnveloppeCity, TempGeo);
-		}
+		}*/
 
 		/*std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
 		SaveGeometry("S-E", ShapeU->difference(EnveloppeCity));
@@ -1049,7 +1103,7 @@ namespace vcity
 		//SaveGeometry("Enveloppe_City_Simplified", geos::simplify::TopologyPreservingSimplifier::simplify(EnveloppeCity, 2).get());
     }
 
-	void Algo::CompareTiles()
+	void Algo::CompareTiles()//Lorsqu'il y a deux tuiles dans VCity, cette fonction crée une image les regroupant pour pouvoir les comparer
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
@@ -1091,7 +1145,7 @@ namespace vcity
 				std::cout << "Avancement tuile " << i+1 << " : " << cpt << "/" << objs.size() << " batiments traites.\n";
 			}
 		}
-		Save3GeometryRGB("CompareTiles", EnveloppeCity[0], EnveloppeCity[1], factory->createEmptyGeometry());		
+		Save3GeometryRGB("CompareTiles", EnveloppeCity[0], EnveloppeCity[1], factory->createEmptyGeometry());
 	}
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
