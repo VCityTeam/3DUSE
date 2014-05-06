@@ -29,7 +29,9 @@ void ExporterOBJ::exportCityModel(CityModel& model, const std::string& fileName)
         m_outFile << std::fixed;
         m_outFile << "# CityGML test export\n\n";
         m_outFile << "o " << model.getId() << "\n\n";
-        m_outFile << "mtllib " << fileName+m_filterNames[i] << ".mtl" << "\n\n";
+        std::string mtllib = fileName+m_filterNames[i];
+        mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
+        m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
         for(CityObject* obj : model.getCityObjectsRoots())
             if(obj) exportCityObject(*obj, m_filters[i]);
         m_outFile.close();
@@ -50,7 +52,9 @@ void ExporterOBJ::exportCityObject(CityObject& obj, const std::string& fileName)
         m_outFile << std::fixed;
         m_outFile << "# CityGML test export\n\n";
         m_outFile << "o " << obj.getId() << "\n\n";
-        m_outFile << "mtllib " << fileName+m_filterNames[i] << ".mtl" << "\n\n";
+        std::string mtllib = fileName+m_filterNames[i];
+        mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
+        m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
         exportCityObject(obj, m_filters[i]);
         m_outFile.close();
         exportMaterials(fileName+m_filterNames[i]+".mtl");
@@ -139,7 +143,7 @@ void ExporterOBJ::exportCityObject(CityObject& obj, citygml::CityObjectsType fil
                     std::string mat = poly->getTexture()->getUrl();
                     mat = mat.substr(mat.find_last_of('/')+1);
                     mat = mat.substr(0, mat.find_last_of('.'));
-                    m_outFile << "usemtl " << mat << "\n";
+                    m_outFile << "\nusemtl " << mat << "\n";
                     m_materials[mat] = poly->getTexture()->getUrl();
                 }
 

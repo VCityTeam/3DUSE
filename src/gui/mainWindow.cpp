@@ -905,6 +905,8 @@ void MainWindow::exportOBJsplit()
     exporter.addFilter(citygml::COT_TINRelief, "Terrain");
     exporter.addFilter(citygml::COT_LandUse, "LandUse");
     exporter.addFilter(citygml::COT_Road, "Road");
+    exporter.addFilter(citygml::COT_Door, "Door");
+    exporter.addFilter(citygml::COT_Window, "Window");
 
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
