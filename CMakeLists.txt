@@ -450,6 +450,9 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(VCity PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
+add_executable(parseCityGML src/utils/parseCityGML.cxx)
+target_link_libraries(parseCityGML ${LIBXML2_LIBRARIES})
+
 	#--------------------------------------------------------------------------------
 	# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
 	#--------------------------------------------------------------------------------
