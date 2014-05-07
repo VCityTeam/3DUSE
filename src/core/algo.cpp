@@ -689,7 +689,7 @@ namespace vcity
 	/**
      * @brief Récupère l'enveloppe d'une geometry
      */
-	geos::geom::Geometry * GetEnveloppe(geos::geom::MultiPolygon * MP)
+	geos::geom::Geometry * GetEnveloppe(geos::geom::MultiPolygon * MP)//Attention, le cas où les polygon à unir ont déjà des trous fonctionne peut être mal
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
@@ -973,17 +973,6 @@ namespace vcity
         //LOD0 sur toute la scène
 		
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
-		
-		geos::geom::Geometry * Shape = (*ShapeGeo);
-		geos::geom::Geometry * ShapeU; //Contient tous les polygons de Shape dans une geometry valide
-				
-		if(Shape != NULL)
-		{
-			std::cout << "Creation de ShapeU ... \n";
-			ShapeU = geos::operation::geounion::CascadedPolygonUnion::Union(dynamic_cast<geos::geom::MultiPolygon*>(Shape));
-			std::cout << "Creation de ShapeU terminee. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
-		}
-
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
 		geos::geom::Geometry * EnveloppeCity = NULL;
@@ -1039,75 +1028,163 @@ namespace vcity
 			}
 		}
 
+		//////////////////////////////////////////////////////////////////////
+		
+		geos::geom::Geometry * Shape = (*ShapeGeo);
+
+		if(Shape == NULL)
+			return;
+
 		std::pair<std::vector<int>*, std::vector<int>*> Link = LinkGeos(Shape, EnveloppeCity);
 
 		int cpt = 0;
-
-		for(int i = 0; i < EnveloppeCity->getNumGeometries(); i++)
+		
+		for(int i = 0; i < EnveloppeCity->getNumGeometries(); i++)//On parcourt tous les polygons de l'enveloppe
 		{
-			if(Link.second[i].size() > 0)
+			geos::geom::Polygon * CurrPolyE = dynamic_cast<geos::geom::Polygon*>(EnveloppeCity->getGeometryN(i)->clone());
+			//Le but de ces lignes est de convertir le polygon avec son exterior ring et ses trous en un ensemble de geometry contenant ceux ci sans qu'ils soient encore liés. On peut ainsi parcourir seulement les arrêtes du polygon sans la notion d'intérieur
+			std::vector<geos::geom::Geometry *> PolyToGeo;
+			PolyToGeo.push_back(CurrPolyE->getExteriorRing()->clone());
+			for(int j = 0; j < CurrPolyE->getNumInteriorRing(); j++)
+			{
+				PolyToGeo.push_back(CurrPolyE->getInteriorRingN(j)->clone());
+			}
+			geos::geom::Geometry * CurrGeoE = factory->createGeometryCollection(PolyToGeo);
+			////////////////////////////
+
+			//std::cout << "test \n";
+
+			if(Link.second[i].size() > 0)//On vérifie qu'au moins un polygon du shape lui soit associé
 			{				
-				std::vector<geos::geom::Geometry *> Geos;
-				std::vector<geos::geom::Geometry *> Geos2;
-				for(int j = 0; j < Link.second[i].size(); j++)
+				std::vector<geos::geom::Geometry *> Geos;//Contiendra tous les polygons du shape liés au polygon de l'enveloppe
+				std::vector<geos::geom::Geometry *> Geos2;//Contiendra ces même polygons une fois modifiés pour coller à l'enveloppe
+				for(int j = 0; j < Link.second[i].size(); j++)//Remplissage de Geos
 				{
-					const geos::geom::LineString * GeoLS = dynamic_cast<geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j])->clone())->getExteriorRing();
-					geos::geom::CoordinateArraySequence newcoord;
-					const geos::geom::CoordinateSequence *coordGeo = GeoLS->getCoordinates();
-					for(int k = 0; k < GeoLS->getNumPoints(); k++)
+					geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j])->clone()); //Polygon du shape courant					
+					Geos.push_back(CurrPolyS);
+				}
+				
+				geos::geom::Geometry* UnionPolyS = geos::operation::geounion::CascadedPolygonUnion::Union(factory->createMultiPolygon(Geos)); //Enveloppe du shape
+				
+				std::vector<geos::geom::Geometry *> PolyToGeo;
+				for(int k = 0; k < UnionPolyS->getNumGeometries(); k++)//On parcourt tous les polygons de UnionPolys pour faire un ensemble de geometry contenant de manière indifférente tous les external ring et les interiors rings. On pourra ainsi calculer l'intersection d'un point avec tous les rings de cette union sans être gêné par le fait qu'un polygon soit "plein". Sinon, un point à l'intérieur du polygon est considéré comme intersect même s'il ne se trouve pas sur les bords.
+				{
+					geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(UnionPolyS->getGeometryN(k)->clone());
+					if(CurrPolyS == NULL)
 					{
-						newcoord.add(geos::operation::distance::DistanceOp::nearestPoints(dynamic_cast<geos::geom::Polygon*>(EnveloppeCity->getGeometryN(i)->clone())->getExteriorRing(),GeoLS->getPointN(k))->getAt(0));
-						//newcoord.add(geos::operation::distance::DistanceOp::nearestPoints(EnveloppeCity->getGeometryN(i),GeoLS->getPointN(k))->getAt(0));
+						continue;
 					}
-					Geos2.push_back(factory->createPolygon(factory->createLinearRing(newcoord), NULL));
-					Geos.push_back(Shape->getGeometryN(Link.second[i][j])->clone());
+					PolyToGeo.push_back(CurrPolyS->getExteriorRing()->clone());
+					for(int j = 0; j < CurrPolyS->getNumInteriorRing(); j++)
+					{
+						PolyToGeo.push_back(CurrPolyS->getInteriorRingN(j)->clone());
+					}
+				}				
+				geos::geom::Geometry * CurrGeoS = factory->createGeometryCollection(PolyToGeo);
+
+				//On va modifier le shape en recherchant les points situés sur son enveloppe et en les déplacements sur l'enveloppe du CityGML en conservant les polygons ainsi modifiés
+				for(int j = 0; j < Link.second[i].size(); j++)//Remplissage de Geos2
+				{
+					geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j])->clone());
+					geos::geom::CoordinateSequence * CurrPolyExt = CurrPolyS->getExteriorRing()->getCoordinates();
+					geos::geom::CoordinateArraySequence CoordExt;//Contiendra les coordonnées modifiées de l'exterior ring du polygon courant
+
+					for(int k = 0; k < CurrPolyExt->getSize(); k++)//Traitement de l'exterior ring
+					{
+						geos::geom::Point * CurrPoint = factory->createPoint(CurrPolyExt->getAt(k));
+
+						if(CurrPoint->intersects(CurrGeoS))
+						{
+							CoordExt.add(geos::operation::distance::DistanceOp::nearestPoints(CurrGeoE, CurrPoint)->getAt(0));
+						}
+						else
+						{
+							CoordExt.add(*CurrPoint->getCoordinate());
+						}				
+					}					
+					
+					//std::cout << "test4 \n";
+
+					std::vector<geos::geom::Geometry*> * PolyInt = new std::vector<geos::geom::Geometry*>;//Contiendra les interior rings modifiés du polygon courant
+
+					for(int p = 0; p < CurrPolyS->getNumInteriorRing(); p++)
+					{
+						geos::geom::CoordinateSequence * CurrPolyInt = CurrPolyS->getInteriorRingN(p)->getCoordinates();
+						geos::geom::CoordinateArraySequence CoordInt;//Contiendra les coordonnées modifiées de l'interior ring p du polygon courant
+
+						//std::cout << "test5 \n";
+						for(int k = 0; k < CurrPolyInt->getSize(); k++)//Traitement de l'interior ring p
+						{
+							geos::geom::Point * CurrPoint = factory->createPoint(CurrPolyInt->getAt(k));
+							//std::cout << "test6 \n";
+							if(CurrPoint->intersects(CurrGeoS))
+							{
+								//std::cout << "test7 \n";
+								CoordInt.add(geos::operation::distance::DistanceOp::nearestPoints(CurrGeoE, CurrPoint)->getAt(0));
+							}
+							else
+							{
+								//std::cout << "test8 \n";
+								CoordInt.add(*CurrPoint->getCoordinate());
+							}
+							//std::cout << "test9 \n";
+						}
+						PolyInt->push_back(factory->createLinearRing(CoordInt));
+						//std::cout << "test10 \n";
+					}					
+					Geos2.push_back(factory->createPolygon(factory->createLinearRing(CoordExt), PolyInt));
+					//std::cout << "test11 \n";
 				}
 				cpt++;
-				Save3GeometryRGB("Poly" + std::to_string(cpt), EnveloppeCity->getGeometryN(i)->clone(), factory->createEmptyGeometry(), factory->createEmptyGeometry());
-				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_", EnveloppeCity->getGeometryN(i)->clone(), factory->createGeometryCollection(Geos), factory->createEmptyGeometry());
-				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_test", EnveloppeCity->getGeometryN(i)->clone(), factory->createGeometryCollection(Geos2), factory->createEmptyGeometry());
+				Save3GeometryRGB("Poly" + std::to_string(cpt), CurrPolyE, factory->createEmptyGeometry(), factory->createEmptyGeometry());//Affiche l'enveloppe du citygml
+				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_", factory->createEmptyGeometry(), UnionPolyS, factory->createEmptyGeometry());//Affiche l'enveloppe du shape
+				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_test1", CurrPolyE, factory->createGeometryCollection(Geos), factory->createEmptyGeometry());//Affiche l'enveloppe avec les polygons du shape associés
+				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_test2", CurrPolyE, factory->createGeometryCollection(Geos2), factory->createEmptyGeometry());//Affiche l'enveloppe avec les polygons du shape modifiés
 			}
 		}
 
-		/*if(Shape != NULL)
-		{
-			std::cout << "Creation de Shape ..." << std::endl;
-			SaveGeometry("Shape", Shape);
-			SaveGeometry("ShapeU", ShapeU);
-			std::cout << "Creation de EnveloppeCity ..." << std::endl;
-			SaveGeometry("EnveloppeCity", EnveloppeCity);
+		
+		/*geos::geom::Geometry * ShapeU; //Contient tous les polygons de Shape dans une geometry valide
+				
+		std::cout << "Creation de ShapeU ... \n";
+		ShapeU = geos::operation::geounion::CascadedPolygonUnion::Union(dynamic_cast<geos::geom::MultiPolygon*>(Shape));
+		std::cout << "Creation de ShapeU terminee. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
 
-			geos::geom::Geometry * TempGeo = factory->createEmptyGeometry();
+		SaveGeometry("Shape", Shape);
+		SaveGeometry("ShapeU", ShapeU);
+
+		SaveGeometry("EnveloppeCity", EnveloppeCity);
+
+		geos::geom::Geometry * TempGeo = factory->createEmptyGeometry();
 			
-			Save3GeometryRGB("Shape_Enveloppe", Shape, EnveloppeCity, TempGeo);
+		Save3GeometryRGB("Shape_Enveloppe", Shape, EnveloppeCity, TempGeo);
 
-			std::cout << "Creation de l'Union ..." << std::endl;
-			try
-			{
-				TempGeo = ShapeU->Union(EnveloppeCity);
-			}
-			catch(std::exception& e)
-			{
-				std::cout << e.what() << '\n';
-			}
-			SaveGeometry("Union", TempGeo);
-			Save3GeometryRGB("Shape_Enveloppe_Union", ShapeU, EnveloppeCity, TempGeo);
+		std::cout << "Creation de l'Union ..." << std::endl;
+		try
+		{
+			TempGeo = ShapeU->Union(EnveloppeCity);
+		}
+		catch(std::exception& e)
+		{
+			std::cout << e.what() << '\n';
+		}
+		SaveGeometry("Union", TempGeo);
+		Save3GeometryRGB("Shape_Enveloppe_Union", ShapeU, EnveloppeCity, TempGeo);
 
-			std::cout << "Creation de l'intersection ..." << std::endl;
-			TempGeo = ShapeU->intersection(EnveloppeCity);
-			SaveGeometry("Intersection", TempGeo);
-			Save3GeometryRGB("Shape_Enveloppe_Intersection", ShapeU, EnveloppeCity, TempGeo);
+		std::cout << "Creation de l'intersection ..." << std::endl;
+		TempGeo = ShapeU->intersection(EnveloppeCity);
+		SaveGeometry("Intersection", TempGeo);
+		Save3GeometryRGB("Shape_Enveloppe_Intersection", ShapeU, EnveloppeCity, TempGeo);
 
-			std::cout << "Creation de la SymDifference ..." << std::endl;
-			TempGeo = ShapeU->symDifference(EnveloppeCity);
-			SaveGeometry("SymDifference", TempGeo);
-			Save3GeometryRGB("Shape_Enveloppe_SymDifference", ShapeU, EnveloppeCity, TempGeo);
-		}*/
+		std::cout << "Creation de la SymDifference ..." << std::endl;
+		TempGeo = ShapeU->symDifference(EnveloppeCity);
+		SaveGeometry("SymDifference", TempGeo);
+		Save3GeometryRGB("Shape_Enveloppe_SymDifference", ShapeU, EnveloppeCity, TempGeo);
 
-		/*std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
-		SaveGeometry("S-E", ShapeU->difference(EnveloppeCity));
-		std::cout << "Creation de Enveloppe - Shape ..." << std::endl;
-		SaveGeometry("E-S", EnveloppeCity->difference(ShapeU));*/
+		//std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
+		//SaveGeometry("S-E", ShapeU->difference(EnveloppeCity));
+		//std::cout << "Creation de Enveloppe - Shape ..." << std::endl;
+		//SaveGeometry("E-S", EnveloppeCity->difference(ShapeU));*/
 
 		/*SaveGeometry("Enveloppe_City", EnveloppeCity);
 
