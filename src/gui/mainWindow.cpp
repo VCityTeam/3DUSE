@@ -899,13 +899,20 @@ void MainWindow::about()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
 {
-    loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
+    //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
+
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
+
+	vcity::app().getAlgo().CompareTiles();
+
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test2()
 {
     //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13725/export-CityGML/ZoneAExporter.gml");
+    /*loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13725/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13724/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13725/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13724/export-CityGML/ZoneAExporter.gml");
@@ -913,7 +920,11 @@ void MainWindow::test2()
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");*/
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2009.gml");
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2012.gml");
+
+	vcity::app().getAlgo().CompareTiles();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()

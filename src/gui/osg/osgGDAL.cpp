@@ -456,7 +456,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
                     int nbPoints = poLR->getNumPoints();
 
 					geos::geom::CoordinateArraySequence temp;//
-					std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
+					/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
 
 					for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
 					{
@@ -471,7 +471,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
 						if(temp.size() > 3)
 							Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
 						temp.clear();
-					}
+					}*/
 					
                     for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
                     {
@@ -486,8 +486,8 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
 					if(temp.size() > 3)//
 					{
 						shell=factory->createLinearRing(temp);
-						P = factory->createPolygon(shell, Holes);
-						if(P->isValid())
+						P = factory->createPolygon(shell, NULL/*Holes*/);
+						if(P->isValid()/* && P->getArea() > 10*/)
 							Polys.push_back(P);
 					}
 
