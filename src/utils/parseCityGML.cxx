@@ -19,7 +19,7 @@ void afficher_noeud(xmlNodePtr noeud, bool *first_posList, double *xmin, double 
 				double x, y, z;
 				char *endptr = NULL;
 
-				bool first = TRUE;
+				bool first = true;
 				double xmin_posList, ymin_posList, zmin_posList;
 				double xmax_posList, ymax_posList, zmax_posList;
 				xmin_posList = ymin_posList = zmin_posList = xmax_posList = ymax_posList = zmax_posList = 0.;
@@ -35,7 +35,7 @@ void afficher_noeud(xmlNodePtr noeud, bool *first_posList, double *xmin, double 
 					z = strtod(endptr, &endptr);
 					if (z != 0. && first) { zmin_posList = zmax_posList = z; } if (z != 0. && !first && z < zmin_posList) { zmin_posList = z; } if (z != 0. && !first && z > zmax_posList) { zmax_posList = z; }
 					//printf("(%lf %lf %lf)\n", x, y, z);
-					first = FALSE;
+					first = false;
 				}
 				while ( !( (x == 0.) && (y == 0.) && (z == 0.) ) );
 
@@ -48,7 +48,7 @@ void afficher_noeud(xmlNodePtr noeud, bool *first_posList, double *xmin, double 
 				if (xmax_posList != 0. && (*first_posList)) { *xmax = xmax_posList; } if (xmax_posList != 0. && !(*first_posList) && xmax_posList > *xmax) { *xmax = xmax_posList; }
 				if (ymax_posList != 0. && (*first_posList)) { *ymax = ymax_posList; } if (ymax_posList != 0. && !(*first_posList) && ymax_posList > *ymax) { *ymax = ymax_posList; }
 				if (zmax_posList != 0. && (*first_posList)) { *zmax = zmax_posList; } if (zmax_posList != 0. && !(*first_posList) && zmax_posList > *zmax) { *zmax = zmax_posList; }
-				*first_posList = FALSE;
+				*first_posList = false;
 			}
             xmlFree(contenu);
         }
@@ -177,7 +177,7 @@ int main(int argc, char** argv)
 						double xmax_Building, ymax_Building, zmax_Building;
 						xmin_Building = ymin_Building = zmin_Building = xmax_Building = ymax_Building = zmax_Building = 0.;
 
-						bool first=TRUE;
+						bool first=true;
 						parcours_prefixe(n->children, afficher_noeud, &first, &xmin_Building, &ymin_Building, &zmin_Building, &xmax_Building, &ymax_Building, &zmax_Building);
 						//printf("\nMIN_Building: (%lf %lf %lf)\n", xmin_Building, ymin_Building, zmin_Building);
 						//printf("MAX_Building: (%lf %lf %lf)\n", xmax_Building, ymax_Building, zmax_Building);
