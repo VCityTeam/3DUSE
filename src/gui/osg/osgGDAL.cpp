@@ -477,11 +477,11 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
                     {
                         OGRPoint p;
                         poLR->getPoint(i, &p);
-                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 50.0);
+                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 50.0); // osg::Vec3d(1840000.0, 5170000.0, 50.0);
                         vertices->push_back(pt);
                         indices->push_back(i);
 
-						temp.add(geos::geom::Coordinate(p.getX(), p.getY()));//
+						temp.add(geos::geom::Coordinate(p.getX() - 1840000.0, p.getY() - 5170000.0));//
                     }
 					if(temp.size() > 3)//
 					{
