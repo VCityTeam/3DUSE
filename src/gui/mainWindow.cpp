@@ -19,7 +19,6 @@
 #include "export/exportCityGML.hpp"
 #include "export/exportJSON.hpp"
 #include "export/exportOBJ.hpp"
-#include "export/exportOBJAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
@@ -76,7 +75,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
     connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
     connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
-    connect(m_ui->actionExport_OBJ_Assimp, SIGNAL(triggered()), this, SLOT(exportOBJAssimp()));
     connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
     connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
     //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
@@ -224,6 +222,13 @@ void MainWindow::openRecentFile()
 ////////////////////////////////////////////////////////////////////////////////
 bool MainWindow::loadFile(const QString& filepath)
 {
+    // date check
+    if(QDate::currentDate() > QDate(2015, 01, 01))
+    {
+        QMessageBox(QMessageBox::Critical,  "Error", "Expired").exec();
+        return false;
+    }
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QSettings settings("liris", "virtualcity");
     QFileInfo file(filepath);
@@ -590,7 +595,6 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->menuTest->menuAction()->setVisible(true);
         m_ui->menuTools->menuAction()->setVisible(true);
         m_ui->menuRender->menuAction()->setVisible(true);
-        m_ui->actionExport_OBJ_Assimp->setVisible(true);
         m_ui->actionExport_osg->setVisible(true);
         m_ui->actionExport_tiled_osga->setVisible(true);
         m_ui->actionLoad_bbox->setVisible(true);
@@ -609,7 +613,6 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->menuTest->menuAction()->setVisible(false);
         m_ui->menuTools->menuAction()->setVisible(false);
         m_ui->menuRender->menuAction()->setVisible(false);
-        m_ui->actionExport_OBJ_Assimp->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
@@ -637,7 +640,7 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    unlockFeatures("none");
+    unlockFeatures("pass2");
     m_ui->mainToolBar->hide();
     m_ui->statusBar->hide();
 }
@@ -842,30 +845,6 @@ void MainWindow::exportJSON()
             // only tiles
         }
     }
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::exportOBJAssimp()
-{
-    /*QString filename = QFileDialog::getSaveFileName();
-    QFileInfo fileInfo(filename);
-    filename = fileInfo.path() + "/" + fileInfo.baseName();
-    citygml::ExporterOBJAssimp exporter;
-    exporter.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
-
-    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        if(uris[0].getType() == "Tile")
-        {
-            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
-            if(model) exporter.exportCityModel(*model, filename.toStdString());
-        }
-        else
-        {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
-            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
-        }
-    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOBJ()
@@ -1101,7 +1080,7 @@ void MainWindow::test4()
 
     // test json
     int i = 0;
-    QDirIterator iterator("/mnt/docs/data/dd_backup/Donnees_IGN/", QDirIterator::Subdirectories);
+    QDirIterator iterator("/mnt/docs/data/dd_backup/GIS_Data/Donnees_IGN/", QDirIterator::Subdirectories);
     while(iterator.hasNext())
     {
         iterator.next();
@@ -1111,10 +1090,11 @@ void MainWindow::test4()
             if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
             {
                 QFileInfo fileInfo(filename);
-                std::string id = filename.toStdString().substr(44, 4) + "_" + filename.toStdString().substr(49, 5);
+                std::string id = filename.toStdString().substr(53, 4) + "_" + filename.toStdString().substr(58, 5);
                 //qDebug("Found %s matching pattern.", qPrintable(filename));
                 std::stringstream ss;
                 //ss << "/mnt/docs/upload/json/" << fileInfo.baseName().toStdString() << "_" << id;
+                //ss << "/tmp/json/" << fileInfo.baseName().toStdString() << "_" << id;
                 ss << "/tmp/json/" << fileInfo.baseName().toStdString() << "_" << id;
                 std::string f = ss.str();
                 std::cout << filename.toStdString() << " -> " << f << "\n";
@@ -1124,6 +1104,7 @@ void MainWindow::test4()
                 citygml::ParserParams params;
                 citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
                 citygml::ExporterJSON exporter;
+                exporter.setBasePath("/tmp/json/");
                 if(citygmlmodel) exporter.exportCityModel(*citygmlmodel, f, id);
                 delete citygmlmodel;
             }

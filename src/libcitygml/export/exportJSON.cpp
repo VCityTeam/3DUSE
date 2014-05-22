@@ -12,6 +12,11 @@ ExporterJSON::ExporterJSON()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::setBasePath(const std::string& basePath)
+{
+    m_basePath = basePath;
+}
+////////////////////////////////////////////////////////////////////////////////
 /*void exportNode()
 {
     QString json;
@@ -51,11 +56,14 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     m_id = id;
     model.computeEnvelope();
 
-    m_outFile.open(fileName+".json");
+    // bldg
+    addFilter(COT_WallSurface, "walls");
+    addFilter(COT_RoofSurface, "roofs");
+    m_outFile.open(m_basePath + "building/" + fileName + ".json");
     m_outFile << std::fixed;
     openScope(); // global scope
     indent(); m_outFile << "\"id\":\"" << id << "\",\n";
-    indent(); m_outFile << "\"nbBldg\":" << getNbBldg(model) << ",\n";
+    indent(); m_outFile << "\"nbBldg\":" << getNbFeature(model, COT_Building) << ",\n";
     TVec3d p = model.getEnvelope().getLowerBound();
     indent(); m_outFile << "\"min\":[" << p.x << "," << p.y << "," << p.z << "],\n";
     p = model.getEnvelope().getUpperBound();
@@ -64,7 +72,31 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listBldg scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_Building) exportCityObject(*obj);
+    //m_outFile.seekp(m_outFile.tellp()-2l); m_outFile << "\n";
+    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listBldg scope
+    closeScope(); // global scope
+    m_outFile.close();
+    resetFilters();
+
+    // terrain
+    addFilter(COT_TINRelief, "terrain");
+    m_outFile.open(m_basePath + "terrain/" + fileName + ".json");
+    m_outFile << std::fixed;
+    openScope(); // global scope
+    indent(); m_outFile << "\"id\":\"" << id << "\",\n";
+    indent(); m_outFile << "\"nbTerrain\":" << getNbFeature(model, COT_TINRelief) << ",\n";
+    p = model.getEnvelope().getLowerBound();
+    indent(); m_outFile << "\"min\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    p = model.getEnvelope().getUpperBound();
+    indent(); m_outFile << "\"max\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    indent(); m_outFile << "\"listTerrain\":";
+    openScope(); // listTerrain scope
+    for(CityObject* obj : model.getCityObjectsRoots())
+        if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
+    //m_outFile.seekp(m_outFile.tellp()-2l); m_outFile << "\n";
+    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    closeScope();  // listTerrain scope
     closeScope(); // global scope
     m_outFile.close();
 }
@@ -72,27 +104,40 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
 void ExporterJSON::exportCityObject(CityObject& obj)
 {
     indent(); m_outFile << "\"" << obj.getId() << "\":";
-    openScope(); // bldg scope
+    openScope(); // obj scope
     TVec3d p = obj.getEnvelope().getLowerBound();
     indent(); m_outFile << "\"min\":[" << p.x << "," << p.y << "," << p.z << "],\n";
     p = obj.getEnvelope().getUpperBound();
     indent(); m_outFile << "\"max\":[" << p.x << "," << p.y << "," << p.z << "],\n";
 
+    for(const auto& it : m_filters)
+    {
+        indent(); m_outFile << "\"" << it.second << "\":";
+        openScope(); // scope
+        //indent(); m_outFile << "\"nbFace\":" << getNbFaces(obj, it.first) << ",\n";
+        m_needComma = false;
+        exportFeature(obj, it.first);
+        m_outFile << "\n";
+        closeScope(true);  // scope
+    }
+
+    /*
     indent(); m_outFile << "\"walls\":";
     openScope(); // walls scope
     //indent(); m_outFile << "\"nbFace\":" << getNbFaces(obj, COT_WallSurface) << ",\n";
     m_needComma = false;
-    exportWallsAndRoofs(obj, COT_WallSurface);
+    exportFeature(obj, COT_WallSurface);
     m_outFile << "\n";
     closeScope(true);  // walls scope
 
     indent(); m_outFile << "\"roofs\":";
     openScope(); // roofs scope
-    indent(); m_outFile << "\"nbFace\":" << getNbFaces(obj, COT_RoofSurface) << ",\n";
+    //indent(); m_outFile << "\"nbFace\":" << getNbFaces(obj, COT_RoofSurface) << ",\n";
     m_needComma = false;
-    exportWallsAndRoofs(obj, COT_RoofSurface);
+    exportFeature(obj, COT_RoofSurface);
     m_outFile << "\n";
     closeScope(true);  // roofs scope
+    */
 
     //indent(); m_outFile << "\"listGeometries\":[" << 10 << "],\n";
     //indent(); m_outFile << "\"listNormals\":[" << 10 << "],\n";
@@ -101,7 +146,7 @@ void ExporterJSON::exportCityObject(CityObject& obj)
     openScope(); // semantique scope
     int nb = obj.getAttributes().size();
     int i = 0;
-    for(auto& attr : obj.getAttributes())
+    for(const auto& attr : obj.getAttributes())
     {
         indent(); m_outFile << "\"" << attr.first << "\":\"" << attr.second << "\"";
         if(++i != nb)
@@ -110,10 +155,20 @@ void ExporterJSON::exportCityObject(CityObject& obj)
     }
     closeScope(); // semantique scope
 
-    closeScope(true);  // bldg scope
+    closeScope(true);  // obj scope
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterJSON::exportWallsAndRoofs(CityObject& obj, CityObjectsType type)
+void ExporterJSON::addFilter(CityObjectsType filter, const std::string& name)
+{
+    m_filters[filter] = name;
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::resetFilters()
+{
+    m_filters.clear();
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
 {
     if(obj.getType() == type)
     {
@@ -145,39 +200,43 @@ void ExporterJSON::exportWallsAndRoofs(CityObject& obj, CityObjectsType type)
             openScope(); // feature scope
             //indent(); m_outFile << "\"nbTri\":" << getNbTris(obj) << ",\n";
 
-            indent(); m_outFile << "\"listGeometries\":[";
+            indent(); m_outFile << "\"listGeometries\":[ ";
             for(Geometry* geom : obj.getGeometries())
             {
                 for(Polygon* poly : geom->getPolygons())
                 {
-                    //for(const auto& vertex : poly->getVertices())
-                    for(int i=0; i<poly->getVertices().size(); ++i)
+                    for(const auto& vertex : poly->getVertices())
+                    //for(int i=0; i<poly->getVertices().size(); ++i)
                     {
-                        const TVec3d& vertex = poly->getVertices()[i];
-                        m_outFile << vertex.x << "," << vertex.y << "," << vertex.z;
-                        if(i != poly->getVertices().size()-1) m_outFile << ",";
+                        //const TVec3d& vertex = poly->getVertices()[i];
+                        m_outFile << vertex.x << "," << vertex.y << "," << vertex.z << ",";
+                        //if(i != poly->getVertices().size()-1) m_outFile << ",";
                     }
                 }
             }
-            m_outFile << "],\n";
+            m_outFile.seekp(-1, std::ios_base::cur);
+            //m_outFile.seekp(m_outFile.tellp()-1l);
+            m_outFile << " ],\n";
 
-            indent(); m_outFile << "\"listNormals\":[";
+            indent(); m_outFile << "\"listNormals\":[ ";
             for(Geometry* geom : obj.getGeometries())
             {
                 for(Polygon* poly : geom->getPolygons())
                 {
-                    //for(const auto& normal : poly->getNormals())
-                    for(int i=0; i<poly->getNormals().size(); ++i)
+                    for(const auto& normal : poly->getNormals())
+                    //for(int i=0; i<poly->getNormals().size(); ++i)
                     {
-                        const TVec3f& normal = poly->getNormals()[i];
-                        m_outFile << normal.x << "," << normal.y << "," << normal.z;
-                        if(i != poly->getNormals().size()-1) m_outFile << ",";
+                        //const TVec3f& normal = poly->getNormals()[i];
+                        m_outFile << normal.x << "," << normal.y << "," << normal.z << ",";
+                        //if(i != poly->getNormals().size()-1) m_outFile << ",";
                     }
                 }
             }
-            m_outFile << "],\n";
+            m_outFile.seekp(-1, std::ios_base::cur);
+            //m_outFile.seekp(m_outFile.tellp()-1l);
+            m_outFile << " ],\n";
 
-            indent(); m_outFile << "\"listUVs\":[";
+            indent(); m_outFile << "\"listUVs\":[ ";
             for(Geometry* geom : obj.getGeometries())
             {
                 for(Polygon* poly : geom->getPolygons())
@@ -189,32 +248,38 @@ void ExporterJSON::exportWallsAndRoofs(CityObject& obj, CityObjectsType type)
                         texture = poly->getTexture()->getUrl();
                     }*/
 
-                    //for(const auto& uv : poly->getTexCoords())
-                    for(int i=0; i<poly->getTexCoords().size(); ++i)
+                    for(const auto& uv : poly->getTexCoords())
+                    //for(int i=0; i<poly->getTexCoords().size(); ++i)
                     {
-                        const TVec2f& uv = poly->getTexCoords()[i];
-                        m_outFile << uv.x << "," << uv.y;
-                        if(i != poly->getTexCoords().size()-1) m_outFile << ",";
+                        //const TVec2f& uv = poly->getTexCoords()[i];
+                        m_outFile << uv.x << "," << uv.y << ",";
+                        //if(i != poly->getTexCoords().size()-1) m_outFile << ",";
                     }
                 }
             }
-            m_outFile << "],\n";
+            m_outFile.seekp(-1, std::ios_base::cur);
+            //m_outFile.seekp(m_outFile.tellp()-1l);
+            m_outFile << " ],\n";
 
-            indent(); m_outFile << "\"listIndices\":[";
+            int offset = 0;
+            indent(); m_outFile << "\"listIndices\":[ ";
             for(Geometry* geom : obj.getGeometries())
             {
                 for(Polygon* poly : geom->getPolygons())
                 {
-                    //for(auto index : poly->getIndices())
-                    for(int i=0; i<poly->getIndices().size(); ++i)
+                    for(auto index : poly->getIndices())
+                    //for(int i=0; i<poly->getIndices().size(); ++i)
                     {
-                        unsigned int index = poly->getIndices()[i];
-                        m_outFile << index;
-                        if(i != poly->getIndices().size()-1) m_outFile << ",";
+                        //unsigned int index = poly->getIndices()[i];
+                        m_outFile << offset+index << ",";
+                        //if(i != poly->getIndices().size()-1) m_outFile << ",";
                     }
+                    offset += poly->getVertices().size();
                 }
             }
-            m_outFile << "],\n";
+            m_outFile.seekp(-1, std::ios_base::cur);
+            //m_outFile.seekp(m_outFile.tellp()-1l);
+            m_outFile << " ],\n";
 
             indent(); m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
             //if(!texture.empty())
@@ -228,16 +293,16 @@ void ExporterJSON::exportWallsAndRoofs(CityObject& obj, CityObjectsType type)
 
     for(CityObject* child : obj.getChildren())
     {
-        if(child) exportWallsAndRoofs(*child, type);
+        if(child) exportFeature(*child, type);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-int ExporterJSON::getNbBldg(CityModel& model) const
+int ExporterJSON::getNbFeature(CityModel& model, CityObjectsType type) const
 {
     int nb = 0;
     for(CityObject* obj : model.getCityObjectsRoots())
     {
-        if(obj && obj->getType() == COT_Building)
+        if(obj && obj->getType() == type)
         {
             ++nb;
         }

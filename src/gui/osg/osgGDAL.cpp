@@ -56,6 +56,15 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                 }
                 else if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
                 {
+                    // get height test
+                    /*if(poFeature->GetFieldCount() > 0)
+                    {
+                        std::cout << "ID : " << poFeature->GetFieldAsString("ID") << std::endl;
+                        std::cout << "HAUTEUR : " << poFeature->GetFieldAsDouble("HAUTEUR") << std::endl;
+                        std::cout << "Z_MIN : " << poFeature->GetFieldAsDouble("Z_MIN") << std::endl;
+                        std::cout << "Z_MAX : " << poFeature->GetFieldAsDouble("Z_MAX") << std::endl;
+                    }*/
+
                     /*
                     osg::Geometry* geom = new osg::Geometry;
                     osg::Vec3Array* vertices = new osg::Vec3Array;

@@ -19,6 +19,7 @@ public:
     Tile();
     Tile(const std::string& filepath);
     //Tile(const TVec3d& pMin, const TVec3d& pMax);
+    ~Tile();
 
     citygml::Envelope& getEnvelope();
     const citygml::Envelope& getEnvelope() const;
