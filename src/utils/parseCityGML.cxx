@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-		puts("ParseCityGML 1.0.1 - May 21, 2014 - Martial TOLA");
+		puts("ParseCityGML 1.0.2 - May 22, 2014 - Martial TOLA");
 		puts("-> this tiny tool parses a CityGML file according to a 2d bounding box and extracts buildings.");
 		puts("Usage:");
 		puts("");
@@ -146,8 +146,8 @@ int main(int argc, char** argv)
 			{
 				if (xmlStrEqual(n->name, BAD_CAST "cityObjectMember"))
 				{
-					if (xmlStrEqual(n->children->name, BAD_CAST "Building"))
-					/*{
+					/*if (xmlStrEqual(n->children->name, BAD_CAST "Building"))
+					{
 						if (xmlStrEqual(n->children->children->name, BAD_CAST "stringAttribute"))
 							if (xmlStrEqual(xmlGetProp(n->children->children, BAD_CAST "name"), BAD_CAST "centre"))
 								if (xmlStrEqual(n->children->children->children->name, BAD_CAST "value"))
@@ -172,6 +172,7 @@ int main(int argc, char** argv)
 										}
 								}
 					}*/
+					if ( (xmlStrEqual(n->children->name, BAD_CAST "Building")) || (xmlStrEqual(n->children->name, BAD_CAST "ReliefFeature")) ) // ReliefFeature same principle as Building
 					{
 						double xmin_Building, ymin_Building, zmin_Building;
 						double xmax_Building, ymax_Building, zmax_Building;
