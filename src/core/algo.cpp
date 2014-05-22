@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "gui/moc/mainWindow.hpp"
 
+#include <export.hpp>
 #include <geos/geom/Polygon.h>
 #include <geos/geom/Coordinate.h>
 #include <geos/geom/CoordinateSequence.h>
@@ -40,7 +41,7 @@ typedef std::set<Polygon2D> PolySet;
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-	double Scale = 10; //Définit le zoom des images sauvegardées, avec 1 = 1 mètre/pixel.
+	double Scale = 2; //Définit le zoom des images sauvegardées, avec 1 = 1 mètre/pixel.
 
     /**
      * @brief projete les toits du CityObject selectioné sur le plan (xy)
@@ -970,6 +971,74 @@ namespace vcity
 	}
 
 	/**
+     * @brief Convertit les données GEOS en LOD1 de CityGML
+     */
+	void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
+	{
+		citygml::Geometry* Wall = new citygml::Geometry("LOD1_Wall", citygml::GT_Wall, 0);
+		citygml::Geometry* Roof = new citygml::Geometry("LOD1_Roof", citygml::GT_Roof, 0);
+
+		for(int i = 0; i < Geometry->getNumGeometries(); i++)	//Pour chaque polygon de MP
+		{
+			double heightmax = Hauteurs[i].second + Hauteurs[i].first;
+			double heightmin = Hauteurs[i].second;
+			citygml::Polygon * Poly = new citygml::Polygon("PolyTest");
+			citygml::LinearRing * Ring = new citygml::LinearRing("RingTest",true);
+
+			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();	//clone pour récupérer un const
+			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points du polygon courant de MP
+
+			for(int j = 0; j < Coords->size()-1; j++)//On s'arrête à size - 1 car le premier point est déjà repeté en dernière position
+			{
+				citygml::Polygon * Poly2 = new citygml::Polygon("PolyTest2");
+				citygml::LinearRing * Ring2 = new citygml::LinearRing("RingTest2",true);
+
+				int x1 = Coords->getAt(j).x;
+				int y1 = Coords->getAt(j).y;
+				
+				Ring->addVertex(TVec3d(x1, y1, heightmax));
+
+				int x2, y2;
+				x2 = Coords->getAt(j+1).x;
+				y2 = Coords->getAt(j+1).y;
+
+				Ring2->addVertex(TVec3d(x1, y1, heightmin));
+				Ring2->addVertex(TVec3d(x2, y2, heightmin));
+				Ring2->addVertex(TVec3d(x2, y2, heightmax));
+				Ring2->addVertex(TVec3d(x1, y1, heightmax));
+				Poly2->addRing(Ring2);
+				Wall->addPolygon(Poly2);
+			}
+			Poly->addRing(Ring);
+			Roof->addPolygon(Poly);
+		}
+		
+		citygml::CityModel* model = new citygml::CityModel();
+
+		citygml::CityObject* obj = new citygml::WallSurface("tmpObj1");
+		citygml::CityObject* obj2 = new citygml::RoofSurface("tmpObj2");
+		obj->addGeometry(Wall);
+		obj2->addGeometry(Roof);
+		model->addCityObjectAsRoot(obj);
+		model->addCityObjectAsRoot(obj2);
+		
+		citygml::Exporter exporter;
+		exporter.exportCityModel(model, "test.citygml");
+		
+		/*for(int i = 0; i < ShapeSimp->getNumGeometries(); ++i)
+		{
+			citygml::Geometry* geom = new citygml::Geometry("Cadastre_LOD1", citygml::GT_Wall, 0);
+			geom = BuildLOD0FromGEOS("Bati" + std::to_string(i), ShapeSimp->getGeometryN(i)->clone(), 20, 0);
+			citygml::CityObject* obj = new citygml::WallSurface("tmpObj");
+			obj->addGeometry(geom);
+			model->addCityObjectAsRoot(obj);
+
+			std::cout << "Avancement : " << i+1 << "/" << ShapeSimp->getNumGeometries() << "\r" << std::flush;
+		}
+		std::cout << std::endl;*/
+	}
+
+	/**
      * @brief Convertit une geometry (MultiPolygon) GEOS en geometry CityGML
      */
 	citygml::Geometry* ConvertToCityGML(std::string name, geos::geom::Geometry * Geometry)
@@ -1134,7 +1203,7 @@ namespace vcity
         }
     }
 
-    void Algo::generateLOD0Scene(geos::geom::Geometry ** ShapeGeo)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
+    void Algo::generateLOD0Scene(geos::geom::Geometry * Shape)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
     {		
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
@@ -1231,8 +1300,6 @@ namespace vcity
 
 		////////////////////////////////////////////////////////////////////// Compare le cadastre et le CityGML
 		
-		geos::geom::Geometry * Shape = (*ShapeGeo);
-
 		if(Shape == NULL)
 		{
 			std::cout << "Shape NULL. \n";
@@ -1798,6 +1865,23 @@ namespace vcity
 		delete EnveloppeCity[0];
 	}
 
+	void Algo::generateLOD1(geos::geom::Geometry * Shape, std::vector<std::pair<double, double>> Hauteurs)//Hauteurs : Liste les hauteurs et Zmin des polygons de ShapeGeo
+	{
+		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+
+		if(Shape == NULL)
+		{
+			std::cout << "Shape NULL. \n";
+			return;
+		}
+		//SaveGeometry("Shape", Shape);
+		geos::geom::Geometry * ShapeSimp = geos::simplify::TopologyPreservingSimplifier::simplify(Shape, 2).release();
+		//SaveGeometry("Shape_Simplified", ShapeSimp);
+
+		BuildLOD1FromGEOS(ShapeSimp, Hauteurs);
+
+		std::cout << "test.citygml cree. \n";
+	}
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////

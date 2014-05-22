@@ -24,379 +24,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-/**
-    * @brief Sauvegarde une image 8bits dans un fichier pgm
-    */
-void SaveImage(std::string name, int* Im, int width, int height)
-{
-	FILE *out;
-	errno_t err;
-	name = name + ".pgm";
-	char* nameC = (char*)name.c_str();
-	err = fopen_s(&out, nameC,"w"); 
-
-	fprintf(out,"P2\n%d %d\1\n", width, height); 
-
-	for(int h = height - 1; h >= 0; h--)
-	{
-		fprintf(out, "\n");
-		for(int w = 0; w < width; w++)
-		{
-			int pos = w + h*width;
-
-			fprintf(out,"%d ",Im[pos]);
-		}
-	}
-
-	fclose(out); 
-
-	std::cout<<"Image " << name << " creee !"<<std::endl;
-}
-
-/**
-    * @brief Trace la ligne entre deux points de coordonnées (x1,y1) et (x2,y2) par Bresenham (http://fr.wikipedia.org/wiki/Algorithme_de_trac%C3%A9_de_segment_de_Bresenham)
-    */
-std::vector<std::pair<int,int>> TracerSegment(int x1, int y1, int x2, int y2)
-{
-	std::vector<std::pair<int,int>> Points;
-	int dx, dy;
-
-	if((dx = x2 - x1) != 0)
-	{
-		if(dx > 0)
-		{
-			if((dy = y2 - y1) != 0)
-			{
-				if(dy > 0)
-				{
-					if(dx >= dy)
-					{
-						int e = dx;
-						dx = e * 2;
-						dy = dy * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((x1 = x1 + 1) == x2)
-								break;
-							if((e = e - dy) < 0)
-							{
-								y1 = y1 + 1;
-								e = e + dx;
-							}
-						}
-					}
-					else
-					{
-						int e = dy;
-						dy = e * 2;
-						dx = dx * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((y1 = y1 + 1) == y2)
-								break;
-							if((e = e - dx) < 0)
-							{
-								x1 = x1 + 1;
-								e = e + dy;
-							}
-						}
-					}
-				}
-				else
-				{
-					if(dx >= -dy)
-					{
-						int e = dx;
-						dx = e * 2;
-						dy = dy * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((x1 = x1 + 1) == x2)
-								break;
-							if((e = e + dy) < 0)
-							{
-								y1 = y1 - 1;
-								e = e + dx;
-							}
-						}
-					}
-					else
-					{
-						int e = dy;
-						dy = e * 2;
-						dx = dx * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((y1 = y1 - 1) == y2)
-								break;
-							if((e = e + dx) > 0)
-							{
-								x1 = x1 + 1;
-								e = e + dy;
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				do
-				{
-					Points.push_back(std::make_pair(x1, y1));
-				}while((x1 = x1 + 1) != x2);
-			}
-		}
-		else
-		{
-			if((dy = y2 - y1) != 0)
-			{
-				if(dy > 0)
-				{
-					if(-dx >= dy)
-					{
-						int e = dx;
-						dx = e * 2;
-						dy = dy * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((x1 = x1 - 1) == x2)
-								break;
-							if((e = e + dy) >= 0)
-							{
-								y1 = y1 + 1;
-								e = e + dx;
-							}
-						}
-					}
-					else
-					{
-						int e = dy;
-						dy = e * 2;
-						dx = dx * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((y1 = y1 + 1) == y2)
-								break;
-							if((e = e + dx) <= 0)
-							{
-								x1 = x1 - 1;
-								e = e + dy;
-							}
-						}
-					}
-				}
-				else
-				{
-					if(dx <= dy)
-					{
-						int e = dx;
-						dx = e * 2;
-						dy = dy * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((x1 = x1 - 1) == x2)
-								break;
-							if((e = e - dy) >= 0)
-							{
-								y1 = y1 - 1;
-								e = e + dx;
-							}
-						}
-					}
-					else
-					{
-						int e = dy;
-						dy = e * 2;
-						dx = dx * 2;
-						while(true)
-						{
-							Points.push_back(std::make_pair(x1, y1));
-							if((y1 = y1 - 1) == y2)
-								break;
-							if((e = e - dx) >= 0)
-							{
-								x1 = x1 - 1;
-								e = e + dy;
-							}
-						}
-					}
-				}
-			}
-			else
-			{
-				do
-				{
-					Points.push_back(std::make_pair(x1, y1));
-				}while((x1 = x1 - 1) != x2);
-			}
-		}
-	}
-	else
-	{
-		if((dy = y2 - y1) != 0)
-		{
-			if(dy > 0)
-			{
-				do
-				{
-					Points.push_back(std::make_pair(x1, y1));
-				}while((y1 = y1 + 1) != y2);
-			}
-			else
-			{
-				do
-				{
-					Points.push_back(std::make_pair(x1, y1));
-				}while((y1 = y1 - 1) != y2);
-			}
-		}
-	}
-
-	return Points;
-}
-
-/**
-    * @brief Sauvegarde la geometry dans un fichier image
-    */
-void SaveGeometry(std::string name, const geos::geom::Geometry* G)
-{	
-	int Scale = 1;
-	const geos::geom::CoordinateSequence *coord;
-
-	coord = G->getCoordinates();
-
-	int Xmin = -1, Ymin = -1, Xmax = 0, Ymax = 0;
-
-	for(int i = 0; i < coord->size(); i++)
-	{
-		int x = coord->getAt(i).x * Scale;
-		int y = coord->getAt(i).y * Scale;
-
-		if(Xmin == -1 || x < Xmin)
-			Xmin = x;
-		if(Ymin == -1 || y < Ymin)
-			Ymin = y;
-		if(x > Xmax)
-			Xmax = x;
-		if(y > Ymax)
-			Ymax = y;
-	}
-
-	Xmin--;
-	Ymin--;
-
-	int width = Xmax - Xmin + Scale;
-	int height = Ymax - Ymin + Scale;
-
-	int* Im = new int[width * height];
-	memset(Im, 1, width*height*sizeof(int));
-	int* ImHoles = new int[width * height];
-	memset(ImHoles, 1, width*height*sizeof(int));
-	bool Holes = false; //Passe à true en présence d'holes
-
-	int NbGeo = G->getNumGeometries();
-
-	for(int i = 0; i < NbGeo; i++)
-	{
-		const geos::geom::Geometry *Geo = G->getGeometryN(i);
-
-		const geos::geom::Polygon *p = dynamic_cast<const geos::geom::Polygon*>(Geo);
-		if(p)
-		{
-			coord = p->getExteriorRing()->getCoordinates();
-			for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-			{
-				int x1 = Scale*coord->getAt(j).x - Xmin;
-				int y1 = Scale*coord->getAt(j).y - Ymin;
-
-				int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-				int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-					
-				std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-				for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-				{
-					int pos = it->first + it->second * width;
-					if(pos >= width * height || pos < 0)
-						std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-					else
-					{
-						Im[pos] = 0;
-						ImHoles[pos] = 0;
-					}
-				}
-			}
-
-			for(int k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
-			{
-				Holes = true;
-				coord = p->getInteriorRingN(k)->getCoordinates();
-				for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-				{
-					int x1 = Scale*coord->getAt(j).x - Xmin;
-					int y1 = Scale*coord->getAt(j).y - Ymin;
-
-					int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-					int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-						
-					std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-					//Points.push_back(std::make_pair(x1, y1));
-
-					for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-					{
-						int pos = it->first + it->second * width;
-						if(pos >= width * height || pos < 0)
-							std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-						else
-							ImHoles[pos] = 0;
-					}
-				}
-			}
-		}
-		else
-		{
-			std::cout << "Geometry n'est pas un polygon. \n";
-			coord = Geo->getCoordinates();
-
-			for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-			{
-				int x1 = Scale*coord->getAt(j).x - Xmin;
-				int y1 = Scale*coord->getAt(j).y - Ymin;
-
-				int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-				int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-					
-				std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-				for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-				{
-					int pos = it->first + it->second * width;
-					if(pos >= width * height || pos < 0)
-						std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-					else
-						Im[pos] = 0;
-				}
-			}
-		}
-	}
-
-	if(Holes)
-		SaveImage(name + "withHoles", ImHoles, width, height);
-	else
-		SaveImage(name, Im, width, height);
-		
-	delete [] Im;
-	delete [] ImHoles;
-}
-
-osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo)
+osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs)//Hauteurs : Liste les hauteurs et Zmin des polygons de ShapeGeo
 {
     if(poDS)
     {
@@ -481,14 +109,27 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
                         vertices->push_back(pt);
                         indices->push_back(i);
 
-						temp.add(geos::geom::Coordinate(p.getX() - 1840000.0, p.getY() - 5170000.0));//
+						temp.add(geos::geom::Coordinate(p.getX()/* - 1840000.0*/, p.getY()/* - 5170000.0*/));//
                     }
 					if(temp.size() > 3)//
 					{
 						shell=factory->createLinearRing(temp);
-						P = factory->createPolygon(shell, NULL/*Holes*/);
+						P = factory->createPolygon(shell, NULL/*Holes*/); //Les bâtiments du cadastre sont récupérés sans les cours intérieures. Mettre Holes à la place de NULL pour les avoir.
 						if(P->isValid()/* && P->getArea() > 10*/)
+						{
 							Polys.push_back(P);
+							double H = poFeature->GetFieldAsDouble("HAUTEUR");
+							double Zmin = poFeature->GetFieldAsDouble("Z_MIN");
+
+							if(H == 0 || Zmin > 1000)
+							{
+								Zmin = 0;
+								H = 20;
+							}
+
+							std::pair<double, double> PairTemp(H, Zmin);
+							Hauteurs->push_back(PairTemp);
+						}
 					}
 
                     geom->setVertexArray(vertices);
@@ -504,8 +145,6 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS, geos::geom::Geometry 
 
 			geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
 			
-			//*ShapeGeo = factory->createGeometryCollection(Polys);
-
 			*ShapeGeo = MP;
         }
 

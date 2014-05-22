@@ -894,12 +894,12 @@ enum State {
         AppearanceManager* getAppearanceManager() { return &_appearanceManager; }
 
         std::string m_basePath;
+		
+		inline void addCityObjectAsRoot( CityObject* o ) { if ( o ) _roots.push_back( o ); }
 
 	protected:
 		void addCityObject( CityObject* o );
-
-		inline void addCityObjectAsRoot( CityObject* o ) { if ( o ) _roots.push_back( o ); }
-
+		
 		void finish( const ParserParams& );
 
 	protected:

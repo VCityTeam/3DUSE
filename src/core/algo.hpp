@@ -11,7 +11,8 @@ class Algo
 {
 public:
 	void generateLOD0(const URI& uri);
-    void generateLOD0Scene(geos::geom::Geometry ** ShapeGeo);
+    void generateLOD0Scene(geos::geom::Geometry * ShapeGeo);
+	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);
 	void CompareTiles();
 
 private:

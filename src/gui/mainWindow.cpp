@@ -40,6 +40,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = NULL;
+std::vector<std::pair<double, double>> Hauteurs;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false)
@@ -317,14 +318,14 @@ bool MainWindow::loadFile(const QString& filepath)
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo));
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo, &Hauteurs));
     }
     else if(ext == "dxf")
     {
         std::cout << "load dxf file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo));
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo, &Hauteurs));
     }
     else if(ext == "ecw")
     {
@@ -802,20 +803,7 @@ void MainWindow::generateLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
-	vcity::app().getAlgo().generateLOD0Scene(&ShapeGeo); 
-	
-	// get all selected nodes (with a uri)
-    /*const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        // do all nodes selected
-        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
-        {
-            vcity::app().getAlgo().generateLOD0Scene(&ShapeGeo);
-            // TODO
-            //appGui().getControllerGui().update(*it);
-        }
-    }*/
+	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
@@ -824,8 +812,8 @@ void MainWindow::generateLOD2()
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD3()
-{
-
+{	
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo); 
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD4()
