@@ -13,6 +13,7 @@
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
 #include "osgCityGML.hpp"
+#include "core/dataprofile.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -293,6 +294,17 @@ void OsgScene::deleteNode(const vcity::URI& uri)
     if(node)
     {
         node->getParent(0)->removeChild(node);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::updateGrid()
+{
+    for(unsigned int i=0; i<m_layers->getNumChildren(); ++i)
+    {
+        if(m_layers->getChild(i)->getName() == "grid")
+        {
+            //m_layers->getChild(i) =
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

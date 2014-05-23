@@ -79,7 +79,7 @@ void ExporterCityGML::exportCityObject(CityObject* model, const std::string& fil
     xmlMemoryDump();
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportEnvelopeXml(const citygml::Envelope& env)
+xmlNodePtr ExporterCityGML::exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:Envelope");
 
@@ -93,10 +93,12 @@ xmlNodePtr ExporterCityGML::exportEnvelopeXml(const citygml::Envelope& env)
     ss << vec.x << " " << vec.y << " " << vec.z;
     xmlNewChild(res, NULL, BAD_CAST "gml:upperCorner", BAD_CAST ss.str().c_str());
 
+    xmlAddChild(parent, res);
+
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportLinearRingXml(const citygml::LinearRing& ring)
+xmlNodePtr ExporterCityGML::exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:LinearRing");
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST ring.getId().c_str());
@@ -113,10 +115,12 @@ xmlNodePtr ExporterCityGML::exportLinearRingXml(const citygml::LinearRing& ring)
     ss << it->x << " " << it->y << " " << it->z;
     xmlNewChild(res, NULL, BAD_CAST "gml:posList", BAD_CAST ss.str().c_str());
 
+    xmlAddChild(parent, res);
+
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly)
+xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:Polygon");
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
@@ -125,27 +129,17 @@ xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly)
     std::vector<citygml::LinearRing*>::const_iterator it = lrings.begin();
     for(; it != lrings.end(); ++it)
     {
-        /*xmlNodePtr node = */xmlNewChild(res, NULL, BAD_CAST "gml:interior", NULL);
-        xmlAddChild(res, exportLinearRingXml(**it));
+        xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:interior", NULL);
+        exportLinearRingXml(**it, node);
     }
 
     if(poly.getExteriorRing())
     {
         xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:exterior", NULL);
-        xmlAddChild(node, exportLinearRingXml(*poly.getExteriorRing()));
+        exportLinearRingXml(*poly.getExteriorRing(), node);
     }
 
-    /*xmlNodePtr node = xmlNewNode(NULL, BAD_CAST "gml:LinearRing");
-    //xmlNewProp(node, BAD_CAST "gml:id", BAD_CAST ring.getId().c_str());
-    std::stringstream ss;
-    const std::vector<TVec3d>& vertices = poly.getVertices();
-    std::vector<TVec3d>::const_iterator itv = vertices.begin();
-    for(; itv != vertices.end(); ++itv)
-    {
-        ss << itv->x << " " << itv->y << " " << itv->z;
-    }
-    xmlNewChild(node, NULL, BAD_CAST "gml:posList", BAD_CAST ss.str().c_str());
-    xmlAddChild(res, node);*/
+    xmlAddChild(parent, res);
 
     return res;
 }
@@ -170,7 +164,7 @@ xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, con
     std::vector<citygml::Polygon*>::const_iterator it = polys.begin();
     for(; it != polys.end(); ++it)
     {
-        xmlAddChild(node3, exportPolygonXml(**it));
+        exportPolygonXml(**it, node3);
     }
 
     return res;
@@ -232,7 +226,7 @@ xmlNodePtr ExporterCityGML::exportBuildingXml(const citygml::Building& bldg)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportSurfaceXml(const citygml::CityObject& srf, const std::string& nodeType, xmlNodePtr parent=NULL)
+xmlNodePtr ExporterCityGML::exportSurfaceXml(const citygml::CityObject& srf, const std::string& nodeType, xmlNodePtr parent)
 {
     xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "bldg:boundedBy");
     xmlNodePtr res = xmlNewChild(root, NULL, BAD_CAST nodeType.c_str(), NULL);
@@ -247,7 +241,7 @@ xmlNodePtr ExporterCityGML::exportSurfaceXml(const citygml::CityObject& srf, con
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent=NULL)
+xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent)
 {
     xmlNodePtr res = NULL;
 
@@ -401,24 +395,21 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
 ////////////////////////////////////////////////////////////////////////////////
 xmlNodePtr ExporterCityGML::exportCityModelXml(const citygml::CityModel& model)
 {
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "core:CityModel");
+    xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "core:CityModel");
 
     // write envelope (bouned by)
-    xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:boundedBy", NULL);
-    xmlAddChild(node, exportEnvelopeXml(model.getEnvelope()));
+    xmlNodePtr nodeEnv = xmlNewChild(root, NULL, BAD_CAST "gml:boundedBy", NULL);
+    exportEnvelopeXml(model.getEnvelope(), nodeEnv);
 
     // do objects
-    node = xmlNewChild(res, NULL, BAD_CAST "core:cityObjectMember", NULL);
     const citygml::CityObjects& objs = model.getCityObjectsRoots();
     citygml::CityObjects::const_iterator it = objs.begin();
     for(; it != objs.end(); ++it)
     {
-        xmlNodePtr objnode = exportCityObjetXml(**it, node);
-        if(objnode)
-        xmlAddChild(node, objnode);
+        exportCityObjetXml(**it, root);
     }
 
-    return res;
+    return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
 xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const citygml::CityObject& obj)
@@ -427,7 +418,7 @@ xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const citygml::CityObject& 
 
     // write envelope (bouned by)
     xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:boundedBy", NULL);
-    xmlAddChild(node, exportEnvelopeXml(obj.getEnvelope()));
+    exportEnvelopeXml(obj.getEnvelope(), node);
 
     // do objects
     node = xmlNewChild(res, NULL, BAD_CAST "core:cityObjectMember", NULL);

@@ -139,6 +139,8 @@ MainWindow::MainWindow(QWidget *parent) :
     updateRecentFiles();
 
     m_treeView->init();
+
+    //m_ui->statusBar->showMessage("none");
     
     setlocale(LC_ALL, "C"); // MT : important for Linux
 }
@@ -642,7 +644,7 @@ void MainWindow::reset()
     m_ui->textBrowser->clear();
     unlockFeatures("pass2");
     m_ui->mainToolBar->hide();
-    m_ui->statusBar->hide();
+    //m_ui->statusBar->hide();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::resetScene()
@@ -1091,20 +1093,17 @@ void MainWindow::test4()
             {
                 QFileInfo fileInfo(filename);
                 std::string id = filename.toStdString().substr(53, 4) + "_" + filename.toStdString().substr(58, 5);
-                //qDebug("Found %s matching pattern.", qPrintable(filename));
-                std::stringstream ss;
-                //ss << "/mnt/docs/upload/json/" << fileInfo.baseName().toStdString() << "_" << id;
-                //ss << "/tmp/json/" << fileInfo.baseName().toStdString() << "_" << id;
-                ss << "/tmp/json/" << fileInfo.baseName().toStdString() << "_" << id;
-                std::string f = ss.str();
+                std::string f = fileInfo.baseName().toStdString() + "_" + id;
                 std::cout << filename.toStdString() << " -> " << f << "\n";
 
-                //std::cout << "id : " << id << std::endl;
+                std::cout << "id : " << id << " - " << id.substr(0, id.find('_')) << " / " << id.substr(id.find('_')+1) << std::endl;
 
                 citygml::ParserParams params;
                 citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
                 citygml::ExporterJSON exporter;
                 exporter.setBasePath("/tmp/json/");
+                exporter.setOffset(643000.0+500.0*(std::stod(id.substr(0, id.find('_')))-1286), 6857000.0+500.0*(std::stod(id.substr(id.find('_')+1))-13714));
+                exporter.setTileSize(500.0, 500.0);
                 if(citygmlmodel) exporter.exportCityModel(*citygmlmodel, f, id);
                 delete citygmlmodel;
             }

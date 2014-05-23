@@ -85,6 +85,8 @@ public:
     /// \param uri URI pointing to the node
     void deleteNode(const vcity::URI& uri);
 
+    void updateGrid();
+
     void setShadow(bool shadow);
 
     void setDate(const QDateTime& date);

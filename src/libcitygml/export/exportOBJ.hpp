@@ -1,7 +1,7 @@
 #ifndef __EXPORTOBJ_HPP__
 #define __EXPORTOBJ_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "export.hpp"
+#include "exporter.hpp"
 #include "citygml.hpp"
 //#include <fstream> // MT 05/05/2014
 #include <osgDB/fstream>
@@ -11,7 +11,7 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterOBJ class
 /// Export OBJ
-class ExporterOBJ : public Export
+class ExporterOBJ : public Exporter
 {
 public:
     ExporterOBJ();

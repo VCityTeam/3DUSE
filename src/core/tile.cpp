@@ -98,6 +98,8 @@ void Tile::load(const std::string& filepath)
     citygml::ParserParams params;
     citygml::CityModel* citygmlmodel = citygml::load(filepath, params);
     m_root = citygmlmodel;
+    citygmlmodel->computeEnvelope();
+    std::cout << citygmlmodel->getEnvelope() << std::endl;
 
     m_citygmlFilePath = filepath;
 

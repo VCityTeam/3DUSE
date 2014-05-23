@@ -1,7 +1,7 @@
 #ifndef __JSON_EXPORT_HPP_
 #define __JSON_EXPORT_HPP_
 ////////////////////////////////////////////////////////////////////////////////
-#include "export.hpp"
+#include "exporter.hpp"
 #include "citygml.hpp"
 //#include <fstream> // MT 05/05/2014
 #include <osgDB/fstream>
@@ -12,12 +12,15 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterJSON class
 /// Export JSON
-class ExporterJSON : public Export
+class ExporterJSON : public Exporter
 {
 public:
     ExporterJSON();
 
     void setBasePath(const std::string& basePath);
+
+    void setOffset(double offsetX, double offsetY);
+    void setTileSize(double tileSizeX, double tileSizeY);
 
     /// \brief exportCityModel
     /// \param model
@@ -47,6 +50,10 @@ private:
     std::string m_fileName;
     std::ofstream m_outFile;
     int m_indentDepth;
+
+    bool m_genTexCoords;
+    double m_offsetX, m_offsetY;
+    double m_tileSizeX, m_tileSizeY;
 
     std::map<CityObjectsType, std::string> m_filters;
 

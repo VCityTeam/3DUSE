@@ -1,7 +1,7 @@
 #ifndef __CITYGML_EXPORT_HPP_
 #define __CITYGML_EXPORT_HPP_
 ////////////////////////////////////////////////////////////////////////////////
-#include "export.hpp"
+#include "exporter.hpp"
 #include <libxml/tree.h>
 #include "citygml.hpp"
 ////////////////////////////////////////////////////////////////////////////////
@@ -10,7 +10,7 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The Exporter class
 /// Export citygml
-class ExporterCityGML : public Export
+class ExporterCityGML : public Exporter
 {
 public:
     ExporterCityGML();
@@ -28,9 +28,9 @@ public:
 private:
     xmlNodePtr exportCityObjectModelXml(const citygml::CityObject& obj);
     xmlNodePtr exportCityModelXml(const citygml::CityModel& model);
-    xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env);
-    xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring);
-    xmlNodePtr exportPolygonXml(const citygml::Polygon& poly);
+    xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent);
+    xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent);
+    xmlNodePtr exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent);
     xmlNodePtr exportRoofXml(const citygml::RoofSurface& geom);
     xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, const std::string& nodeType);
     xmlNodePtr exportGeometryXml(const citygml::Geometry& geom);
