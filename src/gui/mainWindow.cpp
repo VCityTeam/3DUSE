@@ -786,11 +786,15 @@ void MainWindow::exportCityGML()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        //std::cout << "Citygml export cityobject : " << *uris.begin() << std::endl;
-        // use first node picked
-        //citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*uris.begin()); // use getNode
+        std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
+        std::vector<citygml::CityObject*> objs;
+        for(const vcity::URI& uri : uris)
+        {
+            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            if(obj) objs.push_back(obj);
+        }
         //citygml::exportCitygml(model, "test.citygml");
-        //if(model) exporter.exportCityObject(model, filename.toStdString());
+        exporter.exportCityObject(objs, filename.toStdString());
     }
     else
     {
@@ -799,7 +803,7 @@ void MainWindow::exportCityGML()
 		vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
         citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
         //citygml::exportCitygml(model, "test.citygml");
-        exporter.exportCityModel(model, filename.toStdString());
+        exporter.exportCityModel(*model, filename.toStdString());
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

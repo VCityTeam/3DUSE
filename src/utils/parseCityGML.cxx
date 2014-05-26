@@ -3,6 +3,7 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
+#include <string>
 #include <set>
 #define TEXTURE_PROCESS 1
 

@@ -16,13 +16,21 @@ void ExporterOBJ::addFilter(citygml::CityObjectsType filter, const std::string& 
     m_filterOffsets[filter] = 1;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterOBJ::exportCityModel(CityModel& model, const std::string& fileName)
+void ExporterOBJ::resetFilters()
+{
+    m_filterOffsets.clear();
+    m_filters.clear();
+    m_filterNames.clear();
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterOBJ::exportCityModel(const CityModel& model, const std::string& fileName)
 {
     if(m_filters.size() == 0)
     {
         addFilter(COT_All, "");
     }
 
+    #if 0
     for(int i=0; i<m_filters.size(); ++i)
     {
         m_outFile.open(fileName+m_filterNames[i]+".obj");
@@ -32,14 +40,48 @@ void ExporterOBJ::exportCityModel(CityModel& model, const std::string& fileName)
         std::string mtllib = fileName+m_filterNames[i];
         mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
         m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
-        for(CityObject* obj : model.getCityObjectsRoots())
+        for(const CityObject* obj : model.getCityObjectsRoots())
             if(obj) exportCityObject(*obj, m_filters[i]);
         m_outFile.close();
         exportMaterials(fileName+m_filterNames[i]+".mtl");
     }
+    #else
+    // split bldg (wall, roof)
+    for(const CityObject* obj : model.getCityObjectsRoots())
+    {
+        if(obj)
+        {
+            resetFilters();
+            addFilter(COT_WallSurface, "Wall");
+            m_outFile.open(fileName+'_'+obj->getId()+'_'+m_filterNames[0]+".obj");
+            m_outFile << std::fixed;
+            m_outFile << "# CityGML test export\n\n";
+            m_outFile << "o " << model.getId() << "\n\n";
+            std::string mtllib = fileName+'_'+obj->getId()+'_'+m_filterNames[0];
+            mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
+            m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
+            exportCityObject(*obj, m_filters[0]);
+            m_outFile.close();
+            exportMaterials(fileName+'_'+obj->getId()+'_'+m_filterNames[0]+".mtl");
+
+            resetFilters();
+            addFilter(COT_RoofSurface, "Roof");
+            m_outFile.open(fileName+'_'+obj->getId()+'_'+m_filterNames[0]+".obj");
+            m_outFile << std::fixed;
+            m_outFile << "# CityGML test export\n\n";
+            m_outFile << "o " << model.getId() << "\n\n";
+            mtllib = fileName+'_'+obj->getId()+'_'+m_filterNames[0];
+            mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
+            m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
+            exportCityObject(*obj, m_filters[0]);
+            m_outFile.close();
+            exportMaterials(fileName+'_'+obj->getId()+'_'+m_filterNames[0]+".mtl");
+        }
+    }
+    #endif
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterOBJ::exportCityObject(CityObject& obj, const std::string& fileName)
+void ExporterOBJ::exportCityObject(const CityObject& obj, const std::string& fileName)
 {
     if(m_filters.size() == 0)
     {
@@ -129,7 +171,7 @@ void ExporterOBJ::exportCityObject(CityObject& obj, const std::string& fileName)
     m_outFile.close();*/
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterOBJ::exportCityObject(CityObject& obj, citygml::CityObjectsType filter)
+void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsType filter)
 {
     if(filter == COT_All || obj.getType() == filter)
     {

@@ -18,26 +18,22 @@ public:
     /// \brief exportCityModel
     /// \param model
     /// \param fileName
-    void exportCityModel(CityModel* model, const std::string& fileName);
+    void exportCityModel(const CityModel& model, const std::string& fileName);
 
     /// \brief exportCityObject
     /// \param model
     /// \param fileName
-    void exportCityObject(CityObject* model, const std::string& fileName);
+    void exportCityObject(const std::vector<CityObject*>& objs, const std::string& fileName);
 
 private:
-    xmlNodePtr exportCityObjectModelXml(const citygml::CityObject& obj);
+    xmlNodePtr exportCityObjectModelXml(const std::vector<CityObject*>& objs);
     xmlNodePtr exportCityModelXml(const citygml::CityModel& model);
     xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent);
     xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent);
     xmlNodePtr exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent);
-    xmlNodePtr exportRoofXml(const citygml::RoofSurface& geom);
-    xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, const std::string& nodeType);
-    xmlNodePtr exportGeometryXml(const citygml::Geometry& geom);
-    xmlNodePtr exportBuildingPart();
-    xmlNodePtr exportBuildingInstallationXml(const citygml::BuildingInstallation& bldg);
-    xmlNodePtr exportBuildingXml(const citygml::Building& bldg);
-    xmlNodePtr exportSurfaceXml(const citygml::CityObject& srf, const std::string& nodeType, xmlNodePtr parent);
+    xmlNodePtr exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent);
+    xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent);
+    xmlNodePtr exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string &nodeType, xmlNodePtr parent);
     xmlNodePtr exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent);
 };
 ////////////////////////////////////////////////////////////////////////////////
