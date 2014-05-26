@@ -11,7 +11,7 @@ ExporterCityGML::ExporterCityGML()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterCityGML::exportCityModel(CityModel* model, const std::string& fileName)
+void ExporterCityGML::exportCityModel(const CityModel& model, const std::string& fileName)
 {
     xmlDocPtr doc = NULL;       /* document pointer */
     xmlNodePtr root_node = NULL;
@@ -22,7 +22,7 @@ void ExporterCityGML::exportCityModel(CityModel* model, const std::string& fileN
      * Creates a new document, a node and set it as a root node
      */
     doc = xmlNewDoc(BAD_CAST "1.0");
-    root_node = exportCityModelXml(*model);
+    root_node = exportCityModelXml(model);
     xmlDocSetRootElement(doc, root_node);
 
     /*
@@ -45,7 +45,7 @@ void ExporterCityGML::exportCityModel(CityModel* model, const std::string& fileN
     xmlMemoryDump();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterCityGML::exportCityObject(CityObject* model, const std::string& fileName)
+void ExporterCityGML::exportCityObject(const std::vector<CityObject*>& models, const std::string& fileName)
 {
     xmlDocPtr doc = NULL;       /* document pointer */
     xmlNodePtr root_node = NULL;
@@ -56,7 +56,7 @@ void ExporterCityGML::exportCityObject(CityObject* model, const std::string& fil
      * Creates a new document, a node and set it as a root node
      */
     doc = xmlNewDoc(BAD_CAST "1.0");
-    root_node = exportCityObjectModelXml(*model);
+    root_node = exportCityObjectModelXml(models);
     xmlDocSetRootElement(doc, root_node);
 
     /*
@@ -79,88 +79,65 @@ void ExporterCityGML::exportCityObject(CityObject* model, const std::string& fil
     xmlMemoryDump();
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportEnvelopeXml(const citygml::Envelope& env)
+xmlNodePtr ExporterCityGML::exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent)
 {
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:Envelope");
+    xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST "gml:Envelope", NULL);
 
     std::stringstream ss;
     TVec3d vec = env.getLowerBound();
-    ss << vec.x << " " << vec.y << " " << vec.z;
+    ss << std::fixed << vec.x << " " << vec.y << " " << vec.z;
     xmlNewChild(res, NULL, BAD_CAST "gml:lowerCorner", BAD_CAST ss.str().c_str());
     //ss.clear();
     ss.str(std::string());
     vec = env.getUpperBound();
-    ss << vec.x << " " << vec.y << " " << vec.z;
+    ss << std::fixed << vec.x << " " << vec.y << " " << vec.z;
     xmlNewChild(res, NULL, BAD_CAST "gml:upperCorner", BAD_CAST ss.str().c_str());
 
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportLinearRingXml(const citygml::LinearRing& ring)
+xmlNodePtr ExporterCityGML::exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent)
 {
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:LinearRing");
+    xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST "gml:LinearRing", NULL);
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST ring.getId().c_str());
 
-    const std::vector<TVec3d>& vertices = ring.getVertices();
-
     std::stringstream ss;
-    std::vector<TVec3d>::const_iterator it = vertices.begin();
-    for(; it != vertices.end(); ++it)
+    for(const TVec3d& v : ring.getVertices())
     {
-        ss << it->x << " " << it->y << " " << it->z << " ";
+        ss << std::fixed << v.x << " " << v.y << " " << v.z << " ";
     }
-    it = vertices.begin();
-    ss << it->x << " " << it->y << " " << it->z;
+    const TVec3d& v = ring.getVertices().front();
+    ss << std::fixed << v.x << " " << v.y << " " << v.z;
     xmlNewChild(res, NULL, BAD_CAST "gml:posList", BAD_CAST ss.str().c_str());
 
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly)
+xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent)
 {
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:Polygon");
+    xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST "gml:Polygon", NULL);
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
 
     const std::vector<citygml::LinearRing*>& lrings = poly.getInteriorRings();
     std::vector<citygml::LinearRing*>::const_iterator it = lrings.begin();
     for(; it != lrings.end(); ++it)
     {
-        /*xmlNodePtr node = */xmlNewChild(res, NULL, BAD_CAST "gml:interior", NULL);
-        xmlAddChild(res, exportLinearRingXml(**it));
+        xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:interior", NULL);
+        exportLinearRingXml(**it, node);
     }
 
     if(poly.getExteriorRing())
     {
         xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:exterior", NULL);
-        xmlAddChild(node, exportLinearRingXml(*poly.getExteriorRing()));
+        exportLinearRingXml(*poly.getExteriorRing(), node);
     }
-
-    /*xmlNodePtr node = xmlNewNode(NULL, BAD_CAST "gml:LinearRing");
-    //xmlNewProp(node, BAD_CAST "gml:id", BAD_CAST ring.getId().c_str());
-    std::stringstream ss;
-    const std::vector<TVec3d>& vertices = poly.getVertices();
-    std::vector<TVec3d>::const_iterator itv = vertices.begin();
-    for(; itv != vertices.end(); ++itv)
-    {
-        ss << itv->x << " " << itv->y << " " << itv->z;
-    }
-    xmlNewChild(node, NULL, BAD_CAST "gml:posList", BAD_CAST ss.str().c_str());
-    xmlAddChild(res, node);*/
 
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportRoofXml(const citygml::RoofSurface& /*geom*/)
+xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent)
 {
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "Roof");
-
-
-    return res;
-}
-////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, const std::string& nodeType)
-{
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST nodeType.c_str());
+    xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
     //xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
     /*xmlNodePtr node1 = */xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
     xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "bldg:lod3MultiSurface", NULL); // geom.getLOD();
@@ -170,39 +147,39 @@ xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, con
     std::vector<citygml::Polygon*>::const_iterator it = polys.begin();
     for(; it != polys.end(); ++it)
     {
-        xmlAddChild(node3, exportPolygonXml(**it));
+        exportPolygonXml(**it, node3);
     }
 
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom)
+xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent)
 {
     switch(geom.getType())
     {
     case citygml::GT_Unknown:
-        return exportGeometryXml(geom, "bldg:Unknown");
+        return exportGeometryGenericXml(geom, "bldg:Unknown", parent);
         break;
     case citygml::GT_Roof:
-        return exportGeometryXml(geom, "bldg:Roof");
+        return exportGeometryGenericXml(geom, "bldg:Roof", parent);
         break;
     case citygml::GT_Wall:
-        return exportGeometryXml(geom, "bldg:Wall");
+        return exportGeometryGenericXml(geom, "bldg:Wall", parent);
         break;
     case citygml::GT_Ground:
-        return exportGeometryXml(geom, "bldg:Ground");
+        return exportGeometryGenericXml(geom, "bldg:Ground", parent);
         break;
     case citygml::GT_Closure:
-        return exportGeometryXml(geom, "bldg:Closure");
+        return exportGeometryGenericXml(geom, "bldg:Closure", parent);
         break;
     case citygml::GT_Floor:
-        return exportGeometryXml(geom, "bldg:Floor");
+        return exportGeometryGenericXml(geom, "bldg:Floor", parent);
         break;
     case citygml::GT_InteriorWall:
-        return exportGeometryXml(geom, "bldg:InteriorWall");
+        return exportGeometryGenericXml(geom, "bldg:InteriorWall", parent);
         break;
     case citygml::GT_Ceiling:
-        return exportGeometryXml(geom, "bldg:Ceiling");
+        return exportGeometryGenericXml(geom, "bldg:Ceiling", parent);
         break;
     default:
         break;
@@ -211,143 +188,121 @@ xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom)
     return NULL;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportBuildingPart()
+xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string& nodeType, xmlNodePtr parent)
 {
-    return 0;
-}
-////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportBuildingInstallationXml(const citygml::BuildingInstallation& bldg)
-{
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "bldg:Buildinginstallation");
-    xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
+    xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
+    xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
 
-    return res;
-}
-////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportBuildingXml(const citygml::Building& bldg)
-{
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "bldg:Building");
-    xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
-
-    return res;
-}
-////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportSurfaceXml(const citygml::CityObject& srf, const std::string& nodeType, xmlNodePtr parent=NULL)
-{
-    xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "bldg:boundedBy");
-    xmlNodePtr res = xmlNewChild(root, NULL, BAD_CAST nodeType.c_str(), NULL);
-    //xmlNodePtr res = xmlNewNode(NULL, BAD_CAST nodeType.c_str());
-    xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST srf.getId().c_str());
-
-    if(parent)
+    /*for(const auto& child : obj.getChildren())
     {
-        xmlAddChild(parent, root);
-    }
+        exportCityObjetXml(child, res);
+    }*/
 
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent=NULL)
+xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent)
 {
     xmlNodePtr res = NULL;
+
+    std::cout << "type : " << obj.getTypeAsString() << std::endl;
 
     switch(obj.getType())
     {
     case citygml::COT_GenericCityObject:
         break;
     case citygml::COT_Building:
-        res = exportBuildingXml(static_cast<const citygml::Building&>(obj));
+        res = exportCityObjetGenericXml(obj, "bldg:Building", parent);
         break;
     case citygml::COT_Room:
-        res = exportSurfaceXml(obj, "bldg:Room", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Room", parent);
         break;
     case citygml::COT_BuildingInstallation:
-        //res = exportBuildingInstallationXml(static_cast<const citygml::BuildingInstallation&>(obj));
-        res = exportSurfaceXml(obj, "bldg:BuildingInstallation", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:BuildingInstallation", parent);
         break;
     case citygml::COT_BuildingFurniture:
-        res = exportSurfaceXml(obj, "bldg:BuildingFurniture", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:BuildingFurniture", parent);
         break;
     case citygml::COT_Door:
-        res = exportSurfaceXml(obj, "bldg:Door", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Door", parent);
         break;
     case citygml::COT_Window:
-        res = exportSurfaceXml(obj, "bldg:Window", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Window", parent);
         break;
     case citygml::COT_CityFurniture:
-        res = exportSurfaceXml(obj, "bldg:CityFurniture", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:CityFurniture", parent);
         break;
     case citygml::COT_Track:
-        res = exportSurfaceXml(obj, "bldg:Track", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Track", parent);
         break;
     case citygml::COT_Road:
-        res = exportSurfaceXml(obj, "bldg:Road", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Road", parent);
         break;
     case citygml::COT_Railway:
-        res = exportSurfaceXml(obj, "bldg:Railway", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Railway", parent);
         break;
     case citygml::COT_Square:
-        res = exportSurfaceXml(obj, "bldg:Square", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Square", parent);
         break;
     case citygml::COT_PlantCover:
-        res = exportSurfaceXml(obj, "bldg:PlantCover", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:PlantCover", parent);
         break;
     case citygml::COT_SolitaryVegetationObject:
-        res = exportSurfaceXml(obj, "bldg:SolitaryVegetationObject", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:SolitaryVegetationObject", parent);
         break;
     case citygml::COT_WaterBody:
-        res = exportSurfaceXml(obj, "bldg:WaterBody", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:WaterBody", parent);
         break;
     case citygml::COT_TINRelief:
-        res = exportSurfaceXml(obj, "bldg:TINRelief", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:TINRelief", parent);
         break;
     case citygml::COT_LandUse:
-        res = exportSurfaceXml(obj, "bldg:LandUse", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:LandUse", parent);
         break;
     case citygml::COT_Tunnel:
-        res = exportSurfaceXml(obj, "bldg:Tunnel", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Tunnel", parent);
         break;
     case citygml::COT_Bridge:
-        res = exportSurfaceXml(obj, "bldg:Bridge", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:Bridge", parent);
         break;
     case citygml::COT_BridgeConstructionElement:
-        res = exportSurfaceXml(obj, "bldg:BridgeConstructionElement", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:BridgeConstructionElement", parent);
         break;
     case citygml::COT_BridgeInstallation:
-        res = exportSurfaceXml(obj, "bldg:BridgeInstallation", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:BridgeInstallation", parent);
         break;
     case citygml::COT_BridgePart:
-        res = exportSurfaceXml(obj, "bldg:BridgePart", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:BridgePart", parent);
         break;
     case citygml::COT_BuildingPart:
-        res = exportSurfaceXml(obj, "bldg:BuildingPart", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:BuildingPart", parent);
         break;
     case citygml::COT_WallSurface:
-        res = exportSurfaceXml(obj, "bldg:WallSurface", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:WallSurface", parent);
         break;
     case citygml::COT_RoofSurface:
-        res = exportSurfaceXml(obj, "bldg:RoofSurface", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:RoofSurface", parent);
         break;
     case citygml::COT_GroundSurface:
-        res = exportSurfaceXml(obj, "bldg:GroundSurface", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:GroundSurface", parent);
         break;
     case citygml::COT_ClosureSurface:
-        res = exportSurfaceXml(obj, "bldg:ClosureSurface", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:ClosureSurface", parent);
         break;
     case citygml::COT_FloorSurface:
-        res = exportSurfaceXml(obj, "bldg:FloorSurface", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:FloorSurface", parent);
         break;
     case citygml::COT_InteriorWallSurface:
-        res = exportSurfaceXml(obj, "bldg:InteriorWallSurface", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:InteriorWallSurface", parent);
         break;
     case citygml::COT_CeilingSurface:
-        res = exportSurfaceXml(obj, "bldg:CeilingSurface", parent);
+        res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent);
         break;
      default:
         break;
     }
 
-    citygml::AttributesMap::const_iterator it = obj.getAttributes().begin();
+    /*citygml::AttributesMap::const_iterator it = obj.getAttributes().begin();
     while(it != obj.getAttributes().end())
     {
         std::string attr = "bldg:" + it->first;
@@ -379,21 +334,18 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
         }
 
         ++it;
+    }*/
+
+    for(auto& geom : obj.getGeometries())
+    {
+        if(res) exportGeometryXml(*geom, res);
+        else exportGeometryXml(*geom, parent);
     }
 
-    const citygml::CityObjects& objs = obj.getChildren();
-    citygml::CityObjects::const_iterator ito = objs.begin();
-    for(; ito != objs.end(); ++ito)
+    for(auto& child : obj.getChildren())
     {
-        //xmlAddChild(res, exportCityObjetXml(**ito, res));
-        exportCityObjetXml(**ito, res);
-    }
-
-    const std::vector<citygml::Geometry*>& geoms = obj.getGeometries();
-    std::vector<citygml::Geometry*>::const_iterator itg = geoms.begin();
-    for(; itg != geoms.end(); ++itg)
-    {
-        xmlAddChild(res, exportGeometryXml(**itg));
+        if(res) exportCityObjetXml(*child, res);
+        else exportCityObjetXml(*child, parent);
     }
 
     return res;
@@ -401,44 +353,43 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
 ////////////////////////////////////////////////////////////////////////////////
 xmlNodePtr ExporterCityGML::exportCityModelXml(const citygml::CityModel& model)
 {
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "core:CityModel");
+    xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "core:CityModel");
 
     // write envelope (bouned by)
-    xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:boundedBy", NULL);
-    xmlAddChild(node, exportEnvelopeXml(model.getEnvelope()));
+    xmlNodePtr nodeEnv = xmlNewChild(root, NULL, BAD_CAST "gml:boundedBy", NULL);
+    exportEnvelopeXml(model.getEnvelope(), nodeEnv);
 
     // do objects
-    node = xmlNewChild(res, NULL, BAD_CAST "core:cityObjectMember", NULL);
-    const citygml::CityObjects& objs = model.getCityObjectsRoots();
-    citygml::CityObjects::const_iterator it = objs.begin();
-    for(; it != objs.end(); ++it)
+    for(const citygml::CityObject* obj : model.getCityObjectsRoots())
     {
-        xmlNodePtr objnode = exportCityObjetXml(**it, node);
-        if(objnode)
-        xmlAddChild(node, objnode);
+        xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
+        exportCityObjetXml(*obj, node);
     }
 
-    return res;
+    return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const citygml::CityObject& obj)
+xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const std::vector<CityObject*>& objs)
 {
-    xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "core:CityModel");
+    xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "core:CityModel");
 
     // write envelope (bouned by)
-    xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:boundedBy", NULL);
-    xmlAddChild(node, exportEnvelopeXml(obj.getEnvelope()));
+    xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "gml:boundedBy", NULL);
+    Envelope env;
+    for(const CityObject* obj : objs) // compute enveloppe
+    {
+        env.merge(obj->getEnvelope());
+    }
+    exportEnvelopeXml(env, node);
 
     // do objects
-    node = xmlNewChild(res, NULL, BAD_CAST "core:cityObjectMember", NULL);
-    const citygml::CityObjects& objs = obj.getChildren();
-    citygml::CityObjects::const_iterator it = objs.begin();
-    for(; it != objs.end(); ++it)
+    for(const CityObject* obj : objs)
     {
-        xmlAddChild(node, exportCityObjetXml(**it, node));
+        xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
+        exportCityObjetXml(*obj, node);
     }
 
-    return res;
+    return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml
