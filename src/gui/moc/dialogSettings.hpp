@@ -2,6 +2,7 @@
 #define DIALOGSETTINGS_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include "core/dataprofile.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogSettings;
@@ -17,7 +18,16 @@ public:
 
     void doSettings();
 
+private slots:
+    void choosePathSlot();
+    void chooseDataProfileSlot(int i);
+
 private:
+    void setFromDataProfile(const vcity::DataProfile& dp);
+    void setDataProfileFromUI(vcity::DataProfile& dp);
+
+    vcity::DataProfile m_tmpDP;
+
     Ui::DialogSettings *ui;
 };
 ////////////////////////////////////////////////////////////////////////////////

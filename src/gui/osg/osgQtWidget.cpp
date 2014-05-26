@@ -175,6 +175,9 @@ osgQtWidget::osgQtWidget(QWidget* parent)
    m_widget = addViewWidget(createGraphicsWindow(0,0,100,100), parent);
    connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
    m_timer.start(15);
+
+   // reduce fps when app is idle
+   setActive(false, 100);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QWidget* osgQtWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, QWidget* /*parent*/)

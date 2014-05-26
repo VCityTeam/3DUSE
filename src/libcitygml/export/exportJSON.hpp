@@ -1,40 +1,46 @@
 #ifndef __JSON_EXPORT_HPP_
 #define __JSON_EXPORT_HPP_
 ////////////////////////////////////////////////////////////////////////////////
-#include <QDateTime>
+#include "export.hpp"
 #include "citygml.hpp"
+//#include <fstream> // MT 05/05/2014
+#include <osgDB/fstream>
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterJSON class
 /// Export JSON
-class ExporterJSON
+class ExporterJSON : public Export
 {
 public:
     ExporterJSON();
 
-    void genConfigFiles();
-
     /// \brief exportCityModel
     /// \param model
     /// \param fileName
-    void exportCityModel(CityModel* model, const std::string& fileName);
+    void exportCityModel(CityModel& model, const std::string& fileName, const std::string& id);
 
     /// \brief exportCityObject
     /// \param model
     /// \param fileName
-    void exportCityObject(CityObject* model, const std::string& fileName);
-
-    /// Enable or disable temporal export
-    void setTemporalExport(bool param);
-
-    /// Set temporal export date
-    void setDate(const QDateTime& date);
+    void exportCityObject(CityObject& obj);
 
 private:
-    bool m_temporalExport;  ///< enable temporal export
-    QDateTime m_date;       ///< date for temporal export
+    void exportWallsAndRoofs(CityObject& obj, CityObjectsType type);
+    int getNbBldg(CityModel& model) const;
+    int getNbFaces(CityObject& obj, CityObjectsType type) const;
+    int getNbTris(CityObject& obj) const;
+
+    void openScope();
+    void closeScope(bool comma = false);
+    void indent();
+
+    std::string m_id;
+    std::ofstream m_outFile;
+    int m_indentDepth;
+
+    bool m_needComma;
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

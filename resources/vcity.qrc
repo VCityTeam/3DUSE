@@ -1,6 +1,6 @@
 <RCC>
-  <qresource prefix="icons">
-  </qresource>
-  <qresource prefix="images">
-  </qresource>
+    <qresource prefix="/icons"/>
+    <qresource prefix="/images">
+        <file>LirisLogo.png</file>
+    </qresource>
 </RCC>

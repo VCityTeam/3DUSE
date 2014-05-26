@@ -163,6 +163,11 @@ void OsgScene::init()
     layer2->setName("layer_Mnt");
     m_layers->addChild(layer2);
 
+    // build forth default layer
+    osg::ref_ptr<osg::Group> layer3 = new osg::Group();
+    layer3->setName("layer_Shp");
+    m_layers->addChild(layer3);
+
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
 	osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(643000.0, 6857000.0, 0.0), 500.0, 30);
@@ -244,6 +249,17 @@ void OsgScene::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg:
         osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
         if(layerGroup)
 			layerGroup->addChild(node);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addShpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+            layerGroup->addChild(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

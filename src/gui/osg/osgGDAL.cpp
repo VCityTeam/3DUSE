@@ -4,37 +4,36 @@
 #include <osg/Geometry>
 #include <stdio.h>
 #include <iostream>
+#include "libcitygml/tesselator.hpp"
+#include "core/application.hpp"
 #include <vector>
 
-#include <geos/geom/Polygon.h>
-#include <geos/geom/Coordinate.h>
-#include <geos/geom/CoordinateSequence.h>
-#include <geos/geom/CoordinateArraySequence.h>
-#include <geos/geom/Dimension.h>
-#include <geos/geom/Envelope.h>
-#include <geos/geom/GeometryFactory.h>
-#include <geos/geom/LinearRing.h>
-#include <geos/geom/Point.h>
-#include <geos/geom/PrecisionModel.h>
-#include <geos/io/WKTReader.h>
-#include <geos/util/IllegalArgumentException.h>
-#include <geos/operation/union/CascadedPolygonUnion.h>
-#include <geos/simplify/DouglasPeuckerSimplifier.h>
-#include <geos/simplify/TopologyPreservingSimplifier.h>
+#include "geos/geom/Polygon.h"
+#include "geos/geom/Coordinate.h"
+#include "geos/geom/CoordinateSequence.h"
+#include "geos/geom/CoordinateArraySequence.h"
+#include "geos/geom/Dimension.h"
+#include "geos/geom/Envelope.h"
+#include "geos/geom/GeometryFactory.h"
+#include "geos/geom/LinearRing.h"
+#include "geos/geom/Point.h"
+#include "geos/geom/PrecisionModel.h"
+#include "geos/io/WKTReader.h"
+#include "geos/util/IllegalArgumentException.h"
+#include "geos/operation/union/CascadedPolygonUnion.h"
+#include "geos/simplify/DouglasPeuckerSimplifier.h"
+#include "geos/simplify/TopologyPreservingSimplifier.h"
 
 ////////////////////////////////////////////////////////////////////////////////
-
-osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)//, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs)//Hauteurs : Liste les hauteurs et Zmin des polygons de ShapeGeo
+osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 {
+    TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
+    osg::Vec3d offset(offset_.x, offset_.y, offset_.z);
+
     if(poDS)
     {
         printf("Load using Gdal / OGR\n");
         osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-
-		//const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();//
-		//std::vector<geos::geom::Geometry*> Polys;//
-		//geos::geom::LinearRing *shell;//
-		//geos::geom::Polygon* P;//
 
         OGRLayer *poLayer;
         int nbLayers = poDS->GetLayerCount();
@@ -44,6 +43,8 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)//, geos::geom::Geomet
             poLayer = poDS->GetLayer(0);
             printf("layer %s. Type : %d\n", poLayer->GetName(), poLayer->GetGeomType());
             //poLayer = poDS->GetLayerByName( "point" );
+
+            Tesselator tess;
 
             OGRFeature *poFeature;
             poLayer->ResetReading();
@@ -64,7 +65,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)//, geos::geom::Geomet
                         OGRPoint p;
                         poLS->getPoint(i, &p);
                         //printf( "%f, %f; %f\n", p.getX(), p.getY(), p.getZ() );
-                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 0);
+                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
                         vertices->push_back(pt);
                         indices->push_back(i);
                     }
@@ -75,6 +76,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)//, geos::geom::Geomet
                 }
                 else if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
                 {
+                    /*
                     osg::Geometry* geom = new osg::Geometry;
                     osg::Vec3Array* vertices = new osg::Vec3Array;
                     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::POLYGON, 0);
@@ -82,70 +84,86 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)//, geos::geom::Geomet
                     OGRPolygon* poPG = (OGRPolygon*) poGeometry;
                     OGRLinearRing* poLR = poPG->getExteriorRing();
                     int nbPoints = poLR->getNumPoints();
-
-					//geos::geom::CoordinateArraySequence temp;//
-					/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
-
-					for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
-					{
-						OGRLinearRing* Ring = poPG->getInteriorRing(i);
-
-						for(int j = 0; j < Ring->getNumPoints(); j++)
-						{
-							OGRPoint p;
-							Ring->getPoint(j, &p);
-							temp.add(geos::geom::Coordinate(p.getX(), p.getY()));
-						}
-						if(temp.size() > 3)
-							Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
-						temp.clear();
-					}*/
-					
-                    for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
+                    for(int i=0; i<nbPoints; ++i)
                     {
                         OGRPoint p;
                         poLR->getPoint(i, &p);
-                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 50.0); // osg::Vec3d(1840000.0, 5170000.0, 50.0);
+                        //printf( "%f, %f; %f\n", p.getX(), p.getY(), p.getZ() );
+                        osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 50.0);
                         vertices->push_back(pt);
                         indices->push_back(i);
-
-						//temp.add(geos::geom::Coordinate(p.getX()/* - 1840000.0*/, p.getY()/* - 5170000.0*/));//
                     }
-					//if(temp.size() > 3)//
-					//{
-					//	shell=factory->createLinearRing(temp);
-					//	P = factory->createPolygon(shell, NULL/*Holes*/); //Les bâtiments du cadastre sont récupérés sans les cours intérieures. Mettre Holes à la place de NULL pour les avoir.
-					//	if(P->isValid()/* && P->getArea() > 10*/)
-					//	{
-					//		Polys.push_back(P);
-					//		double H = poFeature->GetFieldAsDouble("HAUTEUR");
-					//		double Zmin = poFeature->GetFieldAsDouble("Z_MIN");
-					//
-					//		if(H == 0 || Zmin > 1000)
-					//		{
-					//			H = 20;
-					//			Zmin = 0;
-					//		}
-					//
-					//		std::pair<double, double> PairTemp(H, Zmin);
-					//		Hauteurs->push_back(PairTemp);
-					//	}
-					//}
 
                     geom->setVertexArray(vertices);
                     geom->addPrimitiveSet(indices);
                     geode->addDrawable(geom);
+                    /*/
+                    osg::Geometry* geom = new osg::Geometry;
+                    osg::Vec3Array* vertices = new osg::Vec3Array;
+                    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES , 0);
+
+                    OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+                    OGRLinearRing* poLR = poPG->getExteriorRing();
+
+                    // count vertices
+                    unsigned int verticesCount = poLR->getNumPoints();
+                    for(int i=0; i<poPG->getNumInteriorRings(); ++i)
+                    {
+                        verticesCount += poPG->getInteriorRing(i)->getNumPoints();
+                    }
+                    tess.init(verticesCount, TVec3d(0.0, 0.0, 1.0));
+
+                    // feed data
+                    OGRPoint p;
+                    TVec3d v;
+                    std::vector<TVec3d> pts;
+                    std::vector<TVec2f> texcoords;
+                    for(int i=0; i<poLR->getNumPoints(); ++i)
+                    {
+                        poLR->getPoint(i, &p);
+                        v = TVec3d(p.getX(), p.getY(), p.getZ());
+                        pts.push_back(v);
+                    }
+                    tess.addContour(pts, texcoords);
+
+                    for(int j=0; j<poPG->getNumInteriorRings(); ++j)
+                    {
+                        pts.clear();
+                        poLR = poPG->getInteriorRing(j);
+                        for(int i=0; i<poLR->getNumPoints(); ++i)
+                        {
+                            poLR->getPoint(i, &p);
+                            v = TVec3d(p.getX(), p.getY(), p.getZ());
+                            pts.push_back(v);
+                        }
+                        tess.addContour(pts, texcoords);
+                    }
+                    tess.compute();
+
+                    // feed data to osg
+                    for(const TVec3d& v : tess.getVertices())
+                    {
+                        osg::Vec3d pt = osg::Vec3d(v.x, v.y, v.z) - offset;
+                        vertices->push_back(pt);
+                    }
+                    for(unsigned int id : tess.getIndices())
+                    {
+                        indices->push_back(id);
+                    }
+
+                    geom->setVertexArray(vertices);
+                    geom->addPrimitiveSet(indices);
+                    geode->addDrawable(geom);
+                    //*/
                 }
                 else
                 {
                     printf( "%u %s no geometry\n", poGeometry->getGeometryType(), poGeometry->getGeometryName() );
                 }
+                //poFeature->get
                 OGRFeature::DestroyFeature( poFeature );
+                //poDS->get
             }
-
-			//geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
-			
-			//*ShapeGeo = MP;
         }
 
         return geode;
@@ -161,6 +179,8 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 		std::cout << "Erreur chargement fichier .shp \n";
 		return;
 	}
+
+	TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 
 	const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 	std::vector<geos::geom::Geometry*> Polys;
@@ -183,7 +203,7 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
                 OGRLinearRing* poLR = poPG->getExteriorRing();
                 int nbPoints = poLR->getNumPoints();
 
-				geos::geom::CoordinateArraySequence temp;//
+				geos::geom::CoordinateArraySequence temp;
 				/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
 
 				for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
@@ -200,24 +220,28 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 						Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
 					temp.clear();
 				}*/
-					
+
                 for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
                 {
                     OGRPoint p;
                     poLR->getPoint(i, &p);
-                    osg::Vec3d pt = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - osg::Vec3d(643000.0, 6857000.0, 50.0); // osg::Vec3d(1840000.0, 5170000.0, 50.0);
 
-					temp.add(geos::geom::Coordinate(p.getX()/* - 1840000.0*/, p.getY()/* - 5170000.0*/));//
+					temp.add(geos::geom::Coordinate(p.getX() - offset_.x, p.getY() - offset_.y));
                 }
-				if(temp.size() > 3)//
+
+				if(temp.size() > 3)
 				{
 					shell=factory->createLinearRing(temp);
 					P = factory->createPolygon(shell, NULL/*Holes*/); //Les bâtiments du cadastre sont récupérés sans les cours intérieures. Mettre Holes à la place de NULL pour les avoir.
 					if(P->isValid()/* && P->getArea() > 10*/)
 					{
 						Polys.push_back(P);
-						double H = poFeature->GetFieldAsDouble("HAUTEUR");
-						double Zmin = poFeature->GetFieldAsDouble("Z_MIN");
+						double H = 1;//poFeature->GetFieldAsDouble("HAUTEUR");
+						double Zmin = 1;//poFeature->GetFieldAsDouble("Z_MIN");
+						if(poFeature->GetFieldIndex("HAUTEUR") != -1)
+							H = poFeature->GetFieldAsDouble("HAUTEUR");
+						if(poFeature->GetFieldIndex("Z_MIN") != -1)
+							Zmin = poFeature->GetFieldAsDouble("Z_MIN");						
 
 						if(H == 0 || Zmin > 1000)
 						{

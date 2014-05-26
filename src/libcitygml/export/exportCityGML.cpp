@@ -1,18 +1,17 @@
 ////////////////////////////////////////////////////////////////////////////////
-#include "export.hpp"
+#include "exportCityGML.hpp"
 #include <libxml/parser.h>
 #include <sstream>
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
-Exporter::Exporter()
-    : m_temporalExport(false), m_date()
+ExporterCityGML::ExporterCityGML()
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Exporter::exportCityModel(CityModel* model, const std::string& fileName)
+void ExporterCityGML::exportCityModel(CityModel* model, const std::string& fileName)
 {
     xmlDocPtr doc = NULL;       /* document pointer */
     xmlNodePtr root_node = NULL;
@@ -46,7 +45,7 @@ void Exporter::exportCityModel(CityModel* model, const std::string& fileName)
     xmlMemoryDump();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Exporter::exportCityObject(CityObject* model, const std::string& fileName)
+void ExporterCityGML::exportCityObject(CityObject* model, const std::string& fileName)
 {
     xmlDocPtr doc = NULL;       /* document pointer */
     xmlNodePtr root_node = NULL;
@@ -80,17 +79,7 @@ void Exporter::exportCityObject(CityObject* model, const std::string& fileName)
     xmlMemoryDump();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Exporter::setTemporalExport(bool param)
-{
-    m_temporalExport = param;
-}
-////////////////////////////////////////////////////////////////////////////////
-void Exporter::setDate(const QDateTime& date)
-{
-    m_date = date;
-}
-////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportEnvelopeXml(const citygml::Envelope& env)
+xmlNodePtr ExporterCityGML::exportEnvelopeXml(const citygml::Envelope& env)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:Envelope");
 
@@ -107,7 +96,7 @@ xmlNodePtr Exporter::exportEnvelopeXml(const citygml::Envelope& env)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportLinearRingXml(const citygml::LinearRing& ring)
+xmlNodePtr ExporterCityGML::exportLinearRingXml(const citygml::LinearRing& ring)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:LinearRing");
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST ring.getId().c_str());
@@ -127,7 +116,7 @@ xmlNodePtr Exporter::exportLinearRingXml(const citygml::LinearRing& ring)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportPolygonXml(const citygml::Polygon& poly)
+xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "gml:Polygon");
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
@@ -161,7 +150,7 @@ xmlNodePtr Exporter::exportPolygonXml(const citygml::Polygon& poly)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportRoofXml(const citygml::RoofSurface& /*geom*/)
+xmlNodePtr ExporterCityGML::exportRoofXml(const citygml::RoofSurface& /*geom*/)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "Roof");
 
@@ -169,7 +158,7 @@ xmlNodePtr Exporter::exportRoofXml(const citygml::RoofSurface& /*geom*/)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportGeometryXml(const citygml::Geometry& geom, const std::string& nodeType)
+xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, const std::string& nodeType)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST nodeType.c_str());
     //xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
@@ -187,7 +176,7 @@ xmlNodePtr Exporter::exportGeometryXml(const citygml::Geometry& geom, const std:
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportGeometryXml(const citygml::Geometry& geom)
+xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom)
 {
     switch(geom.getType())
     {
@@ -222,12 +211,12 @@ xmlNodePtr Exporter::exportGeometryXml(const citygml::Geometry& geom)
     return NULL;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportBuildingPart()
+xmlNodePtr ExporterCityGML::exportBuildingPart()
 {
     return 0;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportBuildingInstallationXml(const citygml::BuildingInstallation& bldg)
+xmlNodePtr ExporterCityGML::exportBuildingInstallationXml(const citygml::BuildingInstallation& bldg)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "bldg:Buildinginstallation");
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
@@ -235,7 +224,7 @@ xmlNodePtr Exporter::exportBuildingInstallationXml(const citygml::BuildingInstal
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportBuildingXml(const citygml::Building& bldg)
+xmlNodePtr ExporterCityGML::exportBuildingXml(const citygml::Building& bldg)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "bldg:Building");
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
@@ -243,7 +232,7 @@ xmlNodePtr Exporter::exportBuildingXml(const citygml::Building& bldg)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportSurfaceXml(const citygml::CityObject& srf, const std::string& nodeType, xmlNodePtr parent=NULL)
+xmlNodePtr ExporterCityGML::exportSurfaceXml(const citygml::CityObject& srf, const std::string& nodeType, xmlNodePtr parent=NULL)
 {
     xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "bldg:boundedBy");
     xmlNodePtr res = xmlNewChild(root, NULL, BAD_CAST nodeType.c_str(), NULL);
@@ -258,7 +247,7 @@ xmlNodePtr Exporter::exportSurfaceXml(const citygml::CityObject& srf, const std:
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent=NULL)
+xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent=NULL)
 {
     xmlNodePtr res = NULL;
 
@@ -410,7 +399,7 @@ xmlNodePtr Exporter::exportCityObjetXml(const citygml::CityObject& obj, xmlNodeP
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportCityModelXml(const citygml::CityModel& model)
+xmlNodePtr ExporterCityGML::exportCityModelXml(const citygml::CityModel& model)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "core:CityModel");
 
@@ -432,7 +421,7 @@ xmlNodePtr Exporter::exportCityModelXml(const citygml::CityModel& model)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr Exporter::exportCityObjectModelXml(const citygml::CityObject& obj)
+xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const citygml::CityObject& obj)
 {
     xmlNodePtr res = xmlNewNode(NULL, BAD_CAST "core:CityModel");
 

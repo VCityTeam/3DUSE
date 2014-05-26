@@ -119,6 +119,9 @@ void TreeView::reset()
 
     QTreeWidgetItem* layer2 = createItemLayer("layer_Mnt", "LayerMnt");
     root->addChild(layer2);
+
+    QTreeWidgetItem* layer3 = createItemLayer("layer_Shp", "LayerShp");
+    root->addChild(layer3);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)
@@ -363,6 +366,21 @@ void TreeView::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg:
     QTreeWidgetItem* layer = getNode(uriLayer);
 
     QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "MntAscNode");
+    layer->addChild(item);
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addShpNode(const vcity::URI& uriLayer, const std::string& nodeName)
+{
+    m_tree->blockSignals(true);
+
+    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    QTreeWidgetItem* layer = getNode(uriLayer);
+
+    QTreeWidgetItem* item = createItemGeneric(QString(nodeName.c_str()), "ShpNode");
     layer->addChild(item);
 
     m_tree->expandToDepth(1);
