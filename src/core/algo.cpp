@@ -926,7 +926,7 @@ namespace vcity
 	citygml::Geometry* BuildLOD0FromGEOS(std::string name, geos::geom::Geometry * Geometry, double heightmax, double heightmin)
 	{
 		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
-		for(int i = 0; i < Geometry->getNumGeometries(); i++)	//Pour chaque polygon de MP
+		for(int i = 0; i < Geometry->getNumGeometries(); ++i)	//Pour chaque polygon de MP
 		{
 			citygml::Polygon * Poly = new citygml::Polygon("PolyTest");
 			citygml::LinearRing * Ring = new citygml::LinearRing("RingTest",true);
@@ -934,7 +934,7 @@ namespace vcity
 			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();	//clone pour récupérer un const
 			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points du polygon courant de MP
 
-			for(int j = 0; j < Coords->size(); j++)
+			for(int j = 0; j < Coords->size(); ++j)
 			{
 				citygml::Polygon * Poly2 = new citygml::Polygon("PolyTest2");
 				citygml::LinearRing * Ring2 = new citygml::LinearRing("RingTest2",true);
@@ -978,7 +978,7 @@ namespace vcity
 		citygml::Geometry* Wall = new citygml::Geometry("LOD1_Wall", citygml::GT_Wall, 0);
 		citygml::Geometry* Roof = new citygml::Geometry("LOD1_Roof", citygml::GT_Roof, 0);
 
-		for(int i = 0; i < Geometry->getNumGeometries(); i++)	//Pour chaque polygon de MP
+		for(int i = 0; i < Geometry->getNumGeometries(); ++i)	//Pour chaque polygon de MP
 		{
 			double heightmax = Hauteurs[i].second + Hauteurs[i].first;
 			double heightmin = Hauteurs[i].second;
@@ -986,9 +986,12 @@ namespace vcity
 			citygml::LinearRing * Ring = new citygml::LinearRing("RingTest",true);
 
 			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();	//clone pour récupérer un const
+			
+			//if(TempGeo->getGeometryType() != "Polygon")
+			//	continue;
 			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points du polygon courant de MP
 
-			for(int j = 0; j < Coords->size()-1; j++)//On s'arrête à size - 1 car le premier point est déjà repeté en dernière position
+			for(int j = 0; j < Coords->size() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
 			{
 				citygml::Polygon * Poly2 = new citygml::Polygon("PolyTest2");
 				citygml::LinearRing * Ring2 = new citygml::LinearRing("RingTest2",true);
@@ -1024,6 +1027,8 @@ namespace vcity
 		
 		citygml::Exporter exporter;
 		exporter.exportCityModel(model, "test.citygml");
+		
+		std::cout << "LOD1 cree.\n";
 		
 		/*for(int i = 0; i < ShapeSimp->getNumGeometries(); ++i)
 		{
@@ -1875,12 +1880,54 @@ namespace vcity
 			return;
 		}
 		//SaveGeometry("Shape", Shape);
-		geos::geom::Geometry * ShapeSimp = geos::simplify::TopologyPreservingSimplifier::simplify(Shape, 2).release();
+		//geos::geom::Geometry * ShapeSimp = geos::simplify::TopologyPreservingSimplifier::simplify(Shape, 2).release();
 		//SaveGeometry("Shape_Simplified", ShapeSimp);
 
-		BuildLOD1FromGEOS(ShapeSimp, Hauteurs);
+		//BuildLOD1FromGEOS(Shape, Hauteurs);
 
-		std::cout << "test.citygml cree. \n";
+
+		geos::geom::Geometry * ShapeRes = Shape->buffer(4)->buffer(-4);
+
+		SaveGeometry("Shape_Close", ShapeRes);
+		
+		std::vector<std::pair<double, double>> Hauteurs2;
+		std::vector<geos::geom::Geometry *> GeosWithoutHoles;
+
+		for(int i = 0; i < ShapeRes->getNumGeometries(); ++i)
+		{
+			const geos::geom::Geometry * CurrGeo = ShapeRes->getGeometryN(i);
+			
+			const geos::geom::Polygon *p;
+			if(CurrGeo->getGeometryType() != "Polygon")
+				continue;
+
+			p = dynamic_cast<const geos::geom::Polygon*>(CurrGeo);
+
+			double H = 0, Zmin = 0;
+			int cpt = 0;
+			for(int j = 0; j < Shape->getNumGeometries(); ++j)
+			{
+				if(Hauteurs[j].first == -1)
+					continue;
+				if(Shape->getGeometryN(j)->intersects(CurrGeo))
+				{
+					H += Hauteurs[j].first;
+					Hauteurs[j].first = -1;
+					Zmin += Hauteurs[j].second;
+					cpt++;
+				}
+			}
+			std::pair<double, double> Temp(H/cpt, Zmin/cpt);
+			Hauteurs2.push_back(Temp);
+
+			GeosWithoutHoles.push_back(factory->createPolygon(factory->createLinearRing(p->getExteriorRing()->getCoordinates()), NULL));
+			//GeosWithoutHoles.push_back(CurrGeo->buffer(CurrGeo->getLength()/10)->buffer(-CurrGeo->getLength()/10));
+		}
+		geos::geom::Geometry * ShapeResWithoutHoles = factory->createGeometryCollection(GeosWithoutHoles);
+
+		SaveGeometry("Shape_Close_WithoutHoles", ShapeResWithoutHoles);
+
+		//BuildLOD1FromGEOS(ShapeRes, Hauteurs2);
 	}
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

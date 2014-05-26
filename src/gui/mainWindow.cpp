@@ -317,15 +317,17 @@ bool MainWindow::loadFile(const QString& filepath)
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+		
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));//, &ShapeGeo, &Hauteurs));
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo, &Hauteurs));
+		buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
     }
     else if(ext == "dxf")
     {
         std::cout << "load dxf file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS, &ShapeGeo, &Hauteurs));
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
     }
     else if(ext == "ecw")
     {
