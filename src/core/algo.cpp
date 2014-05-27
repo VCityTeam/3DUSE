@@ -989,21 +989,97 @@ namespace vcity
      */
 	void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
 	{
+		citygml::CityModel model;
+
+		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
+		{		
+			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();
+			if(TempGeo->getGeometryType() != "Polygon")
+				continue;
+
+			citygml::Geometry* Wall = new citygml::Geometry("GeoWall_Building_" + std::to_string(i), citygml::GT_Wall, 0);
+			citygml::Geometry* Roof = new citygml::Geometry("GeoRoof_Building_" + std::to_string(i), citygml::GT_Roof, 0);
+
+			double heightmax = Hauteurs[i].second + Hauteurs[i].first;
+			double heightmin = Hauteurs[i].second;
+
+			citygml::Polygon * PolyRoof = new citygml::Polygon("PolyRoof");
+			citygml::LinearRing * RingRoof = new citygml::LinearRing("RingRoof",true);			
+			
+			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points de la geometry
+
+			for(int j = 0; j < Coords->size() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
+			{
+				citygml::Polygon * PolyWall = new citygml::Polygon("PolyWall_" + std::to_string(j));
+				citygml::LinearRing * RingWall = new citygml::LinearRing("RingWall_" + std::to_string(j),true);
+
+				int x1 = Coords->getAt(j).x;
+				int y1 = Coords->getAt(j).y;
+				
+				RingRoof->addVertex(TVec3d(x1, y1, heightmax));
+
+				int x2, y2;
+				x2 = Coords->getAt(j+1).x;
+				y2 = Coords->getAt(j+1).y;
+
+				RingWall->addVertex(TVec3d(x1, y1, heightmin));
+				RingWall->addVertex(TVec3d(x2, y2, heightmin));
+				RingWall->addVertex(TVec3d(x2, y2, heightmax));
+				RingWall->addVertex(TVec3d(x1, y1, heightmax));
+				PolyWall->addRing(RingWall);
+				Wall->addPolygon(PolyWall);
+			}
+			PolyRoof->addRing(RingRoof);
+			Roof->addPolygon(PolyRoof);			
+
+			citygml::CityObject* BuildingCO = new citygml::Building("LOD1_Building_" + std::to_string(i));
+			citygml::CityObject* WallCO = new citygml::WallSurface("LOD1_Wall_" + std::to_string(i));
+			citygml::CityObject* RoofCO = new citygml::RoofSurface("LOD1_Roof_" + std::to_string(i));
+
+			WallCO->addGeometry(Wall);
+			RoofCO->addGeometry(Roof);
+			BuildingCO->insertNode(WallCO);
+			BuildingCO->insertNode(RoofCO);
+			model.addCityObjectAsRoot(BuildingCO);
+
+			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
+		}		
+
+		citygml::ExporterCityGML exporter;
+		exporter.exportCityModel(model, "test.citygml");
+		
+		std::cout << std::endl << "LOD1 cree.\n";
+		
+		/*for(int i = 0; i < Geometry->getNumGeometries(); ++i)
+		{
+			citygml::Geometry* geom = new citygml::Geometry("Cadastre_LOD1", citygml::GT_Wall, 0);
+			geom = BuildLOD0FromGEOS("Bati" + std::to_string(i), ShapeSimp->getGeometryN(i)->clone(), 20, 0);
+			citygml::CityObject* obj = new citygml::WallSurface("tmpObj");
+			obj->addGeometry(geom);
+			model->addCityObjectAsRoot(obj);
+
+			std::cout << "Avancement : " << i+1 << "/" << ShapeSimp->getNumGeometries() << "\r" << std::flush;
+		}
+		std::cout << std::endl;*/
+	}
+
+	/*void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
+	{
 		citygml::Geometry* Wall = new citygml::Geometry("LOD1_Wall", citygml::GT_Wall, 0);
 		citygml::Geometry* Roof = new citygml::Geometry("LOD1_Roof", citygml::GT_Roof, 0);
 
-		for(int i = 0; i < Geometry->getNumGeometries(); ++i)	//Pour chaque polygon de MP
+		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
 		{
 			double heightmax = Hauteurs[i].second + Hauteurs[i].first;
 			double heightmin = Hauteurs[i].second;
 			citygml::Polygon * Poly = new citygml::Polygon("PolyTest");
 			citygml::LinearRing * Ring = new citygml::LinearRing("RingTest",true);
 
-			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();	//clone pour récupérer un const
+			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();
 			
 			//if(TempGeo->getGeometryType() != "Polygon")
 			//	continue;
-			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points du polygon courant de MP
+			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points de la geometry
 
 			for(int j = 0; j < Coords->size() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
 			{
@@ -1030,32 +1106,20 @@ namespace vcity
 			Roof->addPolygon(Poly);
 		}
 		
-		citygml::CityModel* model = new citygml::CityModel();
+		citygml::CityModel model;// = new citygml::CityModel();
 
 		citygml::CityObject* obj = new citygml::WallSurface("tmpObj1");
 		citygml::CityObject* obj2 = new citygml::RoofSurface("tmpObj2");
 		obj->addGeometry(Wall);
 		obj2->addGeometry(Roof);
-		model->addCityObjectAsRoot(obj);
-		model->addCityObjectAsRoot(obj2);
+		model.addCityObjectAsRoot(obj);
+		model.addCityObjectAsRoot(obj2);
 		
 		citygml::ExporterCityGML exporter;
 		exporter.exportCityModel(model, "test.citygml");
 		
 		std::cout << "LOD1 cree.\n";
-		
-		/*for(int i = 0; i < ShapeSimp->getNumGeometries(); ++i)
-		{
-			citygml::Geometry* geom = new citygml::Geometry("Cadastre_LOD1", citygml::GT_Wall, 0);
-			geom = BuildLOD0FromGEOS("Bati" + std::to_string(i), ShapeSimp->getGeometryN(i)->clone(), 20, 0);
-			citygml::CityObject* obj = new citygml::WallSurface("tmpObj");
-			obj->addGeometry(geom);
-			model->addCityObjectAsRoot(obj);
-
-			std::cout << "Avancement : " << i+1 << "/" << ShapeSimp->getNumGeometries() << "\r" << std::flush;
-		}
-		std::cout << std::endl;*/
-	}
+	}*/
 
 	/**
      * @brief Convertit une geometry (MultiPolygon) GEOS en geometry CityGML
@@ -1879,15 +1943,15 @@ namespace vcity
 			std::cout << "Shape NULL. \n";
 			return;
 		}
-		SaveGeometry("Shape", Shape);
-		geos::geom::Geometry * ShapeSimp = geos::simplify::TopologyPreservingSimplifier::simplify(Shape, 2).release();
-		SaveGeometry("Shape_Simplified", ShapeSimp);
+		//SaveGeometry("Shape", Shape);
+		//geos::geom::Geometry * ShapeSimp = geos::simplify::TopologyPreservingSimplifier::simplify(Shape, 2).release();
+		//SaveGeometry("Shape_Simplified", ShapeSimp);
 
 		//BuildLOD1FromGEOS(Shape, Hauteurs);
 
 		geos::geom::Geometry * ShapeRes = Shape->buffer(4)->buffer(-4);
 
-		SaveGeometry("Shape_Close", ShapeRes);
+		//SaveGeometry("Shape_Close", ShapeRes);
 		
 		std::vector<std::pair<double, double>> Hauteurs2;
 		std::vector<geos::geom::Geometry *> GeosWithoutHoles;
@@ -1924,9 +1988,9 @@ namespace vcity
 		}
 		geos::geom::Geometry * ShapeResWithoutHoles = factory->createGeometryCollection(GeosWithoutHoles);
 
-		SaveGeometry("Shape_Close_WithoutHoles", ShapeResWithoutHoles);
+		//SaveGeometry("Shape_Close_WithoutHoles", ShapeResWithoutHoles);
 
-		//BuildLOD1FromGEOS(ShapeRes, Hauteurs2);
+		BuildLOD1FromGEOS(ShapeResWithoutHoles, Hauteurs2);
 	}
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
