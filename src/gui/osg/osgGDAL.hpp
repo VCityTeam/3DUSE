@@ -6,7 +6,7 @@
 
 #include "geos/geom/GeometryFactory.h"
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS);//, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs);
+osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS);
 void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __OSGGDAL_HPP__
