@@ -1049,18 +1049,6 @@ namespace vcity
 		exporter.exportCityModel(model, "test.citygml");
 		
 		std::cout << std::endl << "LOD1 cree.\n";
-		
-		/*for(int i = 0; i < Geometry->getNumGeometries(); ++i)
-		{
-			citygml::Geometry* geom = new citygml::Geometry("Cadastre_LOD1", citygml::GT_Wall, 0);
-			geom = BuildLOD0FromGEOS("Bati" + std::to_string(i), ShapeSimp->getGeometryN(i)->clone(), 20, 0);
-			citygml::CityObject* obj = new citygml::WallSurface("tmpObj");
-			obj->addGeometry(geom);
-			model->addCityObjectAsRoot(obj);
-
-			std::cout << "Avancement : " << i+1 << "/" << ShapeSimp->getNumGeometries() << "\r" << std::flush;
-		}
-		std::cout << std::endl;*/
 	}
 
 	/*void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
@@ -1966,7 +1954,7 @@ namespace vcity
 
 			p = dynamic_cast<const geos::geom::Polygon*>(CurrGeo);
 
-			double H = 0, Zmin = 0;
+			double H = 0, Zmin = -9999;
 			int cpt = 0;
 			for(int j = 0; j < Shape->getNumGeometries(); ++j)
 			{
@@ -1976,11 +1964,12 @@ namespace vcity
 				{
 					H += Hauteurs[j].first;
 					Hauteurs[j].first = -1;
-					Zmin += Hauteurs[j].second;
+					if(Zmin == -9999 || Zmin > Hauteurs[j].second)
+						Zmin = Hauteurs[j].second;
 					cpt++;
 				}
 			}
-			std::pair<double, double> Temp(H/cpt, Zmin/cpt);
+			std::pair<double, double> Temp(H/cpt, Zmin);
 			Hauteurs2.push_back(Temp);
 
 			GeosWithoutHoles.push_back(factory->createPolygon(factory->createLinearRing(p->getExteriorRing()->getCoordinates()), NULL));
@@ -1990,7 +1979,10 @@ namespace vcity
 
 		//SaveGeometry("Shape_Close_WithoutHoles", ShapeResWithoutHoles);
 
-		BuildLOD1FromGEOS(ShapeResWithoutHoles, Hauteurs2);
+		geos::geom::Geometry * ShapeResWithoutHolesSimp = geos::simplify::TopologyPreservingSimplifier::simplify(ShapeResWithoutHoles, 4).release();
+		//SaveGeometry("Shape_Close_WithoutHoles_Simplified", ShapeResWithoutHolesSimp);
+
+		BuildLOD1FromGEOS(ShapeResWithoutHolesSimp, Hauteurs2);
 	}
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity

@@ -254,8 +254,8 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 
 						if(H == 0 || Zmin > 1000)
 						{
-							H = 20;
-							Zmin = 0;
+							H = Hauteurs->at(Hauteurs->size() - 1).first;
+							Zmin = Hauteurs->at(Hauteurs->size() - 1).second;
 						}
 
 						std::pair<double, double> PairTemp(H, Zmin);
