@@ -81,7 +81,7 @@ namespace vcity
                     for(; itVertices != vertices.end(); ++itVertices)//pour Chaque sommet
 					{
                         TVec3d point = *itVertices;
-                        poly.push_back(std::make_pair(point.x, point.y)); //on récupere le point //1841069.875000 5175491.500000
+                        poly.push_back(std::make_pair(point.x, point.y)); //on récupere le point
 						if(point.z > *heightmax)
 							*heightmax = point.z;
 
@@ -1050,9 +1050,12 @@ namespace vcity
 
 			WallCO->addGeometry(Wall);
 			RoofCO->addGeometry(Roof);
+			model->addCityObject(WallCO);
+			model->addCityObject(RoofCO);
 			BuildingCO->insertNode(WallCO);
 			BuildingCO->insertNode(RoofCO);
-            model->addCityObjectAsRoot(BuildingCO);
+			model->addCityObject(BuildingCO);
+			model->addCityObjectAsRoot(BuildingCO);
 
 			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
 		}		
@@ -1062,66 +1065,11 @@ namespace vcity
 		
 		std::cout << std::endl << "LOD1 cree.\n";
 
+		citygml::ParserParams params;
+		model->finish(params);
+
         return model;
 	}
-
-	/*void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
-	{
-		citygml::Geometry* Wall = new citygml::Geometry("LOD1_Wall", citygml::GT_Wall, 0);
-		citygml::Geometry* Roof = new citygml::Geometry("LOD1_Roof", citygml::GT_Roof, 0);
-
-		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
-		{
-			double heightmax = Hauteurs[i].second + Hauteurs[i].first;
-			double heightmin = Hauteurs[i].second;
-			citygml::Polygon * Poly = new citygml::Polygon("PolyTest");
-			citygml::LinearRing * Ring = new citygml::LinearRing("RingTest",true);
-
-			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();
-			
-			//if(TempGeo->getGeometryType() != "Polygon")
-			//	continue;
-			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points de la geometry
-
-			for(int j = 0; j < Coords->size() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
-			{
-				citygml::Polygon * Poly2 = new citygml::Polygon("PolyTest2");
-				citygml::LinearRing * Ring2 = new citygml::LinearRing("RingTest2",true);
-
-				int x1 = Coords->getAt(j).x;
-				int y1 = Coords->getAt(j).y;
-				
-				Ring->addVertex(TVec3d(x1, y1, heightmax));
-
-				int x2, y2;
-				x2 = Coords->getAt(j+1).x;
-				y2 = Coords->getAt(j+1).y;
-
-				Ring2->addVertex(TVec3d(x1, y1, heightmin));
-				Ring2->addVertex(TVec3d(x2, y2, heightmin));
-				Ring2->addVertex(TVec3d(x2, y2, heightmax));
-				Ring2->addVertex(TVec3d(x1, y1, heightmax));
-				Poly2->addRing(Ring2);
-				Wall->addPolygon(Poly2);
-			}
-			Poly->addRing(Ring);
-			Roof->addPolygon(Poly);
-		}
-		
-		citygml::CityModel model;// = new citygml::CityModel();
-
-		citygml::CityObject* obj = new citygml::WallSurface("tmpObj1");
-		citygml::CityObject* obj2 = new citygml::RoofSurface("tmpObj2");
-		obj->addGeometry(Wall);
-		obj2->addGeometry(Roof);
-		model.addCityObjectAsRoot(obj);
-		model.addCityObjectAsRoot(obj2);
-		
-		citygml::ExporterCityGML exporter;
-		exporter.exportCityModel(model, "test.citygml");
-		
-		std::cout << "LOD1 cree.\n";
-	}*/
 
 	/**
      * @brief Convertit une geometry (MultiPolygon) GEOS en geometry CityGML

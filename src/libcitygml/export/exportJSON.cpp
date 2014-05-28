@@ -113,6 +113,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     m_genTexCoords = true;
     addFilter(COT_WallSurface, "walls");
     addFilter(COT_RoofSurface, "roofs");
+	std::cout << m_basePath + "building/" + fileName + ".json" << std::endl;
     m_outFile.open(m_basePath + "building/" + fileName + ".json");
     m_outFile << std::fixed;
     openScope(); // global scope
@@ -201,7 +202,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
             }
         }
 
-        if(!texture.empty())
+        if(!texture.empty() || m_genTexCoords)
         {
             std::vector<TVec2f> genTexCoords;
 

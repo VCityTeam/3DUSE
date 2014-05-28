@@ -897,7 +897,6 @@ enum State {
 		
 		inline void addCityObjectAsRoot( CityObject* o ) { if ( o ) _roots.push_back( o ); }
 
-	protected:
 		void addCityObject( CityObject* o );
 		
 		void finish( const ParserParams& );

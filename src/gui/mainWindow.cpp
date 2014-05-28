@@ -1080,7 +1080,7 @@ void buildJson()
                     id = id.substr(0, id.find_first_of("/\\"));
                     int idX = std::stoi(id.substr(0,id.find('-')));
                     int idY = std::stoi(id.substr(id.find('-')+1));
-                    std::string f = fileInfo.baseName().toStdString() + '_' + std::to_string(idX) + '-' + std::to_string(idY);
+                    std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
                     std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
 
                     std::cout << "id : " << idX << ", " << idY << std::endl;
@@ -1100,8 +1100,8 @@ void buildJson()
 ////////////////////////////////////////////////////////////////////////////////
 void buildJsonLod()
 {
-    QString dataPath("/mnt/docs/data/dd_backup/GIS_Data_tmp/E_BATI/tiles");
-    std::string basePath("/tmp/json/lod1/");
+    QString dataPath("C:/Users/Game Trap/Downloads/Data/Paris/paris/tiles");
+    std::string basePath("lod1/");
     int idOffsetX = 1286;
     int idOffsetY = 13714;
     double offsetX = 643000.0;
@@ -1126,7 +1126,7 @@ void buildJsonLod()
                 //std::cout << id; std::cout << " - " << id.substr(0,id.find('_')) << " / " << id.substr(id.find('_')+1) << std::endl;
                 int idX = std::stoi(id.substr(0,id.find('_')));
                 int idY = std::stoi(id.substr(id.find('_')+1));
-                std::string f = fileInfo.baseName().toStdString() + '_' + std::to_string(idX) + '-' + std::to_string(idY);
+                std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
                 std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
 
                 std::cout << "id : " << idX << ", " << idY << std::endl;
