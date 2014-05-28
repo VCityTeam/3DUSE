@@ -81,7 +81,7 @@ namespace vcity
                     for(; itVertices != vertices.end(); ++itVertices)//pour Chaque sommet
 					{
                         TVec3d point = *itVertices;
-                        poly.push_back(std::make_pair(point.x - 1840000, point.y - 5170000)); //on récupere le point //1841069.875000 5175491.500000
+                        poly.push_back(std::make_pair(point.x, point.y)); //on récupere le point //1841069.875000 5175491.500000
 						if(point.z > *heightmax)
 							*heightmax = point.z;
 
@@ -109,7 +109,6 @@ namespace vcity
                         TVec3d point = *itVertices;
 						if(point.z < *heightmin || *heightmin == -1)
 							*heightmin = point.z;
-
                     }
                 }
             }
@@ -929,8 +928,8 @@ namespace vcity
 		{
 			GeoLines.push_back(Lines[i]->clone());
 		}
-		std::auto_ptr<geos::geom::Geometry> nodedLinework = geos::noding::GeometryNoder::node(*factory->createGeometryCollection(GeoLines));
-		std::auto_ptr<geos::geom::Geometry> nodedDedupedLinework = nodedLinework->Union();
+        std::unique_ptr<geos::geom::Geometry> nodedLinework = geos::noding::GeometryNoder::node(*factory->createGeometryCollection(GeoLines));
+        std::unique_ptr<geos::geom::Geometry> nodedDedupedLinework = nodedLinework->Union();
 
 		geos::operation::polygonize::Polygonizer Polygonizer;
 		Polygonizer.add(nodedDedupedLinework.get());
@@ -1064,18 +1063,6 @@ namespace vcity
         //exporter.exportCityModel(model, "test.citygml");
 		
 		std::cout << std::endl << "LOD1 cree.\n";
-		
-		/*for(int i = 0; i < Geometry->getNumGeometries(); ++i)
-		{
-			citygml::Geometry* geom = new citygml::Geometry("Cadastre_LOD1", citygml::GT_Wall, 0);
-			geom = BuildLOD0FromGEOS("Bati" + std::to_string(i), ShapeSimp->getGeometryN(i)->clone(), 20, 0);
-			citygml::CityObject* obj = new citygml::WallSurface("tmpObj");
-			obj->addGeometry(geom);
-			model->addCityObjectAsRoot(obj);
-
-			std::cout << "Avancement : " << i+1 << "/" << ShapeSimp->getNumGeometries() << "\r" << std::flush;
-		}
-		std::cout << std::endl;*/
 	}
 
 	/*void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
@@ -1253,9 +1240,9 @@ namespace vcity
 			}
 			delete SGeo1;
 			
-			std::cout << "Avancement de CompareGeos : " << i << " / " << NbGeo1 << std::endl;
+			std::cout << "Avancement de CompareGeos : " << i << " / " << NbGeo1 << "\r" << std::flush;
 		}
-
+		std::cout << "\n";
 		std::cout << "Moyenne = " << moyenne/cpt << std::endl;
 
 		return Res;
@@ -1307,39 +1294,11 @@ namespace vcity
     {		
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
-		/*geos::geom::CoordinateSequence* temp = new geos::geom::CoordinateArraySequence;
-
-		temp->add(geos::geom::Coordinate(20, 20));
-		temp->add(geos::geom::Coordinate(80, 20));
-		temp->add(geos::geom::Coordinate(80, 80));
-		temp->add(geos::geom::Coordinate(20, 80));
-		temp->add(geos::geom::Coordinate(20, 20));
-	
-		geos::geom::LinearRing * shell2=factory->createLinearRing(temp);
-
-		geos::geom::Polygon* P2 = factory->createPolygon(shell2, NULL);
-
-		geos::geom::CoordinateSequence* temp2 = new geos::geom::CoordinateArraySequence;
-
-
-		temp2->add(geos::geom::Coordinate(50, 21));
-		temp2->add(geos::geom::Coordinate(50, 80));
-
-		geos::geom::LineString * LS = factory->createLineString(temp2);
-
-		geos::geom::Geometry * Res = overlaySnapRounded(P2, LS);
-
-		Save3GeometryRGB("TEST" , P2, LS, factory->createEmptyGeometry());
-		Save3GeometryRGB("TEST2" , P2, LS, Res);
-
-		std::cout << P2->getNumGeometries() << std::endl;
-		std::cout << Res->getNumGeometries() << std::endl;
-
-		return;*/
-
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
 		geos::geom::Geometry * EnveloppeCity = NULL;
+		
+		std::vector<geos::geom::Geometry *> VecGeos;
 
 		for(int i = 0; i < tiles.size(); i++)//Création de l'enveloppe city à partir des données citygml
 		{
@@ -1364,6 +1323,15 @@ namespace vcity
 					std::string name = obj->getId();
 
 					geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
+					
+					/////////////
+					for(int y = 0; y < GeosObj->getNumGeometries(); y++)
+					{
+						if(GeosObj->getGeometryN(y)->isValid())
+							VecGeos.push_back(GeosObj->getGeometryN(y)->clone());
+					}
+					/////////////
+
 					geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
 					delete GeosObj;
 					
@@ -1394,14 +1362,19 @@ namespace vcity
 				}
 				cpt++;
 				if(cpt%10 == 0)
-					std::cout << "Avancement : " << cpt << "/" << objs.size() << " batiments traites.\n";
+					std::cout << "Avancement : " << cpt << "/" << objs.size() << " batiments traites.\r" << std::flush;
 			}
+			std::cout << std::endl;
 		}
 
-		////////////////////////////////////////////////////////////////////// Compare le cadastre et le CityGML
+		
 
-		
-		
+		geos::geom::Geometry * City = factory->createGeometryCollection(VecGeos); //Contient tous les polygons 
+		//Save3GeometryRGB("Comparaison1", City, factory->createEmptyGeometry(), factory->createEmptyGeometry());
+		//Save3GeometryRGB("Comparaison2", factory->createEmptyGeometry(), Shape, factory->createEmptyGeometry());
+
+		////////////////////////////////////////////////////////////////////// Compare le cadastre et le CityGML
+				
 		if(Shape == NULL)
 		{
 			std::cout << "Shape NULL. \n";
@@ -1417,6 +1390,7 @@ namespace vcity
 		{
 			if(Link.second[i].size() <= 1)
 				continue;
+
 			std::cout<< EnveloppeCity->getGeometryN(i)->getGeometryType() << std::endl;
 			const geos::geom::Polygon * CurrPolyE = dynamic_cast<const geos::geom::Polygon*>(EnveloppeCity->getGeometryN(i));
 			//Le but de ces lignes est de convertir le polygon avec son exterior ring et ses trous en un ensemble de geometry contenant ceux ci sans qu'ils soient encore liés. On peut ainsi parcourir seulement les arrêtes du polygon sans la notion d'intérieur
@@ -1508,15 +1482,16 @@ namespace vcity
 
 				NewShape3.push_back(CurrPolyS2);
 
-				//Save3GeometryRGB(name + "_3", CurrPolyE, CurrPolyS2, CurrPolyS);
+				//Save3GeometryRGB(name + "_3", CurrPolyE, CurrPolyS2, CurrPolyS);.
 
+				//Ouverture morphologique
 				/*geos::operation::buffer::BufferParameters BP2(1, geos::operation::buffer::BufferParameters::CAP_FLAT, geos::operation::buffer::BufferParameters::JoinStyle::JOIN_MITRE, 2);
 
 				geos::operation::buffer::BufferOp Buffer2(CurrPolyS2, BP);
 
 				geos::geom::Geometry * CurrPolyS3 = Buffer2.getResultGeometry(-1);//CurrPolyS2->buffer(-2, 0, geos::operation::buffer::BufferOp::CAP_BUTT);
 
-				if(CurrPolyS3->isEmpty())
+				if(CurrPolyS3->isEmpty()) //Si le polygone est trop petit
 				{
 					NewShape4.push_back(CurrPolyS2);
 					continue;
@@ -1534,11 +1509,15 @@ namespace vcity
 
 				NewShape4.push_back(CurrPolyS4);*/
 			}
-			//Save3GeometryRGB("Im_" + std::to_string(i) + "_1", CurrPolyE, factory->createGeometryCollection(Shape1), factory->createEmptyGeometry());//Polygon de base
+			Save3GeometryRGB("Im_" + std::to_string(i) + "_1", CurrPolyE, factory->createGeometryCollection(Shape1), factory->createEmptyGeometry());//Polygon de base
 			////Save3GeometryRGB("Im_" + std::to_string(i) + "_2", CurrPolyE, factory->createGeometryCollection(NewShape), factory->createEmptyGeometry());//Polygon dilaté
 			////Save3GeometryRGB("Im_" + std::to_string(i) + "_3", CurrPolyE, factory->createGeometryCollection(NewShape2), factory->createEmptyGeometry());//Difference avec les autres polygons
-			//Save3GeometryRGB("Im_" + std::to_string(i) + "_4", CurrPolyE, factory->createGeometryCollection(NewShape3), factory->createEmptyGeometry());//Intersection avec le cityGML
+			Save3GeometryRGB("Im_" + std::to_string(i) + "_4", CurrPolyE, factory->createGeometryCollection(NewShape3), factory->createEmptyGeometry());//Intersection avec le cityGML
 			////Save3GeometryRGB("Im_" + std::to_string(i) + "_5", CurrPolyE, factory->createGeometryCollection(NewShape4), factory->createEmptyGeometry());//Ouverture morphologique
+
+			return;
+
+			////////////////////////////Eliminer les superpositions des polygons :
 			
 			for(int j = 0; j < NewShape3.size(); ++j)//Pour chaque polygon obtenu après l'intersection ...
 			{
@@ -1872,7 +1851,7 @@ namespace vcity
 		{
 			citygml::CityModel* model = tiles[i]->getCityModel();
 						
-			citygml::CityObjects objs = model->getCityObjectsRoots();//&objs
+			citygml::CityObjects objs = model->getCityObjectsRoots();
 
 			int cpt = 0;
 		
@@ -1981,7 +1960,7 @@ namespace vcity
 
 			p = dynamic_cast<const geos::geom::Polygon*>(CurrGeo);
 
-			double H = 0, Zmin = 0;
+			double H = 0, Zmin = -9999;
 			int cpt = 0;
 			for(int j = 0; j < Shape->getNumGeometries(); ++j)
 			{
@@ -1991,11 +1970,12 @@ namespace vcity
 				{
 					H += Hauteurs[j].first;
 					Hauteurs[j].first = -1;
-					Zmin += Hauteurs[j].second;
+					if(Zmin == -9999 || Zmin > Hauteurs[j].second)
+						Zmin = Hauteurs[j].second;
 					cpt++;
 				}
 			}
-			std::pair<double, double> Temp(H/cpt, Zmin/cpt);
+			std::pair<double, double> Temp(H/cpt, Zmin);
 			Hauteurs2.push_back(Temp);
 
 			GeosWithoutHoles.push_back(factory->createPolygon(factory->createLinearRing(p->getExteriorRing()->getCoordinates()), NULL));
@@ -2005,7 +1985,11 @@ namespace vcity
 
 		//SaveGeometry("Shape_Close_WithoutHoles", ShapeResWithoutHoles);
 
+		geos::geom::Geometry * ShapeResWithoutHolesSimp = geos::simplify::TopologyPreservingSimplifier::simplify(ShapeResWithoutHoles, 4).release();
+		//SaveGeometry("Shape_Close_WithoutHoles_Simplified", ShapeResWithoutHolesSimp);
+
         m_model = BuildLOD1FromGEOS(ShapeResWithoutHoles, Hauteurs2);
+        //m_model = BuildLOD1FromGEOS(ShapeResWithoutHolesSimp, Hauteurs2);
 	}
 ////////////////////////////////////////////////////////////////////////////////
     citygml::CityModel* Algo::getCitymodel()

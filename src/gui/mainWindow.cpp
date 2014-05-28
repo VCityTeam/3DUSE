@@ -332,15 +332,17 @@ bool MainWindow::loadFile(const QString& filepath)
         m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
 		buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
-        /*if(poDS)
+        if(poDS)
         {
             vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
             appGui().getControllerGui().addShpNode(uriLayer, poDS);
 
-            addRecentFile(filepath);
+            //addRecentFile(filepath);
 
             //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
-        }*/
+        }
+
+		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
     }
     else if(ext == "dxf")
     {

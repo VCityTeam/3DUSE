@@ -195,7 +195,7 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 	std::vector<geos::geom::Geometry*> Polys;
 	geos::geom::LinearRing *shell;
 	geos::geom::Polygon* P;
-
+	
 	OGRLayer *poLayer;
     int nbLayers = poDS->GetLayerCount();
     if(nbLayers > 0)
@@ -245,8 +245,8 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 					if(P->isValid()/* && P->getArea() > 10*/)
 					{
 						Polys.push_back(P);
-						double H = 1;//poFeature->GetFieldAsDouble("HAUTEUR");
-						double Zmin = 1;//poFeature->GetFieldAsDouble("Z_MIN");
+						double H = 20;
+						double Zmin = 0;
 						if(poFeature->GetFieldIndex("HAUTEUR") != -1)
 							H = poFeature->GetFieldAsDouble("HAUTEUR");
 						if(poFeature->GetFieldIndex("Z_MIN") != -1)
@@ -254,8 +254,8 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 
 						if(H == 0 || Zmin > 1000)
 						{
-							H = 20;
-							Zmin = 0;
+							H = Hauteurs->at(Hauteurs->size() - 1).first;
+							Zmin = Hauteurs->at(Hauteurs->size() - 1).second;
 						}
 
 						std::pair<double, double> PairTemp(H, Zmin);
