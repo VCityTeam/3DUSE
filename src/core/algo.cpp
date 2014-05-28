@@ -1055,14 +1055,14 @@ namespace vcity
             model->addCityObjectAsRoot(BuildingCO);
 
 			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
-
-            return model;
 		}		
 
-        //citygml::ExporterCityGML exporter;
-        //exporter.exportCityModel(model, "test.citygml");
+        citygml::ExporterCityGML exporter;
+        exporter.exportCityModel(*model, "test.citygml");
 		
 		std::cout << std::endl << "LOD1 cree.\n";
+
+        return model;
 	}
 
 	/*void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
