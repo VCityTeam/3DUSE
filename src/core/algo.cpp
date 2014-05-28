@@ -1993,6 +1993,7 @@ namespace vcity
 
 		if(Shape == NULL || Shape->isEmpty())
 		{
+            m_model = nullptr;
 			std::cout << "Shape NULL. \n";
 			return;
 		}
