@@ -32,7 +32,21 @@
 #include "geos/geom/util/LinearComponentExtracter.h"
 #include "geos/noding/GeometryNoder.h"
 #include "geos/operation/polygonize/Polygonizer.h"
-
+////////////////////////////////////////////////////////////////////////////////
+#ifdef __unix
+#include <cerrno>
+typedef int errno_t;
+errno_t fopen_s(FILE **f, const char *name, const char *mode) {
+    errno_t ret = 0;
+    assert(f);
+    *f = fopen(name, mode);
+    /* Can't be sure about 1-to-1 mapping of errno and MS' errno_t */
+    if (!*f)
+        ret = errno;
+    return ret;
+}
+#endif // __unix
+////////////////////////////////////////////////////////////////////////////////
 typedef std::pair<double,double> Point;
 typedef std::vector<Point> Polygon2D;
 typedef std::set<Polygon2D> PolySet;
@@ -342,7 +356,7 @@ namespace vcity
 		fclose(out); 
 
 		std::cout<<"Image " << name << " creee !"<<std::endl;
-	}
+    }
 
 	/**
      * @brief Sauvegarde une image RGB dans un fichier ppm
@@ -353,7 +367,7 @@ namespace vcity
 		errno_t err;
 		name = name + ".ppm";
 		char* nameC = (char*)name.c_str();
-		err = fopen_s(&out, nameC,"w"); 
+        err = fopen_s(&out, nameC,"w");
 		fprintf(out,"P3\n%d %d\n255", width, height); 
 		for(int h = height - 1; h >= 0; h--)
 		{
@@ -987,10 +1001,9 @@ namespace vcity
 	/**
      * @brief Convertit les données GEOS en LOD1 de CityGML
      */
-	void BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
+    citygml::CityModel* BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
 	{
-		citygml::CityModel model;
-
+        citygml::CityModel* model = new citygml::CityModel;
 		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
 		{		
 			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();
@@ -1040,13 +1053,15 @@ namespace vcity
 			RoofCO->addGeometry(Roof);
 			BuildingCO->insertNode(WallCO);
 			BuildingCO->insertNode(RoofCO);
-			model.addCityObjectAsRoot(BuildingCO);
+            model->addCityObjectAsRoot(BuildingCO);
 
 			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
+
+            return model;
 		}		
 
-		citygml::ExporterCityGML exporter;
-		exporter.exportCityModel(model, "test.citygml");
+        //citygml::ExporterCityGML exporter;
+        //exporter.exportCityModel(model, "test.citygml");
 		
 		std::cout << std::endl << "LOD1 cree.\n";
 		
@@ -1990,8 +2005,13 @@ namespace vcity
 
 		//SaveGeometry("Shape_Close_WithoutHoles", ShapeResWithoutHoles);
 
-		BuildLOD1FromGEOS(ShapeResWithoutHoles, Hauteurs2);
+        m_model = BuildLOD1FromGEOS(ShapeResWithoutHoles, Hauteurs2);
 	}
+////////////////////////////////////////////////////////////////////////////////
+    citygml::CityModel* Algo::getCitymodel()
+    {
+        return m_model;
+    }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////

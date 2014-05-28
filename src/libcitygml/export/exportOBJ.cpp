@@ -30,7 +30,6 @@ void ExporterOBJ::exportCityModel(const CityModel& model, const std::string& fil
         addFilter(COT_All, "");
     }
 
-    #if 0
     for(int i=0; i<m_filters.size(); ++i)
     {
         m_outFile.open(fileName+m_filterNames[i]+".obj");
@@ -45,7 +44,8 @@ void ExporterOBJ::exportCityModel(const CityModel& model, const std::string& fil
         m_outFile.close();
         exportMaterials(fileName+m_filterNames[i]+".mtl");
     }
-    #else
+
+    #if 1
     // split bldg (wall, roof)
     for(const CityObject* obj : model.getCityObjectsRoots())
     {

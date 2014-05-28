@@ -1047,6 +1047,103 @@ void MainWindow::about()
     diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void buildJson()
+{
+    QString dataPath("/mnt/docs/data/dd_backup/GIS_Data/Donnees_IGN");
+    int idOffsetX = 1286;
+    int idOffsetY = 13714;
+    double offsetX = 643000.0;
+    double offsetY = 6857000.0;
+    double stepX = 500.0;
+    double stepY = 500.0;
+
+    int i = 0;
+    QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
+    while(iterator.hasNext())
+    {
+        iterator.next();
+        if(!iterator.fileInfo().isDir())
+        {
+            QString filename = iterator.filePath();
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+            {
+                QFileInfo fileInfo(filename);
+                std::string id = filename.toStdString();
+                id = id.substr(id.find("EXPORT_")+7);
+                id = id.substr(0, id.find_first_of("/\\"));
+                //std::cout << id; std::cout << " - " << id.substr(0,id.find('-')) << " / " << id.substr(id.find('-')+1) << std::endl;
+                int idX = std::stoi(id.substr(0,id.find('-')));
+                int idY = std::stoi(id.substr(id.find('-')+1));
+                //std::string id = filename.toStdString().substr(53, 4) + "_" + filename.toStdString().substr(58, 5);
+                std::string f = fileInfo.baseName().toStdString() + '_' + std::to_string(idX) + '-' + std::to_string(idY);
+                std::cout << filename.toStdString() << " -> " << f << "\n";
+
+                std::cout << "id : " << idX << ", " << idY << std::endl;
+
+                citygml::ParserParams params;
+                citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
+                citygml::ExporterJSON exporter;
+                exporter.setBasePath("/tmp/json/");
+                exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idX-idOffsetY));
+                exporter.setTileSize(stepX, stepY);
+                if(citygmlmodel) exporter.exportCityModel(*citygmlmodel, f, id);
+                delete citygmlmodel;
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
+void buildJsonLod()
+{
+    QString dataPath("/mnt/docs/data/dd_backup/GIS_Data_tmp/E_BATI/tiles");
+    int idOffsetX = 1286;
+    int idOffsetY = 13714;
+    double offsetX = 643000.0;
+    double offsetY = 6857000.0;
+    double stepX = 500.0;
+    double stepY = 500.0;
+
+    int i = 0;
+    QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
+    while(iterator.hasNext())
+    {
+        iterator.next();
+        if(!iterator.fileInfo().isDir())
+        {
+            QString filename = iterator.filePath();
+            if(filename.endsWith(".shp", Qt::CaseInsensitive))
+            {
+                QFileInfo fileInfo(filename);
+                std::string id = filename.toStdString();
+                id = id.substr(id.find("tile_")+5);
+                id = id.substr(0, id.find('.'));
+                //std::cout << id; std::cout << " - " << id.substr(0,id.find('_')) << " / " << id.substr(id.find('_')+1) << std::endl;
+                int idX = std::stoi(id.substr(0,id.find('_')));
+                int idY = std::stoi(id.substr(id.find('_')+1));
+                std::string f = fileInfo.baseName().toStdString() + '_' + std::to_string(idX) + '-' + std::to_string(idY);
+                std::cout << filename.toStdString() << " -> " << f << "\n";
+
+                std::cout << "id : " << idX << ", " << idY << std::endl;
+
+                OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.toStdString().c_str(), FALSE);
+                buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+                vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+
+                citygml::ExporterJSON exporter;
+                exporter.setBasePath("/tmp/json/");
+                exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idX-idOffsetY));
+                exporter.setTileSize(stepX, stepY);
+                citygml::CityModel* model = vcity::app().getAlgo().getCitymodel();
+                if(model) exporter.exportCityModel(*model, f, id);
+                delete model;
+                OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
 {
     //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
@@ -1095,35 +1192,8 @@ void MainWindow::test4()
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13720/export-CityGML/ZoneAExporter.gml");
 
     // test json
-    int i = 0;
-    QDirIterator iterator("/mnt/docs/data/dd_backup/GIS_Data/Donnees_IGN/", QDirIterator::Subdirectories);
-    while(iterator.hasNext())
-    {
-        iterator.next();
-        if(!iterator.fileInfo().isDir())
-        {
-            QString filename = iterator.filePath();
-            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
-            {
-                QFileInfo fileInfo(filename);
-                std::string id = filename.toStdString().substr(53, 4) + "_" + filename.toStdString().substr(58, 5);
-                std::string f = fileInfo.baseName().toStdString() + "_" + id;
-                std::cout << filename.toStdString() << " -> " << f << "\n";
-
-                std::cout << "id : " << id << " - " << id.substr(0, id.find('_')) << " / " << id.substr(id.find('_')+1) << std::endl;
-
-                citygml::ParserParams params;
-                citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
-                citygml::ExporterJSON exporter;
-                exporter.setBasePath("/tmp/json/");
-                exporter.setOffset(643000.0+500.0*(std::stod(id.substr(0, id.find('_')))-1286), 6857000.0+500.0*(std::stod(id.substr(id.find('_')+1))-13714));
-                exporter.setTileSize(500.0, 500.0);
-                if(citygmlmodel) exporter.exportCityModel(*citygmlmodel, f, id);
-                delete citygmlmodel;
-            }
-        }
-    }
-    std::cout << std::endl;
+    //buildJson();
+    buildJsonLod();
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

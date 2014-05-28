@@ -738,32 +738,25 @@ namespace citygml
     void CityObject::computeEnvelope()
     {
         // compute envelope
-        std::vector<Geometry*>::iterator itG = _geometries.begin();
-        for( ; itG != _geometries.end(); ++itG) // geometry
+        for(Geometry* geom : _geometries) // geometry
         {
-            Geometry* geom = *itG;
-            for(unsigned int i = 0; i < (*itG)->size(); ++i) // polygon
+            for(Polygon* poly : geom->getPolygons())
             {
-                const std::vector<TVec3d>& pts = geom->operator[](i)->getVertices();
-                std::vector<TVec3d>::const_iterator itP = pts.begin();
-                for( ; itP != pts.end(); ++itP)
+                for(const TVec3d& v : poly->getExteriorRing()->getVertices())
                 {
-                    _envelope.merge(*itP);
+                    _envelope.merge(v);
                 }
             }
         }
 
-        std::vector<CityObject*>::iterator it = _children.begin();
-        for( ; it != _children.end(); ++it )
+        for(CityObject* obj : _children)
         {
             // compute child envelope
-            (*it)->computeEnvelope();
+            obj->computeEnvelope();
 
             // update parent envelope
-            _envelope.merge((*it)->getEnvelope());
+            _envelope.merge(obj->getEnvelope());
         }
-
-        //std::cout << getId() << " : " << _envelope << std::endl;
     }
 
     void CityObject::computeCentroid()
@@ -807,13 +800,11 @@ namespace citygml
 
     void CityModel::computeEnvelope()
     {
-        CityObjects::iterator it = _roots.begin();
-        for( ; it != _roots.end(); ++it )
+        for(CityObject* obj : _roots)
         {
-            (*it)->computeEnvelope();
-            //_envelope.merge((*it)->getEnvelope());
+            obj->computeEnvelope();
+            _envelope.merge(obj->getEnvelope());
         }
-        //std::cout << getId() << " model : " << _envelope << std::endl;
     }
 
     bool cmpTag(BuildingTag* a,BuildingTag* b) { return (a->m_date < b->m_date); }

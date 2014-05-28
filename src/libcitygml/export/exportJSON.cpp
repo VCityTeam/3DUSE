@@ -84,7 +84,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     #endif
 
     // terrain geo ref test
-    #if 1
+    #if 0
     std::cout << "offset : " << m_offsetX << ", " << m_offsetY << std::endl;
     m_genTexCoords = true;
     addFilter(COT_TINRelief, "terrain");
@@ -103,6 +103,31 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
         if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
     m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listTerrain scope
+    closeScope(); // global scope
+    m_outFile.close();
+    resetFilters();
+    #endif
+
+    // bldg geo ref test
+    #if 1
+    m_genTexCoords = true;
+    addFilter(COT_WallSurface, "walls");
+    addFilter(COT_RoofSurface, "roofs");
+    m_outFile.open(m_basePath + "building/" + fileName + ".json");
+    m_outFile << std::fixed;
+    openScope(); // global scope
+    indent(); m_outFile << "\"id\":\"" << id << "\",\n";
+    indent(); m_outFile << "\"nbBldg\":" << getNbFeature(model, COT_Building) << ",\n";
+    p = model.getEnvelope().getLowerBound();
+    indent(); m_outFile << "\"min\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    p = model.getEnvelope().getUpperBound();
+    indent(); m_outFile << "\"max\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    indent(); m_outFile << "\"listBldg\":";
+    openScope(); // listBldg scope
+    for(CityObject* obj : model.getCityObjectsRoots())
+        if(obj && obj->getType() == COT_Building) exportCityObject(*obj);
+    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    closeScope();  // listBldg scope
     closeScope(); // global scope
     m_outFile.close();
     resetFilters();

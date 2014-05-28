@@ -2,8 +2,8 @@
 #define __ALGO_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "URI.hpp"
-
 #include "geos/geom/GeometryFactory.h"
+#include "libcitygml/citygml.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -15,8 +15,10 @@ public:
 	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);
 	void CompareTiles();
 
-private:
+    citygml::CityModel* getCitymodel();
 
+private:
+    citygml::CityModel* m_model; ///< Generation result
 };
 // entry points for LODs ?
 // split algos in multiple files ?
