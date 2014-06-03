@@ -6,6 +6,11 @@
 #include <set>
 #define TEXTURE_PROCESS 1
 
+#include <iostream>
+#include <QFileInfo>
+#include <QDir>
+#include <QFile>
+
 void afficher_noeud(xmlNodePtr noeud, bool *first_posList, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s)
 {
 	if (noeud->type == XML_ELEMENT_NODE)
@@ -96,12 +101,31 @@ void parcours_prefixe(xmlNodePtr noeud, fct_parcours_t f, bool *first, double *x
     }
 }
 
+void copy_textures(xmlNodePtr noeud, std::string folderIN, std::string folderOUT)
+{
+	xmlChar *imageURI = xmlNodeGetContent(noeud);
+		QString textIN, textOUT;
+		textIN = QString::fromStdString(folderIN)+"/"+QString::fromStdString(std::string((char *) imageURI));
+		textOUT = QString::fromStdString(folderOUT)+"/"+QString::fromStdString(std::string((char *) imageURI));
+		QFileInfo fi(textOUT);
+		QDir dir(fi.absolutePath());
+			if (!dir.exists())
+				dir.mkpath(".");
+		//std::cout << " -> textIN: " << textIN.toStdString() << std::endl;
+		QFile::copy(textIN, textOUT);					
+		//std::cout << " -> textOUT: " << textOUT.toStdString() << std::endl;
+		textOUT = fi.absolutePath()+"/"+fi.baseName()+"."+fi.suffix().at(0)+fi.suffix().at(2)+"w";
+		QFile::copy(textIN, textOUT);					
+		//std::cout << " -> textOUT wf: " << textOUT.toStdString() << std::endl;
+	xmlFree(imageURI);
+}
+
 int main(int argc, char** argv)
 {
 	if (argc != 7)
 	{
 		puts("");
-		puts("ParseCityGML 1.0.4 - June 3, 2014 - Martial TOLA");
+		puts("ParseCityGML 1.0.5 - June 3, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -115,6 +139,7 @@ int main(int argc, char** argv)
 		return(EXIT_FAILURE);
 	}
 
+	std::string folderIN, folderOUT;
 	int nbCopied = 0;
 	bool POST_PROCESS_TEXTURE = false;
 	xmlNodePtr appearanceMember_node = NULL;
@@ -145,6 +170,14 @@ int main(int argc, char** argv)
         fprintf(stderr, "Invalid XML file\n");
         return EXIT_FAILURE;
     }
+
+	QFileInfo fiIN(argv[1]);
+	folderIN = fiIN.absolutePath().toStdString();
+	std::cout << " -> folderIN: " << folderIN << std::endl;
+
+	QFileInfo fiOUT(argv[2]);
+	folderOUT = fiOUT.absolutePath().toStdString();
+	std::cout << " -> folderOUT: " << folderOUT << std::endl;
 
     // get root
     racine = xmlDocGetRootElement(doc);
@@ -211,8 +244,8 @@ int main(int argc, char** argv)
 						//exit(-1);
 						/*if ( (xmin_Building >= xmin) && (xmax_Building <= xmax) )
 							if ( (ymin_Building >= ymin) && (ymax_Building <= ymax) )*/
-						if ( ((xmin_Building < xmax) && (ymin_Building < ymax)) || ((xmax_Building > xmin) && (ymax_Building > ymin)) )
-						//if ( (xmax_Building < xmin) || (ymax_Building < ymin) || (xmin_Building > xmax) || (ymin_Building > ymax) ) // intersection AABB bad ?
+						//if ( ((xmin_Building < xmax) && (ymin_Building < ymax)) || ((xmax_Building > xmin) && (ymax_Building > ymin)) )
+						if ( (xmax_Building < xmin) || (ymax_Building < ymin) || (xmin_Building > xmax) || (ymin_Building > ymax) ) // intersection AABB
 							{
 								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
 
@@ -276,9 +309,12 @@ int main(int argc, char** argv)
 									if (xmlStrEqual(nc->children->name, BAD_CAST "GeoreferencedTexture"))
 									{
 										xmlNodePtr copy_node6 = xmlCopyNode(nc->children, 1);
+										xmlNodePtr copy_node_imageURI;
 
 										if ((nc->children->type == XML_ELEMENT_NODE) && (nc->children->children != NULL))
 										{
+											bool node_copied = false;
+
 											for (xmlNodePtr nc2 = nc->children->children; nc2 != NULL; nc2 = nc2->next)
 											{
 												if (xmlStrEqual(nc2->name, BAD_CAST "target"))
@@ -292,12 +328,19 @@ int main(int argc, char** argv)
 															xmlAddChild(copy_node4, copy_node5);
 															xmlAddChild(copy_node5, copy_node6);
 
+															node_copied = true;
+
 															printf("GeoreferencedTexture target COPIED: %s\n", p);
 														}
 
 													xmlFree(contenu);
 												}
+												else if (xmlStrEqual(nc2->name, BAD_CAST "imageURI"))
+													copy_node_imageURI = nc2;
 											}
+
+											if (node_copied)
+												copy_textures(copy_node_imageURI, folderIN, folderOUT);
 										}
 									}
 									// --- ParameterizedTexture ---
@@ -327,6 +370,7 @@ int main(int argc, char** argv)
 																xmlAddChild(copy_node4, copy_node5);
 																xmlAddChild(copy_node5, copy_node6);
 																xmlAddChild(copy_node6, copy_node_imageURI);
+																	copy_textures(copy_node_imageURI, folderIN, folderOUT);
 																xmlAddChild(copy_node6, copy_node_textureType);
 																xmlAddChild(copy_node6, copy_node_wrapMode);
 																xmlAddChild(copy_node6, copy_node_borderColor);

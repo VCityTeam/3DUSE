@@ -451,7 +451,7 @@ endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
 add_executable(parseCityGML src/utils/parseCityGML.cxx)
-target_link_libraries (parseCityGML ${VCITY_GUI_LIB} ${LIBXML2_LIBRARIES})
+target_link_libraries (parseCityGML ${VCITY_GUI_LIB})
 if (WITH_QT5)
   QT5_USE_MODULES( parseCityGML Widgets Xml OpenGL )
   if (WITH_QT3D)
