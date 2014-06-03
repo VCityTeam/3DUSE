@@ -12,14 +12,18 @@ DataProfile::DataProfile()
 ////////////////////////////////////////////////////////////////////////////////
 DataProfile createDataProfileDefault()
 {
-    DataProfile dp;
+	DataProfile dp;
     dp.m_offset.x = 0.0;
     dp.m_offset.y = 0.0;
 
     dp.m_xStep = 0;
     dp.m_yStep = 0;
 
+    dp.m_id = 0;
+    dp.m_name = "None";
+
     return dp;
+	//return createDataProfileLyon();
 }
 ////////////////////////////////////////////////////////////////////////////////
 DataProfile createDataProfileParis()
@@ -31,17 +35,23 @@ DataProfile createDataProfileParis()
     dp.m_xStep = 500;
     dp.m_yStep = 500;
 
+    dp.m_id = 1;
+    dp.m_name = "Paris";
+
     return dp;
 }
 ////////////////////////////////////////////////////////////////////////////////
 DataProfile createDataProfileLyon()
 {
     DataProfile dp;
-    dp.m_offset.x = 1845000.0;
-    dp.m_offset.y = 5176000.0;
+    dp.m_offset.x = 1840000.0;
+    dp.m_offset.y = 5170000.0;
 
     dp.m_xStep = 0;
     dp.m_yStep = 0;
+
+    dp.m_id = 2;
+    dp.m_name = "Lyon";
 
     return dp;
 }

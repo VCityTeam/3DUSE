@@ -1,7 +1,7 @@
 #ifndef __EXPORTOBJ_HPP__
 #define __EXPORTOBJ_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "export.hpp"
+#include "exporter.hpp"
 #include "citygml.hpp"
 //#include <fstream> // MT 05/05/2014
 #include <osgDB/fstream>
@@ -11,25 +11,26 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterOBJ class
 /// Export OBJ
-class ExporterOBJ : public Export
+class ExporterOBJ : public Exporter
 {
 public:
     ExporterOBJ();
 
     void addFilter(citygml::CityObjectsType filter, const std::string& name);
+    void resetFilters();
 
     /// \brief exportCityModel
     /// \param model
     /// \param fileName
-    void exportCityModel(CityModel& model, const std::string& fileName);
+    void exportCityModel(const CityModel& model, const std::string& fileName);
 
     /// \brief exportCityObject
     /// \param model
     /// \param fileName
-    void exportCityObject(CityObject& obj, const std::string& fileName);
+    void exportCityObject(const CityObject& obj, const std::string& fileName);
 
 private:
-    void exportCityObject(CityObject& obj, citygml::CityObjectsType filter=COT_All);
+    void exportCityObject(const CityObject& obj, citygml::CityObjectsType filter=COT_All);
     void exportMaterials(const std::string& filename);
 
     std::ofstream m_outFile;

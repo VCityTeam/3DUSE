@@ -19,13 +19,15 @@
 #include "export/exportCityGML.hpp"
 #include "export/exportJSON.hpp"
 #include "export/exportOBJ.hpp"
-#include "export/exportOBJAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
 #include "cpl_conv.h" // for CPLMalloc()
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
+
+
+#include <geos/geom/GeometryFactory.h>
 
 /*#include "assimp/Importer.hpp"
 #include "assimp/PostProcess.h"
@@ -35,6 +37,10 @@
 
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
+
+geos::geom::Geometry* ShapeGeo = NULL;
+std::vector<std::pair<double, double>> Hauteurs;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
 {
@@ -76,7 +82,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
     connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
     connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
-    connect(m_ui->actionExport_OBJ_Assimp, SIGNAL(triggered()), this, SLOT(exportOBJAssimp()));
     connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
     connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
     //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
@@ -141,6 +146,8 @@ MainWindow::MainWindow(QWidget *parent) :
     updateRecentFiles();
 
     m_treeView->init();
+
+    //m_ui->statusBar->showMessage("none");
     
     setlocale(LC_ALL, "C"); // MT : important for Linux
 }
@@ -224,6 +231,13 @@ void MainWindow::openRecentFile()
 ////////////////////////////////////////////////////////////////////////////////
 bool MainWindow::loadFile(const QString& filepath)
 {
+    // date check
+    if(QDate::currentDate() > QDate(2015, 01, 01))
+    {
+        QMessageBox(QMessageBox::Critical,  "Error", "Expired").exec();
+        return false;
+    }
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
     QSettings settings("liris", "virtualcity");
     QFileInfo file(filepath);
@@ -314,16 +328,21 @@ bool MainWindow::loadFile(const QString& filepath)
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+		
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
+		buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
         if(poDS)
         {
             vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
             appGui().getControllerGui().addShpNode(uriLayer, poDS);
 
-            addRecentFile(filepath);
+            //addRecentFile(filepath);
 
             //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
         }
+
+		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
     }
     else if(ext == "dxf")
     {
@@ -590,7 +609,6 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->menuTest->menuAction()->setVisible(true);
         m_ui->menuTools->menuAction()->setVisible(true);
         m_ui->menuRender->menuAction()->setVisible(true);
-        m_ui->actionExport_OBJ_Assimp->setVisible(true);
         m_ui->actionExport_osg->setVisible(true);
         m_ui->actionExport_tiled_osga->setVisible(true);
         m_ui->actionLoad_bbox->setVisible(true);
@@ -609,7 +627,6 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->menuTest->menuAction()->setVisible(false);
         m_ui->menuTools->menuAction()->setVisible(false);
         m_ui->menuRender->menuAction()->setVisible(false);
-        m_ui->actionExport_OBJ_Assimp->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
@@ -637,9 +654,26 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    unlockFeatures("none");
+    //unlockFeatures("pass2");
+    unlockFeatures("");
     m_ui->mainToolBar->hide();
-    m_ui->statusBar->hide();
+    //m_ui->statusBar->hide();
+
+    // set dataprofile
+    QSettings settings("liris", "virtualcity");
+    QString dpName = settings.value("dataprofile").toString();
+    if(dpName == "Paris")
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileParis();
+    }
+    else if(dpName == "Lyon")
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileLyon();
+    }
+    else
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileDefault();
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::resetScene()
@@ -781,11 +815,15 @@ void MainWindow::exportCityGML()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        //std::cout << "Citygml export cityobject : " << *uris.begin() << std::endl;
-        // use first node picked
-        //citygml::CityObject* model = m_app.getScene().getDefaultLayer()->getTiles()[0]->findNode(*uris.begin()); // use getNode
+        std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
+        std::vector<citygml::CityObject*> objs;
+        for(const vcity::URI& uri : uris)
+        {
+            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            if(obj) objs.push_back(obj);
+        }
         //citygml::exportCitygml(model, "test.citygml");
-        //if(model) exporter.exportCityObject(model, filename.toStdString());
+        exporter.exportCityObject(objs, filename.toStdString());
     }
     else
     {
@@ -794,7 +832,7 @@ void MainWindow::exportCityGML()
 		vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
         citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
         //citygml::exportCitygml(model, "test.citygml");
-        exporter.exportCityModel(model, filename.toStdString());
+        exporter.exportCityModel(*model, filename.toStdString());
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -844,30 +882,6 @@ void MainWindow::exportJSON()
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::exportOBJAssimp()
-{
-    /*QString filename = QFileDialog::getSaveFileName();
-    QFileInfo fileInfo(filename);
-    filename = fileInfo.path() + "/" + fileInfo.baseName();
-    citygml::ExporterOBJAssimp exporter;
-    exporter.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
-
-    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        if(uris[0].getType() == "Tile")
-        {
-            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
-            if(model) exporter.exportCityModel(*model, filename.toStdString());
-        }
-        else
-        {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
-            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
-        }
-    }*/
-}
-////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOBJ()
 {
     QString filename = QFileDialog::getSaveFileName();
@@ -905,6 +919,8 @@ void MainWindow::exportOBJsplit()
     exporter.addFilter(citygml::COT_TINRelief, "Terrain");
     exporter.addFilter(citygml::COT_LandUse, "LandUse");
     exporter.addFilter(citygml::COT_Road, "Road");
+    exporter.addFilter(citygml::COT_Door, "Door");
+    exporter.addFilter(citygml::COT_Window, "Window");
 
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
@@ -965,28 +981,17 @@ void MainWindow::generateLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
-    // get all selected nodes (with a uri)
-    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        // do all nodes selected
-        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
-        {
-            vcity::app().getAlgo().generateLOD1(*it);
-            // TODO
-            //appGui().getControllerGui().update(*it);
-        }
-    }
+	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {
-
+	vcity::app().getAlgo().CompareTiles();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD3()
-{
-
+{	
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo); 
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD4()
@@ -1061,15 +1066,125 @@ void MainWindow::about()
     diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void buildJson()
+{
+    QString dataPath("/mnt/docs/data/dd_backup/GIS_Data/Donnees_IGN");
+    std::string basePath("/tmp/json/");
+    int idOffsetX = 1286;
+    int idOffsetY = 13714;
+    double offsetX = 643000.0;
+    double offsetY = 6857000.0;
+    double stepX = 500.0;
+    double stepY = 500.0;
+
+    int i = 0;
+    QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
+    while(iterator.hasNext())
+    {
+        iterator.next();
+        if(!iterator.fileInfo().isDir())
+        {
+            QString filename = iterator.filePath();
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+            {
+                citygml::ParserParams params;
+                citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
+                if(citygmlmodel)
+                {
+                    QFileInfo fileInfo(filename);
+                    std::string id = filename.toStdString();
+                    id = id.substr(id.find("EXPORT_")+7);
+                    id = id.substr(0, id.find_first_of("/\\"));
+                    int idX = std::stoi(id.substr(0,id.find('-')));
+                    int idY = std::stoi(id.substr(id.find('-')+1));
+                    std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
+                    std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
+
+                    std::cout << "id : " << idX << ", " << idY << std::endl;
+
+                    citygml::ExporterJSON exporter;
+                    exporter.setBasePath(basePath);
+                    exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idY-idOffsetY));
+                    exporter.setTileSize(stepX, stepY);
+                    exporter.exportCityModel(*citygmlmodel, f, id);
+                    delete citygmlmodel;
+                }
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
+void buildJsonLod()
+{
+    QString dataPath("/mnt/docs/upload/shp/paris/tiles");
+    std::string basePath("/tmp/json/lod0/");
+    int idOffsetX = 1286;
+    int idOffsetY = 13714;
+    double offsetX = 643000.0;
+    double offsetY = 6857000.0;
+    double stepX = 500.0;
+    double stepY = 500.0;
+
+    int i = 0;
+    QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
+    while(iterator.hasNext())
+    {
+        iterator.next();
+        if(!iterator.fileInfo().isDir())
+        {
+            QString filename = iterator.filePath();
+            if(filename.endsWith(".shp", Qt::CaseInsensitive))
+            {
+                QFileInfo fileInfo(filename);
+                std::string id = filename.toStdString();
+                id = id.substr(id.find("tile_")+5);
+                id = id.substr(0, id.find('.'));
+                //std::cout << id; std::cout << " - " << id.substr(0,id.find('_')) << " / " << id.substr(id.find('_')+1) << std::endl;
+                int idX = std::stoi(id.substr(0,id.find('_')));
+                int idY = std::stoi(id.substr(id.find('_')+1));
+                std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
+                std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
+
+                std::cout << "id : " << idX << ", " << idY << std::endl;
+
+                OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.toStdString().c_str(), FALSE);
+                buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+                vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+
+                citygml::ExporterJSON exporter;
+                exporter.setBasePath(basePath);
+                exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idY-idOffsetY));
+                exporter.setTileSize(stepX, stepY);
+                citygml::CityModel* model = vcity::app().getAlgo().getCitymodel();
+                if(model)
+                {
+                    exporter.exportCityModel(*model, f, id);
+                    delete model;
+                }
+                OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
 {
-    loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
+    //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
+
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
+
+	vcity::app().getAlgo().CompareTiles();
+
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test2()
 {
     //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13725/export-CityGML/ZoneAExporter.gml");
+    /*loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13725/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13724/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13725/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13724/export-CityGML/ZoneAExporter.gml");
@@ -1077,7 +1192,11 @@ void MainWindow::test2()
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");
+    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");*/
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2009.gml");
+	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2012.gml");
+
+	vcity::app().getAlgo().CompareTiles();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
@@ -1098,36 +1217,8 @@ void MainWindow::test4()
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13720/export-CityGML/ZoneAExporter.gml");
 
     // test json
-    int i = 0;
-    QDirIterator iterator("/mnt/docs/data/dd_backup/Donnees_IGN/", QDirIterator::Subdirectories);
-    while(iterator.hasNext())
-    {
-        iterator.next();
-        if(!iterator.fileInfo().isDir())
-        {
-            QString filename = iterator.filePath();
-            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
-            {
-                QFileInfo fileInfo(filename);
-                std::string id = filename.toStdString().substr(44, 4) + "_" + filename.toStdString().substr(49, 5);
-                //qDebug("Found %s matching pattern.", qPrintable(filename));
-                std::stringstream ss;
-                //ss << "/mnt/docs/upload/json/" << fileInfo.baseName().toStdString() << "_" << id;
-                ss << "/tmp/json/" << fileInfo.baseName().toStdString() << "_" << id;
-                std::string f = ss.str();
-                std::cout << filename.toStdString() << " -> " << f << "\n";
-
-                //std::cout << "id : " << id << std::endl;
-
-                citygml::ParserParams params;
-                citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
-                citygml::ExporterJSON exporter;
-                if(citygmlmodel) exporter.exportCityModel(*citygmlmodel, f, id);
-                delete citygmlmodel;
-            }
-        }
-    }
-    std::cout << std::endl;
+    //buildJson();
+    buildJsonLod();
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

@@ -13,6 +13,7 @@
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
 #include "osgCityGML.hpp"
+#include "core/dataprofile.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -170,6 +171,7 @@ void OsgScene::init()
 
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
     osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
+    //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(643000.0, 6857000.0, 0.0), 500.0, 30);
     m_layers->addChild(grid);
 
     //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
@@ -293,6 +295,17 @@ void OsgScene::deleteNode(const vcity::URI& uri)
     if(node)
     {
         node->getParent(0)->removeChild(node);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::updateGrid()
+{
+    for(unsigned int i=0; i<m_layers->getNumChildren(); ++i)
+    {
+        if(m_layers->getChild(i)->getName() == "grid")
+        {
+            //m_layers->getChild(i) =
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -387,22 +387,23 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
     }*/
 
     // add bbox
-    const citygml::Envelope& env = object->getEnvelope();
-    if(object->getType() == citygml::COT_Building && env.getLowerBound().x != 0 && env.getLowerBound().y != 0 && env.getLowerBound().z != 0 &&
-                                                     env.getUpperBound().x != 0 && env.getUpperBound().y != 0 && env.getUpperBound().z != 0)
-    //std::cout << "bbox : " << env << std::endl;
-    //if(object->getType() == citygml::COT_Building)
+    if(object->getType() == citygml::COT_Building)
     {
         //object->computeEnvelope();
-        //const citygml::Envelope& env = object->getEnvelope();
-        TVec3d lb_ = env.getLowerBound()-TVec3d(643000.0, 6861500.0, 0.0);
-        osg::Vec3 lb(lb_.x, lb_.y, lb_.z);
-        TVec3d ub_ = env.getUpperBound()-TVec3d(643000.0, 6861500.0, 0.0);
-        osg::Vec3 ub(ub_.x, ub_.y, ub_.z);
-        osg::ref_ptr<osg::Geode> bbox = osgTools::buildBBox(lb, ub);
-        geode->addDrawable(bbox->getDrawable(0));
-
-        //std::cout << "bbox ok" << std::endl;
+        const citygml::Envelope& env = object->getEnvelope();
+        if(env.getUpperBound().x != 0.0 && env.getUpperBound().y != 0.0 && env.getUpperBound().z != 0.0 ||
+           env.getLowerBound().x != 0.0 && env.getLowerBound().y != 0.0 && env.getLowerBound().z != 0.0)
+        {
+            std::cout << object->getId() << " : " << env << std::endl;
+            TVec3d lb_ = env.getLowerBound()-offset_;
+            osg::Vec3 lb(lb_.x, lb_.y, lb_.z);
+            TVec3d ub_ = env.getUpperBound()-offset_;
+            osg::Vec3 ub(ub_.x, ub_.y, ub_.z);
+            std::cout << lb.x() << ", " << lb.y() << ", " << lb.z() << std::endl;
+            std::cout << ub.x() << ", " << ub.y() << ", " << ub.z() << std::endl;
+            osg::ref_ptr<osg::Geode> bbox = osgTools::buildBBox(lb, ub);
+            //geode->addDrawable(bbox->getDrawable(0));
+        }
     }
 
     //std::cout << "build osg geom ok" << std::endl;

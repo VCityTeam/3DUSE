@@ -464,7 +464,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Root" << std::endl;
         m_tree->addAction(m_actionAddLayer);
     }
-    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp" || item->text(1) == "LayerMnt")
+    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp" || item->text(1) == "LayerMnt" || item->text(1) == "LayerShp")
     {
         std::cout << item->text(1).toStdString() << std::endl;
         m_tree->addAction(m_actionDeleteLayer);
