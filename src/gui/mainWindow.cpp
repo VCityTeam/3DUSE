@@ -1176,10 +1176,10 @@ void MainWindow::test2()
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");*/
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2009.gml");
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2012.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
-	vcity::app().getAlgo().CompareTiles();
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()

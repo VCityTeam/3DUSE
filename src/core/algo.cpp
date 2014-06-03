@@ -32,6 +32,7 @@
 #include "geos/geom/util/LinearComponentExtracter.h"
 #include "geos/noding/GeometryNoder.h"
 #include "geos/operation/polygonize/Polygonizer.h"
+#include "geos/triangulate/DelaunayTriangulationBuilder.h"
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef __unix
 #include <cerrno>
@@ -55,7 +56,7 @@ typedef std::set<Polygon2D> PolySet;
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-	double Scale = 5; //Définit le zoom des images sauvegardées, avec 1 = 1 mètre/pixel.
+	double Scale = 10; //Définit le zoom des images sauvegardées, avec 1 = 1 mètre/pixel.
 
     /**
      * @brief projete les toits du CityObject selectioné sur le plan (xy)
@@ -382,6 +383,96 @@ namespace vcity
 
 		std::cout<<"Image " << name << " creee !"<<std::endl;
 	}
+	
+	void SaveRecursiveGeometry(const geos::geom::Geometry * Geo, int* Im, int height, int width, int Xmin, int Ymin)
+	{
+		if(Geo->getNumGeometries() > 1)
+		{
+			for(int i = 0; i < Geo->getNumGeometries(); ++i)
+				SaveRecursiveGeometry(Geo->getGeometryN(i), Im, height, width, Xmin, Ymin);
+		}
+		else
+		{
+			const geos::geom::CoordinateSequence *coord;
+			const geos::geom::Polygon *p = dynamic_cast<const geos::geom::Polygon*>(Geo);
+			if(p)
+			{
+				coord = p->getExteriorRing()->getCoordinates();
+				for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+				{
+					int x1 = Scale*coord->getAt(j).x - Xmin;
+					int y1 = Scale*coord->getAt(j).y - Ymin;
+
+					int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+					int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+					
+					std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+
+					for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+					{
+						int pos = it->first + it->second * width;
+						if(pos >= width * height || pos < 0)
+							std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+						else
+							Im[pos] = 0;
+					}
+				}
+
+				for(int k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
+				{
+					delete coord;
+					coord = p->getInteriorRingN(k)->getCoordinates();
+					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+					{
+						int x1 = Scale*coord->getAt(j).x - Xmin;
+						int y1 = Scale*coord->getAt(j).y - Ymin;
+
+						int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+						int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+						
+						std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+						//Points.push_back(std::make_pair(x1, y1));
+
+						for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+						{
+							int pos = it->first + it->second * width;
+							if(pos >= width * height || pos < 0)
+								std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+							else
+								Im[pos] = 0;
+						}
+					}
+				}
+			}
+			else
+			{
+				coord = Geo->getCoordinates();
+				if(coord->size() != 0)
+				{
+					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+					{
+						int x1 = Scale*coord->getAt(j).x - Xmin;
+						int y1 = Scale*coord->getAt(j).y - Ymin;
+
+						int	x2 = Scale*coord->getAt(j+1).x - Xmin;
+						int	y2 = Scale*coord->getAt(j+1).y - Ymin;
+											
+						std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
+
+						for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
+						{
+							int pos = it->first + it->second * width;
+							if(pos >= width * height || pos < 0)
+								std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
+							else
+								Im[pos] = 0;
+						}
+					}
+				}
+			}
+			delete coord;
+		}
+	}
 
 	/**
      * @brief Sauvegarde la geometry dans un fichier image
@@ -412,6 +503,8 @@ namespace vcity
 		Xmin --;
 		Ymin --;
 
+		delete coord;
+
 		//std::cout << Xmin << ";" << Xmax << "  " << Ymin << ";" << Ymax << std::endl;
 		
 		int width = Xmax - Xmin + Scale;
@@ -419,9 +512,6 @@ namespace vcity
 
 		int* Im = new int[width * height];
 		memset(Im, 1, width*height*sizeof(int));
-		int* ImHoles = new int[width * height];
-		memset(ImHoles, 1, width*height*sizeof(int));
-		bool Holes = false; //Passe à true en présence d'holes
 
 		int NbGeo = G->getNumGeometries();
 
@@ -429,108 +519,12 @@ namespace vcity
 		{
 			const geos::geom::Geometry *Geo = G->getGeometryN(i);
 
-			const geos::geom::Polygon *p = dynamic_cast<const geos::geom::Polygon*>(Geo);
-			if(p)
-			{
-				delete coord;
-				coord = p->getExteriorRing()->getCoordinates();
-				for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-				{
-					int x1 = Scale*coord->getAt(j).x - Xmin;
-					int y1 = Scale*coord->getAt(j).y - Ymin;
-
-					int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-					int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-					
-					std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-					for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-					{
-						int pos = it->first + it->second * width;
-						if(pos >= width * height || pos < 0)
-						{
-							std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-							int a;
-							std::cin >> a;
-						}
-						else
-						{
-							Im[pos] = 0;
-							ImHoles[pos] = 0;
-						}
-					}
-				}
-
-				for(int k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
-				{
-					Holes = true;
-					delete coord;
-					coord = p->getInteriorRingN(k)->getCoordinates();
-					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-					{
-						int x1 = Scale*coord->getAt(j).x - Xmin;
-						int y1 = Scale*coord->getAt(j).y - Ymin;
-
-						int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-						int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-						
-						std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-						//Points.push_back(std::make_pair(x1, y1));
-
-						for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-						{
-							int pos = it->first + it->second * width;
-							if(pos >= width * height || pos < 0)
-							{
-								std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-								int a;
-								std::cin >> a;
-							}
-							else
-								ImHoles[pos] = 0;
-						}
-					}
-				}
-			}
-			else
-			{
-				//std::cout << "Geometry n'est pas un polygon. \n";
-				delete coord;
-				coord = Geo->getCoordinates();
-
-				for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-				{
-					int x1 = Scale*coord->getAt(j).x - Xmin;
-					int y1 = Scale*coord->getAt(j).y - Ymin;
-
-					int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-					int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-					
-					std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-					for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-					{
-						int pos = it->first + it->second * width;
-						if(pos >= width * height || pos < 0)
-						{
-							std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-							int a;
-							std::cin >> a;
-						}
-						else
-							Im[pos] = 0;
-					}
-				}
-			}
+			SaveRecursiveGeometry(Geo, Im, height, width, Xmin, Ymin);
 		}
-		
-		if(Holes)
-			SaveImage(name/* + "withHoles"*/, ImHoles, width, height);
-		else
-			SaveImage(name, Im, width, height);
+
+		SaveImage(name, Im, width, height);
 		
 		delete [] Im;
-		delete [] ImHoles;
 	}
 
 	/**
@@ -566,6 +560,7 @@ namespace vcity
 					Ymax = y;
 			}
 		}		
+		delete coord;
 
 		Xmin --;
 		Ymin --;
@@ -577,17 +572,17 @@ namespace vcity
 		int* ImR = new int[width * height];
 		int* ImG = new int[width * height];
 		int* ImB = new int[width * height];
-		int* ImHoles = new int[width * height];
-		int* ImHolesR = new int[width * height];
-		int* ImHolesG = new int[width * height];
-		int* ImHolesB = new int[width * height];
-		bool Holes = false; //Passe à true en présence d'holes
 
 		for(int g = 0; g < 3; g ++)
 		{			
-			memset(Im, 1, width*height*sizeof(int));			
-			memset(ImHoles, 1, width*height*sizeof(int));
-
+			memset(Im, 1, width*height*sizeof(int));
+			//////// Pour avoir un canal vide (utile pour avoir une taille d'image fixe)
+			if(g==1)
+			{
+				memcpy(ImG, Im, width*height*sizeof(int));
+				continue;
+			}
+			////////
 			int NbGeo;
 
 			if(g==0)
@@ -608,168 +603,28 @@ namespace vcity
 				else
 					Geo = G3->getGeometryN(i);
 
-				const geos::geom::Polygon *p = dynamic_cast<const geos::geom::Polygon*>(Geo);
-
-				if(p)
-				{
-					delete coord;
-					coord = p->getExteriorRing()->getCoordinates();
-					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-					{
-						int x1 = Scale*coord->getAt(j).x - Xmin;
-						int y1 = Scale*coord->getAt(j).y - Ymin;
-
-						int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-						int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-					
-						std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-						for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-						{
-							int pos = it->first + it->second * width;
-							if(pos >= width * height || pos < 0)
-								std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-							else
-							{
-								Im[pos] = 0;
-								ImHoles[pos] = 0;
-							}
-						}
-					}
-
-					for(int k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
-					{
-						Holes = true;
-						delete coord;
-						coord = p->getInteriorRingN(k)->getCoordinates();
-						for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-						{
-							int x1 = Scale*coord->getAt(j).x - Xmin;
-							int y1 = Scale*coord->getAt(j).y - Ymin;
-
-							int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-							int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-						
-							std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-							//Points.push_back(std::make_pair(x1, y1));
-
-							for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-							{
-								int pos = it->first + it->second * width;
-								if(pos >= width * height || pos < 0)
-									std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-								else
-									ImHoles[pos] = 0;
-							}
-						}
-					}
-				}
-				else
-				{
-					//std::cout << "Geometry n'est pas un polygon. Type = "<< Geo->getGeometryType() <<  std::endl;
-					if(Geo->getNumGeometries() == 1)
-					{
-						delete coord;
-						coord = Geo->getCoordinates();
-
-						if(coord->size() != 0)
-						{
-							for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-							{
-								int x1 = Scale*coord->getAt(j).x - Xmin;
-								int y1 = Scale*coord->getAt(j).y - Ymin;
-
-								int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-								int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-
-								//std::cout << x1 << ";" << y1 << "  " << x2 << ";" << y2 << "\n";
-					
-								std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-								for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-								{
-									int pos = it->first + it->second * width;
-									if(pos >= width * height || pos < 0)
-										std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-									else
-									{
-										//std::cout << pos << std::endl;
-										Im[pos] = 0;
-										ImHoles[pos] = 0;
-									}
-								}
-							}
-						}
-						else
-							std::cout << "Geo Vide \n";
-					}
-					else if(Geo->getNumGeometries() > 1)
-					{
-						for(int k = 0; k < Geo->getNumGeometries(); k++)
-						{
-							const geos::geom::Geometry * TempGeo = Geo->getGeometryN(k);
-							delete coord;
-							coord = TempGeo->getCoordinates();
-
-							if(coord->size() != 0)
-							{
-								for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
-								{
-									int x1 = Scale*coord->getAt(j).x - Xmin;
-									int y1 = Scale*coord->getAt(j).y - Ymin;
-
-									int	x2 = Scale*coord->getAt(j+1).x - Xmin;
-									int	y2 = Scale*coord->getAt(j+1).y - Ymin;
-					
-									std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
-
-									for(std::vector<std::pair<int,int>>::iterator it = Points.begin(); it != Points.end(); ++it)
-									{
-										int pos = it->first + it->second * width;
-										if(pos >= width * height || pos < 0)
-											std::cout << "Probleme creation image. Position en dehors de l'image." << std::endl;
-										else
-										{
-											Im[pos] = 0;
-											ImHoles[pos] = 0;
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+				SaveRecursiveGeometry(Geo, Im, height, width, Xmin, Ymin);
 			}
 			if(g==0)
 			{
 				memcpy(ImR, Im, width*height*sizeof(int));
-				memcpy(ImHolesR, ImHoles, width*height*sizeof(int));
 			}
 			else if(g==1)
 			{
 				memcpy(ImG, Im, width*height*sizeof(int));
-				memcpy(ImHolesG, ImHoles, width*height*sizeof(int));
 			}
 			else
 			{
 				memcpy(ImB, Im, width*height*sizeof(int));
-				memcpy(ImHolesB, ImHoles, width*height*sizeof(int));
 			}
 		}
 				
-		//if(Holes)
-			SaveImageRGB(name/* + "withHoles"*/, ImHolesR, ImHolesG, ImHolesB, width, height);
-		//else
-		//	SaveImageRGB(name, ImR, ImG, ImB, width, height);		
+		SaveImageRGB(name, ImR, ImG, ImB, width, height);		
 		
 		delete [] Im;
 		delete [] ImR;
 		delete [] ImG;
 		delete [] ImB;
-		delete [] ImHoles;
-		delete [] ImHolesR;
-		delete [] ImHolesG;
-		delete [] ImHolesB;
 	}
 
 	/**
@@ -939,11 +794,17 @@ namespace vcity
 
 		for(int i = 0; i < polys->size(); ++i)
 		{
+			SaveGeometry("B" + std::to_string(i), polys->at(i));
 			if(!polys->at(i)->isValid())
 				std::cout << "NonValid \n";
 			else
 				Geos->push_back(polys->at(i));
 		}
+		SaveGeometry("C1", G1->Union(G2));
+		SaveGeometry("C2", factory->createGeometryCollection(Geos));
+
+		int a;
+		std::cin >> a;
 		return factory->createGeometryCollection(Geos);
 	}
 
@@ -1165,7 +1026,7 @@ namespace vcity
 				double val1 = Area/SGeo1->getArea();
 				double val2 = Area/SGeo2->getArea();
 
-				if(val1 > 0.95 && val2 > 0.95)//Les polygons sont identiques
+				if(val1 > 0.99 && val2 > 0.99)//Les polygons sont identiques
 				{
 					moyenne += val1;
 					moyenne += val2;
@@ -1220,15 +1081,12 @@ namespace vcity
 				double areatemp = GeoC->intersection(GeoS)->getArea();
 				if(areatemp > area)
 				{
-					std::cout << i << " " << j << std::endl;
 					area = areatemp;
 					jmax = j;
 				}
 			}
 			if(jmax >= 0)
-			{
 				Vec.at(jmax).push_back(GeoC->clone());
-			}
 		}
 
 		std::vector<geos::geom::Geometry *> VecRes;
@@ -1250,7 +1108,9 @@ namespace vcity
 		std::cout << VecRes.size() << std::endl;
 
 		geos::geom::Geometry * GeoRes = factory->createGeometryCollection(VecRes);
-		SaveGeometry("Test", GeoRes);
+		Save3GeometryRGB("1CityGML", factory->createEmptyGeometry(), CityGML,  factory->createEmptyGeometry());		
+		Save3GeometryRGB("2Shape", factory->createEmptyGeometry(), Shape, Shape);
+		Save3GeometryRGB("3Res", GeoRes, GeoRes, factory->createEmptyGeometry());
 
 		return GeoRes;
 	}
@@ -1298,9 +1158,9 @@ namespace vcity
     }
 
     void Algo::generateLOD0Scene(geos::geom::Geometry * Shape)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
-    {		
+    {				
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
-
+		
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
 		geos::geom::Geometry * EnveloppeCity = NULL;
@@ -1370,8 +1230,7 @@ namespace vcity
 					std::cout << "Avancement : " << cpt << "/" << objs.size() << " batiments traites.\r" << std::flush;
 			}
 			std::cout << std::endl;
-		}
-		
+		}	
 
 		geos::geom::Geometry * City = factory->createGeometryCollection(VecGeos); //Contient tous les polygons 
 
@@ -1402,37 +1261,37 @@ namespace vcity
 			{
 				PolyToGeo2.push_back(CurrPolyE->getInteriorRingN(j)->clone());
 			}
+
+			std::vector<geos::geom::Geometry *> VecGeoE_Triangles;
+			for(int j = 0; j < City->getNumGeometries(); ++j)//Récupère tous les triangles de City situé dans le polygon courant de l'enveloppe city 
+			{
+				const geos::geom::Geometry * Temp = City->getGeometryN(j);
+				if(Temp->intersects(CurrPolyE))
+					VecGeoE_Triangles.push_back(Temp->clone());
+			}
 			geos::geom::Geometry * CurrGeoE = factory->createGeometryCollection(PolyToGeo2);
-			geos::geom::Geometry * CurrGeoETriangles = City->intersection(CurrPolyE);
-
-			SaveGeometry("Diff1", CurrGeoE);
-			SaveGeometry("Diff2", CurrGeoETriangles);
-
-			return;
+			geos::geom::Geometry * CurrGeoE_Triangles = factory->createGeometryCollection(VecGeoE_Triangles);
 
 			std::vector<geos::geom::Geometry *> Shape1;			//Polygon de base
-			//std::vector<geos::geom::Geometry *> NewShape;		//Polygon dilaté
-			//std::vector<geos::geom::Geometry *> NewShape2;	//Difference avec les autres polygons
-			std::vector<geos::geom::Geometry *> NewShape3;		//Intersection avec le cityGML
-			std::vector<geos::geom::Geometry *> NewShape4;		//Ouverture morphologique
+			std::vector<geos::geom::Geometry *> NewShape;		//Intersection avec le cityGML
 
-			std::vector<geos::geom::Geometry *> Geos;//Contiendra tous les polygons du shape liés au polygon du CityGML
-			for(int j = 0; j < Link.second[i].size(); ++j)//Remplissage de Geos
+			std::vector<geos::geom::Geometry *> GeoS;//Contiendra tous les polygons du shape liés au polygon du CityGML
+			for(int j = 0; j < Link.second[i].size(); ++j)//Remplissage de GeoS
 			{
 				geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j])->clone()); //Polygon du shape courant					
-				Geos.push_back(CurrPolyS);
+				GeoS.push_back(CurrPolyS);
 			}
 				
-			geos::geom::Geometry* UnionPolyS = geos::operation::geounion::CascadedPolygonUnion::Union(factory->createMultiPolygon(Geos)); //Enveloppe du shape
+			geos::geom::Geometry* UnionPolyS = geos::operation::geounion::CascadedPolygonUnion::Union(factory->createMultiPolygon(GeoS)); //Enveloppe du shape
 
 			std::vector<geos::geom::Geometry *> PolyToGeo;
-			for(int k = 0; k < UnionPolyS->getNumGeometries(); ++k)//On parcourt tous les polygons de UnionPolys pour faire un ensemble de geometry contenant de manière indifférente tous les external ring et les interiors rings. On pourra ainsi calculer l'intersection d'un point avec tous les rings de cette union sans être gêné par le fait qu'un polygon soit "plein". Sinon, un point à l'intérieur du polygon est considéré comme intersect même s'il ne se trouve pas sur les bords.
+			for(int k = 0; k < UnionPolyS->getNumGeometries(); ++k)//On parcourt tous les polygons de UnionPolyS pour faire un ensemble de geometry contenant de manière indifférente tous les external ring et les interiors rings.
+			//On pourra ainsi calculer l'intersection d'un point avec tous les rings de cette union sans être gêné par le fait qu'un polygon soit "plein".
+			//Sinon, un point à l'intérieur du polygon est considéré comme intersect même s'il ne se trouve pas sur les bords.
 			{
 				geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(UnionPolyS->getGeometryN(k)->clone());
-				if(CurrPolyS == NULL)
-				{
-					continue;
-				}
+				if(CurrPolyS == NULL)				{
+					continue;				}
 				PolyToGeo.push_back(CurrPolyS->getExteriorRing()->clone());
 				for(int j = 0; j < CurrPolyS->getNumInteriorRing(); ++j)
 				{
@@ -1441,25 +1300,25 @@ namespace vcity
 			}				
 			geos::geom::Geometry * CurrGeoS = factory->createGeometryCollection(PolyToGeo);
 
-			for(int j = 0; j < Link.second[i].size(); ++j)
+			for(int j = 0; j < Link.second[i].size(); ++j)//On manipule les polygons EXTERIEURS du shape (ceux qui intersectent CurrGeoS qui représente l'enveloppe) : on prend un polygon, on le dilate, on lui soustrait tous les autres puis
+			//on prend son intersection avec l'enveloppe du CityGML. On obtient ainsi des polygons contenu dans le CityGML et l'union de tous ces polygons doit normalement occuper une grande partie du CityGML
 			{
 				const geos::geom::Polygon * CurrPolyS = dynamic_cast<const geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j]));
 				if(CurrPolyS->isEmpty() || !CurrPolyS->intersects(CurrGeoS))
 				{
 					Shape1.push_back(CurrPolyS->clone());
-					NewShape3.push_back(CurrPolyS->clone());
-					NewShape4.push_back(CurrPolyS->clone());
+					NewShape.push_back(CurrPolyS->clone());
 					continue;
 				}
 
 				cpt++;
-				std::string name;
+				/*std::string name;
 				if(cpt < 10)
 					name = "Poly00" + std::to_string(cpt);
 				else if(cpt < 100)
 					name = "Poly0" + std::to_string(cpt);
 				else
-					name = "Poly" + std::to_string(cpt);
+					name = "Poly" + std::to_string(cpt);*/
 
 				Shape1.push_back(CurrPolyS->clone());
 
@@ -1488,61 +1347,37 @@ namespace vcity
 				CurrPolyS2 = CurrPolyS2->intersection(CurrPolyE);
 				delete tmp;
 
-				NewShape3.push_back(CurrPolyS2);
+				NewShape.push_back(CurrPolyS2);
 
-				//Save3GeometryRGB(name + "_3", CurrPolyE, CurrPolyS2, CurrPolyS);.
+				//Save3GeometryRGB(name + "_3", CurrPolyE, CurrPolyS2, CurrPolyS);
+			}			
+			geos::geom::Geometry * ShapeRes = factory->createGeometryCollection(NewShape);
 
-				//Ouverture morphologique
-				/*geos::operation::buffer::BufferParameters BP2(1, geos::operation::buffer::BufferParameters::CAP_FLAT, geos::operation::buffer::BufferParameters::JoinStyle::JOIN_MITRE, 2);
+			/*Save3GeometryRGB("Im_" + std::to_string(i) + "_1", CurrPolyE, factory->createGeometryCollection(Shape1), factory->createEmptyGeometry());//Polygon de base
+			Save3GeometryRGB("Im_" + std::to_string(i) + "_2", CurrPolyE, ShapeRes, factory->createEmptyGeometry());//Intersection avec le cityGML
+			Save3GeometryRGB("Im_" + std::to_string(i) + "_3", factory->createEmptyGeometry(), ShapeRes, CurrGeoE_Triangles);*/
 
-				geos::operation::buffer::BufferOp Buffer2(CurrPolyS2, BP);
 
-				geos::geom::Geometry * CurrPolyS3 = Buffer2.getResultGeometry(-1);//CurrPolyS2->buffer(-2, 0, geos::operation::buffer::BufferOp::CAP_BUTT);
+			//AssignerTrianglesCityGML(ShapeRes, CurrGeoE_Triangles);
 
-				if(CurrPolyS3->isEmpty()) //Si le polygone est trop petit
-				{
-					NewShape4.push_back(CurrPolyS2);
-					continue;
-				}
-
-				//Save3GeometryRGB(name + "_4", CurrPolyE, CurrPolyS3, CurrPolyS);
-
-				geos::operation::buffer::BufferParameters BP3(1, geos::operation::buffer::BufferParameters::CAP_FLAT, geos::operation::buffer::BufferParameters::JoinStyle::JOIN_MITRE, 2);
-
-				geos::operation::buffer::BufferOp Buffer3(CurrPolyS3, BP);	
-
-				geos::geom::Geometry * CurrPolyS4 = Buffer3.getResultGeometry(1);//CurrPolyS3->buffer(2, 0, geos::operation::buffer::BufferOp::CAP_BUTT);
-								
-				//Save3GeometryRGB(name + "_5", CurrPolyE, CurrPolyS4, CurrPolyS);
-
-				NewShape4.push_back(CurrPolyS4);*/
-			}
-			geos::geom::Geometry * ShapeRes = factory->createGeometryCollection(NewShape3);
-			Save3GeometryRGB("Im_" + std::to_string(i) + "_1", CurrPolyE, factory->createGeometryCollection(Shape1), factory->createEmptyGeometry());//Polygon de base
-			////Save3GeometryRGB("Im_" + std::to_string(i) + "_2", CurrPolyE, factory->createGeometryCollection(NewShape), factory->createEmptyGeometry());//Polygon dilaté
-			////Save3GeometryRGB("Im_" + std::to_string(i) + "_3", CurrPolyE, factory->createGeometryCollection(NewShape2), factory->createEmptyGeometry());//Difference avec les autres polygons
-			Save3GeometryRGB("Im_" + std::to_string(i) + "_4", CurrPolyE, ShapeRes, factory->createEmptyGeometry());//Intersection avec le cityGML
-			////Save3GeometryRGB("Im_" + std::to_string(i) + "_5", CurrPolyE, factory->createGeometryCollection(NewShape4), factory->createEmptyGeometry());//Ouverture morphologique
-			Save3GeometryRGB("Im_" + std::to_string(i) + "_7", factory->createEmptyGeometry(), ShapeRes, CurrGeoETriangles);
-
-			AssignerTrianglesCityGML(ShapeRes, CurrGeoETriangles);
 			////////////////////////////Eliminer les superpositions des polygons :
 			
-			/*for(int j = 0; j < NewShape3.size(); ++j)//Pour chaque polygon obtenu après l'intersection ...
+			for(int j = 11; j < 12/*NewShape.size()*/; ++j)//Pour chaque polygon obtenu après l'intersection ...
 			{
-				geos::geom::Geometry * Geo = NewShape3[j];
+				geos::geom::Geometry * Geo = NewShape[j];
 				
-				for(int k = j+1; k < NewShape3.size(); ++k)//On le compare avec les autres pour extraire ceux qui s'intersectent
+				for(int k = j+1; k < NewShape.size(); ++k)//On le compare avec les autres pour extraire ceux qui s'intersectent
 				{
-					const geos::geom::Geometry * Geo2 = NewShape3[k];
+					const geos::geom::Geometry * Geo2 = NewShape[k];
 
-					geos::geom::Geometry * InterGeo = Geo2->intersection(Geo);
-					std::vector <geos::geom::Geometry*> InterVec;
+					geos::geom::Geometry * InterGeo = Geo2->intersection(Geo);					
 					
-					if(InterGeo->isEmpty())
+					if(InterGeo->isEmpty())//Si les deux polygons ne s'intersectent pas, on passe aux suivants
 						continue;
+
+					std::vector <geos::geom::Geometry*> InterVec;//Contiendra les polygons (surfaces communes) formés par l'opérateur intersection entre les deux polygons courant
 					
-					std::vector <geos::geom::Geometry*> LineVec;
+					std::vector <geos::geom::Geometry*> LineVec;//Contiendra les lignes (arrêtes communes) formées par l'opérateur intersection entre les deux polygons courant
 
 					for(int t = 0; t < InterGeo->getNumGeometries(); ++t)//On parcourt les polygons formant l'intersection entre les deux polygons j et k
 					{
@@ -1550,25 +1385,26 @@ namespace vcity
 
 						//std::cout << GeoTemp->getGeometryType() << " ";
 
-						if(GeoTemp->getGeometryType() == "Polygon" && GeoTemp->getArea() > 0.001)
-						{
+						if(GeoTemp->getGeometryType() == "Polygon" && GeoTemp->getArea() > 0.001) //Seuil pour éliminer les polygons "plats"
 							InterVec.push_back(GeoTemp->clone());
-						}
 						if(GeoTemp->getGeometryType() != "LineString")
 							continue;
+
+						//Seules les lignes passeront donc par là : le but est de prolonger la ligne pour couper en deux les polygons qu'elle touche en projetant le point d'intersection de l'autre côté du polygon,
+						//sur l'enveloppe du CityGML
 
 						geos::geom::CoordinateSequence * coords = GeoTemp->getCoordinates();
 						geos::geom::Point * P1 = factory->createPoint(coords->getAt(0));
 						geos::geom::Point * P2 = factory->createPoint(coords->getAt(1));
 
-						for(int p = 0; p < InterGeo->getNumGeometries(); ++p)//On regarde quels sont les polygons qui touchent les linestring
+						for(int p = 0; p < InterGeo->getNumGeometries(); ++p)//On regarde quels sont les polygons qui touchent les linestring en reparcourant la liste des geometry de l'intersection
 						{
-							if(t == p)
-								continue;
 							const geos::geom::Geometry * GeoTemp2 = InterGeo->getGeometryN(p);							
 
 							if(GeoTemp2->getGeometryType() != "Polygon" || GeoTemp2->getArea() < 0.001)
 								continue;
+
+							//Seuls les polygons non "plats" passeront donc par là
 
 							if(P1->intersects(GeoTemp2))//Si le premier point du linestring touche un polygon
 							{
@@ -1577,9 +1413,9 @@ namespace vcity
 
 								geos::geom::CoordinateSequence * test = geos::operation::distance::DistanceOp::nearestPoints(CurrGeoE, P1);
 								geos::geom::Point * P = factory->createPoint(test->getAt(0));
-								tempcoords->add(geos::operation::distance::DistanceOp::nearestPoints(InterGeo, P)->getAt(0));
+								tempcoords->add(geos::operation::distance::DistanceOp::nearestPoints(GeoTemp2, P)->getAt(0)); //On reprojette le point sur le polygon que l'on veut couper en deux pour être sûr de ne pas tomber un pixel à côté
 
-								LineVec.push_back(factory->createLineString(tempcoords));//On crée une linestring entre le point qui touche un polygon et son projeté sur le CityGML
+								LineVec.push_back(factory->createLineString(tempcoords));//On crée une linestring entre le point qui touche un polygon et son projeté sur le CityGML pour couper ce polygon en deux
 							}
 							if(P2->intersects(GeoTemp2))//Si le second point du linestring touche un polygon
 							{
@@ -1588,38 +1424,70 @@ namespace vcity
 
 								geos::geom::CoordinateSequence * test = geos::operation::distance::DistanceOp::nearestPoints(CurrGeoE, P2);
 								geos::geom::Point * P = factory->createPoint(test->getAt(0));
-								tempcoords->add(geos::operation::distance::DistanceOp::nearestPoints(InterGeo, P)->getAt(0));
+								tempcoords->add(geos::operation::distance::DistanceOp::nearestPoints(GeoTemp2, P)->getAt(0));
 
 								//geos::geom::Coordinate C = test->getAt(0);
 								//C.x = 2 * C.x - P1->getX();
 								//C.y = 2 * C.y - P1->getY();
-								//tempcoords->add(C);
-
-								//tempcoords->add(test->getAt(0));
-
+								//tempcoords->add(C);								
 								//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test_3" + std::to_string(p), Geo2, Geo, factory->createLineString(tempcoords));
 								//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test_4" + std::to_string(p), GeoTemp2, InterGeo, factory->createLineString(tempcoords));
 								
-								LineVec.push_back(factory->createLineString(tempcoords));//On crée une linestring entre le point qui touche un polygon et son projeté sur le CityGML
+								LineVec.push_back(factory->createLineString(tempcoords));
 							}
 						}
 					}
+
+					if(InterVec.size() == 0)
+						continue;
 
 					geos::geom::Geometry* GeoLines = factory->createGeometryCollection(LineVec);
 
 					geos::geom::Geometry * InterGeo2 = factory->createGeometryCollection(InterVec);
 
-					geos::geom::Geometry * Res = overlaySnapRounded(InterGeo2, GeoLines);	//Pour découper les polygons avec les lignes de GeoLines				
+					
+					Save3GeometryRGB("Diff_" + std::to_string(k) + "_" + std::to_string(j) + "_3", Geo->difference(InterGeo2), Geo2, Geo->difference(InterGeo2));
+
+					////////////////////////
+					/*for(int t = 0; t < LineVec.size(); ++t)
+					{
+						InterVec.push_back(LineVec[t]);
+					}*/
+
+					geos::triangulate::DelaunayTriangulationBuilder DTB;
+
+					DTB.setSites(*factory->createGeometryCollection(InterVec));
+
+					geos::geom::Geometry* InterTriangle = DTB.getTriangles(*factory)->Union().release();
+
+					SaveGeometry("TEST", InterTriangle);
+
+					Save3GeometryRGB("Diff_" + std::to_string(k) + "_" + std::to_string(j) + "_5", Geo->difference(InterTriangle), Geo2, Geo->difference(InterTriangle));
+					return;
+
+					////////////////////////
+
+					geos::geom::Geometry * Res = overlaySnapRounded(InterGeo2, GeoLines);//Pour découper les polygons avec les lignes de GeoLines				
+
+					Save3GeometryRGB("Diff_" + std::to_string(k) + "_" + std::to_string(j) + "_4", Geo->difference(Res), Geo2, Geo->difference(Res));					
 
 					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test0" , Geo2, GeoLines, InterGeo2);
 
 					//if(!Res->isEmpty())
 					//	Res = Res->buffer(0.1);
 
-					NewShape3[k] = Geo2->difference(Res);
-					NewShape3[j] = Geo->difference(Res);
+					NewShape[k] = Geo2->difference(Res);
+					NewShape[j] = Geo->difference(Res);
 
-					for(int z = 0; z < Res->getNumGeometries(); ++z)
+					/*Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "_1", Geo2, Res, Geo2);
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "_2", Res, Geo2, Res);
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "_3", NewShape[k], Geo2, NewShape[k]);
+
+					Save3GeometryRGB("Inter_" + std::to_string(k) + "_" + std::to_string(j) + "_1", Geo, Res, Geo);
+					Save3GeometryRGB("Inter_" + std::to_string(k) + "_" + std::to_string(j) + "_2", Res, Geo, Res);
+					Save3GeometryRGB("Inter_" + std::to_string(k) + "_" + std::to_string(j) + "_3", NewShape[j], Geo, NewShape[j]);*/
+
+					/*for(int z = 0; z < Res->getNumGeometries(); ++z)
 					{
 						std::cout << Res->getGeometryN(z)->getGeometryType() << std::endl;
 						std::cout << Res->getGeometryN(z)->getArea() << std::endl;
@@ -1634,14 +1502,13 @@ namespace vcity
 						std::cout << Geo->getGeometryN(z)->getArea() << std::endl;
 						std::cout << Geo->getGeometryN(z)->isEmpty() << std::endl;
 						std::cout << Geo->getGeometryN(z)->isValid() << std::endl;
-					}
+					}*/
 
-					
-					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff1" , Geo2, Geo, factory->createEmptyGeometry());
+					/*Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff1" , Geo2, Geo, factory->createEmptyGeometry());
 					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff2" , Geo2, Geo, Res);
-					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff3" , NewShape3[j], Geo, Res);
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff3" , NewShape[j], Geo, Res);
 					
-					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff4" , Geo->symDifference(Res), Geo, Res);
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff4" , Geo->symDifference(Res), Geo, Res);*/
 
 					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test2" , Geo2, Geo, InterGeo2);
 
@@ -1655,17 +1522,18 @@ namespace vcity
 					
 					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test1" , Geo2, Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));					
 
-					Geo = NewShape3[j];
+					Geo = NewShape[j];
 				}
-			}*/
-			Save3GeometryRGB("Im_" + std::to_string(i) + "_6", CurrPolyE, factory->createGeometryCollection(NewShape3), factory->createEmptyGeometry());//Intersection avec le cityGML
+			}
+			geos::geom::Geometry * ShapeRes2 = factory->createGeometryCollection(NewShape);
 
-			/*for(int j = 0; j < NewShape3.size() - 1; ++j)
+			//Save3GeometryRGB("1Res" + std::to_string(i), factory->createEmptyGeometry(), ShapeRes2, factory->createEmptyGeometry());
+			/*for(int j = 0; j < NewShape.size() - 1; ++j)
 			{
-				const geos::geom::Geometry * Geo1 = NewShape3[j];
-				for(int k = j + 1; k < NewShape3.size(); ++k)
+				const geos::geom::Geometry * Geo1 = NewShape[j];
+				for(int k = j + 1; k < NewShape.size(); ++k)
 				{
-					const geos::geom::Geometry * Geo2 = NewShape3[k];
+					const geos::geom::Geometry * Geo2 = NewShape[k];
 					if(!Geo1->intersects(Geo2))
 						continue;
 					try
@@ -1687,158 +1555,6 @@ namespace vcity
 				}
 			}*/
 		}
-
-		/*for(int i = 0; i < EnveloppeCity->getNumGeometries(); ++i)//On parcourt tous les polygons de l'enveloppe
-		{
-			const geos::geom::Polygon * CurrPolyE = dynamic_cast<const geos::geom::Polygon*>(EnveloppeCity->getGeometryN(i));
-			//Le but de ces lignes est de convertir le polygon avec son exterior ring et ses trous en un ensemble de geometry contenant ceux ci sans qu'ils soient encore liés. On peut ainsi parcourir seulement les arrêtes du polygon sans la notion d'intérieur
-			std::vector<geos::geom::Geometry *> PolyToGeo;
-			PolyToGeo.push_back(CurrPolyE->getExteriorRing()->clone());
-			for(int j = 0; j < CurrPolyE->getNumInteriorRing(); ++j)
-			{
-				PolyToGeo.push_back(CurrPolyE->getInteriorRingN(j)->clone());
-			}
-			geos::geom::Geometry * CurrGeoE = factory->createGeometryCollection(PolyToGeo);
-			////////////////////////////
-			
-			if(Link.second[i].size() > 0)//On vérifie qu'au moins un polygon du shape lui soit associé
-			{				
-				std::vector<geos::geom::Geometry *> Geos;//Contiendra tous les polygons du shape liés au polygon de l'enveloppe
-				std::vector<geos::geom::Geometry *> Geos2;//Contiendra ces même polygons une fois modifiés pour coller à l'enveloppe
-				for(int j = 0; j < Link.second[i].size(); j++)//Remplissage de Geos
-				{
-					geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j])->clone()); //Polygon du shape courant					
-					Geos.push_back(CurrPolyS);
-				}
-				
-				geos::geom::Geometry* UnionPolyS = geos::operation::geounion::CascadedPolygonUnion::Union(factory->createMultiPolygon(Geos)); //Enveloppe du shape
-				
-				std::vector<geos::geom::Geometry *> PolyToGeo;
-				for(int k = 0; k < UnionPolyS->getNumGeometries(); k++)//On parcourt tous les polygons de UnionPolys pour faire un ensemble de geometry contenant de manière indifférente tous les external ring et les interiors rings. On pourra ainsi calculer l'intersection d'un point avec tous les rings de cette union sans être gêné par le fait qu'un polygon soit "plein". Sinon, un point à l'intérieur du polygon est considéré comme intersect même s'il ne se trouve pas sur les bords.
-				{
-					geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(UnionPolyS->getGeometryN(k)->clone());
-					if(CurrPolyS == NULL)
-					{
-						continue;
-					}
-					PolyToGeo.push_back(CurrPolyS->getExteriorRing()->clone());
-					for(int j = 0; j < CurrPolyS->getNumInteriorRing(); j++)
-					{
-						PolyToGeo.push_back(CurrPolyS->getInteriorRingN(j)->clone());
-					}
-				}				
-				geos::geom::Geometry * CurrGeoS = factory->createGeometryCollection(PolyToGeo);
-
-				//On va modifier le shape en recherchant les points situés sur son enveloppe et en les déplacements sur l'enveloppe du CityGML en conservant les polygons ainsi modifiés
-				for(int j = 0; j < Link.second[i].size(); j++)//Remplissage de Geos2
-				{
-					const geos::geom::Polygon * CurrPolyS = dynamic_cast<const geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j]));
-					geos::geom::CoordinateSequence * CurrPolyExt = CurrPolyS->getExteriorRing()->getCoordinates();
-					geos::geom::CoordinateArraySequence CoordExt;//Contiendra les coordonnées modifiées de l'exterior ring du polygon courant
-
-					for(int k = 0; k < CurrPolyExt->getSize(); k++)//Traitement de l'exterior ring
-					{
-						geos::geom::Point * CurrPoint = factory->createPoint(CurrPolyExt->getAt(k));
-
-						if(CurrPoint->intersects(CurrGeoS))
-						{
-							CoordExt.add(geos::operation::distance::DistanceOp::nearestPoints(CurrGeoE, CurrPoint)->getAt(0));
-						}
-						else
-						{
-							CoordExt.add(*CurrPoint->getCoordinate());
-						}		
-						delete CurrPoint;
-					}
-
-					std::vector<geos::geom::Geometry*> * PolyInt = new std::vector<geos::geom::Geometry*>;//Contiendra les interior rings modifiés du polygon courant
-					//std::vector<geos::geom::Geometry*> PolyInt; 
-
-					for(int p = 0; p < CurrPolyS->getNumInteriorRing(); p++)
-					{
-						geos::geom::CoordinateSequence * CurrPolyInt = CurrPolyS->getInteriorRingN(p)->getCoordinates();
-						geos::geom::CoordinateArraySequence CoordInt;//Contiendra les coordonnées modifiées de l'interior ring p du polygon courant
-
-						for(int k = 0; k < CurrPolyInt->getSize(); k++)//Traitement de l'interior ring p
-						{
-							geos::geom::Point * CurrPoint = factory->createPoint(CurrPolyInt->getAt(k));
-
-							if(CurrPoint->intersects(CurrGeoS))
-							{
-								CoordInt.add(geos::operation::distance::DistanceOp::nearestPoints(CurrGeoE, CurrPoint)->getAt(0));
-							}
-							else
-							{
-								CoordInt.add(*CurrPoint->getCoordinate());
-							}
-							delete CurrPoint;
-						}
-						PolyInt->push_back(factory->createLinearRing(CoordInt));
-					}
-					Geos2.push_back(factory->createPolygon(factory->createLinearRing(CoordExt), PolyInt));
-
-					delete CurrPolyS;
-					delete CurrPolyExt;
-				}
-				cpt++;
-				Save3GeometryRGB("Poly" + std::to_string(cpt), CurrPolyE, factory->createEmptyGeometry(), factory->createEmptyGeometry());//Affiche l'enveloppe du citygml
-				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_", factory->createEmptyGeometry(), UnionPolyS, factory->createEmptyGeometry());//Affiche l'enveloppe du shape
-				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_test1", CurrPolyE, factory->createGeometryCollection(Geos), factory->createEmptyGeometry());//Affiche l'enveloppe avec les polygons du shape associés
-				Save3GeometryRGB("Poly" + std::to_string(cpt) + "_test2", CurrPolyE, factory->createGeometryCollection(Geos2), factory->createEmptyGeometry());//Affiche l'enveloppe avec les polygons du shape modifiés
-
-				delete UnionPolyS;
-				delete CurrGeoS;
-				delete CurrPolyE;
-				for(auto& it : Geos) delete it;
-				for(auto& it : Geos2) delete it;
-				for(auto& it : PolyToGeo) delete it;
-			}
-			delete CurrGeoE;
-		}*/
-		
-		/*geos::geom::Geometry * ShapeU; //Contient tous les polygons de Shape dans une geometry valide
-				
-		std::cout << "Creation de ShapeU ... \n";
-		ShapeU = geos::operation::geounion::CascadedPolygonUnion::Union(dynamic_cast<geos::geom::MultiPolygon*>(Shape));
-		std::cout << "Creation de ShapeU terminee. \n" << "ShapeU valid = " << ShapeU->isValid() << " Shape valid = " << Shape->isValid() << std::endl;
-
-		SaveGeometry("Shape", Shape);
-		SaveGeometry("ShapeU", ShapeU);
-
-		SaveGeometry("EnveloppeCity", EnveloppeCity);
-
-		geos::geom::Geometry * TempGeo = factory->createEmptyGeometry();
-			
-		Save3GeometryRGB("Shape_Enveloppe", Shape, EnveloppeCity, TempGeo);
-
-		std::cout << "Creation de l'Union ..." << std::endl;
-		try
-		{
-			TempGeo = ShapeU->Union(EnveloppeCity);
-		}
-		catch(std::exception& e)
-		{
-			std::cout << e.what() << '\n';
-		}
-		SaveGeometry("Union", TempGeo);
-		Save3GeometryRGB("Shape_Enveloppe_Union", ShapeU, EnveloppeCity, TempGeo);
-
-		std::cout << "Creation de l'intersection ..." << std::endl;
-		TempGeo = ShapeU->intersection(EnveloppeCity);
-		SaveGeometry("Intersection", TempGeo);
-		Save3GeometryRGB("Shape_Enveloppe_Intersection", ShapeU, EnveloppeCity, TempGeo);
-
-		std::cout << "Creation de la SymDifference ..." << std::endl;
-		TempGeo = ShapeU->symDifference(EnveloppeCity);
-		SaveGeometry("SymDifference", TempGeo);
-		Save3GeometryRGB("Shape_Enveloppe_SymDifference", ShapeU, EnveloppeCity, TempGeo);
-
-		//std::cout << "Creation de Shape - Enveloppe ..." << std::endl;
-		//SaveGeometry("S-E", ShapeU->difference(EnveloppeCity));
-		//std::cout << "Creation de Enveloppe - Shape ..." << std::endl;
-		//SaveGeometry("E-S", EnveloppeCity->difference(ShapeU));*/
-
-		//SaveGeometry("Enveloppe_City_Simplified", geos::simplify::TopologyPreservingSimplifier::simplify(EnveloppeCity, 2).get());
     }
 
 	void Algo::CompareTiles()//Lorsqu'il y a deux tuiles dans VCity, cette fonction crée une image les regroupant pour pouvoir les comparer
@@ -1888,7 +1604,7 @@ namespace vcity
 				std::cout << "Avancement tuile " << i+1 << " : " << cpt << "/" << objs.size() << " batiments traites.\n";
 			}
 		}
-
+		
 		Save3GeometryRGB("BatiCompare", EnveloppeCity[0], EnveloppeCity[1], factory->createEmptyGeometry());
 
 		std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compare = CompareGeos(EnveloppeCity[0], EnveloppeCity[1]);
@@ -1938,6 +1654,9 @@ namespace vcity
 	void Algo::generateLOD1(geos::geom::Geometry * Shape, std::vector<std::pair<double, double>> Hauteurs)//Hauteurs : Liste les hauteurs et Zmin des polygons de ShapeGeo
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+
+		//m_model = BuildLOD1FromGEOS(Shape, Hauteurs);
+		//return; //Pour avoir le LOD1
 
 		if(Shape == NULL || Shape->isEmpty())
 		{
