@@ -137,7 +137,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-		puts("ParseCityGML 1.0.6 - June 3, 2014 - Martial TOLA");
+        puts("ParseCityGML 1.0.7 - June 3, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -260,7 +260,7 @@ int main(int argc, char** argv)
 						/*if ( (xmin_Building >= xmin) && (xmax_Building <= xmax) )
 							if ( (ymin_Building >= ymin) && (ymax_Building <= ymax) )*/
 						//if ( ((xmin_Building < xmax) && (ymin_Building < ymax)) || ((xmax_Building > xmin) && (ymax_Building > ymin)) )
-						if ( (xmax_Building < xmin) || (ymax_Building < ymin) || (xmin_Building > xmax) || (ymin_Building > ymax) ) // intersection AABB
+                        if ( !(xmax_Building < xmin) && !(ymax_Building < ymin) && !(xmin_Building > xmax) && !(ymin_Building > ymax) ) // intersection AABB
 							{
 								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
 
