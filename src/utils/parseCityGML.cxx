@@ -105,19 +105,30 @@ void parcours_prefixe(xmlNodePtr noeud, fct_parcours_t f, bool *first, double *x
 void copy_textures(xmlNodePtr noeud, std::string folderIN, std::string folderOUT)
 {
 	xmlChar *imageURI = xmlNodeGetContent(noeud);
+
 		QString textIN, textOUT;
 		textIN = QString::fromStdString(folderIN)+"/"+QString::fromStdString(std::string((char *) imageURI));
 		textOUT = QString::fromStdString(folderOUT)+"/"+QString::fromStdString(std::string((char *) imageURI));
-		QFileInfo fi(textOUT);
-		QDir dir(fi.absolutePath());
-			if (!dir.exists())
-				dir.mkpath(".");
+
+		QFileInfo fiOUT(textOUT);
+		QDir dir(fiOUT.absolutePath());
+		if (!dir.exists())
+			dir.mkpath(".");
+
 		//std::cout << " -> textIN: " << textIN.toStdString() << std::endl;
 		QFile::copy(textIN, textOUT);					
 		//std::cout << " -> textOUT: " << textOUT.toStdString() << std::endl;
-		textOUT = fi.absolutePath()+"/"+fi.baseName()+"."+fi.suffix().at(0)+fi.suffix().at(2)+"w";
-		QFile::copy(textIN, textOUT);					
-		//std::cout << " -> textOUT wf: " << textOUT.toStdString() << std::endl;
+
+		QFileInfo fiIN(textIN);
+		textIN = fiIN.absolutePath()+"/"+fiIN.baseName()+"."+fiIN.suffix().at(0)+fiIN.suffix().at(2)+"w";
+		QFile filew(textIN);
+		if (filew.exists())
+		{
+			textOUT = fiOUT.absolutePath()+"/"+fiOUT.baseName()+"."+fiOUT.suffix().at(0)+fiOUT.suffix().at(2)+"w";
+			QFile::copy(textIN, textOUT);					
+			//std::cout << " -> textOUTwf: " << textOUT.toStdString() << std::endl;
+		}
+
 	xmlFree(imageURI);
 }
 
@@ -126,7 +137,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-		puts("ParseCityGML 1.0.5 - June 3, 2014 - Martial TOLA");
+		puts("ParseCityGML 1.0.6 - June 3, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -179,6 +190,9 @@ int main(int argc, char** argv)
 	QFileInfo fiOUT(argv[2]);
 	folderOUT = fiOUT.absolutePath().toStdString();
 	std::cout << " -> folderOUT: " << folderOUT << std::endl;
+	QDir dir(fiOUT.absolutePath());
+	if (!dir.exists())
+		dir.mkpath(".");
 
     // get root
     racine = xmlDocGetRootElement(doc);
