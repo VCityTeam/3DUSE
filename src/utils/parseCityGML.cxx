@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-		puts("ParseCityGML 1.0.3 - May 23, 2014 - Martial TOLA");
+		puts("ParseCityGML 1.0.4 - June 3, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -116,6 +116,7 @@ int main(int argc, char** argv)
 		return(EXIT_FAILURE);
 	}
 
+	int nbCopied = 0;
 	bool POST_PROCESS_TEXTURE = false;
 	xmlNodePtr appearanceMember_node = NULL;
 	std::set<std::string> UUID_full_set;
@@ -209,8 +210,10 @@ int main(int argc, char** argv)
 						//printf("MAX_Building: (%lf %lf %lf)\n", xmax_Building, ymax_Building, zmax_Building);
 
 						//exit(-1);
-						if ( (xmin_Building >= xmin) && (xmax_Building <= xmax) )
-							if ( (ymin_Building >= ymin) && (ymax_Building <= ymax) )
+						/*if ( (xmin_Building >= xmin) && (xmax_Building <= xmax) )
+							if ( (ymin_Building >= ymin) && (ymax_Building <= ymax) )*/
+						if ( ((xmin_Building < xmax) && (ymin_Building < ymax)) || ((xmax_Building > xmin) && (ymax_Building > ymin)) )
+						//if ( (xmax_Building < xmin) || (ymax_Building < ymin) || (xmin_Building > xmax) || (ymin_Building > ymax) ) // intersection AABB bad ?
 							{
 								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
 
@@ -219,6 +222,7 @@ int main(int argc, char** argv)
 								//xmlSetNs(copy_node2, &ns); //xmlSetNs(copy_node2, NULL);
 
 								xmlAddChild(out_root_node, copy_node2);
+								nbCopied++;
 
 								if (TEXTURE_PROCESS)
 								{
@@ -362,6 +366,8 @@ int main(int argc, char** argv)
 			}
 		}
 	}
+
+	printf(" -> NB COPIED: %d\n", nbCopied);
 
     // dumping document to file
     xmlSaveFormatFileEnc(argv[2], out_doc, "ISO-8859-1", 1);
