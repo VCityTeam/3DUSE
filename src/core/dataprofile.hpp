@@ -32,6 +32,8 @@ public:
     // ign data
 
     std::string m_dataPathCityGML;
+    int m_id;
+    std::string m_name;
 
 private:
 };

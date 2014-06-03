@@ -30,6 +30,8 @@ void DialogSettings::doSettings()
     ui->comboBoxDataProfile->addItem("Paris");
     ui->comboBoxDataProfile->addItem("Lyon");
 
+    ui->comboBoxDataProfile->setCurrentIndex(vcity::app().getSettings().getDataProfile().m_id);
+
     ui->comboBoxSRS->addItem("lambert93");
 
     setFromDataProfile(appGui().getSettings().getDataProfile());
@@ -90,6 +92,10 @@ void DialogSettings::setFromDataProfile(const vcity::DataProfile& dp)
 
     ui->lineTileSizeX->setText(QString::number(dp.m_xStep));
     ui->lineTileSizeY->setText(QString::number(dp.m_yStep));
+
+    // save parameter
+    QSettings settings("liris", "virtualcity");
+    settings.setValue("dataprofile", dp.m_name.c_str());
 }
 ////////////////////////////////////////////////////////////////////////////////
 void DialogSettings::setDataProfileFromUI(vcity::DataProfile& dp)

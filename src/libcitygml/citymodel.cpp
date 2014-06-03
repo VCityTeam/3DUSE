@@ -705,7 +705,7 @@ namespace citygml
 					finish = false;
 				}
 			}
-		}
+        }
 	}
 
     /*void CityObject::finish()

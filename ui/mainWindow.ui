@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>VCity</string>
+   <string>3DUSE</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
@@ -340,6 +340,7 @@
     </widget>
     <addaction name="menuGenerate"/>
     <addaction name="actionFix_building"/>
+    <addaction name="actionCityGML_cut"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -652,6 +653,11 @@
   <action name="actionExport_OBJ_Assimp">
    <property name="text">
     <string>Export OBJ (Assimp)</string>
+   </property>
+  </action>
+  <action name="actionCityGML_cut">
+   <property name="text">
+    <string>CityGML cut...</string>
    </property>
   </action>
  </widget>
