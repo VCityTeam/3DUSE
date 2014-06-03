@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>230</width>
+    <width>248</width>
     <height>217</height>
    </rect>
   </property>
@@ -27,7 +27,7 @@
    <item>
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>3DUSE is an environment editor</string>
+      <string>3DUSE is a 3D Urban Scene Editor</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
