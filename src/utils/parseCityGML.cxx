@@ -12,12 +12,12 @@
 #include <QDir>
 #include <QFile>
 
-void afficher_noeud(xmlNodePtr noeud, bool *first_posList, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s)
+void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_posList, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s)
 {
 	if (noeud->type == XML_ELEMENT_NODE)
 	{
         xmlChar *chemin = xmlGetNodePath(noeud);
-        if (noeud->children != NULL && noeud->children->type == XML_TEXT_NODE)
+        if (noeud->children != NULL)// && noeud->children->type == XML_TEXT_NODE) // MT
 		{
             xmlChar *contenu = xmlNodeGetContent(noeud);
 			if (xmlStrEqual(noeud->name, BAD_CAST "posList"))
@@ -29,6 +29,9 @@ void afficher_noeud(xmlNodePtr noeud, bool *first_posList, double *xmin, double 
 				{
 					xmlNodePtr noeudPolygon = noeud->parent->parent->parent;
 					xmlNodePtr noeudSurface = noeudPolygon->parent->parent;
+
+					//printf("noeudPolygon: %s - noeudSurface: %s\n", noeudPolygon->name, noeudSurface->name);
+
 					if (xmlGetProp(noeudPolygon, BAD_CAST "id"))
 					{
 						if ( UUID_s->find((char *) xmlGetProp(noeudPolygon, BAD_CAST "id")) == UUID_s->end() )
@@ -85,9 +88,8 @@ void afficher_noeud(xmlNodePtr noeud, bool *first_posList, double *xmin, double 
     }
 }
 
-typedef void (*fct_parcours_t)(xmlNodePtr, bool *, double *, double *, double *, double *, double *, double *, std::set<std::string> *);
-
-void parcours_prefixe(xmlNodePtr noeud, fct_parcours_t f, bool *first, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s)
+typedef void (*fct_process_Building_ReliefFeature_boundingbox)(xmlNodePtr, bool *, double *, double *, double *, double *, double *, double *, std::set<std::string> *);
+void parcours_prefixe_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, fct_process_Building_ReliefFeature_boundingbox f, bool *first, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s)
 {
     xmlNodePtr n;
     
@@ -97,12 +99,12 @@ void parcours_prefixe(xmlNodePtr noeud, fct_parcours_t f, bool *first, double *x
 
         if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
 		{
-            parcours_prefixe(n->children, f, first, xmin, ymin, zmin, xmax, ymax, zmax, UUID_s);
+            parcours_prefixe_Building_ReliefFeature_boundingbox(n->children, f, first, xmin, ymin, zmin, xmax, ymax, zmax, UUID_s);
         }
     }
 }
 
-void copy_textures(xmlNodePtr noeud, std::string folderIN, std::string folderOUT)
+void copy_texture_files(xmlNodePtr noeud, std::string folderIN, std::string folderOUT)
 {
 	xmlChar *imageURI = xmlNodeGetContent(noeud);
 
@@ -116,7 +118,8 @@ void copy_textures(xmlNodePtr noeud, std::string folderIN, std::string folderOUT
 			dir.mkpath(".");
 
 		//std::cout << " -> textIN: " << textIN.toStdString() << std::endl;
-		QFile::copy(textIN, textOUT);					
+		QFile::copy(textIN, textOUT);
+		//printf(" -> texture COPIED: %s\n", (char *) imageURI);
 		//std::cout << " -> textOUT: " << textOUT.toStdString() << std::endl;
 
 		QFileInfo fiIN(textIN);
@@ -132,12 +135,197 @@ void copy_textures(xmlNodePtr noeud, std::string folderIN, std::string folderOUT
 	xmlFree(imageURI);
 }
 
+void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string> *UUID_s, std::string folderIN, std::string folderOUT)
+{
+	// CAUTION : if copy_node3 = NULL -> xml nodes not copied, just texture files are copied !
+	if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
+	{
+		for (n = n->children; n != NULL; n = n->next)
+		{
+			if (xmlStrEqual(n->name, BAD_CAST "Appearance"))
+			{
+				xmlNodePtr copy_node4 = xmlCopyNode(n, 2);
+				if (copy_node3)
+					xmlAddChild(copy_node3, copy_node4);
+
+				if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
+				{
+					for (xmlNodePtr nc = n->children; nc != NULL; nc = nc->next)
+					{
+						if (xmlStrEqual(nc->name, BAD_CAST "surfaceDataMember"))
+						{
+							xmlNodePtr copy_node5 = xmlCopyNode(nc, 2);
+
+							// --- GeoreferencedTexture ---
+							if (xmlStrEqual(nc->children->name, BAD_CAST "GeoreferencedTexture"))
+							{
+								xmlNodePtr copy_node6 = xmlCopyNode(nc->children, 1);
+								xmlNodePtr copy_node_imageURI;
+
+								if ((nc->children->type == XML_ELEMENT_NODE) && (nc->children->children != NULL))
+								{
+									bool node_copied = false;
+
+									for (xmlNodePtr nc2 = nc->children->children; nc2 != NULL; nc2 = nc2->next)
+									{
+										if (xmlStrEqual(nc2->name, BAD_CAST "target"))
+										{
+											xmlChar *contenu = xmlNodeGetContent(nc2);
+											char *p = (char *) contenu;
+											p++;
+
+												if ( UUID_s->find(p) != UUID_s->end() )
+												{
+													if (copy_node3)
+													{
+														xmlAddChild(copy_node4, copy_node5);
+														xmlAddChild(copy_node5, copy_node6);
+															
+														printf("GeoreferencedTexture target COPIED: %s\n", p);
+													}
+
+													node_copied = true;
+												}
+
+											xmlFree(contenu);
+										}
+										else if (xmlStrEqual(nc2->name, BAD_CAST "imageURI"))
+											copy_node_imageURI = nc2;
+									}
+
+									if (node_copied)
+										copy_texture_files(copy_node_imageURI, folderIN, folderOUT);
+								}
+							}
+							// --- ParameterizedTexture ---
+							else if (xmlStrEqual(nc->children->name, BAD_CAST "ParameterizedTexture"))
+							{
+								xmlNodePtr copy_node6 = xmlCopyNode(nc->children, 2);
+								xmlNodePtr copy_node_imageURI, copy_node_textureType, copy_node_wrapMode, copy_node_borderColor;
+
+								if ((nc->children->type == XML_ELEMENT_NODE) && (nc->children->children != NULL))
+								{
+									bool first_target = true;
+
+									for (xmlNodePtr nc2 = nc->children->children; nc2 != NULL; nc2 = nc2->next)
+									{
+										if (xmlStrEqual(nc2->name, BAD_CAST "target"))
+										{
+											xmlNodePtr copy_node_target = xmlCopyNode(nc2, 1);
+													
+											xmlChar *prop = xmlGetProp(nc2, BAD_CAST "uri");
+											char *p = (char *) prop;
+											p++;
+
+												if ( UUID_s->find(p) != UUID_s->end() )
+												{
+													if (first_target)
+													{
+
+														if (copy_node3)
+														{
+															xmlAddChild(copy_node4, copy_node5);
+															xmlAddChild(copy_node5, copy_node6);
+															xmlAddChild(copy_node6, copy_node_imageURI);
+														}
+														copy_texture_files(copy_node_imageURI, folderIN, folderOUT);																
+														if (copy_node3)
+														{
+															xmlAddChild(copy_node6, copy_node_textureType);
+															xmlAddChild(copy_node6, copy_node_wrapMode);
+															xmlAddChild(copy_node6, copy_node_borderColor);
+														}
+
+														first_target = false;
+													}
+													if (copy_node3)
+													{
+														xmlAddChild(copy_node6, copy_node_target);
+
+														printf("ParameterizedTexture target COPIED: %s\n", p);
+													}
+												}
+
+											xmlFree(prop); // necessary ???
+										}
+										else if (xmlStrEqual(nc2->name, BAD_CAST "imageURI"))
+											copy_node_imageURI = xmlCopyNode(nc2, 1);
+										else if (xmlStrEqual(nc2->name, BAD_CAST "textureType"))
+											copy_node_textureType = xmlCopyNode(nc2, 1);
+										else if (xmlStrEqual(nc2->name, BAD_CAST "wrapMode"))
+											copy_node_wrapMode = xmlCopyNode(nc2, 1);
+										else if (xmlStrEqual(nc2->name, BAD_CAST "borderColor"))
+											copy_node_borderColor = xmlCopyNode(nc2, 1);
+										else
+										{
+											if (copy_node3)
+												printf(" -> CAUTION: ParameterizedTexture child NOT COPIED: %s\n", nc2->name);
+										}
+									}
+								}
+							}
+						}					
+						else
+						{
+							if (copy_node3)
+								printf(" -> NOT COPIED: %s\n", nc->name);
+						}
+					}
+				}
+			}					
+			else
+			{
+				if (copy_node3)
+					printf(" -> NOT COPIED: %s\n", n->name);
+			}
+		}
+	}
+}
+
+void process_Building_ReliefFeature_textures(xmlNodePtr noeud, std::set<std::string> *UUID_s, std::string folderIN, std::string folderOUT)
+{
+	if (noeud->type == XML_ELEMENT_NODE)
+	{
+        xmlChar *chemin = xmlGetNodePath(noeud);
+        if (noeud->children != NULL)// && noeud->children->type == XML_TEXT_NODE) // MT
+		{
+            xmlChar *contenu = xmlNodeGetContent(noeud);
+			if (xmlStrEqual(noeud->name, BAD_CAST "appearance"))
+			{
+				process_textures(noeud, NULL, UUID_s, folderIN, folderOUT);
+			}
+            xmlFree(contenu);
+        }
+		else
+		{
+			//printf("%s\n", chemin);
+        }
+        xmlFree(chemin);
+    }
+}
+
+typedef void (*fct_process_Building_ReliefFeature_textures)(xmlNodePtr, std::set<std::string> *, std::string, std::string);
+void parcours_prefixe_Building_ReliefFeature_textures(xmlNodePtr noeud, fct_process_Building_ReliefFeature_textures f, std::set<std::string> *UUID_s, std::string folderIN, std::string folderOUT)
+{
+	xmlNodePtr n;
+    
+    for (n = noeud; n != NULL; n = n->next)
+	{
+        f(n, UUID_s, folderIN, folderOUT);
+
+        if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
+		{
+            parcours_prefixe_Building_ReliefFeature_textures(n->children, f, UUID_s, folderIN, folderOUT);
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.0.7 - June 3, 2014 - Martial TOLA");
+        puts("ParseCityGML 1.0.8 - June 4, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -153,7 +341,7 @@ int main(int argc, char** argv)
 
 	std::string folderIN, folderOUT;
 	int nbCopied = 0;
-	bool POST_PROCESS_TEXTURE = false;
+	bool POST_PROCESS_TEXTURES = false;
 	xmlNodePtr appearanceMember_node = NULL;
 	std::set<std::string> UUID_full_set;
 
@@ -252,15 +440,14 @@ int main(int argc, char** argv)
 						std::set<std::string> UUID_set;
 
 						bool first=true;
-						parcours_prefixe(n->children, afficher_noeud, &first, &xmin_Building, &ymin_Building, &zmin_Building, &xmax_Building, &ymax_Building, &zmax_Building, &UUID_set);
+						parcours_prefixe_Building_ReliefFeature_boundingbox(n->children, process_Building_ReliefFeature_boundingbox, &first, &xmin_Building, &ymin_Building, &zmin_Building, &xmax_Building, &ymax_Building, &zmax_Building, &UUID_set);
 						//printf("\nMIN_Building: (%lf %lf %lf)\n", xmin_Building, ymin_Building, zmin_Building);
 						//printf("MAX_Building: (%lf %lf %lf)\n", xmax_Building, ymax_Building, zmax_Building);
 
 						//exit(-1);
 						/*if ( (xmin_Building >= xmin) && (xmax_Building <= xmax) )
 							if ( (ymin_Building >= ymin) && (ymax_Building <= ymax) )*/
-						//if ( ((xmin_Building < xmax) && (ymin_Building < ymax)) || ((xmax_Building > xmin) && (ymax_Building > ymin)) )
-                        if ( !(xmax_Building < xmin) && !(ymax_Building < ymin) && !(xmin_Building > xmax) && !(ymin_Building > ymax) ) // intersection AABB
+                        if ( !(xmax_Building < xmin) && !(ymax_Building < ymin) && !(xmin_Building > xmax) && !(ymin_Building > ymax) )
 							{
 								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
 
@@ -278,6 +465,9 @@ int main(int argc, char** argv)
 											UUID_full_set.insert(*it);
 										/*else
 											printf("FOUND in UUID_full_set\n");*/
+
+									printf("parcours_prefixe_Building_ReliefFeature_textures: %s - %s\n", n->children->name, xmlGetProp(n->children, BAD_CAST "id"));
+									parcours_prefixe_Building_ReliefFeature_textures(n->children, process_Building_ReliefFeature_textures, &UUID_set, folderIN, folderOUT);
 								}
 							}
 					}					
@@ -286,142 +476,24 @@ int main(int argc, char** argv)
 				}
 				else if ( (xmlStrEqual(n->name, BAD_CAST "appearanceMember")) && TEXTURE_PROCESS )
 				{
-					POST_PROCESS_TEXTURE = true;
+					POST_PROCESS_TEXTURES = true;
 					appearanceMember_node = n; // CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
-					printf(" -> POST PROCESS TEXTURE AFTER ALL PARSING: %s\n", n->name);
+					printf(" -> POST PROCESS TEXTURES AFTER ALL PARSING: %s\n", n->name);
 				}
 				else
 					printf(" -> NOT COPIED: %s\n", n->name);
 			}
 		}
 
-		if (POST_PROCESS_TEXTURE)
+		if (POST_PROCESS_TEXTURES)
 		{
-			printf("\nPOST_PROCESS_TEXTURE\n");
+			printf("\nPOST PROCESS TEXTURES\n");
 
 			n = appearanceMember_node; // CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
 			xmlNodePtr copy_node3 = xmlCopyNode(n, 2);
 			xmlAddChild(out_root_node, copy_node3);
 
-			if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
-			{
-				for (n = n->children; n != NULL; n = n->next)
-				{
-					if (xmlStrEqual(n->name, BAD_CAST "Appearance"))
-					{
-						xmlNodePtr copy_node4 = xmlCopyNode(n, 2);
-						xmlAddChild(copy_node3, copy_node4);
-
-						if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
-						{
-							for (xmlNodePtr nc = n->children; nc != NULL; nc = nc->next)
-							{
-								if (xmlStrEqual(nc->name, BAD_CAST "surfaceDataMember"))
-								{
-									xmlNodePtr copy_node5 = xmlCopyNode(nc, 2);
-
-									// --- GeoreferencedTexture ---
-									if (xmlStrEqual(nc->children->name, BAD_CAST "GeoreferencedTexture"))
-									{
-										xmlNodePtr copy_node6 = xmlCopyNode(nc->children, 1);
-										xmlNodePtr copy_node_imageURI;
-
-										if ((nc->children->type == XML_ELEMENT_NODE) && (nc->children->children != NULL))
-										{
-											bool node_copied = false;
-
-											for (xmlNodePtr nc2 = nc->children->children; nc2 != NULL; nc2 = nc2->next)
-											{
-												if (xmlStrEqual(nc2->name, BAD_CAST "target"))
-												{
-													xmlChar *contenu = xmlNodeGetContent(nc2);
-													char *p = (char *) contenu;
-													p++;
-
-														if ( UUID_full_set.find(p) != UUID_full_set.end() )
-														{
-															xmlAddChild(copy_node4, copy_node5);
-															xmlAddChild(copy_node5, copy_node6);
-
-															node_copied = true;
-
-															printf("GeoreferencedTexture target COPIED: %s\n", p);
-														}
-
-													xmlFree(contenu);
-												}
-												else if (xmlStrEqual(nc2->name, BAD_CAST "imageURI"))
-													copy_node_imageURI = nc2;
-											}
-
-											if (node_copied)
-												copy_textures(copy_node_imageURI, folderIN, folderOUT);
-										}
-									}
-									// --- ParameterizedTexture ---
-									else if (xmlStrEqual(nc->children->name, BAD_CAST "ParameterizedTexture"))
-									{
-										xmlNodePtr copy_node6 = xmlCopyNode(nc->children, 2);
-										xmlNodePtr copy_node_imageURI, copy_node_textureType, copy_node_wrapMode, copy_node_borderColor;
-
-										if ((nc->children->type == XML_ELEMENT_NODE) && (nc->children->children != NULL))
-										{
-											bool first_target = true;
-
-											for (xmlNodePtr nc2 = nc->children->children; nc2 != NULL; nc2 = nc2->next)
-											{
-												if (xmlStrEqual(nc2->name, BAD_CAST "target"))
-												{
-													xmlNodePtr copy_node_target = xmlCopyNode(nc2, 1);
-													
-													xmlChar *prop = xmlGetProp(nc2, BAD_CAST "uri");
-													char *p = (char *) prop;
-													p++;
-
-														if ( UUID_full_set.find(p) != UUID_full_set.end() )
-														{
-															if (first_target)
-															{
-																xmlAddChild(copy_node4, copy_node5);
-																xmlAddChild(copy_node5, copy_node6);
-																xmlAddChild(copy_node6, copy_node_imageURI);
-																	copy_textures(copy_node_imageURI, folderIN, folderOUT);
-																xmlAddChild(copy_node6, copy_node_textureType);
-																xmlAddChild(copy_node6, copy_node_wrapMode);
-																xmlAddChild(copy_node6, copy_node_borderColor);
-
-																first_target = false;
-															}
-															xmlAddChild(copy_node6, copy_node_target);
-
-															printf("ParameterizedTexture target COPIED: %s\n", p);
-														}
-
-													xmlFree(prop); // necessary ???
-												}
-												else if (xmlStrEqual(nc2->name, BAD_CAST "imageURI"))
-													copy_node_imageURI = xmlCopyNode(nc2, 1);
-												else if (xmlStrEqual(nc2->name, BAD_CAST "textureType"))
-													copy_node_textureType = xmlCopyNode(nc2, 1);
-												else if (xmlStrEqual(nc2->name, BAD_CAST "wrapMode"))
-													copy_node_wrapMode = xmlCopyNode(nc2, 1);
-												else if (xmlStrEqual(nc2->name, BAD_CAST "borderColor"))
-													copy_node_borderColor = xmlCopyNode(nc2, 1);
-												else
-													printf(" -> CAUTION: ParameterizedTexture child NOT COPIED: %s\n", nc2->name);
-											}
-										}
-									}
-								}					
-								else
-									printf(" -> NOT COPIED: %s\n", nc->name);
-							}
-						}
-					}					
-					else
-						printf(" -> NOT COPIED: %s\n", n->name);
-				}
-			}
+			process_textures(n, copy_node3, &UUID_full_set, folderIN, folderOUT);
 		}
 	}
 
