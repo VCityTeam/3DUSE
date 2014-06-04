@@ -56,7 +56,7 @@ typedef std::set<Polygon2D> PolySet;
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-	double Scale = 10; //Définit le zoom des images sauvegardées, avec 1 = 1 mètre/pixel.
+	double Scale = 25; //Définit le zoom des images sauvegardées, avec 1 = 1 mètre/pixel.
 
     /**
      * @brief projete les toits du CityObject selectioné sur le plan (xy)
@@ -65,6 +65,7 @@ namespace vcity
      */
     void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax, double * heightmin)
 	{
+		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
         if(obj->getType() == citygml::COT_RoofSurface) //Si surface de toit : COT_RoofSurface COT_WallSurface
 		{
             std::vector<citygml::Geometry*> geoms = obj->getGeometries();//& geoms
@@ -82,7 +83,7 @@ namespace vcity
                     for(; itVertices != vertices.end(); ++itVertices)//pour Chaque sommet
 					{
                         TVec3d point = *itVertices;
-                        poly.push_back(std::make_pair(point.x, point.y)); //on récupere le point
+                        poly.push_back(std::make_pair(point.x - offset_.x, point.y - offset_.y)); //on récupere le point
 						if(point.z > *heightmax)
 							*heightmax = point.z;
 
@@ -565,6 +566,7 @@ namespace vcity
 		Xmin --;
 		Ymin --;
 
+		//std::cout << Xmin << ";" << Xmax << "  " << Ymin << ";" << Ymax << std::endl;
 		int width = Xmax - Xmin + Scale;
 		int height = Ymax - Ymin + Scale;
 
@@ -577,11 +579,11 @@ namespace vcity
 		{			
 			memset(Im, 1, width*height*sizeof(int));
 			//////// Pour avoir un canal vide (utile pour avoir une taille d'image fixe)
-			if(g==1)
+			/*if(g==1)
 			{
 				memcpy(ImG, Im, width*height*sizeof(int));
 				continue;
-			}
+			}*/
 			////////
 			int NbGeo;
 
@@ -806,6 +808,34 @@ namespace vcity
 		int a;
 		std::cin >> a;
 		return factory->createGeometryCollection(Geos);
+	}
+
+	/**
+     * @brief Teste la geometry Geo avec Geo1 et Geo2 pour déterminer de laquelle est la plus proche. Retourne 1 pour Geo1 et 2 pour Geo2
+     */
+	int GetNearestGeo(const geos::geom::Geometry * Geo, const geos::geom::Geometry * Geo1, const geos::geom::Geometry * Geo2)
+	{
+		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+
+		geos::geom::CoordinateSequence * Coords = Geo->getCoordinates();
+
+		int Nb1 = 0;
+		int Nb2 = 0;
+
+		for(int i = 0; i < Coords->getSize(); ++i)
+		{			
+			geos::geom::Point * P = factory->createPoint(Coords->getAt(i));
+			if(P->distance(Geo1) > P->distance(Geo2))
+				Nb1++;
+			else if(P->distance(Geo1) < P->distance(Geo2))
+				Nb2++;
+			delete P;
+		}
+		delete Coords;
+		if(Nb1 >= Nb2)
+			return 1;
+		else
+			return 2;
 	}
 
 	/**
@@ -1300,7 +1330,7 @@ namespace vcity
 			}				
 			geos::geom::Geometry * CurrGeoS = factory->createGeometryCollection(PolyToGeo);
 
-			for(int j = 0; j < Link.second[i].size(); ++j)//On manipule les polygons EXTERIEURS du shape (ceux qui intersectent CurrGeoS qui représente l'enveloppe) : on prend un polygon, on le dilate, on lui soustrait tous les autres puis
+			for(int j = 0; j < Link.second[i].size(); ++j)//On manipule les polygons EXTERIEURS du shape (ceux qui intersectent CurrGeoS, qui représente l'enveloppe) : on prend un polygon, on le dilate, on lui soustrait tous les autres puis
 			//on prend son intersection avec l'enveloppe du CityGML. On obtient ainsi des polygons contenu dans le CityGML et l'union de tous ces polygons doit normalement occuper une grande partie du CityGML
 			{
 				const geos::geom::Polygon * CurrPolyS = dynamic_cast<const geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j]));
@@ -1326,7 +1356,7 @@ namespace vcity
 
 				geos::operation::buffer::BufferParameters BP(1, geos::operation::buffer::BufferParameters::CAP_FLAT, geos::operation::buffer::BufferParameters::JoinStyle::JOIN_MITRE, 2);
 
-				geos::operation::buffer::BufferOp Buffer(CurrPolyS, BP);				
+				geos::operation::buffer::BufferOp Buffer(CurrPolyS, BP);
 				
 				geos::geom::Geometry * CurrPolyS2 = Buffer.getResultGeometry(2);//CurrPolyS->buffer(2, 0, geos::operation::buffer::BufferOp::CAP_BUTT);
 
@@ -1362,7 +1392,7 @@ namespace vcity
 
 			////////////////////////////Eliminer les superpositions des polygons :
 			
-			for(int j = 11; j < 12/*NewShape.size()*/; ++j)//Pour chaque polygon obtenu après l'intersection ...
+			for(int j = 0; j < NewShape.size(); ++j)//Pour chaque polygon obtenu après l'intersection ...
 			{
 				geos::geom::Geometry * Geo = NewShape[j];
 				
@@ -1444,83 +1474,79 @@ namespace vcity
 					geos::geom::Geometry* GeoLines = factory->createGeometryCollection(LineVec);
 
 					geos::geom::Geometry * InterGeo2 = factory->createGeometryCollection(InterVec);
-
 					
-					Save3GeometryRGB("Diff_" + std::to_string(k) + "_" + std::to_string(j) + "_3", Geo->difference(InterGeo2), Geo2, Geo->difference(InterGeo2));
+					//Save3GeometryRGB("Diff_" + std::to_string(k) + "_" + std::to_string(j) + "_3", Geo->difference(InterGeo2), Geo2, Geo->difference(InterGeo2));
 
 					////////////////////////
-					/*for(int t = 0; t < LineVec.size(); ++t)
+					for(int t = 0; t < LineVec.size(); ++t)
 					{
 						InterVec.push_back(LineVec[t]);
-					}*/
+					}
 
 					geos::triangulate::DelaunayTriangulationBuilder DTB;
 
 					DTB.setSites(*factory->createGeometryCollection(InterVec));
 
-					geos::geom::Geometry* InterTriangle = DTB.getTriangles(*factory)->Union().release();
+					geos::geom::Geometry* InterTriangle = DTB.getTriangles(*factory).release();
+					
+					std::vector<geos::geom::Geometry*> Vec1; //Contiendra seulement les triangles de InterTriangle se trouvant dans InterGeo2.
 
-					SaveGeometry("TEST", InterTriangle);
+					for(int t = 0; t < InterTriangle->getNumGeometries(); ++t)
+					{
+						if(InterTriangle->getGeometryN(t)->within(InterGeo2))
+							Vec1.push_back(InterTriangle->getGeometryN(t)->clone());
+					}
 
-					Save3GeometryRGB("Diff_" + std::to_string(k) + "_" + std::to_string(j) + "_5", Geo->difference(InterTriangle), Geo2, Geo->difference(InterTriangle));
-					return;
+					geos::geom::Geometry * tmp = InterTriangle;
+					InterTriangle = factory->createGeometryCollection(Vec1)->buffer(0.1);
+					//delete tmp;
+					for(auto& it : Vec1) delete it;
+
+					std::vector<geos::geom::Geometry*> VecGeo; //Contiendra les triangles à assimiler à Geo (qu'il faudra donc retirer à Geo2)
+					std::vector<geos::geom::Geometry*> VecGeo2;//Contiendra les triangles à assimiler à Geo2 (qu'il faudra donc retirer à Geo)
+					
+					for(int t = 0; t < InterTriangle->getNumGeometries(); ++t)
+					{
+						if(GetNearestGeo(InterTriangle->getGeometryN(t), Geo, Geo2) == 1)
+							VecGeo.push_back(InterTriangle->getGeometryN(t)->clone());
+						else
+							VecGeo2.push_back(InterTriangle->getGeometryN(t)->clone());
+					}
+
+					//NewShape[k] = Geo2->difference(factory->createGeometryCollection(VecGeo)->Union().release());
+					//NewShape[j] = Geo->difference(factory->createGeometryCollection(VecGeo2)->Union().release());
+
+					/*Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test1_Poly1", NewShape[j], factory->createGeometryCollection(VecGeo2)->Union().release(), NewShape[j]);
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test2_Poly2", NewShape[k], factory->createGeometryCollection(VecGeo)->Union().release(), NewShape[k]);
 
 					////////////////////////
 
-					geos::geom::Geometry * Res = overlaySnapRounded(InterGeo2, GeoLines);//Pour découper les polygons avec les lignes de GeoLines				
+					/*geos::geom::Geometry * Res = overlaySnapRounded(InterGeo2, GeoLines);//Pour découper les polygons avec les lignes de GeoLines				
 
 					Save3GeometryRGB("Diff_" + std::to_string(k) + "_" + std::to_string(j) + "_4", Geo->difference(Res), Geo2, Geo->difference(Res));					
-
-					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test0" , Geo2, GeoLines, InterGeo2);
-
+					
 					//if(!Res->isEmpty())
 					//	Res = Res->buffer(0.1);
 
 					NewShape[k] = Geo2->difference(Res);
 					NewShape[j] = Geo->difference(Res);
 
-					/*Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "_1", Geo2, Res, Geo2);
-					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "_2", Res, Geo2, Res);
-					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "_3", NewShape[k], Geo2, NewShape[k]);
-
-					Save3GeometryRGB("Inter_" + std::to_string(k) + "_" + std::to_string(j) + "_1", Geo, Res, Geo);
-					Save3GeometryRGB("Inter_" + std::to_string(k) + "_" + std::to_string(j) + "_2", Res, Geo, Res);
-					Save3GeometryRGB("Inter_" + std::to_string(k) + "_" + std::to_string(j) + "_3", NewShape[j], Geo, NewShape[j]);*/
-
-					/*for(int z = 0; z < Res->getNumGeometries(); ++z)
-					{
-						std::cout << Res->getGeometryN(z)->getGeometryType() << std::endl;
-						std::cout << Res->getGeometryN(z)->getArea() << std::endl;
-						std::cout << Res->getGeometryN(z)->isEmpty() << std::endl;
-						std::cout << Res->getGeometryN(z)->isValid() << std::endl;
-					}
-
-					std::cout << "Geo : \n";
-					for(int z = 0; z < Geo->getNumGeometries(); ++z)
-					{
-						std::cout << Geo->getGeometryN(z)->getGeometryType() << std::endl;
-						std::cout << Geo->getGeometryN(z)->getArea() << std::endl;
-						std::cout << Geo->getGeometryN(z)->isEmpty() << std::endl;
-						std::cout << Geo->getGeometryN(z)->isValid() << std::endl;
-					}*/
-
-					/*Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff1" , Geo2, Geo, factory->createEmptyGeometry());
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff1" , Geo2, Geo, factory->createEmptyGeometry());
 					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff2" , Geo2, Geo, Res);
-					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff3" , NewShape[j], Geo, Res);
-					
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff3" , NewShape[j], Geo, Res);					
 					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "Diff4" , Geo->symDifference(Res), Geo, Res);*/
 
-					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test2" , Geo2, Geo, InterGeo2);
+					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test3_Avant" , Geo2, Geo, Geo2);			
 
-					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test3" , Geo2, Geo, Res);						
+					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test4_Apres" , NewShape[k], NewShape[j], NewShape[k]);*/
 
-					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test4" , NewShape3[k], NewShape3[j], GeoLines);
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test5_Lines" , InterGeo2, GeoLines, InterGeo2);
 
-					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test5" , InterGeo2, factory->createEmptyGeometry(), GeoLines);
-						
-					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test6" , InterGeo2, factory->createEmptyGeometry(), Res);
-					
-					//Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test1" , Geo2, Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));					
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test5_Lines2" , factory->createGeometryCollection(InterVec), GeoLines, factory->createGeometryCollection(InterVec));
+
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test6_Triangles1" , tmp, GeoLines, tmp);
+
+					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "test6_Triangles2" , InterTriangle, GeoLines, InterTriangle);
 
 					Geo = NewShape[j];
 				}
