@@ -391,8 +391,8 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
     {
         //object->computeEnvelope();
         const citygml::Envelope& env = object->getEnvelope();
-        if(env.getUpperBound().x != 0.0 && env.getUpperBound().y != 0.0 && env.getUpperBound().z != 0.0 ||
-           env.getLowerBound().x != 0.0 && env.getLowerBound().y != 0.0 && env.getLowerBound().z != 0.0)
+        if ( (env.getUpperBound().x != 0.0 && env.getUpperBound().y != 0.0 && env.getUpperBound().z != 0.0) ||
+           (env.getLowerBound().x != 0.0 && env.getLowerBound().y != 0.0 && env.getLowerBound().z != 0.0) )
         {
             std::cout << object->getId() << " : " << env << std::endl;
             TVec3d lb_ = env.getLowerBound()-offset_;

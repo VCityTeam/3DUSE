@@ -33,7 +33,7 @@
 #include "geos/noding/GeometryNoder.h"
 #include "geos/operation/polygonize/Polygonizer.h"
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef __unix
+#if defined(__unix) || defined(__APPLE__)
 #include <cerrno>
 typedef int errno_t;
 errno_t fopen_s(FILE **f, const char *name, const char *mode) {
