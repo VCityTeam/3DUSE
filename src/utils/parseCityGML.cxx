@@ -466,7 +466,7 @@ int main(int argc, char** argv)
 										/*else
 											printf("FOUND in UUID_full_set\n");*/
 
-									printf("parcours_prefixe_Building_ReliefFeature_textures: %s - %s\n", n->children->name, xmlGetProp(n->children, BAD_CAST "id"));
+									//printf("parcours_prefixe_Building_ReliefFeature_textures: %s - %s\n", n->children->name, xmlGetProp(n->children, BAD_CAST "id"));
 									parcours_prefixe_Building_ReliefFeature_textures(n->children, process_Building_ReliefFeature_textures, &UUID_set, folderIN, folderOUT);
 								}
 							}
@@ -474,7 +474,7 @@ int main(int argc, char** argv)
 					else
 						printf(" -> NOT COPIED: %s: %s\n", n->name, n->children->name);
 				}
-				else if ( (xmlStrEqual(n->name, BAD_CAST "appearanceMember")) && TEXTURE_PROCESS )
+				else if ( (xmlStrEqual(n->name, BAD_CAST "appearanceMember")) && (TEXTURE_PROCESS==true) )
 				{
 					POST_PROCESS_TEXTURES = true;
 					appearanceMember_node = n; // CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
