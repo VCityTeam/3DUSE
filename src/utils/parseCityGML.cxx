@@ -192,6 +192,17 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							}
 						}
 					}
+
+					std::string new_posList = "";
+					for (int p=0; p<i+1; p++)
+					{
+						new_posList += std::to_string(l0[p].x); new_posList += " ";
+						new_posList += std::to_string(l0[p].y); new_posList += " ";
+						new_posList += std::to_string(l0[p].z); new_posList += " ";
+					}
+					//std::cout << "new posList: " << new_posList << std::endl;
+
+					xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
 				}
 				// ---
 			}
@@ -443,7 +454,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.0.9b - June 6, 2014 - Martial TOLA");
+        puts("ParseCityGML 1.0.9b2 - June 6, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
