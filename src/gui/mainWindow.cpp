@@ -655,8 +655,8 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    //unlockFeatures("pass2");
-    unlockFeatures("");
+    unlockFeatures("pass2");
+    //unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
 
