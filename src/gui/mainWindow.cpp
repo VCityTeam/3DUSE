@@ -655,9 +655,26 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    unlockFeatures("pass2");
+    //unlockFeatures("pass2");
+    unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
+
+    // set dataprofile
+    QSettings settings("liris", "virtualcity");
+    QString dpName = settings.value("dataprofile").toString();
+    if(dpName == "Paris")
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileParis();
+    }
+    else if(dpName == "Lyon")
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileLyon();
+    }
+    else
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileDefault();
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::resetScene()
@@ -1088,7 +1105,7 @@ void buildJson()
 
                     citygml::ExporterJSON exporter;
                     exporter.setBasePath(basePath);
-                    exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idX-idOffsetY));
+                    exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idY-idOffsetY));
                     exporter.setTileSize(stepX, stepY);
                     exporter.exportCityModel(*citygmlmodel, f, id);
                     delete citygmlmodel;
@@ -1101,8 +1118,8 @@ void buildJson()
 ////////////////////////////////////////////////////////////////////////////////
 void buildJsonLod()
 {
-    QString dataPath("C:/Users/Game Trap/Downloads/Data/Paris/paris/tiles");
-    std::string basePath("lod1/");
+    QString dataPath("/mnt/docs/upload/shp/paris/tiles");
+    std::string basePath("/tmp/json/lod0/");
     int idOffsetX = 1286;
     int idOffsetY = 13714;
     double offsetX = 643000.0;
@@ -1138,7 +1155,7 @@ void buildJsonLod()
 
                 citygml::ExporterJSON exporter;
                 exporter.setBasePath(basePath);
-                exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idX-idOffsetY));
+                exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idY-idOffsetY));
                 exporter.setTileSize(stepX, stepY);
                 citygml::CityModel* model = vcity::app().getAlgo().getCitymodel();
                 if(model)

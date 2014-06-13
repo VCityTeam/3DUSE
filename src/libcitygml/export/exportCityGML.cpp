@@ -193,10 +193,19 @@ xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject&
     xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
     xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
 
+    // children are not handled here, but in the upper call level (exportCityObjetXml)
     /*for(const auto& child : obj.getChildren())
     {
         exportCityObjetXml(child, res);
     }*/
+
+    // attributes
+    for(const auto& attr : obj.getAttributes())
+    {
+        xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
+        xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
+        xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+    }
 
     return res;
 }

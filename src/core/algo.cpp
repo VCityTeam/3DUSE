@@ -29,7 +29,7 @@
 #include "geos/operation/distance/DistanceOp.h"
 #include "geos/operation/buffer/BufferOp.h"
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef __unix
+#if defined(__unix) || defined(__APPLE__)
 #include <cerrno>
 typedef int errno_t;
 errno_t fopen_s(FILE **f, const char *name, const char *mode) {
@@ -1846,7 +1846,9 @@ namespace vcity
 		//geos::geom::Geometry * ShapeSimp = geos::simplify::TopologyPreservingSimplifier::simplify(Shape, 2).release();
 		//SaveGeometry("Shape_Simplified", ShapeSimp);
 
-		//BuildLOD1FromGEOS(Shape, Hauteurs);
+        // gen lod1
+        m_model = BuildLOD1FromGEOS(Shape, Hauteurs);
+        return;
 
 		geos::geom::Geometry * ShapeRes = Shape->buffer(4)->buffer(-4);
 
@@ -1893,6 +1895,7 @@ namespace vcity
 		geos::geom::Geometry * ShapeResWithoutHolesSimp = geos::simplify::TopologyPreservingSimplifier::simplify(ShapeResWithoutHoles, 4).release();
 		//SaveGeometry("Shape_Close_WithoutHoles_Simplified", ShapeResWithoutHolesSimp);
 
+        // gen loa
         m_model = BuildLOD1FromGEOS(ShapeResWithoutHoles, Hauteurs2);
         //m_model = BuildLOD1FromGEOS(ShapeResWithoutHolesSimp, Hauteurs2);
 	}

@@ -21,6 +21,9 @@ DataProfile createDataProfileDefault()
     dp.m_xStep = 0;
     dp.m_yStep = 0;
 
+    dp.m_id = 0;
+    dp.m_name = "None";
+
     return dp;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,6 +36,9 @@ DataProfile createDataProfileParis()
     dp.m_xStep = 500;
     dp.m_yStep = 500;
 
+    dp.m_id = 1;
+    dp.m_name = "Paris";
+
     return dp;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,6 +50,9 @@ DataProfile createDataProfileLyon()
 
     dp.m_xStep = 0;
     dp.m_yStep = 0;
+
+    dp.m_id = 2;
+    dp.m_name = "Lyon";
 
     return dp;
 }

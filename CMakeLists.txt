@@ -1,5 +1,5 @@
 if (WITH_QT5)
-  cmake_minimum_required(VERSION 2.8.9) # because 2.8.8 has a bug with QT5_USE_MODULES 
+  cmake_minimum_required(VERSION 2.8.9) # because 2.8.8 has a bug with QT5_USE_MODULES
 endif(WITH_QT5)
 
 if (COMMAND cmake_policy)
@@ -10,7 +10,7 @@ if (COMMAND cmake_policy)
 endif (COMMAND cmake_policy)
 
 # Project configuration
-set(PRJ_NAME VCity)
+set(PRJ_NAME 3DUSE)
 
 SET(PRJ_VERSION_MAJOR 0)
 SET(PRJ_VERSION_MINOR 1)
@@ -44,7 +44,7 @@ endif()
 #------------------------------------------------------------------------------
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   SET(ENABLE_CXX11 "-std=c++11")
-  
+
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments")
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ENABLE_CXX11} -Qunused-arguments")
   message(STATUS "Clang compiler detected (with ${ENABLE_CXX11} activated)")
@@ -77,7 +77,7 @@ IF(WIN32)
 
 	if(WITH_QT5)
 		# with qt5
-		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)		
+		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
 	else(WITH_QT5)
 		# with qt4
 		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
@@ -340,14 +340,14 @@ SET( VCITY_GUI_Qt_RES
 if (WITH_QT5)
   QT5_WRAP_UI(VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
   QT5_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
-else(WITH_QT5) 
+else(WITH_QT5)
   QT4_WRAP_CPP(VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC})
   QT4_WRAP_UI(VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
   QT4_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 endif(WITH_QT5)
- 
+
 INCLUDE_DIRECTORIES( src src/libcitygml )
- 
+
 # General
 file(
   GLOB_RECURSE
@@ -367,7 +367,7 @@ if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
 endif(WITH_QT5)
- 
+
 SET( VCITY_GUI_LIB
   ${ASSIMP_LIBRARY}
   ${OSG_LIBRARIES}
@@ -433,25 +433,32 @@ ENDIF(WIN32)
 # For Apple set the icns file containing icons
 IF(APPLE)
   # set how it shows up in the Info.plist file
-  SET(MACOSX_BUNDLE_ICON_FILE vcity.icns) 
+  SET(MACOSX_BUNDLE_ICON_FILE vcity.icns)
   # set where in the bundle to put the icns file
   SET_SOURCE_FILES_PROPERTIES(resources/vcity.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
   # include the icns file in the target
   SET(VCITY_GUI_ICON resources/vcity.icns)
 ENDIF(APPLE)
 
-ADD_EXECUTABLE(VCity MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (VCity ${VCITY_GUI_LIB})
+ADD_EXECUTABLE(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
+target_link_libraries (${PRJ_NAME} ${VCITY_GUI_LIB})
 if (WITH_QT5)
-  QT5_USE_MODULES( VCity Widgets Xml OpenGL )
+  QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
   if (WITH_QT3D)
-    QT5_USE_MODULES( VCity 3D )
+    QT5_USE_MODULES( ${PRJ_NAME} 3D )
   endif(WITH_QT3D)
 endif(WITH_QT5)
-SET_TARGET_PROPERTIES(VCity PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
+SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
 add_executable(parseCityGML src/utils/parseCityGML.cxx)
-target_link_libraries(parseCityGML ${LIBXML2_LIBRARIES})
+target_link_libraries (parseCityGML ${VCITY_GUI_LIB})
+if (WITH_QT5)
+  QT5_USE_MODULES( parseCityGML Widgets Xml OpenGL )
+  if (WITH_QT3D)
+    QT5_USE_MODULES( parseCityGML 3D )
+  endif(WITH_QT3D)
+endif(WITH_QT5)
+SET_TARGET_PROPERTIES(parseCityGML PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
 	#--------------------------------------------------------------------------------
 	# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
@@ -467,11 +474,11 @@ target_link_libraries(parseCityGML ${LIBXML2_LIBRARIES})
 	IF(WIN32)
 		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
 	ENDIF(WIN32)
-		
+
 	#--------------------------------------------------------------------------------
 	# Install the application, on Apple, the bundle is at the root of the
 	# install tree, and on other platforms it'll go to the same directory.
-	INSTALL(TARGETS ${PRJ_NAME} 
+	INSTALL(TARGETS ${PRJ_NAME}
 		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
 		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
 	)
@@ -515,7 +522,7 @@ target_link_libraries(parseCityGML ${LIBXML2_LIBRARIES})
 			ENDIF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
 		ENDIF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
 	ENDIF(APPLE)
-		
+
 	#--------------------------------------------------------------------------------
 	# Use BundleUtilities to get all other dependencies for the application to work.
 	# It takes a bundle or executable along with possible plugins and inspects it
