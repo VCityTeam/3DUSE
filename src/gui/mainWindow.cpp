@@ -26,7 +26,7 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
-
+#include "core/BatimentShape.hpp"
 #include <geos/geom/GeometryFactory.h>
 
 /*#include "assimp/Importer.hpp"

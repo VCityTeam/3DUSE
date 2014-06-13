@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "gui/moc/mainWindow.hpp"
 
+#include "BatimentShape.hpp"
 #include "export/exportCityGML.hpp"
 #include "geos/geom/Polygon.h"
 #include "geos/geom/Coordinate.h"
@@ -18,22 +19,16 @@
 #include "geos/geom/CoordinateArraySequence.h"
 #include "geos/geom/Dimension.h"
 #include "geos/geom/Envelope.h"
-#include "geos/geom/GeometryFactory.h"
+//#include "geos/geom/GeometryFactory.h"
 #include "geos/geom/LinearRing.h"
 #include "geos/geom/Point.h"
 #include "geos/geom/PrecisionModel.h"
 #include "geos/io/WKTReader.h"
 #include "geos/util/IllegalArgumentException.h"
 #include "geos/operation/union/CascadedPolygonUnion.h"
-#include "geos/simplify/DouglasPeuckerSimplifier.h"
 #include "geos/simplify/TopologyPreservingSimplifier.h"
 #include "geos/operation/distance/DistanceOp.h"
 #include "geos/operation/buffer/BufferOp.h"
-#include "geos/geom/util/LinearComponentExtracter.h"
-#include "geos/noding/GeometryNoder.h"
-#include "geos/operation/polygonize/Polygonizer.h"
-#include "geos/triangulate/DelaunayTriangulationBuilder.h"
-#include "geos/algorithm/LineIntersector.h"
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef __unix
 #include <cerrno>
@@ -124,6 +119,53 @@ namespace vcity
         }
 
     }
+
+	/**
+     * @brief Convertit les données citygml de projection au sol en multipolygon pour GEOS
+     */
+	geos::geom::MultiPolygon * ConvertToGeos(PolySet &roofPoints)
+	{
+		//std::cout << "Debut de ConvertToGeos" << std::endl;
+		
+		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+
+		std::vector<geos::geom::Geometry*> Polys;
+		geos::geom::LinearRing *shell;
+		geos::geom::Polygon* P;
+		
+		for(PolySet::const_iterator poly = roofPoints.begin(); poly != roofPoints.end(); ++poly)
+		{
+			geos::geom::CoordinateArraySequence temp;
+			
+			if(poly->size() < 3)
+			{
+				//std::cout << "Mauvais polygon detecte, poly->size() = " << poly->size() << std::endl;
+				continue;
+			}
+
+			for(Polygon2D::const_iterator point = poly->begin(); point != poly->end(); ++point)
+			{
+				temp.add(geos::geom::Coordinate(point->first, point->second));
+			}
+			temp.add(geos::geom::Coordinate(poly->begin()->first, poly->begin()->second));
+
+			shell=factory->createLinearRing(temp);
+
+			P = factory->createPolygon(shell, NULL);
+			
+			Polys.push_back(P); 
+		}
+		//std::cout << "Creation du Multipolygon ..." << std::endl;
+
+		geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
+
+		//std::cout << "MultiPolygon cree, il contient : "<< MP->getNumGeometries() << " Polygons." << std::endl;
+
+		if(MP->getNumGeometries() == 0)
+			return NULL;
+
+		return MP;
+	}
 
 	/**
      * @brief Trace la ligne entre deux points de coordonnées (x1,y1) et (x2,y2) par Bresenham (http://fr.wikipedia.org/wiki/Algorithme_de_trac%C3%A9_de_segment_de_Bresenham)
@@ -721,53 +763,6 @@ namespace vcity
 
 		return ResUnion;
 	}
-
-	/**
-     * @brief Convertit les données citygml de projection au sol en multipolygon pour GEOS
-     */
-	geos::geom::MultiPolygon * ConvertToGeos(PolySet &roofPoints)
-	{
-		//std::cout << "Debut de ConvertToGeos" << std::endl;
-		
-		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
-
-		std::vector<geos::geom::Geometry*> Polys;
-		geos::geom::LinearRing *shell;
-		geos::geom::Polygon* P;
-		
-		for(PolySet::const_iterator poly = roofPoints.begin(); poly != roofPoints.end(); ++poly)
-		{
-			geos::geom::CoordinateArraySequence temp;
-			
-			if(poly->size() < 3)
-			{
-				//std::cout << "Mauvais polygon detecte, poly->size() = " << poly->size() << std::endl;
-				continue;
-			}
-
-			for(Polygon2D::const_iterator point = poly->begin(); point != poly->end(); ++point)
-			{
-				temp.add(geos::geom::Coordinate(point->first, point->second));
-			}
-			temp.add(geos::geom::Coordinate(poly->begin()->first, poly->begin()->second));
-
-			shell=factory->createLinearRing(temp);
-
-			P = factory->createPolygon(shell, NULL);
-			
-			Polys.push_back(P); 
-		}
-		//std::cout << "Creation du Multipolygon ..." << std::endl;
-
-		geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
-
-		//std::cout << "MultiPolygon cree, il contient : "<< MP->getNumGeometries() << " Polygons." << std::endl;
-
-		if(MP->getNumGeometries() == 0)
-			return NULL;
-
-		return MP;
-	}
 	
 	/**
      * @brief Teste la geometry Geo avec Geo1 et Geo2 pour déterminer de laquelle est la plus proche. Retourne 1 pour Geo1 et 2 pour Geo2
@@ -1148,7 +1143,7 @@ namespace vcity
 	/**
      * @brief Convertit un polygon avec des trous en un ensemble de geometries simples
      */
-	geos::geom::Geometry * ConvertSimpleGeom(const geos::geom::Geometry * Geo)
+	geos::geom::Geometry * ConvertToSimpleGeom(const geos::geom::Geometry * Geo)
 	{
 		if(Geo->getGeometryType() != "Polygon")
 			return Geo->clone();
@@ -1211,148 +1206,207 @@ namespace vcity
     }
 
 	/**
+     * @brief Extrapole les Z de la geometry 1 à partir de la seconde qui la contient et dont les Z sont connus
+     */
+	geos::geom::Geometry * CalculeZ(const geos::geom::Geometry * Geo, geos::geom::Geometry * GeoZ)
+	{
+		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+		//On commence par récupérer trois points de GeoZ non alignés pour obtenir l'équation paramétrique du plan formé par cette geometry
+		geos::geom::Coordinate A(GeoZ->getCoordinates()->getAt(0));
+		geos::geom::Coordinate B;
+		geos::geom::Coordinate C;
+
+		TVec3d AB;
+		TVec3d AC;
+		TVec3d AM;
+		int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
+		for(int i = 1; i < GeoZ->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+		{
+			if(test == 0)
+			{				
+				B = GeoZ->getCoordinates()->getAt(i);
+				if(A.x != B.x || A.y != B.y)
+				{
+					++test;// A est bien différent de B
+					AB.x = B.x - A.x;
+					AB.y = B.y - A.y;
+					AB.z = B.z - A.z;
+				}
+			}
+			else if(test == 1)
+			{
+				C = GeoZ->getCoordinates()->getAt(i);
+				if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
+				{
+					++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+					AC.x = C.x - A.x;
+					AC.y = C.y - A.y;
+					AC.z = C.z - A.z;
+					break;
+				}
+			}
+		}
+		if(test != 2)
+			std::cout << "Erreur lors de la creation du plan. \n";
+
+		//On va parcourir tous les points M de Geo pour lesquels on cherche le Z. M appartient au plan ABC et vérifie donc : AM = sAB + tAC
+		//On va se servir des coordonnées x et y qui sont toutes connues pour déterminer s et t qui nous permettront ensuite de calculer le z du point M
+
+		geos::geom::CoordinateSequence * ResCoords = new geos::geom::CoordinateArraySequence;
+
+		for(int i = 0; i < Geo->getNumPoints(); ++i)
+		{
+			geos::geom::Coordinate M(Geo->getCoordinates()->getAt(i));
+			double s, t;
+
+			t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
+			s = (M.x - A.x - t * AC.x) / AB.x;
+
+			ResCoords->add(geos::geom::Coordinate(M.x, M.y, A.z + s * AB.z + t * AC.z));
+		}
+		
+		return factory->createPolygon(factory->createLinearRing(ResCoords), NULL);
+	}
+
+	/**
      * @brief Charge le CityGML et le découpe à l'aide des polygons Geos représentant les bâtiments
      */
 	void ExtruderBatiments(geos::geom::Geometry * Batiments)
-	{
+	{		
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
+		citygml::CityModel* model = new citygml::CityModel;
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 		int cpt = 0;
 
-		// pour toutes les polygones de coupe
+		std::vector<geos::geom::Geometry*> VecGeoRes;
 
-		for(int i = 0; i < tiles.size(); i++)//On parcourt les tuiles du CityGML
+		for(int j = 0; j < Batiments->getNumGeometries(); ++j)
 		{
-			citygml::CityModel* model = tiles[i]->getCityModel();
+			const geos::geom::Geometry * Bati = Batiments->getGeometryN(j);
 
-			for(citygml::CityObject* Building : model->getCityObjectsRoots())//On parcourt les bâtiments de la tuile
+			std::vector<geos::geom::Geometry*> VecGeo;
+
+			for(int i = 0; i < tiles.size(); i++)//On parcourt les tuiles du CityGML
 			{
-				if(Building->getType() != citygml::COT_Building)
-					continue;
+				citygml::CityModel* model = tiles[i]->getCityModel();
 
-				for(citygml::CityObject* object : Building->getChildren())//On parcourt les objets (Wall et Roof) du bâtiment
-				{					
-					if(object->getType() == citygml::COT_WallSurface)
-					{
-						for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+				for(citygml::CityObject* Building : model->getCityObjectsRoots())//On parcourt les bâtiments de la tuile
+				{
+					if(Building->getType() != citygml::COT_Building)
+						continue;
+
+					for(citygml::CityObject* object : Building->getChildren())//On parcourt les objets (Wall et Roof) du bâtiment
+					{					
+						if(object->getType() == citygml::COT_RoofSurface)
 						{
-							for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
+							for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
 							{
-								citygml::LinearRing* ring = PolygonCityGML->getExteriorRing();
-								const std::vector<TVec3d> vertices = ring->getVertices();
-								std::vector<TVec3d>::const_iterator itVertices = vertices.begin();
-
-								citygml::LinearRing* ringResult = new citygml::LinearRing("ring_result", true);
-								
-								while(itVertices != vertices.end()-1)//pour Chaque sommet
+								for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
 								{
-									TVec3d P1 = *itVertices;
-									++itVertices;
-									TVec3d P2 = *itVertices;
-									geos::geom::CoordinateSequence * LineCoords = new geos::geom::CoordinateArraySequence;
-									geos::geom::Coordinate C1(P1.x - offset_.x, P1.y - offset_.y);
-									geos::geom::Coordinate C2(P2.x - offset_.x, P2.y - offset_.y);
-									LineCoords->add(C1);
-									LineCoords->add(C2);
+									geos::geom::CoordinateSequence * Coords = new geos::geom::CoordinateArraySequence;
 
-									geos::geom::LineString * Line = factory->createLineString(LineCoords); //Représente l'arrête courante du CityGML
-
-									// pour tous les plans de coupe du polygone de coupe courant
-									// for plan de coupe
-										// si intersection
-											// insertion dans ringResult
-											// on regarde si les extremités sont dans le polygone que l'on découpe
-											// si oui, insertion dans ringResult
-
-
-									// on calcul les parametres de coupe t
-									// quand il y une coupe, on utilise le dernier point de coupe comme raccord pour la prochaine coupe
-
-									for(int j = 0; j < Batiments->getNumGeometries(); ++j)//On cherche si la ligne intersecte un bâtiments du cadastre
+									for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 									{
-										const geos::geom::Geometry * Bati = Batiments->getGeometryN(j);
-
-										for(int k = 0; k < Bati->getNumGeometries(); ++k) //Si le bâtiment est en plusieurs parties
-										{
-											geos::geom::Geometry * BatiPart1 = Bati->getGeometryN(k)->clone();
-
-											if(BatiPart1->getGeometryType() == "Polygon")
-											{
-												const geos::geom::Geometry * tmp = BatiPart1;
-												BatiPart1 = ConvertSimpleGeom(BatiPart1);
-												delete tmp;												
-											}
-
-											for(int t = 0; t < BatiPart1->getNumGeometries(); ++t)
-											{
-												geos::geom::Geometry * BatiPart = BatiPart1->getGeometryN(t)->clone();
-												if(!BatiPart->intersects(Line))
-												{
-													//delete BatiPart;
-													//delete BatiCoords;
-
-													continue; //Le bâtiment du cadastre n'intersecte pas l'arrête courante du CityGML
-												}
-												geos::geom::CoordinateSequence * BatiCoords = BatiPart->getCoordinates();
-
-												for(int c = 0; c < BatiCoords->size() - 1; ++c)
-												{
-													geos::geom::CoordinateSequence * LineCoords = new geos::geom::CoordinateArraySequence;
-													LineCoords->add(BatiCoords->getAt(c));
-													LineCoords->add(BatiCoords->getAt(c+1));
-													geos::geom::LineString * LineBati = factory->createLineString(LineCoords); //Représente l'arrête courant du batiment issu du Cadastre
-
-													if(!LineBati->intersects(Line))
-													{
-														//delete LineCoords;
-														//delete LineBati;
-														continue; //L'arrête du bâtiment du cadastre n'intersecte pas l'arrête courante du CityGML
-													}
-													geos::geom::Geometry * Inter = LineBati->intersection(Line);//Doit représenter le point d'intersection entre les deux arrêtes
-													if(Inter->getNumPoints() != 1)
-													{
-														//cpt++;
-														//Save3GeometryRGB("NonInter" + std::to_string(cpt), BatiPart, Line, LineBati);
-														//delete Inter
-														//delete LineCoords;
-														//delete LineBati;
-														continue;//L'intersection n'est pas qu'un seul point : les arrêtes sont colinéaires, ce qui ne convient pas
-													}
-													if((Inter->getCoordinates()->getAt(0).x != C1.x || Inter->getCoordinates()->getAt(0).y != C1.y) && (Inter->getCoordinates()->getAt(0).x != C2.x || Inter->getCoordinates()->getAt(0).y != C2.y))
-													{
-														cpt++;													
-														//Save3GeometryRGB("PointInter" + std::to_string(cpt), BatiPart, Line, LineBati);
-														geos::geom::CoordinateSequence * LineTest = new geos::geom::CoordinateArraySequence;
-														geos::geom::Coordinate Temp = Inter->getCoordinates()->getAt(0);
-														Temp.x += 2;
-														Temp.y += 2;
-														LineTest->add(Inter->getCoordinates()->getAt(0));
-														LineTest->add(Temp);
-														Save3GeometryRGB("PointInter" + std::to_string(cpt) + "_2", BatiPart, Line, factory->createLineString(LineTest));
-													}
-												}
-												//delete BatiPart;
-												//delete BatiCoords;
-											}
-											//delete BatiPart1;											
-										}										
-										//delete Bati;
+										Coords->add(geos::geom::Coordinate(Point.x - offset_.x, Point.y - offset_.y, Point.z));
 									}
-									//delete Line;
-									//delete LineCoords;
+									Coords->add(Coords->getAt(0));
+
+									geos::geom::Geometry * GeoCityGML = factory->createPolygon(factory->createLinearRing(Coords), NULL);
+
+									geos::geom::Geometry * Inter = GeoCityGML->intersection(Bati);
+
+									for(int k = 0; k < Inter->getNumGeometries(); ++k)
+									{
+										const geos::geom::Geometry * Interpart = Inter->getGeometryN(k);
+										if(Interpart->isEmpty() || Interpart->getArea() == 0.0)
+											continue;
+
+										//Save3GeometryRGB("test", Bati, GeoCityGML, Bati);
+										//Save3GeometryRGB("test2", Bati, GeoCityGML, Interpart);
+
+										geos::geom::Geometry * Ring = CalculeZ(Interpart, GeoCityGML);
+
+										VecGeo.push_back(Ring);
+									}
+
+									//delete Coords;
+									//delete GeoCityGML;
+									//delete GeoRes;
 								}
 							}
 						}
-					}
-					else if(object->getType() == citygml::COT_RoofSurface)
-					{
+						else if(object->getType() == citygml::COT_WallSurface)
+						{
 
+						}
 					}
 				}
 			}
+			if(VecGeo.size() > 0)
+			{
+				//SaveGeometry("Batiment_" + std::to_string(j), factory->createGeometryCollection(VecGeo));
+
+				VecGeoRes.push_back(factory->createGeometryCollection(VecGeo));
+				
+				citygml::CityObject* BuildingCO = new citygml::Building("Building_" + std::to_string(j));
+
+				for(int i = 0; i < VecGeo.size(); ++i)
+				{
+					citygml::Geometry* Roof = new citygml::Geometry("GeoRoof_Building_" + std::to_string(j)  + "_" + std::to_string(i), citygml::GT_Roof, 0);
+					citygml::Polygon * PolyRoof = new citygml::Polygon("PolyRoof");
+					citygml::LinearRing * RingRoof = new citygml::LinearRing("RingRoof",true);	
+
+					geos::geom::CoordinateSequence * Coords = VecGeo[i]->getCoordinates();
+
+					for(int k = 0; k < Coords->size() - 1; ++k)
+					{
+						RingRoof->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
+
+						citygml::Geometry* Wall = new citygml::Geometry("GeoWall_Building_" + std::to_string(j) + "_" + std::to_string(i) + "_" + std::to_string(k), citygml::GT_Wall, 0);
+						citygml::Polygon * PolyWall = new citygml::Polygon("PolyWall");
+						citygml::LinearRing * RingWall = new citygml::LinearRing("RingWall",true);
+
+						RingWall->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
+						RingWall->addVertex(TVec3d(Coords->getAt(k+1).x + offset_.x, Coords->getAt(k+1).y + offset_.y, Coords->getAt(k+1).z));
+						RingWall->addVertex(TVec3d(Coords->getAt(k+1).x + offset_.x, Coords->getAt(k+1).y + offset_.y, 150));
+						RingWall->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, 150));
+
+						PolyWall->addRing(RingWall);
+						Wall->addPolygon(PolyWall);
+
+						citygml::CityObject* WallCO = new citygml::WallSurface("Wall_" + std::to_string(k));
+
+						WallCO->addGeometry(Wall);
+						model->addCityObject(WallCO);
+						BuildingCO->insertNode(WallCO);
+					}
+					PolyRoof->addRing(RingRoof);
+					Roof->addPolygon(PolyRoof);
+
+					citygml::CityObject* RoofCO = new citygml::RoofSurface("Roof_" + std::to_string(i));
+
+					RoofCO->addGeometry(Roof);
+					model->addCityObject(RoofCO);
+					BuildingCO->insertNode(RoofCO);
+				}
+				model->addCityObject(BuildingCO);
+				model->addCityObjectAsRoot(BuildingCO);
+			}
 		}
+		if(VecGeoRes.size() > 0)
+		{
+			//SaveGeometry("BatimentsRes" , factory->createGeometryCollection(VecGeoRes));
+		}
+
+		citygml::ExporterCityGML exporter;
+        exporter.exportCityModel(*model, "Batiments.citygml");
+		
+		std::cout << std::endl << "Fichier CityGML cree.\n";
+
+		citygml::ParserParams params;
+		model->finish(params);
 	}
 
     void Algo::generateLOD0Scene(geos::geom::Geometry * Shape)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
@@ -1454,7 +1508,7 @@ namespace vcity
 			const geos::geom::Polygon * CurrPolyE = dynamic_cast<const geos::geom::Polygon*>(EnveloppeCity->getGeometryN(i));
 			
 			//Le but de ces lignes est de convertir le polygon avec son exterior ring et ses trous en un ensemble de geometry contenant ceux ci sans qu'ils soient encore liés. On peut ainsi parcourir seulement les arrêtes du polygon sans la notion d'intérieur
-			geos::geom::Geometry * CurrGeoE = ConvertSimpleGeom(CurrPolyE);
+			geos::geom::Geometry * CurrGeoE = ConvertToSimpleGeom(CurrPolyE);
 
 			std::vector<geos::geom::Geometry *> Shape1;			//Polygon de base
 			std::vector<geos::geom::Geometry *> NewShape;		//Intersection avec le cityGML
@@ -1640,9 +1694,9 @@ namespace vcity
 						//Save3GeometryRGB("TEST3", SplitPoly[t], Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));
 						int n = GetNearestGeo(SplitPoly[t], Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));
 						if(n == 1)
-							VecGeo.push_back(SplitPoly[t]/*->buffer(0.01)*/);
+							VecGeo.push_back(SplitPoly[t]->buffer(0.01));//0.01
 						else
-							VecGeo2.push_back(SplitPoly[t]/*->buffer(0.01)*/);
+							VecGeo2.push_back(SplitPoly[t]->buffer(0.01));//0.01
 					}
 					NewShape[k] = Geo2->difference(factory->createGeometryCollection(VecGeo)->Union().release());					
 					NewShape[j] = Geo->difference(factory->createGeometryCollection(VecGeo2)->Union().release());

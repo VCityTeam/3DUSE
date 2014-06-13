@@ -8,6 +8,7 @@
 #include "core/application.hpp"
 #include <vector>
 
+#include "BatimentShape.hpp"
 #include "geos/geom/Polygon.h"
 #include "geos/geom/Coordinate.h"
 #include "geos/geom/CoordinateSequence.h"
