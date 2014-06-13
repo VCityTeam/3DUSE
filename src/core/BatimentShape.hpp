@@ -12,10 +12,9 @@ class BatimentShape
 {
 public:
 	BatimentShape();
-	BatimentShape(geos::geom::Geometry * Geo, std::string ID, std::string Name);
+	BatimentShape(geos::geom::Geometry * Geo, std::string ID);
 	geos::geom::Geometry * Geometry;
 	std::string ID;
-	std::string Name;
 
 private:
 };

@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include "gui/moc/mainWindow.hpp"
 
-#include "BatimentShape.hpp"
 #include "export/exportCityGML.hpp"
 #include "geos/geom/Polygon.h"
 #include "geos/geom/Coordinate.h"
@@ -19,7 +18,7 @@
 #include "geos/geom/CoordinateArraySequence.h"
 #include "geos/geom/Dimension.h"
 #include "geos/geom/Envelope.h"
-//#include "geos/geom/GeometryFactory.h"
+#include "geos/geom/GeometryFactory.h"
 #include "geos/geom/LinearRing.h"
 #include "geos/geom/Point.h"
 #include "geos/geom/PrecisionModel.h"
@@ -1271,7 +1270,7 @@ namespace vcity
 	/**
      * @brief Charge le CityGML et le découpe à l'aide des polygons Geos représentant les bâtiments
      */
-	void ExtruderBatiments(geos::geom::Geometry * Batiments)
+	void ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments)
 	{		
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
@@ -1389,8 +1388,10 @@ namespace vcity
 
 					RoofCO->addGeometry(Roof);
 					model->addCityObject(RoofCO);
-					BuildingCO->insertNode(RoofCO);
+					BuildingCO->insertNode(RoofCO);									
 				}
+				std::cout << InfoBatiments[j].ID << std::endl;	
+				BuildingCO->setAttribute("ID_shape", InfoBatiments[j].ID);
 				model->addCityObject(BuildingCO);
 				model->addCityObjectAsRoot(BuildingCO);
 			}
@@ -1409,7 +1410,7 @@ namespace vcity
 		model->finish(params);
 	}
 
-    void Algo::generateLOD0Scene(geos::geom::Geometry * Shape)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
+    void Algo::generateLOD0Scene(geos::geom::Geometry * Shape, std::vector<BatimentShape> InfoBatiments)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
     {
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		
@@ -1495,10 +1496,11 @@ namespace vcity
 		}
 
 		///////////// Relie les polygons du CityGML et du Cadastre
-		std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Link = LinkGeos(Shape, EnveloppeCity); 
+		std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Link = LinkGeos(Shape, EnveloppeCity); //Le premier vector contient les polys d'enveloppe pour chaque Shape
 		/////////////
 
 		std::vector<geos::geom::Geometry*> GeoRes; //Contiendra les bâtiments de CityGML découpés par le Shape
+		std::vector<BatimentShape> InfoBatimentsRes;
 
 		for(int i = 0; i < EnveloppeCity->getNumGeometries(); ++i)//On parcourt tous les polygons du CityGML
 		{
@@ -1709,23 +1711,24 @@ namespace vcity
 					Geo = NewShape[j];
 				}
 			}
-			geos::geom::Geometry * ShapeRes2 = factory->createGeometryCollection(NewShape);
+			//geos::geom::Geometry * ShapeRes2 = factory->createGeometryCollection(NewShape);
 			//Scale = 10;
 			//Save3GeometryRGB("Shape_" + std::to_string(i), EnveloppeCity, Shape, EnveloppeCity);
 			//Save3GeometryRGB("ShapeRes_" + std::to_string(i), EnveloppeCity, ShapeRes, EnveloppeCity);
 			//Scale = 20;
 			//Save3GeometryRGB("ShapeRes2_" + std::to_string(i), EnveloppeCity, ShapeRes2, EnveloppeCity);
 
-			for(int t = 0; t < ShapeRes2->getNumGeometries(); ++t)
+			for(int t = 0; t < NewShape.size(); ++t)
 			{
-				GeoRes.push_back(ShapeRes2->getGeometryN(t)->clone());
+				GeoRes.push_back(NewShape[t]);
+				InfoBatimentsRes.push_back(InfoBatiments[Link.second[i][t]]);
 			}
 		}
 		geos::geom::GeometryCollection * Batiments = factory->createGeometryCollection(GeoRes);
 		//Scale = 1;
 		//SaveGeometry("Batiments", Batiments);
 
-		ExtruderBatiments(Batiments);
+		ExtruderBatiments(Batiments, InfoBatimentsRes);
 
 		delete Batiments;
     }

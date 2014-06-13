@@ -214,7 +214,6 @@ enum State {
         //inline void setOsgNode(osg::Group* node) { m_osgNode->ref(); m_osgNode = node; }
         //inline void setOsgNode(osg::Group* node) { m_osgNode = node; }
 
-	protected:
 		inline void setAttribute( const std::string& name, const std::string& value, bool forceOnExist = true )
 		{
 			if ( !forceOnExist )

@@ -8,14 +8,12 @@
 #include "core/application.hpp"
 #include <vector>
 
-#include "BatimentShape.hpp"
 #include "geos/geom/Polygon.h"
 #include "geos/geom/Coordinate.h"
 #include "geos/geom/CoordinateSequence.h"
 #include "geos/geom/CoordinateArraySequence.h"
 #include "geos/geom/Dimension.h"
 #include "geos/geom/Envelope.h"
-#include "geos/geom/GeometryFactory.h"
 #include "geos/geom/LinearRing.h"
 #include "geos/geom/Point.h"
 #include "geos/geom/PrecisionModel.h"
@@ -182,7 +180,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
     return 0;
 }
 
-void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs)
+void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs, std::vector<BatimentShape> * InfoBatiments)
 {
 	if(!poDS)
     {
@@ -245,6 +243,13 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 					P = factory->createPolygon(shell, NULL/*Holes*/); //Les bâtiments du cadastre sont récupérés sans les cours intérieures. Mettre Holes à la place de NULL pour les avoir.
 					if(P->isValid()/* && P->getArea() > 10*/)
 					{
+						if(poFeature->GetFieldIndex("ID") != -1)
+							InfoBatiments->push_back(BatimentShape(P, poFeature->GetFieldAsString("ID")));
+						else if(poFeature->GetFieldIndex("OBJECTID") != -1)
+							InfoBatiments->push_back(BatimentShape(P, poFeature->GetFieldAsString("OBJECTID")));
+						else
+							InfoBatiments->push_back(BatimentShape(P, "ID NULL"));
+
 						Polys.push_back(P);
 						double H = 20;
 						double Zmin = 0;
@@ -253,7 +258,7 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 						if(poFeature->GetFieldIndex("Z_MIN") != -1)
 							Zmin = poFeature->GetFieldAsDouble("Z_MIN");						
 
-						if(H == 0 || Zmin > 1000)
+						if((H == 0 || Zmin > 1000) && Hauteurs->size()>1)
 						{
 							H = Hauteurs->at(Hauteurs->size() - 1).first;
 							Zmin = Hauteurs->at(Hauteurs->size() - 1).second;

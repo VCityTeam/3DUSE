@@ -40,6 +40,7 @@
 
 geos::geom::Geometry* ShapeGeo = NULL;
 std::vector<std::pair<double, double>> Hauteurs;
+std::vector<BatimentShape> InfoBatiments;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
@@ -331,7 +332,7 @@ bool MainWindow::loadFile(const QString& filepath)
 		
         m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
-		buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
         if(poDS)
         {
             vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
@@ -974,7 +975,7 @@ void MainWindow::generateLOD2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD3()
 {	
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo); 
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments); 
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD4()
@@ -1132,7 +1133,7 @@ void buildJsonLod()
                 std::cout << "id : " << idX << ", " << idY << std::endl;
 
                 OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.toStdString().c_str(), FALSE);
-                buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+				buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
                 vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
 
                 citygml::ExporterJSON exporter;
@@ -1179,7 +1180,7 @@ void MainWindow::test2()
 	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
 	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo);
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
