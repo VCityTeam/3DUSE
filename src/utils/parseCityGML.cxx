@@ -28,6 +28,12 @@ FOUR_PLANES G_my4planes;
 double G_xmin, G_ymin, G_xmax, G_ymax;
 // TEMP
 
+// todo:
+//------
+// 1. textures (0->1)
+// 2. better xmlUnlinkNode
+// 3. split polygons > 3
+
 // ---
 // adapted from http://www.scratchapixel.com/lessons/3d-basic-lessons/lesson-7-intersecting-simple-shapes/ray-plane-and-ray-disk-intersection/
 bool intersectPlane(const TVec3d &n, const TVec3d &p0, const TVec3d& l0, const TVec3d &l, double &d)
@@ -68,11 +74,15 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					{
 						if ( UUID_s->find((char *) xmlGetProp(noeudPolygon, BAD_CAST "id")) == UUID_s->end() )
 							UUID_s->insert((char *) xmlGetProp(noeudPolygon, BAD_CAST "id"));
+
+						//printf("id Polygon: %s\n", xmlGetProp(noeudPolygon, BAD_CAST "id"));
 					}
 					else
 					{
 						if ( UUID_s->find((char *) xmlGetProp(noeudSurface, BAD_CAST "id")) == UUID_s->end() )
 							UUID_s->insert((char *) xmlGetProp(noeudSurface, BAD_CAST "id"));
+
+						//printf("id Surface: %s\n", xmlGetProp(noeudSurface, BAD_CAST "id"));
 					}
 				}
 
@@ -119,8 +129,9 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					endptr = NULL;
 					first = true;
 
-					TVec3d l0[MAX_POINTS_IN_POSLIST+1];	// TEMP
-					TVec3d l[MAX_POINTS_IN_POSLIST];	// TEMP
+					TVec3d l0[MAX_POINTS_IN_POSLIST+1];		// TEMP
+					TVec3d l1[MAX_POINTS_IN_POSLIST+1+1];	// TEMP
+					TVec3d l[MAX_POINTS_IN_POSLIST];		// TEMP
 					int i;
 
 					do
@@ -155,54 +166,170 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 						//printf("s%d - p1: %lf,%lf,%lf - p2: %lf,%lf,%lf\n", s, l0[s].x, l0[s].y, l0[s].z, l0[s+1].x, l0[s+1].y, l0[s+1].z);
 					}
 
-					double d;					
+					double d;
+					int j=0;
+					TVec3d l1_temp;
+					bool inter, coin;
 					for (int s=0; s<i; s++)
 					{
 						//printf("segment: %ld\n", s);
+						inter=coin=false;
 
 						for (int p=0; p<4; p++)
 						{
 							//printf("plan: %ld\n", p);
 
+							// intersection
 							if ( (intersectPlane(G_my4planes.n[p], G_my4planes.p0[p], l0[s], l[s], d)) && d>0. && d<1. )
 							{
 								//printf("INTER s%d-p%d - %lf\n", s, p, d);
 
-								if ( (l0[s+1].x > G_xmin) && (l0[s+1].x < G_xmax) )
-									if ( (l0[s+1].y > G_ymin) && (l0[s+1].y < G_ymax) )
+								if ( (l0[s+1].x >= G_xmin) && (l0[s+1].x <= G_xmax) )
+									if ( (l0[s+1].y >= G_ymin) && (l0[s+1].y <= G_ymax) )
 									{
 										//printf(" -> KEEP INTER s+1\n");
-										l0[s] = l0[s]+l[s]*d;
+
+										l1_temp = l0[s]+l[s]*d;
+										if ( (j==0) || (l1[j-1] != l1_temp) )
+										{
+											l1[j] = l1_temp; j++;
+											inter=true;
+										}
+										l1_temp = l0[s+1];
+										if ( (j==0) || (l1[j-1] != l1_temp) )
+										{
+											l1[j] = l1_temp; j++;
+											inter=true;
+										}
 									}
 
-								if ( (l0[s].x > G_xmin) && (l0[s].x < G_xmax) )
-									if ( (l0[s].y > G_ymin) && (l0[s].y < G_ymax) )
+								if ( (l0[s].x >= G_xmin) && (l0[s].x <= G_xmax) )
+									if ( (l0[s].y >= G_ymin) && (l0[s].y <= G_ymax) )
 									{
 										//printf(" -> KEEP INTER s\n");
-										l0[s+1] = l0[s]+l[s]*d;
-									}
 
-								for (int s2=0; s2<i; s2++)
+										l1_temp = l0[s];
+										if ( (j==0) || (l1[j-1] != l1_temp) )
+										{
+											l1[j] = l1_temp; j++;
+											inter=true;
+										}
+										l1_temp = l0[s]+l[s]*d;
+										if ( (j==0) || (l1[j-1] != l1_temp) )
+										{
+											l1[j] = l1_temp; j++;
+											inter=true;
+										}
+									}	
+							}
+						}
+
+						// gestion des 4 coins
+						if (!inter)
+						{
+							// new c0
+							if ( (l0[s].x < G_xmin) && (l0[s+1].y < G_ymin) )
+							{
+								l1_temp.x = G_xmin; l1_temp.y = G_ymin; l1_temp.z = (l0[s].z + l0[s+1].z)/2.; // TODO BETTER Z
+								if ( (j==0) || (l1[j-1] != l1_temp) )
 								{
-									l[s2]=l0[s2+1]-l0[s2];
-									//l[s2]=l[s2].normal(); // normalizing
-
-									//printf("s%d - p1: %lf,%lf,%lf - p2: %lf,%lf,%lf\n", s2, l0[s2].x, l0[s2].y, l0[s2].z, l0[s2+1].x, l0[s2+1].y, l0[s2+1].z);
+									l1[j] = l1_temp; j++;
+									coin=true;
 								}
+							}
+							// new c3
+							else if ( (l0[s+1].x < G_xmin) && (l0[s].y > G_ymax) )
+							{
+								l1_temp.x = G_xmin; l1_temp.y = G_ymax; l1_temp.z = (l0[s].z + l0[s+1].z)/2.; // TODO BETTER Z
+								if ( (j==0) || (l1[j-1] != l1_temp) )
+								{
+									l1[j] = l1_temp; j++;
+									coin=true;
+								}
+							}
+							// new c1
+							else if ( (l0[s+1].x > G_xmax) && (l0[s].y < G_ymin) )
+							{
+								l1_temp.x = G_xmax; l1_temp.y = G_ymin; l1_temp.z = (l0[s+1].z + l0[s].z)/2.; // TODO BETTER Z
+								if ( (j==0) || (l1[j-1] != l1_temp) )
+								{
+									l1[j] = l1_temp; j++;
+									coin=true;
+								}
+							}
+							// new c2
+							else if ( (l0[s].x > G_xmax) && (l0[s+1].y > G_ymax) )
+							{
+								l1_temp.x = G_xmax; l1_temp.y = G_ymax; l1_temp.z = (l0[s+1].z + l0[s].z)/2.; // TODO BETTER Z
+								if ( (j==0) || (l1[j-1] != l1_temp) )
+								{
+									l1[j] = l1_temp; j++;
+									coin=true;
+								}
+							}
+						}
+
+						if ( (!inter) && (!coin) )
+						{
+							if ( (j==0) || (l1[j-1] != l0[s]) )
+							{
+								l1[j] = l0[s]; j++;
 							}
 						}
 					}
 
 					std::string new_posList = "";
-					for (int p=0; p<i+1; p++)
+					int new_nb_points = 0;
+					bool first_point=true; int first_p, last_p;
+					for (int p=0; p<j; p++)
 					{
-						new_posList += std::to_string(l0[p].x); new_posList += " ";
-						new_posList += std::to_string(l0[p].y); new_posList += " ";
-						new_posList += std::to_string(l0[p].z); new_posList += " ";
-					}
-					//std::cout << "new posList: " << new_posList << std::endl;
+						if ( (l1[p].x >= G_xmin) && (l1[p].x <= G_xmax) )
+							if ( (l1[p].y >= G_ymin) && (l1[p].y <= G_ymax) )
+							{
+								new_posList += std::to_string(l1[p].x); new_posList += " ";
+								new_posList += std::to_string(l1[p].y); new_posList += " ";
+								new_posList += std::to_string(l1[p].z); new_posList += " ";
 
-					xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
+								if (first_point)
+								{
+									first_point = false;
+									first_p=p;
+								}
+								last_p=p;
+
+								new_nb_points++;
+							}
+					}
+
+					if ( (l1[first_p].x == l1[last_p].x) && (l1[first_p].y == l1[last_p].y) && (l1[first_p].z == l1[last_p].z) )
+					{
+						//std::cout << "new posList (nb points: " << new_nb_points << "): " << new_posList << std::endl;
+					}
+					else
+					{
+						new_posList += std::to_string(l1[first_p].x); new_posList += " ";
+						new_posList += std::to_string(l1[first_p].y); new_posList += " ";
+						new_posList += std::to_string(l1[first_p].z); new_posList += " ";
+
+						new_nb_points++;
+						//std::cout << "ADD ONE POINT: new posList (new nb points: " << new_nb_points << "): " << new_posList << std::endl;
+					}
+					if (new_nb_points >= 3)
+					{
+						xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
+					}
+					else
+					{
+						xmlUnlinkNode(noeud);
+						xmlFree(noeud);
+					}
+				}
+				else
+				{
+					xmlUnlinkNode(noeud);
+					xmlFree(noeud);
+
+					//std::cout << "---> PolygonSurfaceOUT" << std::endl;
 				}
 				// ---
 			}
@@ -454,7 +581,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.0.9b2 - June 6, 2014 - Martial TOLA");
+        puts("ParseCityGML 1.0.9 - June 25, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -581,6 +708,7 @@ int main(int argc, char** argv)
 					}*/
 					if ( (xmlStrEqual(n->children->name, BAD_CAST "Building")) || (xmlStrEqual(n->children->name, BAD_CAST "ReliefFeature")) ) // ReliefFeature same principle as Building
 					//if (xmlStrEqual(n->children->name, BAD_CAST "Building")) // only Building
+					//if (xmlStrEqual(n->children->name, BAD_CAST "ReliefFeature")) // only ReliefFeature
 					{
 						double xmin_Building, ymin_Building, zmin_Building;
 						double xmax_Building, ymax_Building, zmax_Building;
