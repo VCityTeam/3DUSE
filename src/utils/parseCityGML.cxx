@@ -280,7 +280,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 
 					std::string new_posList = "";
 					int new_nb_points = 0;
-					bool first_point=true; int first_p, last_p;
+                    bool first_point=true; int first_p, last_p;
+                    bool hasPoints = false;
 					for (int p=0; p<j; p++)
 					{
 						if ( (l1[p].x >= G_xmin) && (l1[p].x <= G_xmax) )
@@ -298,22 +299,26 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 								last_p=p;
 
 								new_nb_points++;
+                                hasPoints = true;
 							}
 					}
 
-					if ( (l1[first_p].x == l1[last_p].x) && (l1[first_p].y == l1[last_p].y) && (l1[first_p].z == l1[last_p].z) )
-					{
-						//std::cout << "new posList (nb points: " << new_nb_points << "): " << new_posList << std::endl;
-					}
-					else
-					{
-						new_posList += std::to_string(l1[first_p].x); new_posList += " ";
-						new_posList += std::to_string(l1[first_p].y); new_posList += " ";
-						new_posList += std::to_string(l1[first_p].z); new_posList += " ";
+                    if(hasPoints)
+                    {
+                        if ( (l1[first_p].x == l1[last_p].x) && (l1[first_p].y == l1[last_p].y) && (l1[first_p].z == l1[last_p].z) )
+                        {
+                            //std::cout << "new posList (nb points: " << new_nb_points << "): " << new_posList << std::endl;
+                        }
+                        else
+                        {
+                            new_posList += std::to_string(l1[first_p].x); new_posList += " ";
+                            new_posList += std::to_string(l1[first_p].y); new_posList += " ";
+                            new_posList += std::to_string(l1[first_p].z); new_posList += " ";
 
-						new_nb_points++;
-						//std::cout << "ADD ONE POINT: new posList (new nb points: " << new_nb_points << "): " << new_posList << std::endl;
-					}
+                            new_nb_points++;
+                            //std::cout << "ADD ONE POINT: new posList (new nb points: " << new_nb_points << "): " << new_posList << std::endl;
+                        }
+                    }
 					if (new_nb_points >= 3)
 					{
 						xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
@@ -581,7 +586,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.0.9 - June 25, 2014 - Martial TOLA");
+        puts("ParseCityGML 1.0.10 - June 26, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
