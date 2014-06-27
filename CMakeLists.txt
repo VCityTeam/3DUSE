@@ -271,6 +271,14 @@ else(OSGSHADOW_FOUND)
   message(FATAL_ERROR "osgShadow not found. Please set OSG_DIR.")
 endif(OSGSHADOW_FOUND)
 
+# Find osgWidget
+find_package(osgWidget)
+if(OSGWIDGET_FOUND)
+  include_directories(${OSGWIDGET_INCLUDE_DIR})
+else(OSGWIDGET_FOUND)
+  message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
+endif(OSGWIDGET_FOUND)
+
 # Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows)
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
@@ -379,6 +387,7 @@ SET( VCITY_GUI_LIB
   ${OSGDB_LIBRARIES}
   ${OSGFX_LIBRARIES}
   ${OSGSHADOW_LIBRARIES}
+  ${OSGWIDGET_LIBRARIES}
   ${OSGQT_LIBRARIES}
   ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
