@@ -6,6 +6,8 @@
 #include <string>
 #include <set>
 
+#include <map>
+
 #include <iostream>
 #include <QFileInfo>
 #include <QDir>
@@ -30,9 +32,121 @@ double G_xmin, G_ymin, G_xmax, G_ymax;
 
 // todo:
 //------
-// 1. textures (0->1)
-// 2. better xmlUnlinkNode
-// 3. split polygons > 3
+// 1. split polygons > 3
+// 2. better xmlUnlinkNode ???
+
+void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlNodePtr> *UUID_uvm)
+{
+	if (noeud->type == XML_ELEMENT_NODE)
+	{
+        if (noeud->children != NULL)// && noeud->children->type == XML_TEXT_NODE) // MT
+		{
+            if (xmlStrEqual(noeud->name, BAD_CAST "textureCoordinates"))
+			{
+				char *p = (char *) xmlGetProp(noeud, BAD_CAST "ring");
+				p++;
+
+				//printf("ring textureCoordinates: %s\n", p);
+				(*UUID_uvm)[std::string(p)] = noeud;
+			}
+        }
+    }
+}
+
+typedef void (*fct_process_All_textureCoordinates)(xmlNodePtr, std::map<std::string, xmlNodePtr> *);
+void parcours_prefixe_All_textureCoordinates(xmlNodePtr noeud, fct_process_All_textureCoordinates f, std::map<std::string, xmlNodePtr> *UUID_uvm)
+{
+    xmlNodePtr n;
+    
+    for (n = noeud; n != NULL; n = n->next)
+	{
+        f(n, UUID_uvm);
+
+        if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
+			parcours_prefixe_All_textureCoordinates(n->children, f, UUID_uvm);
+    }
+}
+
+xmlNodePtr process_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, xmlNodePtr noeud_id)
+{
+	if (noeud->type == XML_ELEMENT_NODE)
+	{
+        if (noeud->children != NULL)// && noeud->children->type == XML_TEXT_NODE) // MT
+		{
+            if (xmlStrEqual(noeud->name, BAD_CAST "textureCoordinates"))
+			{
+				char *p = (char *) xmlGetProp(noeud, BAD_CAST "ring");
+				p++;
+
+				char *pid = (char *) xmlGetProp(noeud_id, BAD_CAST "id");
+				if ( strcmp(pid, p)==0 )
+				{
+					//printf("id LinearRing: %s\n", pid);
+					return noeud;
+				}
+			}
+        }
+    }
+
+	return NULL;
+}
+
+typedef xmlNodePtr (*fct_process_Building_ReliefFeature_textureCoordinates)(xmlNodePtr, xmlNodePtr);
+xmlNodePtr parcours_prefixe_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, fct_process_Building_ReliefFeature_textureCoordinates f, xmlNodePtr noeud_id)
+{
+    xmlNodePtr n;
+	xmlNodePtr noeud_find;
+    
+    for (n = noeud; n != NULL; n = n->next)
+	{
+        noeud_find = f(n, noeud_id);
+		if (noeud_find)
+			return noeud_find;
+
+        if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
+		{
+            noeud_find = parcours_prefixe_Building_ReliefFeature_textureCoordinates(n->children, f, noeud_id);
+			if (noeud_find)
+				return noeud_find;
+        }
+    }
+
+	return NULL;
+}
+
+// ---
+// ABC forment un triangle
+// M est le point où on fait le calcul (M est dans ABC)
+void calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, TVec2d uvB, TVec2d uvC, TVec2d *uvM)
+{
+    // on va se servir des coordonnées x et y qui sont toutes connues pour déterminer s et t qui nous permettrons ensuite de calculer le z du point M
+
+    TVec3d AB = B-A;
+    TVec3d AC = C-A;
+
+	TVec2d uvAB, uvAC;
+
+	if (uv)
+	{
+		uvAB = uvB-uvA;
+		uvAC = uvC-uvA;
+	}
+
+    double s, t;
+    t = (A.y * AB.x - A.x * AB.y + AB.y * M->x - AB.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
+    s = (M->x - A.x - t * AC.x) / AB.x;
+
+    // AM = sAB + tAC
+    M->z = A.z + s * AB.z + t * AC.z;
+
+    // imaginons qu'on a les coords de textures (u,v) dans les points: ex : A.u et A.v
+	if (uv)
+	{
+		uvM->x = uvA.x + s * uvAB.x + t * uvAC.x;
+		uvM->y = uvA.y + s * uvAB.y + t * uvAC.y;
+	}
+}
+// ---
 
 // ---
 // adapted from http://www.scratchapixel.com/lessons/3d-basic-lessons/lesson-7-intersecting-simple-shapes/ray-plane-and-ray-disk-intersection/
@@ -50,7 +164,7 @@ bool intersectPlane(const TVec3d &n, const TVec3d &p0, const TVec3d& l0, const T
 }
 // ---
 
-void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_posList, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s)
+void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_posList, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s, xmlNodePtr nodeToFindUV, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
 	if (noeud->type == XML_ELEMENT_NODE)
 	{
@@ -62,6 +176,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 			{
 				//printf("%s -> %s\n", chemin, contenu);
 				//printf("posList: %s\n", contenu);
+
+				xmlNodePtr noeudLinearRing = noeud->parent;
 
 				if (TEXTURE_PROCESS)
 				{
@@ -125,6 +241,24 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 				// ---
 				if ( !(*xmax < G_xmin) && !(*ymax < G_ymin) && !(*xmin > G_xmax) && !(*ymin > G_ymax) )
 				{
+					xmlNodePtr noeudUV = NULL;
+					xmlChar *contenuUV = NULL;
+					char *endptrUV = NULL;
+					if (TEXTURE_PROCESS)
+					{
+						char *pid = (char *) xmlGetProp(noeudLinearRing, BAD_CAST "id");
+						if (pid)
+						{
+							if (nodeToFindUV)
+								noeudUV = parcours_prefixe_Building_ReliefFeature_textureCoordinates(nodeToFindUV, process_Building_ReliefFeature_textureCoordinates, noeudLinearRing);
+							else
+								noeudUV = (*UUID_uvm)[std::string(pid)];
+
+							if (noeudUV)
+								contenuUV = xmlNodeGetContent(noeudUV);
+						}
+					}
+
 					// init
 					endptr = NULL;
 					first = true;
@@ -134,9 +268,13 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					TVec3d l[MAX_POINTS_IN_POSLIST];		// TEMP
 					int i;
 
+					TVec2d uv0[MAX_POINTS_IN_POSLIST+1];	// TEMP
+					TVec2d uv1[MAX_POINTS_IN_POSLIST+1+1];	// TEMP
+					TVec2d uv[MAX_POINTS_IN_POSLIST];		// TEMP
+
 					do
 					{
-						if (!endptr) endptr = (char *) contenu;
+						if (!endptr) endptr = (char *) contenu; if (noeudUV) { if (!endptrUV) endptrUV = (char *) contenuUV; }
 						if (first)
 							i=0;
 						else
@@ -148,11 +286,17 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							exit(-1);
 						}
 
-						l0[i].x = strtod(endptr, &endptr);
+						l0[i].x = strtod(endptr, &endptr); 
 						l0[i].y = strtod(endptr, &endptr);
 						l0[i].z = strtod(endptr, &endptr);
 						//printf("p%d - %lf,%lf,%lf\n", i, l0[i].x, l0[i].y, l0[i].z);
 						first = false;
+
+						if (noeudUV)
+						{
+							uv0[i].x = strtod(endptrUV, &endptrUV);
+							uv0[i].y = strtod(endptrUV, &endptrUV);
+						}
 					}
 					while ( !( (l0[i].x == 0.) && (l0[i].y == 0.) && (l0[i].z == 0.) ) );
 					i--;
@@ -164,11 +308,13 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 						//l[s]=l[s].normal(); // normalizing
 
 						//printf("s%d - p1: %lf,%lf,%lf - p2: %lf,%lf,%lf\n", s, l0[s].x, l0[s].y, l0[s].z, l0[s+1].x, l0[s+1].y, l0[s+1].z);
+
+						if (noeudUV) { uv[s]=uv0[s+1]-uv0[s]; }
 					}
 
 					double d;
 					int j=0;
-					TVec3d l1_temp;
+					TVec3d l1_temp; TVec2d uv1_temp;
 					bool inter, coin;
 					for (int s=0; s<i; s++)
 					{
@@ -189,16 +335,16 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 									{
 										//printf(" -> KEEP INTER s+1\n");
 
-										l1_temp = l0[s]+l[s]*d;
+										l1_temp = l0[s]+l[s]*d; if (noeudUV) { uv1_temp = uv0[s]+uv[s]*d; }
 										if ( (j==0) || (l1[j-1] != l1_temp) )
 										{
-											l1[j] = l1_temp; j++;
+											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 											inter=true;
 										}
-										l1_temp = l0[s+1];
+										l1_temp = l0[s+1]; if (noeudUV) { uv1_temp = uv0[s+1]; }
 										if ( (j==0) || (l1[j-1] != l1_temp) )
 										{
-											l1[j] = l1_temp; j++;
+											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 											inter=true;
 										}
 									}
@@ -208,16 +354,16 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 									{
 										//printf(" -> KEEP INTER s\n");
 
-										l1_temp = l0[s];
+										l1_temp = l0[s]; if (noeudUV) { uv1_temp = uv0[s]; }
 										if ( (j==0) || (l1[j-1] != l1_temp) )
 										{
-											l1[j] = l1_temp; j++;
+											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 											inter=true;
 										}
-										l1_temp = l0[s]+l[s]*d;
+										l1_temp = l0[s]+l[s]*d; if (noeudUV) { uv1_temp = uv0[s]+uv[s]*d; }
 										if ( (j==0) || (l1[j-1] != l1_temp) )
 										{
-											l1[j] = l1_temp; j++;
+											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 											inter=true;
 										}
 									}	
@@ -227,44 +373,47 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 						// gestion des 4 coins
 						if (!inter)
 						{
+							bool ok=false;
+
 							// new c0
 							if ( (l0[s].x < G_xmin) && (l0[s+1].y < G_ymin) )
 							{
-								l1_temp.x = G_xmin; l1_temp.y = G_ymin; l1_temp.z = (l0[s].z + l0[s+1].z)/2.; // TODO BETTER Z
-								if ( (j==0) || (l1[j-1] != l1_temp) )
-								{
-									l1[j] = l1_temp; j++;
-									coin=true;
-								}
+								l1_temp.x = G_xmin; l1_temp.y = G_ymin; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
+								ok = true;
 							}
 							// new c3
 							else if ( (l0[s+1].x < G_xmin) && (l0[s].y > G_ymax) )
 							{
-								l1_temp.x = G_xmin; l1_temp.y = G_ymax; l1_temp.z = (l0[s].z + l0[s+1].z)/2.; // TODO BETTER Z
-								if ( (j==0) || (l1[j-1] != l1_temp) )
-								{
-									l1[j] = l1_temp; j++;
-									coin=true;
-								}
+								l1_temp.x = G_xmin; l1_temp.y = G_ymax; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
+								ok = true;
 							}
 							// new c1
 							else if ( (l0[s+1].x > G_xmax) && (l0[s].y < G_ymin) )
 							{
-								l1_temp.x = G_xmax; l1_temp.y = G_ymin; l1_temp.z = (l0[s+1].z + l0[s].z)/2.; // TODO BETTER Z
-								if ( (j==0) || (l1[j-1] != l1_temp) )
-								{
-									l1[j] = l1_temp; j++;
-									coin=true;
-								}
+								l1_temp.x = G_xmax; l1_temp.y = G_ymin; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
+								ok = true;
 							}
 							// new c2
 							else if ( (l0[s].x > G_xmax) && (l0[s+1].y > G_ymax) )
 							{
-								l1_temp.x = G_xmax; l1_temp.y = G_ymax; l1_temp.z = (l0[s+1].z + l0[s].z)/2.; // TODO BETTER Z
+								l1_temp.x = G_xmax; l1_temp.y = G_ymax; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
+								ok = true;
+							}
+
+							if (ok)
+							{
 								if ( (j==0) || (l1[j-1] != l1_temp) )
 								{
-									l1[j] = l1_temp; j++;
+									calcule_Z_uv(l0[s], l0[s+1], l0[s+2], &l1_temp, noeudUV, uv0[s], uv0[s+1], uv0[s+2], &uv1_temp);
+
+									l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 									coin=true;
+
+									if (i > 3)	// TEMP
+									{
+										printf("---> STOP ---> COIN WITH (i > 3) !\n");
+										exit(-1);
+									}								
 								}
 							}
 						}
@@ -273,15 +422,14 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 						{
 							if ( (j==0) || (l1[j-1] != l0[s]) )
 							{
-								l1[j] = l0[s]; j++;
+								l1[j] = l0[s]; if (noeudUV) { uv1[j] = uv0[s]; } j++;
 							}
 						}
 					}
 
-					std::string new_posList = "";
+					std::string new_posList = ""; std::string new_uvList = "";
 					int new_nb_points = 0;
-                    bool first_point=true; int first_p, last_p;
-                    bool hasPoints = false;
+					bool first_point=true; int first_p, last_p;
 					for (int p=0; p<j; p++)
 					{
 						if ( (l1[p].x >= G_xmin) && (l1[p].x <= G_xmax) )
@@ -291,6 +439,12 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 								new_posList += std::to_string(l1[p].y); new_posList += " ";
 								new_posList += std::to_string(l1[p].z); new_posList += " ";
 
+								if (noeudUV)
+								{
+									new_uvList += std::to_string(uv1[p].x); new_uvList += " ";
+									new_uvList += std::to_string(uv1[p].y); new_uvList += " ";
+								}
+
 								if (first_point)
 								{
 									first_point = false;
@@ -299,35 +453,54 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 								last_p=p;
 
 								new_nb_points++;
-                                hasPoints = true;
 							}
 					}
 
-                    if(hasPoints)
-                    {
-                        if ( (l1[first_p].x == l1[last_p].x) && (l1[first_p].y == l1[last_p].y) && (l1[first_p].z == l1[last_p].z) )
-                        {
-                            //std::cout << "new posList (nb points: " << new_nb_points << "): " << new_posList << std::endl;
-                        }
-                        else
-                        {
-                            new_posList += std::to_string(l1[first_p].x); new_posList += " ";
-                            new_posList += std::to_string(l1[first_p].y); new_posList += " ";
-                            new_posList += std::to_string(l1[first_p].z); new_posList += " ";
+					if (new_nb_points)
+					{
+						if ( (l1[first_p].x == l1[last_p].x) && (l1[first_p].y == l1[last_p].y) && (l1[first_p].z == l1[last_p].z) )
+						{
+							//std::cout << "new posList (nb points: " << new_nb_points << "): " << new_posList << std::endl;
+						}
+						else
+						{
+							new_posList += std::to_string(l1[first_p].x); new_posList += " ";
+							new_posList += std::to_string(l1[first_p].y); new_posList += " ";
+							new_posList += std::to_string(l1[first_p].z); new_posList += " ";
 
-                            new_nb_points++;
-                            //std::cout << "ADD ONE POINT: new posList (new nb points: " << new_nb_points << "): " << new_posList << std::endl;
-                        }
-                    }
-					if (new_nb_points >= 3)
+							if (noeudUV)
+							{
+								new_uvList += std::to_string(uv1[first_p].x); new_uvList += " ";
+								new_uvList += std::to_string(uv1[first_p].y); new_uvList += " ";
+							}
+
+							new_nb_points++;
+							//std::cout << "ADD ONE POINT: new posList (new nb points: " << new_nb_points << "): " << new_posList << std::endl;
+						}
+					}
+
+					if (new_nb_points >= 4)
 					{
 						xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
+
+						//if ( (i+1) == new_nb_points )
+						{
+							//std::cout << "id LinearRing: " << xmlGetProp(noeudLinearRing, BAD_CAST "id") << ": (old nb_points==new nb_points): " << (i+1) << " - " << new_nb_points << std::endl;
+							if (noeudUV)
+							{
+								xmlNodeSetContent(noeudUV, BAD_CAST new_uvList.c_str());
+								//printf("old_uvList: %s - new_uvList: %s\n", contenuUV, new_uvList.c_str());
+							}
+						}
 					}
 					else
 					{
 						xmlUnlinkNode(noeud);
 						xmlFree(noeud);
 					}
+
+					if (noeudUV)
+						xmlFree(contenuUV);
 				}
 				else
 				{
@@ -349,18 +522,18 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
     }
 }
 
-typedef void (*fct_process_Building_ReliefFeature_boundingbox)(xmlNodePtr, bool *, double *, double *, double *, double *, double *, double *, std::set<std::string> *);
-void parcours_prefixe_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, fct_process_Building_ReliefFeature_boundingbox f, bool *first, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s)
+typedef void (*fct_process_Building_ReliefFeature_boundingbox)(xmlNodePtr, bool *, double *, double *, double *, double *, double *, double *, std::set<std::string> *, xmlNodePtr, std::map<std::string, xmlNodePtr> *);
+void parcours_prefixe_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, fct_process_Building_ReliefFeature_boundingbox f, bool *first, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s, xmlNodePtr b_rf, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
     xmlNodePtr n;
     
     for (n = noeud; n != NULL; n = n->next)
 	{
-        f(n, first, xmin, ymin, zmin, xmax, ymax, zmax, UUID_s);
+        f(n, first, xmin, ymin, zmin, xmax, ymax, zmax, UUID_s, b_rf, UUID_uvm);
 
         if ((n->type == XML_ELEMENT_NODE) && (n->children != NULL))
 		{
-            parcours_prefixe_Building_ReliefFeature_boundingbox(n->children, f, first, xmin, ymin, zmin, xmax, ymax, zmax, UUID_s);
+            parcours_prefixe_Building_ReliefFeature_boundingbox(n->children, f, first, xmin, ymin, zmin, xmax, ymax, zmax, UUID_s, b_rf, UUID_uvm);
         }
     }
 }
@@ -482,7 +655,6 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 												{
 													if (first_target)
 													{
-
 														if (copy_node3)
 														{
 															xmlAddChild(copy_node4, copy_node5);
@@ -586,7 +758,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.0.10 - June 26, 2014 - Martial TOLA");
+        puts("ParseCityGML 1.1.2 - July 4, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -604,7 +776,11 @@ int main(int argc, char** argv)
 	int nbCopied = 0;
 	bool POST_PROCESS_TEXTURES = false;
 	xmlNodePtr appearanceMember_node = NULL;
+	xmlNodePtr copy_node_appearanceMember = NULL;
 	std::set<std::string> UUID_full_set;
+
+	xmlNodePtr nodeToFindUV = NULL;
+	std::map<std::string, xmlNodePtr> UUID_uv_map;
 
 	G_xmin = atof(argv[3]);
 	G_ymin = atof(argv[4]);
@@ -685,32 +861,6 @@ int main(int argc, char** argv)
 			{
 				if (xmlStrEqual(n->name, BAD_CAST "cityObjectMember"))
 				{
-					/*if (xmlStrEqual(n->children->name, BAD_CAST "Building"))
-					{
-						if (xmlStrEqual(n->children->children->name, BAD_CAST "stringAttribute"))
-							if (xmlStrEqual(xmlGetProp(n->children->children, BAD_CAST "name"), BAD_CAST "centre"))
-								if (xmlStrEqual(n->children->children->children->name, BAD_CAST "value"))
-								{
-									double x, y;
-									char *endptr;
-									xmlChar *contenu = xmlNodeGetContent(n->children->children->children);
-										x = strtod((char *) contenu, &endptr);
-										y = strtod(endptr, NULL);
-									xmlFree(contenu);
-
-									if ( (x >= xmin) && (x <= xmax) )
-										if ( (y >= ymin) && (y <= ymax) )
-										{
-											printf("%s: %s - %s (centre: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), x, y);
-
-											//xmlNs ns = { 0 }; // initialisation à zéro de tous les membres
-											xmlNodePtr copy_node2 = xmlCopyNode(n, 1);
-											//xmlSetNs(copy_node2, &ns); //xmlSetNs(copy_node2, NULL);
-
-											xmlAddChild(out_root_node, copy_node2);
-										}
-								}
-					}*/
 					if ( (xmlStrEqual(n->children->name, BAD_CAST "Building")) || (xmlStrEqual(n->children->name, BAD_CAST "ReliefFeature")) ) // ReliefFeature same principle as Building
 					//if (xmlStrEqual(n->children->name, BAD_CAST "Building")) // only Building
 					//if (xmlStrEqual(n->children->name, BAD_CAST "ReliefFeature")) // only ReliefFeature
@@ -720,14 +870,14 @@ int main(int argc, char** argv)
 						xmin_Building = ymin_Building = zmin_Building = xmax_Building = ymax_Building = zmax_Building = 0.;
 						std::set<std::string> UUID_set;
 
+						if (!appearanceMember_node)
+							nodeToFindUV = n->children;
+
 						bool first=true;
-						parcours_prefixe_Building_ReliefFeature_boundingbox(n->children, process_Building_ReliefFeature_boundingbox, &first, &xmin_Building, &ymin_Building, &zmin_Building, &xmax_Building, &ymax_Building, &zmax_Building, &UUID_set);
+						parcours_prefixe_Building_ReliefFeature_boundingbox(n->children, process_Building_ReliefFeature_boundingbox, &first, &xmin_Building, &ymin_Building, &zmin_Building, &xmax_Building, &ymax_Building, &zmax_Building, &UUID_set, nodeToFindUV, &UUID_uv_map);
 						//printf("\nMIN_Building: (%lf %lf %lf)\n", xmin_Building, ymin_Building, zmin_Building);
 						//printf("MAX_Building: (%lf %lf %lf)\n", xmax_Building, ymax_Building, zmax_Building);
 
-						//exit(-1);
-						/*if ( (xmin_Building >= G_xmin) && (xmax_Building <= G_xmax) )
-							if ( (ymin_Building >= G_ymin) && (ymax_Building <= G_ymax) )*/
                         if ( !(xmax_Building < G_xmin) && !(ymax_Building < G_ymin) && !(xmin_Building > G_xmax) && !(ymin_Building > G_ymax) )
 							{
 								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
@@ -757,9 +907,17 @@ int main(int argc, char** argv)
 				}
 				else if ( (xmlStrEqual(n->name, BAD_CAST "appearanceMember")) && (TEXTURE_PROCESS==true) )
 				{
-					POST_PROCESS_TEXTURES = true;
-					appearanceMember_node = n; // CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
-					printf(" -> POST PROCESS TEXTURES AFTER ALL PARSING: %s\n", n->name);
+					// CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
+					appearanceMember_node = n;
+
+					copy_node_appearanceMember = xmlCopyNode(appearanceMember_node, 2);
+					xmlAddChild(out_root_node, copy_node_appearanceMember);
+
+					printf(" -> PRE PROCESS TEXTURES (for uv coordinates) BEFORE ALL PARSING\n");
+					parcours_prefixe_All_textureCoordinates(appearanceMember_node, process_All_textureCoordinates, &UUID_uv_map);
+
+					POST_PROCESS_TEXTURES = true;					
+					printf(" -> POST PROCESS TEXTURES (for texture files) AFTER ALL PARSING\n");
 				}
 				else
 					printf(" -> NOT COPIED: %s\n", n->name);
@@ -768,13 +926,12 @@ int main(int argc, char** argv)
 
 		if (POST_PROCESS_TEXTURES)
 		{
-			printf("\nPOST PROCESS TEXTURES\n");
+			UUID_uv_map.clear();
 
-			n = appearanceMember_node; // CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
-			xmlNodePtr copy_node3 = xmlCopyNode(n, 2);
-			xmlAddChild(out_root_node, copy_node3);
+			printf("\nPOST PROCESS TEXTURES (for texture files) \n");
 
-			process_textures(n, copy_node3, &UUID_full_set, folderIN, folderOUT);
+			// CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
+			process_textures(appearanceMember_node, copy_node_appearanceMember, &UUID_full_set, folderIN, folderOUT);
 		}
 	}
 
