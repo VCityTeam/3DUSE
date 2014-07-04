@@ -32,9 +32,8 @@ double G_xmin, G_ymin, G_xmax, G_ymax;
 
 // todo:
 //------
-// 1. altitude and textures of corners
-// 2. split polygons > 3
-// 3. better xmlUnlinkNode
+// 1. split polygons > 3
+// 2. better xmlUnlinkNode ???
 
 void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
@@ -114,6 +113,40 @@ xmlNodePtr parcours_prefixe_Building_ReliefFeature_textureCoordinates(xmlNodePtr
 
 	return NULL;
 }
+
+// ---
+// ABC forment un triangle
+// M est le point où on fait le calcul (M est dans ABC)
+void calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, TVec2d uvB, TVec2d uvC, TVec2d *uvM)
+{
+    // on va se servir des coordonnées x et y qui sont toutes connues pour déterminer s et t qui nous permettrons ensuite de calculer le z du point M
+
+    TVec3d AB = B-A;
+    TVec3d AC = C-A;
+
+	TVec2d uvAB, uvAC;
+
+	if (uv)
+	{
+		uvAB = uvB-uvA;
+		uvAC = uvC-uvA;
+	}
+
+    double s, t;
+    t = (A.y * AB.x - A.x * AB.y + AB.y * M->x - AB.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
+    s = (M->x - A.x - t * AC.x) / AB.x;
+
+    // AM = sAB + tAC
+    M->z = A.z + s * AB.z + t * AC.z;
+
+    // imaginons qu'on a les coords de textures (u,v) dans les points: ex : A.u et A.v
+	if (uv)
+	{
+		uvM->x = uvA.x + s * uvAB.x + t * uvAC.x;
+		uvM->y = uvA.y + s * uvAB.y + t * uvAC.y;
+	}
+}
+// ---
 
 // ---
 // adapted from http://www.scratchapixel.com/lessons/3d-basic-lessons/lesson-7-intersecting-simple-shapes/ray-plane-and-ray-disk-intersection/
@@ -340,44 +373,47 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 						// gestion des 4 coins
 						if (!inter)
 						{
+							bool ok=false;
+
 							// new c0
 							if ( (l0[s].x < G_xmin) && (l0[s+1].y < G_ymin) )
 							{
-								l1_temp.x = G_xmin; l1_temp.y = G_ymin; l1_temp.z = (l0[s].z + l0[s+1].z)/2.; // TODO BETTER Z
-								if ( (j==0) || (l1[j-1] != l1_temp) )
-								{
-									l1[j] = l1_temp; j++;
-									coin=true;
-								}
+								l1_temp.x = G_xmin; l1_temp.y = G_ymin; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
+								ok = true;
 							}
 							// new c3
 							else if ( (l0[s+1].x < G_xmin) && (l0[s].y > G_ymax) )
 							{
-								l1_temp.x = G_xmin; l1_temp.y = G_ymax; l1_temp.z = (l0[s].z + l0[s+1].z)/2.; // TODO BETTER Z
-								if ( (j==0) || (l1[j-1] != l1_temp) )
-								{
-									l1[j] = l1_temp; j++;
-									coin=true;
-								}
+								l1_temp.x = G_xmin; l1_temp.y = G_ymax; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
+								ok = true;
 							}
 							// new c1
 							else if ( (l0[s+1].x > G_xmax) && (l0[s].y < G_ymin) )
 							{
-								l1_temp.x = G_xmax; l1_temp.y = G_ymin; l1_temp.z = (l0[s+1].z + l0[s].z)/2.; // TODO BETTER Z
-								if ( (j==0) || (l1[j-1] != l1_temp) )
-								{
-									l1[j] = l1_temp; j++;
-									coin=true;
-								}
+								l1_temp.x = G_xmax; l1_temp.y = G_ymin; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
+								ok = true;
 							}
 							// new c2
 							else if ( (l0[s].x > G_xmax) && (l0[s+1].y > G_ymax) )
 							{
-								l1_temp.x = G_xmax; l1_temp.y = G_ymax; l1_temp.z = (l0[s+1].z + l0[s].z)/2.; // TODO BETTER Z
+								l1_temp.x = G_xmax; l1_temp.y = G_ymax; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
+								ok = true;
+							}
+
+							if (ok)
+							{
 								if ( (j==0) || (l1[j-1] != l1_temp) )
 								{
-									l1[j] = l1_temp; j++;
+									calcule_Z_uv(l0[s], l0[s+1], l0[s+2], &l1_temp, noeudUV, uv0[s], uv0[s+1], uv0[s+2], &uv1_temp);
+
+									l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 									coin=true;
+
+									if (i > 3)	// TEMP
+									{
+										printf("---> STOP ---> COIN WITH (i > 3) !\n");
+										exit(-1);
+									}								
 								}
 							}
 						}
@@ -722,7 +758,7 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.1.1 - July 3, 2014 - Martial TOLA");
+        puts("ParseCityGML 1.1.2 - July 4, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -740,6 +776,7 @@ int main(int argc, char** argv)
 	int nbCopied = 0;
 	bool POST_PROCESS_TEXTURES = false;
 	xmlNodePtr appearanceMember_node = NULL;
+	xmlNodePtr copy_node_appearanceMember = NULL;
 	std::set<std::string> UUID_full_set;
 
 	xmlNodePtr nodeToFindUV = NULL;
@@ -824,32 +861,6 @@ int main(int argc, char** argv)
 			{
 				if (xmlStrEqual(n->name, BAD_CAST "cityObjectMember"))
 				{
-					/*if (xmlStrEqual(n->children->name, BAD_CAST "Building"))
-					{
-						if (xmlStrEqual(n->children->children->name, BAD_CAST "stringAttribute"))
-							if (xmlStrEqual(xmlGetProp(n->children->children, BAD_CAST "name"), BAD_CAST "centre"))
-								if (xmlStrEqual(n->children->children->children->name, BAD_CAST "value"))
-								{
-									double x, y;
-									char *endptr;
-									xmlChar *contenu = xmlNodeGetContent(n->children->children->children);
-										x = strtod((char *) contenu, &endptr);
-										y = strtod(endptr, NULL);
-									xmlFree(contenu);
-
-									if ( (x >= xmin) && (x <= xmax) )
-										if ( (y >= ymin) && (y <= ymax) )
-										{
-											printf("%s: %s - %s (centre: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), x, y);
-
-											//xmlNs ns = { 0 }; // initialisation à zéro de tous les membres
-											xmlNodePtr copy_node2 = xmlCopyNode(n, 1);
-											//xmlSetNs(copy_node2, &ns); //xmlSetNs(copy_node2, NULL);
-
-											xmlAddChild(out_root_node, copy_node2);
-										}
-								}
-					}*/
 					if ( (xmlStrEqual(n->children->name, BAD_CAST "Building")) || (xmlStrEqual(n->children->name, BAD_CAST "ReliefFeature")) ) // ReliefFeature same principle as Building
 					//if (xmlStrEqual(n->children->name, BAD_CAST "Building")) // only Building
 					//if (xmlStrEqual(n->children->name, BAD_CAST "ReliefFeature")) // only ReliefFeature
@@ -867,9 +878,6 @@ int main(int argc, char** argv)
 						//printf("\nMIN_Building: (%lf %lf %lf)\n", xmin_Building, ymin_Building, zmin_Building);
 						//printf("MAX_Building: (%lf %lf %lf)\n", xmax_Building, ymax_Building, zmax_Building);
 
-						//exit(-1);
-						/*if ( (xmin_Building >= G_xmin) && (xmax_Building <= G_xmax) )
-							if ( (ymin_Building >= G_ymin) && (ymax_Building <= G_ymax) )*/
                         if ( !(xmax_Building < G_xmin) && !(ymax_Building < G_ymin) && !(xmin_Building > G_xmax) && !(ymin_Building > G_ymax) )
 							{
 								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
@@ -899,7 +907,11 @@ int main(int argc, char** argv)
 				}
 				else if ( (xmlStrEqual(n->name, BAD_CAST "appearanceMember")) && (TEXTURE_PROCESS==true) )
 				{
-					appearanceMember_node = n; // CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
+					// CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
+					appearanceMember_node = n;
+
+					copy_node_appearanceMember = xmlCopyNode(appearanceMember_node, 2);
+					xmlAddChild(out_root_node, copy_node_appearanceMember);
 
 					printf(" -> PRE PROCESS TEXTURES (for uv coordinates) BEFORE ALL PARSING\n");
 					parcours_prefixe_All_textureCoordinates(appearanceMember_node, process_All_textureCoordinates, &UUID_uv_map);
@@ -918,11 +930,8 @@ int main(int argc, char** argv)
 
 			printf("\nPOST PROCESS TEXTURES (for texture files) \n");
 
-			n = appearanceMember_node; // CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
-			xmlNodePtr copy_node3 = xmlCopyNode(n, 2);
-			xmlAddChild(out_root_node, copy_node3);
-
-			process_textures(n, copy_node3, &UUID_full_set, folderIN, folderOUT);
+			// CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
+			process_textures(appearanceMember_node, copy_node_appearanceMember, &UUID_full_set, folderIN, folderOUT);
 		}
 	}
 
