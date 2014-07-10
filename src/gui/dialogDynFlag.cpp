@@ -103,25 +103,25 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
             item2text = ui->comboBox->currentText();
         }
 
-        citygml::BuildingDynFlag* flag = new citygml::BuildingDynFlag(geom);
-        flag->m_name = ui->lineEdit->text().toStdString();
-        flag->m_parent = obj;
+        citygml::CityObjectDynState* state = new citygml::CityObjectDynState(geom);
+        state->m_name = ui->lineEdit->text().toStdString();
+        state->m_parent = obj;
 
         // parse features
         for(int i=0; i<m_featureArrayNames.size(); ++i)
         {
             citygml::DataSourceArray* ds = new citygml::DataSourceArray(m_featureArrayNames[i]->text().toStdString(), m_featureArrayValues[i]->text().toStdString());
-            flag->addDataSource(ds);
+            state->addDataSource(ds);
         }
         for(int i=0; i<m_featureFileNames.size(); ++i)
         {
             citygml::DataSourceFile* ds = new citygml::DataSourceFile(m_featureFileNames[i]->text().toStdString(), m_featureFilePaths[i]->text().toStdString());
-            flag->addDataSource(ds);
+            state->addDataSource(ds);
         }
 
-        obj->addFlag(flag);
+        obj->addState(state);
 
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(flag->getStringId().c_str()));
+        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(state->getStringId().c_str()));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Checked);
         item->setText(1, "DynFlag");
@@ -130,7 +130,7 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
         item->addChild(item2);
 
         //appGui().m_ui treeWidget->currentItem()->addChild(item);
-        appGui().getTreeView()->addItemGeneric(uri, flag->getStringId().c_str(), "DynFlag");
+        appGui().getTreeView()->addItemGeneric(uri, state->getStringId().c_str(), "DynState");
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

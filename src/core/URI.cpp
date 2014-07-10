@@ -77,7 +77,12 @@ std::string URI::getStringURI(bool includeType) const
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-bool operator==(const vcity::URI& rhs, const vcity::URI& lhs)
+/*bool URI::operator==(const vcity::URI& lhs) const
+{
+    return getStringURI() == lhs.getStringURI();
+}*/
+////////////////////////////////////////////////////////////////////////////////
+bool operator==(const URI& rhs, const URI& lhs)
 {
     return rhs.getStringURI() == lhs.getStringURI();
 }

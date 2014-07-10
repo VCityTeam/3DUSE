@@ -1,0 +1,28 @@
+////////////////////////////////////////////////////////////////////////////////
+#include "georeferencedtexture.hpp"
+////////////////////////////////////////////////////////////////////////////////
+namespace citygml
+{
+////////////////////////////////////////////////////////////////////////////////
+GeoreferencedTexture::GeoreferencedTexture( const std::string& id )
+    : Appearance( id, "GeoreferencedTexture" ), Texture( id ), m_initWParams(false), _preferWorldFile(true)
+{}
+////////////////////////////////////////////////////////////////////////////////
+inline bool GeoreferencedTexture::getPreferWorldFile( void ) const
+{
+    return _preferWorldFile;
+}
+////////////////////////////////////////////////////////////////////////////////
+std::ostream& operator<<( std::ostream& os, const GeoreferencedTexture::WorldParams& wp)
+{
+    os << "xPixelSize : " << wp.xPixelSize << std::endl;
+    os << "yRotation  : " << wp.yRotation << std::endl;
+    os << "xRotation  : " << wp.xRotation << std::endl;
+    os << "yPixelSize : " << wp.yPixelSize << std::endl;
+    os << "xOrigin    : " << wp.xOrigin << std::endl;
+    os << "yOrigin    : " << wp.yOrigin << std::endl;
+    return os;
+}
+////////////////////////////////////////////////////////////////////////////////
+} // namespace citygml
+////////////////////////////////////////////////////////////////////////////////

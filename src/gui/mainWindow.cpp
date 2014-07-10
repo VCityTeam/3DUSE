@@ -893,16 +893,27 @@ void MainWindow::exportOBJ()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        if(uris[0].getType() == "Tile")
+        std::vector<citygml::CityObject*> objs;
+        for(const vcity::URI& uri : uris)
         {
-            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
-            if(model) exporter.exportCityModel(*model, filename.toStdString());
+            if(uri.getType() == "Tile")
+            {
+                citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+                for(citygml::CityObject* obj : model->getCityObjectsRoots())
+                {
+                    objs.push_back(obj);
+                }
+            }
+            else
+            {
+                citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri);
+                if(obj)
+                {
+                    objs.push_back(obj);
+                }
+            }
         }
-        else
-        {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
-            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
-        }
+        exporter.exportCityObjects(objs, filename.toStdString());
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -925,16 +936,27 @@ void MainWindow::exportOBJsplit()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        if(uris[0].getType() == "Tile")
+        std::vector<citygml::CityObject*> objs;
+        for(const vcity::URI& uri : uris)
         {
-            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
-            if(model) exporter.exportCityModel(*model, filename.toStdString());
+            if(uri.getType() == "Tile")
+            {
+                citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+                for(citygml::CityObject* obj : model->getCityObjectsRoots())
+                {
+                    objs.push_back(obj);
+                }
+            }
+            else
+            {
+                citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri);
+                if(obj)
+                {
+                    objs.push_back(obj);
+                }
+            }
         }
-        else
-        {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
-            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
-        }
+        exporter.exportCityObjects(objs, filename.toStdString());
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

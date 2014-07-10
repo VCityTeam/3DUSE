@@ -102,12 +102,12 @@ void DialogFlag::addFlag(const vcity::URI& uri)
             item2text = ui->comboBox->currentText();
         }
 
-        citygml::BuildingFlag* flag = new citygml::BuildingFlag(geom);
-        flag->m_name = ui->lineEdit->text().toStdString();
-        flag->m_parent = obj;
-        obj->addFlag(flag);
+        citygml::CityObjectState* state = new citygml::CityObjectState(geom);
+        state->m_name = ui->lineEdit->text().toStdString();
+        state->m_parent = obj;
+        obj->addState(state);
 
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(flag->getStringId().c_str()));
+        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(state->getStringId().c_str()));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Checked);
         item->setText(1, "Flag");
@@ -116,7 +116,7 @@ void DialogFlag::addFlag(const vcity::URI& uri)
         item->addChild(item2);
 
         //appGui().m_ui treeWidget->currentItem()->addChild(item);
-        appGui().getTreeView()->addItemGeneric(uri, flag->getStringId().c_str(), "Flag");
+        appGui().getTreeView()->addItemGeneric(uri, state->getStringId().c_str(), "State");
     }
     appGui().getMainWindow()->m_osgView->setActive(true);
 }

@@ -1,5 +1,5 @@
-#ifndef __TEMPORALEXT_H__
-#define __TEMPORALEXT_H__
+#ifndef __TEMPORALEXT_HPP__
+#define __TEMPORALEXT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDateTime>
 #include <map>
@@ -8,12 +8,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
+////////////////////////////////////////////////////////////////////////////////
 class CityObject;
-class BuildingFlag;
-class BuildingTag
+class CityObjectState;
+class CityObjectTag
 {
 public:
-    BuildingTag(int year, CityObject* geom);
+    CityObjectTag(int year, CityObject* geom);
 
     int getId() const;
     //std::string getStringId() const { std::stringstream ss; ss << "TAG" << m_id << m_name; return ""; /*ss.str();*/ }
@@ -31,7 +32,7 @@ public:
     std::string m_name;
     CityObject* m_parent;
 
-    BuildingFlag* m_flag;
+    CityObjectState* m_state;
 
 private:
 
@@ -39,15 +40,16 @@ private:
     osg::ref_ptr<osg::Group> m_osg;
     //int m_year;
 };
+bool cmpTag(CityObjectTag* a, CityObjectTag* b);
 ////////////////////////////////////////////////////////////////////////////////
-class BuildingFlag
+class CityObjectState
 {
 public:
-    BuildingFlag(CityObject* geom);
-    virtual ~BuildingFlag() {}
+    CityObjectState(CityObject* geom);
+    virtual ~CityObjectState() {}
 
     int getId() const;
-    //std::string getStringId() const { std::stringstream ss; ss << "FLAG" << m_id << m_name; return "";/*ss.str();*/ }
+    //std::string getStringId() const { std::stringstream ss; ss << "STATE" << m_id << m_name; return "";/*ss.str();*/ }
     virtual std::string getStringId() const;
     //std::string getGeomName() const { std::string a = m_geom?m_geom->getId():0; return getStringId()+a; }
     CityObject* getGeom();
@@ -101,11 +103,11 @@ public:
     std::string m_filePath;
 };
 ////////////////////////////////////////////////////////////////////////////////
-class BuildingDynFlag : public BuildingFlag
+class CityObjectDynState : public CityObjectState
 {
 public:
-    BuildingDynFlag(CityObject* geom);
-    virtual ~BuildingDynFlag() {}
+    CityObjectDynState(CityObject* geom);
+    virtual ~CityObjectDynState() {}
 
     virtual std::string getStringId() const;
 
@@ -119,4 +121,4 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
-#endif // __TEMPORALEXT_H__
+#endif // __TEMPORALEXT_HPP__

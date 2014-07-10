@@ -120,8 +120,8 @@ void DialogTag::addTag(const vcity::URI& uri)
 
 
             // add flags
-            std::vector<citygml::BuildingFlag*>::const_iterator it = obj->getFlags().begin();
-            for(; it < obj->getFlags().end(); ++it)
+            std::vector<citygml::CityObjectState*>::const_iterator it = obj->getStates().begin();
+            for(; it < obj->getStates().end(); ++it)
             {
                 ui->comboBox->addItem(QString(((*it)->getStringId()).c_str()));
                 geoms[(*it)->getStringId()] = (*it)->getGeom();
@@ -140,12 +140,12 @@ void DialogTag::addTag(const vcity::URI& uri)
     if(res && obj) // && m_ui->treeWidget->currentItem())
     {
         citygml::CityObject* geom = nullptr;
-        citygml::BuildingFlag* f = nullptr;
-        if((ui->comboBox->currentText().size() > 4 && ui->comboBox->currentText().left(4) == "FLAG") ||
-           (ui->comboBox->currentText().size() > 7 && ui->comboBox->currentText().left(7) == "DYNFLAG"))
+        citygml::CityObjectState* f = nullptr;
+        if((ui->comboBox->currentText().size() > 4 && ui->comboBox->currentText().left(4) == "STATE") ||
+           (ui->comboBox->currentText().size() > 7 && ui->comboBox->currentText().left(7) == "DYNSTATE"))
         {
             // get geom from flag
-            f = obj->getFlag(ui->comboBox->currentText().toStdString());
+            f = obj->getState(ui->comboBox->currentText().toStdString());
             if(f) geom = f->getGeom();
             std::cout << "use flag geom : " << ui->comboBox->currentText().toStdString() << " : " << f << " : " << geom << std::endl;
         }
@@ -156,8 +156,8 @@ void DialogTag::addTag(const vcity::URI& uri)
             std::cout << "use existing : " << geom << std::endl;
         }
 
-        citygml::BuildingTag* tag = new citygml::BuildingTag(ui->dateTimeEdit->date().year(), geom);
-        if(f) tag->m_flag = f; // set flag
+        citygml::CityObjectTag* tag = new citygml::CityObjectTag(ui->dateTimeEdit->date().year(), geom);
+        if(f) tag->m_state = f; // set state
         tag->m_date = ui->dateTimeEdit->dateTime();
         tag->m_name = ui->lineEdit->text().toStdString();
         tag->m_parent = obj;

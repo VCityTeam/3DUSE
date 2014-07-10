@@ -23,7 +23,7 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
 
-#include "citygml.hpp"
+#include "citymodel.hpp"
 
 #include <string>
 #include <algorithm>
