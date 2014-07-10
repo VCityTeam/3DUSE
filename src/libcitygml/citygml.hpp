@@ -13,67 +13,19 @@
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU Lesser General Public License for more details.
 */
-
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_H__
 #define __CITYGML_H__
-
+////////////////////////////////////////////////////////////////////////////////
 #include "citymodel.hpp"
 #include "cityobject.hpp"
-#include "citygmlcommon.hpp"
-
-/*#include <iostream>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <map>
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits>
-#include "vecs.hpp"
-#include <QDateTime>
-
-#include "temporalExt.hpp"*/
-
-//#include <osg/Group>
-/*namespace osg
-{
-    class Group;
-};*/
-
-
-
-class Tesselator;
-
+////////////////////////////////////////////////////////////////////////////////
 namespace citygml 
 {
-enum State {
-        Build = 1 << 0,
-        Destroyed = 1 << 1,
-        Modified = 1 << 2,
-        Burn
-};
-
-	class CityModel;
-    class CityObject;
-
-
-
-
-
-	LIBCITYGML_EXPORT CityModel* load( std::istream& stream, const ParserParams& params );
-
-    LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& params );
-    
-
-
-    ///////////////////////////////////////////////////////////////////////////////
-
-	LIBCITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );
-
-	LIBCITYGML_EXPORT CityObjectsTypeMask getCityObjectsTypeMaskFromString( const std::string& stringMask );
-
-
-
+////////////////////////////////////////////////////////////////////////////////
+LIBCITYGML_EXPORT CityModel* load( std::istream& stream, const ParserParams& params );
+LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& params );
+////////////////////////////////////////////////////////////////////////////////
 #define MAKE_RGBA( _r_, _g_, _b_, _a_ ) TVec4f( _r_/255.f, _g_/255.f, _b_/255.f, _a_/255.f )
 #define MAKE_RGB( _r_, _g_, _b_ ) MAKE_RGBA( _r_, _g_, _b_, 255 )
 
@@ -147,45 +99,30 @@ enum State {
 	DECLARE_SIMPLE_OBJECT_CLASS( CeilingSurface, MAKE_RGB( 186, 184, 135 ) );
 
     //DECLARE_SIMPLE_OBJECT_CLASS( TrafficArea, MAKE_RGB( 159, 159, 159 ) );
+////////////////////////////////////////////////////////////////////////////////
+class LandUse : public CityObject
+{
+public:
+    LandUse( const std::string& id ) : CityObject( id, COT_LandUse ) {}
 
-
-	class LandUse : public CityObject 
-	{
-	public:
-		LandUse( const std::string& id ) : CityObject( id, COT_LandUse ) {}
-
-		inline TVec4f getDefaultColor( void ) const
-		{ 
-            std::string c = getAttribute( "class" );
-			if ( c != "" )
-			{
-				int cl = atoi( c.c_str() );
-				switch ( cl ) 
-				{
-				case 1000: return MAKE_RGB( 150, 143, 134 );	// Settlement Area
-				case 1100: return MAKE_RGB( 133, 83, 101 );		// Undeveloped Area
-				case 2000: return MAKE_RGB( 159, 159, 159 );	// Traffic
-				case 3000: return MAKE_RGB( 79, 212, 53 );		// Vegetation
-				case 4000: return MAKE_RGB( 67, 109, 247 );		// Water
-				}
-			}
-			return MAKE_RGB( 10, 230, 1 ); 
-		}
-	};
-
-	///////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-	///////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
+    inline TVec4f getDefaultColor( void ) const
+    {
+        std::string c = getAttribute( "class" );
+        if ( c != "" )
+        {
+            int cl = atoi( c.c_str() );
+            switch ( cl )
+            {
+            case 1000: return MAKE_RGB( 150, 143, 134 );	// Settlement Area
+            case 1100: return MAKE_RGB( 133, 83, 101 );		// Undeveloped Area
+            case 2000: return MAKE_RGB( 159, 159, 159 );	// Traffic
+            case 3000: return MAKE_RGB( 79, 212, 53 );		// Vegetation
+            case 4000: return MAKE_RGB( 67, 109, 247 );		// Water
+            }
+        }
+        return MAKE_RGB( 10, 230, 1 );
+    }
+};
+////////////////////////////////////////////////////////////////////////////////
 }
-
 #endif // __CITYGML_H__

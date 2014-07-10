@@ -12,6 +12,8 @@ namespace vcity
 class Algo
 {
 public:
+    Algo();
+    ~Algo();
 	void generateLOD0(const URI& uri);
     void generateLOD0Scene(geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
 	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);

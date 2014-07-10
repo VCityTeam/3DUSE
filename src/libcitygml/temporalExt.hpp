@@ -11,6 +11,14 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 class CityObject;
 class CityObjectState;
+
+enum State {
+        Build = 1 << 0,
+        Destroyed = 1 << 1,
+        Modified = 1 << 2,
+        Burn
+};
+
 class CityObjectTag
 {
 public:

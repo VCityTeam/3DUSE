@@ -11,6 +11,14 @@ LayerCityGML::LayerCityGML(const std::string& name)
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+LayerCityGML::~LayerCityGML()
+{
+    for(Tile* tile : m_tiles)
+    {
+        delete tile;
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void LayerCityGML::addTile(Tile* tile)
 {
     m_tiles.push_back(tile);

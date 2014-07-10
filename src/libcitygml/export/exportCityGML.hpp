@@ -15,6 +15,12 @@ class ExporterCityGML : public Exporter
 public:
     ExporterCityGML();
 
+    /// \bief
+    void initExport();
+
+
+    void endExport();
+
     /// \brief exportCityModel
     /// \param model
     /// \param fileName
@@ -24,6 +30,10 @@ public:
     /// \param model
     /// \param fileName
     void exportCityObject(const std::vector<CityObject*>& objs, const std::string& fileName);
+
+    void appendCityObject(const std::vector<CityObject*>& objs, const std::string& fileName);
+
+    void appendCityObject(CityObject* obj, const std::string& fileName);
 
 private:
     xmlNodePtr exportCityObjectModelXml(const std::vector<CityObject*>& objs);

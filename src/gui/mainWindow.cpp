@@ -983,11 +983,12 @@ void MainWindow::slotDumpSelectedNodes()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateAllLODs()
 {
-
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     // get all selected nodes (with a uri)
     const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
     if(uris.size() > 0)
@@ -1004,37 +1005,49 @@ void MainWindow::generateLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 	vcity::app().getAlgo().CompareTiles();
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD3()
 {	
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments); 
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD4()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotFixBuilding()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     // get all selected nodes (with a uri)
     const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
     vcity::app().getAlgo2().fixBuilding(uris);
 
     // TODO
     //appGui().getControllerGui().update(uri);
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotOptimOSG()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     appGui().getOsgScene()->optim();
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotRenderLOD0()

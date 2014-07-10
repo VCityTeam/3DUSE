@@ -56,6 +56,17 @@ typedef std::set<Polygon2D> PolySet;
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
+////////////////////////////////////////////////////////////////////////////////
+    Algo::Algo()
+        : m_model(nullptr)
+    {
+
+    }
+    ////////////////////////////////////////////////////////////////////////////////
+    Algo::~Algo()
+    {
+        delete m_model;
+    }
 	////////////////////////////////////////////////////////////////////////////////
 	double Scale = 1; //Définit le zoom des images sauvegardées, avec Scale = 1 <=> 1 mètre/pixel = précision au mètre près.
 
@@ -734,12 +745,17 @@ namespace vcity
 
 								//break;//////////////////////// A ENLEVER POUR AVOIR LES TROUS DANS LES POLYGONS
 							}
-							else
-							{
-								geos::geom::LinearRing* Hole = factory->createLinearRing(tempcoord);
-
-								if(tempcoord.size() > 3 && factory->createPolygon(Hole, NULL)->getArea() > 1)
-									Holes->push_back((geos::geom::Geometry*)Hole);
+                            else
+							{								
+                                if(tempcoord.size() > 3)
+                                {
+                                    geos::geom::LinearRing* Hole = factory->createLinearRing(tempcoord);
+                                    geos::geom::Polygon* polyArea = factory->createPolygon(Hole, NULL);
+                                    if(polyArea->getArea() > 1)
+                                        Holes->push_back((geos::geom::Geometry*)Hole);
+                                    else
+                                        delete polyArea;
+                                }
 								FirstPoint[0] = -1;
 								tempcoord.clear();
 							}
@@ -1069,12 +1085,10 @@ namespace vcity
 
 		for(int i = 0; i < NbGeoS; ++i)
 		{
-			geos::geom::Geometry * GeoS = Shape->getGeometryN(i)->clone();
-			std::vector<int> Vec1;
+            const geos::geom::Geometry * GeoS = Shape->getGeometryN(i);
 			for(int j = 0; j < NbGeoE; ++j)
 			{
-				std::vector<int> Vec2;
-				geos::geom::Geometry * GeoE = Enveloppe->getGeometryN(j)->clone();
+                const geos::geom::Geometry * GeoE = Enveloppe->getGeometryN(j);
 
 				double Area = GeoS->intersection(GeoE)->getArea();
 
@@ -1082,11 +1096,9 @@ namespace vcity
 				{
 					//std::cout << "Area : " << GeoS->getArea() << " ; " << GeoE->getArea() << " ; " << Area << std::endl;
 					Res.first[i].push_back(j);
-					Res.second[j].push_back(i);
+                    Res.second[j].push_back(i);
 				}
-				delete GeoE;
 			}
-			delete GeoS;
 			if((i+1)%100 == 0)
 				std::cout << "Avancement de LinkGeos : " << i+1 << " / " << NbGeoS << "\r" << std::flush;
 		}
@@ -1424,8 +1436,7 @@ namespace vcity
 
 			//Afficher le LOD0 dans le fenêtre VCITY
 
-			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Wall, 0);
-			geom = BuildLOD0FromGEOS(name, Enveloppe, heightmax, heightmin);
+            citygml::Geometry* geom = BuildLOD0FromGEOS(name, Enveloppe, heightmax, heightmin);
 			citygml::CityObject* obj2 = new citygml::WallSurface("tmpObj");
 			obj2->addGeometry(geom);
 			obj->insertNode(obj2);
@@ -1438,6 +1449,8 @@ namespace vcity
 			obj2->addGeometry(geom);
 			obj->insertNode(obj2)
 			std::cout << "Lod 0 exporte en cityGML" << std::endl;*/
+
+            delete Enveloppe;
 
 #ifdef _WIN32
 			_CrtDumpMemoryLeaks();
@@ -1523,17 +1536,20 @@ namespace vcity
 		std::cout << "ResCoords vide dans CalculeZ" << std::endl;
 		//std::cout << ResCoords->size() << "  " << Geo->getNumPoints() << std::endl;
 
+        delete ResCoords;
+
 		return NULL;
 	}
 
 	/**
 	* @brief Charge le CityGML et le découpe à l'aide des polygons Geos représentant les bâtiments
 	*/
-	void ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments)
+    citygml::CityModel* ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments)
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
-		citygml::CityModel* model = new citygml::CityModel;
+
+        citygml::CityModel* model = new citygml::CityModel;
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 		int cpt = 0;
@@ -1620,8 +1636,9 @@ namespace vcity
 										}
 									}
 									//delete Coords;
-									//delete GeoCityGML;
+                                    delete GeoCityGML;
 									//delete GeoRes;
+                                    delete Inter;
 								}
 							}
 						}
@@ -1664,7 +1681,7 @@ namespace vcity
 						citygml::CityObject* WallCO = new citygml::WallSurface("Wall_" + std::to_string(i) + "_" + std::to_string(k));
 
 						WallCO->addGeometry(Wall);
-						model->addCityObject(WallCO);
+                        model->addCityObject(WallCO);
 						BuildingCO->insertNode(WallCO);
 					}
 					PolyRoof->addRing(RingRoof);
@@ -1673,25 +1690,32 @@ namespace vcity
 					citygml::CityObject* RoofCO = new citygml::RoofSurface("Roof_" + std::to_string(i));
 
 					RoofCO->addGeometry(Roof);
-					model->addCityObject(RoofCO);
+                    model->addCityObject(RoofCO);
 					BuildingCO->insertNode(RoofCO);
 				}
 				BuildingCO->setAttribute("ID_shape", InfoBatiments[j].ID);
-				model->addCityObject(BuildingCO);
-				model->addCityObjectAsRoot(BuildingCO);
+                model->addCityObject(BuildingCO);
+                model->addCityObjectAsRoot(BuildingCO);
 			}
 		}
 		if(VecGeoRes.size() > 0)
 		{
 			//SaveGeometry("BatimentsRes" , factory->createGeometryCollection(VecGeoRes));
+
+            for(geos::geom::Geometry* geom: VecGeoRes)
+            {
+                delete geom;
+            }
 		}
 		citygml::ExporterCityGML exporter;
-		exporter.exportCityModel(*model, "Batiments.citygml");
+        exporter.exportCityModel(*model, "Batiments.citygml");
 
 		std::cout << std::endl << "Fichier CityGML cree.\n";
 
 		citygml::ParserParams params;
-		model->finish(params);
+        model->finish(params);
+
+        return model;
 	}
 
 	void Algo::generateLOD0Scene(geos::geom::Geometry * Shape, std::vector<BatimentShape> InfoBatiments)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
@@ -1744,6 +1768,7 @@ namespace vcity
 						geos::geom::Geometry * tmp = EnveloppeCity;
 						EnveloppeCity = EnveloppeCity->Union(Enveloppe);
 						delete tmp;
+                        delete Enveloppe;
 					}
 
 					//Afficher le LOD0 dans la fenêtre VCITY
@@ -1979,6 +2004,12 @@ namespace vcity
 							VecGeo2.push_back(SplitPoly[t]->buffer(0.01));//0.01
 					}
 
+                    // clean SplitPoly
+                    for(geos::geom::Geometry* geom : SplitPoly)
+                    {
+                        delete geom;
+                    }
+
 					NewShape[k] = Geo2->difference(factory->createGeometryCollection(VecGeo)->Union().release());
 					NewShape[j] = Geo->difference(factory->createGeometryCollection(VecGeo2)->Union().release());
 
@@ -2004,6 +2035,8 @@ namespace vcity
 			}
 		}
 
+        delete EnveloppeCity;
+
 		geos::geom::GeometryCollection * Batiments = factory->createGeometryCollection(GeoRes);
 
 		//Scale = 1;
@@ -2011,7 +2044,9 @@ namespace vcity
 
 		std::cout << "Lancement de l'extrusion des donnees 3D\n";
 
-		ExtruderBatiments(Batiments, InfoBatimentsRes);
+        // clear previous CityGML model
+        delete m_model;
+        m_model = ExtruderBatiments(Batiments, InfoBatimentsRes);
 
 		delete Batiments;
 
@@ -2180,12 +2215,15 @@ namespace vcity
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
+        // clear previous CityGML model
+        delete m_model;
+        m_model = nullptr;
+
 		//m_model = BuildLOD1FromGEOS(Shape, Hauteurs);
 		//return; //Pour avoir le LOD1
 
 		if(Shape == NULL || Shape->isEmpty())
 		{
-			m_model = nullptr;
 			std::cout << "Shape NULL. \n";
 			return;
 		}
