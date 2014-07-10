@@ -214,7 +214,7 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
 {
     xmlNodePtr res = NULL;
 
-    std::cout << "type : " << obj.getTypeAsString() << std::endl;
+    //std::cout << "type : " << obj.getTypeAsString() << std::endl;
 
     switch(obj.getType())
     {

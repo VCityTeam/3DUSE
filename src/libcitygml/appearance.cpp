@@ -16,7 +16,7 @@ std::string Appearance::getType( void ) const
     return _typeString;
 }
 ////////////////////////////////////////////////////////////////////////////////
-inline bool Appearance::getIsFront( void ) const
+bool Appearance::getIsFront( void ) const
 {
     return _isFront;
 }

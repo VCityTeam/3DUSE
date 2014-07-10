@@ -135,8 +135,8 @@ public:
     std::string m_path;
 };
 ////////////////////////////////////////////////////////////////////////////////
-std::string getCityObjectsClassName( CityObjectsTypeMask mask );
-CityObjectsTypeMask getCityObjectsTypeMaskFromString( const std::string& stringMask );
+LIBCITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );
+LIBCITYGML_EXPORT CityObjectsTypeMask getCityObjectsTypeMaskFromString( const std::string& stringMask );
 std::ostream& operator<<( std::ostream&, const citygml::CityObject& );
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

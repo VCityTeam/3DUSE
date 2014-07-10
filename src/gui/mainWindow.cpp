@@ -26,7 +26,7 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
-
+#include "core/BatimentShape.hpp"
 #include <geos/geom/GeometryFactory.h>
 
 /*#include "assimp/Importer.hpp"
@@ -40,6 +40,7 @@
 
 geos::geom::Geometry* ShapeGeo = NULL;
 std::vector<std::pair<double, double>> Hauteurs;
+std::vector<BatimentShape> InfoBatiments;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
@@ -331,7 +332,7 @@ bool MainWindow::loadFile(const QString& filepath)
 		
         m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
-		buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
         if(poDS)
         {
             vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
@@ -654,8 +655,8 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    //unlockFeatures("pass2");
-    unlockFeatures("");
+    unlockFeatures("pass2");
+    //unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
 
@@ -1013,7 +1014,7 @@ void MainWindow::generateLOD2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD3()
 {	
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo); 
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments); 
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD4()
@@ -1171,7 +1172,7 @@ void buildJsonLod()
                 std::cout << "id : " << idX << ", " << idY << std::endl;
 
                 OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.toStdString().c_str(), FALSE);
-                buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+				buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
                 vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
 
                 citygml::ExporterJSON exporter;
@@ -1195,8 +1196,8 @@ void MainWindow::test1()
 {
     //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
 
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
 
 	vcity::app().getAlgo().CompareTiles();
 
@@ -1215,10 +1216,10 @@ void MainWindow::test2()
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");*/
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2009.gml");
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2012.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
-	vcity::app().getAlgo().CompareTiles();
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
@@ -1227,6 +1228,11 @@ void MainWindow::test3()
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13728/export-CityGML/ZoneAExporter.gml");
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13727/export-CityGML/ZoneAExporter.gml");
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1297-13727/export-CityGML/ZoneAExporter.gml");
+
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2009.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2012.gml");
+
+	vcity::app().getAlgo().CompareTiles();
 
     // test obj
 }
