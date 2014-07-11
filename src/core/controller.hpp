@@ -13,6 +13,7 @@ class Controller
 {
 public:
     Controller();
+    virtual ~Controller();
 
     // reset app
     virtual void reset();

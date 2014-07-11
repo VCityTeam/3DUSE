@@ -18,7 +18,9 @@ public:
     /// \param name Layer name
     LayerAssimp(const std::string& name);
 
-	const std::string getType() const;
+    virtual ~LayerAssimp()override;
+
+    const std::string getType() const;
 
 	URI getURI() const;
 

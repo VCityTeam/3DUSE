@@ -707,7 +707,7 @@ namespace vcity
 				ResUnion = ResUnion->Union(MP->getGeometryN(i)); //On fait l'union avant de la vérifier
 				delete tmp;
 
-				std::vector<geos::geom::Geometry*> Polys; //Vecteur contenant les différents polygones de l'union au fur et à mesure
+                std::vector<geos::geom::Geometry*>* Polys = new std::vector<geos::geom::Geometry*>(); //Vecteur contenant les différents polygones de l'union au fur et à mesure
 
 				for(int j = 0; j < ResUnion->getNumGeometries(); j++) //L'union peut être constitué de plusieurs polygons disjoints
 				{
@@ -769,10 +769,7 @@ namespace vcity
 					else
 						P = factory->createPolygon(shell, Holes);
 
-					//Holes->clear();
-					//delete Holes;
-
-					Polys.push_back(P);
+                    Polys->push_back(P);
 				}
 				delete ResUnion;
 				ResUnion = factory->createMultiPolygon(Polys);
@@ -1777,7 +1774,7 @@ namespace vcity
         //exporter.exportCityModel(*model);
         exporter.endExport();
 
-		std::cout << std::endl << "Fichier CityGML cree.\n";
+        std::cout << "\nFichier CityGML cree." << std::endl;
 
         //citygml::ParserParams params;
         //model->finish(params);

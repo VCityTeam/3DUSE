@@ -37,7 +37,7 @@ class Geometry : public Object
 public:
     Geometry( const std::string& id, GeometryType type = GT_Unknown, unsigned int lod = 0 );
 
-    LIBCITYGML_EXPORT ~Geometry();
+    LIBCITYGML_EXPORT virtual ~Geometry() override;
 
     // Get the geometry LOD
     unsigned int getLOD( void ) const;

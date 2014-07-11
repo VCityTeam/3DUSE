@@ -16,7 +16,7 @@ class ApplicationGui : public vcity::Application
 {
 public:
     ApplicationGui();
-    ~ApplicationGui();
+    virtual ~ApplicationGui() override;
 
     ControllerGui& getControllerGui();
     void setControllerGui(ControllerGui* cont);
