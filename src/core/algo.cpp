@@ -1034,8 +1034,8 @@ namespace vcity
 			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
 		}		
 
-		citygml::ExporterCityGML exporter;
-		exporter.exportCityModel(*model, "test.citygml");
+        citygml::ExporterCityGML exporter("test.citygml");
+        exporter.exportCityModel(*model);
 
 		std::cout << std::endl << "LOD1 cree.\n";
 
@@ -1707,8 +1707,8 @@ namespace vcity
                 delete geom;
             }
 		}
-		citygml::ExporterCityGML exporter;
-        exporter.exportCityModel(*model, "Batiments.citygml");
+        citygml::ExporterCityGML exporter("Batiments.citygml");
+        exporter.exportCityModel(*model);
 
 		std::cout << std::endl << "Fichier CityGML cree.\n";
 
