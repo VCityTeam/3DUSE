@@ -802,7 +802,7 @@ void MainWindow::exportCityGML()
 {
     QString filename = QFileDialog::getSaveFileName();
 
-    citygml::ExporterCityGML exporter;
+    citygml::ExporterCityGML exporter(filename.toStdString());
 
     // check temporal params
     if(m_useTemporal)
@@ -812,19 +812,17 @@ void MainWindow::exportCityGML()
     }
 
     // check if something is picked
-    //const std::set<std::string>& nodes = m_pickhandler->getNodesPicked(); // TODO : update this with a uri list
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
         std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
-        std::vector<citygml::CityObject*> objs;
+        std::vector<const citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
             if(obj) objs.push_back(obj);
         }
-        //citygml::exportCitygml(model, "test.citygml");
-        exporter.exportCityObject(objs, filename.toStdString());
+        exporter.exportCityObject(objs);
     }
     else
     {
@@ -832,8 +830,7 @@ void MainWindow::exportCityGML()
         // use first tile
 		vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
         citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-        //citygml::exportCitygml(model, "test.citygml");
-        exporter.exportCityModel(*model, filename.toStdString());
+        exporter.exportCityModel(*model);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -10,33 +10,33 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The Exporter class
 /// Export citygml
+/// Can be used with one step by writing a citymodel or an array of cityobjects
+/// or can be used by appending cityobjects
 class ExporterCityGML : public Exporter
 {
 public:
-    ExporterCityGML();
+    ExporterCityGML(const std::string& filename);
+    ~ExporterCityGML();
 
     /// \bief
-    void initExport();
-
+    void initExport(bool createCityModelRootNode=true);
 
     void endExport();
 
     /// \brief exportCityModel
     /// \param model
-    /// \param fileName
-    void exportCityModel(const CityModel& model, const std::string& fileName);
+    void exportCityModel(const CityModel& model);
 
     /// \brief exportCityObject
-    /// \param model
-    /// \param fileName
-    void exportCityObject(const std::vector<CityObject*>& objs, const std::string& fileName);
+    /// \param objs
+    void exportCityObject(const std::vector<const CityObject*>& objs);
 
-    void appendCityObject(const std::vector<CityObject*>& objs, const std::string& fileName);
+    void appendCityObject(const std::vector<const CityObject*>& objs);
 
-    void appendCityObject(CityObject* obj, const std::string& fileName);
+    void appendCityObject(const CityObject& obj);
 
 private:
-    xmlNodePtr exportCityObjectModelXml(const std::vector<CityObject*>& objs);
+    xmlNodePtr exportCityObjectModelXml(const std::vector<const CityObject*>& objs);
     xmlNodePtr exportCityModelXml(const citygml::CityModel& model);
     xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent);
     xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent);
@@ -45,6 +45,10 @@ private:
     xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent);
     xmlNodePtr exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string &nodeType, xmlNodePtr parent);
     xmlNodePtr exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent);
+
+    std::string m_fileName;
+    xmlDocPtr m_doc;
+    xmlNodePtr m_root_node;
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml
