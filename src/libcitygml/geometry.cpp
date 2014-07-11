@@ -11,8 +11,8 @@ Geometry::Geometry( const std::string& id, GeometryType type, unsigned int lod)
 ////////////////////////////////////////////////////////////////////////////////
 Geometry::~Geometry()
 {
-    std::vector< Polygon* >::const_iterator it = _polygons.begin();
-    for ( ; it != _polygons.end(); ++it ) delete *it;
+    for(Polygon* poly : _polygons)
+        delete poly;
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Get the geometry LOD

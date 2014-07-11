@@ -145,7 +145,7 @@ namespace vcity
 
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
-		std::vector<geos::geom::Geometry*> Polys;
+        std::vector<geos::geom::Geometry*>* Polys = new std::vector<geos::geom::Geometry*>();
 		geos::geom::LinearRing *shell;
 		geos::geom::Polygon* P;
 
@@ -169,7 +169,7 @@ namespace vcity
 
 			P = factory->createPolygon(shell, NULL);
 
-			Polys.push_back(P); 
+            Polys->push_back(P);
 		}
 		//std::cout << "Creation du Multipolygon ..." << std::endl;
 
@@ -750,11 +750,11 @@ namespace vcity
                                 if(tempcoord.size() > 3)
                                 {
                                     geos::geom::LinearRing* Hole = factory->createLinearRing(tempcoord);
-                                    geos::geom::Polygon* polyArea = factory->createPolygon(Hole, NULL);
+                                    geos::geom::Polygon* polyArea = factory->createPolygon(*Hole, std::vector<geos::geom::Geometry*>());
                                     if(polyArea->getArea() > 1)
-                                        Holes->push_back((geos::geom::Geometry*)Hole);
-                                    else
-                                        delete polyArea;
+                                        Holes->push_back(static_cast<geos::geom::Geometry*>(Hole));
+
+                                     delete polyArea;
                                 }
 								FirstPoint[0] = -1;
 								tempcoord.clear();
@@ -765,7 +765,7 @@ namespace vcity
 					geos::geom::Polygon *P;
 
 					if(Holes->size() == 0)
-						P = factory->createPolygon(shell, NULL);
+                        P = factory->createPolygon(shell, nullptr);
 					else
 						P = factory->createPolygon(shell, Holes);
 
@@ -1512,6 +1512,8 @@ namespace vcity
 		if(test != 2)
 		{
 			std::cout << "Erreur lors de la creation du plan. \n";
+            delete CoordsGeoZ;
+            delete CoordsGeo;
 			return NULL;
 		}
 
@@ -1537,8 +1539,8 @@ namespace vcity
 			}
 		}
 
-		delete CoordsGeoZ;
-		delete CoordsGeo;
+        delete CoordsGeoZ;
+        delete CoordsGeo;
 
 		if(ResCoords->size() > 3)
 			return factory->createPolygon(factory->createLinearRing(ResCoords), NULL);
@@ -1689,10 +1691,6 @@ namespace vcity
 						RingRoof->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
 						RingGround->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Hauteurs[i]));
 
-						citygml::Geometry* Wall = new citygml::Geometry("GeoWall_Building_" + std::to_string(j) + "_" + std::to_string(i) + "_" + std::to_string(k), citygml::GT_Wall, 0);
-						citygml::Polygon * PolyWall = new citygml::Polygon("PolyWall");
-						citygml::LinearRing * RingWall = new citygml::LinearRing("RingWall",true);
-
 						int BuildWall = 0;//Comptera le nombre de polygones du toit contenant la ligne. S'il est supérieur à 1, cela signifique qu'il ne faut pas construire le mur
 
 						for(int z = 0; z < VecGeo.size(); z++)//Pour ne pas construire de murs entre deux polygones voisins partageant une arrête
@@ -1723,6 +1721,10 @@ namespace vcity
 
 						if(BuildWall > 0)
 							continue;
+
+                        citygml::Geometry* Wall = new citygml::Geometry("GeoWall_Building_" + std::to_string(j) + "_" + std::to_string(i) + "_" + std::to_string(k), citygml::GT_Wall, 0);
+                        citygml::Polygon * PolyWall = new citygml::Polygon("PolyWall");
+                        citygml::LinearRing * RingWall = new citygml::LinearRing("RingWall",true);
 
 						RingWall->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
 						RingWall->addVertex(TVec3d(Coords->getAt(k+1).x + offset_.x, Coords->getAt(k+1).y + offset_.y, Coords->getAt(k+1).z));
@@ -1792,7 +1794,7 @@ namespace vcity
 
 		geos::geom::Geometry * EnveloppeCity = NULL;
 		
-		std::vector<geos::geom::Geometry *> VecGeos;
+        std::vector<const geos::geom::Geometry *> VecGeos;
 
 		for(int i = 0; i < tiles.size(); i++)//Création de l'enveloppe city à partir des données citygml
 		{
@@ -1820,7 +1822,7 @@ namespace vcity
 					for(int y = 0; y < GeosObj->getNumGeometries(); y++)
 					{
 						if(GeosObj->getGeometryN(y)->isValid())
-							VecGeos.push_back(GeosObj->getGeometryN(y)->clone());
+                            VecGeos.push_back(GeosObj->getGeometryN(y));
 					}
 					/////////////
 
@@ -1860,7 +1862,7 @@ namespace vcity
 			std::cout << std::endl;;
 		}	
 
-		geos::geom::Geometry * City = factory->createGeometryCollection(VecGeos); //Contient tous les polygons 
+        //geos::geom::Geometry * City = factory->createGeometryCollection(VecGeos); //Contient tous les polygons
 
 		//Scale = 4;
 		//Save3GeometryRGB("CityGML", EnveloppeCity, factory->createEmptyGeometry(), EnveloppeCity);
@@ -2051,12 +2053,12 @@ namespace vcity
 					if(InterVec.size() == 0)
 						continue;
 
-					geos::geom::Geometry* GeoLines = factory->createGeometryCollection(LineVec);
+                    //geos::geom::Geometry* GeoLines = factory->createGeometryCollection(LineVec);
 
-					geos::geom::Geometry * InterGeo2 = factory->createGeometryCollection(InterVec);
+                    //geos::geom::Geometry * InterGeo2 = factory->createGeometryCollection(InterVec);
 
-					std::vector<geos::geom::Geometry*> VecGeo; //Contiendra les geometries à assimiler à Geo (qu'il faudra donc retirer à Geo2)
-					std::vector<geos::geom::Geometry*> VecGeo2;//Contiendra les geometries à assimiler à Geo2 (qu'il faudra donc retirer à Geo)
+                    std::vector<geos::geom::Geometry*>* VecGeo = new std::vector<geos::geom::Geometry*>(); //Contiendra les geometries à assimiler à Geo (qu'il faudra donc retirer à Geo2)
+                    std::vector<geos::geom::Geometry*>* VecGeo2 = new std::vector<geos::geom::Geometry*>();//Contiendra les geometries à assimiler à Geo2 (qu'il faudra donc retirer à Geo)
 
 					std::vector<geos::geom::Geometry*> SplitPoly = SplitPolygon(InterVec, LineVec);
 
@@ -2065,9 +2067,9 @@ namespace vcity
 						//Save3GeometryRGB("TEST3", SplitPoly[t], Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));
 						int n = GetNearestGeo(SplitPoly[t], Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));
 						if(n == 1)
-							VecGeo.push_back(SplitPoly[t]->buffer(0.01));//0.01
+                            VecGeo->push_back(SplitPoly[t]->buffer(0.01));//0.01
 						else
-							VecGeo2.push_back(SplitPoly[t]->buffer(0.01));//0.01
+                            VecGeo2->push_back(SplitPoly[t]->buffer(0.01));//0.01
 					}
 
                     // clean SplitPoly

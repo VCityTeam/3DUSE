@@ -64,7 +64,7 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
             {
                 // only do a pick if the mouse hasn't moved
                 // TODO: add a little headroom so the mouse does not have to stand perfectly still.
-                std::cout << "Pick point : (" << m_mx << ", " << m_my << ")" << std::endl;
+                //std::cout << "Pick point : (" << m_mx << ", " << m_my << ")" << std::endl;
                 pickPoint(ea,viewer);
             }
             else
@@ -161,7 +161,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
 
         osg::Node* node = nodePath.back();
 
-        osg::notify(osg::NOTICE) << "Picked: " << node->getName() << std::endl;
+        //osg::notify(osg::NOTICE) << "Picked: " << node->getName() << std::endl;
 
 
         //node = (nodePath.size()>=1)?nodePath[nodePath.size()-1]:0;

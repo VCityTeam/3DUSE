@@ -394,13 +394,13 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
         if ( (env.getUpperBound().x != 0.0 && env.getUpperBound().y != 0.0 && env.getUpperBound().z != 0.0) ||
            (env.getLowerBound().x != 0.0 && env.getLowerBound().y != 0.0 && env.getLowerBound().z != 0.0) )
         {
-            std::cout << object->getId() << " : " << env << std::endl;
+            //std::cout << object->getId() << " : " << env << std::endl;
             TVec3d lb_ = env.getLowerBound()-offset_;
             osg::Vec3 lb(lb_.x, lb_.y, lb_.z);
             TVec3d ub_ = env.getUpperBound()-offset_;
             osg::Vec3 ub(ub_.x, ub_.y, ub_.z);
-            std::cout << lb.x() << ", " << lb.y() << ", " << lb.z() << std::endl;
-            std::cout << ub.x() << ", " << ub.y() << ", " << ub.z() << std::endl;
+            //std::cout << lb.x() << ", " << lb.y() << ", " << lb.z() << std::endl;
+            //std::cout << ub.x() << ", " << ub.y() << ", " << ub.z() << std::endl;
             osg::ref_ptr<osg::Geode> bbox = osgTools::buildBBox(lb, ub);
             //geode->addDrawable(bbox->getDrawable(0));
         }
