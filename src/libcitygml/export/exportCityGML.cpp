@@ -7,7 +7,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 ExporterCityGML::ExporterCityGML(const std::string& filename)
-    : m_fileName(filename), m_doc(nullptr), m_root_node(nullptr), m_citymodel_node(nullptr)
+    : m_fileName(filename), m_doc(nullptr), m_root_node(nullptr)
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,6 @@ void ExporterCityGML::initExport(bool createCityModelRootNode)
 {
      m_doc = nullptr;
      m_root_node = nullptr;
-     m_citymodel_node = nullptr;
 
      LIBXML_TEST_VERSION;
 
@@ -30,7 +29,7 @@ void ExporterCityGML::initExport(bool createCityModelRootNode)
 
      if(createCityModelRootNode)
      {
-         m_citymodel_node = xmlNewNode(NULL, BAD_CAST "core:CityModel");
+         m_root_node = xmlNewNode(NULL, BAD_CAST "core:CityModel");
      }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -86,7 +85,7 @@ void ExporterCityGML::appendCityObject(const std::vector<const CityObject*>& obj
 ////////////////////////////////////////////////////////////////////////////////
 void ExporterCityGML::appendCityObject(const CityObject& obj)
 {
-    xmlNodePtr node = xmlNewChild(m_citymodel_node, NULL, BAD_CAST "core:cityObjectMember", NULL);
+    xmlNodePtr node = xmlNewChild(m_root_node, NULL, BAD_CAST "core:cityObjectMember", NULL);
     exportCityObjetXml(obj, node);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -373,20 +372,20 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
 ////////////////////////////////////////////////////////////////////////////////
 xmlNodePtr ExporterCityGML::exportCityModelXml(const citygml::CityModel& model)
 {
-    m_citymodel_node = xmlNewNode(NULL, BAD_CAST "core:CityModel");
+    xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "core:CityModel");
 
     // write envelope (bouned by)
-    xmlNodePtr nodeEnv = xmlNewChild(m_citymodel_node, NULL, BAD_CAST "gml:boundedBy", NULL);
+    xmlNodePtr nodeEnv = xmlNewChild(root, NULL, BAD_CAST "gml:boundedBy", NULL);
     exportEnvelopeXml(model.getEnvelope(), nodeEnv);
 
     // do objects
     for(const citygml::CityObject* obj : model.getCityObjectsRoots())
     {
-        xmlNodePtr node = xmlNewChild(m_citymodel_node, NULL, BAD_CAST "core:cityObjectMember", NULL);
+        xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
         exportCityObjetXml(*obj, node);
     }
 
-    return m_citymodel_node;
+    return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
 xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const std::vector<const CityObject*>& objs)

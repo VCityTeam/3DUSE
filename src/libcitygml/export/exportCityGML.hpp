@@ -49,7 +49,6 @@ private:
     std::string m_fileName;
     xmlDocPtr m_doc;
     xmlNodePtr m_root_node;
-    xmlNodePtr m_citymodel_node;
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

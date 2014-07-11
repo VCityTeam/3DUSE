@@ -1544,17 +1544,21 @@ namespace vcity
 	/**
 	* @brief Charge le CityGML et le découpe à l'aide des polygons Geos représentant les bâtiments
 	*/
-    citygml::CityModel* ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments)
+    void ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments)
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 
-        citygml::CityModel* model = new citygml::CityModel;
+        //citygml::CityModel* model = new citygml::CityModel;
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 		int cpt = 0;
 
 		std::vector<geos::geom::Geometry*> VecGeoRes;
+
+        // create citygml exporter to append data into
+        citygml::ExporterCityGML exporter("Batiments.citygml");
+        exporter.initExport();
 
 		for(int j = 0; j < Batiments->getNumGeometries(); ++j)
 		{
@@ -1681,7 +1685,7 @@ namespace vcity
 						citygml::CityObject* WallCO = new citygml::WallSurface("Wall_" + std::to_string(i) + "_" + std::to_string(k));
 
 						WallCO->addGeometry(Wall);
-                        model->addCityObject(WallCO);
+                        //model->addCityObject(WallCO);
 						BuildingCO->insertNode(WallCO);
 					}
 					PolyRoof->addRing(RingRoof);
@@ -1690,12 +1694,15 @@ namespace vcity
 					citygml::CityObject* RoofCO = new citygml::RoofSurface("Roof_" + std::to_string(i));
 
 					RoofCO->addGeometry(Roof);
-                    model->addCityObject(RoofCO);
+                    //model->addCityObject(RoofCO);
 					BuildingCO->insertNode(RoofCO);
 				}
 				BuildingCO->setAttribute("ID_shape", InfoBatiments[j].ID);
-                model->addCityObject(BuildingCO);
-                model->addCityObjectAsRoot(BuildingCO);
+                exporter.appendCityObject(*BuildingCO);
+                delete BuildingCO;
+
+                //model->addCityObject(BuildingCO);
+                //model->addCityObjectAsRoot(BuildingCO);
 			}
 		}
 		if(VecGeoRes.size() > 0)
@@ -1707,15 +1714,16 @@ namespace vcity
                 delete geom;
             }
 		}
-        citygml::ExporterCityGML exporter("Batiments.citygml");
-        exporter.exportCityModel(*model);
+
+        //exporter.exportCityModel(*model);
+        exporter.endExport();
 
 		std::cout << std::endl << "Fichier CityGML cree.\n";
 
-		citygml::ParserParams params;
-        model->finish(params);
+        //citygml::ParserParams params;
+        //model->finish(params);
 
-        return model;
+        //return model;
 	}
 
 	void Algo::generateLOD0Scene(geos::geom::Geometry * Shape, std::vector<BatimentShape> InfoBatiments)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
@@ -2045,8 +2053,9 @@ namespace vcity
 		std::cout << "Lancement de l'extrusion des donnees 3D\n";
 
         // clear previous CityGML model
-        delete m_model;
-        m_model = ExtruderBatiments(Batiments, InfoBatimentsRes);
+        //delete m_model;
+        //m_model = ExtruderBatiments(Batiments, InfoBatimentsRes);
+        ExtruderBatiments(Batiments, InfoBatimentsRes);
 
 		delete Batiments;
 
