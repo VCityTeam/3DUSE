@@ -1547,11 +1547,9 @@ namespace vcity
 
 		//Scale = 10;
 		//SaveGeometry("Bati", Geo);
-		std::cout << "ResCoords vide dans CalculeZ" << std::endl;
+		//std::cout << "ResCoords vide dans CalculeZ" << std::endl;
 		//std::cout << ResCoords->size() << "  " << Geo->getNumPoints() << std::endl;
 
-        //delete CoordsGeoZ;
-        //delete CoordsGeo;
         delete ResCoords;
 
 		return NULL;
@@ -1568,7 +1566,6 @@ namespace vcity
         //citygml::CityModel* model = new citygml::CityModel;
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
-		int cpt = 0;
 
 		std::vector<geos::geom::Geometry*> VecGeoRes;
 
@@ -1578,6 +1575,9 @@ namespace vcity
 
 		for(int j = 0; j < Batiments->getNumGeometries(); ++j)
 		{
+			if(j%10 == 0)
+					std::cout << "Avancement : " << j << "/" << Batiments->getNumGeometries() << " batiments ajoutes au CityGML.\r" << std::flush;
+
 			const geos::geom::Geometry * Bati = Batiments->getGeometryN(j);
 
             std::vector<geos::geom::Geometry*>* VecGeo = new std::vector<geos::geom::Geometry*>();
@@ -1680,11 +1680,16 @@ namespace vcity
 					citygml::Polygon * PolyRoof = new citygml::Polygon("PolyRoof");
 					citygml::LinearRing * RingRoof = new citygml::LinearRing("RingRoof",true);
 
+					citygml::Geometry* Ground = new citygml::Geometry("GeoGround_Building_" + std::to_string(j)  + "_" + std::to_string(i), citygml::GT_Ground, 0);
+					citygml::Polygon * PolyGround = new citygml::Polygon("PolyGround");
+                    citygml::LinearRing * RingGround = new citygml::LinearRing("RingGround",true);
+
                     geos::geom::CoordinateSequence * Coords = (*VecGeo)[i]->getCoordinates();
 
 					for(int k = 0; k < Coords->size() - 1; ++k)
 					{
 						RingRoof->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
+						RingGround->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Hauteurs[i]));
 
 						int BuildWall = 0;//Comptera le nombre de polygones du toit contenant la ligne. S'il est supérieur à 1, cela signifique qu'il ne faut pas construire le mur
 
@@ -1744,6 +1749,14 @@ namespace vcity
                     //model->addCityObject(RoofCO);
 					BuildingCO->insertNode(RoofCO);
 
+                    PolyGround->addRing(RingGround);
+					Ground->addPolygon(PolyGround);
+
+					citygml::CityObject* GroundCO = new citygml::GroundSurface("Ground" + std::to_string(i));
+
+					GroundCO->addGeometry(Ground);
+                    BuildingCO->insertNode(GroundCO);
+
                     delete Coords;
 				}
 				BuildingCO->setAttribute("ID_shape", InfoBatiments[j].ID);
@@ -1767,7 +1780,7 @@ namespace vcity
         //exporter.exportCityModel(*model);
         exporter.endExport();
 
-        std::cout << "\nFichier CityGML cree." << std::endl;
+        std::cout << std::endl << "Fichier CityGML cree." << std::endl;
 
         //citygml::ParserParams params;
         //model->finish(params);
