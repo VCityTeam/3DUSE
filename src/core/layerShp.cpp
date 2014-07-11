@@ -14,6 +14,7 @@ LayerShp::LayerShp(const std::string& name)
 LayerShp::~LayerShp()
 {
     OGRDataSource::DestroyDataSource(m_shp);
+    //GDALClose(m_shp);
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::string LayerShp::getType() const

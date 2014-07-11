@@ -62,10 +62,15 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 CityModel::~CityModel( void )
 {
-    CityObjectsMap::const_iterator it = _cityObjectsMap.begin();
+    /*CityObjectsMap::const_iterator it = _cityObjectsMap.begin();
     for ( ; it != _cityObjectsMap.end(); ++it )
         for ( unsigned int i = 0; i < it->second.size(); i++ )
-            delete it->second[i];
+            delete it->second[i];*/
+
+    for(CityObject* obj : _roots)
+    {
+        delete obj;
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void CityModel::addCityObject( CityObject* o )

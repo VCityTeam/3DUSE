@@ -11,8 +11,11 @@ CityObject::CityObject( const std::string& id, CityObjectsType type )
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::~CityObject()
 {
-    std::vector< Geometry* >::const_iterator it = _geometries.begin();
-    for ( ; it != _geometries.end(); ++it ) delete *it;
+    for(Geometry* geom : _geometries)
+        delete geom;
+
+    for(CityObject* obj : _children)
+        delete obj;
 
     for(CityObjectState* state : m_states)
         delete state;
