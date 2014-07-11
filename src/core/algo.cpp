@@ -1633,11 +1633,11 @@ namespace vcity
 										Coords->add(geos::geom::Coordinate(Point.x - offset_.x, Point.y - offset_.y, Point.z));
 									}
 									Coords->add(Coords->getAt(0));
-									//std::cout << "TEST1 \n";
+
 									geos::geom::Geometry * GeoCityGML = factory->createPolygon(factory->createLinearRing(Coords), NULL);
-									//std::cout << "TEST2 \n";
+
 									geos::geom::Geometry * Inter = GeoCityGML->intersection(Bati);
-									//std::cout << "TEST3 \n";
+
 									for(int k = 0; k < Inter->getNumGeometries(); ++k)
 									{
 										const geos::geom::Geometry * Interpart = Inter->getGeometryN(k);
@@ -1693,16 +1693,31 @@ namespace vcity
 
 						for(int z = 0; z < VecGeo.size(); z++)//Pour ne pas construire de murs entre deux polygones voisins partageant une arrête
 						{
+							if(z == i)
+								continue;
 							geos::geom::CoordinateSequence * Coords2 = VecGeo[z]->getCoordinates();
-							for(int k = 0; k < Coords2->size() - 1; ++k)
+							for(int c = 0; c < Coords2->size(); ++c)
 							{
-								
+								if(Coords->getAt(k).x == Coords2->getAt(c).x && Coords->getAt(k).y == Coords2->getAt(c).y && Coords->getAt(k).z == Coords2->getAt(c).z)
+								{
+									if(c > 0 && Coords->getAt(k+1).x == Coords2->getAt(c-1).x && Coords->getAt(k+1).y == Coords2->getAt(c-1).y && Coords->getAt(k+1).z == Coords2->getAt(c-1).z)
+									{
+										BuildWall++;
+										break;
+									}
+									else if(c < Coords2->size() - 1 && Coords->getAt(k+1).x == Coords2->getAt(c+1).x && Coords->getAt(k+1).y == Coords2->getAt(c+1).y && Coords->getAt(k+1).z == Coords2->getAt(c+1).z)
+									{
+										BuildWall++;
+										break;
+									}
+								}
 							}
-
 							delete Coords2;
+							if(BuildWall > 0)
+								break;
 						}
 
-						if(BuildWall > 1)
+						if(BuildWall > 0)
 							continue;
 
 						RingWall->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
