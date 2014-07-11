@@ -849,7 +849,10 @@ namespace vcity
 					geos::geom::LineString * Edge = factory->createLineString(EdgeCoord);
 
 					//Save3GeometryRGB("TESTLine" + std::to_string(k), Poly, Edge, Poly);
-					if(!Edge->intersects(Line) || (Edge->intersection(Line)->getCoordinates()->getAt(0).x == EdgeCoord->getAt(0).x && Edge->intersection(Line)->getCoordinates()->getAt(0).y == EdgeCoord->getAt(0).y))
+
+					geos::geom::Geometry * Intersection = Edge->intersection(Line);
+					geos::geom::CoordinateSequence * CoordsIntersection = Intersection->getCoordinates();
+					if(!Edge->intersects(Line) || (CoordsIntersection->getAt(0).x == EdgeCoord->getAt(0).x && CoordsIntersection->getAt(0).y == EdgeCoord->getAt(0).y))
 					{
 						if(!CrossedLine)
 						{
@@ -870,7 +873,7 @@ namespace vcity
 
 					if(CrossedLine)
 					{
-						geos::geom::Coordinate CoordInter = Edge->intersection(Line)->getCoordinates()->getAt(0);
+						geos::geom::Coordinate CoordInter = CoordsIntersection->getAt(0);
 						if(k == 0)
 						{
 							if(EdgeCoord->getAt(0).x != CoordInter.x || EdgeCoord->getAt(0).y != CoordInter.y)
@@ -884,13 +887,15 @@ namespace vcity
 					}
 					else
 					{
-						geos::geom::Coordinate CoordInter = Edge->intersection(Line)->getCoordinates()->getAt(0);
+						geos::geom::Coordinate CoordInter = CoordsIntersection->getAt(0);
 
 						Poly2->add(CoordInter);
 						Poly1->add(CoordInter);
 						if(EdgeCoord->getAt(1).x != CoordInter.x || EdgeCoord->getAt(1).y != CoordInter.y)
 							Poly1->add(EdgeCoord->getAt(1));
 					}
+					delete CoordsIntersection;
+					delete Intersection;
 					delete Edge;
 				}
 				
@@ -1122,10 +1127,12 @@ namespace vcity
 				if(Triangle->getNumPoints() > 4 || Triangle->getArea() < 0.01)//Si la géometry courante n'est pas un triangle
 				{
 					continue;
-				}				
-				geos::geom::Coordinate P1 = Triangle->getCoordinates()->getAt(0); //Point du triangle
-				geos::geom::Coordinate P2 = Triangle->getCoordinates()->getAt(1);
-				geos::geom::Coordinate P3 = Triangle->getCoordinates()->getAt(2);
+				}
+				geos::geom::CoordinateSequence * TempCoord = Triangle->getCoordinates();
+				geos::geom::Coordinate P1 = TempCoord->getAt(0); //Point du triangle
+				geos::geom::Coordinate P2 = TempCoord->getAt(1);
+				geos::geom::Coordinate P3 = TempCoord->getAt(2);
+				delete TempCoord;
 
 				geos::geom::Coordinate P1P0(P0.x - P1.x, P0.y - P1.y, P0.z - P1.z); //Vecteur P1P0
 				geos::geom::Coordinate P2P0(P0.x - P2.x, P0.y - P2.y, P0.z - P2.z);
@@ -1295,7 +1302,9 @@ namespace vcity
 			double Zmax1, Zmin1;
 			for(int j = 0; j < SGeo1->getNumPoints(); ++j)
 			{
-				double z = SGeo1->getCoordinates()->getAt(j).z;
+				geos::geom::CoordinateSequence * TempCoord = SGeo1->getCoordinates();
+				double z = TempCoord->getAt(j).z;
+				delete TempCoord;
 				if(j == 0)
 				{
 					Zmax1 = z;
@@ -1317,7 +1326,9 @@ namespace vcity
 				double Zmax2, Zmin2;
 				for(int k = 0; k < SGeo2->getNumPoints(); ++k)
 				{
-					double z = SGeo2->getCoordinates()->getAt(k).z;
+					geos::geom::CoordinateSequence * TempCoord = SGeo2->getCoordinates();
+					double z = TempCoord->getAt(k).z;
+					delete TempCoord;
 					if(k == 0)
 					{
 						Zmax2 = z;
@@ -1462,7 +1473,9 @@ namespace vcity
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		//On commence par récupérer trois points de GeoZ non alignés pour obtenir l'équation paramétrique du plan formé par cette geometry
-		geos::geom::Coordinate A(GeoZ->getCoordinates()->getAt(0));
+		geos::geom::CoordinateSequence * CoordsGeo = Geo->getCoordinates();
+		geos::geom::CoordinateSequence * CoordsGeoZ = GeoZ->getCoordinates();
+		geos::geom::Coordinate A(CoordsGeoZ->getAt(0));
 		geos::geom::Coordinate B;
 		geos::geom::Coordinate C;
 
@@ -1474,7 +1487,7 @@ namespace vcity
 		{
 			if(test == 0)
 			{				
-				B = GeoZ->getCoordinates()->getAt(i);
+				B = CoordsGeoZ->getAt(i);
 				if(A.x != B.x || A.y != B.y)
 				{
 					++test;// A est bien différent de B
@@ -1485,7 +1498,7 @@ namespace vcity
 			}
 			else if(test == 1)
 			{
-				C = GeoZ->getCoordinates()->getAt(i);
+				C = CoordsGeoZ->getAt(i);
 				if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
 				{
 					++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
@@ -1509,7 +1522,7 @@ namespace vcity
 
 		for(int i = 0; i < Geo->getNumPoints(); ++i)
 		{
-			geos::geom::Coordinate M(Geo->getCoordinates()->getAt(i));
+			geos::geom::Coordinate M(CoordsGeo->getAt(i));
 			double s, t;
 
 			t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
@@ -1517,7 +1530,7 @@ namespace vcity
 
 			ResCoords->add(geos::geom::Coordinate(M.x, M.y, A.z + s * AB.z + t * AC.z));
 
-			if(i > 0 && i < Geo->getNumPoints()-1 && Geo->getCoordinates()->getAt(i).x == Geo->getCoordinates()->getAt(0).x && Geo->getCoordinates()->getAt(i).y == Geo->getCoordinates()->getAt(0).y && Geo->getCoordinates()->getAt(i).z == Geo->getCoordinates()->getAt(0).z)
+			if(i > 0 && i < Geo->getNumPoints()-1 && CoordsGeo->getAt(i).x == CoordsGeo->getAt(0).x && CoordsGeo->getAt(i).y == CoordsGeo->getAt(0).y && CoordsGeo->getAt(i).z == CoordsGeo->getAt(0).z)
 			{
 				//std::cout << "Holes" << std::endl;
 				break; //Pour que les polygones avec des trous ne posent pas de problème, on supprime ces trous en s'arrêtant lorsque la boucle est finie (on retombe sur le premier point).
@@ -1533,6 +1546,8 @@ namespace vcity
 		std::cout << "ResCoords vide dans CalculeZ" << std::endl;
 		//std::cout << ResCoords->size() << "  " << Geo->getNumPoints() << std::endl;
 
+		delete CoordsGeoZ;
+		delete CoordsGeo;
         delete ResCoords;
 
 		return NULL;
@@ -1615,11 +1630,11 @@ namespace vcity
 										Coords->add(geos::geom::Coordinate(Point.x - offset_.x, Point.y - offset_.y, Point.z));
 									}
 									Coords->add(Coords->getAt(0));
-									//std::cout << "TEST1 \n";
+
 									geos::geom::Geometry * GeoCityGML = factory->createPolygon(factory->createLinearRing(Coords), NULL);
-									//std::cout << "TEST2 \n";
+
 									geos::geom::Geometry * Inter = GeoCityGML->intersection(Bati);
-									//std::cout << "TEST3 \n";
+
 									for(int k = 0; k < Inter->getNumGeometries(); ++k)
 									{
 										const geos::geom::Geometry * Interpart = Inter->getGeometryN(k);
@@ -1670,6 +1685,37 @@ namespace vcity
 						citygml::Geometry* Wall = new citygml::Geometry("GeoWall_Building_" + std::to_string(j) + "_" + std::to_string(i) + "_" + std::to_string(k), citygml::GT_Wall, 0);
 						citygml::Polygon * PolyWall = new citygml::Polygon("PolyWall");
 						citygml::LinearRing * RingWall = new citygml::LinearRing("RingWall",true);
+
+						int BuildWall = 0;//Comptera le nombre de polygones du toit contenant la ligne. S'il est supérieur à 1, cela signifique qu'il ne faut pas construire le mur
+
+						for(int z = 0; z < VecGeo.size(); z++)//Pour ne pas construire de murs entre deux polygones voisins partageant une arrête
+						{
+							if(z == i)
+								continue;
+							geos::geom::CoordinateSequence * Coords2 = VecGeo[z]->getCoordinates();
+							for(int c = 0; c < Coords2->size(); ++c)
+							{
+								if(Coords->getAt(k).x == Coords2->getAt(c).x && Coords->getAt(k).y == Coords2->getAt(c).y && Coords->getAt(k).z == Coords2->getAt(c).z)
+								{
+									if(c > 0 && Coords->getAt(k+1).x == Coords2->getAt(c-1).x && Coords->getAt(k+1).y == Coords2->getAt(c-1).y && Coords->getAt(k+1).z == Coords2->getAt(c-1).z)
+									{
+										BuildWall++;
+										break;
+									}
+									else if(c < Coords2->size() - 1 && Coords->getAt(k+1).x == Coords2->getAt(c+1).x && Coords->getAt(k+1).y == Coords2->getAt(c+1).y && Coords->getAt(k+1).z == Coords2->getAt(c+1).z)
+									{
+										BuildWall++;
+										break;
+									}
+								}
+							}
+							delete Coords2;
+							if(BuildWall > 0)
+								break;
+						}
+
+						if(BuildWall > 0)
+							continue;
 
 						RingWall->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
 						RingWall->addVertex(TVec3d(Coords->getAt(k+1).x + offset_.x, Coords->getAt(k+1).y + offset_.y, Coords->getAt(k+1).z));
