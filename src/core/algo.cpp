@@ -1679,11 +1679,16 @@ namespace vcity
 					citygml::Polygon * PolyRoof = new citygml::Polygon("PolyRoof");
 					citygml::LinearRing * RingRoof = new citygml::LinearRing("RingRoof",true);
 
+					citygml::Geometry* Ground = new citygml::Geometry("GeoGround_Building_" + std::to_string(j)  + "_" + std::to_string(i), citygml::GT_Ground, 0);
+					citygml::Polygon * PolyGround = new citygml::Polygon("PolyGround");
+					citygml::LinearRing * RingGround = new citygml::LinearRing("RingGround",true);
+
 					geos::geom::CoordinateSequence * Coords = VecGeo[i]->getCoordinates();
 
 					for(int k = 0; k < Coords->size() - 1; ++k)
 					{
 						RingRoof->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
+						RingGround->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Hauteurs[i]));
 
 						citygml::Geometry* Wall = new citygml::Geometry("GeoWall_Building_" + std::to_string(j) + "_" + std::to_string(i) + "_" + std::to_string(k), citygml::GT_Wall, 0);
 						citygml::Polygon * PolyWall = new citygml::Polygon("PolyWall");
@@ -1742,6 +1747,14 @@ namespace vcity
 					RoofCO->addGeometry(Roof);
                     //model->addCityObject(RoofCO);
 					BuildingCO->insertNode(RoofCO);
+
+					PolyGround->addRing(RingGround);
+					Ground->addPolygon(PolyGround);
+
+					citygml::CityObject* GroundCO = new citygml::GroundSurface("Ground" + std::to_string(i));
+
+					GroundCO->addGeometry(Ground);
+					BuildingCO->insertNode(GroundCO);
 				}
 				BuildingCO->setAttribute("ID_shape", InfoBatiments[j].ID);
                 exporter.appendCityObject(*BuildingCO);
