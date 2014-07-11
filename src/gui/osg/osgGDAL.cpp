@@ -12,6 +12,7 @@
 #include "geos/geom/Coordinate.h"
 #include "geos/geom/CoordinateSequence.h"
 #include "geos/geom/CoordinateArraySequence.h"
+#include "geos/geom/CoordinateArraySequenceFactory.h"
 #include "geos/geom/Dimension.h"
 #include "geos/geom/Envelope.h"
 #include "geos/geom/LinearRing.h"
@@ -191,7 +192,8 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 	TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 
 	const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
-	std::vector<geos::geom::Geometry*> Polys;
+    const geos::geom::CoordinateSequenceFactory * coordFactory = geos::geom::CoordinateArraySequenceFactory::instance();
+    std::vector<geos::geom::Geometry*>* Polys = new std::vector<geos::geom::Geometry*>();
 	geos::geom::LinearRing *shell;
 	geos::geom::Polygon* P;
 	
@@ -211,7 +213,9 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
                 OGRLinearRing* poLR = poPG->getExteriorRing();
                 int nbPoints = poLR->getNumPoints();
 
-				geos::geom::CoordinateArraySequence temp;
+                std::size_t size = 0;
+                std::size_t dimension=2;
+                geos::geom::CoordinateSequence* temp = static_cast<geos::geom::CoordinateArraySequence*>(coordFactory->create(size, dimension));
 				/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
 
 				for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
@@ -234,10 +238,10 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
                     OGRPoint p;
                     poLR->getPoint(i, &p);
 
-					temp.add(geos::geom::Coordinate(p.getX() - offset_.x, p.getY() - offset_.y));
+                    temp->add(geos::geom::Coordinate(p.getX() - offset_.x, p.getY() - offset_.y));
                 }
 
-				if(temp.size() > 3)
+                if(temp->size() > 3)
 				{
 					shell=factory->createLinearRing(temp);
 					P = factory->createPolygon(shell, NULL/*Holes*/); //Les bâtiments du cadastre sont récupérés sans les cours intérieures. Mettre Holes à la place de NULL pour les avoir.
@@ -250,7 +254,7 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 						else
 							InfoBatiments->push_back(BatimentShape(P, "ID NULL"));
 
-						Polys.push_back(P);
+                        Polys->push_back(P);
 						double H = 20;
 						double Zmin = 0;
 						if(poFeature->GetFieldIndex("HAUTEUR") != -1)

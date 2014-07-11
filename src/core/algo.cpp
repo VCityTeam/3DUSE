@@ -981,7 +981,7 @@ namespace vcity
 		citygml::CityModel* model = new citygml::CityModel;
 		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
 		{		
-			geos::geom::Geometry * TempGeo =  Geometry->getGeometryN(i)->clone();
+            const geos::geom::Geometry * TempGeo = Geometry->getGeometryN(i);
 			if(TempGeo->getGeometryType() != "Polygon")
 				continue;
 
@@ -1580,7 +1580,7 @@ namespace vcity
 		{
 			const geos::geom::Geometry * Bati = Batiments->getGeometryN(j);
 
-			std::vector<geos::geom::Geometry*> VecGeo;
+            std::vector<geos::geom::Geometry*>* VecGeo = new std::vector<geos::geom::Geometry*>();
 			std::vector<double> Hauteurs; //Contiendra les Zmin de toutes les geometry de VecGeo pour savoir jusqu'où descendre les murs
 
 			for(int i = 0; i < tiles.size(); i++)//On parcourt les tuiles du CityGML
@@ -1651,7 +1651,7 @@ namespace vcity
 										geos::geom::Geometry * Ring = CalculeZ(Interpart, GeoCityGML);
 										if(Ring != NULL)
 										{
-											VecGeo.push_back(Ring);
+                                            VecGeo->push_back(Ring);
 											Hauteurs.push_back(heightmin);
 										}
 									}
@@ -1665,7 +1665,7 @@ namespace vcity
 					}
 				}
 			}
-			if(VecGeo.size() > 0)
+            if(VecGeo->size() > 0)
 			{
 				//SaveGeometry("Batiment_" + std::to_string(j), factory->createGeometryCollection(VecGeo));
 
@@ -1674,13 +1674,13 @@ namespace vcity
 				//citygml::CityObject* BuildingCO = new citygml::Building("Building_" + std::to_string(j));
 				citygml::CityObject* BuildingCO = new citygml::Building(InfoBatiments[j].ID);
 
-				for(int i = 0; i < VecGeo.size(); ++i)
+                for(int i = 0; i < VecGeo->size(); ++i)
 				{
 					citygml::Geometry* Roof = new citygml::Geometry("GeoRoof_Building_" + std::to_string(j)  + "_" + std::to_string(i), citygml::GT_Roof, 0);
 					citygml::Polygon * PolyRoof = new citygml::Polygon("PolyRoof");
 					citygml::LinearRing * RingRoof = new citygml::LinearRing("RingRoof",true);
 
-					geos::geom::CoordinateSequence * Coords = VecGeo[i]->getCoordinates();
+                    geos::geom::CoordinateSequence * Coords = (*VecGeo)[i]->getCoordinates();
 
 					for(int k = 0; k < Coords->size() - 1; ++k)
 					{
@@ -1688,11 +1688,11 @@ namespace vcity
 
 						int BuildWall = 0;//Comptera le nombre de polygones du toit contenant la ligne. S'il est supérieur à 1, cela signifique qu'il ne faut pas construire le mur
 
-						for(int z = 0; z < VecGeo.size(); z++)//Pour ne pas construire de murs entre deux polygones voisins partageant une arrête
+                        for(int z = 0; z < VecGeo->size(); z++)//Pour ne pas construire de murs entre deux polygones voisins partageant une arrête
 						{
 							if(z == i)
 								continue;
-							geos::geom::CoordinateSequence * Coords2 = VecGeo[z]->getCoordinates();
+                            geos::geom::CoordinateSequence * Coords2 = (*VecGeo)[z]->getCoordinates();
 							for(int c = 0; c < Coords2->size(); ++c)
 							{
 								if(Coords->getAt(k).x == Coords2->getAt(c).x && Coords->getAt(k).y == Coords2->getAt(c).y && Coords->getAt(k).z == Coords2->getAt(c).z)
@@ -1743,6 +1743,8 @@ namespace vcity
 					RoofCO->addGeometry(Roof);
                     //model->addCityObject(RoofCO);
 					BuildingCO->insertNode(RoofCO);
+
+                    delete Coords;
 				}
 				BuildingCO->setAttribute("ID_shape", InfoBatiments[j].ID);
                 exporter.appendCityObject(*BuildingCO);
@@ -1868,7 +1870,7 @@ namespace vcity
 		std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Link = LinkGeos(Shape, EnveloppeCity); //Le premier vector contient les polys d'enveloppe pour chaque Shape
 		/////////////
 
-		std::vector<geos::geom::Geometry*> GeoRes; //Contiendra les bâtiments de CityGML découpés par le Shape
+        std::vector<geos::geom::Geometry*>* GeoRes = new std::vector<geos::geom::Geometry*>(); //Contiendra les bâtiments de CityGML découpés par le Shape
 		std::vector<BatimentShape> InfoBatimentsRes;
 
 		for(int i = 0; i < EnveloppeCity->getNumGeometries(); ++i)//On parcourt tous les polygons du CityGML
@@ -1943,7 +1945,7 @@ namespace vcity
 
 				NewShape.push_back(CurrPolyS2);
 			}			
-			geos::geom::Geometry * ShapeRes = factory->createGeometryCollection(NewShape);
+            //geos::geom::Geometry * ShapeRes = factory->createGeometryCollection(NewShape);
 
 			////////////////////////////Eliminer les superpositions des polygons :
 
@@ -1957,7 +1959,10 @@ namespace vcity
 					geos::geom::Geometry * InterGeo = Geo2->intersection(Geo);
 
 					if(InterGeo->isEmpty())//Si les deux polygons ne s'intersectent pas, on passe aux suivants
+                    {
+                        delete InterGeo;
 						continue;
+                    }
 
 					std::vector <geos::geom::Geometry*> InterVec;//Contiendra les polygons (surfaces communes) formés par l'opérateur intersection entre les deux polygons courant
 
@@ -2074,6 +2079,8 @@ namespace vcity
 					Save3GeometryRGB("Inter_" + std::to_string(j) + "_" + std::to_string(k) + "_4_Apres" , NewShape[k], NewShape[j], NewShape[k]);*/
 
 					Geo = NewShape[j];
+
+                    delete InterGeo;
 				}
 			}
 
@@ -2085,7 +2092,7 @@ namespace vcity
 
 			for(int t = 0; t < NewShape.size(); ++t)
 			{
-				GeoRes.push_back(NewShape[t]);
+                GeoRes->push_back(NewShape[t]);
 				InfoBatimentsRes.push_back(InfoBatiments[Link.second[i][t]]);
 			}
 		}

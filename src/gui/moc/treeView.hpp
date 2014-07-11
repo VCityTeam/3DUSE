@@ -15,6 +15,7 @@ class TreeView : public QObject
 
 public:
     TreeView(QTreeWidget* tree, MainWindow* widget);
+    virtual ~TreeView() override;
 
     /// \brief init Init the treeview
     void init();

@@ -21,6 +21,30 @@ TreeView::TreeView(QTreeWidget* tree, MainWindow* widget)
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+TreeView::~TreeView()
+{
+    delete m_actionAddTile;
+    delete m_actionEditTile;
+    delete m_actionDeleteTile;
+    delete m_actionEditAssimpNode;
+    delete m_actionDeleteAssimpNode;
+    delete m_actionAddLayer;
+    delete m_actionEditLayer;
+    delete m_actionDeleteLayer;
+    delete m_actionAddBuilding;
+    delete m_actionEditBuilding;
+    delete m_actionDeleteBuilding;
+    delete m_actionAddFlag;
+    delete m_actionAddDynFlag;
+    delete m_actionAddTag;
+    delete m_actionEditFlag;
+    delete m_actionEditDynFlag;
+    delete m_actionEditTag;
+    delete m_actionDeleteFlag;
+    delete m_actionDeleteDynFlag;
+    delete m_actionDeleteTag;
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
 {
     m_tree->setContextMenuPolicy(Qt::ActionsContextMenu);

@@ -126,7 +126,7 @@ void Polygon::tesselate( AppearanceManager &appearanceManager, const TVec3d& nor
     _exteriorRing->finish( t ? &texCoords : &_texCoords );
     if ( t ) std::copy( texCoords.begin(), texCoords.end(), std::back_inserter( _texCoords ) );
 
-    for ( unsigned int i = 0; i < _interiorRings.size(); i++ ) {
+    for ( size_t i = 0; i < _interiorRings.size(); i++ ) {
         TexCoords texCoords;
         bool t = appearanceManager.getTexCoords( _interiorRings[i]->getId(), texCoords );
         _interiorRings[i]->finish( t ? &texCoords : &_texCoords );
@@ -134,8 +134,8 @@ void Polygon::tesselate( AppearanceManager &appearanceManager, const TVec3d& nor
     }
 
     // Compute the total number of vertices
-    unsigned int vsize = _exteriorRing->size();
-    for ( unsigned int i = 0; i < _interiorRings.size(); i++ )
+    size_t vsize = _exteriorRing->size();
+    for ( size_t i = 0; i < _interiorRings.size(); i++ )
         vsize += _interiorRings[i]->size();
 
     Tesselator* tess = appearanceManager.getTesselator();
@@ -143,14 +143,14 @@ void Polygon::tesselate( AppearanceManager &appearanceManager, const TVec3d& nor
 
     tess->addContour( _exteriorRing->getVertices(), texCoords );
 
-    for ( unsigned int i = 0; i < _interiorRings.size(); i++ )
+    for ( size_t i = 0; i < _interiorRings.size(); i++ )
         tess->addContour( _interiorRings[i]->getVertices(), texCoords );
 
     tess->compute();
     _vertices.reserve( tess->getVertices().size() );
     std::copy( tess->getVertices().begin(), tess->getVertices().end(), std::back_inserter( _vertices ) );
 
-    unsigned int indicesSize = tess->getIndices().size();
+    size_t indicesSize = tess->getIndices().size();
     if ( indicesSize > 0 )
     {
         _indices.resize( indicesSize );
@@ -169,7 +169,7 @@ void Polygon::mergeRings( AppearanceManager &appearanceManager )
 
     std::copy( _exteriorRing->getVertices().begin(), _exteriorRing->getVertices().end(), std::back_inserter( _vertices ) );
 
-    for ( unsigned int i = 0; i < _interiorRings.size(); i++ )
+    for ( size_t i = 0; i < _interiorRings.size(); i++ )
     {
         TexCoords texCoords;
         bool t = appearanceManager.getTexCoords( _interiorRings[i]->getId(), texCoords );
@@ -190,7 +190,7 @@ void Polygon::mergeRings( AppearanceManager &appearanceManager )
     if ( indicesSize < 3 ) return;
     _indices.resize( indicesSize );
     for ( int i = 0, p = 0; p < indicesSize - 2; i++, p += 3 )
-        for ( unsigned int j = 0; j < 3; j++ )
+        for ( size_t j = 0; j < 3; j++ )
             _indices[ p + j ] = i + j;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,7 +199,7 @@ void Polygon::clearRings( void )
     return;
     delete _exteriorRing;
     _exteriorRing = 0;
-    for ( unsigned int i = 0; i < _interiorRings.size(); i++ ) delete _interiorRings[i];
+    for ( size_t i = 0; i < _interiorRings.size(); i++ ) delete _interiorRings[i];
     _interiorRings.clear();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -213,39 +213,39 @@ bool Polygon::merge( Polygon* p )
     if ( p->getVertices().size() == 0 ) return true;
 
     // merge vertices
-    unsigned int oldVSize = _vertices.size();
-    unsigned int pVSize = p->_vertices.size();
+    size_t oldVSize = _vertices.size();
+    size_t pVSize = p->_vertices.size();
     _vertices.resize( oldVSize + pVSize );
-    for ( unsigned int i = 0; i < pVSize; i++ )
+    for ( size_t i = 0; i < pVSize; i++ )
         _vertices[ oldVSize + i ] = p->_vertices[i];
     p->_vertices.clear();
 
     // merge indices
     {
-        unsigned int oldSize = _indices.size();
-        unsigned int pSize = p->_indices.size();
+        size_t oldSize = _indices.size();
+        size_t pSize = p->_indices.size();
         _indices.resize( oldSize + pSize );
-        for ( unsigned int i = 0; i < pSize; i++ )
+        for ( size_t i = 0; i < pSize; i++ )
             _indices[ oldSize + i ] = oldVSize + p->_indices[i];
         p->_indices.clear();
     }
 
     // merge normals
     {
-        unsigned int oldSize = _normals.size();
-        unsigned int pSize = p->_normals.size();
+        size_t oldSize = _normals.size();
+        size_t pSize = p->_normals.size();
         _normals.resize( oldSize + pSize );
-        for ( unsigned int i = 0; i < pSize; i++ )
+        for ( size_t i = 0; i < pSize; i++ )
             _normals[ oldSize + i ] = p->_normals[i];
         p->_normals.clear();
     }
 
     // merge texcoords
     {
-        unsigned int oldSize = min( _texCoords.size(), oldVSize );
-        unsigned int pSize = min( p->_texCoords.size(), pVSize );
+        size_t oldSize = min( _texCoords.size(), oldVSize );
+        size_t pSize = min( p->_texCoords.size(), pVSize );
         _texCoords.resize( oldSize + pSize );
-        for ( unsigned int i = 0; i < pSize; i++ )
+        for ( size_t i = 0; i < pSize; i++ )
             _texCoords[ oldSize + i ] = p->_texCoords[i];
         p->_texCoords.clear();
     }
@@ -263,7 +263,7 @@ void Polygon::finish( AppearanceManager& appearanceManager, bool doTesselate )
 
     // Create the normal per point field
     _normals.resize( _vertices.size() );
-    for ( unsigned int i = 0; i < _vertices.size(); i++ )
+    for ( size_t i = 0; i < _vertices.size(); i++ )
         _normals[i] = TVec3f( (float)normal.x, (float)normal.y, (float)normal.z );
 }
 ////////////////////////////////////////////////////////////////////////////////

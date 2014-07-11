@@ -38,7 +38,7 @@
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
-geos::geom::Geometry* ShapeGeo = NULL;
+geos::geom::Geometry* ShapeGeo = nullptr;
 std::vector<std::pair<double, double>> Hauteurs;
 std::vector<BatimentShape> InfoBatiments;
 
@@ -155,6 +155,9 @@ MainWindow::MainWindow(QWidget *parent) :
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::~MainWindow()
 {
+    delete ShapeGeo;
+
+    delete m_treeView;
     delete m_osgView;
     delete m_ui;
 }
@@ -332,6 +335,8 @@ bool MainWindow::loadFile(const QString& filepath)
 		
         m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
+        // clean previous shapeGeo
+        delete ShapeGeo;
 		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
         if(poDS)
         {
@@ -1004,6 +1009,8 @@ void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+    delete ShapeGeo;
+    ShapeGeo = nullptr;
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
