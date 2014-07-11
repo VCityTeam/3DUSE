@@ -13,6 +13,12 @@ CityObject::~CityObject()
 {
     std::vector< Geometry* >::const_iterator it = _geometries.begin();
     for ( ; it != _geometries.end(); ++it ) delete *it;
+
+    for(CityObjectState* state : m_states)
+        delete state;
+
+    for(CityObjectTag* tag : m_tags)
+        delete tag;
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Get the object type

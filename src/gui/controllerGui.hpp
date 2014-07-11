@@ -7,6 +7,7 @@ class ControllerGui : public vcity::Controller
 {
 public:
     ControllerGui();
+    virtual ~ControllerGui() override;
 
     virtual void reset();
 

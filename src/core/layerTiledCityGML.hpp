@@ -21,6 +21,8 @@ public:
     /// \param name Layer name
     LayerTiledCityGML(const std::string& name);
 
+    virtual ~LayerTiledCityGML() override;
+
     /// \brief addTile Add a tile in a layer
     /// \param tile The tile to add
     void addTile(Tile* tile);

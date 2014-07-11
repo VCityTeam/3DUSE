@@ -33,7 +33,7 @@ public:
 
     Polygon( const std::string& id );
 
-    LIBCITYGML_EXPORT ~Polygon( void );
+    LIBCITYGML_EXPORT virtual ~Polygon( void ) override;
 
     // Get the vertices
     const std::vector<TVec3d>& getVertices( void ) const;

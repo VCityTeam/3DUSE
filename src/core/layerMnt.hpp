@@ -18,6 +18,8 @@ public:
     /// \param name Layer name
     LayerMnt(const std::string& name);
 
+    virtual ~LayerMnt() override;
+
 	const std::string getType() const;
 
 	URI getURI() const;

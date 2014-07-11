@@ -54,7 +54,7 @@ class CityObject : public Object
 public:
     CityObject( const std::string& id, CityObjectsType type );
 
-    virtual ~CityObject();
+    virtual ~CityObject() override;
 
     // Get the object type
     CityObjectsType getType( void ) const;
