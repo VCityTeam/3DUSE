@@ -1537,17 +1537,17 @@ namespace vcity
 			}
 		}
 
+		delete CoordsGeoZ;
+		delete CoordsGeo;
 
 		if(ResCoords->size() > 3)
 			return factory->createPolygon(factory->createLinearRing(ResCoords), NULL);
 
 		//Scale = 10;
 		//SaveGeometry("Bati", Geo);
-		std::cout << "ResCoords vide dans CalculeZ" << std::endl;
+		//std::cout << "ResCoords vide dans CalculeZ" << std::endl;
 		//std::cout << ResCoords->size() << "  " << Geo->getNumPoints() << std::endl;
 
-		delete CoordsGeoZ;
-		delete CoordsGeo;
         delete ResCoords;
 
 		return NULL;
@@ -1564,7 +1564,6 @@ namespace vcity
         //citygml::CityModel* model = new citygml::CityModel;
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
-		int cpt = 0;
 
 		std::vector<geos::geom::Geometry*> VecGeoRes;
 
@@ -1574,6 +1573,9 @@ namespace vcity
 
 		for(int j = 0; j < Batiments->getNumGeometries(); ++j)
 		{
+			if(j%10 == 0)
+					std::cout << "Avancement : " << j << "/" << Batiments->getNumGeometries() << " batiments ajoutes au CityGML.\r" << std::flush;
+
 			const geos::geom::Geometry * Bati = Batiments->getGeometryN(j);
 
 			std::vector<geos::geom::Geometry*> VecGeo;
@@ -1774,7 +1776,7 @@ namespace vcity
         //exporter.exportCityModel(*model);
         exporter.endExport();
 
-        std::cout << "\nFichier CityGML cree." << std::endl;
+        std::cout << std::endl << "Fichier CityGML cree." << std::endl;
 
         //citygml::ParserParams params;
         //model->finish(params);
