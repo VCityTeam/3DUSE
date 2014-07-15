@@ -213,36 +213,38 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
                 OGRLinearRing* poLR = poPG->getExteriorRing();
                 int nbPoints = poLR->getNumPoints();
 
-                std::size_t size = 0;
-                std::size_t dimension=2;
-                geos::geom::CoordinateSequence* temp = static_cast<geos::geom::CoordinateArraySequence*>(coordFactory->create(size, dimension));
-				/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
-
-				for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
+				if(nbPoints > 3)
 				{
-					OGRLinearRing* Ring = poPG->getInteriorRing(i);
 
-					for(int j = 0; j < Ring->getNumPoints(); j++)
+					std::size_t size = 0;
+					std::size_t dimension=2;
+					geos::geom::CoordinateSequence* temp = static_cast<geos::geom::CoordinateArraySequence*>(coordFactory->create(size, dimension));
+
+					/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
+
+					for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
+					{
+						OGRLinearRing* Ring = poPG->getInteriorRing(i);
+
+						for(int j = 0; j < Ring->getNumPoints(); j++)
+						{
+							OGRPoint p;
+							Ring->getPoint(j, &p);
+							temp.add(geos::geom::Coordinate(p.getX(), p.getY()));
+						}
+						if(temp.size() > 3)
+							Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
+						temp.clear();
+					}*/
+
+					for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
 					{
 						OGRPoint p;
-						Ring->getPoint(j, &p);
-						temp.add(geos::geom::Coordinate(p.getX(), p.getY()));
+						poLR->getPoint(i, &p);
+
+						temp->add(geos::geom::Coordinate(p.getX() - offset_.x, p.getY() - offset_.y));
 					}
-					if(temp.size() > 3)
-						Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
-					temp.clear();
-				}*/
 
-                for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
-                {
-                    OGRPoint p;
-                    poLR->getPoint(i, &p);
-
-                    temp->add(geos::geom::Coordinate(p.getX() - offset_.x, p.getY() - offset_.y));
-                }
-
-                if(temp->size() > 3)
-				{
 					shell=factory->createLinearRing(temp);
 					P = factory->createPolygon(shell, NULL/*Holes*/); //Les bâtiments du cadastre sont récupérés sans les cours intérieures. Mettre Holes à la place de NULL pour les avoir.
 					if(P->isValid()/* && P->getArea() > 10*/)
@@ -260,7 +262,7 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 						if(poFeature->GetFieldIndex("HAUTEUR") != -1)
 							H = poFeature->GetFieldAsDouble("HAUTEUR");
 						if(poFeature->GetFieldIndex("Z_MIN") != -1)
-							Zmin = poFeature->GetFieldAsDouble("Z_MIN");						
+							Zmin = poFeature->GetFieldAsDouble("Z_MIN");
 
 						if((H == 0 || Zmin > 1000) && Hauteurs->size()>1)
 						{

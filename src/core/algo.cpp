@@ -1,4 +1,3 @@
-
 ////////////////////////////////////////////////////////////////////////////////
 #include "algo.hpp"
 ////////////////////////////////////////////////////////////////////////////////
@@ -1419,53 +1418,6 @@ namespace vcity
 		return GeoRes;
 	}
 
-	void Algo::generateLOD0(const URI& uri)
-	{
-		/////////////////////////////////// Traitement bâtiment par bâtiment 
-
-		std::cout << "void Algo::generateLOD0(const URI& uri)" << std::endl;
-		Polygon2D tmp;
-		log() << "generateLOD0 on "<< uri.getStringURI() << "\n";
-		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
-
-		if(obj)
-		{
-			log() << uri.getStringURI() << "CityObject found\n";
-			PolySet roofPoints;			
-			double heightmax = 0, heightmin = -1;
-			projectRoof(obj,roofPoints, &heightmax, &heightmin);
-
-			std::string name = obj->getId();
-
-			geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
-			SaveGeometry(name + "_MP", GeosObj);
-			geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
-			SaveGeometry(name + "_Enveloppe", Enveloppe);
-
-			//Afficher le LOD0 dans le fenêtre VCITY
-
-            citygml::Geometry* geom = BuildLOD0FromGEOS(name, Enveloppe, heightmax, heightmin);
-			citygml::CityObject* obj2 = new citygml::WallSurface("tmpObj");
-			obj2->addGeometry(geom);
-			obj->insertNode(obj2);
-			std::cout << "Lod 0 exporte en cityGML" << std::endl;
-
-			//Pour afficher le ground dans VCity
-			/*citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
-			geom = ConvertToCityGML(name, Enveloppe);
-			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
-			obj2->addGeometry(geom);
-			obj->insertNode(obj2)
-			std::cout << "Lod 0 exporte en cityGML" << std::endl;*/
-
-            delete Enveloppe;
-
-#ifdef _WIN32
-			_CrtDumpMemoryLeaks();
-#endif // _WIN32
-		}
-	}
-
 	/**
 	* @brief Extrapole les Z de la geometry 1 à partir de la seconde qui la contient et dont les Z sont connus
 	*/
@@ -1786,6 +1738,54 @@ namespace vcity
         //model->finish(params);
 
         //return model;
+	}
+
+
+	void Algo::generateLOD0(const URI& uri)
+	{
+		/////////////////////////////////// Traitement bâtiment par bâtiment 
+
+		std::cout << "void Algo::generateLOD0(const URI& uri)" << std::endl;
+		Polygon2D tmp;
+		log() << "generateLOD0 on "<< uri.getStringURI() << "\n";
+		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
+
+		if(obj)
+		{
+			log() << uri.getStringURI() << "CityObject found\n";
+			PolySet roofPoints;			
+			double heightmax = 0, heightmin = -1;
+			projectRoof(obj,roofPoints, &heightmax, &heightmin);
+
+			std::string name = obj->getId();
+
+			geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
+			SaveGeometry(name + "_MP", GeosObj);
+			geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
+			SaveGeometry(name + "_Enveloppe", Enveloppe);
+
+			//Afficher le LOD0 dans le fenêtre VCITY
+
+            citygml::Geometry* geom = BuildLOD0FromGEOS(name, Enveloppe, heightmax, heightmin);
+			citygml::CityObject* obj2 = new citygml::WallSurface("tmpObj");
+			obj2->addGeometry(geom);
+			obj->insertNode(obj2);
+			std::cout << "Lod 0 exporte en cityGML" << std::endl;
+
+			//Pour afficher le ground dans VCity
+			/*citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
+			geom = ConvertToCityGML(name, Enveloppe);
+			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
+			obj2->addGeometry(geom);
+			obj->insertNode(obj2)
+			std::cout << "Lod 0 exporte en cityGML" << std::endl;*/
+
+            delete Enveloppe;
+
+#ifdef _WIN32
+			_CrtDumpMemoryLeaks();
+#endif // _WIN32
+		}
 	}
 
 	void Algo::generateLOD0Scene(geos::geom::Geometry * Shape, std::vector<BatimentShape> InfoBatiments)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
