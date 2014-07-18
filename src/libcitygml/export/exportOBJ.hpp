@@ -22,7 +22,8 @@ public:
     /// \brief exportCityModel
     /// \param model
     /// \param fileName
-    void exportCityModel(const CityModel& model, const std::string& fileName);
+    void exportCityObjects(const std::vector<CityObject*>& objs, const std::string& fileName);
+    //void exportCityModel(const CityModel& model, const std::string& fileName);
 
     /// \brief exportCityObject
     /// \param model

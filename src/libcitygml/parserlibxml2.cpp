@@ -202,7 +202,8 @@ namespace citygml
 		{
 		}
 
-		xmlFreeParserCtxt( context );
+        xmlFreeParserCtxt(context);
+        //xmlFreeParserInputBuffer(inputBuffer);
 
 		CityModel* model = handler->getModel();
 

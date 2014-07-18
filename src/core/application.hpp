@@ -19,7 +19,7 @@ class Application
 {
 public:
     Application();
-    ~Application();
+    virtual ~Application();
 
     /// \brief getScene Get the scene
     /// \return The scene

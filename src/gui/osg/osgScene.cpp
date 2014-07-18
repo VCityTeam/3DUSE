@@ -325,7 +325,7 @@ void OsgScene::setShadow(bool shadow)
 ////////////////////////////////////////////////////////////////////////////////
 std::map<std::string, osg::ref_ptr<osg::Texture2D> > texManager;
 ////////////////////////////////////////////////////////////////////////////////
-void setTexture(osg::ref_ptr<osg::Node> node, citygml::BuildingTag* tag, osg::ref_ptr<osg::Texture2D> texture)
+void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::ref_ptr<osg::Texture2D> texture)
 {
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if(grp)
@@ -365,7 +365,7 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
             bool hasFlag = node->getUserValue("TAGPTR", val);
             if(hasFlag)
             {
-                citygml::BuildingTag* tag;
+                citygml::CityObjectTag* tag;
                 memcpy(&tag, &val, sizeof(tag));
                 std::string texturePath = tag->getAttribute("texture", date);
                 if(texturePath != "none")

@@ -197,11 +197,10 @@ citygml::CityObject* Scene::getCityObjectNode(const URI& uri)
 void Scene::reset()
 {
     // clear layers
-    std::vector<abstractLayer*>::iterator it;
-    for(it=m_layers.begin(); it<m_layers.end(); ++it)
+    for(abstractLayer* layer : m_layers)
     {
         // this will this the layer, including the tiles inside
-        delete *it;
+        delete layer;
     }
     m_layers.clear();
 }

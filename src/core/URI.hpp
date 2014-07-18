@@ -60,13 +60,15 @@ public:
     /// \return The URI converted into a string
     std::string getStringURI(bool includeType = true) const;
 
+    //bool operator==(const URI& lhs) const;
+
 private:
     int m_depth;                    ///< Depth of the uri
     std::string m_type;             ///< Pointed node type
     std::vector<std::string> m_uri; ///< String array. One string per node name, one per depth level.
 };
 ////////////////////////////////////////////////////////////////////////////////
-bool operator==(const vcity::URI& rhs, const vcity::URI& lhs);
+bool operator==(const URI& rhs, const URI& lhs);
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////

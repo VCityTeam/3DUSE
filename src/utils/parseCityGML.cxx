@@ -133,8 +133,11 @@ void calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, 
 	}
 
     double s, t;
+    //t = (A.y * AB.x - A.x * AB.y + AB.y * M->x - AB.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
+    //s = (M->x - A.x - t * AC.x) / AB.x;
+
+    s = (A.y * AC.x - A.x * AC.y + AC.y * M->x - AC.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
     t = (A.y * AB.x - A.x * AB.y + AB.y * M->x - AB.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
-    s = (M->x - A.x - t * AC.x) / AB.x;
 
     // AM = sAB + tAC
     M->z = A.z + s * AB.z + t * AC.z;
@@ -316,7 +319,10 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					int j=0;
 					TVec3d l1_temp; TVec2d uv1_temp;
 					bool inter, coin;
-					for (int s=0; s<i; s++)
+
+                    TVec3d triNormal = l[0].cross(l[1]);
+
+                    for (int s=0; s<i; s++)
 					{
 						//printf("segment: %ld\n", s);
 						inter=coin=false;
@@ -375,30 +381,33 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 						{
 							bool ok=false;
 
-							// new c0
-							if ( (l0[s].x < G_xmin) && (l0[s+1].y < G_ymin) )
-							{
-								l1_temp.x = G_xmin; l1_temp.y = G_ymin; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
-								ok = true;
-							}
-							// new c3
-							else if ( (l0[s+1].x < G_xmin) && (l0[s].y > G_ymax) )
-							{
-								l1_temp.x = G_xmin; l1_temp.y = G_ymax; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
-								ok = true;
-							}
-							// new c1
-							else if ( (l0[s+1].x > G_xmax) && (l0[s].y < G_ymin) )
-							{
-								l1_temp.x = G_xmax; l1_temp.y = G_ymin; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
-								ok = true;
-							}
-							// new c2
-							else if ( (l0[s].x > G_xmax) && (l0[s+1].y > G_ymax) )
-							{
-								l1_temp.x = G_xmax; l1_temp.y = G_ymax; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
-								ok = true;
-							}
+                            if (triNormal.z)
+                            {
+                                // new c0
+                                if ( (l0[s].x < G_xmin) && (l0[s+1].y < G_ymin) )
+                                {
+                                    l1_temp.x = G_xmin; l1_temp.y = G_ymin; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
+                                    ok = true;
+                                }
+                                // new c3
+                                else if ( (l0[s+1].x < G_xmin) && (l0[s].y > G_ymax) )
+                                {
+                                    l1_temp.x = G_xmin; l1_temp.y = G_ymax; //l1_temp.z = (l0[s].z + l0[s+1].z)/2.;
+                                    ok = true;
+                                }
+                                // new c1
+                                else if ( (l0[s+1].x > G_xmax) && (l0[s].y < G_ymin) )
+                                {
+                                    l1_temp.x = G_xmax; l1_temp.y = G_ymin; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
+                                    ok = true;
+                                }
+                                // new c2
+                                else if ( (l0[s].x > G_xmax) && (l0[s+1].y > G_ymax) )
+                                {
+                                    l1_temp.x = G_xmax; l1_temp.y = G_ymax; //l1_temp.z = (l0[s+1].z + l0[s].z)/2.;
+                                    ok = true;
+                                }
+                            }
 
 							if (ok)
 							{

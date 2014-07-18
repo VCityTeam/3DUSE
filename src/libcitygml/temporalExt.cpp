@@ -8,75 +8,66 @@ std::string none("none");
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
-BuildingTag::BuildingTag(int year, CityObject* geom)
+CityObjectTag::CityObjectTag(int year, CityObject* geom)
     : m_year(year), m_geom(geom)
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-int BuildingTag::getId() const
+int CityObjectTag::getId() const
 {
     return m_id;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::string BuildingTag::getStringId() const
+std::string CityObjectTag::getStringId() const
 {
     std::stringstream ss; ss << "TAG" << m_id << m_name;
     return ss.str();
 }
 ////////////////////////////////////////////////////////////////////////////////
-CityObject* BuildingTag::getGeom()
+CityObject* CityObjectTag::getGeom()
 {
     return m_geom;
 }
 /////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Group> BuildingTag::getOsg()
+osg::ref_ptr<osg::Group> CityObjectTag::getOsg()
 {
     return m_osg;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void BuildingTag::setOsg(osg::ref_ptr<osg::Group> node)
+void CityObjectTag::setOsg(osg::ref_ptr<osg::Group> node)
 {
     m_osg = node;
 }
-const std::string& BuildingTag::getAttribute(const std::string& attribName, const QDateTime& date) const
+////////////////////////////////////////////////////////////////////////////////
+const std::string& CityObjectTag::getAttribute(const std::string& attribName, const QDateTime& date) const
 {
-    //std::cout << "BuildingTag::getAttribute" << std::endl;
-    /*BuildingDynFlag* dflag = dynamic_cast<BuildingDynFlag*>(m_flag);
-    if(dflag)
-    {
-        return dflag->getAttribute(attribName, date);
-    }
-    else
-    {
-        return m_flag->getAttribute(attribName, date);
-    }*/
-    return m_flag->getAttribute(attribName, date);
+    return m_state->getAttribute(attribName, date);
 }
 ////////////////////////////////////////////////////////////////////////////////
-BuildingFlag::BuildingFlag(CityObject* geom)
+CityObjectState::CityObjectState(CityObject* geom)
     : m_geom(geom)
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-int BuildingFlag::getId() const
+int CityObjectState::getId() const
 {
     return m_id;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::string BuildingFlag::getStringId() const
+std::string CityObjectState::getStringId() const
 {
-    std::stringstream ss; ss << "FLAG" << m_id << m_name;
+    std::stringstream ss; ss << "STATE" << m_id << m_name;
     return ss.str();
 }
 ////////////////////////////////////////////////////////////////////////////////
-CityObject* BuildingFlag::getGeom()
+CityObject* CityObjectState::getGeom()
 {
     return m_geom;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::string& BuildingFlag::getAttribute(const std::string& attribName, const QDateTime& date) const
+const std::string& CityObjectState::getAttribute(const std::string& attribName, const QDateTime& date) const
 {
     //std::cout << "BuildingFlag::getAttribute" << std::endl;
     return none;
@@ -193,23 +184,23 @@ void DataSourceFile::parse(const std::string& filePath)
 {
 }*/
 ////////////////////////////////////////////////////////////////////////////////
-BuildingDynFlag::BuildingDynFlag(CityObject* geom)
-    : BuildingFlag(geom)
+CityObjectDynState::CityObjectDynState(CityObject* geom)
+    : CityObjectState(geom)
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::string BuildingDynFlag::getStringId() const
+std::string CityObjectDynState::getStringId() const
 {
-    std::stringstream ss; ss << "DYNFLAG" << m_id << m_name;
+    std::stringstream ss; ss << "DYNSTATE" << m_id << m_name;
     return ss.str();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void BuildingDynFlag::addDataSource(DataSource* dsrc)
+void CityObjectDynState::addDataSource(DataSource* dsrc)
 {
     m_attributes[dsrc->m_attribute] = dsrc;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::string& BuildingDynFlag::getAttribute(const std::string& attribName, const QDateTime& date) const
+const std::string& CityObjectDynState::getAttribute(const std::string& attribName, const QDateTime& date) const
 {
     //std::cout << "BuildingDynFlag::getAttribute" << std::endl;
     std::map<std::string, DataSource*>::const_iterator it = m_attributes.find(attribName);
@@ -217,6 +208,11 @@ const std::string& BuildingDynFlag::getAttribute(const std::string& attribName, 
     {
         return it->second->getAttribute(date);
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+bool cmpTag(CityObjectTag* a, CityObjectTag* b)
+{
+    return (a->m_date < b->m_date);
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

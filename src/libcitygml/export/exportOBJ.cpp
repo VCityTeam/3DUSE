@@ -23,7 +23,7 @@ void ExporterOBJ::resetFilters()
     m_filterNames.clear();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ExporterOBJ::exportCityModel(const CityModel& model, const std::string& fileName)
+void ExporterOBJ::exportCityObjects(const std::vector<CityObject*>& objs, const std::string& fileName)
 {
     if(m_filters.size() == 0)
     {
@@ -35,19 +35,19 @@ void ExporterOBJ::exportCityModel(const CityModel& model, const std::string& fil
         m_outFile.open(fileName+m_filterNames[i]+".obj");
         m_outFile << std::fixed;
         m_outFile << "# CityGML test export\n\n";
-        m_outFile << "o " << model.getId() << "\n\n";
+        m_outFile << "o " << fileName << "\n\n";
         std::string mtllib = fileName+m_filterNames[i];
         mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
         m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
-        for(const CityObject* obj : model.getCityObjectsRoots())
+        for(const CityObject* obj : objs)
             if(obj) exportCityObject(*obj, m_filters[i]);
         m_outFile.close();
         exportMaterials(fileName+m_filterNames[i]+".mtl");
     }
 
-    #if 1
+    #if 0
     // split bldg (wall, roof)
-    for(const CityObject* obj : model.getCityObjectsRoots())
+    for(const CityObject* obj : objs)
     {
         if(obj)
         {
@@ -56,7 +56,7 @@ void ExporterOBJ::exportCityModel(const CityModel& model, const std::string& fil
             m_outFile.open(fileName+'_'+obj->getId()+'_'+m_filterNames[0]+".obj");
             m_outFile << std::fixed;
             m_outFile << "# CityGML test export\n\n";
-            m_outFile << "o " << model.getId() << "\n\n";
+            m_outFile << "o " << fileName << "\n\n";
             std::string mtllib = fileName+'_'+obj->getId()+'_'+m_filterNames[0];
             mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
             m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
@@ -69,7 +69,7 @@ void ExporterOBJ::exportCityModel(const CityModel& model, const std::string& fil
             m_outFile.open(fileName+'_'+obj->getId()+'_'+m_filterNames[0]+".obj");
             m_outFile << std::fixed;
             m_outFile << "# CityGML test export\n\n";
-            m_outFile << "o " << model.getId() << "\n\n";
+            m_outFile << "o " << fileName << "\n\n";
             mtllib = fileName+'_'+obj->getId()+'_'+m_filterNames[0];
             mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
             m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
@@ -101,74 +101,6 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, const std::string& fil
         m_outFile.close();
         exportMaterials(fileName+m_filterNames[i]+".mtl");
     }
-
-    /*exportCityObject(obj); // fill arrays
-
-    m_outFile.open(fileName+"Wall.obj");
-    m_outFile << "# CityGML test export\n\n";
-    m_outFile << "o " << obj.getId() << "\n\n";
-    for(const TVec3d& v : m_verticesWall)
-    {
-        m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n";
-    }
-    m_outFile << "\n";
-    for(const TVec3f& vn : m_normalsWall)
-    {
-        m_outFile << "vn " << vn.x << " " << vn.y << " " << vn.z << "\n";
-    }
-    m_outFile << "\n";
-    for(int i=0; i<m_indicesWall.size(); i+=3)
-    {
-        m_outFile << "f " << m_indicesWall[i+0] << "//" << m_indicesWall[i+0] << " " <<
-                             m_indicesWall[i+1] << "//" << m_indicesWall[i+1] << " " <<
-                             m_indicesWall[i+2] << "//" << m_indicesWall[i+2] << "\n";
-    }
-    m_outFile << "\n";
-    m_outFile.close();
-
-    m_outFile.open(fileName+"Roof.obj");
-    m_outFile << "# CityGML test export\n\n";
-    m_outFile << "o " << obj.getId() << "\n\n";
-    for(const TVec3d& v : m_verticesRoof)
-    {
-        m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n";
-    }
-    m_outFile << "\n";
-    for(const TVec3f& vn : m_normalsRoof)
-    {
-        m_outFile << "vn " << vn.x << " " << vn.y << " " << vn.z << "\n";
-    }
-    m_outFile << "\n";
-    for(int i=0; i<m_indicesRoof.size(); i+=3)
-    {
-        m_outFile << "f " << m_indicesRoof[i+0] << "//" << m_indicesRoof[i+0] << " " <<
-                             m_indicesRoof[i+1] << "//" << m_indicesRoof[i+1] << " " <<
-                             m_indicesRoof[i+2] << "//" << m_indicesRoof[i+2] << "\n";
-    }
-    m_outFile << "\n";
-    m_outFile.close();
-
-    m_outFile.open(fileName+"Terrain.obj");
-    m_outFile << "# CityGML test export\n\n";
-    m_outFile << "o " << obj.getId() << "\n\n";
-    for(const TVec3d& v : m_verticesTerrain)
-    {
-        m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n";
-    }
-    m_outFile << "\n";
-    for(const TVec3f& vn : m_normalsTerrain)
-    {
-        m_outFile << "vn " << vn.x << " " << vn.y << " " << vn.z << "\n";
-    }
-    m_outFile << "\n";
-    for(int i=0; i<m_indicesTerrain.size(); i+=3)
-    {
-        m_outFile << "f " << m_indicesTerrain[i+0] << "//" << m_indicesTerrain[i+0] << " " <<
-                             m_indicesTerrain[i+1] << "//" << m_indicesTerrain[i+1] << " " <<
-                             m_indicesTerrain[i+2] << "//" << m_indicesTerrain[i+2] << "\n";
-    }
-    m_outFile << "\n";
-    m_outFile.close();*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsType filter)
@@ -234,50 +166,6 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
     {
         exportCityObject(*child, filter);
     }
-
-    /*int* offset = nullptr;
-    std::vector<TVec3d>* vertices = nullptr;
-    std::vector<TVec3f>* normals = nullptr;
-    std::vector<unsigned int>* indices = nullptr;
-    switch(obj.getType())
-    {
-    case citygml::COT_WallSurface:
-        offset = &m_indexOffsetWall;
-        vertices = &m_verticesWall;
-        normals = &m_normalsWall;
-        indices = &m_indicesWall;
-        break;
-    case citygml::COT_RoofSurface:
-        offset = &m_indexOffsetRoof;
-        vertices = &m_verticesRoof;
-        normals = &m_normalsRoof;
-        indices = &m_indicesRoof;
-        break;
-    default:
-        offset = &m_indexOffsetTerrain;
-        vertices = &m_verticesTerrain;
-        normals = &m_normalsTerrain;
-        indices = &m_indicesTerrain;
-        break;
-    }
-    for(citygml::Geometry* geom : obj.getGeometries())
-    {
-        for(citygml::Polygon* poly : geom->getPolygons())
-        {
-            vertices->insert(vertices->end(), poly->getVertices().begin(), poly->getVertices().end());
-            normals->insert(normals->end(), poly->getNormals().begin(), poly->getNormals().end());
-            for(int i=0; i<poly->getIndices().size(); ++i)
-            {
-                indices->push_back((*offset)+poly->getIndices()[i]);
-            }
-            *offset += poly->getIndices().size();
-        }
-    }
-
-    for(citygml::CityObject* child : obj.getChildren())
-    {
-        exportCityObject(*child);
-    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ExporterOBJ::exportMaterials(const std::string& filename)

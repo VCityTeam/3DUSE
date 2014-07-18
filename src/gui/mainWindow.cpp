@@ -26,7 +26,7 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
-
+#include "core/BatimentShape.hpp"
 #include <geos/geom/GeometryFactory.h>
 
 /*#include "assimp/Importer.hpp"
@@ -38,8 +38,9 @@
 #include "osg/osgMnt.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
-geos::geom::Geometry* ShapeGeo = NULL;
+geos::geom::Geometry* ShapeGeo = nullptr;
 std::vector<std::pair<double, double>> Hauteurs;
+std::vector<BatimentShape> InfoBatiments;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
@@ -154,6 +155,9 @@ MainWindow::MainWindow(QWidget *parent) :
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::~MainWindow()
 {
+    delete ShapeGeo;
+
+    delete m_treeView;
     delete m_osgView;
     delete m_ui;
 }
@@ -331,7 +335,9 @@ bool MainWindow::loadFile(const QString& filepath)
 		
         m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
-		buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+        // clean previous shapeGeo
+        delete ShapeGeo;
+		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
         if(poDS)
         {
             vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
@@ -654,8 +660,8 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    //unlockFeatures("pass2");
-    unlockFeatures("");
+    unlockFeatures("pass2");
+    //unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
 
@@ -801,7 +807,7 @@ void MainWindow::exportCityGML()
 {
     QString filename = QFileDialog::getSaveFileName();
 
-    citygml::ExporterCityGML exporter;
+    citygml::ExporterCityGML exporter(filename.toStdString());
 
     // check temporal params
     if(m_useTemporal)
@@ -811,19 +817,17 @@ void MainWindow::exportCityGML()
     }
 
     // check if something is picked
-    //const std::set<std::string>& nodes = m_pickhandler->getNodesPicked(); // TODO : update this with a uri list
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
         std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
-        std::vector<citygml::CityObject*> objs;
+        std::vector<const citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
             if(obj) objs.push_back(obj);
         }
-        //citygml::exportCitygml(model, "test.citygml");
-        exporter.exportCityObject(objs, filename.toStdString());
+        exporter.exportCityObject(objs);
     }
     else
     {
@@ -831,8 +835,7 @@ void MainWindow::exportCityGML()
         // use first tile
 		vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
         citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-        //citygml::exportCitygml(model, "test.citygml");
-        exporter.exportCityModel(*model, filename.toStdString());
+        exporter.exportCityModel(*model);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -893,16 +896,27 @@ void MainWindow::exportOBJ()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        if(uris[0].getType() == "Tile")
+        std::vector<citygml::CityObject*> objs;
+        for(const vcity::URI& uri : uris)
         {
-            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
-            if(model) exporter.exportCityModel(*model, filename.toStdString());
+            if(uri.getType() == "Tile")
+            {
+                citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+                for(citygml::CityObject* obj : model->getCityObjectsRoots())
+                {
+                    objs.push_back(obj);
+                }
+            }
+            else
+            {
+                citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri);
+                if(obj)
+                {
+                    objs.push_back(obj);
+                }
+            }
         }
-        else
-        {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
-            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
-        }
+        exporter.exportCityObjects(objs, filename.toStdString());
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -925,16 +939,27 @@ void MainWindow::exportOBJsplit()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        if(uris[0].getType() == "Tile")
+        std::vector<citygml::CityObject*> objs;
+        for(const vcity::URI& uri : uris)
         {
-            citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
-            if(model) exporter.exportCityModel(*model, filename.toStdString());
+            if(uri.getType() == "Tile")
+            {
+                citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+                for(citygml::CityObject* obj : model->getCityObjectsRoots())
+                {
+                    objs.push_back(obj);
+                }
+            }
+            else
+            {
+                citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri);
+                if(obj)
+                {
+                    objs.push_back(obj);
+                }
+            }
         }
-        else
-        {
-            citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]);
-            if(obj) exporter.exportCityObject(*obj, filename.toStdString());
-        }
+        exporter.exportCityObjects(objs, filename.toStdString());
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -960,11 +985,12 @@ void MainWindow::slotDumpSelectedNodes()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateAllLODs()
 {
-
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     // get all selected nodes (with a uri)
     const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
     if(uris.size() > 0)
@@ -981,37 +1007,51 @@ void MainWindow::generateLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+    delete ShapeGeo;
+    ShapeGeo = nullptr;
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 	vcity::app().getAlgo().CompareTiles();
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD3()
 {	
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo); 
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments); 
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD4()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotFixBuilding()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     // get all selected nodes (with a uri)
     const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
     vcity::app().getAlgo2().fixBuilding(uris);
 
     // TODO
     //appGui().getControllerGui().update(uri);
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotOptimOSG()
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     appGui().getOsgScene()->optim();
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotRenderLOD0()
@@ -1149,7 +1189,7 @@ void buildJsonLod()
                 std::cout << "id : " << idX << ", " << idY << std::endl;
 
                 OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.toStdString().c_str(), FALSE);
-                buildGeosShape(poDS, &ShapeGeo, &Hauteurs);
+				buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
                 vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
 
                 citygml::ExporterJSON exporter;
@@ -1173,8 +1213,8 @@ void MainWindow::test1()
 {
     //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
 
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
 
 	vcity::app().getAlgo().CompareTiles();
 
@@ -1193,10 +1233,10 @@ void MainWindow::test2()
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
     loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");*/
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2009.gml");
-	loadFile("C:/Users/Game Trap/Dropbox/Vcity/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2012.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
-	vcity::app().getAlgo().CompareTiles();
+	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
@@ -1205,6 +1245,11 @@ void MainWindow::test3()
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13728/export-CityGML/ZoneAExporter.gml");
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13727/export-CityGML/ZoneAExporter.gml");
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1297-13727/export-CityGML/ZoneAExporter.gml");
+
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2009.gml");
+	loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_CROP_2012.gml");
+
+	vcity::app().getAlgo().CompareTiles();
 
     // test obj
 }
