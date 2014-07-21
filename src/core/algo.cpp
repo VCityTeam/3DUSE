@@ -70,9 +70,11 @@ namespace vcity
 	double Scale = 1; //Définit le zoom des images sauvegardées, avec Scale = 1 <=> 1 mètre/pixel = précision au mètre près.
 
 	/**
-	* @brief projete les toits du CityObject selectioné sur le plan (xy)
-	* @param obj CityObject séléctioné
+	* @brief Projette les toits du CityObject sélectionné sur le plan (xy)
+	* @param obj CityObject sélectionné
 	* @param roofProj un set de Polygon, le résultat de la projection
+	* @param heightmax Enregistre le Zmax des murs du bâtiment
+	* @param heightmin Enregistre le Zmin des murs du bâtiment
 	*/
 	void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax, double * heightmin)
 	{
@@ -137,6 +139,7 @@ namespace vcity
 
 	/**
 	* @brief Convertit les données citygml de projection au sol en multipolygon pour GEOS
+	* @param roofPoints Contient les polygones à convertir en Geos
 	*/
 	geos::geom::MultiPolygon * ConvertToGeos(PolySet &roofPoints)
 	{
@@ -183,7 +186,12 @@ namespace vcity
 	}
 
 	/**
-	* @brief Trace la ligne entre deux points de coordonnées (x1,y1) et (x2,y2) par Bresenham (http://fr.wikipedia.org/wiki/Algorithme_de_trac%C3%A9_de_segment_de_Bresenham)
+	* @brief Trace la ligne entre deux points de coordonnées (x1,y1) et (x2,y2) par [Bresenham] 
+	[Bresenham]: http://fr.wikipedia.org/wiki/Algorithme_de_trac%C3%A9_de_segment_de_Bresenham "Algorithme de tracé de segment de Bresenham"
+	* @param x1 Coordonnée x du premier point
+	* @param y1 Coordonnée y du premier point
+	* @param x2 Coordonnée x du second point
+	* @param y2 Coordonnée y du second point
 	*/
 	std::vector<std::pair<int,int>> TracerSegment(int x1, int y1, int x2, int y2)
 	{
@@ -393,6 +401,10 @@ namespace vcity
 
 	/**
 	* @brief Sauvegarde une image en niveaux de gris dans un fichier pgm
+	* @param name Nom de l'image à enregistrer
+	* @param Im Tableau de int contenant les pixels de l'image
+	* @param width Largeur de l'image
+	* @param height Hauteur de l'image
 	*/
 	void SaveImage(std::string name, int* Im, int width, int height)
 	{
@@ -419,6 +431,12 @@ namespace vcity
 
 	/**
 	* @brief Sauvegarde une image RGB dans un fichier ppm
+	* @param name Nom de l'image à enregistrer
+	* @param ImR Tableau de int contenant le canal rouge des pixels de l'image
+	* @param ImR Tableau de int contenant le canal vert des pixels de l'image
+	* @param ImR Tableau de int contenant le canal bleu des pixels de l'image
+	* @param width Largeur de l'image
+	* @param height Hauteur de l'image 
 	*/
 	void SaveImageRGB(std::string name, int* ImR, int* ImG, int* ImB, int width, int height)
 	{
@@ -443,6 +461,14 @@ namespace vcity
 		std::cout<<"Image " << name << " creee !"<<std::endl;
 	}
 
+	/**
+	* @brief Parcourt de manière récursive toutes les geometries de Geo pour récupérer toutes leurs informations
+	* @param Im Tableau de int contenant les pixels de l'image
+	* @param width Largeur de l'image
+	* @param height Hauteur de l'image
+	* @param Xmin Permet de situer en X l'image par rapport à l'espace de données initial
+	* @param Ymin Permet de situer en Y l'image par rapport à l'espace de données initial
+	*/
 	void SaveRecursiveGeometry(const geos::geom::Geometry * Geo, int* Im, int height, int width, int Xmin, int Ymin)
 	{
 		if(Geo->getNumGeometries() > 1)//Si Geo est encore un ensemble de geometry, on continue de parcourir ses fils
@@ -535,6 +561,8 @@ namespace vcity
 
 	/**
 	* @brief Sauvegarde la geometry dans un fichier image
+	* @param name Nom de l'image à enregistrer
+	* @param G Geometry à enregistrer dans un fichier image
 	*/
 	void SaveGeometry(std::string name, const geos::geom::Geometry* G)
 	{	
@@ -588,6 +616,10 @@ namespace vcity
 
 	/**
 	* @brief Sauvegarde 3 geometry dans un même fichier image dans les trois canaux RGB
+	* @param name Nom de l'image à enregistrer
+	* @param G1 Geometry à enregistrer dans le canal rouge du fichier image
+	* @param G2 Geometry à enregistrer dans le canal vert du fichier image
+	* @param G3 Geometry à enregistrer dans le canal bleu du fichier image
 	*/
 	void Save3GeometryRGB(std::string name, const geos::geom::Geometry* G1,  const geos::geom::Geometry* G2,  const geos::geom::Geometry* G3)
 	{	
@@ -689,6 +721,7 @@ namespace vcity
 
 	/**
 	* @brief Récupère l'enveloppe d'une geometry
+	* @param MP Ensemble de polygones sur lequel on va générer une enveloppe
 	*/
 	geos::geom::Geometry * GetEnveloppe(geos::geom::MultiPolygon * MP)//Attention, le cas où les polygon à unir ont déjà des trous fonctionne peut être mal
 	{
@@ -784,6 +817,9 @@ namespace vcity
 
 	/**
 	* @brief Teste la geometry Geo avec Geo1 et Geo2 pour déterminer de laquelle est la plus proche. Retourne 1 pour Geo1 et 2 pour Geo2
+	* @param Geo Geometry que l'on veut situer
+	* @param Geo1 Première geometry de comparaison
+	* @param Geo2 Première geometry de comparaison
 	*/
 	int GetNearestGeo(const geos::geom::Geometry * Geo, const geos::geom::Geometry * Geo1, const geos::geom::Geometry * Geo2)
 	{
@@ -814,6 +850,8 @@ namespace vcity
 
 	/**
 	* @brief Va couper en deux les Polys qui intersectent une des Lines. On suppose qu'une ligne coupe un polygon en seulement deux polygons.
+	* @param Polys Vecteur contenant les polygones à découper
+	* @param Lines Vecteur contenant les lignes permettant de découper les polygones
 	*/
 	std::vector<geos::geom::Geometry*> SplitPolygon(std::vector<geos::geom::Geometry*> Polys, std::vector<geos::geom::Geometry*> Lines)
 	{
@@ -922,14 +960,16 @@ namespace vcity
 	}
 
 	/**
-	* @brief Convertit les données GEOS en LOD1 de CityGML
+	* @brief Convertit les données GEOS issues du shape en LOD1 de CityGML
+	* @param Geos Contient les geometries représetant des bâtiments issus du fichier .shp
+	* @param Hauteurs Contient les hauteurs (Zmin, Zmax) de chaque bâtiment
 	*/
-	citygml::CityModel* BuildLOD1FromGEOS(geos::geom::Geometry * Geometry, std::vector<std::pair<double, double>> Hauteurs)
+	citygml::CityModel* ConvertShapeToLOD1(geos::geom::Geometry * Geos, std::vector<std::pair<double, double>> Hauteurs)
 	{
 		citygml::CityModel* model = new citygml::CityModel;
-		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
+		for(int i = 0; i < Geos->getNumGeometries(); ++i)
 		{		
-            const geos::geom::Geometry * TempGeo = Geometry->getGeometryN(i);
+            const geos::geom::Geometry * TempGeo = Geos->getGeometryN(i);
 			if(TempGeo->getGeometryType() != "Polygon")
 				continue;
 
@@ -996,9 +1036,12 @@ namespace vcity
 	}
 
 	/**
-	* @brief Convertit une geometry (MultiPolygon) GEOS en geometry CityGML
+	* @brief Convertit une geometry (MultiPolygon) GEOS en geometry CityGML.
+	* @param name Nom de l'objet CityGML créé
+	* @param Geometry Geometry à convertir en objet CityGML
+	* @param Zmin Permet de situer le LOD0 dans l'espace
 	*/
-	citygml::Geometry* ConvertToCityGML(std::string name, geos::geom::Geometry * Geometry, double Zmin)
+	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, geos::geom::Geometry * Geometry, double Zmin)
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
@@ -1053,6 +1096,8 @@ namespace vcity
 
 	/**
 	* @brief Relie deux ensembles de geometry en assignant aux geometry de l'une celles qui lui correspondent dans l'autre
+	* @param Shape Geometries issues du fichier shape
+	* @param Enveloppe Geometries issues du fichier CityGML
 	*/
 	std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > LinkGeos(geos::geom::Geometry * Shape, geos::geom::Geometry * Enveloppe)
 	{
@@ -1091,6 +1136,8 @@ namespace vcity
 
 	/**
 	* @brief Calcule la distance de Hausdorff unidirectionnelle entre un nuage de points et un triangle
+	* @param Points Correspond au nuage de points
+	* @param Geo Correspond au triangle sur lequel seront projetés les points
 	*/
 	double Hausdorff(geos::geom::CoordinateSequence * Points, const geos::geom::Geometry * Geo)
 	{
@@ -1242,6 +1289,8 @@ namespace vcity
 
 	/**
 	* @brief Calcule la distance de Hausdorff entre deux bâtiments composés de triangles : méthode basée sur "3D Distance from a Point to a Triangle", Mark W.Jones, 1995 (DistancePointTriangle.pdf).
+	* @param Geo1 Geometrie correspondant au premier bâtiment
+	* @param Geo2 Geometrie correspondant au second bâtiment
 	*/
 	double DistanceHausdorff(const geos::geom::Geometry * Geo1, const geos::geom::Geometry * Geo2)
 	{
@@ -1259,7 +1308,11 @@ namespace vcity
 	}
 
 	/**
-	* @brief Compare deux geometry en retournant les liens entre les polygons de deux geometry et l'information sur ces liens : si un polygone se retrouve dans les deux geometry, dans une seule ou s'il a été modifié
+	* @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve dans les deux ensembles de geometries, dans un seul ou s'il a été modifié
+	* @param Geo1 Premier ensemble de geometries qui ont été unies : deux triangles voisins sont réunis en un rectangle par exemple
+	* @param Geo2 Second ensemble de geometries qui ont été unies
+	* @param Geo1P Premier ensemble de geometries non unies
+	* @param Geo2P Second ensemble de geometries non unies
 	*/
 	std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > CompareGeos(geos::geom::Geometry * Geo1, geos::geom::Geometry * Geo2, geos::geom::Geometry * Geo1P, geos::geom::Geometry * Geo2P)
 	{
@@ -1372,7 +1425,8 @@ namespace vcity
 	}
 
 	/**
-	* @brief Convertit un polygon avec des trous en un ensemble de geometries simples
+	* @brief Convertit un polygon avec des trous en un ensemble de geometries distinctes
+	* @param Geo Polygone à "éclater"
 	*/
 	geos::geom::Geometry * ConvertToSimpleGeom(const geos::geom::Geometry * Geo)
 	{
@@ -1395,7 +1449,9 @@ namespace vcity
 	}
 
 	/**
-	* @brief Extrapole les Z de la geometry 1 à partir de la seconde qui la contient et dont les Z sont connus
+	* @brief Extrapole les Z de la geometry 1 à partir de la seconde qui lui est coplanaire et dont les Z sont connus
+	* @param Geo Geometrie qui contient les points dont on veut calculer la coordonnée z 
+	* @param GeoZ Geometrie qui est coplanaire à Geo. Ses points ont des valeurs de coordonnée z connues.
 	*/
 	geos::geom::Geometry * CalculeZ(const geos::geom::Geometry * Geo, geos::geom::Geometry * GeoZ)
 	{
@@ -1485,6 +1541,8 @@ namespace vcity
 
 	/**
 	* @brief Charge le CityGML et le découpe à l'aide des polygons Geos représentant les bâtiments
+	* @param Batiments Contient la liste des geometries représentant les bâtiments à extruder.
+	* @param InfoBatiments Contient les informations de ces batiments contenues dans le fichier shape.
 	*/
     void ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments)
 	{
@@ -1716,7 +1774,10 @@ namespace vcity
         //return model;
 	}
 
-
+	/**
+	* @brief Génère le LOD0 des bâtiments de la scène
+	* @param uri Représente l'ID du bâtiment à traité. S'il est nul, cela signifique que le calcul du LOD0 se fera sur chaque bâtiment se la scène
+	*/
 	void Algo::generateLOD0(const URI& uri)
 	{
 		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
@@ -1738,7 +1799,7 @@ namespace vcity
 
 			//Pour afficher le ground dans VCity
 			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
-			geom = ConvertToCityGML(name, Enveloppe, heightmin);
+			geom = ConvertLOD0ToCityGML(name, Enveloppe, heightmin);
 			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
 			obj2->addGeometry(geom);
 			obj->insertNode(obj2);
@@ -1788,6 +1849,11 @@ namespace vcity
 #endif // _WIN32
 	}
 
+	/**
+	* @brief Découpe les bâtiments de la scène qui sont issus d'un fichier CityGML à partie des bâtiments cadastraux contenus dans le fichier shape.
+	* @param Shape Contient les bâtiments cadastraux
+	* ]param InfoBatiments Contient les informations de ces batiments contenues dans le fichier shape.
+	*/
 	void Algo::DecoupeCityGML(geos::geom::Geometry * Shape, std::vector<BatimentShape> InfoBatiments)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
@@ -2105,6 +2171,9 @@ namespace vcity
 #endif // _WIN32
 	}
 
+	/**
+	* @brief Compare deux fichiers CityGML d'une même zone obtenus à deux dates différentes en donnant les modifications entre leurs bâtiments
+	*/
 	void Algo::CompareTiles()//Lorsqu'il y a deux tuiles dans VCity, cette fonction crée une image les regroupant pour pouvoir les comparer
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
@@ -2261,6 +2330,11 @@ namespace vcity
 #endif // _WIN32
 	}
 
+	/**
+	* @brief Génère un fichier CityGML en LOD1 à partir d'un fichier shape
+	* @param Shape Contient les bâtiments cadastraux
+	* @param Hauteurs Contient les Zmin et Zmax des bâtiments issus du fichier shape
+	*/
 	void Algo::generateLOD1(geos::geom::Geometry * Shape, std::vector<std::pair<double, double>> Hauteurs)//Hauteurs : Liste les hauteurs et Zmin des polygons de ShapeGeo
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
@@ -2269,7 +2343,7 @@ namespace vcity
         delete m_model;
         m_model = nullptr;
 
-		//m_model = BuildLOD1FromGEOS(Shape, Hauteurs);
+		//m_model = ConvertShapeToLOD1(Shape, Hauteurs);
 		//return; //Pour avoir le LOD1
 
 		if(Shape == nullptr || Shape->isEmpty())
@@ -2282,7 +2356,7 @@ namespace vcity
 		//SaveGeometry("Shape_Simplified", ShapeSimp);
 
 		// gen lod1
-		m_model = BuildLOD1FromGEOS(Shape, Hauteurs);
+		m_model = ConvertShapeToLOD1(Shape, Hauteurs);
 		return;
 
 		geos::geom::Geometry * ShapeRes = Shape->buffer(4)->buffer(-4);
@@ -2331,14 +2405,17 @@ namespace vcity
 		//SaveGeometry("Shape_Close_WithoutHoles_Simplified", ShapeResWithoutHolesSimp);
 
 		// gen loa
-		m_model = BuildLOD1FromGEOS(ShapeResWithoutHoles, Hauteurs2);
-		//m_model = BuildLOD1FromGEOS(ShapeResWithoutHolesSimp, Hauteurs2);
+		m_model = ConvertShapeToLOD1(ShapeResWithoutHoles, Hauteurs2);
+		//m_model = ConvertShapeToLOD1(ShapeResWithoutHolesSimp, Hauteurs2);
 
 #ifdef _WIN32
         _CrtDumpMemoryLeaks();
 #endif // _WIN32
 	}
 	////////////////////////////////////////////////////////////////////////////////
+	/**
+	* @brief Récupère m_model
+	*/
 	citygml::CityModel* Algo::getCitymodel()
 	{
 		return m_model;
