@@ -331,7 +331,7 @@ bool MainWindow::loadFile(const QString& filepath)
     else if(ext == "shp")
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
-        OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+        OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
 		
         m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
@@ -1003,6 +1003,13 @@ void MainWindow::generateLOD0()
             appGui().getControllerGui().update(*it);
         }
     }
+	else
+	{
+		vcity::URI URINull;
+		vcity::app().getAlgo().generateLOD0(URINull);
+	}
+
+	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
@@ -1044,6 +1051,13 @@ void MainWindow::slotFixBuilding()
 
     // TODO
     //appGui().getControllerGui().update(uri);
+    QApplication::restoreOverrideCursor();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotChangeDetection()
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    vcity::app().getAlgo().CompareTiles();
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////

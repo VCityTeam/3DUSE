@@ -198,28 +198,40 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 	geos::geom::Polygon* P;
 	
 	OGRLayer *poLayer;
+	//poLayer->FindFieldIndex("a", 1);
+
     int nbLayers = poDS->GetLayerCount();
     if(nbLayers > 0)
     {
         poLayer = poDS->GetLayer(0);
 		OGRFeature *poFeature;
         poLayer->ResetReading();
+
+		//if(poLayer->FindFieldIndex("Horaire", 1) == -1)
+		//	poLayer->CreateField(new OGRFieldDefn("Horaire", OGRFieldType::OFTInteger));
         while( (poFeature = poLayer->GetNextFeature()) != NULL )
         {      
             OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+			//poFeature->SetField("Horaire", 55);
+			//std::cout << poFeature->GetFieldAsInteger("Horaire") << std::endl;
+			//int a;
+			//std::cin >> a;
+
 			if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
             {
                 OGRPolygon* poPG = (OGRPolygon*) poGeometry;
                 OGRLinearRing* poLR = poPG->getExteriorRing();
+
+				OGRLayer* A = poDS->GetLayer(0);
+
                 int nbPoints = poLR->getNumPoints();
 
 				if(nbPoints > 3)
 				{
-
 					std::size_t size = 0;
 					std::size_t dimension=2;
 					geos::geom::CoordinateSequence* temp = static_cast<geos::geom::CoordinateArraySequence*>(coordFactory->create(size, dimension));
-
 					/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
 
 					for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
