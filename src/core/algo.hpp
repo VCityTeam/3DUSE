@@ -15,7 +15,7 @@ public:
     Algo();
     ~Algo();
 	void generateLOD0(const URI& uri);
-    void generateLOD0Scene(geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
+    void DecoupeCityGML(geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
 	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);
 	void CompareTiles();
 

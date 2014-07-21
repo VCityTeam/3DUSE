@@ -1031,7 +1031,7 @@ void MainWindow::generateLOD2()
 void MainWindow::generateLOD3()
 {	
     QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments); 
+	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments); 
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1051,13 +1051,6 @@ void MainWindow::slotFixBuilding()
 
     // TODO
     //appGui().getControllerGui().update(uri);
-    QApplication::restoreOverrideCursor();
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotChangeDetection()
-{
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    vcity::app().getAlgo().CompareTiles();
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1250,7 +1243,7 @@ void MainWindow::test2()
 	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
 	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments);
+	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
