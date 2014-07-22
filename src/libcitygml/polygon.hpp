@@ -39,7 +39,7 @@ public:
     const std::vector<TVec3d>& getVertices( void ) const;
 
     // Get the indices
-    const std::vector<size_t>& getIndices( void ) const;
+    const std::vector<unsigned int>& getIndices( void ) const;
 
     // Get the normals
     const std::vector<TVec3f>& getNormals( void ) const;
@@ -81,7 +81,7 @@ public:
 protected:
     std::vector<TVec3d> _vertices;
     std::vector<TVec3f> _normals;
-    std::vector<size_t> _indices;
+    std::vector<unsigned int> _indices;
 
     Appearance* _appearance;
     Material* _materials[ _NUMBER_OF_SIDES ];

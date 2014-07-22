@@ -1139,7 +1139,6 @@ void buildJson()
     double stepX = 500.0;
     double stepY = 500.0;
 
-    int i = 0;
     QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
     while(iterator.hasNext())
     {
@@ -1188,7 +1187,6 @@ void buildJsonLod()
     double stepX = 500.0;
     double stepY = 500.0;
 
-    int i = 0;
     QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
     while(iterator.hasNext())
     {
@@ -1198,7 +1196,7 @@ void buildJsonLod()
             QString filename = iterator.filePath();
             if(filename.endsWith(".shp", Qt::CaseInsensitive))
             {
-                QFileInfo fileInfo(filename);
+                //QFileInfo fileInfo(filename);
                 std::string id = filename.toStdString();
                 id = id.substr(id.find("tile_")+5);
                 id = id.substr(0, id.find('.'));

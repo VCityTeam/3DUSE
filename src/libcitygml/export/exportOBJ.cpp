@@ -30,7 +30,7 @@ void ExporterOBJ::exportCityObjects(const std::vector<CityObject*>& objs, const 
         addFilter(COT_All, "");
     }
 
-    for(int i=0; i<m_filters.size(); ++i)
+    for(size_t i=0; i<m_filters.size(); ++i)
     {
         m_outFile.open(fileName+m_filterNames[i]+".obj");
         m_outFile << std::fixed;
@@ -88,7 +88,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, const std::string& fil
         addFilter(COT_All, "");
     }
 
-    for(int i=0; i<m_filters.size(); ++i)
+    for(size_t i=0; i<m_filters.size(); ++i)
     {
         m_outFile.open(fileName+m_filterNames[i]+".obj");
         m_outFile << std::fixed;
@@ -139,7 +139,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
                 }
                 if(poly->getTexCoords().size() > 0)
                 {
-                    for(int i=0; i<poly->getIndices().size(); i+=3)
+                    for(size_t i=0; i<poly->getIndices().size(); i+=3)
                     {
                         m_outFile << "f " << offset+poly->getIndices()[i+0] << "/" << offset+poly->getIndices()[i+0] << "/" << offset+poly->getIndices()[i+0] << " " <<
                                              offset+poly->getIndices()[i+1] << "/" << offset+poly->getIndices()[i+1] << "/" << offset+poly->getIndices()[i+1] << " " <<
@@ -149,7 +149,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
                 else
                 {
                 //*/
-                    for(int i=0; i<poly->getIndices().size(); i+=3)
+                    for(size_t i=0; i<poly->getIndices().size(); i+=3)
                     {
                         m_outFile << "f " << offset+poly->getIndices()[i+0] << "//" << offset+poly->getIndices()[i+0] << " " <<
                                              offset+poly->getIndices()[i+1] << "//" << offset+poly->getIndices()[i+1] << " " <<

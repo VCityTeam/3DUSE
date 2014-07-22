@@ -29,7 +29,7 @@ const std::vector<TVec3d>& Polygon::getVertices( void ) const
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Get the indices
-const std::vector<size_t>& Polygon::getIndices( void ) const
+const std::vector<unsigned int>& Polygon::getIndices( void ) const
 {
     return _indices;
 }
@@ -126,7 +126,7 @@ void Polygon::tesselate( AppearanceManager &appearanceManager, const TVec3d& nor
     _exteriorRing->finish( t ? &texCoords : &_texCoords );
     if ( t ) std::copy( texCoords.begin(), texCoords.end(), std::back_inserter( _texCoords ) );
 
-    for ( size_t i = 0; i < _interiorRings.size(); i++ ) {
+    for ( unsigned int i = 0; i < _interiorRings.size(); i++ ) {
         TexCoords texCoords;
         bool t = appearanceManager.getTexCoords( _interiorRings[i]->getId(), texCoords );
         _interiorRings[i]->finish( t ? &texCoords : &_texCoords );

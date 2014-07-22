@@ -108,12 +108,12 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
         state->m_parent = obj;
 
         // parse features
-        for(int i=0; i<m_featureArrayNames.size(); ++i)
+        for(size_t i=0; i<m_featureArrayNames.size(); ++i)
         {
             citygml::DataSourceArray* ds = new citygml::DataSourceArray(m_featureArrayNames[i]->text().toStdString(), m_featureArrayValues[i]->text().toStdString());
             state->addDataSource(ds);
         }
-        for(int i=0; i<m_featureFileNames.size(); ++i)
+        for(size_t i=0; i<m_featureFileNames.size(); ++i)
         {
             citygml::DataSourceFile* ds = new citygml::DataSourceFile(m_featureFileNames[i]->text().toStdString(), m_featureFilePaths[i]->text().toStdString());
             state->addDataSource(ds);

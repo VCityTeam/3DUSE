@@ -88,7 +88,7 @@ const std::string& DataSource::getAttribute(const QDateTime& date) const
             return m_values[0];
     }
 
-    for(int i=0; i<m_dates.size()-1; ++i)
+    for(size_t i=0; i<m_dates.size()-1; ++i)
     {
         if(m_dates[i] < date && date < m_dates[i+1])
             return m_values[i];
@@ -98,7 +98,7 @@ const std::string& DataSource::getAttribute(const QDateTime& date) const
 ////////////////////////////////////////////////////////////////////////////////
 void DataSource::dump() const
 {
-    for(int i=0; i<m_dates.size(); ++i)
+    for(size_t i=0; i<m_dates.size(); ++i)
     {
         std::cout << m_dates[i].toString().toStdString() << " : " << m_values[i] << std::endl;
     }

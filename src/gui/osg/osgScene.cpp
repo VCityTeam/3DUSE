@@ -598,7 +598,7 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
     osg::ref_ptr<osg::Group> current = m_layers;
 
     int depth = uri.getDepth();
-    int maxDepth = depth;
+    //int maxDepth = depth;
 
     if(depth == 0)
     {
