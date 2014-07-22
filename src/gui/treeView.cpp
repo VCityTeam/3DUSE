@@ -202,7 +202,7 @@ vcity::URI TreeView::getURI(QTreeWidgetItem* item) const
 
     while(current && current->text(1) != "Root")
     {
-        uri.append(current->text(0).toStdString());
+        uri.append(current->text(0).toStdString(), current->text(1).toStdString());
         current = current->parent();
     }
 

@@ -242,6 +242,12 @@ namespace citygml
 		
 		inline void pushCityObject( CityObject* object )
 		{
+            // add parent relation
+            if(_currentCityObject)
+            {
+                object->_parent = _currentCityObject;
+            }
+
 			if ( _currentCityObject && object ) _currentCityObject->getChildren().push_back( object );
 			_cityObjectStack.push( _currentCityObject );
 			_currentCityObject = object;
