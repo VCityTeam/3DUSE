@@ -985,25 +985,25 @@ void MainWindow::slotDumpSelectedNodes()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateAllLODs()
 {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+	QApplication::setOverrideCursor(Qt::WaitCursor);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
 {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    // get all selected nodes (with a uri)
-    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        // do all nodes selected
-        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
-        {
-            vcity::app().getAlgo().generateLOD0(*it);
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	// get all selected nodes (with a uri)
+	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+	if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+	{
+		// do all nodes selected
+		for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+		{
+			vcity::app().getAlgo().generateLOD0(*it);
 
-            appGui().getControllerGui().update(*it);
-        }
-    }
-	else
+			appGui().getControllerGui().update(*it);
+		}
+	}
+	else//Sinon, on génère les LOD0 de tous les bâtiments de la scène
 	{
 		//vcity::app().getAlgo().generateLOD0(vcity::URI());
 		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
@@ -1011,9 +1011,10 @@ void MainWindow::generateLOD0()
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 			{
 				vcity::URI uri;
-				uri.append("LayerCityGML", "Layer");
+				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
 				uri.append(tile->getName(), "Tile");
 				uri.append(obj->getId(), "Building");
+				uri.setType("Building");
 
 				std::cout << uri.getStringURI() << std::endl;
 
