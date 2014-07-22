@@ -612,8 +612,9 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);
             //std::cout << child->getName() << " -> " << uri.getNode(maxDepth-depth) << std::endl;
-            if(child->getName() == uri.getNode(maxDepth-depth))
+            if(child->getName() == uri.getCurrentNode())
             {
+				uri.popFront();
                 if(depth == 1)
                 {
                     return child;

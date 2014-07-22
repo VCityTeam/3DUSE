@@ -20,7 +20,7 @@ public:
 
     /// \brief prepend prepend a node name to the URI
     /// \param node The node name to prepend
-    void prepend(const std::string& node);
+    void prepend(const std::string& node, const std::string& type="");
 
     /// \brief setType Set the type of the final node
     /// \param type Teh type of the final node
@@ -35,14 +35,22 @@ public:
     /// \return std::string with the name of the node at depth depth
     const std::string& getNode(int depth) const;
 
+	/// Get node using cursor position
+	const std::string& getCurrentNode() const;
+
+	const std::string& getCurrentNodeType() const;
+
     const std::string& getNodeType(int depth) const;
 
     /// \brief getLastNode Get last node name, eg leaf name
     /// \return std::string with the name of the node
     const std::string& getLastNode() const;
 
-    /// \brief pop Change uri to make it point to its father. (remove last node and --depth)
-    void pop();
+    /// \brief popBack Change uri to make it point to its father. (remove last node and --depth)
+    void popBack();
+
+	/// \brief popFront Change uri to make it point to its first child. (increment cursor)
+	void popFront() const;
 
     /// \brief getType Get the type of the final node pointed by the URI
     /// \return The type of the final node pointed by the URI as a string
@@ -66,6 +74,7 @@ public:
 
 private:
     int m_depth;                    ///< Depth of the uri
+	mutable int m_cursor;					///< cursor position, start at 0
     std::string m_type;             ///< Pointed node type
     std::vector<std::string> m_uri; ///< String array. One string per node name, one per depth level.
     std::vector<std::string> m_types; ///< String array. One string per node types, one per depth level.

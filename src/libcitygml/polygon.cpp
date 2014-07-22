@@ -29,7 +29,7 @@ const std::vector<TVec3d>& Polygon::getVertices( void ) const
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Get the indices
-const std::vector<unsigned int>& Polygon::getIndices( void ) const
+const std::vector<size_t>& Polygon::getIndices( void ) const
 {
     return _indices;
 }
@@ -331,12 +331,12 @@ void Polygon::finish( AppearanceManager& appearanceManager, Appearance* defAppea
         for(std::vector<TVec3d>::const_iterator it = vertices.begin(); it < vertices.end(); ++it)
         {
             TVec3d point = *it;
-            TVec2f tc;
+            TVec2d tc;
 
             tc.x = ((wParams.yPixelSize*point.x)-(wParams.xRotation*point.y)+(wParams.xRotation*wParams.yOrigin)-(wParams.yPixelSize*wParams.xOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
             tc.y = ((-wParams.yRotation*point.x)+(wParams.xPixelSize*point.y)+(wParams.yRotation*wParams.xOrigin)-(wParams.xPixelSize*wParams.yOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
 
-            tc.y = 1.0f - tc.y;
+            tc.y = 1.0 - tc.y;
 
             // normalize later ? when converting to osg (because we can have image size at this time) ?
             //*
@@ -347,8 +347,8 @@ void Polygon::finish( AppearanceManager& appearanceManager, Appearance* defAppea
             tc.y /= 8192.0f;
             //*/
 
-            //std::cout << tc << std::endl;
-            _texCoords.push_back(tc);
+            //std::cout << tc << std::endl; 
+            _texCoords.push_back(TVec2f(tc.x, tc.y));
         }
     }
     else

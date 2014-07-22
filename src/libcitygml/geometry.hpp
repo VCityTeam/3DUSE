@@ -46,9 +46,9 @@ public:
     const Envelope& getEnvelope( void ) const;
 
     // Get the polygons
-    unsigned int size( void ) const;
-    Polygon* operator[]( unsigned int i );
-    const Polygon* operator[]( unsigned int i ) const;
+    size_t size( void ) const;
+    Polygon* operator[]( size_t i );
+    const Polygon* operator[]( size_t i ) const;
 
     const std::vector< Polygon* >& getPolygons() const;
     std::vector< Polygon* >& getPolygons();

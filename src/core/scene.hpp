@@ -68,12 +68,12 @@ public:
     /// \brief getTiles Get all tiles in a layer
     /// \param uriLayer URI pointing to the layer
     /// \return A vector of Tile
-    std::vector<Tile*>& getTiles(const URI& uriLayer);
+    std::vector<Tile*>* getTiles(const URI& uriLayer);
 
     /// \brief getTiles Get all tiles in a layer (const)
     /// \param uriLayer URI pointing to the layer
     /// \return A const vector of Tile
-    const std::vector<Tile*>& getTiles(const URI& uriLayer) const;
+    const std::vector<Tile*>* getTiles(const URI& uriLayer) const;
 
     /// \brief deleteTile Delete a tile in a layer
     /// \param uri URI pointing to the tile

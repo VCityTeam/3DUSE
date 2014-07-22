@@ -224,7 +224,7 @@ void ControllerGui::update(const vcity::URI& uri_)
     vcity::URI uriTile = uri;
     while(uriTile.getDepth() > 2)
     {
-        uriTile.pop();
+        uriTile.popBack();
     }
     uriTile.setType("Tile");
     //std::cout << uriTile.getStringURI() << std::endl;

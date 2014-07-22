@@ -112,6 +112,39 @@ void CityObject::insertNode(CityObject* node)
     _children.push_back(node);
 }
 ////////////////////////////////////////////////////////////////////////////////
+CityObject* CityObject::getNode(const vcity::URI& uri)
+{
+	CityObject* current = this;
+
+    int depth = uri.getDepth();
+    int maxDepth = depth;
+
+    if(depth == 0)
+    {
+        return nullptr;
+    }
+
+    do
+    {
+		for(CityObject* child : _children)
+        {
+            if(child->getId() == uri.getCurrentNode())
+            {
+				uri.popFront();
+				current = child;
+                if(depth == 1)
+                {
+                    return child;
+                }
+                break;
+            }
+        }
+        --depth;
+    } while(depth > 0);
+
+    return nullptr;
+}
+////////////////////////////////////////////////////////////////////////////////
 void CityObject::addState(CityObjectState* state)
 {
     state->m_id = m_states.size(); m_states.push_back(state);

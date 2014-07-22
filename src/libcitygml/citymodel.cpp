@@ -86,6 +86,20 @@ void CityModel::addCityObject( CityObject* o )
         it->second.push_back( o );
 }
 ////////////////////////////////////////////////////////////////////////////////
+CityObject* CityModel::getNode(const vcity::URI& uri)
+{
+	for(CityObject* obj : _roots)
+	{
+		if(uri.getCurrentNode() == obj->getId())
+		{
+			uri.popFront();
+			return obj->getNode(uri);
+		}
+	}
+
+	return nullptr;
+}
+////////////////////////////////////////////////////////////////////////////////
 void CityModel::finish( const ParserParams& params )
 {
     // Assign appearances to cityobjects => geometries => polygons

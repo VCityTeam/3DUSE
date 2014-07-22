@@ -44,8 +44,9 @@ abstractLayer* Scene::getLayer(const URI& uri)
     {
         for(std::vector<abstractLayer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
-            if(uri.getNode(0) == (*it)->getName())
+            if(uri.getCurrentNode() == (*it)->getName())
             {
+				uri.popFront();
                 return *it;
             }
         }
@@ -60,8 +61,9 @@ const abstractLayer* Scene::getLayer(const URI& uri) const
     {
         for(std::vector<abstractLayer*>::const_iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
-            if(uri.getNode(0) == (*it)->getName())
+            if(uri.getCurrentNode() == (*it)->getName())
             {
+				uri.popFront();
                 return *it;
             }
         }
@@ -100,8 +102,9 @@ void Scene::deleteLayer(const URI& uri)
 {
     for(std::vector<abstractLayer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
     {
-        if(uri.getNode(0) == (*it)->getName())
+        if(uri.getCurrentNode() == (*it)->getName())
         {
+			uri.popFront();
             m_layers.erase(it);
             delete *it;
         }
@@ -134,32 +137,32 @@ Tile* Scene::getTile(const URI& uri)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::vector<Tile*>& Scene::getTiles(const URI& uriLayer)
+std::vector<Tile*>* Scene::getTiles(const URI& uriLayer)
 {
     abstractLayer* abstractlayer = getLayer(uriLayer);
     if(abstractlayer)
     {
 		LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
 		if (layer)
-			return layer->getTiles();
+			return &layer->getTiles();
 		else std::cout << "layer is NULL in getTiles" << std::endl;
     }
 
-    //return 0; // fail
+    return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::vector<Tile*>& Scene::getTiles(const URI& uriLayer) const
+const std::vector<Tile*>* Scene::getTiles(const URI& uriLayer) const
 {
     const abstractLayer* abstractlayer = getLayer(uriLayer);
     if(abstractlayer)
     {
 		const LayerCityGML* layer = dynamic_cast<const LayerCityGML*>(abstractlayer);
 		if (layer)
-			return layer->getTiles();
+			return &layer->getTiles();
 		else std::cout << "layer is NULL in const getTiles" << std::endl;
     }
 
-    //return 0; // fail
+    return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::deleteTile(const URI& uri)

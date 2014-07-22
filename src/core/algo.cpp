@@ -1810,18 +1810,20 @@ namespace vcity
 		}
 		else/////////////////////////////////// Traitement de tous les bâtiments
 		{
-			log() << "GenerateLOD0 on each building\n";
+			std::cout << "GenerateLOD0 on each building" << std::endl;
 			const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
-			for(int i = 0; i < tiles.size(); i++)//Création de l'enveloppe city à partir des données citygml
+			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+			//for(int i = 0; i < tiles.size(); i++)//Création de l'enveloppe city à partir des données citygml
 			{
-				citygml::CityModel* model = tiles[i]->getCityModel();
-				citygml::CityObjects objs = model->getCityObjectsRoots();
+				//citygml::CityModel* model = tiles[i]->getCityModel();
+				//citygml::CityObjects objs = model->getCityObjectsRoots();
 
 				int cpt = 0;
 
-				for(citygml::CityObjects::iterator it = objs.begin(); it < objs.end(); ++it)
+				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+					//citygml::CityObjects::iterator it = objs.begin(); it < objs.end(); ++it)
 				{
-					citygml::CityObject* obj = *it;
+					//citygml::CityObject* obj = *it;
 					if(obj->getType() == citygml::COT_Building)
 					{
 						PolySet roofPoints;
@@ -1837,9 +1839,9 @@ namespace vcity
 						delete GeosObj;
 						delete Enveloppe;
 					}
-					cpt++;
-					if(cpt%10 == 0)
-						std::cout << "Avancement : " << cpt << "/" << objs.size() << " batiments traites.\r" << std::flush;
+					//cpt++;
+					//if(cpt%10 == 0)
+					//	std::cout << "Avancement : " << cpt << "/" << objs.size() << " batiments traites.\r" << std::flush;
 				}
 				std::cout << std::endl;;
 			}

@@ -999,14 +999,29 @@ void MainWindow::generateLOD0()
         for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
         {
             vcity::app().getAlgo().generateLOD0(*it);
-            // TODO
+
             appGui().getControllerGui().update(*it);
         }
     }
 	else
 	{
-		vcity::URI URINull;
-		vcity::app().getAlgo().generateLOD0(URINull);
+		//vcity::app().getAlgo().generateLOD0(vcity::URI());
+		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+		{
+			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+			{
+				vcity::URI uri;
+				uri.append("LayerCityGML", "Layer");
+				uri.append(tile->getName(), "Tile");
+				uri.append(obj->getId(), "Building");
+
+				std::cout << uri.getStringURI() << std::endl;
+
+				vcity::app().getAlgo().generateLOD0(uri);
+
+				appGui().getControllerGui().update(uri);
+			}
+		}
 	}
 
 	QApplication::restoreOverrideCursor();

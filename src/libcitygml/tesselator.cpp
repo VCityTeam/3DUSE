@@ -33,7 +33,7 @@ Tesselator::Tesselator( void )
 	gluTessCallback( _tobj, GLU_TESS_ERROR_DATA, (GLU_TESS_CALLBACK)&errorCallback );
 }
 
-void Tesselator::init( unsigned int verticesCount, const TVec3d& normal, GLenum winding_rule )
+void Tesselator::init( size_t verticesCount, const TVec3d& normal, GLenum winding_rule )
 {
 	gluTessBeginPolygon( _tobj, this ); 
 
@@ -58,7 +58,7 @@ void Tesselator::compute( void )
 
 void Tesselator::addContour( const std::vector<TVec3d>& pts, const std::vector<TVec2f>& /*tex*/ )
 {		
-	unsigned int len = pts.size();
+	size_t len = pts.size();
 	if ( len < 3 ) return;
 
     size_t pos = _vertices.size();
@@ -100,20 +100,20 @@ void CALLBACK Tesselator::endCallback( void* userData )
 {
 	Tesselator *tess = (Tesselator*)userData;
 
-	unsigned int len = tess->_curIndices.size();
+	size_t len = tess->_curIndices.size();
 
 	switch ( tess->_curMode ) 
 	{
 	case GL_TRIANGLES:
-		for ( unsigned int i = 0; i < len; i++ ) tess->_indices.push_back( tess->_curIndices[i] );
+		for ( size_t i = 0; i < len; i++ ) tess->_indices.push_back( tess->_curIndices[i] );
 		break;
 	case GL_TRIANGLE_FAN:
 	case GL_TRIANGLE_STRIP: 
 		{
-			unsigned int first = tess->_curIndices[0];
-			unsigned int prev = tess->_curIndices[1];
+			size_t first = tess->_curIndices[0];
+			size_t prev = tess->_curIndices[1];
 
-			for ( unsigned int i = 2; i < len; i++ ) 
+			for ( size_t i = 2; i < len; i++ ) 
 			{
 				if ( tess->_curMode == GL_TRIANGLE_FAN || i%2 == 0 ) tess->_indices.push_back( first );
 				tess->_indices.push_back( prev );

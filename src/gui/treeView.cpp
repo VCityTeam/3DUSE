@@ -202,7 +202,7 @@ vcity::URI TreeView::getURI(QTreeWidgetItem* item) const
 
     while(current && current->text(1) != "Root")
     {
-        uri.append(current->text(0).toStdString(), current->text(1).toStdString());
+        uri.prepend(current->text(0).toStdString(), current->text(1).toStdString());
         current = current->parent();
     }
 
@@ -460,8 +460,9 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
         {
             QTreeWidgetItem* item = current->child(i);
             //vcity::log() << item->text(0).toStdString() << " -> " << uri.getNode(maxDepth-depth) << "\n";
-            if(item->text(0).toStdString() == uri.getNode(maxDepth-depth))
+            if(item->text(0).toStdString() == uri.getCurrentNode())
             {
+				uri.popFront();
                 current = item;
                 if(depth == 1) return item;
                 break;

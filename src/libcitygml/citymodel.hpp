@@ -6,6 +6,7 @@
 #include "cityobject.hpp"
 #include "appearancemanager.hpp"
 #include "vecs.hpp"
+#include "core/URI.hpp"
 #include <vector>
 #include <map>
 #include <ostream>
@@ -64,6 +65,8 @@ public:
     inline void addCityObjectAsRoot( CityObject* o ) { if ( o ) _roots.push_back( o ); }
 
     void addCityObject( CityObject* o );
+
+	CityObject* getNode(const vcity::URI& uri);
 
     void finish( const ParserParams& );
 

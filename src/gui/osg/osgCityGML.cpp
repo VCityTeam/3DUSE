@@ -188,7 +188,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
 			// Indices
 			osg::DrawElementsUInt* indices = new osg::DrawElementsUInt( osg::PrimitiveSet::TRIANGLES, 0 );
-			const std::vector<unsigned int>& ind = p->getIndices();
+			const std::vector<size_t>& ind = p->getIndices();
 			indices->reserve( ind.size() );
             for(unsigned int i = 0 ; i < ind.size() / 3; i++)
 			{

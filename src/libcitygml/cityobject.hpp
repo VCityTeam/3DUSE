@@ -4,6 +4,7 @@
 #include "object.hpp"
 #include "geometry.hpp"
 #include "temporalExt.hpp"
+#include "core/URI.hpp"
 #include <ostream>
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
@@ -99,6 +100,8 @@ public:
     void deleteNode(CityObject* node);
 
     void insertNode(CityObject* node);
+
+	CityObject* getNode(const vcity::URI& uri);
 
     void addState(CityObjectState* state);
     std::vector<CityObjectState*>& getStates();

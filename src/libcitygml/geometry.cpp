@@ -28,17 +28,17 @@ const Envelope& Geometry::getEnvelope( void ) const
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Get the polygons
-unsigned int Geometry::size( void ) const
+size_t Geometry::size( void ) const
 {
     return _polygons.size();
 }
 ////////////////////////////////////////////////////////////////////////////////
-Polygon* Geometry::operator[]( unsigned int i )
+Polygon* Geometry::operator[](size_t i )
 {
     return _polygons[i];
 }
 ////////////////////////////////////////////////////////////////////////////////
-const Polygon* Geometry::operator[]( unsigned int i ) const
+const Polygon* Geometry::operator[]( size_t i ) const
 {
     return _polygons[i];
 }
@@ -97,8 +97,8 @@ bool Geometry::merge( Geometry* g )
 {
     if ( !g || g->_lod != _lod || g->_type != _type ) return false;
 
-    unsigned int pSize = g->_polygons.size();
-    for ( unsigned int i = 0; i < pSize; i++ )
+    size_t pSize = g->_polygons.size();
+    for ( size_t i = 0; i < pSize; i++ )
         _polygons.push_back( g->_polygons[i] );
 
     g->_polygons.clear();
@@ -110,8 +110,8 @@ bool Geometry::merge( Geometry* g )
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream& os, const citygml::Geometry& s )
 {
-    unsigned int count = 0;
-    for ( unsigned int i = 0; i < s.size(); i++ )
+    size_t count = 0;
+    for ( size_t i = 0; i < s.size(); i++ )
     {
         os << *s[i];
         count += s[i]->getVertices().size();

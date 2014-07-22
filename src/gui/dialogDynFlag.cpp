@@ -21,7 +21,7 @@ DialogDynFlag::~DialogDynFlag()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogDynFlag::addDynFlag(const vcity::URI& uri)
 {
-    citygml::CityObject* obj = 0;
+    citygml::CityObject* obj = nullptr;
 
     m_featureArrayNames.clear();
     m_featureArrayValues.clear();

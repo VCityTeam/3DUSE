@@ -239,7 +239,8 @@ void Tile::replaceNode(const std::string& /*name*/, citygml::CityObject* /*node*
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityObject* Tile::getNode(const URI& uri)
 {
-    std::string name = uri.getLastNode();
+	return m_root->getNode(uri);
+    /*std::string name = uri.getLastNode();
 
     citygml::CityObject* res = nullptr;
 
@@ -251,7 +252,7 @@ citygml::CityObject* Tile::getNode(const URI& uri)
         if(res) break;
     }
 
-    return res;
+    return res;*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::string& Tile::getCityGMLfilePath() const

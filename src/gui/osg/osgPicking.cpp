@@ -91,7 +91,7 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
                 vcity::URI uri = appGui().getSelectedNodes()[0];
                 appGui().getControllerGui().resetSelection();
 
-                uri.pop();
+                uri.popBack();
                 appGui().getControllerGui().addSelection(uri);
                 //std::cout << "pick parent" << std::endl;
                 //std::cout << "pick parent : " << uri.getStringURI() << std::endl;
