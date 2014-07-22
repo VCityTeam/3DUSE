@@ -30,6 +30,10 @@ public:
     /// \return The number of depth level
     int getDepth() const;
 
+    int getCursor() const;
+
+    void resetCursor() const;
+
     /// \brief getNode Get a node name given a depth level
     /// \param depth Depth level, starting from 0
     /// \return std::string with the name of the node at depth depth

@@ -114,35 +114,24 @@ void CityObject::insertNode(CityObject* node)
 ////////////////////////////////////////////////////////////////////////////////
 CityObject* CityObject::getNode(const vcity::URI& uri)
 {
+    CityObject* res = nullptr;
 	CityObject* current = this;
 
-    int depth = uri.getDepth();
-    //int maxDepth = depth;
-
-    if(depth == 0)
-    {
-        return nullptr;
-    }
-
-    do
+    while(uri.getCursor() < uri.getDepth())
     {
         for(CityObject* child : current->getChildren())
         {
             if(child->getId() == uri.getCurrentNode())
             {
-				uri.popFront();
 				current = child;
-                if(depth == 1)
-                {
-                    return child;
-                }
+                res = current;
                 break;
             }
         }
-        --depth;
-    } while(depth > 0);
+        uri.popFront();
+    }
 
-    return nullptr;
+    return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::addState(CityObjectState* state)

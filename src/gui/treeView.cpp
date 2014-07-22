@@ -442,18 +442,10 @@ void TreeView::resetSelection()
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 {
-    QTreeWidgetItem* root = m_tree->topLevelItem(0);
-    QTreeWidgetItem* current = root;
+    QTreeWidgetItem* res = nullptr;
+    QTreeWidgetItem* current = m_tree->topLevelItem(0);
 
-    int depth = uri.getDepth();
-    //int maxDepth = depth;
-
-    if(depth == 0)
-    {
-        return nullptr;
-    }
-
-    do
+    while(uri.getCursor() < uri.getDepth());
     {
         int count = current->childCount();
         for(int i=0; i<count; ++i)
@@ -462,16 +454,15 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
             //vcity::log() << item->text(0).toStdString() << " -> " << uri.getNode(maxDepth-depth) << "\n";
             if(item->text(0).toStdString() == uri.getCurrentNode())
             {
-				uri.popFront();
                 current = item;
-                if(depth == 1) return item;
+                res = current;
                 break;
             }
         }
-        --depth;
-    } while(depth > 0);
+        uri.popFront();
+    }
 
-    return nullptr;
+    return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)

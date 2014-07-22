@@ -168,6 +168,12 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         //osg::Group* parent = (nodePath.size()>=2)?dynamic_cast<osg::Group*>(nodePath[nodePath.size()-2]):0;
         //osg::Group* parent = node->getParent(0);
 
+        // check that we are not on a geode
+        if(node->asGeode())
+        {
+            node = node->getParent(0);
+        }
+
         // get building
         if(m_pickingMode == 0) // face
         {
@@ -205,12 +211,6 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             {
                 node = nodeOri;
             }
-        }
-
-        // check that we are not on a geode
-        if(node->asGeode())
-        {
-            node = node->getParent(0);
         }
 
         if(m_addToSelection)
@@ -410,7 +410,7 @@ void PickHandler::deselectNode(const vcity::URI& uri)
         node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
 
         vcity::URI uriInfo = uri;
-        uriInfo.prepend("infobubble");
+        uriInfo.append("infobubble");
         appGui().getOsgScene()->deleteNode(uriInfo);
     }
 }
