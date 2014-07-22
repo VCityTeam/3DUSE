@@ -10,9 +10,10 @@ URI::URI()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void URI::append(const std::string& node)
+void URI::append(const std::string& node, const std::string& type)
 {
     m_uri.push_back(node);
+    m_types.push_back(type);
     ++m_depth;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +36,11 @@ int URI::getDepth() const
 const std::string& URI::getNode(int depth) const
 {
     return m_uri[m_depth-1-depth];
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::string& URI::getNodeType(int depth) const
+{
+    return m_types[m_depth-1-depth];
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::string& URI::getLastNode() const

@@ -16,7 +16,7 @@ public:
 
     /// \brief append Append a node name to the URI
     /// \param node The node name to append
-    void append(const std::string& node);
+    void append(const std::string& node, const std::string& type="");
 
     /// \brief prepend prepend a node name to the URI
     /// \param node The node name to prepend
@@ -34,6 +34,8 @@ public:
     /// \param depth Depth level, starting from 0
     /// \return std::string with the name of the node at depth depth
     const std::string& getNode(int depth) const;
+
+    const std::string& getNodeType(int depth) const;
 
     /// \brief getLastNode Get last node name, eg leaf name
     /// \return std::string with the name of the node
@@ -66,6 +68,7 @@ private:
     int m_depth;                    ///< Depth of the uri
     std::string m_type;             ///< Pointed node type
     std::vector<std::string> m_uri; ///< String array. One string per node name, one per depth level.
+    std::vector<std::string> m_types; ///< String array. One string per node types, one per depth level.
 };
 ////////////////////////////////////////////////////////////////////////////////
 bool operator==(const URI& rhs, const URI& lhs);
