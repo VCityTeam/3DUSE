@@ -117,7 +117,7 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
 	CityObject* current = this;
 
     int depth = uri.getDepth();
-    int maxDepth = depth;
+    //int maxDepth = depth;
 
     if(depth == 0)
     {
@@ -126,7 +126,7 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
 
     do
     {
-		for(CityObject* child : _children)
+        for(CityObject* child : current->getChildren())
         {
             if(child->getId() == uri.getCurrentNode())
             {

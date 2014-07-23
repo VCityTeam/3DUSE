@@ -32,7 +32,7 @@ public:
     osg::ref_ptr<osg::Group> getOsg();
     void setOsg(osg::ref_ptr<osg::Group> node);
 
-    virtual const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+    const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
 
     int m_year;
     QDateTime m_date;

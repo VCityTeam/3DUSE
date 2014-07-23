@@ -211,8 +211,6 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
                 OGRPolygon* poPG = (OGRPolygon*) poGeometry;
                 OGRLinearRing* poLR = poPG->getExteriorRing();
 
-				OGRLayer* A = poDS->GetLayer(0);
-
                 int nbPoints = poLR->getNumPoints();
 
 				if(nbPoints > 3)

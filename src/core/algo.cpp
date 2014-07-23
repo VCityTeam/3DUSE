@@ -479,7 +479,7 @@ namespace vcity
 	void SaveImage(std::string name, int* Im, int width, int height)
 	{
 		FILE *out;
-		errno_t err;
+        errno_t err;
 		name = name + ".pgm";
 		char* nameC = (char*)name.c_str();
 		err = fopen_s(&out, nameC,"w"); 
@@ -543,7 +543,7 @@ namespace vcity
 	{
 		if(Geo->getNumGeometries() > 1)//Si Geo est encore un ensemble de geometry, on continue de parcourir ses fils
 		{
-			for(int i = 0; i < Geo->getNumGeometries(); ++i)
+            for(size_t i = 0; i < Geo->getNumGeometries(); ++i)
 				SaveRecursiveGeometry(Geo->getGeometryN(i), Im, height, width, Xmin, Ymin);
 		}
 		else
@@ -553,7 +553,7 @@ namespace vcity
 			if(p)//Si p est un polygon
 			{
 				coord = p->getExteriorRing()->getCoordinates();
-				for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+                for(size_t j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
 				{
 					int x1 = Scale*coord->getAt(j).x - Xmin;
 					int y1 = Scale*coord->getAt(j).y - Ymin;
@@ -573,11 +573,11 @@ namespace vcity
 					}
 				}
 
-				for(int k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
+                for(size_t k = 0; k < p->getNumInteriorRing(); k++) //On parcourt les holes du polygon
 				{
 					delete coord;
 					coord = p->getInteriorRingN(k)->getCoordinates();
-					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+                    for(size_t j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
 					{
 						int x1 = Scale*coord->getAt(j).x - Xmin;
 						int y1 = Scale*coord->getAt(j).y - Ymin;
@@ -604,7 +604,7 @@ namespace vcity
 				coord = Geo->getCoordinates();
 				if(coord->size() != 0)
 				{
-					for(int j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
+                    for(size_t j = 0; j < coord->size() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
 					{
 						int x1 = Scale*coord->getAt(j).x - Xmin;
 						int y1 = Scale*coord->getAt(j).y - Ymin;
@@ -713,7 +713,7 @@ namespace vcity
 
 		int Xmin = -1, Ymin = -1, Xmax = 0, Ymax = 0;
 
-		for(int i = 0; i < coord->size(); i++)
+        for(size_t i = 0; i < coord->size(); i++)
 		{
 			int x = coord->getAt(i).x * Scale;
 			int y = coord->getAt(i).y * Scale;
@@ -805,7 +805,7 @@ namespace vcity
 			else
 				coord = G3->getCoordinates();
 
-			for(int i = 0; i < coord->size(); i++)
+            for(size_t i = 0; i < coord->size(); i++)
 			{
 				int x = coord->getAt(i).x * Scale;
 				int y = coord->getAt(i).y * Scale;
@@ -900,7 +900,7 @@ namespace vcity
 
 		geos::geom::Geometry* ResUnion = factory->createEmptyGeometry();//MP->getGeometryN(0)->clone();
 
-		for(int i = 0; i < MP->getNumGeometries(); i++)	//On parcourt tous les polygons que l'on veut unir
+        for(size_t i = 0; i < MP->getNumGeometries(); i++)	//On parcourt tous les polygons que l'on veut unir
 		{
 			try	//On vérifie qu'il n'y ait pas d'exceptions faisant planter le logiciel
 			{
@@ -910,7 +910,7 @@ namespace vcity
 
 				std::vector<geos::geom::Geometry*>* Polys = new std::vector<geos::geom::Geometry*>(); //Vecteur contenant les différents polygones de l'union au fur et à mesure
 
-				for(int j = 0; j < ResUnion->getNumGeometries(); j++) //L'union peut être constitué de plusieurs polygons disjoints
+                for(size_t j = 0; j < ResUnion->getNumGeometries(); j++) //L'union peut être constitué de plusieurs polygons disjoints
 				{
 					geos::geom::CoordinateArraySequence tempcoord;
 					const geos::geom::CoordinateSequence *coordGeo = ResUnion->getGeometryN(j)->getCoordinates(); //On récupère la liste des points de la géométrie courante
@@ -922,7 +922,7 @@ namespace vcity
 					geos::geom::LinearRing * shell;
 					std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>; //Vecteur contenant tous les polygones à l'intérieur du premier, qui sont donc considérés comme des trous
 
-					for(int k = 0; k < coordGeo->size(); k++) //On parcourt tous les points pour retrouver ceux qui apparaissent deux fois et qui définissent un polygon qu'il faut extraire
+                    for(size_t k = 0; k < coordGeo->size(); k++) //On parcourt tous les points pour retrouver ceux qui apparaissent deux fois et qui définissent un polygon qu'il faut extraire
 					{
 						double x = coordGeo->getAt(k).x;
 						double y = coordGeo->getAt(k).y;
@@ -999,7 +999,7 @@ namespace vcity
 		double D1 = 0;
 		double D2 = 0;
 
-		for(int i = 0; i < Coords->getSize(); ++i)
+        for(size_t i = 0; i < Coords->getSize(); ++i)
 		{			
 			geos::geom::Point * P = factory->createPoint(Coords->getAt(i));
 			D1 += P->distance(Geo1);
@@ -1027,12 +1027,12 @@ namespace vcity
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		std::vector<geos::geom::Geometry*> Res;
 
-		for(int i = 0; i < Polys.size(); ++i)
+        for(size_t i = 0; i < Polys.size(); ++i)
 		{
 			geos::geom::Geometry * Poly = Polys[i];
 
 			bool Test = false; //Passe à true si le poly intersecte une ligne
-			for(int j = 0; j < Lines.size(); ++j)
+            for(size_t j = 0; j < Lines.size(); ++j)
 			{
 				geos::geom::Geometry * Line = Lines[j];
 
@@ -1046,7 +1046,7 @@ namespace vcity
 				geos::geom::CoordinateSequence* Coords = Poly->getCoordinates();
 				geos::geom::CoordinateSequence* Poly1 = new geos::geom::CoordinateArraySequence;
 				geos::geom::CoordinateSequence* Poly2 = new geos::geom::CoordinateArraySequence;
-				for(int k = 0; k < Coords->size() - 1; ++k)
+                for(size_t k = 0; k < Coords->size() - 1; ++k)
 				{
 					geos::geom::CoordinateSequence* EdgeCoord = new geos::geom::CoordinateArraySequence;
 					EdgeCoord->add(Coords->getAt(k));
@@ -1136,7 +1136,7 @@ namespace vcity
 	citygml::CityModel* ConvertShapeToLOD1(geos::geom::Geometry * Geos, std::vector<std::pair<double, double>> Hauteurs)
 	{
 		citygml::CityModel* model = new citygml::CityModel;
-		for(int i = 0; i < Geos->getNumGeometries(); ++i)
+        for(size_t i = 0; i < Geos->getNumGeometries(); ++i)
 		{		
             const geos::geom::Geometry * TempGeo = Geos->getGeometryN(i);
 			if(TempGeo->getGeometryType() != "Polygon")
@@ -1153,7 +1153,7 @@ namespace vcity
 
 			geos::geom::CoordinateSequence * Coords = TempGeo->getCoordinates();	//Récupère tous les points de la geometry
 
-			for(int j = 0; j < Coords->size() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
+            for(size_t j = 0; j < Coords->size() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
 			{
 				citygml::Polygon * PolyWall = new citygml::Polygon("PolyWall_" + std::to_string(j));
 				citygml::LinearRing * RingWall = new citygml::LinearRing("RingWall_" + std::to_string(j),true);
@@ -1214,7 +1214,7 @@ namespace vcity
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
-		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
+        for(size_t i = 0; i < Geometry->getNumGeometries(); ++i)
 		{
 			citygml::Polygon * Poly = new citygml::Polygon("Polygon");
 			citygml::LinearRing * Ring = new citygml::LinearRing("ExteriorRing", true);
@@ -1226,7 +1226,7 @@ namespace vcity
 			if(!PolyGeos || PolyGeos->getNumInteriorRing() == 0)
 			{
 				Coords = TempGeo->getCoordinates();
-				for(int j = 0; j < Coords->size(); ++j)
+                for(size_t j = 0; j < Coords->size(); ++j)
 				{
 					Ring->addVertex(TVec3d(Coords->getAt(j).x + offset_.x, Coords->getAt(j).y + offset_.y, Zmin));
 				}
@@ -1237,19 +1237,19 @@ namespace vcity
 			{
 				const geos::geom::LineString * ExtRing = PolyGeos->getExteriorRing();
 				Coords = ExtRing->getCoordinates();
-				for(int j = 0; j < Coords->size(); ++j)
+                for(size_t j = 0; j < Coords->size(); ++j)
 				{
 					Ring->addVertex(TVec3d(Coords->getAt(j).x + offset_.x, Coords->getAt(j).y + offset_.y, Zmin));
 				}
 				Poly->addRing(Ring);
-				for(int k = 0; k < PolyGeos->getNumInteriorRing(); ++k)
+                for(size_t k = 0; k < PolyGeos->getNumInteriorRing(); ++k)
 				{
 					citygml::LinearRing * IntRing = new citygml::LinearRing("InteriorRing", false);//False pour signifier que le linearring correspond à un interior ring
 					const geos::geom::LineString * IntRingGeos = PolyGeos->getInteriorRingN(k);
 					Coords = nullptr;
 					delete Coords;
 					Coords = IntRingGeos->getCoordinates();
-					for(int j = 0; j < Coords->size(); ++j)
+                    for(size_t j = 0; j < Coords->size(); ++j)
 					{
 						IntRing->addVertex(TVec3d(Coords->getAt(j).x + offset_.x, Coords->getAt(j).y + offset_.y, Zmin));
 					}
@@ -1311,11 +1311,11 @@ namespace vcity
 	double Hausdorff(geos::geom::CoordinateSequence * Points, const geos::geom::Geometry * Geo)
 	{
 		double D = 0;
-		for(int i = 0; i < Points->size(); ++i)
+        for(size_t i = 0; i < Points->size(); ++i)
 		{
 			double D_1 = 10000;
 			geos::geom::Coordinate P0 = Points->getAt(i);
-			for(int j = 0; j < Geo->getNumGeometries(); ++j)
+            for(size_t j = 0; j < Geo->getNumGeometries(); ++j)
 			{
 				double D_2;
 				const geos::geom::Geometry * Triangle = Geo->getGeometryN(j);
@@ -1345,9 +1345,9 @@ namespace vcity
 				geos::geom::Coordinate P1P2(P2.x - P1.x, P2.y - P1.y, P2.z - P1.z); //Vecteur P1P2
 				geos::geom::Coordinate P1P3(P3.x - P1.x, P3.y - P1.y, P3.z - P1.z);
 				geos::geom::Coordinate P2P3(P3.x - P2.x, P3.y - P2.y, P3.z - P2.z);
-				double nP1P2 = sqrt(P1P2.x * P1P2.x + P1P2.y * P1P2.y + P1P2.z * P1P2.z); //Norme du vecteur P1P2
-				double nP1P3 = sqrt(P1P3.x * P1P3.x + P1P3.y * P1P3.y + P1P3.z * P1P3.z);
-				double nP2P3 = sqrt(P2P3.x * P2P3.x + P2P3.y * P2P3.y + P2P3.z * P2P3.z);
+                //double nP1P2 = sqrt(P1P2.x * P1P2.x + P1P2.y * P1P2.y + P1P2.z * P1P2.z); //Norme du vecteur P1P2
+                //double nP1P3 = sqrt(P1P3.x * P1P3.x + P1P3.y * P1P3.y + P1P3.z * P1P3.z);
+                //double nP2P3 = sqrt(P2P3.x * P2P3.x + P2P3.y * P2P3.y + P2P3.z * P2P3.z);
 
 				geos::geom::Coordinate Np(P1P2.y * P1P3.z - P1P2.z * P1P3.y, P1P2.z * P1P3.x - P1P2.x * P1P3.z, P1P2.x * P1P3.y - P1P2.y * P1P3.x); //Normal du triangle
 				double nNp = sqrt(Np.x * Np.x + Np.y * Np.y + Np.z * Np.z);
@@ -1378,7 +1378,7 @@ namespace vcity
 					geos::geom::Coordinate P0_P3(P3.x - P0_.x, P3.y - P0_.y, P3.z - P0_.z);
 					double nP0_P1 = sqrt(P0_P1.x * P0_P1.x + P0_P1.y * P0_P1.y + P0_P1.z * P0_P1.z); //Norme du vecteur P0_P1
 					double nP0_P2 = sqrt(P0_P2.x * P0_P2.x + P0_P2.y * P0_P2.y + P0_P2.z * P0_P2.z);
-					double nP0_P3 = sqrt(P0_P3.x * P0_P3.x + P0_P3.y * P0_P3.y + P0_P3.z * P0_P3.z);
+                    //double nP0_P3 = sqrt(P0_P3.x * P0_P3.x + P0_P3.y * P0_P3.y + P0_P3.z * P0_P3.z);
 
 					//Sur P1P2 :
 					geos::geom::Coordinate Temp(P0_P2.y * P0_P1.z - P0_P2.z * P0_P1.y, P0_P2.z * P0_P1.x - P0_P2.x * P0_P1.z, P0_P2.x * P0_P1.y - P0_P2.y * P0_P1.x);
@@ -1487,8 +1487,8 @@ namespace vcity
 	{
 		std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Res; //Enregistre les liens entre les polygones. Pour un polygone donnée de Geo1, si il est en lien avec un de Geo2, l'indice sera précédé de -1 ou -2 pour inchangé/changé
 
-		int NbGeo1 = Geo1->getNumGeometries();
-		int NbGeo2 = Geo2->getNumGeometries();
+        size_t NbGeo1 = Geo1->getNumGeometries();
+        size_t NbGeo2 = Geo2->getNumGeometries();
 
 		Res.first.resize(NbGeo1);
 		Res.second.resize(NbGeo2);
@@ -1496,12 +1496,12 @@ namespace vcity
 		double moyenne = 0;
 		int cpt = 0;
 
-		for(int i = 0; i < NbGeo1; ++i)
+        for(size_t i = 0; i < NbGeo1; ++i)
 		{
 			geos::geom::Geometry * SGeo1 = Geo1->getGeometryN(i)->clone();
 
 			double Zmax1, Zmin1;
-			for(int j = 0; j < SGeo1->getNumPoints(); ++j)
+            for(size_t j = 0; j < SGeo1->getNumPoints(); ++j)
 			{
 				geos::geom::CoordinateSequence * TempCoord = SGeo1->getCoordinates();
 				double z = TempCoord->getAt(j).z;
@@ -1520,7 +1520,7 @@ namespace vcity
 				}
 			}
 
-			for(int j = 0; j < NbGeo2; ++j)
+            for(size_t j = 0; j < NbGeo2; ++j)
 			{
 				geos::geom::Geometry * SGeo2 = Geo2->getGeometryN(j)->clone();
 
@@ -1608,7 +1608,7 @@ namespace vcity
 
 		std::vector<geos::geom::Geometry *> PolyToGeo;
 		PolyToGeo.push_back(Poly->getExteriorRing()->clone());
-		for(int j = 0; j < Poly->getNumInteriorRing(); ++j)
+        for(size_t j = 0; j < Poly->getNumInteriorRing(); ++j)
 		{
 			PolyToGeo.push_back(Poly->getInteriorRingN(j)->clone());
 		}
@@ -1636,7 +1636,7 @@ namespace vcity
 		TVec3d AC;
 		TVec3d AM;
 		int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
-		for(int i = 1; i < GeoZ->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+        for(size_t i = 1; i < GeoZ->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
 		{
 			if(test == 0)
 			{				
@@ -1675,7 +1675,7 @@ namespace vcity
 
 		geos::geom::CoordinateSequence * ResCoords = new geos::geom::CoordinateArraySequence;
 
-		for(int i = 0; i < Geo->getNumPoints(); ++i)
+        for(size_t i = 0; i < Geo->getNumPoints(); ++i)
 		{
 			geos::geom::Coordinate M(CoordsGeo->getAt(i));
 			double s, t;
@@ -1728,7 +1728,7 @@ namespace vcity
         citygml::ExporterCityGML exporter("Batiments.citygml");
         exporter.initExport();
 
-		for(int j = 0; j < Batiments->getNumGeometries(); ++j)
+        for(size_t j = 0; j < Batiments->getNumGeometries(); ++j)
 		{
 			if(j%10 == 0)
 					std::cout << "Avancement : " << j << "/" << Batiments->getNumGeometries() << " batiments ajoutes au CityGML.\r" << std::flush;
@@ -1738,7 +1738,7 @@ namespace vcity
             std::vector<geos::geom::Geometry*>* VecGeo = new std::vector<geos::geom::Geometry*>();
 			std::vector<double> Hauteurs; //Contiendra les Zmin de toutes les geometry de VecGeo pour savoir jusqu'où descendre les murs
 
-			for(int i = 0; i < tiles.size(); i++)//On parcourt les tuiles du CityGML
+            for(size_t i = 0; i < tiles.size(); i++)//On parcourt les tuiles du CityGML
 			{
 				citygml::CityModel* model = tiles[i]->getCityModel();
 				
@@ -1794,7 +1794,7 @@ namespace vcity
 
 									geos::geom::Geometry * Inter = GeoCityGML->intersection(Bati);
 
-									for(int k = 0; k < Inter->getNumGeometries(); ++k)
+                                    for(size_t k = 0; k < Inter->getNumGeometries(); ++k)
 									{
 										const geos::geom::Geometry * Interpart = Inter->getGeometryN(k);
 										if(!Interpart->isValid() || Interpart->isEmpty() || Interpart->getNumPoints() < 4 || Interpart->getArea() == 0.0)
@@ -1829,7 +1829,7 @@ namespace vcity
 				//citygml::CityObject* BuildingCO = new citygml::Building("Building_" + std::to_string(j));
 				citygml::CityObject* BuildingCO = new citygml::Building(InfoBatiments[j].ID);
 
-                for(int i = 0; i < VecGeo->size(); ++i)
+                for(size_t i = 0; i < VecGeo->size(); ++i)
 				{
 					citygml::Geometry* Roof = new citygml::Geometry("GeoRoof_Building_" + std::to_string(j)  + "_" + std::to_string(i), citygml::GT_Roof, 0);
 					citygml::Polygon * PolyRoof = new citygml::Polygon("PolyRoof");
@@ -1841,19 +1841,19 @@ namespace vcity
 
                     geos::geom::CoordinateSequence * Coords = (*VecGeo)[i]->getCoordinates();
 
-					for(int k = 0; k < Coords->size() - 1; ++k)
+                    for(size_t k = 0; k < Coords->size() - 1; ++k)
 					{
 						RingRoof->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Coords->getAt(k).z));
 						RingGround->addVertex(TVec3d(Coords->getAt(k).x + offset_.x, Coords->getAt(k).y + offset_.y, Hauteurs[i]));
 
 						int BuildWall = 0;//Comptera le nombre de polygones du toit contenant la ligne. S'il est supérieur à 1, cela signifique qu'il ne faut pas construire le mur
 
-                        for(int z = 0; z < VecGeo->size(); z++)//Pour ne pas construire de murs entre deux polygones voisins partageant une arrête
+                        for(size_t z = 0; z < VecGeo->size(); z++)//Pour ne pas construire de murs entre deux polygones voisins partageant une arrête
 						{
 							if(z == i)
 								continue;
                             geos::geom::CoordinateSequence * Coords2 = (*VecGeo)[z]->getCoordinates();
-							for(int c = 0; c < Coords2->size(); ++c)
+                            for(size_t c = 0; c < Coords2->size(); ++c)
 							{
 								if(Coords->getAt(k).x == Coords2->getAt(c).x && Coords->getAt(k).y == Coords2->getAt(c).y && Coords->getAt(k).z == Coords2->getAt(c).z)
 								{
@@ -1987,7 +1987,7 @@ namespace vcity
 				//citygml::CityModel* model = tiles[i]->getCityModel();
 				//citygml::CityObjects objs = model->getCityObjectsRoots();
 
-				int cpt = 0;
+                //int cpt = 0;
 
 				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 					//citygml::CityObjects::iterator it = objs.begin(); it < objs.end(); ++it)
@@ -2067,7 +2067,7 @@ namespace vcity
 		geos::geom::Geometry * EnveloppeCity = nullptr;
 		std::vector<const geos::geom::Geometry *> VecGeos;
 
-		for(int i = 0; i < tiles.size(); i++)//Création de l'enveloppe city à partir des données citygml
+        for(size_t i = 0; i < tiles.size(); i++)//Création de l'enveloppe city à partir des données citygml
 		{
 			citygml::CityModel* model = tiles[i]->getCityModel();
 			citygml::CityObjects objs = model->getCityObjectsRoots();
@@ -2085,7 +2085,7 @@ namespace vcity
 
 					geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
 					/////////////
-					for(int y = 0; y < GeosObj->getNumGeometries(); y++)
+                    for(size_t y = 0; y < GeosObj->getNumGeometries(); y++)
 					{
 						if(GeosObj->getGeometryN(y)->isValid())
 							VecGeos.push_back(GeosObj->getGeometryN(y));
@@ -2133,7 +2133,7 @@ namespace vcity
         std::vector<geos::geom::Geometry*>* GeoRes = new std::vector<geos::geom::Geometry*>(); //Contiendra les bâtiments de CityGML découpés par le Shape
 		std::vector<BatimentShape> InfoBatimentsRes;
 
-		for(int i = 0; i < EnveloppeCity->getNumGeometries(); ++i)//On parcourt tous les polygons du CityGML
+        for(size_t i = 0; i < EnveloppeCity->getNumGeometries(); ++i)//On parcourt tous les polygons du CityGML
 		{
 			if(Link.second[i].size() < 1) // Si == 1, il n'y aurait rien à faire normalement car le bâtiment CityGML correspond à un seul bâtiment cadastral.
 				continue;
@@ -2147,7 +2147,7 @@ namespace vcity
 			std::vector<geos::geom::Geometry *> NewShape;		//Intersection avec le cityGML
 
 			std::vector<geos::geom::Geometry *> GeoS;//Contiendra tous les polygons du shape liés au polygon du CityGML
-			for(int j = 0; j < Link.second[i].size(); ++j)//Remplissage de GeoS
+            for(size_t j = 0; j < Link.second[i].size(); ++j)//Remplissage de GeoS
 			{
 				geos::geom::Polygon * CurrPolyS = dynamic_cast<geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j])->clone()); //Polygon du shape courant
 				GeoS.push_back(CurrPolyS);
@@ -2156,7 +2156,7 @@ namespace vcity
 			geos::geom::Geometry* UnionPolyS = geos::operation::geounion::CascadedPolygonUnion::Union(factory->createMultiPolygon(GeoS)); //Enveloppe du shape
 
 			std::vector<geos::geom::Geometry *> PolyToGeo;
-			for(int k = 0; k < UnionPolyS->getNumGeometries(); ++k)//On parcourt tous les polygons de UnionPolyS pour faire un ensemble de geometry contenant de manière indifférente tous les external ring et les interiors rings.
+            for(size_t k = 0; k < UnionPolyS->getNumGeometries(); ++k)//On parcourt tous les polygons de UnionPolyS pour faire un ensemble de geometry contenant de manière indifférente tous les external ring et les interiors rings.
 				//On pourra ainsi calculer l'intersection d'un point avec tous les rings de cette union sans être gêné par le fait qu'un polygon soit "plein".
 					//Sinon, un point à l'intérieur du polygon est considéré comme intersect même s'il ne se trouve pas sur les bords.
 			{
@@ -2164,14 +2164,14 @@ namespace vcity
 				if(CurrPolyS == nullptr)
 					continue;
 				PolyToGeo.push_back(CurrPolyS->getExteriorRing()->clone());
-				for(int j = 0; j < CurrPolyS->getNumInteriorRing(); ++j)
+                for(size_t j = 0; j < CurrPolyS->getNumInteriorRing(); ++j)
 				{
 					PolyToGeo.push_back(CurrPolyS->getInteriorRingN(j)->clone());
 				}
 			}				
 			geos::geom::Geometry * CurrGeoS = factory->createGeometryCollection(PolyToGeo);
 
-			for(int j = 0; j < Link.second[i].size(); ++j)//On manipule les polygons EXTERIEURS du shape (ceux qui intersectent CurrGeoS, qui représente l'enveloppe) : on prend un polygon, on le dilate, on lui soustrait tous les autres puis
+            for(size_t j = 0; j < Link.second[i].size(); ++j)//On manipule les polygons EXTERIEURS du shape (ceux qui intersectent CurrGeoS, qui représente l'enveloppe) : on prend un polygon, on le dilate, on lui soustrait tous les autres puis
 				//on prend son intersection avec l'enveloppe du CityGML. On obtient ainsi des polygons contenu dans le CityGML et l'union de tous ces polygons doit normalement occuper une grande partie du CityGML
 			{
 				const geos::geom::Polygon * CurrPolyS = dynamic_cast<const geos::geom::Polygon*>(Shape->getGeometryN(Link.second[i][j]));
@@ -2190,7 +2190,7 @@ namespace vcity
 
 				geos::geom::Geometry * CurrPolyS2 = Buffer.getResultGeometry(2);
 
-				for(int k = 0; k < Link.second[i].size(); ++k)
+                for(size_t k = 0; k < Link.second[i].size(); ++k)
 				{
 					if(k == j)
 						continue;
@@ -2209,11 +2209,11 @@ namespace vcity
 
 			////////////////////////////Eliminer les superpositions des polygons :
 
-			for(int j = 0; j < NewShape.size(); ++j)//Pour chaque polygon obtenu après l'intersection ...
+            for(size_t j = 0; j < NewShape.size(); ++j)//Pour chaque polygon obtenu après l'intersection ...
 			{
 				geos::geom::Geometry * Geo = NewShape[j];
 
-				for(int k = j+1; k < NewShape.size(); ++k)//On le compare avec les autres pour extraire ceux qui s'intersectent
+                for(size_t k = j+1; k < NewShape.size(); ++k)//On le compare avec les autres pour extraire ceux qui s'intersectent
 				{
 					const geos::geom::Geometry * Geo2 = NewShape[k];
 					geos::geom::Geometry * InterGeo = Geo2->intersection(Geo);
@@ -2228,7 +2228,7 @@ namespace vcity
 
 					std::vector <geos::geom::Geometry*> LineVec;//Contiendra les lignes (arrêtes communes) formées par l'opérateur intersection entre les deux polygons courant
 
-					for(int t = 0; t < InterGeo->getNumGeometries(); ++t)//On parcourt les polygons formant l'intersection entre les deux polygons j et k
+                    for(size_t t = 0; t < InterGeo->getNumGeometries(); ++t)//On parcourt les polygons formant l'intersection entre les deux polygons j et k
 					{
 						const geos::geom::Geometry * GeoTemp = InterGeo->getGeometryN(t);
 						
@@ -2243,7 +2243,7 @@ namespace vcity
 						geos::geom::Point * P1 = factory->createPoint(coords->getAt(0));
 						geos::geom::Point * P2 = factory->createPoint(coords->getAt(1));
 
-						for(int p = 0; p < InterGeo->getNumGeometries(); ++p)//On regarde quels sont les polygons qui touchent les linestring en reparcourant la liste des geometry de l'intersection
+                        for(size_t p = 0; p < InterGeo->getNumGeometries(); ++p)//On regarde quels sont les polygons qui touchent les linestring en reparcourant la liste des geometry de l'intersection
 						{
 							const geos::geom::Geometry * GeoTemp2 = InterGeo->getGeometryN(p);							
 
@@ -2314,7 +2314,7 @@ namespace vcity
 
 					std::vector<geos::geom::Geometry*> SplitPoly = SplitPolygon(InterVec, LineVec);
 
-					for(int t = 0; t < SplitPoly.size(); ++t)
+                    for(size_t t = 0; t < SplitPoly.size(); ++t)
 					{
 						//Save3GeometryRGB("TEST3", SplitPoly[t], Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));
 						int n = GetNearestGeo(SplitPoly[t], Shape->getGeometryN(Link.second[i][j]), Shape->getGeometryN(Link.second[i][k]));
@@ -2350,7 +2350,7 @@ namespace vcity
 			Save3GeometryRGB("ShapeRes_" + std::to_string(i), EnveloppeCity, ShapeRes, EnveloppeCity);
 			Save3GeometryRGB("ShapeRes2_" + std::to_string(i), EnveloppeCity, ShapeRes2, EnveloppeCity);*/
 
-			for(int t = 0; t < NewShape.size(); ++t)
+            for(size_t t = 0; t < NewShape.size(); ++t)
 			{
                 GeoRes->push_back(NewShape[t]);
 				InfoBatimentsRes.push_back(InfoBatiments[Link.second[i][t]]);
@@ -2460,11 +2460,11 @@ namespace vcity
 
 			//Création de EnveloppeCity : pour chaque bâtiment distinct, il contient la liste des polygones qui le composent
 			std::vector<geos::geom::Geometry*> GeoVec1;//Contiendra un geometrycollection par bâtiment
-			for(int g = 0; g < EnveloppeCityU[i]->getNumGeometries(); ++g)
+            for(size_t g = 0; g < EnveloppeCityU[i]->getNumGeometries(); ++g)
 			{
 				std::vector<geos::geom::Geometry*> GeoVec2;//Contiendra liste des polygones pour bâtiment i
 				const geos::geom::Geometry * CurrBati = EnveloppeCityU[i]->getGeometryN(g); //On parcourt chaque bâtiment
-				for(int j = 0; j < GeoVecAll.size(); ++j)
+                for(size_t j = 0; j < GeoVecAll.size(); ++j)
 				{
 					if(GeoVecAll[j]->intersects(CurrBati))
 					{
@@ -2490,7 +2490,7 @@ namespace vcity
 		std::vector<geos::geom::Geometry *> BatiModifies2;
 		std::vector<geos::geom::Geometry *> BatiInchanges;
 
-		for(int i = 0; i < EnveloppeCityU[0]->getNumGeometries(); ++i)
+        for(size_t i = 0; i < EnveloppeCityU[0]->getNumGeometries(); ++i)
 		{
 			if(Compare.first[i].size() == 0)
 				BatiDetruits.push_back(EnveloppeCityU[0]->getGeometryN(i)->clone());
@@ -2505,7 +2505,7 @@ namespace vcity
 				}
 			}
 		}
-		for(int i = 0; i < EnveloppeCityU[1]->getNumGeometries(); ++i)
+        for(size_t i = 0; i < EnveloppeCityU[1]->getNumGeometries(); ++i)
 		{
 			if(Compare.second[i].size() == 0)
 				BatiCrees.push_back(EnveloppeCityU[1]->getGeometryN(i)->clone());
@@ -2570,7 +2570,7 @@ namespace vcity
 		std::vector<std::pair<double, double>> Hauteurs2;
 		std::vector<geos::geom::Geometry *> GeosWithoutHoles;
 
-		for(int i = 0; i < ShapeRes->getNumGeometries(); ++i)
+        for(size_t i = 0; i < ShapeRes->getNumGeometries(); ++i)
 		{
 			const geos::geom::Geometry * CurrGeo = ShapeRes->getGeometryN(i);
 
@@ -2582,7 +2582,7 @@ namespace vcity
 
 			double H = 0, Zmin = -9999;
 			int cpt = 0;
-			for(int j = 0; j < Shape->getNumGeometries(); ++j)
+            for(size_t j = 0; j < Shape->getNumGeometries(); ++j)
 			{
 				if(Hauteurs[j].first == -1)
 					continue;
@@ -2605,7 +2605,7 @@ namespace vcity
 
 		//SaveGeometry("Shape_Close_WithoutHoles", ShapeResWithoutHoles);
 
-		geos::geom::Geometry * ShapeResWithoutHolesSimp = geos::simplify::TopologyPreservingSimplifier::simplify(ShapeResWithoutHoles, 4).release();
+        //geos::geom::Geometry * ShapeResWithoutHolesSimp = geos::simplify::TopologyPreservingSimplifier::simplify(ShapeResWithoutHoles, 4).release();
 		//SaveGeometry("Shape_Close_WithoutHoles_Simplified", ShapeResWithoutHolesSimp);
 
 		// gen loa

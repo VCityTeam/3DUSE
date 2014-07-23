@@ -261,7 +261,7 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 {
     m_tree->blockSignals(true);
 
-    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    //QTreeWidgetItem* root = m_tree->topLevelItem(0);
     QTreeWidgetItem* layer = getNode(uriLayer);
 
     QTreeWidgetItem* item = createItemGeneric(tile.getName().c_str(), "Tile");
@@ -350,7 +350,7 @@ void TreeView::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg:
 {
     m_tree->blockSignals(true);
 
-    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    //QTreeWidgetItem* root = m_tree->topLevelItem(0);
     QTreeWidgetItem* layer = getNode(uriLayer);
 
     /*QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "AssimpNode");
@@ -386,7 +386,7 @@ void TreeView::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg:
 {
     m_tree->blockSignals(true);
 
-    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    //QTreeWidgetItem* root = m_tree->topLevelItem(0);
     QTreeWidgetItem* layer = getNode(uriLayer);
 
     QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "MntAscNode");
@@ -401,7 +401,7 @@ void TreeView::addShpNode(const vcity::URI& uriLayer, const std::string& nodeNam
 {
     m_tree->blockSignals(true);
 
-    QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    //QTreeWidgetItem* root = m_tree->topLevelItem(0);
     QTreeWidgetItem* layer = getNode(uriLayer);
 
     QTreeWidgetItem* item = createItemGeneric(QString(nodeName.c_str()), "ShpNode");
@@ -446,7 +446,7 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
     QTreeWidgetItem* current = root;
 
     int depth = uri.getDepth();
-    int maxDepth = depth;
+    //int maxDepth = depth;
 
     if(depth == 0)
     {
