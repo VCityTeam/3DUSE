@@ -2080,8 +2080,8 @@ namespace vcity
 	}
 
 	/**
-	* @brief Génère le LOD0 des bâtiments de la scène
-	* @param uri Représente l'ID du bâtiment à traité. S'il est nul, cela signifique que le calcul du LOD0 se fera sur chaque bâtiment se la scène
+	* @brief Génère le LOD0 du bâtiment lié à uri
+	* @param uri Représente l'ID du bâtiment à traité.
 	*/
 	/*void Algo::generateLOD0(const URI& uri)
 	{
@@ -2765,6 +2765,15 @@ namespace vcity
 #ifdef _WIN32
         _CrtDumpMemoryLeaks();
 #endif // _WIN32
+	}
+
+	/**
+	* @brief Génère le LOD1 du bâtiment lié à uri : Générer le LOD0 en récupérant les infos de hauteurs puis extruder en LOD1 avant d'exporter en CityGML
+	* @param uri Représente l'ID du bâtiment à traité.
+	*/
+	/*TO DO*/ void Algo::generateLOD1(const URI& uri)
+	{
+		
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	/**

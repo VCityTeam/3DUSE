@@ -17,6 +17,7 @@ public:
 	void generateLOD0(const URI& uri);
     void DecoupeCityGML(geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
 	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);
+	void generateLOD1(const URI& uri);
 	void CompareTiles();
 
     citygml::CityModel* getCitymodel();
