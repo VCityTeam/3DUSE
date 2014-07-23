@@ -139,10 +139,8 @@ namespace vcity
 		{
 			projectRoof(*itObj,roofProj, heightmax, heightmin);
 		}
-
 	}
-	
-	void GetFootprint(citygml::CityObject* obj, OGRGeometryCollection * FootPrint, double * heightmax, double * heightmin)
+	void GetFootprint(citygml::CityObject* obj, OGRMultiPolygon * FootPrint, double * heightmax, double * heightmin)
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 		if(obj->getType() == citygml::COT_RoofSurface) //Si surface de toit : COT_RoofSurface COT_WallSurface
@@ -163,7 +161,7 @@ namespace vcity
 					}
 					OgrRing->closeRings();
 					OgrPoly->addRingDirectly(OgrRing);
-					FootPrint->addGeometry(OgrPoly); // on récupere le polygone
+					FootPrint->addGeometryDirectly(OgrPoly); // on récupere le polygone
 				}
 			}
 		}
@@ -610,9 +608,9 @@ namespace vcity
 	}
 	void SaveRecursiveGeometry(const OGRGeometry * Geo, int* Im, int height, int width, int Xmin, int Ymin)
 	{
-		if(Geo->getGeometryType() == OGRwkbGeometryType::wkbGeometryCollection)//Si Geo est encore un ensemble de geometry, on continue de parcourir ses fils
+		if(Geo->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon)//Si Geo est encore un ensemble de geometry, on continue de parcourir ses fils
 		{
-			const OGRGeometryCollection * GeoCollection = dynamic_cast<const OGRGeometryCollection*>(Geo);
+			const OGRMultiPolygon * GeoCollection = dynamic_cast<const OGRMultiPolygon*>(Geo);
 			for(int i = 0; i < GeoCollection->getNumGeometries(); ++i)
 				SaveRecursiveGeometry(GeoCollection->getGeometryRef(i), Im, height, width, Xmin, Ymin);
 		}
@@ -734,7 +732,7 @@ namespace vcity
 
 		delete [] Im;
 	}
-	void SaveGeometry(std::string name, const OGRGeometryCollection* G)
+	void SaveGeometry(std::string name, const OGRMultiPolygon* G)
 	{	
 		OGREnvelope * Envelope = nullptr;
 		G->getEnvelope(Envelope);
@@ -963,105 +961,118 @@ namespace vcity
 
 		return ResUnion;
 	}
-	OGRGeometryCollection * GetEnveloppe(OGRGeometryCollection * MP)
+	OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
 	{
 		//std::cout << "Mise en place de l'union des polygons" << std::endl;
 
 		OGRGeometry* ResUnion = nullptr;
 
-		ResUnion = MP->UnionCascaded();
+		//ResUnion = MP->UnionCascaded();
 
-		/*for(int i = 0; i < MP->getNumGeometries(); ++i)	//On parcourt tous les polygons que l'on veut unir
+		for(int i = 0; i < MP->getNumGeometries(); ++i)	//On parcourt tous les polygons que l'on veut unir
 		{
 			try	//On vérifie qu'il n'y ait pas d'exceptions faisant planter le logiciel
 			{
-				geos::geom::Geometry* tmp = ResUnion;
-				ResUnion = ResUnion->Union(MP->getGeometryN(i)); //On fait l'union avant de la vérifier
+				OGRGeometry* tmp = ResUnion;
+				ResUnion = ResUnion->Union(MP->getGeometryRef(i)); //On fait l'union avant de la vérifier
 				delete tmp;
 
-				std::vector<geos::geom::Geometry*>* Polys = new std::vector<geos::geom::Geometry*>(); //Vecteur contenant les différents polygones de l'union au fur et à mesure
+				std::vector<OGRGeometry*>* Polys = new std::vector<OGRGeometry*>(); //Vecteur contenant les différents polygones de l'union au fur et à mesure
+				
+				//OGRGeometryFactory::organizePolygons
 
-				for(size_t j = 0; j < ResUnion->getNumGeometries(); ++j) //L'union peut être constitué de plusieurs polygons disjoints
+				/*if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon)
 				{
-					geos::geom::CoordinateArraySequence tempcoord;
-					const geos::geom::CoordinateSequence *coordGeo = ResUnion->getGeometryN(j)->getCoordinates(); //On récupère la liste des points de la géométrie courante
-
-					double FirstPoint[2];
-					FirstPoint[0] = -1;
-
-					bool isHole = false;
-					geos::geom::LinearRing * shell;
-					std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>; //Vecteur contenant tous les polygones à l'intérieur du premier, qui sont donc considérés comme des trous
-
-					for(size_t k = 0; k < coordGeo->size(); ++k) //On parcourt tous les points pour retrouver ceux qui apparaissent deux fois et qui définissent un polygon qu'il faut extraire
+					OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
+					for(size_t j = 0; j < GeoCollection->getNumGeometries(); ++j) //L'union peut être constitué de plusieurs polygons disjoints
 					{
-						double x = coordGeo->getAt(k).x;
-						double y = coordGeo->getAt(k).y;
-
-						tempcoord.add(coordGeo->getAt(k));//Pour avoir le z en plus
-
-						if(FirstPoint[0] == -1)
+						OGRGeometry * Geometry = GeoCollection->getGeometryRef(j);
+						if(Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon || Geometry->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)
 						{
-							FirstPoint[0] = x;
-							FirstPoint[1] = y;
-						}
-						else if(x == FirstPoint[0] && y == FirstPoint[1])
-						{
-							if(!isHole)
-							{
-								shell = factory->createLinearRing(tempcoord);
-								FirstPoint[0] = -1;
-								isHole = true;
-								tempcoord.clear();
+							//OGRPolygon * Polygon = dynamic_cast<OGRPolygon*>(Geometry);
+							//OGRLinearRing * Ring = Polygon->getExteriorRing();
 
-								//break;//////////////////////// A COMMENTER POUR AVOIR LES TROUS DANS LES POLYGONS
-							}
-							else
+							geos::geom::CoordinateArraySequence tempcoord;
+							const geos::geom::CoordinateSequence *coordGeo = GeoCollection->getGeometryRef(j)->getCoordinates(); //On récupère la liste des points de la géométrie courante
+
+							double FirstPoint[2];
+							FirstPoint[0] = -1;
+
+							bool isHole = false;
+							geos::geom::LinearRing * shell;
+							std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>; //Vecteur contenant tous les polygones à l'intérieur du premier, qui sont donc considérés comme des trous
+
+							for(size_t k = 0; k < coordGeo->size(); ++k) //On parcourt tous les points pour retrouver ceux qui apparaissent deux fois et qui définissent un polygon qu'il faut extraire
 							{
-								if(tempcoord.size() > 3)
+								double x = coordGeo->getAt(k).x;
+								double y = coordGeo->getAt(k).y;
+
+								tempcoord.add(coordGeo->getAt(k));//Pour avoir le z en plus
+
+								if(FirstPoint[0] == -1)
 								{
-									geos::geom::LinearRing* Hole = factory->createLinearRing(tempcoord);
-									geos::geom::Polygon* polyArea = factory->createPolygon(*Hole, std::vector<geos::geom::Geometry*>());
-
-									if(polyArea->getArea() > 1)
-										Holes->push_back(static_cast<geos::geom::Geometry*>(Hole));
-
-									delete polyArea;
+									FirstPoint[0] = x;
+									FirstPoint[1] = y;
 								}
-								FirstPoint[0] = -1;
-								tempcoord.clear();
+								else if(x == FirstPoint[0] && y == FirstPoint[1])
+								{
+									if(!isHole)
+									{
+										shell = factory->createLinearRing(tempcoord);
+										FirstPoint[0] = -1;
+										isHole = true;
+										tempcoord.clear();
+
+										//break;//////////////////////// A COMMENTER POUR AVOIR LES TROUS DANS LES POLYGONS
+									}
+									else
+									{
+										if(tempcoord.size() > 3)
+										{
+											geos::geom::LinearRing* Hole = factory->createLinearRing(tempcoord);
+											geos::geom::Polygon* polyArea = factory->createPolygon(*Hole, std::vector<geos::geom::Geometry*>());
+
+											if(polyArea->getArea() > 1)
+												Holes->push_back(static_cast<geos::geom::Geometry*>(Hole));
+
+											delete polyArea;
+										}
+										FirstPoint[0] = -1;
+										tempcoord.clear();
+									}
+								}
 							}
+							delete coordGeo;
+							geos::geom::Polygon *P;
+
+							if(Holes->size() == 0)
+								P = factory->createPolygon(shell, nullptr);
+							else
+								P = factory->createPolygon(shell, Holes);
+
+							Polys->push_back(P);
 						}
 					}
-					delete coordGeo;
-					geos::geom::Polygon *P;
-
-					if(Holes->size() == 0)
-						P = factory->createPolygon(shell, nullptr);
-					else
-						P = factory->createPolygon(shell, Holes);
-
-					Polys->push_back(P);
 				}
 				delete ResUnion;
-				ResUnion = factory->createMultiPolygon(Polys);
+				ResUnion = factory->createMultiPolygon(Polys);*/
 			}
 			catch(std::exception& e)
 			{
 				std::cout << e.what() << '\n';
 			}
-		}*/
+		}
 
-		//On travaille avec des OGRGeometryCollection pour avoir un format universel, il faut donc transformer la geometry en collection.
-		if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbGeometryCollection)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
+		//On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
+		if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
 		{
-			OGRGeometryCollection * GeoCollection = dynamic_cast<OGRGeometryCollection*>(ResUnion->clone());
+			OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
 			return GeoCollection;
 		}
 		else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
 		{
-			OGRGeometryCollection * GeoCollection = nullptr;
-			GeoCollection->addGeometry(ResUnion);
+			OGRMultiPolygon * GeoCollection = nullptr;
+			GeoCollection->addGeometryDirectly(ResUnion);
 			return GeoCollection;
 		}
 		return nullptr;
@@ -1342,6 +1353,48 @@ namespace vcity
 			}
 			delete TempGeo;
 			delete Coords;
+		}
+		return Geom;
+	}
+	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geometry, double Zmin)
+	{
+		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
+		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
+		for(size_t i = 0; i < Geometry->getNumGeometries(); ++i)
+		{
+			citygml::Polygon * Poly = new citygml::Polygon("Polygon");
+			citygml::LinearRing * Ring = new citygml::LinearRing("ExteriorRing", true);
+
+			if(Geometry->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon)
+				continue;
+
+			OGRPolygon * Polygon =  dynamic_cast<OGRPolygon*>(Geometry->getGeometryRef(i)->clone());
+
+			OGRLinearRing * ExtRing = Polygon->getExteriorRing();
+
+			for(int j = 0; j < ExtRing->getNumPoints(); ++j)
+			{
+				OGRPoint * point = nullptr;
+				ExtRing->getPoint(j, point);
+				Ring->addVertex(TVec3d(point->getX() + offset_.x, point->getY() + offset_.y, Zmin));
+			}
+			Poly->addRing(Ring);
+			for(size_t k = 0; k < Polygon->getNumInteriorRings(); ++k)
+			{
+				citygml::LinearRing * IntRingCityGML = new citygml::LinearRing("InteriorRing", false);//False pour signifier que le linearring correspond à un interior ring
+				OGRLinearRing * IntRing = Polygon->getInteriorRing(k);
+
+				for(size_t j = 0; j < ExtRing->getNumPoints(); ++j)
+				{
+					OGRPoint * point = nullptr;
+					IntRing->getPoint(j, point);
+					IntRingCityGML->addVertex(TVec3d(point->getX() + offset_.x, point->getY() + offset_.y, Zmin));
+				}
+				Poly->addRing(IntRingCityGML);
+			}
+			Geom->addPolygon(Poly);
+
+			delete Polygon;
 		}
 		return Geom;
 	}
@@ -2104,10 +2157,14 @@ namespace vcity
 	}*/
 	void Algo::generateLOD0(const URI& uri)
 	{
+		std::cout << "TEST1" << std::endl;
+		std::cout << uri.getStringURI() << std::endl;
 		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
-		
+		std::cout << "TEST2" << std::endl;
+		std::cout << obj->getTypeAsString() << std::endl;
 		if(obj)/////////////////////////////////// Traitement bâtiment par bâtiment 
 		{
+			std::cout << "TEST3" << std::endl;
 			log() << "GenerateLOD0 on "<< uri.getStringURI() << "\n";
 			std::string name = obj->getId();
 			PolySet roofPoints;
@@ -2119,11 +2176,11 @@ namespace vcity
 			//geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
 			//SaveGeometry(name + "_Enveloppe", Enveloppe);
 			
-			OGRGeometryCollection * Footprint = nullptr;
+			OGRMultiPolygon * Footprint = nullptr;
 			GetFootprint(obj, Footprint, &heightmax, &heightmin);
 			SaveGeometry(name + "_MP", Footprint);
 
-			OGRGeometryCollection * Enveloppe = GetEnveloppe(Footprint);
+			OGRMultiPolygon * Enveloppe = GetEnveloppe(Footprint);
 			SaveGeometry(name + "_Enveloppe", Enveloppe);
 
 			//Pour afficher le ground dans VCity
@@ -2132,11 +2189,18 @@ namespace vcity
 			//citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
 			//obj2->addGeometry(geom);
 			//obj->insertNode(obj2);
+
+			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
+			geom = ConvertLOD0ToCityGML(name, Enveloppe, heightmin);
+			citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+			obj2->addGeometry(geom);
+			obj->insertNode(obj2);
 			std::cout << "Lod 0 exporte en cityGML" << std::endl;
 
 			//delete GeosObj;
 			//delete Enveloppe;
 		}
+		std::cout << "TEST4" << std::endl;
 	}
 
 	/**
