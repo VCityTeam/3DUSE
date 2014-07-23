@@ -595,41 +595,29 @@ osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
 {
+    osg::ref_ptr<osg::Node> res = nullptr;
     osg::ref_ptr<osg::Group> current = m_layers;
 
-    int depth = uri.getDepth()-uri.getCursor();
-    //int maxDepth = depth;
-
-    if(depth == 0)
-    {
-        return nullptr;
-    }
-
-    do
+    while(uri.getCursor() < uri.getDepth())
     {
         int count = current->getNumChildren();
         for(int i=0; i<count; ++i)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);
-            //std::cout << child->getName() << " -> " << uri.getNode(maxDepth-depth) << std::endl;
             if(child->getName() == uri.getCurrentNode())
             {
-				uri.popFront();
-                if(depth == 1)
-                {
-                    return child;
-                }
-                else if(!(current = child->asGroup()))
+                res = child;
+                if(!(current = child->asGroup()))
                 {
                     return nullptr;
                 }
                 break;
             }
         }
-        --depth;
-    } while(depth > 0);
+        uri.popFront();
+    }
 
-    return nullptr;
+    return res;
 
     /*FindNamedNode f(uri.getLastNode());
     accept(f);

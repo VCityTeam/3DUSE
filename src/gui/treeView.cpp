@@ -445,7 +445,7 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
     QTreeWidgetItem* res = nullptr;
     QTreeWidgetItem* current = m_tree->topLevelItem(0);
 
-    while(uri.getCursor() < uri.getDepth());
+    while(uri.getCursor() < uri.getDepth())
     {
         int count = current->childCount();
         for(int i=0; i<count; ++i)
