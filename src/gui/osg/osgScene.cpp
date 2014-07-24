@@ -609,7 +609,7 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
                 res = child;
                 if(!(current = child->asGroup()))
                 {
-                    return nullptr;
+                    return res;
                 }
                 break;
             }
