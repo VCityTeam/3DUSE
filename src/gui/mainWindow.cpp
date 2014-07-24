@@ -1021,7 +1021,17 @@ void MainWindow::generateLOD0()
 			citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
 			if(obj)
 			{
-				vcity::app().getAlgo().generateLOD0(obj);
+				std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+				OGRMultiPolygon * Enveloppe = nullptr;
+				double * heightmax = 0;
+				double * heightmin = 0;
+				vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+				citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+				obj2->addGeometry(geom);
+				obj->insertNode(obj2);
+
 				appGui().getControllerGui().update(*it);
 			}
 		}
@@ -1044,7 +1054,17 @@ void MainWindow::generateLOD0()
 				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
 				if(obj)
 				{
-					vcity::app().getAlgo().generateLOD0(obj);
+					std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+					OGRMultiPolygon * Enveloppe = nullptr;
+					double * heightmax = 0;
+					double * heightmin = 0;
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+					citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+					obj2->addGeometry(geom);
+					obj->insertNode(obj2);
+
 					appGui().getControllerGui().update(uri);
 				}
 			}
@@ -1079,14 +1099,18 @@ void MainWindow::generateLOD1()
 					OGRMultiPolygon * Enveloppe = nullptr;
 					double * heightmax = 0;
 					double * heightmin = 0;
-					vcity::app().getAlgo().generateLOD1(obj, Enveloppe, heightmax, heightmin);
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
-					citygml::CityModel* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+					//appGui().getControllerGui().update(*it);
 				}
 			}
 		}
 		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
 		{
+			citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+			exporter.initExport();
 			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
 			{
 				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
@@ -1106,14 +1130,16 @@ void MainWindow::generateLOD1()
 						OGRMultiPolygon * Enveloppe = nullptr;
 						double * heightmax = 0;
 						double * heightmin = 0;
-						vcity::app().getAlgo().generateLOD1(obj, Enveloppe, heightmax, heightmin);
+						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
-						citygml::CityModel* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+						exporter.appendCityObject(*LOD1);
+						//appGui().getControllerGui().update(uri);
 					}
-		
-					appGui().getControllerGui().update(uri);
 				}
 			}
+			exporter.endExport();
 		}
 	}
     QApplication::restoreOverrideCursor();

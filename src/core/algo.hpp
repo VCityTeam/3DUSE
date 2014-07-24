@@ -23,7 +23,7 @@ public:
 	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);
 	void generateLOD0(citygml::CityObject* obj, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin);
 	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geometry, double * heightmin);
-	citygml::CityModel* ConvertLOD1ToCityGML(std::string name, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin);
+	citygml::CityObject* ConvertLOD1ToCityGML(std::string name, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin);
 	void CompareTiles();
 
     citygml::CityModel* getCitymodel();
