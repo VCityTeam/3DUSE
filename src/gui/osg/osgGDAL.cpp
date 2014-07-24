@@ -195,10 +195,11 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 		OGRFeature *poFeature;
         poLayer->ResetReading();
 
+		//Ajouter un attribut
 		//if(poLayer->FindFieldIndex("Horaire", 1) == -1)
 		//	poLayer->CreateField(new OGRFieldDefn("Horaire", OGRFieldType::OFTInteger));
         while( (poFeature = poLayer->GetNextFeature()) != NULL )
-        {      
+        {
             OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 
 			//poFeature->SetField("Horaire", 55);

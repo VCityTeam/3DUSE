@@ -1297,6 +1297,12 @@ namespace vcity
 
 		return model;
 	}
+	citygml::CityModel* Algo::ConvertLOD1ToCityGML(std::string name, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin)
+	{
+		citygml::CityModel* model = new citygml::CityModel;
+
+		return model;
+	}
 
 	/**
 	* @brief Convertit une geometry (MultiPolygon) GEOS en geometry CityGML.
@@ -1356,7 +1362,7 @@ namespace vcity
 		}
 		return Geom;
 	}
-	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geometry, double Zmin)
+	citygml::Geometry* Algo::ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geometry, double * heightmin)
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
@@ -2083,7 +2089,7 @@ namespace vcity
 	* @brief Génère le LOD0 du bâtiment lié à uri
 	* @param uri Représente l'ID du bâtiment à traité.
 	*/
-	/*void Algo::generateLOD0(const URI& uri)
+	void Algo::generateLOD0(const URI& uri)
 	{
 		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
 
@@ -2154,18 +2160,18 @@ namespace vcity
 #ifdef _WIN32
 			_CrtDumpMemoryLeaks();
 #endif // _WIN32
-	}*/
-	void Algo::generateLOD0(const URI& uri)
+	}
+	void Algo::generateLOD0(citygml::CityObject* obj)
 	{
 		std::cout << "TEST1" << std::endl;
-		std::cout << uri.getStringURI() << std::endl;
-		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
+		std::cout << obj->getId() << std::endl;
+		
 		std::cout << "TEST2" << std::endl;
 		std::cout << obj->getTypeAsString() << std::endl;
-		if(obj)/////////////////////////////////// Traitement bâtiment par bâtiment 
+		if(obj)
 		{
 			std::cout << "TEST3" << std::endl;
-			log() << "GenerateLOD0 on "<< uri.getStringURI() << "\n";
+			log() << "GenerateLOD0 on "<< obj->getTypeAsString() << "\n";
 			std::string name = obj->getId();
 			PolySet roofPoints;
 			double heightmax = 0, heightmin = -1;
@@ -2771,9 +2777,15 @@ namespace vcity
 	* @brief Génère le LOD1 du bâtiment lié à uri : Générer le LOD0 en récupérant les infos de hauteurs puis extruder en LOD1 avant d'exporter en CityGML
 	* @param uri Représente l'ID du bâtiment à traité.
 	*/
-	/*TO DO*/ void Algo::generateLOD1(const URI& uri)
+	void Algo::generateLOD0(citygml::CityObject* obj, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin)
 	{
-		
+		double hmax = 0, hmin = -1;
+		heightmax = &hmax;
+		heightmin = &hmin;
+			
+		OGRMultiPolygon * Footprint = nullptr;
+		GetFootprint(obj, Footprint, heightmax, heightmin);
+		Enveloppe = GetEnveloppe(Footprint);
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	/**
