@@ -332,9 +332,29 @@ bool MainWindow::loadFile(const QString& filepath)
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
-		
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
+		//Pour sauvegarder un shapefile
+		/*const char *pszDriverName = "ESRI Shapefile";
+		OGRSFDriver *poDriver;
+		OGRRegisterAll();
+		poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
+
+		if( poDriver == NULL )
+		{
+			printf( "%s driver not available.\n", pszDriverName );
+			return false;
+		}
+		OGRDataSource *poDS2;
+		remove("Polygon.shp");
+		poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
+		
+		poDS2->CopyLayer(poDS->GetLayer(0), "test");
+		OGRDataSource::DestroyDataSource(poDS2);
+
+		return false;*/
+
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+		
         // clean previous shapeGeo
         delete ShapeGeo;
 		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
