@@ -114,7 +114,7 @@ void CityObject::insertNode(CityObject* node)
 ////////////////////////////////////////////////////////////////////////////////
 CityObject* CityObject::getNode(const vcity::URI& uri)
 {
-    CityObject* res = nullptr;
+    CityObject* res = this;
 	CityObject* current = this;
 
     while(uri.getCursor() < uri.getDepth())
