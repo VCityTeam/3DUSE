@@ -8,10 +8,11 @@ namespace vcity
 Scene::Scene()
     : m_layers()
 {
-    addLayer(new LayerCityGML("layer_CityGML"));
-	addLayer(new LayerAssimp("layer_Assimp"));
-	addLayer(new LayerMnt("layer_Mnt"));
-    addLayer(new LayerShp("layer_Shp"));
+    reset();
+    //addLayer(new LayerCityGML("layer_CityGML"));
+    //addLayer(new LayerAssimp("layer_Assimp"));
+    //addLayer(new LayerMnt("layer_Mnt"));
+    //addLayer(new LayerShp("layer_Shp"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 Scene::~Scene()
@@ -206,6 +207,11 @@ void Scene::reset()
         delete layer;
     }
     m_layers.clear();
+
+    addLayer(new LayerCityGML("layer_CityGML"));
+    addLayer(new LayerAssimp("layer_Assimp"));
+    addLayer(new LayerMnt("layer_Mnt"));
+    addLayer(new LayerShp("layer_Shp"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::dump()

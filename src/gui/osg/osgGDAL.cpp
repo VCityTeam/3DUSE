@@ -9,20 +9,8 @@
 #include <vector>
 
 #include "geos/geom/Polygon.h"
-#include "geos/geom/Coordinate.h"
-#include "geos/geom/CoordinateSequence.h"
 #include "geos/geom/CoordinateArraySequence.h"
 #include "geos/geom/CoordinateArraySequenceFactory.h"
-#include "geos/geom/Dimension.h"
-#include "geos/geom/Envelope.h"
-#include "geos/geom/LinearRing.h"
-#include "geos/geom/Point.h"
-#include "geos/geom/PrecisionModel.h"
-#include "geos/io/WKTReader.h"
-#include "geos/util/IllegalArgumentException.h"
-#include "geos/operation/union/CascadedPolygonUnion.h"
-#include "geos/simplify/DouglasPeuckerSimplifier.h"
-#include "geos/simplify/TopologyPreservingSimplifier.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
@@ -208,10 +196,11 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 		OGRFeature *poFeature;
         poLayer->ResetReading();
 
+		//Ajouter un attribut
 		//if(poLayer->FindFieldIndex("Horaire", 1) == -1)
 		//	poLayer->CreateField(new OGRFieldDefn("Horaire", OGRFieldType::OFTInteger));
         while( (poFeature = poLayer->GetNextFeature()) != NULL )
-        {      
+        {
             OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 
 			//poFeature->SetField("Horaire", 55);

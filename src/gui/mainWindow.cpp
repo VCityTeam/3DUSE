@@ -332,9 +332,29 @@ bool MainWindow::loadFile(const QString& filepath)
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
         OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
-		
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
+		//Pour sauvegarder un shapefile
+		/*const char *pszDriverName = "ESRI Shapefile";
+		OGRSFDriver *poDriver;
+		OGRRegisterAll();
+		poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
+
+		if( poDriver == NULL )
+		{
+			printf( "%s driver not available.\n", pszDriverName );
+			return false;
+		}
+		OGRDataSource *poDS2;
+		remove("Polygon.shp");
+		poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
+		
+		poDS2->CopyLayer(poDS->GetLayer(0), "test");
+		OGRDataSource::DestroyDataSource(poDS2);
+
+		return false;*/
+
+        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+		
         // clean previous shapeGeo
         delete ShapeGeo;
 		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
@@ -992,20 +1012,33 @@ void MainWindow::generateAllLODs()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
 {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    // get all selected nodes (with a uri)
-    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        // do all nodes selected
-        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
-        {
-            vcity::app().getAlgo().generateLOD0(*it);
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	// get all selected nodes (with a uri)
+	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+	if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+	{
+		// do all nodes selected
+		for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+		{
+			citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+			if(obj)
+			{
+				std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+				OGRMultiPolygon * Enveloppe = nullptr;
+				double * heightmax = 0;
+				double * heightmin = 0;
+				vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
-            appGui().getControllerGui().update(*it);
-        }
-    }
-	else
+				citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+				obj2->addGeometry(geom);
+				obj->insertNode(obj2);
+
+				appGui().getControllerGui().update(*it);
+			}
+		}
+	}
+	else//Sinon, on génère les LOD0 de tous les bâtiments de la scène
 	{
 		//vcity::app().getAlgo().generateLOD0(vcity::URI());
 		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
@@ -1013,15 +1046,29 @@ void MainWindow::generateLOD0()
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 			{
 				vcity::URI uri;
-				uri.append("LayerCityGML", "Layer");
+				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
 				uri.append(tile->getName(), "Tile");
 				uri.append(obj->getId(), "Building");
+				uri.setType("Building");
 
 				std::cout << uri.getStringURI() << std::endl;
 
-				vcity::app().getAlgo().generateLOD0(uri);
+//				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
+				if(obj)
+				{
+					std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+					OGRMultiPolygon * Enveloppe = nullptr;
+					double * heightmax = 0;
+					double * heightmin = 0;
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
-				appGui().getControllerGui().update(uri);
+					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+					citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+					obj2->addGeometry(geom);
+					obj->insertNode(obj2);
+
+					appGui().getControllerGui().update(uri);
+				}
 			}
 		}
 	}
@@ -1032,9 +1079,71 @@ void MainWindow::generateLOD0()
 void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
-    delete ShapeGeo;
-    ShapeGeo = nullptr;
+	if(ShapeGeo != nullptr)
+	{
+		vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+		delete ShapeGeo;
+		ShapeGeo = nullptr;
+	}
+	else
+	{
+		// get all selected nodes (with a uri)
+		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+		if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+		{
+			// do all nodes selected
+			for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+			{
+				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+				if(obj)
+				{
+					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+					OGRMultiPolygon * Enveloppe = nullptr;
+					double * heightmax = 0;
+					double * heightmin = 0;
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+					//appGui().getControllerGui().update(*it);
+				}
+			}
+		}
+		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
+		{
+			citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+			exporter.initExport();
+			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+			{
+				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+				{
+					vcity::URI uri;
+					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
+					uri.append(tile->getName(), "Tile");
+					uri.append(obj->getId(), "Building");
+					uri.setType("Building");
+		
+					std::cout << uri.getStringURI() << std::endl;
+		
+                    //citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
+					if(obj)
+					{
+						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+						OGRMultiPolygon * Enveloppe = nullptr;
+						double * heightmax = 0;
+						double * heightmin = 0;
+						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+						exporter.appendCityObject(*LOD1);
+						//appGui().getControllerGui().update(uri);
+					}
+				}
+			}
+			exporter.endExport();
+		}
+	}
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////

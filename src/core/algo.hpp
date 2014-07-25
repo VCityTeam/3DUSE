@@ -6,6 +6,9 @@
 #include "libcitygml/citygml.hpp"
 
 #include "BatimentShape.hpp"
+#include "src/gui/osg/osgGDAL.hpp"
+#include "osg/Geode"
+#include "osg/Geometry"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -15,8 +18,12 @@ public:
     Algo();
     ~Algo();
 	void generateLOD0(const URI& uri);
+	void generateLOD0(citygml::CityObject* obj);
     void DecoupeCityGML(geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
 	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);
+	void generateLOD0(citygml::CityObject* obj, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin);
+	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geometry, double * heightmin);
+	citygml::CityObject* ConvertLOD1ToCityGML(std::string name, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin);
 	void CompareTiles();
 
     citygml::CityModel* getCitymodel();
