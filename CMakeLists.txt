@@ -90,7 +90,7 @@ IF(WIN32)
 
 	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270 )
 
-	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.0-bin-without-qt)
+	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.1-bin-without-qt)
 
 	set(GDAL_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
 	set(GDAL_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/gdal_i.lib)

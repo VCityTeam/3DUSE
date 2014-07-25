@@ -771,7 +771,7 @@ int main(int argc, char** argv)
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
-		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
+		puts("cityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
 		puts("");
 		puts("Example:");
 		puts("./cityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
