@@ -411,6 +411,7 @@ void PickHandler::deselectNode(const vcity::URI& uri)
 
         vcity::URI uriInfo = uri;
         uriInfo.append("infobubble");
+        uriInfo.resetCursor();
         appGui().getOsgScene()->deleteNode(uriInfo);
     }
 }
