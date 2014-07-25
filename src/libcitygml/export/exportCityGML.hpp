@@ -44,11 +44,13 @@ private:
     xmlNodePtr exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent);
     xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent);
     xmlNodePtr exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string &nodeType, xmlNodePtr parent);
-    xmlNodePtr exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent);
+    xmlNodePtr exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent, bool rootLevel=false);
+    xmlNodePtr exportPolygonAppearanceXml(const citygml::Polygon& poly, xmlNodePtr parent);
 
     std::string m_fileName;
     xmlDocPtr m_doc;
     xmlNodePtr m_root_node;
+    xmlNodePtr m_currentAppearence;
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

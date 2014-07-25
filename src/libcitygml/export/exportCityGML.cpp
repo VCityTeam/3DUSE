@@ -7,7 +7,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 ExporterCityGML::ExporterCityGML(const std::string& filename)
-    : m_fileName(filename), m_doc(nullptr), m_root_node(nullptr)
+    : m_fileName(filename), m_doc(nullptr), m_root_node(nullptr), m_currentAppearence(nullptr)
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -153,11 +153,10 @@ xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& ge
     xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "bldg:lod3MultiSurface", NULL); // geom.getLOD();
     xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:surfaceMember", NULL);
 
-    const std::vector<citygml::Polygon*>& polys = geom.getPolygons();
-    std::vector<citygml::Polygon*>::const_iterator it = polys.begin();
-    for(; it != polys.end(); ++it)
+    for(const citygml::Polygon* poly : geom.getPolygons())
     {
-        exportPolygonXml(**it, node3);
+        exportPolygonAppearanceXml(*poly, m_currentAppearence);
+        exportPolygonXml(*poly, node3);
     }
 
     return res;
@@ -220,7 +219,7 @@ xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject&
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent)
+xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent, bool rootLevel)
 {
     xmlNodePtr res = NULL;
 
@@ -321,6 +320,12 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
         break;
     }
 
+    // build apperance node for current node
+    if(rootLevel)
+    {
+        m_currentAppearence = xmlNewChild(res, NULL, BAD_CAST "app:appearance", NULL);
+    }
+
     /*citygml::AttributesMap::const_iterator it = obj.getAttributes().begin();
     while(it != obj.getAttributes().end())
     {
@@ -367,7 +372,65 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
         else exportCityObjetXml(*child, parent);
     }
 
+    // clear apperance node for current node
+    if(rootLevel)
+    {
+        m_currentAppearence = nullptr;
+    }
+
     return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+std::string getWrapMode(Texture::WrapMode mode)
+{
+    switch(mode)
+    {
+        case Texture::WM_WRAP:
+            return "wrap";
+            break;
+        case Texture::WM_MIRROR:
+            return "mirror";
+            break;
+        case Texture::WM_CLAMP:
+            return "clamp";
+            break;
+        case Texture::WM_BORDER:
+            return "border";
+            break;
+        case Texture::WM_NONE:
+            return "none";
+            break;
+    }
+    return "none";
+}
+////////////////////////////////////////////////////////////////////////////////
+xmlNodePtr ExporterCityGML::exportPolygonAppearanceXml(const citygml::Polygon& poly, xmlNodePtr parent)
+{
+    if(!parent || !poly.getTexture()) return nullptr;
+
+    std::string buf;
+
+    xmlNodePtr root = xmlNewChild(parent, NULL, BAD_CAST "app:Appearance", NULL);
+    xmlNewChild(root, NULL, BAD_CAST "app:theme", BAD_CAST "texturation");
+    xmlNodePtr srf = xmlNewChild(root, NULL, BAD_CAST "app:surfaceDataMember", NULL);
+    xmlNodePtr tex = xmlNewChild(srf, NULL, BAD_CAST "app:ParameterizedTexture", NULL);
+    xmlNewChild(tex, NULL, BAD_CAST "app:imageURI", BAD_CAST poly.getTexture()->getUrl().c_str());
+    //xmlNewChild(tex, NULL, BAD_CAST "app:mimeType", BAD_CAST "image/tiff");
+    xmlNewChild(tex, NULL, BAD_CAST "app:wrapMode", BAD_CAST getWrapMode(poly.getTexture()->getWrapMode()).c_str());
+    xmlNodePtr target = xmlNewChild(tex, NULL, BAD_CAST "app:target", NULL);
+    buf = "#"+poly.getId();
+    xmlNewProp(target, BAD_CAST "uri", BAD_CAST buf.c_str());
+    xmlNodePtr tcl = xmlNewChild(target, NULL, BAD_CAST "app:TexCoordList", NULL);
+    buf="";
+    for(const TVec2f& coord : poly.getTexCoords())
+    {
+        buf += std::to_string(coord.x) + ' ' + std::to_string(coord.y) + ' ';
+    }
+    xmlNodePtr tc = xmlNewChild(tcl, NULL, BAD_CAST "app:textureCoordinates", BAD_CAST buf.c_str());
+    buf = "#"+poly.getExteriorRing()->getId();
+    xmlNewProp(tc, BAD_CAST "ring", BAD_CAST buf.c_str());
+
+    return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
 xmlNodePtr ExporterCityGML::exportCityModelXml(const citygml::CityModel& model)
@@ -382,7 +445,7 @@ xmlNodePtr ExporterCityGML::exportCityModelXml(const citygml::CityModel& model)
     for(const citygml::CityObject* obj : model.getCityObjectsRoots())
     {
         xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
-        exportCityObjetXml(*obj, node);
+        exportCityObjetXml(*obj, node, true);
     }
 
     return root;
@@ -405,7 +468,7 @@ xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const std::vector<const Cit
     for(const CityObject* obj : objs)
     {
         xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
-        exportCityObjetXml(*obj, node);
+        exportCityObjetXml(*obj, node, true);
     }
 
     return root;
