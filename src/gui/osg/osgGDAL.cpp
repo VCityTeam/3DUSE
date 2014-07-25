@@ -118,7 +118,8 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                     for(int i=0; i<poLR->getNumPoints(); ++i)
                     {
                         poLR->getPoint(i, &p);
-                        v = TVec3d(p.getX(), p.getY(), p.getZ());
+                        //v = TVec3d(p.getX(), p.getY(), p.getZ());
+                        v = TVec3d(p.getX(), p.getY(), 10);
                         pts.push_back(v);
                     }
                     tess.addContour(pts, texcoords);
@@ -130,7 +131,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                         for(int i=0; i<poLR->getNumPoints(); ++i)
                         {
                             poLR->getPoint(i, &p);
-                            v = TVec3d(p.getX(), p.getY(), p.getZ());
+                            v = TVec3d(p.getX(), p.getY(), 10);
                             pts.push_back(v);
                         }
                         tess.addContour(pts, texcoords);

@@ -256,6 +256,7 @@ void ControllerGui::update(const vcity::URI& uri_)
     uriTile.setType("Tile");
     //std::cout << uriTile.getStringURI() << std::endl;
 
+    uriTile.resetCursor();
     vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
     citygml::CityModel* model = tile->getCityModel();
 

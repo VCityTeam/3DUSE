@@ -436,7 +436,7 @@ void buildRecursiveFileList(const QDir& dir, QStringList& list)
         if(!iterator.fileInfo().isDir())
         {
             QString filename = iterator.filePath();
-            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive) || filename.endsWith(".shp", Qt::CaseInsensitive))
             {
                 list.append(filename);
                 qDebug("Found %s matching pattern.", qPrintable(filename));
@@ -638,7 +638,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->actionExport_osg->setVisible(true);
         m_ui->actionExport_tiled_osga->setVisible(true);
         m_ui->actionLoad_bbox->setVisible(true);
-        m_ui->actionLoad_recursive->setVisible(true);
+        //m_ui->actionLoad_recursive->setVisible(true);
         m_ui->actionShow_advanced_tools->setVisible(true);
         m_ui->actionHelp->setVisible(true);
         //m_ui->tab_16->setVisible(true);
@@ -656,7 +656,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
-        m_ui->actionLoad_recursive->setVisible(false);
+        //m_ui->actionLoad_recursive->setVisible(false);
         m_ui->actionShow_advanced_tools->setVisible(false);
         m_ui->actionHelp->setVisible(false);
         m_ui->tab_16->setVisible(false); m_ui->tabWidget->removeTab(1);
@@ -1005,7 +1005,9 @@ void MainWindow::slotDumpSelectedNodes()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateAllLODs()
 {
-	QApplication::setOverrideCursor(Qt::WaitCursor);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
@@ -1051,7 +1053,6 @@ void MainWindow::generateLOD0()
 
 				std::cout << uri.getStringURI() << std::endl;
 
-				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
 				if(obj)
 				{
 					std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
@@ -1123,7 +1124,6 @@ void MainWindow::generateLOD1()
 		
 					std::cout << uri.getStringURI() << std::endl;
 		
-					citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
 					if(obj)
 					{
 						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
