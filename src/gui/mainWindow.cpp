@@ -986,6 +986,8 @@ void MainWindow::slotDumpSelectedNodes()
 void MainWindow::generateAllLODs()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()

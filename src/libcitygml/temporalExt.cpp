@@ -208,6 +208,8 @@ const std::string& CityObjectDynState::getAttribute(const std::string& attribNam
     {
         return it->second->getAttribute(date);
     }
+
+    return none;
 }
 ////////////////////////////////////////////////////////////////////////////////
 bool cmpTag(CityObjectTag* a, CityObjectTag* b)

@@ -14,11 +14,9 @@ PickHandler::PickHandler()
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::resetPicking()
 {
-    std::vector<vcity::URI>::const_iterator it = appGui().getSelectedNodes().begin();
-    for(; it != appGui().getSelectedNodes().end(); ++it)
+    for(const vcity::URI& uri : appGui().getSelectedNodes())
     {
-        //toggleSelected(*it);
-        deselectNode(*it);
+        deselectNode(uri);
     }
 }
 /////////////////////////////////////////œ///////////////////////////////////////
@@ -404,6 +402,7 @@ void PickHandler::selectNode(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::deselectNode(const vcity::URI& uri)
 {
+    uri.resetCursor();
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
     if(node)
     {
