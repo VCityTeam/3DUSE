@@ -1364,7 +1364,7 @@ namespace vcity
 	* @param Geometry Geometry à convertir en objet CityGML
 	* @param Zmin Permet de situer le LOD0 dans l'espace
 	*/
-	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, geos::geom::Geometry * Geometry, double Zmin)
+    citygml::Geometry* ConvertLOD0ToCityGML2(std::string name, geos::geom::Geometry * Geometry, double Zmin)
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
@@ -1420,7 +1420,7 @@ namespace vcity
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 		citygml::Geometry* Geom = new citygml::Geometry(name + "_lod0", citygml::GT_Ground, 0);
-		for(size_t i = 0; i < Geometry->getNumGeometries(); ++i)
+        for(int i = 0; i < Geometry->getNumGeometries(); ++i)
 		{
 			citygml::Polygon * Poly = new citygml::Polygon("Polygon");
 			citygml::LinearRing * Ring = new citygml::LinearRing("ExteriorRing", true);
@@ -1439,12 +1439,12 @@ namespace vcity
 				Ring->addVertex(TVec3d(point->getX() + offset_.x, point->getY() + offset_.y, *heightmin));
 			}
 			Poly->addRing(Ring);
-			for(size_t k = 0; k < Polygon->getNumInteriorRings(); ++k)
+            for(int k = 0; k < Polygon->getNumInteriorRings(); ++k)
 			{
 				citygml::LinearRing * IntRingCityGML = new citygml::LinearRing("InteriorRing", false);//False pour signifier que le linearring correspond à un interior ring
 				OGRLinearRing * IntRing = Polygon->getInteriorRing(k);
 
-				for(size_t j = 0; j < ExtRing->getNumPoints(); ++j)
+                for(int j = 0; j < ExtRing->getNumPoints(); ++j)
 				{
 					OGRPoint * point = new OGRPoint;
 					IntRing->getPoint(j, point);
@@ -2145,12 +2145,14 @@ namespace vcity
 	*/
 	void Algo::generateLOD0(const URI& uri)
 	{
+        uri.resetCursor();
 		std::cout << "URI : " << uri.getStringURI() << std::endl;
 		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
-		std::cout << "Obj : " << obj->getId() << std::endl;
 
 		if(obj)/////////////////////////////////// Traitement bâtiment par bâtiment 
 		{
+            std::cout << "Obj : " << obj->getId() << std::endl;
+
 			log() << "GenerateLOD0 on "<< uri.getStringURI() << "\n";
 
 			PolySet roofPoints;
@@ -2165,8 +2167,8 @@ namespace vcity
 			//SaveGeometry(name + "_Enveloppe", Enveloppe);
 
 			//Pour afficher le ground dans VCity
-			citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
-			//geom = ConvertLOD0ToCityGML(name, Enveloppe, &heightmin);
+            //citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
+            citygml::Geometry* geom = ConvertLOD0ToCityGML2(name, Enveloppe, heightmin);
 			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
 			obj2->addGeometry(geom);
 			obj->insertNode(obj2);

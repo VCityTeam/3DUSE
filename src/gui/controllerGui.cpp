@@ -243,11 +243,14 @@ void ControllerGui::update(const vcity::URI& uri_)
     appGui().resetSelectedNodes();
 
     // delete in treeview
+    uri.resetCursor();
     appGui().getTreeView()->deleteItem(uri);
     // delete in osg
+    uri.resetCursor();
     appGui().getOsgScene()->deleteNode(uri);
 
     // refill treeview
+    uri.resetCursor();
     vcity::URI uriTile = uri;
     while(uriTile.getDepth() > 2)
     {
@@ -260,11 +263,13 @@ void ControllerGui::update(const vcity::URI& uri_)
     vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
     citygml::CityModel* model = tile->getCityModel();
 
+    uri.resetCursor();
     citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
     citygml::ParserParams params;
     //obj->finish(*model->getAppearanceManager(), params);
     finish(model, params, obj);
 
+    uriTile.resetCursor();
     appGui().getTreeView()->addCityObject(appGui().getTreeView()->getNode(uriTile), obj);
 
     // refill osg
@@ -275,6 +280,7 @@ void ControllerGui::update(const vcity::URI& uri_)
     ReaderOsgCityGML readerOsgGml(path);
     readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
+    uriTile.resetCursor();
     appGui().getOsgScene()->buildCityObject(appGui().getOsgScene()->getNode(uriTile)->asGroup(), obj, readerOsgGml);
 }
 ////////////////////////////////////////////////////////////////////////////////
