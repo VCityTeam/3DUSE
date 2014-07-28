@@ -1010,7 +1010,8 @@ void MainWindow::generateAllLODs()
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::generateLOD0()
+//Version GDAL
+/*void MainWindow::generateLOD0()
 {
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	// get all selected nodes (with a uri)
@@ -1024,9 +1025,9 @@ void MainWindow::generateLOD0()
 			if(obj)
 			{
 				std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
-				OGRMultiPolygon * Enveloppe = nullptr;
-				double * heightmax = 0;
-				double * heightmin = 0;
+				OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+				double * heightmax = new double;
+				double * heightmin = new double;
 				vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
 				citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
@@ -1035,6 +1036,10 @@ void MainWindow::generateLOD0()
 				obj->insertNode(obj2);
 
 				appGui().getControllerGui().update(*it);
+
+				delete Enveloppe;
+				delete heightmax;
+				delete heightmin;
 			}
 		}
 	}
@@ -1056,18 +1061,62 @@ void MainWindow::generateLOD0()
 				if(obj)
 				{
 					std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
-					OGRMultiPolygon * Enveloppe = nullptr;
-					double * heightmax = 0;
-					double * heightmin = 0;
+					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+					double * heightmax = new double;
+					double * heightmin = new double;
+
 					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
 					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+
 					citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
 					obj2->addGeometry(geom);
 					obj->insertNode(obj2);
 
 					appGui().getControllerGui().update(uri);
+
+					delete Enveloppe;
+					delete heightmax;
+					delete heightmin;
 				}
+			}
+		}
+	}
+
+	QApplication::restoreOverrideCursor();
+}*/
+void MainWindow::generateLOD0()
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    // get all selected nodes (with a uri)
+    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+    if(uris.size() > 0)
+    {
+        // do all nodes selected
+        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+        {
+            vcity::app().getAlgo().generateLOD0(*it);
+
+            appGui().getControllerGui().update(*it);
+        }
+    }
+	else
+	{
+		//vcity::app().getAlgo().generateLOD0(vcity::URI());
+		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+		{
+			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+			{
+				vcity::URI uri;
+				uri.append("LayerCityGML", "Layer");
+				uri.append(tile->getName(), "Tile");
+				uri.append(obj->getId(), "Building");
+
+				std::cout << uri.getStringURI() << std::endl;
+
+				vcity::app().getAlgo().generateLOD0(uri);
+
+				appGui().getControllerGui().update(uri);
 			}
 		}
 	}
@@ -1075,7 +1124,8 @@ void MainWindow::generateLOD0()
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::generateLOD1()
+//Version GDAL
+/*void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
@@ -1097,14 +1147,18 @@ void MainWindow::generateLOD1()
 				if(obj)
 				{
 					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-					OGRMultiPolygon * Enveloppe = nullptr;
-					double * heightmax = 0;
-					double * heightmin = 0;
+					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+					double * heightmax = new double;
+					double * heightmin = new double;
 					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
 					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
 					//appGui().getControllerGui().update(*it);
+
+					delete Enveloppe;
+					delete heightmax;
+					delete heightmin;
 				}
 			}
 		}
@@ -1127,21 +1181,34 @@ void MainWindow::generateLOD1()
 					if(obj)
 					{
 						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-						OGRMultiPolygon * Enveloppe = nullptr;
-						double * heightmax = 0;
-						double * heightmin = 0;
+						OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+						double * heightmax = new double;
+						double * heightmin = new double;
 						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
 
 						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
 						exporter.appendCityObject(*LOD1);
 						//appGui().getControllerGui().update(uri);
+
+						delete Enveloppe;
+						delete heightmax;
+						delete heightmin;
 					}
 				}
 			}
 			exporter.endExport();
 		}
 	}
+    QApplication::restoreOverrideCursor();
+}
+*/
+void MainWindow::generateLOD1()
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+    delete ShapeGeo;
+    ShapeGeo = nullptr;
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////

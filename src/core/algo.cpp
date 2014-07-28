@@ -149,8 +149,8 @@ namespace vcity
 			{
 				for(citygml::Polygon* Poly : Geom->getPolygons())
 				{
-					OGRPolygon * OgrPoly = nullptr;
-					OGRLinearRing * OgrRing = nullptr;
+					OGRPolygon * OgrPoly = new OGRPolygon;
+					OGRLinearRing * OgrRing = new OGRLinearRing;
 					for(TVec3d Vertices : Poly->getExteriorRing()->getVertices())
 					{
 						OgrRing->addPoint(Vertices.x - offset_.x, Vertices.y - offset_.y);
@@ -621,16 +621,16 @@ namespace vcity
 
 			for(int j = 0; j < ExtRing->getNumPoints() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
 			{
-				OGRPoint* Point = nullptr;
+				OGRPoint* Point = new OGRPoint;
 				ExtRing->getPoint(j, Point);
 				int x1 = Scale * (Point->getX() - Xmin);
 				int y1 = Scale * (Point->getY() - Ymin);
-				//delete Point;
-
+				delete Point;
+				Point = new OGRPoint;
 				ExtRing->getPoint(j+1, Point);
 				int x2 = Scale * (Point->getX() - Xmin);
 				int y2 = Scale * (Point->getY() - Ymin);
-				//delete Point;
+				delete Point;
 
 				std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
 
@@ -643,22 +643,21 @@ namespace vcity
 						Im[pos] = 0;
 				}
 			}
-
 			for(int k = 0; k < Polygon->getNumInteriorRings(); k++) //On parcourt les holes du polygon
 			{
 				const OGRLineString *IntRing = Polygon->getInteriorRing(k);
 				for(int j = 0; j < IntRing->getNumPoints() - 1; j++) //Répétition du premier point à la fin donc pas besoin de tout parcourir
 				{
-					OGRPoint* Point = nullptr;
+					OGRPoint* Point = new OGRPoint;
 					IntRing->getPoint(j, Point);
 					int x1 = Scale * (Point->getX() - Xmin);
 					int y1 = Scale * (Point->getY() - Ymin);
-					//delete Point;
-					
+					delete Point;
+					Point = new OGRPoint;
 					ExtRing->getPoint(j+1, Point);
 					int x2 = Scale * (Point->getX() - Xmin);
 					int y2 = Scale * (Point->getY() - Ymin);
-					//delete Point;
+					delete Point;
 
 					std::vector<std::pair<int,int>> Points = TracerSegment(x1, y1, x2, y2);
 
@@ -734,12 +733,12 @@ namespace vcity
 	}
 	void SaveGeometry(std::string name, const OGRMultiPolygon* G)
 	{	
-		OGREnvelope * Envelope = nullptr;
+		OGREnvelope * Envelope = new OGREnvelope;
 		G->getEnvelope(Envelope);
 
-		int Xmin = Envelope->MinX, Ymin = Envelope->MinY, Xmax = Envelope->MaxX, Ymax = Envelope->MaxX;
+		int Xmin = Envelope->MinX, Ymin = Envelope->MinY, Xmax = Envelope->MaxX, Ymax = Envelope->MaxY;
 
-		std::cout << Xmin << ";" << Xmax << "  " << Ymin << ";" << Ymax << std::endl;
+		//std::cout << Xmin << ";" << Xmax << "  " << Ymin << ";" << Ymax << std::endl;
 
 		int width = Xmax - Xmin + 1;
 		int height = Ymax - Ymin + 1;
@@ -748,14 +747,12 @@ namespace vcity
 		memset(Im, 1, width*height*sizeof(int));
 
 		int NbGeo = G->getNumGeometries();
-
 		for(int i = 0; i < NbGeo; i++)
 		{
 			const OGRGeometry * Geo = G->getGeometryRef(i);
 
 			SaveRecursiveGeometry(Geo, Im, height, width, Xmin, Ymin);
 		}
-
 		SaveImage(name, Im, width, height);
 
 		delete [] Im;
@@ -965,7 +962,7 @@ namespace vcity
 	{
 		//std::cout << "Mise en place de l'union des polygons" << std::endl;
 
-		OGRGeometry* ResUnion = nullptr;
+		OGRGeometry* ResUnion = new OGRMultiPolygon;
 
 		//ResUnion = MP->UnionCascaded();
 
@@ -973,10 +970,11 @@ namespace vcity
 		{
 			try	//On vérifie qu'il n'y ait pas d'exceptions faisant planter le logiciel
 			{
+				std::cout << "TEST10" << std::endl;
 				OGRGeometry* tmp = ResUnion;
 				ResUnion = ResUnion->Union(MP->getGeometryRef(i)); //On fait l'union avant de la vérifier
 				delete tmp;
-
+				std::cout << "TEST20" << std::endl;
 				std::vector<OGRGeometry*>* Polys = new std::vector<OGRGeometry*>(); //Vecteur contenant les différents polygones de l'union au fur et à mesure
 				
 				//OGRGeometryFactory::organizePolygons
@@ -1071,7 +1069,7 @@ namespace vcity
 		}
 		else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
 		{
-			OGRMultiPolygon * GeoCollection = nullptr;
+			OGRMultiPolygon * GeoCollection = new OGRMultiPolygon;
 			GeoCollection->addGeometryDirectly(ResUnion);
 			return GeoCollection;
 		}
@@ -1325,7 +1323,7 @@ namespace vcity
 				citygml::Polygon * PolyWall = new citygml::Polygon(name + "_PolyWall_" + std::to_string(i) + "_" + std::to_string(j));
 				citygml::LinearRing * RingWall = new citygml::LinearRing(name + "_RingWall_" + std::to_string(i) + "_" + std::to_string(j), true);
 
-				OGRPoint * point = nullptr;
+				OGRPoint * point = new OGRPoint;
 				ExtRing->getPoint(j, point);
 				int x1 = point->getX() + offset_.x;
 				int y1 = point->getY() + offset_.y;
@@ -1436,7 +1434,7 @@ namespace vcity
 
 			for(int j = 0; j < ExtRing->getNumPoints(); ++j)
 			{
-				OGRPoint * point = nullptr;
+				OGRPoint * point = new OGRPoint;
 				ExtRing->getPoint(j, point);
 				Ring->addVertex(TVec3d(point->getX() + offset_.x, point->getY() + offset_.y, *heightmin));
 			}
@@ -1448,7 +1446,7 @@ namespace vcity
 
 				for(size_t j = 0; j < ExtRing->getNumPoints(); ++j)
 				{
-					OGRPoint * point = nullptr;
+					OGRPoint * point = new OGRPoint;
 					IntRing->getPoint(j, point);
 					IntRingCityGML->addVertex(TVec3d(point->getX() + offset_.x, point->getY() + offset_.y, *heightmin));
 				}
@@ -2147,7 +2145,9 @@ namespace vcity
 	*/
 	void Algo::generateLOD0(const URI& uri)
 	{
+		std::cout << "URI : " << uri.getStringURI() << std::endl;
 		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
+		std::cout << "Obj : " << obj->getId() << std::endl;
 
 		if(obj)/////////////////////////////////// Traitement bâtiment par bâtiment 
 		{
@@ -2213,6 +2213,7 @@ namespace vcity
 				std::cout << std::endl;;
 			}
 		}
+		std::cout << "END" << std::endl;
 #ifdef _WIN32
 			_CrtDumpMemoryLeaks();
 #endif // _WIN32
@@ -2273,13 +2274,16 @@ namespace vcity
 	*/
 	void Algo::generateLOD0(citygml::CityObject* obj, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin)
 	{
-		double hmax = 0, hmin = -1;
-		heightmax = &hmax;
-		heightmin = &hmin;
-			
-		OGRMultiPolygon * Footprint = nullptr;
+		*heightmax = 0;
+		*heightmin = -1;
+
+		OGRMultiPolygon * Footprint = new OGRMultiPolygon;
 		GetFootprint(obj, Footprint, heightmax, heightmin);
+
 		Enveloppe = GetEnveloppe(Footprint);
+
+		SaveGeometry("TEST1", Footprint);
+		SaveGeometry("TEST2", Enveloppe);
 	}
 
 	/**
