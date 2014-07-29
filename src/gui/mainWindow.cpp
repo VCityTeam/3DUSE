@@ -127,6 +127,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
+	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
+
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
     connect(m_ui->actionTest_3, SIGNAL(triggered()), this, SLOT(test3()));
@@ -1108,11 +1110,10 @@ void MainWindow::generateLOD0()
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 			{
 				vcity::URI uri;
-				uri.append("LayerCityGML", "Layer");
+				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
 				uri.append(tile->getName(), "Tile");
 				uri.append(obj->getId(), "Building");
-
-				std::cout << uri.getStringURI() << std::endl;
+				uri.setType("Building");
 
 				vcity::app().getAlgo().generateLOD0(uri);
 
@@ -1243,6 +1244,13 @@ void MainWindow::slotFixBuilding()
     // TODO
     //appGui().getControllerGui().update(uri);
     QApplication::restoreOverrideCursor();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotChangeDetection()
+{
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	vcity::app().getAlgo().CompareTiles();
+	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotOptimOSG()

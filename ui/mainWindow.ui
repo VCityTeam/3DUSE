@@ -246,7 +246,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>27</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -341,6 +341,7 @@
     <addaction name="menuGenerate"/>
     <addaction name="actionFix_building"/>
     <addaction name="actionCityGML_cut"/>
+    <addaction name="actionChange_Detection"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -658,6 +659,11 @@
   <action name="actionCityGML_cut">
    <property name="text">
     <string>CityGML cut...</string>
+   </property>
+  </action>
+  <action name="actionChange_Detection">
+   <property name="text">
+    <string>Change Detection</string>
    </property>
   </action>
  </widget>
