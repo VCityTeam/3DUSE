@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DialogFlag</class>
- <widget class="QDialog" name="DialogFlag">
+ <class>DialogState</class>
+ <widget class="QDialog" name="DialogState">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -45,7 +45,7 @@
         <item>
          <widget class="QLabel" name="label">
           <property name="text">
-           <string> Choose Flag geometry : </string>
+           <string> Choose State geometry : </string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -88,7 +88,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>DialogFlag</receiver>
+   <receiver>DialogState</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -104,7 +104,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>DialogFlag</receiver>
+   <receiver>DialogState</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

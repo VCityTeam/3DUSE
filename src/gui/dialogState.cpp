@@ -1,24 +1,24 @@
-#include "moc/dialogFlag.hpp"
-#include "ui_dialogFlag.h"
+#include "moc/dialogState.hpp"
+#include "ui_dialogState.h"
 #include "gui/applicationGui.hpp"
 #include <QSettings>
 #include <QFileDialog>
 #include "moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
-DialogFlag::DialogFlag(QWidget *parent) :
+DialogState::DialogState(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogFlag)
+    ui(new Ui::DialogState)
 {
     ui->setupUi(this);
     connect(ui->toolButton,SIGNAL(clicked()), this, SLOT(addFeatureBox()));
 }
 ////////////////////////////////////////////////////////////////////////////////
-DialogFlag::~DialogFlag()
+DialogState::~DialogState()
 {
     delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void DialogFlag::addFlag(const vcity::URI& uri)
+void DialogState::addState(const vcity::URI& uri)
 {
     appGui().getMainWindow()->m_osgView->setActive(false);
 
@@ -27,6 +27,7 @@ void DialogFlag::addFlag(const vcity::URI& uri)
     //if(m_ui->treeWidget->currentItem())
     {
         //std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
+        uri.resetCursor();
         obj = vcity::app().getScene().getCityObjectNode(uri);
 
         if(obj)
@@ -97,6 +98,7 @@ void DialogFlag::addFlag(const vcity::URI& uri)
         else
         {
             // use existing
+            uri.resetCursor();
             geom = vcity::app().getScene().getCityObjectNode(uri); //findNode(ui.comboBox->currentText().toStdString());
             std::cout << "use existing : " << geom << std::endl;
             item2text = ui->comboBox->currentText();
@@ -110,18 +112,19 @@ void DialogFlag::addFlag(const vcity::URI& uri)
         QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(state->getStringId().c_str()));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Flag");
+        item->setText(1, "State");
 
         QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(item2text));
         item->addChild(item2);
 
         //appGui().m_ui treeWidget->currentItem()->addChild(item);
+        uri.resetCursor();
         appGui().getTreeView()->addItemGeneric(uri, state->getStringId().c_str(), "State");
     }
     appGui().getMainWindow()->m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void DialogFlag::addFeatureBox()
+void DialogState::addFeatureBox()
 {
     QHBoxLayout* hb = new QHBoxLayout();
     QLineEdit* key = new QLineEdit();

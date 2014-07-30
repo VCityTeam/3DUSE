@@ -1,28 +1,28 @@
-#ifndef DIALOGFLAG_H
-#define DIALOGFLAG_H
+#ifndef DIALOGSTATE_H
+#define DIALOGSTATE_H
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogFlag;
+class DialogState;
 }
 ////////////////////////////////////////////////////////////////////////////////
-class DialogFlag : public QDialog
+class DialogState : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit DialogFlag(QWidget *parent = 0);
-    ~DialogFlag();
+    explicit DialogState(QWidget *parent = 0);
+    ~DialogState();
 
-    void addFlag(const vcity::URI& uri);
+    void addState(const vcity::URI& uri);
 
 private slots:
     void addFeatureBox();
 
 private:
-    Ui::DialogFlag *ui;
+    Ui::DialogState *ui;
 };
 ////////////////////////////////////////////////////////////////////////////////
-#endif // DIALOGFLAG_H
+#endif // DIALOGSTATE_H

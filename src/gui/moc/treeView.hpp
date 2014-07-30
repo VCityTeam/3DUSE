@@ -30,7 +30,7 @@ public:
     QTreeWidgetItem* createItemLayer(const QString& name, const QString& type);
 
     QTreeWidgetItem* addItemTag();
-    QTreeWidgetItem* addItemFlag();
+    QTreeWidgetItem* addItemState();
 
     void deleteItem(const std::string& URI);
     void deleteItem(const vcity::URI& URI);
@@ -85,14 +85,14 @@ private slots:
     void slotAddBuilding();
     void slotEditBuilding();
     void slotDeleteBuilding();
-    void slotAddFlag();
-    void slotAddDynFlag();
+    void slotAddState();
+    void slotAddDynState();
     void slotAddTag();
-    void slotEditFlag();
-    void slotEditDynFlag();
+    void slotEditState();
+    void slotEditDynState();
     void slotEditTag();
-    void slotDeleteFlag();
-    void slotDeleteDynFlag();
+    void slotDeleteState();
+    void slotDeleteDynState();
     void slotDeleteTag();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
@@ -121,14 +121,14 @@ private:
     QAction* m_actionAddBuilding;
     QAction* m_actionEditBuilding;
     QAction* m_actionDeleteBuilding;
-    QAction* m_actionAddFlag;
-    QAction* m_actionAddDynFlag;
+    QAction* m_actionAddState;
+    QAction* m_actionAddDynState;
     QAction* m_actionAddTag;
-    QAction* m_actionEditFlag;
-    QAction* m_actionEditDynFlag;
+    QAction* m_actionEditState;
+    QAction* m_actionEditDynState;
     QAction* m_actionEditTag;
-    QAction* m_actionDeleteFlag;
-    QAction* m_actionDeleteDynFlag;
+    QAction* m_actionDeleteState;
+    QAction* m_actionDeleteDynState;
     QAction* m_actionDeleteTag;
 };
 ////////////////////////////////////////////////////////////////////////////////

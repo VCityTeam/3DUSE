@@ -1,30 +1,30 @@
-#ifndef DIALOGDYNFLAG_HPP
-#define DIALOGDYNFLAG_HPP
+#ifndef DIALOGDYNSTATE_HPP
+#define DIALOGDYNSTATE_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include "core/URI.hpp"
 class QLineEdit;
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogDynFlag;
+class DialogDynState;
 }
 ////////////////////////////////////////////////////////////////////////////////
-class DialogDynFlag : public QDialog
+class DialogDynState : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit DialogDynFlag(QWidget *parent = 0);
-    ~DialogDynFlag();
+    explicit DialogDynState(QWidget *parent = 0);
+    ~DialogDynState();
 
-    void addDynFlag(const vcity::URI& uri);
+    void addDynState(const vcity::URI& uri);
 
 private slots:
     void addFeatureArray();
     void addFeatureFile();
 
 private:
-    Ui::DialogDynFlag *ui;
+    Ui::DialogDynState *ui;
     std::vector<QLineEdit*> m_featureArrayNames;
     std::vector<QLineEdit*> m_featureArrayValues;
 
@@ -32,4 +32,4 @@ private:
     std::vector<QLineEdit*> m_featureFilePaths;
 };
 ////////////////////////////////////////////////////////////////////////////////
-#endif // DIALOGDYNFLAG_HPP
+#endif // DIALOGDYNSTATE_HPP

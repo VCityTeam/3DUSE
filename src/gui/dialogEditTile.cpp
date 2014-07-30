@@ -16,6 +16,7 @@ DialogEditTile::~DialogEditTile()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogEditTile::editTile(const vcity::URI& uri)
 {
+    uri.resetCursor();
     vcity::Tile* tile = vcity::app().getScene().getTile(uri);
     if(tile)
     {

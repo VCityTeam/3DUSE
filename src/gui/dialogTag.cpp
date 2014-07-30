@@ -108,6 +108,7 @@ void DialogTag::addTag(const vcity::URI& uri)
     //if(m_ui->treeWidget->currentItem())
     {
         //std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
+        uri.resetCursor();
         obj = vcity::app().getScene().getCityObjectNode(uri);
 
         if(obj)
@@ -152,6 +153,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         else if(ui->comboBox->currentText() != "NULL")
         {
             // use existing
+            uri.resetCursor();
             geom = vcity::app().getScene().getCityObjectNode(uri);
             std::cout << "use existing : " << geom << std::endl;
         }
@@ -167,6 +169,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         if(geom)
         {
             // get parent osg geom
+            uri.resetCursor();
             osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
             if(obj->getTags().size() == 0)
             {
@@ -238,6 +241,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         obj->checkTags();
 
         //m_ui->treeWidget->currentItem()->addChild(item);
+        uri.resetCursor();
         appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
     }
 
