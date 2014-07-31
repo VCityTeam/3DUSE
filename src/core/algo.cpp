@@ -807,6 +807,7 @@ namespace vcity
 				Polygon->addRingDirectly(IntRing);
 			}
 
+			delete coord;
 			OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
 			Feature->SetGeometry(Polygon);
 			Layer->CreateFeature(Feature);
@@ -840,6 +841,8 @@ namespace vcity
 		{
 			SaveGeometrytoShapeRecursive(Geo->getGeometryN(i), Layer);
 		}
+
+		delete Geo;
 
 		OGRDataSource::DestroyDataSource(DS);
 	}
@@ -912,7 +915,7 @@ namespace vcity
 			else if(g==1)
 				NbGeo = G2->getNumGeometries();
 			else
-				NbGeo = G3->getNumGeometries();			
+				NbGeo = G3->getNumGeometries();
 
 			for(int i = 0; i < NbGeo; i++)
 			{
@@ -2234,7 +2237,7 @@ namespace vcity
 	*/
 	void Algo::generateLOD0(const URI& uri)
 	{
-        uri.resetCursor();
+		uri.resetCursor();
 		std::cout << "URI : " << uri.getStringURI() << std::endl;
 		citygml::CityObject* obj = app().getScene().getCityObjectNode(uri);
 
@@ -2258,7 +2261,6 @@ namespace vcity
 			//SaveGeometry(name + "_Enveloppe", Enveloppe);
 
 			//Pour afficher le ground dans VCity
-            //citygml::Geometry* geom = new citygml::Geometry(obj->getId()+"_lod0", citygml::GT_Ground, 0);
             citygml::Geometry* geom = ConvertLOD0ToCityGML2(name, Enveloppe, heightmin);
 			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
 			obj2->addGeometry(geom);
@@ -2269,34 +2271,6 @@ namespace vcity
 
 			delete GeosObj;
 			delete Enveloppe;
-		}
-		else/////////////////////////////////// Traitement de tous les bâtiments
-		{
-			std::cout << "GenerateLOD0 on each building" << std::endl;
-			const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
-
-			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())			
-			{
-				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-				{
-					if(obj->getType() == citygml::COT_Building)
-					{
-						PolySet roofPoints;
-						double heightmax = 0, heightmin = -1;//Hauteurs min et max du bâtiment
-						projectRoof(obj, roofPoints, &heightmax, &heightmin);
-						std::string name = obj->getId();
-
-						geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
-						geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
-
-						//Que faire des données de sortie ? Créer un nouveau CityGML avec tous les buildings ?
-
-						delete GeosObj;
-						delete Enveloppe;
-					}
-				}
-				std::cout << std::endl;;
-			}
 		}
 #ifdef _WIN32
 			_CrtDumpMemoryLeaks();
