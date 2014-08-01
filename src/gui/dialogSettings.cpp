@@ -42,6 +42,7 @@ void DialogSettings::doSettings()
     {
         vcity::app().getSettings().getDataProfile() = m_tmpDP;
         setDataProfileFromUI(vcity::app().getSettings().getDataProfile());
+        appGui().getOsgScene()->updateGrid();
 
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
         QSettings settings("liris", "virtualcity");

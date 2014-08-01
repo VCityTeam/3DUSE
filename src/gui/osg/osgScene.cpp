@@ -170,23 +170,7 @@ void OsgScene::init()
     layer3->setName("layer_Shp");
     m_layers->addChild(layer3);
 
-    //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
-    const vcity::DataProfile& dp = appGui().getSettings().getDataProfile();
-    osg::Vec3 bbox_lower(dp.m_bboxLowerBound.x, dp.m_bboxLowerBound.y, dp.m_bboxLowerBound.z);
-    osg::Vec3 bbox_upper(dp.m_bboxUpperBound.x, dp.m_bboxUpperBound.y, dp.m_bboxUpperBound.z);
-    osg::Vec2 step(dp.m_xStep, dp.m_yStep);
-    osg::Vec3 offset(dp.m_offset.x, dp.m_offset.y, dp.m_offset.z);
-    osg::Vec2 tileOffset(dp.m_TileIdOriginX, dp.m_TileIdOriginY);
-    osg::ref_ptr<osg::Geode> grid = buildGrid(bbox_lower, bbox_upper, step, offset, tileOffset);
-    //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
-    //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(643000.0, 6857000.0, 0.0), 500.0, 30);
-    m_layers->addChild(grid);
-
-    //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
-    //m_layers->addChild(bbox);
-
-	//osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(-10.0, -10.0, -10.0), osg::Vec3(10.0, 10.0, 10.0));
-    //m_layers->addChild(bbox);
+    updateGrid();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
@@ -308,13 +292,21 @@ void OsgScene::deleteNode(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::updateGrid()
 {
-    for(unsigned int i=0; i<m_layers->getNumChildren(); ++i)
-    {
-        if(m_layers->getChild(i)->getName() == "grid")
-        {
-            //m_layers->getChild(i) =
-        }
-    }
+    // remove previous grid
+    vcity::URI uri;
+    uri.append("grid");
+    deleteNode(uri);
+
+    // set grid
+    const vcity::DataProfile& dp = appGui().getSettings().getDataProfile();
+    osg::Vec3 bbox_lower(dp.m_bboxLowerBound.x, dp.m_bboxLowerBound.y, dp.m_bboxLowerBound.z);
+    osg::Vec3 bbox_upper(dp.m_bboxUpperBound.x, dp.m_bboxUpperBound.y, dp.m_bboxUpperBound.z);
+    osg::Vec2 step(dp.m_xStep, dp.m_yStep);
+    osg::Vec3 offset(dp.m_offset.x, dp.m_offset.y, dp.m_offset.z);
+    osg::Vec2 tileOffset(dp.m_TileIdOriginX, dp.m_TileIdOriginY);
+    osg::ref_ptr<osg::Geode> grid = buildGrid(bbox_lower, bbox_upper, step, offset, tileOffset);
+
+    m_layers->addChild(grid);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setShadow(bool shadow)
