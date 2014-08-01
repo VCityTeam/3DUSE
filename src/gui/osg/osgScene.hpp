@@ -127,6 +127,11 @@ public:
 
     osg::ref_ptr<osg::Group> m_effectNone;
     osg::ref_ptr<osg::Group> m_effectShadow;
+
+private:
+    void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
+
+    std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief osgSceneBuild will create an osg tree (for rendering with osg) from a tile

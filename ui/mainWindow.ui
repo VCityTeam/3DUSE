@@ -62,6 +62,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QCheckBox" name="checkBoxTemporalTools">
+            <property name="toolTip">
+             <string>Toggle temporal tools</string>
+            </property>
             <property name="text">
              <string>Enable time</string>
             </property>
@@ -72,6 +75,9 @@
           </item>
           <item>
            <widget class="QDateTimeEdit" name="dateTimeEdit">
+            <property name="toolTip">
+             <string>Current date</string>
+            </property>
             <property name="calendarPopup">
              <bool>true</bool>
             </property>
@@ -79,8 +85,14 @@
           </item>
           <item>
            <widget class="QToolButton" name="toolButton">
+            <property name="toolTip">
+             <string>Play</string>
+            </property>
             <property name="text">
              <string>P</string>
+            </property>
+            <property name="icon">
+             <iconset theme="media-playback-start"/>
             </property>
            </widget>
           </item>
@@ -97,6 +109,9 @@
               <width>16777215</width>
               <height>32</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>Time slider</string>
             </property>
             <property name="maximum">
              <number>73049</number>
@@ -122,10 +137,17 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QLineEdit" name="filterLineEdit"/>
+           <widget class="QLineEdit" name="filterLineEdit">
+            <property name="toolTip">
+             <string>Enter a string for filtering</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="filterButton">
+            <property name="toolTip">
+             <string>Search nodes with string filtering</string>
+            </property>
             <property name="text">
              <string>filter</string>
             </property>
@@ -195,7 +217,7 @@
           </widget>
           <widget class="QWidget" name="tab_16">
            <attribute name="title">
-            <string>Tree 2</string>
+            <string>Doc</string>
            </attribute>
           </widget>
          </widget>

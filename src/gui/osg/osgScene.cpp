@@ -14,6 +14,7 @@
 #include "gui/moc/mainWindow.hpp"
 #include "osgCityGML.hpp"
 #include "core/dataprofile.hpp"
+#include "osgTools.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -330,8 +331,6 @@ void OsgScene::setShadow(bool shadow)
     m_shadow = shadow;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::map<std::string, osg::ref_ptr<osg::Texture2D> > texManager;
-////////////////////////////////////////////////////////////////////////////////
 void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::ref_ptr<osg::Texture2D> texture)
 {
     osg::ref_ptr<osg::Group> grp = node->asGroup();
@@ -357,7 +356,7 @@ void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
+void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 {
     int year = date.date().year();
 
@@ -381,8 +380,8 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
                     // check cache
                     osg::ref_ptr<osg::Texture2D> texture = nullptr;
-                    std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = texManager.find(texturePath);
-                    if(it!=texManager.end())
+                    std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = m_texManager.find(texturePath);
+                    if(it!=m_texManager.end())
                     {
                         texture = it->second;
                     }
@@ -400,7 +399,7 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                             texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
                             texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
 
-                            texManager[texturePath] = texture;
+                            m_texManager[texturePath] = texture;
                         }
                         else
                             osg::notify(osg::NOTICE) << "  Warning: Texture " << texturePath << " not found!" << std::endl;
@@ -410,7 +409,29 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                 }
             }
 
-            int yearOfConstruction;
+            // get attributes in cityobject
+            vcity::URI uri = osgTools::getURI(node);
+            citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
+            if(obj && obj->getType() == citygml::COT_Building)
+            {
+                std::string strAttr = obj->getAttribute("yearOfConstruction");
+                int yearOfConstruction = (strAttr.empty()?-1:std::stoi(strAttr));
+                strAttr = obj->getAttribute("yearOfDemolition");
+                int yearOfDemolition = (strAttr.empty()?-1:std::stoi(strAttr));
+
+                //std::cout << obj->getId() << " : " << yearOfConstruction << " / " << yearOfDemolition << std::endl;
+
+                if(((yearOfConstruction != -1 && yearOfDemolition != -1) && (yearOfConstruction < year && year < yearOfDemolition)) || year == 0)
+                {
+                    node->setNodeMask(0xffffffff);
+                }
+                else
+                {
+                     node->setNodeMask(0);
+                }
+            }
+
+            /*int yearOfConstruction;
             int yearOfDemolition;
 
             bool a = node->getUserValue("yearOfConstruction", yearOfConstruction);
@@ -430,8 +451,9 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                      node->setNodeMask(0);
                 }
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
-            }
+            }*/
 
+            // reset : force draw
             if(date.date().year() == 0)
             {
                 node->setNodeMask(0xffffffff);
@@ -451,7 +473,7 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
             geode->setNodeMask(0);
             geode->getParent(0)->setNodeMask(0);
 
-            std::cout << "hide TAGGED default geom : " << geode->getName() << " : " << geode->getNodeMask() << std::endl;
+            //std::cout << "hide TAGGED default geom : " << geode->getName() << " : " << geode->getNodeMask() << std::endl;
         }
     }
 }

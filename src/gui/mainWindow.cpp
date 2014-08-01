@@ -146,8 +146,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    reset();
-
     updateRecentFiles();
 
     m_treeView->init();
@@ -824,7 +822,7 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    std::cout << "toggle temporal tool" << std::endl;
+    //std::cout << "toggle temporal tool" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
@@ -1293,10 +1291,14 @@ void MainWindow::slotTemporalAnim()
     if(m_temporalAnim)
     {
         m_timer.start(500);
+        m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-pause"));
+        m_ui->toolButton->setToolTip("Pause temporal animation");
     }
     else
     {
         m_timer.stop();
+        m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-start"));
+        m_ui->toolButton->setToolTip("Start temporal animation");
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
