@@ -714,6 +714,8 @@ void MainWindow::resetScene()
 
     // reset ui
     reset();
+
+    m_treeView->reset();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::clearSelection()

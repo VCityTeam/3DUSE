@@ -94,6 +94,8 @@ private slots:
     void slotDeleteState();
     void slotDeleteDynState();
     void slotDeleteTag();
+    void slotCheckAll();
+    void slotUnCheckAll();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
@@ -130,6 +132,8 @@ private:
     QAction* m_actionDeleteState;
     QAction* m_actionDeleteDynState;
     QAction* m_actionDeleteTag;
+    QAction* m_actionSelectAll;
+    QAction* m_actionDeSelectAll;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __TREEVIEW_HPP__

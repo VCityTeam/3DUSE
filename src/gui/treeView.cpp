@@ -43,6 +43,8 @@ TreeView::~TreeView()
     delete m_actionDeleteState;
     delete m_actionDeleteDynState;
     delete m_actionDeleteTag;
+    delete m_actionSelectAll;
+    delete m_actionDeSelectAll;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -70,6 +72,8 @@ void TreeView::init()
     m_actionDeleteState = new QAction("Delete State", NULL);
     m_actionDeleteDynState = new QAction("Delete dynamic State", NULL);
     m_actionDeleteTag = new QAction("Delete Tag", NULL);
+    m_actionSelectAll = new QAction("Check all", NULL);
+    m_actionDeSelectAll = new QAction("Check none", NULL);
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -92,6 +96,8 @@ void TreeView::init()
     connect(m_actionDeleteState, SIGNAL(triggered()), this, SLOT(slotDeleteState()));
     connect(m_actionDeleteDynState, SIGNAL(triggered()), this, SLOT(slotDeleteDynState()));
     connect(m_actionDeleteTag, SIGNAL(triggered()), this, SLOT(slotDeleteTag()));
+    connect(m_actionSelectAll, SIGNAL(triggered()), this, SLOT(slotCheckAll()));
+    connect(m_actionDeSelectAll, SIGNAL(triggered()), this, SLOT(slotUnCheckAll()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
@@ -534,14 +540,40 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionAddState);
         m_tree->addAction(m_actionAddDynState);
     }
+
+    // actions on all types
+    m_tree->addAction(m_actionSelectAll);
+    m_tree->addAction(m_actionDeSelectAll);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotItemChanged(QTreeWidgetItem* item, int column)
+void setItemStateRec(QTreeWidgetItem* item, bool state)
+{
+    int count = item->childCount();
+    for(int i=0; i<count; ++i)
+    {
+        Qt::CheckState s = state?Qt::CheckState::Checked:Qt::CheckState::Unchecked;
+        item->child(i)->setCheckState(0, s);
+        setItemStateRec(item->child(i), state);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotItemChanged(QTreeWidgetItem* item, int /*column*/)
 {
     Qt::CheckState state = item->checkState(0);
     bool show = true;
     if(state == Qt::CheckState::Unchecked) show = false;
     appGui().getOsgScene()->showNode(getURI(item), show);
+
+    if(show)
+    {
+        while((item = item->parent()))
+        {
+            item->setCheckState(0, Qt::CheckState::Checked);
+            appGui().getOsgScene()->showNode(getURI(item), true);
+        }
+    }
+
+    //setItemStateRec(item, show);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
@@ -696,26 +728,37 @@ void TreeView::slotDeleteTag()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
- void TreeView::resetActions()
- {
-     m_tree->removeAction(m_actionAddTile);
-     m_tree->removeAction(m_actionEditTile);
-     m_tree->removeAction(m_actionDeleteTile);
-	 m_tree->removeAction(m_actionEditAssimpNode);
-     m_tree->removeAction(m_actionDeleteAssimpNode);
-     m_tree->removeAction(m_actionAddLayer);
-     m_tree->removeAction(m_actionEditLayer);
-     m_tree->removeAction(m_actionDeleteLayer);
-     m_tree->removeAction(m_actionAddBuilding);
-     m_tree->removeAction(m_actionEditBuilding);
-     m_tree->removeAction(m_actionDeleteBuilding);
-     m_tree->removeAction(m_actionAddState);
-     m_tree->removeAction(m_actionAddDynState);
-     m_tree->removeAction(m_actionAddTag);
-     m_tree->removeAction(m_actionEditState);
-     m_tree->removeAction(m_actionEditTag);
-     m_tree->removeAction(m_actionDeleteState);
-     m_tree->removeAction(m_actionDeleteTag);
-
- }
+void TreeView::slotCheckAll()
+{
+    setItemStateRec(getCurrentItem(), true);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotUnCheckAll()
+{
+    setItemStateRec(getCurrentItem(), false);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::resetActions()
+{
+    m_tree->removeAction(m_actionAddTile);
+    m_tree->removeAction(m_actionEditTile);
+    m_tree->removeAction(m_actionDeleteTile);
+    m_tree->removeAction(m_actionEditAssimpNode);
+    m_tree->removeAction(m_actionDeleteAssimpNode);
+    m_tree->removeAction(m_actionAddLayer);
+    m_tree->removeAction(m_actionEditLayer);
+    m_tree->removeAction(m_actionDeleteLayer);
+    m_tree->removeAction(m_actionAddBuilding);
+    m_tree->removeAction(m_actionEditBuilding);
+    m_tree->removeAction(m_actionDeleteBuilding);
+    m_tree->removeAction(m_actionAddState);
+    m_tree->removeAction(m_actionAddDynState);
+    m_tree->removeAction(m_actionAddTag);
+    m_tree->removeAction(m_actionEditState);
+    m_tree->removeAction(m_actionEditTag);
+    m_tree->removeAction(m_actionDeleteState);
+    m_tree->removeAction(m_actionDeleteTag);
+    m_tree->removeAction(m_actionSelectAll);
+    m_tree->removeAction(m_actionDeSelectAll);
+}
 ////////////////////////////////////////////////////////////////////////////////
