@@ -36,8 +36,9 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 
             OGRFeature *poFeature;
             poLayer->ResetReading();
+			printf("nb feature %d\n", poLayer->GetFeatureCount());
             while( (poFeature = poLayer->GetNextFeature()) != NULL )
-            {      
+            {
                 OGRGeometry* poGeometry = poFeature->GetGeometryRef();
                 //if(poGeometry != NULL && wkbFlatten(poGeometry->getGeometryType()) == wkbLineString25D)
                 if(poGeometry != NULL && poGeometry->getGeometryType() == wkbLineString25D)

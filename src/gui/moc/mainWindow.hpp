@@ -104,6 +104,8 @@ private slots:
 
     void slotFixBuilding();
 
+	void slotChangeDetection();
+
     void slotOptimOSG();
 
     void slotRenderLOD0();
