@@ -304,7 +304,7 @@ void OsgScene::updateGrid()
     osg::Vec2 step(dp.m_xStep, dp.m_yStep);
     osg::Vec3 offset(dp.m_offset.x, dp.m_offset.y, dp.m_offset.z);
     osg::Vec2 tileOffset(dp.m_TileIdOriginX, dp.m_TileIdOriginY);
-    osg::ref_ptr<osg::Geode> grid = buildGrid(bbox_lower, bbox_upper, step, offset, tileOffset);
+    osg::ref_ptr<osg::Node> grid = buildGrid(bbox_lower, bbox_upper, step, offset, tileOffset);
 
     m_layers->addChild(grid);
 }
@@ -677,10 +677,10 @@ osg::ref_ptr<osg::Node> OsgScene::createInfoBubble(osg::ref_ptr<osg::Node> node)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> OsgScene::buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset)
+osg::ref_ptr<osg::Node> OsgScene::buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-    geode->setName("grid");
+    geode->setName("grid_geode");
 
     osg::Geometry* geom = new osg::Geometry;
     osg::Vec3Array* vertices = new osg::Vec3Array;
@@ -730,7 +730,11 @@ osg::ref_ptr<osg::Geode> OsgScene::buildGrid(const osg::Vec3& bbox_lower, const 
     geom->addPrimitiveSet(indices);
     geode->addDrawable(geom);
 
-    return geode;
+    osg::Group* res = new osg::Group;
+    res->setName("grid");
+    res->addChild(geode);
+
+    return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> OsgScene::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
