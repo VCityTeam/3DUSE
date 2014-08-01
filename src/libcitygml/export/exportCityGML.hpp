@@ -16,7 +16,7 @@ class ExporterCityGML : public Exporter
 {
 public:
     ExporterCityGML(const std::string& filename);
-    ~ExporterCityGML();
+    virtual ~ExporterCityGML() override;
 
     /// \bief
     void initExport(bool createCityModelRootNode=true);

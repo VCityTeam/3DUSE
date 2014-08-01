@@ -106,7 +106,7 @@ public:
 
     void optim();
 
-    osg::ref_ptr<osg::Geode> buildGrid(osg::Vec3 origin, float step, int n);
+    osg::ref_ptr<osg::Geode> buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset);
     osg::ref_ptr<osg::Geode> buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound);
 
     /// \brief getNode Get a node in the osg scene with a URI

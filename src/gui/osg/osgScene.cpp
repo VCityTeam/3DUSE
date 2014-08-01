@@ -170,7 +170,14 @@ void OsgScene::init()
     m_layers->addChild(layer3);
 
     //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
-    osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
+    const vcity::DataProfile& dp = appGui().getSettings().getDataProfile();
+    osg::Vec3 bbox_lower(dp.m_bboxLowerBound.x, dp.m_bboxLowerBound.y, dp.m_bboxLowerBound.z);
+    osg::Vec3 bbox_upper(dp.m_bboxUpperBound.x, dp.m_bboxUpperBound.y, dp.m_bboxUpperBound.z);
+    osg::Vec2 step(dp.m_xStep, dp.m_yStep);
+    osg::Vec3 offset(dp.m_offset.x, dp.m_offset.y, dp.m_offset.z);
+    osg::Vec2 tileOffset(dp.m_TileIdOriginX, dp.m_TileIdOriginY);
+    osg::ref_ptr<osg::Geode> grid = buildGrid(bbox_lower, bbox_upper, step, offset, tileOffset);
+    //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
     //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(643000.0, 6857000.0, 0.0), 500.0, 30);
     m_layers->addChild(grid);
 
@@ -656,7 +663,7 @@ osg::ref_ptr<osg::Node> OsgScene::createInfoBubble(osg::ref_ptr<osg::Node> node)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n)
+osg::ref_ptr<osg::Geode> OsgScene::buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
     geode->setName("grid");
@@ -665,32 +672,42 @@ osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n
     osg::Vec3Array* vertices = new osg::Vec3Array;
     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
-    for(int i=0; i<=n; ++i)
+    double lenx = bbox_upper.x() - bbox_lower.x(); // x length of the grid
+    double leny = bbox_upper.y() - bbox_lower.y(); // y length of the grid
+
+    int nx = lenx/step.x(); // x number of cell
+    int ny = leny/step.y(); // y number of cell
+
+    int indiceOffset = 0;
+    for(int i=0; i<=nx; ++i)
     {
-        vertices->push_back(osg::Vec3(origin.x() + i*step, origin.y() + 0, origin.z() + 0));
-        vertices->push_back(osg::Vec3(origin.x() + i*step, origin.y() + n*step, origin.z() + 0));
-
-        indices->push_back(4*i);
-        indices->push_back(4*i+1);
-
-        vertices->push_back(osg::Vec3(origin.x() + 0, origin.y() + i*step, origin.z() + 0));
-        vertices->push_back(osg::Vec3(origin.x() + n*step, origin.y() + i*step, origin.z() + 0));
-
-        indices->push_back(4*i+2);
-        indices->push_back(4*i+3);
+        // vertical line
+        vertices->push_back(osg::Vec3(bbox_lower.x() + i*step.x(), bbox_lower.y(), bbox_lower.z() + 0)-offset);
+        vertices->push_back(osg::Vec3(bbox_lower.x() + i*step.x(), bbox_upper.y(), bbox_lower.z() + 0)-offset);
+        indices->push_back(indiceOffset++); indices->push_back(indiceOffset++);
     }
 
-    for(int x=0; x<n; ++x)
+    for(int j=0; j<=ny; ++j)
     {
-        for(int y=0; y<n; ++y)
+        // horizontal line
+        vertices->push_back(osg::Vec3(bbox_lower.x(), bbox_lower.y() + j*step.y(), bbox_lower.z() + 0)-offset);
+        vertices->push_back(osg::Vec3(bbox_upper.x(), bbox_lower.y() + j*step.y(), bbox_lower.z() + 0)-offset);
+        indices->push_back(indiceOffset++); indices->push_back(indiceOffset++);
+    }
+
+    // put names
+    for(int i=0; i<nx; ++i)
+    {
+        for(int j=0; j<ny; ++j)
         {
             osgText::Text* text = new osgText::Text;
             std::stringstream ss;
-            ss << 643000 + origin.x() + x*step << " , " << 6857000 + (int)origin.y() + y*(int)step << "\n" <<
-            origin.x() + x*step << " , " << origin.y() + y*step << " , " << origin.z() + 0 << "\nEXPORT_" << 1286+x << "-" << 13714+y;
+            ss.precision(0);
+            ss << std::fixed << ' ' << bbox_lower.x() + i*step.x() - offset.x() << " , " << bbox_lower.y() + j*step.y() - offset.y() << "\n" <<
+            ' ' << bbox_lower.x() + i*step.x() << " , " << bbox_lower.y() + j*step.y() << "\n Tile : " << tileOffset.x()+i << "-" << tileOffset.y()+j;
             text->setText(ss.str());
             text->setColor(osg::Vec4(0,0,0,1));
-            text->setPosition(osg::Vec3(origin.x() + x*step, origin.y() + y*step + step*0.2, origin.z() + 0));
+            text->setPosition(osg::Vec3(bbox_lower.x() + i*step.x(), bbox_lower.y() + j*step.y() + step.y()*0.2, bbox_lower.z() + 0)-offset);
             geode->addDrawable(text);
         }
     }

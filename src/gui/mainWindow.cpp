@@ -57,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // create controller
     m_app.setControllerGui(new ControllerGui());
 
+    reset();
+
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);
     m_pickhandler = new PickHandler();
@@ -438,7 +440,7 @@ void buildRecursiveFileList(const QDir& dir, QStringList& list)
         if(!iterator.fileInfo().isDir())
         {
             QString filename = iterator.filePath();
-            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive) || filename.endsWith(".shp", Qt::CaseInsensitive))
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive) || filename.endsWith(".shp", Qt::CaseInsensitive)  || filename.endsWith(".obj", Qt::CaseInsensitive))
             {
                 list.append(filename);
                 qDebug("Found %s matching pattern.", qPrintable(filename));
