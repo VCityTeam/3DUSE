@@ -425,7 +425,8 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                 }
             }
 
-            /*int yearOfConstruction;
+            // check attributes from tags
+            int yearOfConstruction;
             int yearOfDemolition;
 
             bool a = node->getUserValue("yearOfConstruction", yearOfConstruction);
@@ -445,7 +446,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                      node->setNodeMask(0);
                 }
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
-            }*/
+            }
 
             // reset : force draw
             if(date.date().year() == -4000)

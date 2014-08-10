@@ -387,10 +387,16 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
     }
 
     if(!m_temporalExport) // export TAGs and STATEs
-    {
+    {   
         for(CityObjectState* state : obj.getStates())
         {
             xmlNodePtr r = exportCityObjetStateXml(*state, std::string("bldg:")+state->getParent()->getTypeAsString(), parent);
+
+            // build apperance node for current node
+            if(rootLevel)
+            {
+                m_currentAppearence = xmlNewChild(r, NULL, BAD_CAST "app:appearance", NULL);
+            }
 
             if(state->getGeom())
             {
@@ -408,6 +414,12 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
         for(CityObjectTag* tag : obj.getTags())
         {
             xmlNodePtr r = exportCityObjetTagXml(*tag, std::string("bldg:")+tag->getParent()->getTypeAsString(), parent);
+
+            // build apperance node for current node
+            if(rootLevel)
+            {
+                m_currentAppearence = xmlNewChild(r, NULL, BAD_CAST "app:appearance", NULL);
+            }
 
             if(tag->getGeom())
             {
