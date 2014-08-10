@@ -13,13 +13,25 @@ DataProfile::DataProfile()
 DataProfile createDataProfileDefault()
 {	
 	return createDataProfileLyon();
-
-	DataProfile dp;
+}
+////////////////////////////////////////////////////////////////////////////////
+DataProfile createDataProfileNone()
+{
+    DataProfile dp;
     dp.m_offset.x = 0.0;
     dp.m_offset.y = 0.0;
 
-    dp.m_xStep = 0;
-    dp.m_yStep = 0;
+    dp.m_bboxLowerBound.x = 0.0;
+    dp.m_bboxLowerBound.y = 00;
+
+    dp.m_bboxUpperBound.x = 0.0;
+    dp.m_bboxUpperBound.y = 0.0;
+
+    dp.m_xStep = 500;
+    dp.m_yStep = 500;
+
+    dp.m_TileIdOriginX = 0;
+    dp.m_TileIdOriginY = 0;
 
     dp.m_id = 0;
     dp.m_name = "None";

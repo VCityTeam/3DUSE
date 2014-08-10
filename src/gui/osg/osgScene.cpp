@@ -350,6 +350,7 @@ void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 {
+    // -4000 is used as a special value to disable time
     int year = date.date().year();
 
     osg::ref_ptr<osg::Group> grp = node->asGroup();
@@ -359,7 +360,8 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
         {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
 
-            double val;
+            // dyntag
+            /*double val;
             bool hasFlag = node->getUserValue("TAGPTR", val);
             if(hasFlag)
             {
@@ -399,7 +401,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
                     setTexture(node, tag, texture);
                 }
-            }
+            }*/
 
             // get attributes in cityobject
             vcity::URI uri = osgTools::getURI(node);
@@ -413,7 +415,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
                 //std::cout << obj->getId() << " : " << yearOfConstruction << " / " << yearOfDemolition << std::endl;
 
-                if(((yearOfConstruction != -1 && yearOfDemolition != -1) && (yearOfConstruction < year && year < yearOfDemolition)) || year == 0)
+                if(((yearOfConstruction == -1 || yearOfDemolition == -1) || (yearOfConstruction < year && year < yearOfDemolition)) || year == -4000)
                 {
                     node->setNodeMask(0xffffffff);
                 }
@@ -446,7 +448,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
             }*/
 
             // reset : force draw
-            if(date.date().year() == 0)
+            if(date.date().year() == -4000)
             {
                 node->setNodeMask(0xffffffff);
             }
@@ -492,15 +494,29 @@ void OsgScene::reset()
 }
 ////////////////////////////////////////////////////////////////////////////////
 void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
-{
+{    
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if(grp)
     {
         int count = grp->getNumChildren();
+
+        // check if we had 5 LODs geodes
+        int numGeodes = 0;
         for(int i=0; i<count; ++i)
         {
+            osg::ref_ptr<osg::Node> child = grp->getChild(i);
+            if(child->asGeode())
+            {
+                ++numGeodes;
+            }
+        }
+        if(numGeodes == 5) // yes, enable or disable the good lods
+        {
+            grp->getChild(lod)->setNodeMask(0xffffffff - grp->getChild(lod)->getNodeMask());
+        }
 
-
+        for(int i=0; i<count; ++i)
+        {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
             forceLODrec(lod, child);
         }

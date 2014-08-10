@@ -25,6 +25,8 @@ public:
 
     std::string getUrl( void ) const;
 
+    void setUrl(const std::string& url);
+
     bool getRepeat( void ) const;
 
     WrapMode getWrapMode( void ) const;

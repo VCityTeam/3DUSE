@@ -20,6 +20,8 @@
 #include "export/exportJSON.hpp"
 #include "export/exportOBJ.hpp"
 
+#include "import/importerAssimp.hpp"
+
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
 #include "cpl_conv.h" // for CPLMalloc()
@@ -130,6 +132,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
+    connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
 
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
@@ -690,7 +693,11 @@ void MainWindow::reset()
     // set dataprofile
     QSettings settings("liris", "virtualcity");
     QString dpName = settings.value("dataprofile").toString();
-    if(dpName == "Paris")
+    if(dpName == "None")
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileNone();
+    }
+    else if(dpName == "Paris")
     {
         m_app.getSettings().getDataProfile() = vcity::createDataProfileParis();
     }
@@ -814,7 +821,8 @@ void MainWindow::toggleUseTemporal()
     }
     else
     {
-        QDate date(0, 0, 0);
+        // -4000 is used as a special value to disable time
+        QDate date(-4000, 1, 1);
         QDateTime datetime(date);
         m_osgScene->setDate(datetime); // reset
         m_timer.stop();
@@ -1246,6 +1254,29 @@ void MainWindow::slotFixBuilding()
     // TODO
     //appGui().getControllerGui().update(uri);
     QApplication::restoreOverrideCursor();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotObjToCityGML()
+{
+    m_osgView->setActive(false);
+
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert OBJ to CityGML");
+
+    for(int i = 0; i < filenames.count(); ++i)
+    {
+        QFileInfo file(filenames[i]);
+        QString ext = file.suffix().toLower();
+        if(ext == "obj")
+        {
+            citygml::ImporterAssimp importer;
+            citygml::CityModel* model = importer.import(file.absoluteFilePath().toStdString());
+
+            citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+            exporter.exportCityModel(*model);
+        }
+    }
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotChangeDetection()

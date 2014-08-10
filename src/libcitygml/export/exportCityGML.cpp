@@ -150,7 +150,7 @@ xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& ge
     xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
     //xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
     /*xmlNodePtr node1 = */xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
-    xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "bldg:lod3MultiSurface", NULL); // geom.getLOD();
+    xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(geom.getLOD())+"MultiSurface").c_str(), NULL);
     xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:surfaceMember", NULL);
 
     for(const citygml::Polygon* poly : geom.getPolygons())

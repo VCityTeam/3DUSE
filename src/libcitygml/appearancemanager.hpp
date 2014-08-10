@@ -45,9 +45,6 @@ public:
 
     Tesselator* getTesselator( void );
 
-    std::string m_basePath;
-
-protected:
     void refresh( void );
 
     template < typename AppType > AppType getAppearance( const std::string& nodeid, ForSide side = FS_ANY ) const;
@@ -56,6 +53,8 @@ protected:
     bool assignTexCoords( TexCoords* );
 
     void finish( void );
+
+    std::string m_basePath;
 
 protected:
     std::string _lastId;

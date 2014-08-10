@@ -103,6 +103,7 @@ private slots:
     void generateLOD4();
 
     void slotFixBuilding();
+    void slotObjToCityGML();
 
 	void slotChangeDetection();
 

@@ -67,6 +67,9 @@ void DialogSettings::chooseDataProfileSlot(int i)
     //std::cout << ui->comboBoxDataProfile->itemText(i).toStdString() << std::endl;
     switch(i)
     {
+    case 0:
+        m_tmpDP = vcity::createDataProfileNone();
+        break;
     case 1:
         m_tmpDP = vcity::createDataProfileParis();
         break;

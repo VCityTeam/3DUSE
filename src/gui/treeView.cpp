@@ -532,9 +532,21 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionEditDynState);
     }
 
-    if(item->text(1) == "Building" || item->text(1) == "BuildingPart" ||
-       item->text(1) == "WallSurface" || item->text(1) == "RoofSurface" ||
-       item->text(1) == "TINRelief")
+    if(item->text(1) == "GenericCityObject" || item->text(1) == "Building" ||
+       item->text(1) == "Room" || item->text(1) == "BuildingInstallation" ||
+       item->text(1) == "BuildingFurniture" || item->text(1) == "Door" ||
+       item->text(1) == "Window" || item->text(1) == "CityFurniture" ||
+       item->text(1) == "Track" || item->text(1) == "Road" ||
+       item->text(1) == "Railway" || item->text(1) == "Square" ||
+       item->text(1) == "PlantCover" || item->text(1) == "SolitaryVegetationObject" ||
+       item->text(1) == "WaterBody" || item->text(1) == "TINRelief" ||
+       item->text(1) == "LandUse" || item->text(1) == "Tunnel" ||
+       item->text(1) == "Bridge" || item->text(1) == "BridgeConstructionElement" ||
+       item->text(1) == "BridgeInstallation" || item->text(1) == "BridgePart" ||
+       item->text(1) == "BuildingPart" || item->text(1) == "WallSurface" ||
+       item->text(1) == "RoofSurface" || item->text(1) == "GroundSurface" ||
+       item->text(1) == "ClosureSurface" || item->text(1) == "FloorSurface" ||
+       item->text(1) == "InteriorWallSurface" || item->text(1) == "CeilingSurface")
     {
         m_tree->addAction(m_actionAddTag);
         m_tree->addAction(m_actionAddState);
@@ -548,6 +560,8 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
 ////////////////////////////////////////////////////////////////////////////////
 void setItemStateRec(QTreeWidgetItem* item, bool state)
 {
+    if(!item) return;
+
     int count = item->childCount();
     for(int i=0; i<count; ++i)
     {

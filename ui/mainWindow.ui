@@ -92,7 +92,9 @@
              <string>P</string>
             </property>
             <property name="icon">
-             <iconset theme="media-playback-start"/>
+             <iconset theme="media-playback-start">
+              <normaloff/>
+             </iconset>
             </property>
            </widget>
           </item>
@@ -363,7 +365,9 @@
     <addaction name="menuGenerate"/>
     <addaction name="actionFix_building"/>
     <addaction name="actionCityGML_cut"/>
+    <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="actionChange_Detection"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -480,28 +484,58 @@
    </property>
   </action>
   <action name="actionForce_LOD0">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD0</string>
+    <string>LOD0</string>
    </property>
   </action>
   <action name="actionForce_LOD1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD1</string>
+    <string>LOD1</string>
    </property>
   </action>
   <action name="actionForce_LOD2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD2</string>
+    <string>LOD2</string>
    </property>
   </action>
   <action name="actionForce_LOD3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD3</string>
+    <string>LOD3</string>
    </property>
   </action>
   <action name="actionForce_LOD4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD4</string>
+    <string>LOD4</string>
    </property>
   </action>
   <action name="actionExport_JSON">
@@ -512,6 +546,9 @@
   <action name="actionAuto_LOD">
    <property name="text">
     <string>Auto LOD</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionClearSelection">
@@ -561,6 +598,9 @@
    <property name="text">
     <string>Shadows options...</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionInfo_bubbles">
    <property name="checkable">
@@ -568,6 +608,9 @@
    </property>
    <property name="text">
     <string>Info bubbles</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionExport_tiled_osga">
@@ -686,6 +729,11 @@
   <action name="actionChange_Detection">
    <property name="text">
     <string>Change Detection</string>
+   </property>
+  </action>
+  <action name="actionOBJ_to_CityGML">
+   <property name="text">
+    <string>OBJ to CityGML...</string>
    </property>
   </action>
  </widget>
