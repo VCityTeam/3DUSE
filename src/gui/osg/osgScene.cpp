@@ -467,6 +467,12 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
             geode->setNodeMask(0);
             geode->getParent(0)->setNodeMask(0);
 
+            if(date.date().year() == -4000)
+            {
+                geode->setNodeMask(0xffffffff);
+                geode->getParent(0)->setNodeMask(0xffffffff);
+            }
+
             //std::cout << "hide TAGGED default geom : " << geode->getName() << " : " << geode->getNodeMask() << std::endl;
         }
     }

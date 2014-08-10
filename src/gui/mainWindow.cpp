@@ -856,8 +856,27 @@ void MainWindow::exportCityGML()
         std::vector<const citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
-            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
             if(obj) objs.push_back(obj);
+            if(uri.getType() == "Tile")
+            {
+                citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+                for(const citygml::CityObject* o : model->getCityObjectsRoots())
+                {
+                    objs.push_back(o);
+                }
+            }
+            if(uri.getType() == "LayerCityGML")
+            {
+                vcity::LayerCityGML* layer = static_cast<vcity::LayerCityGML*>(m_app.getScene().getLayer(uri));
+                for(vcity::Tile* tile : layer->getTiles())
+                {
+                    for(const citygml::CityObject* o : tile->getCityModel()->getCityObjectsRoots())
+                    {
+                        objs.push_back(o);
+                    }
+                }
+            }
         }
         exporter.exportCityObject(objs);
     }

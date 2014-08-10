@@ -116,7 +116,7 @@ public:
 
     bool isTemporal() const;
 
-    //const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+    std::string getAttributeTemporal(const std::string& attribName, const QDateTime& date) const;
 
 //protected:
     void finish( AppearanceManager&, const ParserParams& );

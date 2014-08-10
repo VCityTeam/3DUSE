@@ -196,7 +196,7 @@ void DialogTag::addTag(const vcity::URI& uri)
 
             size_t pos = geom->m_path.find_last_of("/\\");
             std::string path = geom->m_path.substr(0, pos);
-            path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
+            //path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
             ReaderOsgCityGML readerOsgGml(path);
             readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
             osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(geom);

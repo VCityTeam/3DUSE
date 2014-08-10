@@ -29,6 +29,7 @@ public:
     bool optimize;
     bool pruneEmptyObjects;
     bool tesselate;
+    bool temporalImport;
     std::string destSRS;
     std::string m_basePath;
 };

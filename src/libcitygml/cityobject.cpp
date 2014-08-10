@@ -177,7 +177,20 @@ const std::vector<CityObjectTag*>& CityObject::getTags() const
 ////////////////////////////////////////////////////////////////////////////////
 bool CityObject::isTemporal() const
 {
-    return m_tags.size();
+    return m_tags.size() + m_states.size();
+}
+////////////////////////////////////////////////////////////////////////////////
+std::string CityObject::getAttributeTemporal(const std::string& attribName, const QDateTime& date) const
+{
+    for(size_t i=0; i<m_tags.size()-1; ++i)
+    {
+        if(m_tags[i]->m_date < date && date < m_tags[i+1]->m_date)
+        {
+            return m_tags[i]->getAttribute(attribName, date);
+        }
+    }
+
+    return "";
 }
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::finish( AppearanceManager& appearanceManager, const ParserParams& params )
@@ -265,10 +278,10 @@ void CityObject::computeCentroid()
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::checkTags()
 {
+    // reorder tags
     std::sort(m_tags.begin(), m_tags.end(), cmpTag);
 
-    size_t i;
-    for(i=0; i<m_tags.size(); ++i)
+    for(size_t i=0; i<m_tags.size(); ++i)
     {
         CityObject* geom = m_tags[i]->getGeom();
         if(geom) // && geom->getOsgNode())
@@ -278,14 +291,14 @@ void CityObject::checkTags()
             {
                 //osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
                 grp->setUserValue("yearOfConstruction", m_tags[i]->m_date.date().year());
-                int y = 9999; // temp hack
+                int year = std::numeric_limits<int>::max();
                 if(m_tags[i]->getGeom() == NULL)
                 {
-                    y = m_tags[i]->m_date.date().year();
+                    year = m_tags[i]->m_date.date().year();
                 }
                 if(i < m_tags.size()-1)
-                    y = m_tags[i+1]->m_date.date().year();
-                grp->setUserValue("yearOfDemolition", y);
+                    year = m_tags[i+1]->m_date.date().year();
+                grp->setUserValue("yearOfDemolition", year);
             }
         }
     }

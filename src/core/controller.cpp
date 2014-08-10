@@ -68,6 +68,21 @@ void Controller::setTileName(const vcity::URI& uri, const std::string& name)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+void Controller::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void Controller::addState(const vcity::URI& uri, citygml::CityObjectState* state)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void Controller::addDynState(const vcity::URI& uri, citygml::CityObjectDynState* state)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
 void Controller::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
 {
     abstractLayer* layer = app().getScene().getLayer(uriLayer);

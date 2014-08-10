@@ -11,14 +11,14 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 class CityObject;
 class CityObjectState;
-
+////////////////////////////////////////////////////////////////////////////////
 enum State {
         Build = 1 << 0,
         Destroyed = 1 << 1,
         Modified = 1 << 2,
-        Burn
+        Burn = 1 << 3
 };
-
+////////////////////////////////////////////////////////////////////////////////
 class CityObjectTag
 {
 public:
@@ -29,10 +29,12 @@ public:
     std::string getStringId() const;
     //std::string getGeomName() const { std::string a = m_geom?m_geom->getId():0; return getStringId()+a; }
     CityObject* getGeom();
+    const CityObject* getGeom() const;
+    const CityObject* getParent() const;
     osg::ref_ptr<osg::Group> getOsg();
     void setOsg(osg::ref_ptr<osg::Group> node);
 
-    const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+    std::string getAttribute(const std::string& attribName, const QDateTime& date) const;
 
     int m_year;
     QDateTime m_date;
@@ -61,8 +63,10 @@ public:
     virtual std::string getStringId() const;
     //std::string getGeomName() const { std::string a = m_geom?m_geom->getId():0; return getStringId()+a; }
     CityObject* getGeom();
+    const CityObject* getGeom() const;
+    const CityObject* getParent() const;
 
-    virtual const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+    virtual std::string getAttribute(const std::string& attribName, const QDateTime& date) const;
 
     std::map<std::string, std::string> m_attributes;    ///< attributes map
 
@@ -81,7 +85,7 @@ public:
     DataSource(const std::string& attributeName);
     virtual ~DataSource() {}
 
-    virtual const std::string& getAttribute(const QDateTime& date) const;
+    virtual std::string getAttribute(const QDateTime& date) const;
 
 
    void dump() const;
@@ -97,7 +101,7 @@ class DataSourceArray : public DataSource
 {
 public:
     DataSourceArray(const std::string& attributeName, const std::string& data);
-    //virtual const std::string& getAttribute(const QDateTime& date) const;
+    //virtual std::string getAttribute(const QDateTime& date) const override;
     void parse(const std::string& data);
 };
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +109,7 @@ class DataSourceFile : public DataSource
 {
 public:
     DataSourceFile(const std::string& attributeName, const std::string& filePath);
-    //virtual const std::string& getAttribute(const QDateTime& date) const;
+    //virtual std::string getAttribute(const QDateTime& date) const override;
     void parse(const std::string& filePath);
 
     std::string m_filePath;
@@ -115,13 +119,13 @@ class CityObjectDynState : public CityObjectState
 {
 public:
     CityObjectDynState(CityObject* geom);
-    virtual ~CityObjectDynState() {}
+    virtual ~CityObjectDynState() override {}
 
     virtual std::string getStringId() const;
 
     void addDataSource(DataSource* dsrc);
 
-    virtual const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+    virtual std::string getAttribute(const std::string& attribName, const QDateTime& date) const override;
 
 private:
     std::map<std::string, DataSource*> m_attributes;    ///< attributes map

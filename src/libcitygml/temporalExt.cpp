@@ -3,6 +3,7 @@
 //#include <fstream> // MT 19/03/2014
 #include <osgDB/fstream>
 #include <sstream>
+#include "cityobject.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 std::string none("none");
 ////////////////////////////////////////////////////////////////////////////////
@@ -29,6 +30,16 @@ CityObject* CityObjectTag::getGeom()
 {
     return m_geom;
 }
+////////////////////////////////////////////////////////////////////////////////
+const CityObject* CityObjectTag::getGeom() const
+{
+    return m_geom;
+}
+////////////////////////////////////////////////////////////////////////////////
+const CityObject* CityObjectTag::getParent() const
+{
+    return m_parent;
+}
 /////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Group> CityObjectTag::getOsg()
 {
@@ -40,7 +51,7 @@ void CityObjectTag::setOsg(osg::ref_ptr<osg::Group> node)
     m_osg = node;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::string& CityObjectTag::getAttribute(const std::string& attribName, const QDateTime& date) const
+std::string CityObjectTag::getAttribute(const std::string& attribName, const QDateTime& date) const
 {
     return m_state->getAttribute(attribName, date);
 }
@@ -67,10 +78,31 @@ CityObject* CityObjectState::getGeom()
     return m_geom;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::string& CityObjectState::getAttribute(const std::string& attribName, const QDateTime& date) const
+const CityObject* CityObjectState::getGeom() const
 {
+    return m_geom;
+}
+////////////////////////////////////////////////////////////////////////////////
+const CityObject* CityObjectState::getParent() const
+{
+    return m_parent;
+}
+////////////////////////////////////////////////////////////////////////////////
+std::string CityObjectState::getAttribute(const std::string& attribName, const QDateTime& /*date*/) const
+{
+    // first look in state attribs
+    const auto& it = m_attributes.find(attribName);
+    if(it==m_attributes.end())
+    {
+        // next look in cityobject attribs
+        return m_geom->getAttribute(attribName);
+    }
+    else
+    {
+        return it->second;
+    }
     //std::cout << "BuildingFlag::getAttribute" << std::endl;
-    return none;
+    return "";
 }
 ////////////////////////////////////////////////////////////////////////////////
 DataSource::DataSource(const std::string& attributeName)
@@ -79,7 +111,7 @@ DataSource::DataSource(const std::string& attributeName)
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::string& DataSource::getAttribute(const QDateTime& date) const
+std::string DataSource::getAttribute(const QDateTime& date) const
 {
     //std::cout << "DataSource::getAttribute" << std::endl;
     if(m_dates.size() == 1)
@@ -93,7 +125,7 @@ const std::string& DataSource::getAttribute(const QDateTime& date) const
         if(m_dates[i] < date && date < m_dates[i+1])
             return m_values[i];
     }
-    return none;
+    return "";
 }
 ////////////////////////////////////////////////////////////////////////////////
 void DataSource::dump() const
@@ -147,8 +179,8 @@ void DataSourceArray::parse(const std::string& data)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*const std::string& DataSourceArray::getAttribute(const QDateTime& date) const
-{
+/*std::string DataSourceArray::getAttribute(const QDateTime& date) const
+{ 
 }*/
 ////////////////////////////////////////////////////////////////////////////////
 DataSourceFile::DataSourceFile(const std::string& attributeName, const std::string& filePath)
@@ -180,7 +212,7 @@ void DataSourceFile::parse(const std::string& filePath)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*const std::string& DataSourceFile::getAttribute(const QDateTime& date) const
+/*std::string DataSourceFile::getAttribute(const QDateTime& date) const
 {
 }*/
 ////////////////////////////////////////////////////////////////////////////////
@@ -200,7 +232,7 @@ void CityObjectDynState::addDataSource(DataSource* dsrc)
     m_attributes[dsrc->m_attribute] = dsrc;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::string& CityObjectDynState::getAttribute(const std::string& attribName, const QDateTime& date) const
+std::string CityObjectDynState::getAttribute(const std::string& attribName, const QDateTime& date) const
 {
     //std::cout << "BuildingDynFlag::getAttribute" << std::endl;
     std::map<std::string, DataSource*>::const_iterator it = m_attributes.find(attribName);
@@ -209,7 +241,7 @@ const std::string& CityObjectDynState::getAttribute(const std::string& attribNam
         return it->second->getAttribute(date);
     }
 
-    return none;
+    return "";
 }
 ////////////////////////////////////////////////////////////////////////////////
 bool cmpTag(CityObjectTag* a, CityObjectTag* b)

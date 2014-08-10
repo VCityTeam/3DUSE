@@ -5,7 +5,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 ParserParams::ParserParams( void )
-    : objectsMask( "All" ), minLOD( 0 ), maxLOD( 4 ), optimize( false ), pruneEmptyObjects( false ), tesselate( true ), destSRS( "" )
+    : objectsMask( "All" ), minLOD( 0 ), maxLOD( 4 ), optimize( false ), pruneEmptyObjects( false ), tesselate( true ), temporalImport( true ), destSRS( "" )
 { }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

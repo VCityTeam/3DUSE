@@ -133,6 +133,36 @@ void CityModel::addCityObject( CityObject* o )
         it->second.push_back( o );
 }
 ////////////////////////////////////////////////////////////////////////////////
+CityObject* getNodeByIdRec(CityObject* node, const std::string& id)
+{
+    CityObject* res = nullptr;
+
+    if(node->getId() == id)
+    {
+        return node;
+    }
+
+    for(auto* child : node->getChildren())
+    {
+        res = getNodeByIdRec(child, id);
+        if(res) break;
+    }
+
+    return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+CityObject* CityModel::getNodeById(const std::string& id)
+{
+    CityObject* res = nullptr;
+    for(auto* child : _roots)
+    {
+        res = getNodeByIdRec(child, id);
+        if(res) break;
+    }
+
+    return res;
+}
+////////////////////////////////////////////////////////////////////////////////
 CityObject* CityModel::getNode(const vcity::URI& uri)
 {
 	for(CityObject* obj : _roots)

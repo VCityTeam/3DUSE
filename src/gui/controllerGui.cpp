@@ -130,6 +130,21 @@ void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
     addSelection(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addState(const vcity::URI& uri, citygml::CityObjectState* state)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addDynState(const vcity::URI& uri, citygml::CityObjectDynState* state)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
 {
     //Controller::addAssimpNode(uriLayer, node);

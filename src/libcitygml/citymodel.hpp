@@ -58,6 +58,8 @@ public:
 
 	CityObject* getNode(const vcity::URI& uri);
 
+    CityObject* getNodeById(const std::string& id);
+
     void finish( const ParserParams& );
 
 protected:

@@ -219,11 +219,77 @@ xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject&
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
+xmlNodePtr ExporterCityGML::exportCityObjetStateXml(const citygml::CityObjectState& state, const std::string &nodeType, xmlNodePtr parent)
+{
+    xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
+    xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST (state.getParent()->getId()+'_'+state.getStringId()).c_str());
+
+    if(state.getGeom())
+    {
+        // attributes
+        for(const auto& attr : state.getGeom()->getAttributes())
+        {
+            xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
+            xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
+            xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+        }
+    }
+
+    return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+xmlNodePtr ExporterCityGML::exportCityObjetTagXml(const citygml::CityObjectTag& tag, const std::string &nodeType, xmlNodePtr parent)
+{
+    xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
+    xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST (tag.getParent()->getId()+'_'+tag.getStringId()).c_str());
+
+    if(tag.getGeom())
+    {
+        // attributes
+        for(const auto& attr : tag.getGeom()->getAttributes())
+        {
+            xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
+            xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
+            xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+        }
+    }
+
+    // date attrib
+    xmlNodePtr dateNode = xmlNewChild(res, NULL, BAD_CAST "gen:dateAttribute", NULL);
+    xmlNewProp(dateNode, BAD_CAST "name", BAD_CAST "date");
+    xmlNewChild(dateNode, NULL, BAD_CAST "gen:value", BAD_CAST tag.m_date.toString().toStdString().c_str());
+
+    return res;
+}
+////////////////////////////////////////////////////////////////////////////////
 xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent, bool rootLevel)
 {
     xmlNodePtr res = NULL;
 
     //std::cout << "type : " << obj.getTypeAsString() << std::endl;
+
+    // temporal test
+    if(m_temporalExport)
+    {
+        std::string strAttr = obj.getAttribute("yearOfConstruction");
+        int yearOfConstruction = (strAttr.empty()?-1:std::stoi(strAttr));
+        strAttr = obj.getAttribute("yearOfDemolition");
+        int yearOfDemolition = (strAttr.empty()?-1:std::stoi(strAttr));
+
+        int year = m_date.date().year();
+
+        if(((yearOfConstruction == -1 || yearOfDemolition == -1) || (yearOfConstruction < year && year < yearOfDemolition)))
+        {
+            // keep node
+        }
+        else
+        {
+             return res;
+        }
+
+        // advanced temporal test
+
+    }
 
     switch(obj.getType())
     {
@@ -320,53 +386,57 @@ xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, x
         break;
     }
 
+    if(!m_temporalExport) // export TAGs and STATEs
+    {
+        for(CityObjectState* state : obj.getStates())
+        {
+            xmlNodePtr r = exportCityObjetStateXml(*state, std::string("bldg:")+state->getParent()->getTypeAsString(), parent);
+
+            if(state->getGeom())
+            {
+                for(const auto& geom : state->getGeom()->getGeometries())
+                {
+                    exportGeometryXml(*geom, r);
+                }
+
+                for(const auto& child : state->getGeom()->getChildren())
+                {
+                    exportCityObjetXml(*child, r);
+                }
+            }
+        }
+        for(CityObjectTag* tag : obj.getTags())
+        {
+            xmlNodePtr r = exportCityObjetTagXml(*tag, std::string("bldg:")+tag->getParent()->getTypeAsString(), parent);
+
+            if(tag->getGeom())
+            {
+                for(const auto& geom : tag->getGeom()->getGeometries())
+                {
+                    exportGeometryXml(*geom, r);
+                }
+
+                for(const auto& child : tag->getGeom()->getChildren())
+                {
+                    exportCityObjetXml(*child, r);
+                }
+            }
+        }
+    }
+
     // build apperance node for current node
     if(rootLevel)
     {
         m_currentAppearence = xmlNewChild(res, NULL, BAD_CAST "app:appearance", NULL);
     }
 
-    /*citygml::AttributesMap::const_iterator it = obj.getAttributes().begin();
-    while(it != obj.getAttributes().end())
-    {
-        std::string attr = "bldg:" + it->first;
-        xmlNewChild(res, NULL, BAD_CAST attr.c_str(), BAD_CAST it->second.c_str());
-
-        if(m_temporalExport == true)
-        {
-            int year;
-            if(it->first == "yearOfConstruction")
-            {
-                std::stringstream ss(it->second);
-                ss >> year;
-                if(m_date.date().year() < year)
-                {
-                    // discard
-                    return NULL;
-                }
-            }
-            else if(it->first == "yearOfDemolition")
-            {
-                std::stringstream ss(it->second);
-                ss >> year;
-                if(m_date.date().year() > year)
-                {
-                    // discard
-                    return NULL;
-                }
-            }
-        }
-
-        ++it;
-    }*/
-
-    for(auto& geom : obj.getGeometries())
+    for(const auto& geom : obj.getGeometries())
     {
         if(res) exportGeometryXml(*geom, res);
         else exportGeometryXml(*geom, parent);
     }
 
-    for(auto& child : obj.getChildren())
+    for(const auto& child : obj.getChildren())
     {
         if(res) exportCityObjetXml(*child, res);
         else exportCityObjetXml(*child, parent);
