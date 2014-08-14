@@ -23,6 +23,11 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
         printf("Load using Gdal / OGR\n");
         osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 
+        std::string name = poDS->GetName();
+        name = name.substr(name.rfind('/')+1);
+
+        geode->setName(name);
+
         OGRLayer *poLayer;
         int nbLayers = poDS->GetLayerCount();
         if(nbLayers > 0)
@@ -58,6 +63,8 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                         vertices->push_back(pt);
                         indices->push_back(i);
                     }
+
+                    //geom->getOrCreateStateSet();
 
                     geom->setVertexArray(vertices);
                     geom->addPrimitiveSet(indices);
@@ -150,6 +157,8 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                         indices->push_back(id);
                     }
 
+                    //geom->getOrCreateStateSet();
+
                     geom->setVertexArray(vertices);
                     geom->addPrimitiveSet(indices);
                     geode->addDrawable(geom);
@@ -168,7 +177,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
         return geode;
     }
 
-    return 0;
+    return nullptr;
 }
 
 void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs, std::vector<BatimentShape> * InfoBatiments)

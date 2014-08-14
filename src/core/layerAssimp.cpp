@@ -24,7 +24,7 @@ const std::string LayerAssimp::getType() const
 URI LayerAssimp::getURI() const
 {
     URI uri;
-    uri.append(getName());
+    uri.append(getName(), getType());
     uri.setType(getType());
 
     return uri;

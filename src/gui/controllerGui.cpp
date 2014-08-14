@@ -199,14 +199,21 @@ void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
 {
     Controller::addShpNode(uriLayer, poDS);
 
+    std::string name = poDS->GetName();
+    name = name.substr(name.rfind('/')+1);
+
     // fill treeview
     uriLayer.resetCursor();
-    appGui().getTreeView()->addShpNode(uriLayer, poDS->GetName());
+    appGui().getTreeView()->addShpNode(uriLayer, name);
 
     // fill osg scene
     uriLayer.resetCursor();
     osg::ref_ptr<osg::Node> osgNode = buildOsgGDAL(poDS);
-    appGui().getOsgScene()->addShpNode(uriLayer, osgNode);
+    osg::ref_ptr<osg::Group> grp = new osg::Group;
+    grp->addChild(osgNode);
+    grp->setName(name);
+    //grp->getOrCreateStateSet();
+    appGui().getOsgScene()->addShpNode(uriLayer, grp);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::resetSelection()

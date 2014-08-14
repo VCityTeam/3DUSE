@@ -211,7 +211,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
 			geom->addPrimitiveSet( indices );
 
-			// Normals			
+            // Normals
 			osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array;
 			const std::vector<TVec3f>& norm = p->getNormals();
 			normals->reserve( norm.size() );

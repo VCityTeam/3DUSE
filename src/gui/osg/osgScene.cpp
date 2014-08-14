@@ -170,6 +170,11 @@ void OsgScene::init()
     layer3->setName("layer_Shp");
     m_layers->addChild(layer3);
 
+    // build fifth default layer
+    osg::ref_ptr<osg::Group> layer4 = new osg::Group();
+    layer4->setName("layer_Las");
+    m_layers->addChild(layer4);
+
     updateGrid();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -539,6 +544,7 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 {
     if(node)
     {
+        //std::cout << node->getName() << std::endl;
         if(show)
         {
             //node->setNodeMask(~0x0);
@@ -551,6 +557,11 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
         else
         {
             node->setNodeMask(0x0);
+            /*if(node->asGroup())
+            {
+                node->asGroup()->getChild(0)->setNodeMask(0x0);
+            }*/
+            //node->getParent(0)->setNodeMask(0x0);
         }
     }
 }

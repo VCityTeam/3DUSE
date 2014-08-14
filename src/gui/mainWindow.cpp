@@ -358,7 +358,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
 		return false;*/
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+        //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 		
         // clean previous shapeGeo
         delete ShapeGeo;

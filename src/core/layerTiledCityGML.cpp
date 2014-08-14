@@ -81,7 +81,7 @@ const std::string LayerTiledCityGML::getType() const
 URI LayerTiledCityGML::getURI() const
 {
     URI uri;
-    uri.append(getName());
+    uri.append(getName(), getType());
     uri.setType(getType());
 
     return uri;

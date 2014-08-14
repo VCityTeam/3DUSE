@@ -23,7 +23,7 @@ const std::string LayerLas::getType() const
 URI LayerLas::getURI() const
 {
     URI uri;
-    uri.append(getName());
+    uri.append(getName(), getType());
     uri.setType(getType());
 
     return uri;
