@@ -37,7 +37,8 @@ CityGMLHandler::CityGMLHandler( const ParserParams& params )
 _currentGeometry( 0 ), _currentPolygon( 0 ), _currentRing( 0 ),
 _currentAppearance( 0 ), _currentLOD( params.minLOD ), 
 _filterNodeType( false ), _filterDepth( 0 ), _exterior( true ),
- _currentGeometryType( GT_Unknown ), _geoTransform( 0 )
+_currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
+m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr)
 { 
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
 	initNodes(); 
@@ -368,18 +369,21 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentTag = new CityObjectTag(0, _currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it));\
                     o->addTag(m_currentTag);\
+                    _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it1!=std::string::npos)\
                 {\
                     m_currentState = new CityObjectState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it1));\
                     o->addState(m_currentState);\
+                    _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it2!=std::string::npos)\
                 {\
                     m_currentDynState = new CityObjectDynState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it2));\
                     o->addState(m_currentDynState);\
+                    _currentCityObject->m_temporalUse = true;\
                 }\
             }\
         }\
@@ -436,18 +440,21 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentTag = new CityObjectTag(0, _currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it));\
                     o->addTag(m_currentTag);\
+                    _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it1!=std::string::npos)\
                 {\
                     m_currentState = new CityObjectState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it1));\
                     o->addState(m_currentState);\
+                    _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it2!=std::string::npos)\
                 {\
                     m_currentDynState = new CityObjectDynState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it2));\
                     o->addState(m_currentDynState);\
+                    _currentCityObject->m_temporalUse = true;\
                 }\
             }\
         }\
@@ -671,7 +678,7 @@ void CityGMLHandler::endElement( const std::string& name )
 		MODEL_FILTER();
 		if ( _currentCityObject && ( _currentCityObject->size() > 0 || _currentCityObject->getChildCount() > 0 || !_params.pruneEmptyObjects ) ) 
         {	// Prune empty objects
-            if(_params.temporalImport && _currentCityObject->isTemporal())
+            if(_params.temporalImport && _currentCityObject->m_temporalUse)
             {
                 // this is a cityobject for a tag or state, do not add to citymodel
                 m_currentTag = nullptr;

@@ -136,6 +136,7 @@ protected:
 
 public:
     std::string m_path;
+    bool m_temporalUse;
 };
 ////////////////////////////////////////////////////////////////////////////////
 LIBCITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );

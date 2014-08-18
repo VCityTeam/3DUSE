@@ -8,32 +8,32 @@ Material::Material( const std::string& id )
     : Appearance( id, "Material" ), _ambientIntensity( 0.f ), _shininess( 0.f ), _transparency( 0.f )
 {}
 ////////////////////////////////////////////////////////////////////////////////
-inline TVec3f Material::getDiffuse( void ) const
+TVec3f Material::getDiffuse( void ) const
 {
     return _diffuse;
 }
 ////////////////////////////////////////////////////////////////////////////////
-inline TVec3f Material::getEmissive( void ) const
+TVec3f Material::getEmissive( void ) const
 {
     return _emissive;
 }
 ////////////////////////////////////////////////////////////////////////////////
-inline TVec3f Material::getSpecular( void ) const
+TVec3f Material::getSpecular( void ) const
 {
     return _specular;
 }
 ////////////////////////////////////////////////////////////////////////////////
-inline float Material::getAmbientIntensity( void ) const
+float Material::getAmbientIntensity( void ) const
 {
     return _ambientIntensity;
 }
 ////////////////////////////////////////////////////////////////////////////////
-inline float Material::getShininess( void ) const
+float Material::getShininess( void ) const
 {
     return _shininess;
 }
 ////////////////////////////////////////////////////////////////////////////////
-inline float Material::getTransparency( void ) const
+float Material::getTransparency( void ) const
 {
     return _transparency;
 }

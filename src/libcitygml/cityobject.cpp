@@ -6,7 +6,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::CityObject( const std::string& id, CityObjectsType type )
-    : Object( id ), _type( type ), m_path("")
+    : Object( id ), _type( type ), m_path(""), m_temporalUse(false)
 {}
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::~CityObject()

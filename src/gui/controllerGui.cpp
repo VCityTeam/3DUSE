@@ -4,6 +4,7 @@
 #include "moc/mainWindow.hpp"
 #include "osg/osgPicking.hpp"
 #include "osg/osgGDAL.hpp"
+#include <osg/ValueObject>
 ////////////////////////////////////////////////////////////////////////////////
 ControllerGui::ControllerGui()
 {
@@ -130,19 +131,103 @@ void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
     addSelection(uri);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, ReaderOsgCityGML& reader)
+{
+    osg::ref_ptr<osg::Group> grp = reader.createCityObject(node);
+    parent->addChild(grp);
+    citygml::CityObjects& cityObjects = node->getChildren();
+    citygml::CityObjects::iterator it = cityObjects.begin();
+    for( ; it != cityObjects.end(); ++it)
+    {
+        loadRecTest(*it, grp, reader);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
 {
+    // add in osg
+    if(tag->getGeom())
+    {
+        // get parent osg geom
+        uri.resetCursor();
+        osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
 
+        uri.resetCursor();
+        citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
+        if(obj->getTags().size() == 0)
+        {
+            // mark osg tagged
+            //osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
+            if(osgNode->asGroup())
+            {
+                osgNode->asGroup()->getChild(0)->setUserValue("TAGGED", 1);
+                //obj->getOsgNode()->getChild(0)->setUserValue("TAGGED", 1); //
+                //obj->getOsgNode()->setUserValue("TAGGED", 1);
+                std::cout << "osg parent tagged" << std::endl;
+            }
+        }
+
+        // build osg geom for tag
+
+        /*vcity::URI uriTile = uri;
+        while(uriTile.getDepth() > 2)
+        {
+            uriTile.pop();
+        }
+        uriTile.setType("Tile");
+        vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);*/
+
+        size_t pos = tag->getGeom()->m_path.find_last_of("/\\");
+        std::string path = tag->getGeom()->m_path.substr(0, pos);
+        //path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
+        ReaderOsgCityGML readerOsgGml(path);
+        readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
+        osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(tag->getGeom());
+
+        citygml::CityObjects& cityObjects = tag->getGeom()->getChildren();
+        citygml::CityObjects::iterator it = cityObjects.begin();
+        for( ; it != cityObjects.end(); ++it)
+        {
+            loadRecTest(*it, grp, readerOsgGml);
+        }
+
+        grp->setName(tag->getStringId()+tag->getGeom()->getId());
+        grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
+        //grp->setUserDataContainer(new MyUserDataContainer);
+        //grp->getOrCreateUserDataContainer();
+        grp->setUserValue("TAG", 1);
+        double ptr;
+        memcpy(&ptr, &tag, sizeof(tag));
+        grp->setUserValue("TAGPTR", ptr);
+
+        std::cout << "insert osg geom" << std::endl;
+        //obj->getOsgNode()->addChild(grp);
+        osgNode->getParent(0)->addChild(grp);
+        // obj->getOsgNode()->getParent(0)->addChild(grp);
+        // geom->setOsgNode(grp);
+        //m_osgScene->addChild(grp);
+        //obj->getOsgNode()->setNodeMask(0);
+
+        tag->setOsg(grp);
+    }
+
+    // add in treeview
+    uri.resetCursor();
+    appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addState(const vcity::URI& uri, citygml::CityObjectState* state)
 {
-
+    // add in treeview
+    uri.resetCursor();
+    appGui().getTreeView()->addItemGeneric(uri, state->getStringId().c_str(), "State");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addDynState(const vcity::URI& uri, citygml::CityObjectDynState* state)
 {
-
+    // add in treeview
+    uri.resetCursor();
+    appGui().getTreeView()->addItemGeneric(uri, state->getStringId().c_str(), "DynState");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)

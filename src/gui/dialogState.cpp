@@ -109,17 +109,9 @@ void DialogState::addState(const vcity::URI& uri)
         state->m_parent = obj;
         obj->addState(state);
 
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(state->getStringId().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "State");
-
-        QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(item2text));
-        item->addChild(item2);
-
-        //appGui().m_ui treeWidget->currentItem()->addChild(item);
+        // add in treeview
         uri.resetCursor();
-        appGui().getTreeView()->addItemGeneric(uri, state->getStringId().c_str(), "State");
+        appGui().getControllerGui().addState(uri, state);
     }
     appGui().getMainWindow()->m_osgView->setActive(true);
 }

@@ -85,7 +85,7 @@ DialogTag::~DialogTag()
     delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, ReaderOsgCityGML& reader)
+/*void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, ReaderOsgCityGML& reader)
 {
     osg::ref_ptr<osg::Group> grp = reader.createCityObject(node);
     parent->addChild(grp);
@@ -95,7 +95,7 @@ void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, Rea
     {
         loadRecTest(*it, grp, reader);
     }
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void DialogTag::addTag(const vcity::URI& uri)
 {
@@ -166,7 +166,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         //tag->m_year = ui.dateTimeEdit->date().year();
 
 
-        if(geom)
+        /*if(geom)
         {
             // get parent osg geom
             uri.resetCursor();
@@ -186,13 +186,13 @@ void DialogTag::addTag(const vcity::URI& uri)
 
             // build osg geom for tag
 
-            /*vcity::URI uriTile = uri;
-            while(uriTile.getDepth() > 2)
-            {
-                uriTile.pop();
-            }
-            uriTile.setType("Tile");
-            vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);*/
+            //vcity::URI uriTile = uri;
+            //while(uriTile.getDepth() > 2)
+            //{
+            //    uriTile.pop();
+            //}
+            //uriTile.setType("Tile");
+            //vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
 
             size_t pos = geom->m_path.find_last_of("/\\");
             std::string path = geom->m_path.substr(0, pos);
@@ -226,11 +226,11 @@ void DialogTag::addTag(const vcity::URI& uri)
             //obj->getOsgNode()->setNodeMask(0);
 
             tag->setOsg(grp);
-        }
+        }//*/
 
         obj->addTag(tag);
 
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(tag->getStringId().c_str()));
+        /*QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(tag->getStringId().c_str()));
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
         item->setCheckState(0, Qt::Checked);
         item->setText(1, "Tag");
@@ -242,7 +242,11 @@ void DialogTag::addTag(const vcity::URI& uri)
 
         //m_ui->treeWidget->currentItem()->addChild(item);
         uri.resetCursor();
-        appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
+        appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");*/
+
+        // add in treeview
+        uri.resetCursor();
+        appGui().getControllerGui().addTag(uri, tag);
     }
 
     appGui().getMainWindow()->m_osgView->setActive(true);
