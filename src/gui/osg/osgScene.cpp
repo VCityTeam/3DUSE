@@ -15,6 +15,8 @@
 #include "osgCityGML.hpp"
 #include "core/dataprofile.hpp"
 #include "osgTools.hpp"
+#include "../controllerGui.hpp"
+//#include <typeinfo>
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -186,8 +188,13 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
         osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
         if(layerGroup)
         {
-            osg::ref_ptr<osg::Node> osgTile = buildTile(tile);
+            vcity::URI uri = uriLayer;
+            uri.append(tile.getName(), "Tile");
+            uri.setType("Building");
+            uri.resetCursor();
+            osg::ref_ptr<osg::Node> osgTile = buildTile(uri, tile);
             layerGroup->addChild(osgTile);
+            buildTemporalNodes(uri, tile);
         }
     }
 }
@@ -414,13 +421,13 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
             if(obj && obj->getType() == citygml::COT_Building)
             {
                 std::string strAttr = obj->getAttribute("yearOfConstruction");
-                int yearOfConstruction = (strAttr.empty()?-1:std::stoi(strAttr));
+                int yearOfConstruction = (strAttr.empty()?-4000:std::stoi(strAttr));
                 strAttr = obj->getAttribute("yearOfDemolition");
-                int yearOfDemolition = (strAttr.empty()?-1:std::stoi(strAttr));
+                int yearOfDemolition = (strAttr.empty()?-4000:std::stoi(strAttr));
 
                 //std::cout << obj->getId() << " : " << yearOfConstruction << " / " << yearOfDemolition << std::endl;
 
-                if(((yearOfConstruction == -1 || yearOfDemolition == -1) || (yearOfConstruction < year && year < yearOfDemolition)) || year == -4000)
+                if(((yearOfConstruction == -4000 || yearOfDemolition == -4000) || (yearOfConstruction < year && year < yearOfDemolition)))
                 {
                     node->setNodeMask(0xffffffff);
                 }
@@ -442,7 +449,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
             if(a && b)
             {
-                if((yearOfConstruction < year && year < yearOfDemolition) || year == 0)
+                if((yearOfConstruction < year && year < yearOfDemolition))
                 {
                     node->setNodeMask(0xffffffff);
                 }
@@ -453,34 +460,27 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
             }
 
-            // reset : force draw
-            if(date.date().year() == -4000)
-            {
-                node->setNodeMask(0xffffffff);
-            }
-
             setDateRec(date, child);
         }
     }
 
-    osg::ref_ptr<osg::Geode> geode = node->asGeode();
-    if(geode)
+    //osg::ref_ptr<osg::Geode> geode = node->asGeode();
+    if(node)
     {
         int tagged = 0;
-        bool c = geode->getUserValue("TAGGED", tagged);
+        bool c = node->getUserValue("TAGGED", tagged);
         if(c && tagged)
         {
-            geode->setNodeMask(0);
-            geode->getParent(0)->setNodeMask(0);
-
-            if(date.date().year() == -4000)
-            {
-                geode->setNodeMask(0xffffffff);
-                geode->getParent(0)->setNodeMask(0xffffffff);
-            }
-
-            //std::cout << "hide TAGGED default geom : " << geode->getName() << " : " << geode->getNodeMask() << std::endl;
+            node->setNodeMask(0);
+            //node->getParent(0)->setNodeMask(0);
+            //std::cout << "hide TAGGED default geom : " << osgTools::getURI(node).getStringURI() << " / " << typeid(node).name() << " : " << node->getNodeMask() << std::endl;
         }
+    }
+
+    // reset : force draw
+    if(date.date().year() == -4000)
+    {
+        node->setNodeMask(0xffffffff);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -549,10 +549,10 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
         {
             //node->setNodeMask(~0x0);
             node->setNodeMask(0xffffffff);
-            if(node->asGroup())
+            /*if(node->asGroup())
             {
                 node->asGroup()->getChild(0)->setNodeMask(0xffffffff);
-            }
+            }*/
         }
         else
         {
@@ -615,20 +615,56 @@ void OsgScene::optim()
     optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildCityObject(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
+void OsgScene::buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile)
+{
+    for(citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
+    {
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildTemporalNodesRec(u, child);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj)
+{
+    // add tags geom
+    for(citygml::CityObjectTag* tag : obj->getTags())
+    {
+        appGui().getControllerGui().addTag(uri, tag);
+    }
+
+    // recursive call
+    for(citygml::CityObject* child : obj->getChildren())
+    {
+        vcity::URI u = uri;
+        u.append(obj->getId(), obj->getTypeAsString());
+        u.resetCursor();
+        buildTemporalNodesRec(u, child);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
 {
     osg::ref_ptr<osg::Group> node = reader.createCityObject(obj);
     nodeOsg->addChild(node);
 
-    citygml::CityObjects& cityObjects = obj->getChildren();
-    citygml::CityObjects::iterator it = cityObjects.begin();
-    for( ; it != cityObjects.end(); ++it)
+    for(citygml::CityObject* child : obj->getChildren())
     {
-        buildCityObject(node, *it, reader, depth+1);
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildCityObject(u, node, child, reader, depth+1);
     }
+
+    // add tags geom
+    /*for(citygml::CityObjectTag* tag : obj->getTags())
+    {
+        appGui().getControllerGui().addTag(uri, tag);
+    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
+osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::URI& uri, const vcity::Tile& tile)
 {
     osg::ref_ptr<osg::PositionAttitudeTransform> root = new osg::PositionAttitudeTransform();
     root->setName(tile.getName());
@@ -639,11 +675,12 @@ osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
     ReaderOsgCityGML readerOsgGml(path);
     readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
-    const citygml::CityObjects& cityObjects = tile.getCityModel()->getCityObjectsRoots();
-    citygml::CityObjects::const_iterator it = cityObjects.begin();
-    for( ; it != cityObjects.end(); ++it)
+    for(citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
     {
-        buildCityObject(root, *it, readerOsgGml);
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildCityObject(u, root, child, readerOsgGml);
     }
     return root;
 }

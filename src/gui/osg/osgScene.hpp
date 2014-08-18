@@ -117,8 +117,11 @@ public:
     osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
 
 public:
-    osg::ref_ptr<osg::Node> buildTile(const vcity::Tile& tile);
-    void buildCityObject(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0);
+    osg::ref_ptr<osg::Node> buildTile(const vcity::URI& uri, const vcity::Tile& tile);
+    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0);
+
+    void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
+    void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
 
     bool m_shadow;
     osg::Vec4 m_shadowVec;

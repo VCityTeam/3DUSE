@@ -4,6 +4,7 @@
 #include "moc/mainWindow.hpp"
 #include "osg/osgPicking.hpp"
 #include "osg/osgGDAL.hpp"
+#include "osg/osgTools.hpp"
 #include <osg/ValueObject>
 ////////////////////////////////////////////////////////////////////////////////
 ControllerGui::ControllerGui()
@@ -153,33 +154,18 @@ void ControllerGui::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
         osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
 
         uri.resetCursor();
-        citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
-        if(obj->getTags().size() == 0)
-        {
-            // mark osg tagged
-            //osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
-            if(osgNode->asGroup())
-            {
-                osgNode->asGroup()->getChild(0)->setUserValue("TAGGED", 1);
-                //obj->getOsgNode()->getChild(0)->setUserValue("TAGGED", 1); //
-                //obj->getOsgNode()->setUserValue("TAGGED", 1);
-                std::cout << "osg parent tagged" << std::endl;
-            }
-        }
+        std::cout << uri.getStringURI() << std::endl;
+        osgNode->setUserValue("TAGGED", 1);
+        std::cout << "osg parent tagged : " << osgTools::getURI(osgNode).getStringURI() << std::endl;
 
         // build osg geom for tag
-
-        /*vcity::URI uriTile = uri;
-        while(uriTile.getDepth() > 2)
-        {
-            uriTile.pop();
-        }
-        uriTile.setType("Tile");
-        vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);*/
-
         size_t pos = tag->getGeom()->m_path.find_last_of("/\\");
         std::string path = tag->getGeom()->m_path.substr(0, pos);
+        uri.resetCursor();
+        vcity::Tile* tile = appGui().getScene().getTile(uri);
+        uri.resetCursor();
         //path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
+        path = tile->getCityModel()->m_basePath;
         ReaderOsgCityGML readerOsgGml(path);
         readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
         osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(tag->getGeom());
@@ -193,27 +179,22 @@ void ControllerGui::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
 
         grp->setName(tag->getStringId()+tag->getGeom()->getId());
         grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
-        //grp->setUserDataContainer(new MyUserDataContainer);
-        //grp->getOrCreateUserDataContainer();
         grp->setUserValue("TAG", 1);
         double ptr;
         memcpy(&ptr, &tag, sizeof(tag));
         grp->setUserValue("TAGPTR", ptr);
 
         std::cout << "insert osg geom" << std::endl;
-        //obj->getOsgNode()->addChild(grp);
         osgNode->getParent(0)->addChild(grp);
-        // obj->getOsgNode()->getParent(0)->addChild(grp);
-        // geom->setOsgNode(grp);
-        //m_osgScene->addChild(grp);
-        //obj->getOsgNode()->setNodeMask(0);
 
         tag->setOsg(grp);
     }
 
+    std::cout << "tag date : " << tag->m_date.toString().toStdString() << std::endl;
+
     // add in treeview
-    uri.resetCursor();
-    appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
+    //uri.resetCursor();
+    //appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addState(const vcity::URI& uri, citygml::CityObjectState* state)
@@ -388,6 +369,6 @@ void ControllerGui::update(const vcity::URI& uri_)
     readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
     uriTile.resetCursor();
-    appGui().getOsgScene()->buildCityObject(appGui().getOsgScene()->getNode(uriTile)->asGroup(), obj, readerOsgGml);
+    appGui().getOsgScene()->buildCityObject(uriTile, appGui().getOsgScene()->getNode(uriTile)->asGroup(), obj, readerOsgGml);
 }
 ////////////////////////////////////////////////////////////////////////////////

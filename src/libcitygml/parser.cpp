@@ -369,6 +369,8 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentTag = new CityObjectTag(0, _currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it));\
                     o->addTag(m_currentTag);\
+                    m_currentTag->m_parent = o;\
+                    o->checkTags();\
                     _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it1!=std::string::npos)\
@@ -376,6 +378,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentState = new CityObjectState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it1));\
                     o->addState(m_currentState);\
+                    m_currentState->m_parent = o;\
                     _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it2!=std::string::npos)\
@@ -383,6 +386,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentDynState = new CityObjectDynState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it2));\
                     o->addState(m_currentDynState);\
+                    m_currentDynState->m_parent = o;\
                     _currentCityObject->m_temporalUse = true;\
                 }\
             }\
@@ -440,6 +444,8 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentTag = new CityObjectTag(0, _currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it));\
                     o->addTag(m_currentTag);\
+                    m_currentTag->m_parent = o;\
+                    o->checkTags();\
                     _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it1!=std::string::npos)\
@@ -447,6 +453,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentState = new CityObjectState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it1));\
                     o->addState(m_currentState);\
+                    m_currentState->m_parent = o;\
                     _currentCityObject->m_temporalUse = true;\
                 }\
                 else if(it2!=std::string::npos)\
@@ -454,6 +461,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                     m_currentDynState = new CityObjectDynState(_currentCityObject);\
                     CityObject* o = _model->getNodeById(id.substr(0, it2));\
                     o->addState(m_currentDynState);\
+                    m_currentDynState->m_parent = o;\
                     _currentCityObject->m_temporalUse = true;\
                 }\
             }\
@@ -578,16 +586,9 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	case NODETYPE( doubleAttribute ):
 	case NODETYPE( intAttribute ):
 	case NODETYPE( uriAttribute ):
+    case NODETYPE( dateAttribute ):
 		_attributeName = getAttribute( attributes, "name", "" );
 		break;
-
-    case NODETYPE( dateAttribute ):
-        _attributeName = getAttribute( attributes, "name", "" );
-        if(_params.temporalImport && m_currentTag)
-        {
-            m_currentTag->m_date.fromString(_attributeName.c_str());
-        }
-        break;
 
 	default:
         //std::cout << localname << std::endl;
@@ -804,6 +805,12 @@ void CityGMLHandler::endElement( const std::string& name )
         {
             if ( _currentObject ) _currentObject->setAttribute( _attributeName, buffer.str(), false );
             else if ( _model && getPathDepth() == 1 ) _model->setAttribute( _attributeName, buffer.str(), false );
+
+            if(_params.temporalImport && m_currentTag && _attributeName == "date")
+            {
+                m_currentTag->m_date = QDateTime::fromString(buffer.str().c_str(), Qt::ISODate);
+                m_currentTag->m_parent->checkTags();
+            }
         }
         break;
 

@@ -230,22 +230,12 @@ void DialogTag::addTag(const vcity::URI& uri)
 
         obj->addTag(tag);
 
-        /*QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(tag->getStringId().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Tag");
-
-        QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(ui->comboBox->currentText()));
-        item->addChild(item2);
-
+        // reorder tags
         obj->checkTags();
-
-        //m_ui->treeWidget->currentItem()->addChild(item);
-        uri.resetCursor();
-        appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");*/
 
         // add in treeview
         uri.resetCursor();
+        appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
         appGui().getControllerGui().addTag(uri, tag);
     }
 

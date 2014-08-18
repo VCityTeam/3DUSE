@@ -257,7 +257,7 @@ xmlNodePtr ExporterCityGML::exportCityObjetTagXml(const citygml::CityObjectTag& 
     // date attrib
     xmlNodePtr dateNode = xmlNewChild(res, NULL, BAD_CAST "gen:dateAttribute", NULL);
     xmlNewProp(dateNode, BAD_CAST "name", BAD_CAST "date");
-    xmlNewChild(dateNode, NULL, BAD_CAST "gen:value", BAD_CAST tag.m_date.toString().toStdString().c_str());
+    xmlNewChild(dateNode, NULL, BAD_CAST "gen:value", BAD_CAST tag.m_date.toString(Qt::ISODate).toStdString().c_str());
 
     return res;
 }
