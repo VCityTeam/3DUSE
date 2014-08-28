@@ -1137,6 +1137,8 @@ void MainWindow::generateLOD0()
 	}
 	else
 	{
+		citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+		exporter.initExport();
 		// get all selected nodes (with a uri)
 		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
 		if(uris.size() > 0)//Si des bâtiments ont été selectionnés
@@ -1155,6 +1157,7 @@ void MainWindow::generateLOD0()
 
 					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
+					exporter.appendCityObject(*LOD1);
 					//appGui().getControllerGui().update(*it);
 
 					delete Enveloppe;
@@ -1165,8 +1168,6 @@ void MainWindow::generateLOD0()
 		}
 		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
 		{
-			citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
-			exporter.initExport();
 			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
 			{
 				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
@@ -1198,18 +1199,91 @@ void MainWindow::generateLOD0()
 					}
 				}
 			}
-			exporter.endExport();
 		}
+		exporter.endExport();
 	}
     QApplication::restoreOverrideCursor();
-}
-*/
+}*/
+
 void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
-    delete ShapeGeo;
-    ShapeGeo = nullptr;
+	if(ShapeGeo != nullptr)
+	{
+		vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+		delete ShapeGeo;
+		ShapeGeo = nullptr;
+	}
+	else
+	{
+		citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+		exporter.initExport();
+		// get all selected nodes (with a uri)
+		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+		if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+		{
+			// do all nodes selected
+			for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+			{
+				std::cout << it->getStringURI() << std::endl;
+				it->resetCursor();
+				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+
+				if(obj)
+				{
+					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+					geos::geom::Geometry ** Enveloppe = new geos::geom::Geometry *;
+					double * heightmax = new double;
+					double * heightmin = new double;
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), *Enveloppe, heightmax, heightmin);
+
+					exporter.appendCityObject(*LOD1);
+					//appGui().getControllerGui().update(*it);
+
+					delete Enveloppe;
+					delete heightmax;
+					delete heightmin;
+				}
+			}
+		}
+		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
+		{
+			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+			{
+				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+				{
+					vcity::URI uri;
+					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
+					uri.append(tile->getName(), "Tile");
+					uri.append(obj->getId(), "Building");
+					uri.setType("Building");
+		
+					//std::cout << uri.getStringURI() << std::endl;
+		
+					if(obj)
+					{
+						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+						geos::geom::Geometry ** Enveloppe = new geos::geom::Geometry *;
+						double * heightmax = new double;
+						double * heightmin = new double;
+						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), *Enveloppe, heightmax, heightmin);
+
+						exporter.appendCityObject(*LOD1);
+						//appGui().getControllerGui().update(uri);
+
+						delete Enveloppe;
+						delete heightmax;
+						delete heightmin;
+					}
+				}
+			}
+		}
+		exporter.endExport();
+	}
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
