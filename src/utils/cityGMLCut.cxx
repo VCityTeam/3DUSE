@@ -33,7 +33,6 @@ double G_xmin, G_ymin, G_xmax, G_ymax;
 // todo:
 //------
 // 1. split polygons > 3
-// 2. improve xmlUnlinkNode for sibling nodes
 
 void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
@@ -504,8 +503,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					}
 					else
 					{
-						xmlUnlinkNode(noeudLinearRing->parent);
-						xmlFreeNode(noeudLinearRing->parent);
+						xmlUnlinkNode(noeud);
+						xmlFreeNode(noeud);
 
 						if (noeudUV)
 						{
@@ -519,8 +518,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 				}
 				else
 				{
-					xmlUnlinkNode(noeudLinearRing->parent);
-					xmlFreeNode(noeudLinearRing->parent);
+					xmlUnlinkNode(noeud);
+					xmlFreeNode(noeud);
 
 					//std::cout << "---> PolygonSurfaceOUT" << std::endl;
 				}
