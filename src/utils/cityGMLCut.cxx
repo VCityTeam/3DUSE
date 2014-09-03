@@ -505,7 +505,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					else
 					{
 						xmlUnlinkNode(noeudLinearRing->parent);
-						xmlFree(noeudLinearRing->parent);
+						xmlFreeNode(noeudLinearRing->parent);
 					}
 
 					if (noeudUV)
@@ -514,7 +514,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 				else
 				{
 					xmlUnlinkNode(noeudLinearRing->parent);
-					xmlFree(noeudLinearRing->parent);
+					xmlFreeNode(noeudLinearRing->parent);
 
 					//std::cout << "---> PolygonSurfaceOUT" << std::endl;
 				}
