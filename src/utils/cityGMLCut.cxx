@@ -504,8 +504,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					}
 					else
 					{
-						xmlUnlinkNode(noeud);
-						xmlFree(noeud);
+						xmlUnlinkNode(noeudLinearRing->parent);
+						xmlFree(noeudLinearRing->parent);
 					}
 
 					if (noeudUV)
@@ -513,8 +513,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 				}
 				else
 				{
-					xmlUnlinkNode(noeud);
-					xmlFree(noeud);
+					xmlUnlinkNode(noeudLinearRing->parent);
+					xmlFree(noeudLinearRing->parent);
 
 					//std::cout << "---> PolygonSurfaceOUT" << std::endl;
 				}
@@ -767,15 +767,15 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("CityGMLCut 1.1.3 - July 18, 2014 - Martial TOLA");
+        puts("CityGMLCut 1.1.4 - September 3, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
-		puts("cityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
+		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
 		puts("");
 		puts("Example:");
-		puts("./cityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
-		puts("./cityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
+		puts("./CityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
+		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
 		puts("");
     
 		return(EXIT_FAILURE);
