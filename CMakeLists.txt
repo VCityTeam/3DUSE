@@ -464,7 +464,7 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-add_executable(CityGMLCut src/utils/cityGMLCut.cxx)
+add_executable(CityGMLCut src/utils/cityGMLCut.cxx src/utils/triangulate.cxx)
 target_link_libraries (CityGMLCut ${VCITY_GUI_LIB})
 if (WITH_QT5)
   QT5_USE_MODULES( CityGMLCut Widgets Xml OpenGL )
