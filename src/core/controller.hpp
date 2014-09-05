@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CONTROLLER_HPP__
 #define __CONTROLLER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -9,6 +11,9 @@
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
+/// \brief The Controller class
+///
+/// Used to dispatch commands accross different layers (MVC use)
 class Controller
 {
 public:
@@ -31,6 +36,11 @@ public:
     virtual void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
     virtual void deleteTile(const vcity::URI& uri);
     virtual void setTileName(const vcity::URI& uri, const std::string& name);
+
+    // temporal
+    virtual void addTag(const vcity::URI& uri, citygml::CityObjectTag* tag);
+    virtual void addState(const vcity::URI& uri, citygml::CityObjectState* state);
+    virtual void addDynState(const vcity::URI& uri, citygml::CityObjectDynState* state);
 
     // Shp
     virtual void addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS);

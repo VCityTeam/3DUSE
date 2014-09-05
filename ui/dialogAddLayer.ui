@@ -31,7 +31,11 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit"/>
+       <widget class="QLineEdit" name="lineEdit">
+        <property name="toolTip">
+         <string extracomment="Type here the name of the layer"/>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

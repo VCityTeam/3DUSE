@@ -15,6 +15,8 @@
 
 #include "vecs.hpp"
 
+#include "triangulate.h"
+
 #define TEXTURE_PROCESS			1
 
 #define MAX_POINTS_IN_POSLIST	200	// TEMP
@@ -33,7 +35,6 @@ double G_xmin, G_ymin, G_xmax, G_ymax;
 // todo:
 //------
 // 1. split polygons > 3
-// 2. better xmlUnlinkNode ???
 
 void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
@@ -505,7 +506,13 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					else
 					{
 						xmlUnlinkNode(noeud);
-						xmlFree(noeud);
+						xmlFreeNode(noeud);
+
+						if (noeudUV)
+						{
+							xmlUnlinkNode(noeudUV);
+							xmlFreeNode(noeudUV);
+						}
 					}
 
 					if (noeudUV)
@@ -514,7 +521,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 				else
 				{
 					xmlUnlinkNode(noeud);
-					xmlFree(noeud);
+					xmlFreeNode(noeud);
 
 					//std::cout << "---> PolygonSurfaceOUT" << std::endl;
 				}
@@ -767,15 +774,15 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.1.2 - July 4, 2014 - Martial TOLA");
-		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
+        puts("CityGMLCut 1.1.4 - September 3, 2014 - Martial TOLA");
+		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
-		puts("ParseCityGML <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
+		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
 		puts("");
 		puts("Example:");
-		puts("./parseCityGML ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
-		puts("./parseCityGML LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
+		puts("./CityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
+		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
 		puts("");
     
 		return(EXIT_FAILURE);
@@ -903,8 +910,10 @@ int main(int argc, char** argv)
 									for (std::set<std::string>::iterator it=UUID_set.begin(); it!=UUID_set.end(); ++it)
 										if ( UUID_full_set.find(*it) == UUID_full_set.end() )
 											UUID_full_set.insert(*it);
-										/*else
-											printf("FOUND in UUID_full_set\n");*/
+										else
+										{
+											//printf("FOUND in UUID_full_set\n");
+										}
 
 									//printf("parcours_prefixe_Building_ReliefFeature_textures: %s - %s\n", n->children->name, xmlGetProp(n->children, BAD_CAST "id"));
 									parcours_prefixe_Building_ReliefFeature_textures(n->children, process_Building_ReliefFeature_textures, &UUID_set, folderIN, folderOUT);
@@ -955,3 +964,49 @@ int main(int argc, char** argv)
 
     return EXIT_SUCCESS;
 }
+/*{
+
+  // Small test application demonstrating the usage of the triangulate
+  // class.
+
+
+  // Create a pretty complicated little contour by pushing them onto
+  // an stl vector.
+
+  Vector2dVector a;
+
+  a.push_back( Vector2d(0,6));
+  a.push_back( Vector2d(0,0));
+  a.push_back( Vector2d(3,0));
+  a.push_back( Vector2d(4,1));
+  a.push_back( Vector2d(6,1));
+  a.push_back( Vector2d(8,0));
+  a.push_back( Vector2d(12,0));
+  a.push_back( Vector2d(13,2));
+  a.push_back( Vector2d(8,2));
+  a.push_back( Vector2d(8,4));
+  a.push_back( Vector2d(11,4));
+  a.push_back( Vector2d(11,6));
+  a.push_back( Vector2d(6,6));
+  a.push_back( Vector2d(4,3));
+  a.push_back( Vector2d(2,6));
+
+  // allocate an STL vector to hold the answer.
+
+  Vector2dVector result;
+
+  //  Invoke the triangulator to triangulate this polygon.
+  Triangulate::Process(a,result);
+
+  // print out the results.
+  int tcount = result.size()/3;
+
+  for (int i=0; i<tcount; i++)
+  {
+    const Vector2d &p1 = result[i*3+0];
+    const Vector2d &p2 = result[i*3+1];
+    const Vector2d &p3 = result[i*3+2];
+    printf("Triangle %d => (%0.0f,%0.0f) (%0.0f,%0.0f) (%0.0f,%0.0f)\n",i+1,p1.GetX(),p1.GetY(),p2.GetX(),p2.GetY(),p3.GetX(),p3.GetY());
+  }
+
+}*/

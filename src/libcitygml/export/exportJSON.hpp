@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __JSON_EXPORT_HPP_
 #define __JSON_EXPORT_HPP_
 ////////////////////////////////////////////////////////////////////////////////
@@ -11,12 +13,13 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterJSON class
-/// Export JSON
+/// Export JSON, mostly for webgl project, using our json format
 class ExporterJSON : public Exporter
 {
 public:
     ExporterJSON();
 
+    /// Set exporter base path
     void setBasePath(const std::string& basePath);
 
     void setOffset(double offsetX, double offsetY);
@@ -32,7 +35,12 @@ public:
     /// \param fileName
     void exportCityObject(CityObject& obj);
 
+    /// Add a filter on a type of object to produce an out file prepended with name containing only filter features
+    /// \param filter Type to filter
+    /// \param name Name to be prepended to output filename
     void addFilter(CityObjectsType filter, const std::string& name);
+
+    /// Clear filters
     void resetFilters();
 
 private:
@@ -41,6 +49,7 @@ private:
     int getNbFaces(CityObject& obj, CityObjectsType type) const;
     int getNbTris(CityObject& obj) const;
 
+    // helper function for indent
     void openScope();
     void closeScope(bool comma = false);
     void indent();
@@ -51,13 +60,13 @@ private:
     std::ofstream m_outFile;
     int m_indentDepth;
 
-    bool m_genTexCoords;
+    bool m_genTexCoords;            ///< Activate texture coord generation (like GeoRefTexture) ?
     double m_offsetX, m_offsetY;
     double m_tileSizeX, m_tileSizeY;
 
-    std::map<CityObjectsType, std::string> m_filters;
+    std::map<CityObjectsType, std::string> m_filters;   ///< filters list
 
-    bool m_needComma;
+    bool m_needComma;               ///< flag used to handle commas
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

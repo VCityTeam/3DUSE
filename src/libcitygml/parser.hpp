@@ -339,6 +339,12 @@ namespace citygml
 		GeometryType _currentGeometryType;
 
 		void* _geoTransform;
+
+        // temporal ext
+        CityObjectState* m_currentState;
+        CityObjectDynState* m_currentDynState;
+        CityObjectTag* m_currentTag;
+
 	};
 }
 

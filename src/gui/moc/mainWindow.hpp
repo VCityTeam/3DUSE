@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef MAINWINDOW_HPP
 #define MAINWINDOW_HPP
 ////////////////////////////////////////////////////////////////////////////////
@@ -103,6 +105,7 @@ private slots:
     void generateLOD4();
 
     void slotFixBuilding();
+    void slotObjToCityGML();
 
 	void slotChangeDetection();
 

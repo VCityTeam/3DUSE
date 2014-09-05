@@ -1,3 +1,18 @@
+/* -*-c++-*- libcitygml - Copyright (c) 2010 Joachim Pouderoux, BRGM
+*
+* This file is part of libcitygml library
+* http://code.google.com/p/libcitygml
+*
+* libcitygml is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, either version 2.1 of the License, or
+* (at your option) any later version.
+*
+* libcitygml is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+*/
 ////////////////////////////////////////////////////////////////////////////////
 #include "cityobject.hpp"
 #include "utils.hpp"
@@ -6,7 +21,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::CityObject( const std::string& id, CityObjectsType type )
-    : Object( id ), _type( type ), m_path("")
+    : Object( id ), _type( type ), m_path(""), m_temporalUse(false)
 {}
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::~CityObject()
@@ -131,6 +146,8 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
         uri.popFront();
     }
 
+    uri.resetCursor();
+
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,7 +194,20 @@ const std::vector<CityObjectTag*>& CityObject::getTags() const
 ////////////////////////////////////////////////////////////////////////////////
 bool CityObject::isTemporal() const
 {
-    return m_tags.size();
+    return m_tags.size() + m_states.size();
+}
+////////////////////////////////////////////////////////////////////////////////
+std::string CityObject::getAttributeTemporal(const std::string& attribName, const QDateTime& date) const
+{
+    for(size_t i=0; i<m_tags.size()-1; ++i)
+    {
+        if(m_tags[i]->m_date < date && date < m_tags[i+1]->m_date)
+        {
+            return m_tags[i]->getAttribute(attribName, date);
+        }
+    }
+
+    return "";
 }
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::finish( AppearanceManager& appearanceManager, const ParserParams& params )
@@ -265,10 +295,10 @@ void CityObject::computeCentroid()
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::checkTags()
 {
+    // reorder tags
     std::sort(m_tags.begin(), m_tags.end(), cmpTag);
 
-    size_t i;
-    for(i=0; i<m_tags.size(); ++i)
+    for(size_t i=0; i<m_tags.size(); ++i)
     {
         CityObject* geom = m_tags[i]->getGeom();
         if(geom) // && geom->getOsgNode())
@@ -278,14 +308,14 @@ void CityObject::checkTags()
             {
                 //osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
                 grp->setUserValue("yearOfConstruction", m_tags[i]->m_date.date().year());
-                int y = 9999; // temp hack
+                int year = std::numeric_limits<int>::max();
                 if(m_tags[i]->getGeom() == NULL)
                 {
-                    y = m_tags[i]->m_date.date().year();
+                    year = m_tags[i]->m_date.date().year();
                 }
                 if(i < m_tags.size()-1)
-                    y = m_tags[i+1]->m_date.date().year();
-                grp->setUserValue("yearOfDemolition", y);
+                    year = m_tags[i+1]->m_date.date().year();
+                grp->setUserValue("yearOfDemolition", year);
             }
         }
     }

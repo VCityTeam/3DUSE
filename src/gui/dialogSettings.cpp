@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogSettings.hpp"
 #include "ui_dialogSettings.h"
 #include "gui/applicationGui.hpp"
@@ -7,7 +9,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::DialogSettings(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogSettings)
+    ui(new Ui::DialogSettings),
+    m_updateDataProfile(false)
 {
     ui->setupUi(this);
     if(appGui().getMainWindow()->m_unlockLevel < 1)
@@ -26,6 +29,7 @@ DialogSettings::~DialogSettings()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogSettings::doSettings()
 {
+    // TODO : need to be adjusted manually if we had other dataprofiles, should do something better
     ui->comboBoxDataProfile->addItem("None");
     ui->comboBoxDataProfile->addItem("Paris");
     ui->comboBoxDataProfile->addItem("Lyon");
@@ -40,8 +44,15 @@ void DialogSettings::doSettings()
 
     if(exec())
     {
-        vcity::app().getSettings().getDataProfile() = m_tmpDP;
-        setDataProfileFromUI(vcity::app().getSettings().getDataProfile());
+        if(m_updateDataProfile)
+        {
+            vcity::app().getSettings().getDataProfile() = m_tmpDP;
+            setDataProfileFromUI(vcity::app().getSettings().getDataProfile());
+            appGui().getOsgScene()->updateGrid();
+        }
+
+        // reset update dataprofile flag
+        m_updateDataProfile = false;
 
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
         QSettings settings("liris", "virtualcity");
@@ -66,6 +77,9 @@ void DialogSettings::chooseDataProfileSlot(int i)
     //std::cout << ui->comboBoxDataProfile->itemText(i).toStdString() << std::endl;
     switch(i)
     {
+    case 0:
+        m_tmpDP = vcity::createDataProfileNone();
+        break;
     case 1:
         m_tmpDP = vcity::createDataProfileParis();
         break;
@@ -76,6 +90,8 @@ void DialogSettings::chooseDataProfileSlot(int i)
         m_tmpDP = vcity::createDataProfileDefault();
         break;
     }
+
+    m_updateDataProfile = true;
 
     setFromDataProfile(m_tmpDP);
 }

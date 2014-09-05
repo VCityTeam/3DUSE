@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/mainWindow.hpp"
 #include "ui_mainWindow.h"
@@ -19,6 +20,8 @@
 #include "export/exportCityGML.hpp"
 #include "export/exportJSON.hpp"
 #include "export/exportOBJ.hpp"
+
+#include "import/importerAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
@@ -56,6 +59,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // create controller
     m_app.setControllerGui(new ControllerGui());
+
+    reset();
 
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);
@@ -128,6 +133,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
+    connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
 
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
@@ -143,8 +149,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui->horizontalSlider->setEnabled(m_useTemporal);
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
-
-    reset();
 
     updateRecentFiles();
 
@@ -355,7 +359,7 @@ bool MainWindow::loadFile(const QString& filepath)
 
 		return false;*/
 
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+        //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 		
         // clean previous shapeGeo
         delete ShapeGeo;
@@ -402,7 +406,7 @@ bool MainWindow::loadFile(const QString& filepath)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadScene()
 {
-    m_osgView->setActive(false);
+    m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
 
     std::cout<<"Load Scene"<<std::endl;
 
@@ -426,7 +430,7 @@ void MainWindow::loadScene()
 
     updateRecentFiles();
 
-    m_osgView->setActive(true);
+    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
 void buildRecursiveFileList(const QDir& dir, QStringList& list)
@@ -438,7 +442,7 @@ void buildRecursiveFileList(const QDir& dir, QStringList& list)
         if(!iterator.fileInfo().isDir())
         {
             QString filename = iterator.filePath();
-            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive) || filename.endsWith(".shp", Qt::CaseInsensitive))
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive) || filename.endsWith(".shp", Qt::CaseInsensitive)  || filename.endsWith(".obj", Qt::CaseInsensitive))
             {
                 list.append(filename);
                 qDebug("Found %s matching pattern.", qPrintable(filename));
@@ -617,6 +621,7 @@ void MainWindow::updateTextBoxWithSelectedNodes()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::unlockFeatures(const QString& pass)
 {
+    // choose admin level depending on password
     if(pass == "pass1")
     {
         m_unlockLevel = 1;
@@ -653,8 +658,10 @@ void MainWindow::unlockFeatures(const QString& pass)
     case 0:
         m_ui->menuDebug->menuAction()->setVisible(false);
         m_ui->menuTest->menuAction()->setVisible(false);
-        m_ui->menuTools->menuAction()->setVisible(false);
-        m_ui->menuRender->menuAction()->setVisible(false);
+        //m_ui->menuTools->menuAction()->setVisible(false);
+        m_ui->actionFix_building->setVisible(false);
+        //m_ui->menuRender->menuAction()->setVisible(false);
+        m_ui->actionShadows->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
@@ -682,15 +689,21 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    unlockFeatures("pass2");
-    //unlockFeatures("");
+    //unlockFeatures("pass2");
+    unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
+
+    // TODO : need to be adjusted manually if we had other dataprofiles, should do something better
 
     // set dataprofile
     QSettings settings("liris", "virtualcity");
     QString dpName = settings.value("dataprofile").toString();
-    if(dpName == "Paris")
+    if(dpName == "None")
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileNone();
+    }
+    else if(dpName == "Paris")
     {
         m_app.getSettings().getDataProfile() = vcity::createDataProfileParis();
     }
@@ -713,7 +726,9 @@ void MainWindow::resetScene()
     m_osgScene->reset();
 
     // reset ui
-    reset();
+    //reset();
+
+    m_treeView->reset();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::clearSelection()
@@ -787,6 +802,10 @@ void MainWindow::optionShowAdvancedTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
+    // date is starting at year 1900 and ending at 2100
+    // this is controlled in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+
     if(value == -1) value = m_ui->horizontalSlider->value();
     QDate date(1900, 1, 1);
     date = date.addDays(value);
@@ -801,6 +820,10 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
+    // date is starting at year 1900 and ending at 2100
+    // this is controlled in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+
     m_useTemporal = !m_useTemporal;
 
     if(m_useTemporal)
@@ -812,7 +835,8 @@ void MainWindow::toggleUseTemporal()
     }
     else
     {
-        QDate date(0, 0, 0);
+        // -4000 is used as a special value to disable time
+        QDate date(-4000, 1, 1);
         QDateTime datetime(date);
         m_osgScene->setDate(datetime); // reset
         m_timer.stop();
@@ -822,7 +846,7 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    std::cout << "toggle temporal tool" << std::endl;
+    //std::cout << "toggle temporal tool" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
@@ -846,8 +870,27 @@ void MainWindow::exportCityGML()
         std::vector<const citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
-            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
             if(obj) objs.push_back(obj);
+            if(uri.getType() == "Tile")
+            {
+                citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+                for(const citygml::CityObject* o : model->getCityObjectsRoots())
+                {
+                    objs.push_back(o);
+                }
+            }
+            if(uri.getType() == "LayerCityGML")
+            {
+                vcity::LayerCityGML* layer = static_cast<vcity::LayerCityGML*>(m_app.getScene().getLayer(uri));
+                for(vcity::Tile* tile : layer->getTiles())
+                {
+                    for(const citygml::CityObject* o : tile->getCityModel()->getCityObjectsRoots())
+                    {
+                        objs.push_back(o);
+                    }
+                }
+            }
         }
         exporter.exportCityObject(objs);
     }
@@ -1320,6 +1363,30 @@ void MainWindow::slotFixBuilding()
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotObjToCityGML()
+{
+    m_osgView->setActive(false);
+
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert OBJ to CityGML");
+
+    for(int i = 0; i < filenames.count(); ++i)
+    {
+        QFileInfo file(filenames[i]);
+        QString ext = file.suffix().toLower();
+        if(ext == "obj")
+        {
+            citygml::ImporterAssimp importer;
+            importer.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+            citygml::CityModel* model = importer.import(file.absoluteFilePath().toStdString());
+
+            citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+            exporter.exportCityModel(*model);
+        }
+    }
+
+    m_osgView->setActive(true);
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotChangeDetection()
 {
 	QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -1364,16 +1431,21 @@ void MainWindow::slotTemporalAnim()
     m_temporalAnim = !m_temporalAnim;
     if(m_temporalAnim)
     {
-        m_timer.start(500);
+        m_timer.start(500); // anim each 500ms
+        m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-pause"));
+        m_ui->toolButton->setToolTip("Pause temporal animation");
     }
     else
     {
         m_timer.stop();
+        m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-start"));
+        m_ui->toolButton->setToolTip("Start temporal animation");
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotTemporalAnimUpdate()
 {
+    // increase by a year
     m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+365);
     //std::cout << m_ui->horizontalSlider->value() << std::endl;
 }

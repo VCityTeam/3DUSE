@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "layerShp.hpp"
 #include "application.hpp"
@@ -25,7 +26,7 @@ const std::string LayerShp::getType() const
 URI LayerShp::getURI() const
 {
     URI uri;
-    uri.append(getName());
+    uri.append(getName(), getType());
     uri.setType(getType());
 
     return uri;

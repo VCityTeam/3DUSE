@@ -59,8 +59,12 @@ endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #------------------------------------------------------------------------------
 # /MP for multiple compilation units (cl.exe) ; without any value, it is set automatically depending on your number of main threads
 # If you are compiling on Windows, the preprocessor symbols 'min' or 'max' are defined. Do #define NOMINMAX to prevent windows.h from defining these symbols.
+#
+# /FORCE:MULTIPLE for osgDB ifstream / ofstream conflict
 if(MSVC)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /D \"NOMINMAX\"")
+
+	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
 endif()
 #------------------------------------------------------------------------------
 
@@ -86,7 +90,7 @@ IF(WIN32)
 
 	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270 )
 
-	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.0-bin-without-qt)
+	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.1-bin-without-qt)
 
 	set(GDAL_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
 	set(GDAL_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/gdal_i.lib)
@@ -460,15 +464,15 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-add_executable(parseCityGML src/utils/parseCityGML.cxx)
-target_link_libraries (parseCityGML ${VCITY_GUI_LIB})
+add_executable(CityGMLCut src/utils/cityGMLCut.cxx src/utils/triangulate.cxx)
+target_link_libraries (CityGMLCut ${VCITY_GUI_LIB})
 if (WITH_QT5)
-  QT5_USE_MODULES( parseCityGML Widgets Xml OpenGL )
+  QT5_USE_MODULES( CityGMLCut Widgets Xml OpenGL )
   if (WITH_QT3D)
-    QT5_USE_MODULES( parseCityGML 3D )
+    QT5_USE_MODULES( CityGMLCut 3D )
   endif(WITH_QT3D)
 endif(WITH_QT5)
-SET_TARGET_PROPERTIES(parseCityGML PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
+SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
 	#--------------------------------------------------------------------------------
 	# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample

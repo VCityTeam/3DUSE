@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef DIALOGSETTINGS_HPP
 #define DIALOGSETTINGS_HPP
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,6 +29,7 @@ private:
     void setDataProfileFromUI(vcity::DataProfile& dp);
 
     vcity::DataProfile m_tmpDP;
+    bool m_updateDataProfile;
 
     Ui::DialogSettings *ui;
 };

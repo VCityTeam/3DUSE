@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include <cstdio>
 #include "osgMnt.hpp"
@@ -290,6 +291,8 @@ osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(float offset_x, float offset_y,
 				indices->push_back( (y+1)*get_dim_x()+(x+1) );					
 				indices->push_back( (y+1)*get_dim_x()+x );
 			}
+
+        geom->getOrCreateStateSet();
             
         geom->addPrimitiveSet( indices );
 		// Create geometry primitives

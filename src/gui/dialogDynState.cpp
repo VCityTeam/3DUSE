@@ -1,12 +1,14 @@
-#include "moc/dialogDynFlag.hpp"
-#include "ui_dialogDynFlag.h"
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
+#include "moc/dialogDynState.hpp"
+#include "ui_dialogDynState.h"
 #include "gui/applicationGui.hpp"
 #include <QSettings>
 #include <QFileDialog>
 ////////////////////////////////////////////////////////////////////////////////
-DialogDynFlag::DialogDynFlag(QWidget *parent) :
+DialogDynState::DialogDynState(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogDynFlag)
+    ui(new Ui::DialogDynState)
 {
     ui->setupUi(this);
 
@@ -14,12 +16,12 @@ DialogDynFlag::DialogDynFlag(QWidget *parent) :
     connect(ui->pushButton_2, SIGNAL(clicked()), this, SLOT(addFeatureFile()));
 }
 ////////////////////////////////////////////////////////////////////////////////
-DialogDynFlag::~DialogDynFlag()
+DialogDynState::~DialogDynState()
 {
     delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void DialogDynFlag::addDynFlag(const vcity::URI& uri)
+void DialogDynState::addDynState(const vcity::URI& uri)
 {
     citygml::CityObject* obj = nullptr;
 
@@ -31,6 +33,7 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
     //if(m_ui->treeWidget->currentItem())
     {
         //std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
+        uri.resetCursor();
         obj = vcity::app().getScene().getCityObjectNode(uri);
 
         if(obj)
@@ -98,6 +101,7 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
         else
         {
             // use existing
+            uri.resetCursor();
             geom = vcity::app().getScene().getCityObjectNode(uri); //findNode(ui.comboBox->currentText().toStdString());
             std::cout << "use existing : " << geom << std::endl;
             item2text = ui->comboBox->currentText();
@@ -121,20 +125,13 @@ void DialogDynFlag::addDynFlag(const vcity::URI& uri)
 
         obj->addState(state);
 
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(state->getStringId().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "DynFlag");
-
-        QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(item2text));
-        item->addChild(item2);
-
-        //appGui().m_ui treeWidget->currentItem()->addChild(item);
-        appGui().getTreeView()->addItemGeneric(uri, state->getStringId().c_str(), "DynState");
+        // add in treeview
+        uri.resetCursor();
+        appGui().getControllerGui().addDynState(uri, state);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void DialogDynFlag::addFeatureArray()
+void DialogDynState::addFeatureArray()
 {
     QHBoxLayout* hb = new QHBoxLayout();
     QLineEdit* key = new QLineEdit(); m_featureArrayNames.push_back(key);
@@ -146,7 +143,7 @@ void DialogDynFlag::addFeatureArray()
     ui->verticalLayout_3->addLayout(hb);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void DialogDynFlag::addFeatureFile()
+void DialogDynState::addFeatureFile()
 {
     QHBoxLayout* hb = new QHBoxLayout();
     QLineEdit* key = new QLineEdit(); m_featureFileNames.push_back(key);

@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgQtWidget.hpp"
 #include <osgGA/TrackballManipulator>
@@ -279,6 +280,7 @@ void osgQtWidget::setPickHandler(PickHandler* pickhandler)
 void osgQtWidget::paintEvent(QPaintEvent* /*event*/)
 {
    frame();
+   char* p = new char[4096];
 }
 ////////////////////////////////////////////////////////////////////////////////
 void osgQtWidget::setSceneData(osg::Node* scene)
