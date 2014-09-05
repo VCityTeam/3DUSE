@@ -767,15 +767,15 @@ int main(int argc, char** argv)
 	if (argc != 7)
 	{
 		puts("");
-        puts("ParseCityGML 1.1.2 - July 4, 2014 - Martial TOLA");
-		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
+        puts("CityGMLCut 1.1.3 - July 18, 2014 - Martial TOLA");
+		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
-		puts("ParseCityGML <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
+		puts("cityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
 		puts("");
 		puts("Example:");
-		puts("./parseCityGML ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
-		puts("./parseCityGML LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
+		puts("./cityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
+		puts("./cityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
 		puts("");
     
 		return(EXIT_FAILURE);
