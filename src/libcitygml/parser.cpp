@@ -37,7 +37,8 @@ CityGMLHandler::CityGMLHandler( const ParserParams& params )
 _currentGeometry( 0 ), _currentPolygon( 0 ), _currentRing( 0 ),
 _currentAppearance( 0 ), _currentLOD( params.minLOD ), 
 _filterNodeType( false ), _filterDepth( 0 ), _exterior( true ),
- _currentGeometryType( GT_Unknown ), _geoTransform( 0 )
+_currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
+m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr)
 { 
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
 	initNodes(); 
@@ -344,6 +345,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	{
 	case NODETYPE( CityModel ):
 		_model = new CityModel();
+        // save basepath here (used later to load textures using absolute path)
         _model->m_basePath = _params.m_basePath;
         _model->getAppearanceManager()->m_basePath = _model->m_basePath;
 		pushObject( _model );
@@ -352,10 +354,51 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		// City objects management
 #define MANAGE_OBJECT( _t_ )\
 	case CG_ ## _t_ :\
-	if ( _objectsMask & COT_ ## _t_ )\
-		{ pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) ); pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/ }\
-	else { pushCityObject( 0 ); _filterNodeType = true; _filterDepth = getPathDepth(); }\
-	break;
+        if ( _objectsMask & COT_ ## _t_ )\
+        {\
+            pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
+            pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
+            \
+            if(_params.temporalImport)\
+            {\
+                std::string id = getGmlIdAttribute( attributes );\
+                auto it = id.find("_TAG");\
+                auto it1 = id.find("_STATE");\
+                auto it2 = id.find("_DYNSTATE");\
+                if(it!=std::string::npos)\
+                {\
+                    m_currentTag = new CityObjectTag(0, _currentCityObject);\
+                    CityObject* o = _model->getNodeById(id.substr(0, it));\
+                    o->addTag(m_currentTag);\
+                    m_currentTag->m_parent = o;\
+                    o->checkTags();\
+                    _currentCityObject->m_temporalUse = true;\
+                }\
+                else if(it1!=std::string::npos)\
+                {\
+                    m_currentState = new CityObjectState(_currentCityObject);\
+                    CityObject* o = _model->getNodeById(id.substr(0, it1));\
+                    o->addState(m_currentState);\
+                    m_currentState->m_parent = o;\
+                    _currentCityObject->m_temporalUse = true;\
+                }\
+                else if(it2!=std::string::npos)\
+                {\
+                    m_currentDynState = new CityObjectDynState(_currentCityObject);\
+                    CityObject* o = _model->getNodeById(id.substr(0, it2));\
+                    o->addState(m_currentDynState);\
+                    m_currentDynState->m_parent = o;\
+                    _currentCityObject->m_temporalUse = true;\
+                }\
+            }\
+        }\
+        else\
+        {\
+            pushCityObject( nullptr );\
+            _filterNodeType = true;\
+            _filterDepth = getPathDepth();\
+        }\
+        break;
 
 		MANAGE_OBJECT( GenericCityObject );
 		MANAGE_OBJECT( Building );
@@ -383,11 +426,55 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 #undef MANAGE_OBJECT
 
 		// BoundarySurfaceType
-#define MANAGE_SURFACETYPE( _t_ ) case CG_ ## _t_ ## Surface : _currentGeometryType = GT_ ## _t_;\
-									if ( _objectsMask & COT_ ## _t_ ## Surface )\
-		{ pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) ); pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/ }\
-	else { pushCityObject( 0 ); _filterNodeType = true; _filterDepth = getPathDepth(); }\
-	break;
+#define MANAGE_SURFACETYPE( _t_ )\
+    case CG_ ## _t_ ## Surface :\
+        _currentGeometryType = GT_ ## _t_;\
+        if ( _objectsMask & COT_ ## _t_ ## Surface )\
+        {\
+            pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
+            pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
+            \
+            if(_params.temporalImport)\
+            {\
+                std::string id = getGmlIdAttribute( attributes );\
+                auto it = id.find("_TAG");\
+                auto it1 = id.find("_STATE");\
+                auto it2 = id.find("_DYNSTATE");\
+                if(it!=std::string::npos)\
+                {\
+                    m_currentTag = new CityObjectTag(0, _currentCityObject);\
+                    _currentCityObject->m_path = _params.m_basePath;\
+                    CityObject* o = _model->getNodeById(id.substr(0, it));\
+                    o->addTag(m_currentTag);\
+                    m_currentTag->m_parent = o;\
+                    o->checkTags();\
+                    _currentCityObject->m_temporalUse = true;\
+                }\
+                else if(it1!=std::string::npos)\
+                {\
+                    m_currentState = new CityObjectState(_currentCityObject);\
+                    CityObject* o = _model->getNodeById(id.substr(0, it1));\
+                    o->addState(m_currentState);\
+                    m_currentState->m_parent = o;\
+                    _currentCityObject->m_temporalUse = true;\
+                }\
+                else if(it2!=std::string::npos)\
+                {\
+                    m_currentDynState = new CityObjectDynState(_currentCityObject);\
+                    CityObject* o = _model->getNodeById(id.substr(0, it2));\
+                    o->addState(m_currentDynState);\
+                    m_currentDynState->m_parent = o;\
+                    _currentCityObject->m_temporalUse = true;\
+                }\
+            }\
+        }\
+        else\
+        {\
+            pushCityObject( nullptr );\
+            _filterNodeType = true;\
+            _filterDepth = getPathDepth();\
+        }\
+        break;
 		MANAGE_SURFACETYPE( Wall );
 		MANAGE_SURFACETYPE( Roof );
 		MANAGE_SURFACETYPE( Ground );
@@ -500,8 +587,8 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	case NODETYPE( stringAttribute ):
 	case NODETYPE( doubleAttribute ):
 	case NODETYPE( intAttribute ):
-	case NODETYPE( dateAttribute ):
 	case NODETYPE( uriAttribute ):
+    case NODETYPE( dateAttribute ):
 		_attributeName = getAttribute( attributes, "name", "" );
 		break;
 
@@ -593,9 +680,19 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( CeilingSurface ):
 		MODEL_FILTER();
 		if ( _currentCityObject && ( _currentCityObject->size() > 0 || _currentCityObject->getChildCount() > 0 || !_params.pruneEmptyObjects ) ) 
-		{	// Prune empty objects 
-			_model->addCityObject( _currentCityObject );
-			if ( _cityObjectStack.size() == 1 ) _model->addCityObjectAsRoot( _currentCityObject );
+        {	// Prune empty objects
+            if(_params.temporalImport && _currentCityObject->m_temporalUse)
+            {
+                // this is a cityobject for a tag or state, do not add to citymodel
+                m_currentTag = nullptr;
+                m_currentState = nullptr;
+                m_currentDynState = nullptr;
+            }
+            else
+            {
+                _model->addCityObject( _currentCityObject );
+                if ( _cityObjectStack.size() == 1 ) _model->addCityObjectAsRoot( _currentCityObject );
+            }
 		}
 		else delete _currentCityObject; 
 		popCityObject();
@@ -710,6 +807,12 @@ void CityGMLHandler::endElement( const std::string& name )
         {
             if ( _currentObject ) _currentObject->setAttribute( _attributeName, buffer.str(), false );
             else if ( _model && getPathDepth() == 1 ) _model->setAttribute( _attributeName, buffer.str(), false );
+
+            if(_params.temporalImport && m_currentTag && _attributeName == "date")
+            {
+                m_currentTag->m_date = QDateTime::fromString(buffer.str().c_str(), Qt::ISODate);
+                m_currentTag->m_parent->checkTags();
+            }
         }
         break;
 

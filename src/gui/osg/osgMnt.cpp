@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include <cstdio>
 #include "osgMnt.hpp"
@@ -200,7 +201,7 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 	}*/
 
 	// normals
-	unsigned int n=0;
+    //unsigned int n=0;
 	for( int y=0; y<get_dim_y()-1; y++ )
 		for( int x=0; x<get_dim_x()-1; x++ )
 		{
@@ -290,6 +291,8 @@ osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(float offset_x, float offset_y,
 				indices->push_back( (y+1)*get_dim_x()+(x+1) );					
 				indices->push_back( (y+1)*get_dim_x()+x );
 			}
+
+        geom->getOrCreateStateSet();
             
         geom->addPrimitiveSet( indices );
 		// Create geometry primitives

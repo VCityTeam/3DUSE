@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/mainWindow.hpp"
 #include "ui_mainWindow.h"
@@ -19,6 +20,8 @@
 #include "export/exportCityGML.hpp"
 #include "export/exportJSON.hpp"
 #include "export/exportOBJ.hpp"
+
+#include "import/importerAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
@@ -56,6 +59,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // create controller
     m_app.setControllerGui(new ControllerGui());
+
+    reset();
 
     // create osgQt view widget
     m_osgView = new osgQtWidget(m_ui->mainGrid);
@@ -127,6 +132,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
+	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
+    connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
+
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
     connect(m_ui->actionTest_3, SIGNAL(triggered()), this, SLOT(test3()));
@@ -141,8 +149,6 @@ MainWindow::MainWindow(QWidget *parent) :
     m_ui->horizontalSlider->setEnabled(m_useTemporal);
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
-
-    reset();
 
     updateRecentFiles();
 
@@ -331,10 +337,30 @@ bool MainWindow::loadFile(const QString& filepath)
     else if(ext == "shp")
     {
         std::cout << "load shp file : " << filepath.toStdString() << std::endl;
-        OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
-		
-        m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+        OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
 
+		//Pour sauvegarder un shapefile
+		/*const char *pszDriverName = "ESRI Shapefile";
+		OGRSFDriver *poDriver;
+		OGRRegisterAll();
+		poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
+
+		if( poDriver == NULL )
+		{
+			printf( "%s driver not available.\n", pszDriverName );
+			return false;
+		}
+		OGRDataSource *poDS2;
+		remove("Polygon.shp");
+		poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
+		
+		poDS2->CopyLayer(poDS->GetLayer(0), "test");
+		OGRDataSource::DestroyDataSource(poDS2);
+
+		return false;*/
+
+        //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+		
         // clean previous shapeGeo
         delete ShapeGeo;
 		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
@@ -380,7 +406,7 @@ bool MainWindow::loadFile(const QString& filepath)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadScene()
 {
-    m_osgView->setActive(false);
+    m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
 
     std::cout<<"Load Scene"<<std::endl;
 
@@ -404,7 +430,7 @@ void MainWindow::loadScene()
 
     updateRecentFiles();
 
-    m_osgView->setActive(true);
+    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
 void buildRecursiveFileList(const QDir& dir, QStringList& list)
@@ -416,7 +442,7 @@ void buildRecursiveFileList(const QDir& dir, QStringList& list)
         if(!iterator.fileInfo().isDir())
         {
             QString filename = iterator.filePath();
-            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive) || filename.endsWith(".shp", Qt::CaseInsensitive)  || filename.endsWith(".obj", Qt::CaseInsensitive))
             {
                 list.append(filename);
                 qDebug("Found %s matching pattern.", qPrintable(filename));
@@ -595,6 +621,7 @@ void MainWindow::updateTextBoxWithSelectedNodes()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::unlockFeatures(const QString& pass)
 {
+    // choose admin level depending on password
     if(pass == "pass1")
     {
         m_unlockLevel = 1;
@@ -618,7 +645,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->actionExport_osg->setVisible(true);
         m_ui->actionExport_tiled_osga->setVisible(true);
         m_ui->actionLoad_bbox->setVisible(true);
-        m_ui->actionLoad_recursive->setVisible(true);
+        //m_ui->actionLoad_recursive->setVisible(true);
         m_ui->actionShow_advanced_tools->setVisible(true);
         m_ui->actionHelp->setVisible(true);
         //m_ui->tab_16->setVisible(true);
@@ -636,7 +663,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
-        m_ui->actionLoad_recursive->setVisible(false);
+        //m_ui->actionLoad_recursive->setVisible(false);
         m_ui->actionShow_advanced_tools->setVisible(false);
         m_ui->actionHelp->setVisible(false);
         m_ui->tab_16->setVisible(false); m_ui->tabWidget->removeTab(1);
@@ -660,15 +687,21 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    unlockFeatures("pass2");
-    //unlockFeatures("");
+    //unlockFeatures("pass2");
+    unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
+
+    // TODO : need to be adjusted manually if we had other dataprofiles, should do something better
 
     // set dataprofile
     QSettings settings("liris", "virtualcity");
     QString dpName = settings.value("dataprofile").toString();
-    if(dpName == "Paris")
+    if(dpName == "None")
+    {
+        m_app.getSettings().getDataProfile() = vcity::createDataProfileNone();
+    }
+    else if(dpName == "Paris")
     {
         m_app.getSettings().getDataProfile() = vcity::createDataProfileParis();
     }
@@ -692,6 +725,8 @@ void MainWindow::resetScene()
 
     // reset ui
     reset();
+
+    m_treeView->reset();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::clearSelection()
@@ -765,6 +800,10 @@ void MainWindow::optionShowAdvancedTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
+    // date is starting at year 1900 and ending at 2100
+    // this is controlled in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+
     if(value == -1) value = m_ui->horizontalSlider->value();
     QDate date(1900, 1, 1);
     date = date.addDays(value);
@@ -779,6 +818,10 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
+    // date is starting at year 1900 and ending at 2100
+    // this is controlled in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+
     m_useTemporal = !m_useTemporal;
 
     if(m_useTemporal)
@@ -790,7 +833,8 @@ void MainWindow::toggleUseTemporal()
     }
     else
     {
-        QDate date(0, 0, 0);
+        // -4000 is used as a special value to disable time
+        QDate date(-4000, 1, 1);
         QDateTime datetime(date);
         m_osgScene->setDate(datetime); // reset
         m_timer.stop();
@@ -800,7 +844,7 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    std::cout << "toggle temporal tool" << std::endl;
+    //std::cout << "toggle temporal tool" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
@@ -824,8 +868,27 @@ void MainWindow::exportCityGML()
         std::vector<const citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
-            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
             if(obj) objs.push_back(obj);
+            if(uri.getType() == "Tile")
+            {
+                citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+                for(const citygml::CityObject* o : model->getCityObjectsRoots())
+                {
+                    objs.push_back(o);
+                }
+            }
+            if(uri.getType() == "LayerCityGML")
+            {
+                vcity::LayerCityGML* layer = static_cast<vcity::LayerCityGML*>(m_app.getScene().getLayer(uri));
+                for(vcity::Tile* tile : layer->getTiles())
+                {
+                    for(const citygml::CityObject* o : tile->getCityModel()->getCityObjectsRoots())
+                    {
+                        objs.push_back(o);
+                    }
+                }
+            }
         }
         exporter.exportCityObject(objs);
     }
@@ -986,8 +1049,85 @@ void MainWindow::slotDumpSelectedNodes()
 void MainWindow::generateAllLODs()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
+//Version GDAL
+/*void MainWindow::generateLOD0()
+{
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	// get all selected nodes (with a uri)
+	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+	if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+	{
+		// do all nodes selected
+		for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+		{
+			citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+			if(obj)
+			{
+				std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+				OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+				double * heightmax = new double;
+				double * heightmin = new double;
+				vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+				citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+				obj2->addGeometry(geom);
+				obj->insertNode(obj2);
+
+				appGui().getControllerGui().update(*it);
+
+				delete Enveloppe;
+				delete heightmax;
+				delete heightmin;
+			}
+		}
+	}
+	else//Sinon, on génère les LOD0 de tous les bâtiments de la scène
+	{
+		//vcity::app().getAlgo().generateLOD0(vcity::URI());
+		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+		{
+			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+			{
+				vcity::URI uri;
+				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
+				uri.append(tile->getName(), "Tile");
+				uri.append(obj->getId(), "Building");
+				uri.setType("Building");
+
+				std::cout << uri.getStringURI() << std::endl;
+
+				if(obj)
+				{
+					std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+					double * heightmax = new double;
+					double * heightmin = new double;
+
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+
+					citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+					obj2->addGeometry(geom);
+					obj->insertNode(obj2);
+
+					appGui().getControllerGui().update(uri);
+
+					delete Enveloppe;
+					delete heightmax;
+					delete heightmin;
+				}
+			}
+		}
+	}
+
+	QApplication::restoreOverrideCursor();
+}*/
 void MainWindow::generateLOD0()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -999,18 +1139,192 @@ void MainWindow::generateLOD0()
         for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
         {
             vcity::app().getAlgo().generateLOD0(*it);
-            // TODO
+
             appGui().getControllerGui().update(*it);
         }
     }
+	else
+	{
+		//vcity::app().getAlgo().generateLOD0(vcity::URI());
+		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+		{
+			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+			{
+				vcity::URI uri;
+				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
+				uri.append(tile->getName(), "Tile");
+				uri.append(obj->getId(), "Building");
+				uri.setType("Building");
+
+				vcity::app().getAlgo().generateLOD0(uri);
+
+				appGui().getControllerGui().update(uri);
+			}
+		}
+	}
+
+	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
+//Version GDAL
+/*void MainWindow::generateLOD1()
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+	if(ShapeGeo != nullptr)
+	{
+		vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+		delete ShapeGeo;
+		ShapeGeo = nullptr;
+	}
+	else
+	{
+		citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+		exporter.initExport();
+		// get all selected nodes (with a uri)
+		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+		if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+		{
+			// do all nodes selected
+			for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+			{
+				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+				if(obj)
+				{
+					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+					double * heightmax = new double;
+					double * heightmin = new double;
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+					exporter.appendCityObject(*LOD1);
+					//appGui().getControllerGui().update(*it);
+
+					delete Enveloppe;
+					delete heightmax;
+					delete heightmin;
+				}
+			}
+		}
+		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
+		{
+			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+			{
+				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+				{
+					vcity::URI uri;
+					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
+					uri.append(tile->getName(), "Tile");
+					uri.append(obj->getId(), "Building");
+					uri.setType("Building");
+		
+					std::cout << uri.getStringURI() << std::endl;
+		
+					if(obj)
+					{
+						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+						OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+						double * heightmax = new double;
+						double * heightmin = new double;
+						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+						exporter.appendCityObject(*LOD1);
+						//appGui().getControllerGui().update(uri);
+
+						delete Enveloppe;
+						delete heightmax;
+						delete heightmin;
+					}
+				}
+			}
+		}
+		exporter.endExport();
+	}
+    QApplication::restoreOverrideCursor();
+}*/
+
 void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
-    delete ShapeGeo;
-    ShapeGeo = nullptr;
+	if(ShapeGeo != nullptr)
+	{
+		vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
+		delete ShapeGeo;
+		ShapeGeo = nullptr;
+	}
+	else
+	{
+		citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+		exporter.initExport();
+		// get all selected nodes (with a uri)
+		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+		if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+		{
+			// do all nodes selected
+			for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+			{
+				std::cout << it->getStringURI() << std::endl;
+				it->resetCursor();
+				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+
+				if(obj)
+				{
+					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+					geos::geom::Geometry ** Enveloppe = new geos::geom::Geometry *;
+					double * heightmax = new double;
+					double * heightmin = new double;
+					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), *Enveloppe, heightmax, heightmin);
+
+					exporter.appendCityObject(*LOD1);
+					//appGui().getControllerGui().update(*it);
+
+					delete Enveloppe;
+					delete heightmax;
+					delete heightmin;
+				}
+			}
+		}
+		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
+		{
+			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+			{
+				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+				{
+					vcity::URI uri;
+					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
+					uri.append(tile->getName(), "Tile");
+					uri.append(obj->getId(), "Building");
+					uri.setType("Building");
+		
+					//std::cout << uri.getStringURI() << std::endl;
+		
+					if(obj)
+					{
+						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+						geos::geom::Geometry ** Enveloppe = new geos::geom::Geometry *;
+						double * heightmax = new double;
+						double * heightmin = new double;
+						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+
+						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), *Enveloppe, heightmax, heightmin);
+
+						exporter.appendCityObject(*LOD1);
+						//appGui().getControllerGui().update(uri);
+
+						delete Enveloppe;
+						delete heightmax;
+						delete heightmin;
+					}
+				}
+			}
+		}
+		exporter.endExport();
+	}
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1024,7 +1338,7 @@ void MainWindow::generateLOD2()
 void MainWindow::generateLOD3()
 {	
     QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments); 
+	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments); 
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1045,6 +1359,37 @@ void MainWindow::slotFixBuilding()
     // TODO
     //appGui().getControllerGui().update(uri);
     QApplication::restoreOverrideCursor();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotObjToCityGML()
+{
+    m_osgView->setActive(false);
+
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert OBJ to CityGML");
+
+    for(int i = 0; i < filenames.count(); ++i)
+    {
+        QFileInfo file(filenames[i]);
+        QString ext = file.suffix().toLower();
+        if(ext == "obj")
+        {
+            citygml::ImporterAssimp importer;
+            importer.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+            citygml::CityModel* model = importer.import(file.absoluteFilePath().toStdString());
+
+            citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+            exporter.exportCityModel(*model);
+        }
+    }
+
+    m_osgView->setActive(true);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotChangeDetection()
+{
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	vcity::app().getAlgo().CompareTiles();
+	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotOptimOSG()
@@ -1084,16 +1429,21 @@ void MainWindow::slotTemporalAnim()
     m_temporalAnim = !m_temporalAnim;
     if(m_temporalAnim)
     {
-        m_timer.start(500);
+        m_timer.start(500); // anim each 500ms
+        m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-pause"));
+        m_ui->toolButton->setToolTip("Pause temporal animation");
     }
     else
     {
         m_timer.stop();
+        m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-start"));
+        m_ui->toolButton->setToolTip("Start temporal animation");
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotTemporalAnimUpdate()
 {
+    // increase by a year
     m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+365);
     //std::cout << m_ui->horizontalSlider->value() << std::endl;
 }
@@ -1117,7 +1467,6 @@ void buildJson()
     double stepX = 500.0;
     double stepY = 500.0;
 
-    int i = 0;
     QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
     while(iterator.hasNext())
     {
@@ -1166,7 +1515,6 @@ void buildJsonLod()
     double stepX = 500.0;
     double stepY = 500.0;
 
-    int i = 0;
     QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
     while(iterator.hasNext())
     {
@@ -1176,7 +1524,7 @@ void buildJsonLod()
             QString filename = iterator.filePath();
             if(filename.endsWith(".shp", Qt::CaseInsensitive))
             {
-                QFileInfo fileInfo(filename);
+                //QFileInfo fileInfo(filename);
                 std::string id = filename.toStdString();
                 id = id.substr(id.find("tile_")+5);
                 id = id.substr(0, id.find('.'));
@@ -1236,7 +1584,7 @@ void MainWindow::test2()
 	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
 	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
-	vcity::app().getAlgo().generateLOD0Scene(ShapeGeo, InfoBatiments);
+	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()

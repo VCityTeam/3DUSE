@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgTools.hpp"
 #include <osg/Geometry>
@@ -55,7 +56,7 @@ vcity::URI osgTools::getURI(osg::Node* node)
         if(parent->getName() == "layers")
             break;
         //URI.insert(0, parent->getName());
-        uri.append(parent->getName());
+        uri.prepend(parent->getName());
     }
 
     return uri;

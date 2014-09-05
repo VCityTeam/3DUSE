@@ -40,7 +40,7 @@ public:
 	Tesselator( void ); 
 	~Tesselator( void );
 
-	void init( unsigned int verticesCount, const TVec3d& normal, GLenum winding_rule = GLU_TESS_WINDING_ODD );
+	void init( size_t verticesCount, const TVec3d& normal, GLenum winding_rule = GLU_TESS_WINDING_ODD );
 
 	// Add a new contour - add the exterior ring first, then interiors 
 	void addContour( const std::vector<TVec3d>&, const std::vector<TVec2f>& );

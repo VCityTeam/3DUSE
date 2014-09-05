@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "scene.hpp"
 #include "application.hpp"
@@ -8,10 +9,11 @@ namespace vcity
 Scene::Scene()
     : m_layers()
 {
-    addLayer(new LayerCityGML("layer_CityGML"));
-	addLayer(new LayerAssimp("layer_Assimp"));
-	addLayer(new LayerMnt("layer_Mnt"));
-    addLayer(new LayerShp("layer_Shp"));
+    reset();
+    //addLayer(new LayerCityGML("layer_CityGML"));
+    //addLayer(new LayerAssimp("layer_Assimp"));
+    //addLayer(new LayerMnt("layer_Mnt"));
+    //addLayer(new LayerShp("layer_Shp"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 Scene::~Scene()
@@ -44,8 +46,9 @@ abstractLayer* Scene::getLayer(const URI& uri)
     {
         for(std::vector<abstractLayer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
-            if(uri.getNode(0) == (*it)->getName())
+            if(uri.getCurrentNode() == (*it)->getName())
             {
+				uri.popFront();
                 return *it;
             }
         }
@@ -60,8 +63,9 @@ const abstractLayer* Scene::getLayer(const URI& uri) const
     {
         for(std::vector<abstractLayer*>::const_iterator it = m_layers.begin(); it < m_layers.end(); ++it)
         {
-            if(uri.getNode(0) == (*it)->getName())
+            if(uri.getCurrentNode() == (*it)->getName())
             {
+				uri.popFront();
                 return *it;
             }
         }
@@ -100,8 +104,9 @@ void Scene::deleteLayer(const URI& uri)
 {
     for(std::vector<abstractLayer*>::iterator it = m_layers.begin(); it < m_layers.end(); ++it)
     {
-        if(uri.getNode(0) == (*it)->getName())
+        if(uri.getCurrentNode() == (*it)->getName())
         {
+			uri.popFront();
             m_layers.erase(it);
             delete *it;
         }
@@ -134,32 +139,32 @@ Tile* Scene::getTile(const URI& uri)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::vector<Tile*>& Scene::getTiles(const URI& uriLayer)
+std::vector<Tile*>* Scene::getTiles(const URI& uriLayer)
 {
     abstractLayer* abstractlayer = getLayer(uriLayer);
     if(abstractlayer)
     {
 		LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
 		if (layer)
-			return layer->getTiles();
+			return &layer->getTiles();
 		else std::cout << "layer is NULL in getTiles" << std::endl;
     }
 
-    //return 0; // fail
+    return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-const std::vector<Tile*>& Scene::getTiles(const URI& uriLayer) const
+const std::vector<Tile*>* Scene::getTiles(const URI& uriLayer) const
 {
     const abstractLayer* abstractlayer = getLayer(uriLayer);
     if(abstractlayer)
     {
 		const LayerCityGML* layer = dynamic_cast<const LayerCityGML*>(abstractlayer);
 		if (layer)
-			return layer->getTiles();
+			return &layer->getTiles();
 		else std::cout << "layer is NULL in const getTiles" << std::endl;
     }
 
-    //return 0; // fail
+    return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::deleteTile(const URI& uri)
@@ -203,6 +208,11 @@ void Scene::reset()
         delete layer;
     }
     m_layers.clear();
+
+    addLayer(new LayerCityGML("layer_CityGML"));
+    addLayer(new LayerAssimp("layer_Assimp"));
+    addLayer(new LayerMnt("layer_Mnt"));
+    addLayer(new LayerShp("layer_Shp"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Scene::dump()

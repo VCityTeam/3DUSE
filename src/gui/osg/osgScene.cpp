@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgScene.hpp"
 #include <osg/PositionAttitudeTransform>
@@ -14,6 +15,9 @@
 #include "gui/moc/mainWindow.hpp"
 #include "osgCityGML.hpp"
 #include "core/dataprofile.hpp"
+#include "osgTools.hpp"
+#include "../controllerGui.hpp"
+//#include <typeinfo>
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -169,16 +173,12 @@ void OsgScene::init()
     layer3->setName("layer_Shp");
     m_layers->addChild(layer3);
 
-    //osg::ref_ptr<osg::Geode> geode = buildGrid(osg::Vec3(64300.0, 6861500.0, 0.0), 500.0, 10);
-    osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(0.0, 0.0, 0.0), 500.0, 30);
-    //osg::ref_ptr<osg::Geode> grid = buildGrid(osg::Vec3(643000.0, 6857000.0, 0.0), 500.0, 30);
-    m_layers->addChild(grid);
+    // build fifth default layer
+    osg::ref_ptr<osg::Group> layer4 = new osg::Group();
+    layer4->setName("layer_Las");
+    m_layers->addChild(layer4);
 
-    //osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(100.0, 100.0, 100.0), osg::Vec3(400.0, 400.0, 400.0));
-    //m_layers->addChild(bbox);
-
-	//osg::ref_ptr<osg::Geode> bbox = buildBBox(osg::Vec3(-10.0, -10.0, -10.0), osg::Vec3(10.0, 10.0, 10.0));
-    //m_layers->addChild(bbox);
+    updateGrid();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
@@ -189,8 +189,13 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
         osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
         if(layerGroup)
         {
-            osg::ref_ptr<osg::Node> osgTile = buildTile(tile);
+            vcity::URI uri = uriLayer;
+            uri.append(tile.getName(), "Tile");
+            uri.setType("Building");
+            uri.resetCursor();
+            osg::ref_ptr<osg::Node> osgTile = buildTile(uri, tile);
             layerGroup->addChild(osgTile);
+            buildTemporalNodes(uri, tile);
         }
     }
 }
@@ -300,13 +305,21 @@ void OsgScene::deleteNode(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::updateGrid()
 {
-    for(unsigned int i=0; i<m_layers->getNumChildren(); ++i)
-    {
-        if(m_layers->getChild(i)->getName() == "grid")
-        {
-            //m_layers->getChild(i) =
-        }
-    }
+    // remove previous grid
+    vcity::URI uri;
+    uri.append("grid");
+    deleteNode(uri);
+
+    // set grid
+    const vcity::DataProfile& dp = appGui().getSettings().getDataProfile();
+    osg::Vec3 bbox_lower(dp.m_bboxLowerBound.x, dp.m_bboxLowerBound.y, dp.m_bboxLowerBound.z);
+    osg::Vec3 bbox_upper(dp.m_bboxUpperBound.x, dp.m_bboxUpperBound.y, dp.m_bboxUpperBound.z);
+    osg::Vec2 step(dp.m_xStep, dp.m_yStep);
+    osg::Vec3 offset(dp.m_offset.x, dp.m_offset.y, dp.m_offset.z);
+    osg::Vec2 tileOffset(dp.m_TileIdOriginX, dp.m_TileIdOriginY);
+    osg::ref_ptr<osg::Node> grid = buildGrid(bbox_lower, bbox_upper, step, offset, tileOffset);
+
+    m_layers->addChild(grid);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setShadow(bool shadow)
@@ -322,8 +335,6 @@ void OsgScene::setShadow(bool shadow)
 
     m_shadow = shadow;
 }
-////////////////////////////////////////////////////////////////////////////////
-std::map<std::string, osg::ref_ptr<osg::Texture2D> > texManager;
 ////////////////////////////////////////////////////////////////////////////////
 void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::ref_ptr<osg::Texture2D> texture)
 {
@@ -350,8 +361,9 @@ void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
+void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 {
+    // -4000 is used as a special value to disable time
     int year = date.date().year();
 
     osg::ref_ptr<osg::Group> grp = node->asGroup();
@@ -361,7 +373,8 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
         {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
 
-            double val;
+            // dyntag
+            /*double val;
             bool hasFlag = node->getUserValue("TAGPTR", val);
             if(hasFlag)
             {
@@ -374,8 +387,8 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
                     // check cache
                     osg::ref_ptr<osg::Texture2D> texture = nullptr;
-                    std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = texManager.find(texturePath);
-                    if(it!=texManager.end())
+                    std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = m_texManager.find(texturePath);
+                    if(it!=m_texManager.end())
                     {
                         texture = it->second;
                     }
@@ -393,7 +406,7 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                             texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
                             texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
 
-                            texManager[texturePath] = texture;
+                            m_texManager[texturePath] = texture;
                         }
                         else
                             osg::notify(osg::NOTICE) << "  Warning: Texture " << texturePath << " not found!" << std::endl;
@@ -401,8 +414,33 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
                     setTexture(node, tag, texture);
                 }
-            }
+            }*/
 
+            // get attributes in cityobject
+            #if 0
+            vcity::URI uri = osgTools::getURI(node);
+            citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
+            if(obj && obj->getType() == citygml::COT_Building)
+            {
+                std::string strAttr = obj->getAttribute("yearOfConstruction");
+                int yearOfConstruction = (strAttr.empty()?-4000:std::stoi(strAttr));
+                strAttr = obj->getAttribute("yearOfDemolition");
+                int yearOfDemolition = (strAttr.empty()?-4000:std::stoi(strAttr));
+
+                //std::cout << obj->getId() << " : " << yearOfConstruction << " / " << yearOfDemolition << std::endl;
+
+                if(((yearOfConstruction == -4000 || yearOfDemolition == -4000) || (yearOfConstruction < year && year <= yearOfDemolition)))
+                {
+                    node->setNodeMask(0xffffffff);
+                }
+                else
+                {
+                     node->setNodeMask(0);
+                }
+            }
+            #endif
+
+            // check attributes from tags
             int yearOfConstruction;
             int yearOfDemolition;
 
@@ -414,7 +452,7 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
             if(a && b)
             {
-                if((yearOfConstruction < year && year < yearOfDemolition) || year == 0)
+                if((yearOfConstruction < year && year <= yearOfDemolition))
                 {
                     node->setNodeMask(0xffffffff);
                 }
@@ -425,27 +463,27 @@ void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
             }
 
-            if(date.date().year() == 0)
-            {
-                node->setNodeMask(0xffffffff);
-            }
-
             setDateRec(date, child);
         }
     }
 
-    osg::ref_ptr<osg::Geode> geode = node->asGeode();
-    if(geode)
+    //osg::ref_ptr<osg::Geode> geode = node->asGeode();
+    if(node)
     {
         int tagged = 0;
-        bool c = geode->getUserValue("TAGGED", tagged);
+        bool c = node->getUserValue("TAGGED", tagged);
         if(c && tagged)
         {
-            geode->setNodeMask(0);
-            geode->getParent(0)->setNodeMask(0);
-
-            std::cout << "hide TAGGED default geom : " << geode->getName() << " : " << geode->getNodeMask() << std::endl;
+            node->setNodeMask(0);
+            //node->getParent(0)->setNodeMask(0);
+            //std::cout << "hide TAGGED default geom : " << osgTools::getURI(node).getStringURI() << " / " << typeid(node).name() << " : " << node->getNodeMask() << std::endl;
         }
+    }
+
+    // reset : force draw
+    if(date.date().year() == -4000)
+    {
+        node->setNodeMask(0xffffffff);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -471,15 +509,29 @@ void OsgScene::reset()
 }
 ////////////////////////////////////////////////////////////////////////////////
 void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
-{
+{    
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if(grp)
     {
         int count = grp->getNumChildren();
+
+        // check if we had 5 LODs geodes
+        int numGeodes = 0;
         for(int i=0; i<count; ++i)
         {
+            osg::ref_ptr<osg::Node> child = grp->getChild(i);
+            if(child->asGeode())
+            {
+                ++numGeodes;
+            }
+        }
+        if(numGeodes == 5) // yes, enable or disable the good lods
+        {
+            grp->getChild(lod)->setNodeMask(0xffffffff - grp->getChild(lod)->getNodeMask());
+        }
 
-
+        for(int i=0; i<count; ++i)
+        {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
             forceLODrec(lod, child);
         }
@@ -495,18 +547,24 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 {
     if(node)
     {
+        //std::cout << node->getName() << std::endl;
         if(show)
         {
             //node->setNodeMask(~0x0);
             node->setNodeMask(0xffffffff);
-            if(node->asGroup())
+            /*if(node->asGroup())
             {
                 node->asGroup()->getChild(0)->setNodeMask(0xffffffff);
-            }
+            }*/
         }
         else
         {
             node->setNodeMask(0x0);
+            /*if(node->asGroup())
+            {
+                node->asGroup()->getChild(0)->setNodeMask(0x0);
+            }*/
+            //node->getParent(0)->setNodeMask(0x0);
         }
     }
 }
@@ -560,20 +618,56 @@ void OsgScene::optim()
     optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildCityObject(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
+void OsgScene::buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile)
+{
+    for(citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
+    {
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildTemporalNodesRec(u, child);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj)
+{
+    // add tags geom
+    for(citygml::CityObjectTag* tag : obj->getTags())
+    {
+        appGui().getControllerGui().addTag(uri, tag);
+    }
+
+    // recursive call
+    for(citygml::CityObject* child : obj->getChildren())
+    {
+        vcity::URI u = uri;
+        u.append(obj->getId(), obj->getTypeAsString());
+        u.resetCursor();
+        buildTemporalNodesRec(u, child);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
 {
     osg::ref_ptr<osg::Group> node = reader.createCityObject(obj);
     nodeOsg->addChild(node);
 
-    citygml::CityObjects& cityObjects = obj->getChildren();
-    citygml::CityObjects::iterator it = cityObjects.begin();
-    for( ; it != cityObjects.end(); ++it)
+    for(citygml::CityObject* child : obj->getChildren())
     {
-        buildCityObject(node, *it, reader, depth+1);
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildCityObject(u, node, child, reader, depth+1);
     }
+
+    // add tags geom
+    /*for(citygml::CityObjectTag* tag : obj->getTags())
+    {
+        appGui().getControllerGui().addTag(uri, tag);
+    }*/
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
+osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::URI& uri, const vcity::Tile& tile)
 {
     osg::ref_ptr<osg::PositionAttitudeTransform> root = new osg::PositionAttitudeTransform();
     root->setName(tile.getName());
@@ -584,51 +678,41 @@ osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::Tile& tile)
     ReaderOsgCityGML readerOsgGml(path);
     readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
-    const citygml::CityObjects& cityObjects = tile.getCityModel()->getCityObjectsRoots();
-    citygml::CityObjects::const_iterator it = cityObjects.begin();
-    for( ; it != cityObjects.end(); ++it)
+    for(citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
     {
-        buildCityObject(root, *it, readerOsgGml);
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildCityObject(u, root, child, readerOsgGml);
     }
     return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
 {
+    osg::ref_ptr<osg::Node> res = nullptr;
     osg::ref_ptr<osg::Group> current = m_layers;
 
-    int depth = uri.getDepth();
-    int maxDepth = depth;
-
-    if(depth == 0)
-    {
-        return nullptr;
-    }
-
-    do
+    while(uri.getCursor() < uri.getDepth())
     {
         int count = current->getNumChildren();
         for(int i=0; i<count; ++i)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);
-            //std::cout << child->getName() << " -> " << uri.getNode(maxDepth-depth) << std::endl;
-            if(child->getName() == uri.getNode(maxDepth-depth))
+            if(child->getName() == uri.getCurrentNode())
             {
-                if(depth == 1)
+                res = child;
+                if(!(current = child->asGroup()))
                 {
-                    return child;
-                }
-                else if(!(current = child->asGroup()))
-                {
-                    return nullptr;
+                    return res;
                 }
                 break;
             }
         }
-        --depth;
-    } while(depth > 0);
+        uri.popFront();
+    }
 
-    return nullptr;
+    return res;
 
     /*FindNamedNode f(uri.getLastNode());
     accept(f);
@@ -667,41 +751,51 @@ osg::ref_ptr<osg::Node> OsgScene::createInfoBubble(osg::ref_ptr<osg::Node> node)
     return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n)
+osg::ref_ptr<osg::Node> OsgScene::buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset)
 {
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-    geode->setName("grid");
+    geode->setName("grid_geode");
 
     osg::Geometry* geom = new osg::Geometry;
     osg::Vec3Array* vertices = new osg::Vec3Array;
     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
-    for(int i=0; i<=n; ++i)
+    double lenx = bbox_upper.x() - bbox_lower.x(); // x length of the grid
+    double leny = bbox_upper.y() - bbox_lower.y(); // y length of the grid
+
+    int nx = lenx/step.x(); // x number of cell
+    int ny = leny/step.y(); // y number of cell
+
+    int indiceOffset = 0;
+    for(int i=0; i<=nx; ++i)
     {
-        vertices->push_back(osg::Vec3(origin.x() + i*step, origin.y() + 0, origin.z() + 0));
-        vertices->push_back(osg::Vec3(origin.x() + i*step, origin.y() + n*step, origin.z() + 0));
-
-        indices->push_back(4*i);
-        indices->push_back(4*i+1);
-
-        vertices->push_back(osg::Vec3(origin.x() + 0, origin.y() + i*step, origin.z() + 0));
-        vertices->push_back(osg::Vec3(origin.x() + n*step, origin.y() + i*step, origin.z() + 0));
-
-        indices->push_back(4*i+2);
-        indices->push_back(4*i+3);
+        // vertical line
+        vertices->push_back(osg::Vec3(bbox_lower.x() + i*step.x(), bbox_lower.y(), bbox_lower.z() + 0)-offset);
+        vertices->push_back(osg::Vec3(bbox_lower.x() + i*step.x(), bbox_upper.y(), bbox_lower.z() + 0)-offset);
+        indices->push_back(indiceOffset++); indices->push_back(indiceOffset++);
     }
 
-    for(int x=0; x<n; ++x)
+    for(int j=0; j<=ny; ++j)
     {
-        for(int y=0; y<n; ++y)
+        // horizontal line
+        vertices->push_back(osg::Vec3(bbox_lower.x(), bbox_lower.y() + j*step.y(), bbox_lower.z() + 0)-offset);
+        vertices->push_back(osg::Vec3(bbox_upper.x(), bbox_lower.y() + j*step.y(), bbox_lower.z() + 0)-offset);
+        indices->push_back(indiceOffset++); indices->push_back(indiceOffset++);
+    }
+
+    // put names
+    for(int i=0; i<nx; ++i)
+    {
+        for(int j=0; j<ny; ++j)
         {
             osgText::Text* text = new osgText::Text;
             std::stringstream ss;
-            ss << 643000 + origin.x() + x*step << " , " << 6857000 + (int)origin.y() + y*(int)step << "\n" <<
-            origin.x() + x*step << " , " << origin.y() + y*step << " , " << origin.z() + 0 << "\nEXPORT_" << 1286+x << "-" << 13714+y;
+            ss.precision(0);
+            ss << std::fixed << ' ' << bbox_lower.x() + i*step.x() - offset.x() << " , " << bbox_lower.y() + j*step.y() - offset.y() << "\n" <<
+            ' ' << bbox_lower.x() + i*step.x() << " , " << bbox_lower.y() + j*step.y() << "\n Tile : " << tileOffset.x()+i << "-" << tileOffset.y()+j;
             text->setText(ss.str());
             text->setColor(osg::Vec4(0,0,0,1));
-            text->setPosition(osg::Vec3(origin.x() + x*step, origin.y() + y*step + step*0.2, origin.z() + 0));
+            text->setPosition(osg::Vec3(bbox_lower.x() + i*step.x(), bbox_lower.y() + j*step.y() + step.y()*0.2, bbox_lower.z() + 0)-offset);
             geode->addDrawable(text);
         }
     }
@@ -710,7 +804,11 @@ osg::ref_ptr<osg::Geode> OsgScene::buildGrid(osg::Vec3 origin, float step, int n
     geom->addPrimitiveSet(indices);
     geode->addDrawable(geom);
 
-    return geode;
+    osg::Group* res = new osg::Group;
+    res->setName("grid");
+    res->addChild(geode);
+
+    return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> OsgScene::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)

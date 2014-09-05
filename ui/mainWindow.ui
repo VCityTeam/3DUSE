@@ -62,6 +62,9 @@
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QCheckBox" name="checkBoxTemporalTools">
+            <property name="toolTip">
+             <string>Toggle temporal tools</string>
+            </property>
             <property name="text">
              <string>Enable time</string>
             </property>
@@ -72,6 +75,9 @@
           </item>
           <item>
            <widget class="QDateTimeEdit" name="dateTimeEdit">
+            <property name="toolTip">
+             <string>Current date</string>
+            </property>
             <property name="calendarPopup">
              <bool>true</bool>
             </property>
@@ -79,8 +85,16 @@
           </item>
           <item>
            <widget class="QToolButton" name="toolButton">
+            <property name="toolTip">
+             <string>Play</string>
+            </property>
             <property name="text">
              <string>P</string>
+            </property>
+            <property name="icon">
+             <iconset theme="media-playback-start">
+              <normaloff/>
+             </iconset>
             </property>
            </widget>
           </item>
@@ -97,6 +111,9 @@
               <width>16777215</width>
               <height>32</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>Time slider</string>
             </property>
             <property name="maximum">
              <number>73049</number>
@@ -122,10 +139,17 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QLineEdit" name="filterLineEdit"/>
+           <widget class="QLineEdit" name="filterLineEdit">
+            <property name="toolTip">
+             <string>Enter a string for filtering</string>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="filterButton">
+            <property name="toolTip">
+             <string>Search nodes with string filtering</string>
+            </property>
             <property name="text">
              <string>filter</string>
             </property>
@@ -195,7 +219,7 @@
           </widget>
           <widget class="QWidget" name="tab_16">
            <attribute name="title">
-            <string>Tree 2</string>
+            <string>Doc</string>
            </attribute>
           </widget>
          </widget>
@@ -341,6 +365,9 @@
     <addaction name="menuGenerate"/>
     <addaction name="actionFix_building"/>
     <addaction name="actionCityGML_cut"/>
+    <addaction name="actionOBJ_to_CityGML"/>
+    <addaction name="actionChange_Detection"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -457,28 +484,58 @@
    </property>
   </action>
   <action name="actionForce_LOD0">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD0</string>
+    <string>LOD0</string>
    </property>
   </action>
   <action name="actionForce_LOD1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD1</string>
+    <string>LOD1</string>
    </property>
   </action>
   <action name="actionForce_LOD2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD2</string>
+    <string>LOD2</string>
    </property>
   </action>
   <action name="actionForce_LOD3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD3</string>
+    <string>LOD3</string>
    </property>
   </action>
   <action name="actionForce_LOD4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Force LOD4</string>
+    <string>LOD4</string>
    </property>
   </action>
   <action name="actionExport_JSON">
@@ -489,6 +546,9 @@
   <action name="actionAuto_LOD">
    <property name="text">
     <string>Auto LOD</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionClearSelection">
@@ -538,6 +598,9 @@
    <property name="text">
     <string>Shadows options...</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionInfo_bubbles">
    <property name="checkable">
@@ -545,6 +608,9 @@
    </property>
    <property name="text">
     <string>Info bubbles</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionExport_tiled_osga">
@@ -658,6 +724,16 @@
   <action name="actionCityGML_cut">
    <property name="text">
     <string>CityGML cut...</string>
+   </property>
+  </action>
+  <action name="actionChange_Detection">
+   <property name="text">
+    <string>Change Detection</string>
+   </property>
+  </action>
+  <action name="actionOBJ_to_CityGML">
+   <property name="text">
+    <string>OBJ to CityGML...</string>
    </property>
   </action>
  </widget>
