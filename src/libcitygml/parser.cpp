@@ -443,6 +443,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                 if(it!=std::string::npos)\
                 {\
                     m_currentTag = new CityObjectTag(0, _currentCityObject);\
+                    _currentCityObject->m_path = _params.m_basePath;\
                     CityObject* o = _model->getNodeById(id.substr(0, it));\
                     o->addTag(m_currentTag);\
                     m_currentTag->m_parent = o;\

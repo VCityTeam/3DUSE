@@ -1,26 +1,34 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#include "moc/dialogAddLayer.hpp"
-#include "ui_dialogAddLayer.h"
+#include "moc/dialogDoc.hpp"
+#include "ui_dialogDoc.h"
 #include "gui/applicationGui.hpp"
+#include "moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
-DialogAddLayer::DialogAddLayer(QWidget *parent) :
+DialogDoc::DialogDoc(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogAddLayer)
+    ui(new Ui::DialogDoc)
 {
     ui->setupUi(this);
 }
 ////////////////////////////////////////////////////////////////////////////////
-DialogAddLayer::~DialogAddLayer()
+DialogDoc::~DialogDoc()
 {
     delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void DialogAddLayer::addLayer()
+void DialogDoc::addDoc(const vcity::URI& uri)
 {
-    if(exec() && !ui->lineEdit->text().isEmpty())
+    appGui().getMainWindow()->m_osgView->setActive(false);
+
+    uri.resetCursor();
+    citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
+
+    if(obj && exec())
     {
-        appGui().getControllerGui().addLayer(ui->lineEdit->text().toStdString());
+
     }
+
+    appGui().getMainWindow()->m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/mainWindow.hpp"
 #include "ui_mainWindow.h"
@@ -405,7 +406,7 @@ bool MainWindow::loadFile(const QString& filepath)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadScene()
 {
-    m_osgView->setActive(false);
+    m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
 
     std::cout<<"Load Scene"<<std::endl;
 
@@ -429,7 +430,7 @@ void MainWindow::loadScene()
 
     updateRecentFiles();
 
-    m_osgView->setActive(true);
+    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
 void buildRecursiveFileList(const QDir& dir, QStringList& list)
@@ -620,6 +621,7 @@ void MainWindow::updateTextBoxWithSelectedNodes()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::unlockFeatures(const QString& pass)
 {
+    // choose admin level depending on password
     if(pass == "pass1")
     {
         m_unlockLevel = 1;
@@ -689,6 +691,8 @@ void MainWindow::reset()
     //unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
+
+    // TODO : need to be adjusted manually if we had other dataprofiles, should do something better
 
     // set dataprofile
     QSettings settings("liris", "virtualcity");
@@ -796,6 +800,10 @@ void MainWindow::optionShowAdvancedTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
+    // date is starting at year 1900 and ending at 2100
+    // this is controlled in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+
     if(value == -1) value = m_ui->horizontalSlider->value();
     QDate date(1900, 1, 1);
     date = date.addDays(value);
@@ -810,6 +818,10 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
+    // date is starting at year 1900 and ending at 2100
+    // this is controlled in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+
     m_useTemporal = !m_useTemporal;
 
     if(m_useTemporal)
@@ -1362,6 +1374,7 @@ void MainWindow::slotObjToCityGML()
         if(ext == "obj")
         {
             citygml::ImporterAssimp importer;
+            importer.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
             citygml::CityModel* model = importer.import(file.absoluteFilePath().toStdString());
 
             citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
@@ -1416,7 +1429,7 @@ void MainWindow::slotTemporalAnim()
     m_temporalAnim = !m_temporalAnim;
     if(m_temporalAnim)
     {
-        m_timer.start(500);
+        m_timer.start(500); // anim each 500ms
         m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-pause"));
         m_ui->toolButton->setToolTip("Pause temporal animation");
     }
@@ -1430,6 +1443,7 @@ void MainWindow::slotTemporalAnim()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotTemporalAnimUpdate()
 {
+    // increase by a year
     m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+365);
     //std::cout << m_ui->horizontalSlider->value() << std::endl;
 }

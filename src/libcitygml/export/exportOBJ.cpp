@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "exportOBJ.hpp"
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,6 +91,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, const std::string& fil
 
     for(size_t i=0; i<m_filters.size(); ++i)
     {
+        // create out file
         m_outFile.open(fileName+m_filterNames[i]+".obj");
         m_outFile << std::fixed;
         m_outFile << "# CityGML test export\n\n";
@@ -97,9 +99,9 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, const std::string& fil
         std::string mtllib = fileName+m_filterNames[i];
         mtllib = mtllib.substr(mtllib.find_last_of('/')+1);
         m_outFile << "mtllib " << mtllib << ".mtl" << "\n\n";
-        exportCityObject(obj, m_filters[i]);
+        exportCityObject(obj, m_filters[i]); // write geometry
         m_outFile.close();
-        exportMaterials(fileName+m_filterNames[i]+".mtl");
+        exportMaterials(fileName+m_filterNames[i]+".mtl"); // write materials
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +120,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
                     mat = mat.substr(mat.find_last_of('/')+1);
                     mat = mat.substr(0, mat.find_last_of('.'));
                     m_outFile << "\nusemtl " << mat << "\n";
-                    m_materials[mat] = poly->getTexture()->getUrl();
+                    m_materials[mat] = poly->getTexture()->getUrl(); // add material to map, will be used by exportMaterials
                 }
 
                 m_outFile << "g " << poly->getId() << "\n\n";
@@ -137,7 +139,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
                 {
                     m_outFile << "vt " << vt.x << " " << vt.y << "\n";
                 }
-                if(poly->getTexCoords().size() > 0)
+                if(poly->getTexCoords().size() > 0) // if there is texture coords
                 {
                     for(size_t i=0; i<poly->getIndices().size(); i+=3)
                     {
@@ -146,7 +148,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
                                              offset+poly->getIndices()[i+2] << "/" << offset+poly->getIndices()[i+2] << "/" << offset+poly->getIndices()[i+2] << "\n";
                     }
                 }
-                else
+                else // else skip texture coords
                 {
                 //*/
                     for(size_t i=0; i<poly->getIndices().size(); i+=3)
@@ -157,7 +159,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
                     }
                 }
                 //*/
-                offset += poly->getVertices().size();
+                offset += poly->getVertices().size(); // update offset
             }
         }
     }

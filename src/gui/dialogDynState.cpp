@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogDynState.hpp"
 #include "ui_dialogDynState.h"
 #include "gui/applicationGui.hpp"

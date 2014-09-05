@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __LAYERSHP_HPP__
 #define __LAYERSHP_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -20,8 +22,10 @@ public:
 
     virtual ~LayerShp() override;
 
+    /// Get layer type as string
 	const std::string getType() const;
 
+    /// Get Layer URI
 	URI getURI() const;
 
     void dump();

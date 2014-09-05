@@ -1,10 +1,12 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_IMPORTER_HPP__
 #define __CITYGML_IMPORTER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Base class for import
+/// \brief Base class for data import
 ///
 class Importer
 {
@@ -12,13 +14,13 @@ public:
     Importer();
     virtual ~Importer();
 
-    /// Set offset
+    /// Set offset, to be added to loaded data (to counteract dataprofile offset)
     void setOffset(double offsetX, double offsetY);
 
 protected:
 
-    double m_offsetX;
-    double m_offsetY;
+    double m_offsetX;   ///< x offset
+    double m_offsetY;   ///< y offset
 
 private:
 };

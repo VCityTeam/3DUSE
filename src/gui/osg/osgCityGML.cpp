@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 // OSG plugin for reading OGC CityGML v0.3 - v1.0 format using libcitygml
 // http://code.google.com/p/libcitygml
@@ -417,6 +418,21 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
             osg::ref_ptr<osg::Geode> bbox = osgTools::buildBBox(lb, ub);
             //geode->addDrawable(bbox->getDrawable(0));
         }
+    }
+
+    // temporal
+    std::string strAttr = object->getAttribute("yearOfConstruction");
+    int yearOfConstruction = (strAttr.empty()?-4000:std::stoi(strAttr));
+    strAttr = object->getAttribute("yearOfDemolition");
+    int yearOfDemolition = (strAttr.empty()?-4000:std::stoi(strAttr));
+
+    if(yearOfConstruction != -4000)
+    {
+        grp->setUserValue("yearOfConstruction", yearOfConstruction);
+    }
+    if(yearOfDemolition != -4000)
+    {
+        grp->setUserValue("yearOfDemolition", yearOfDemolition);
     }
 
     //std::cout << "build osg geom ok" << std::endl;

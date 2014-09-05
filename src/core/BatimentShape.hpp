@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __BATIMENTSHAPE_HPP__
 #define __BATIMENTSHAPE_HPP__
 

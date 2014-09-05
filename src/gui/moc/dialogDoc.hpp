@@ -1,30 +1,27 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef DIALOGSTATE_H
-#define DIALOGSTATE_H
+#ifndef DIALOGDOC_HPP
+#define DIALOGDOC_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include "core/URI.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogState;
+class DialogDoc;
 }
 ////////////////////////////////////////////////////////////////////////////////
-class DialogState : public QDialog
+class DialogDoc : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit DialogState(QWidget *parent = 0);
-    ~DialogState();
+    explicit DialogDoc(QWidget *parent = 0);
+    ~DialogDoc();
 
-    void addState(const vcity::URI& uri);
-
-private slots:
-    void addFeatureBox();
+    void addDoc(const vcity::URI& uri);
 
 private:
-    Ui::DialogState *ui;
+    Ui::DialogDoc *ui;
 };
 ////////////////////////////////////////////////////////////////////////////////
-#endif // DIALOGSTATE_H
+#endif // DIALOGDOC_HPP

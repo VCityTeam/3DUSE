@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __APPLICATION_HPP__
 #define __APPLICATION_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,7 +76,7 @@ protected:
     Controller* m_controller;           ///< controller, needs to be allocated outside
     Log m_log;                          ///< Log manager
     Algo m_algo;                        ///< Algo class
-    Algo2 m_algo2;                        ///< Algo class
+    Algo2 m_algo2;                      ///< Algo class
     std::vector<URI> m_selectedNodes;   ///< Selected nodes
 };
 ////////////////////////////////////////////////////////////////////////////////

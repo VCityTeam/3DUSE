@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "controllerGui.hpp"
 #include "applicationGui.hpp"
@@ -161,11 +162,12 @@ void ControllerGui::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
         // build osg geom for tag
         size_t pos = tag->getGeom()->m_path.find_last_of("/\\");
         std::string path = tag->getGeom()->m_path.substr(0, pos);
+        std::cout << "tag path : " << path << std::endl;
         uri.resetCursor();
-        vcity::Tile* tile = appGui().getScene().getTile(uri);
-        uri.resetCursor();
+        //vcity::Tile* tile = appGui().getScene().getTile(uri);
+        //uri.resetCursor();
         //path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
-        path = tile->getCityModel()->m_basePath;
+        //path = tile->getCityModel()->m_basePath;
         ReaderOsgCityGML readerOsgGml(path);
         readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
         osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(tag->getGeom());

@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_EXPORTER_HPP__
 #define __CITYGML_EXPORTER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,8 +29,8 @@ protected:
     bool m_temporalExport;  ///< enable temporal export
     QDateTime m_date;       ///< date for temporal export
 
-    double m_offsetX;
-    double m_offsetY;
+    double m_offsetX;       ///< x offset
+    double m_offsetY;       ///< y offset
 
 private:
 };

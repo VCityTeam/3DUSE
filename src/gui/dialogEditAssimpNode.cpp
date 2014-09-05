@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogEditAssimpNode.hpp"
 #include "ui_dialogEditAssimpNode.h"
 #include "applicationGui.hpp"

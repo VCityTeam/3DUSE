@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgScene.hpp"
 #include <osg/PositionAttitudeTransform>
@@ -416,6 +417,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
             }*/
 
             // get attributes in cityobject
+            #if 0
             vcity::URI uri = osgTools::getURI(node);
             citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
             if(obj && obj->getType() == citygml::COT_Building)
@@ -427,7 +429,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
                 //std::cout << obj->getId() << " : " << yearOfConstruction << " / " << yearOfDemolition << std::endl;
 
-                if(((yearOfConstruction == -4000 || yearOfDemolition == -4000) || (yearOfConstruction < year && year < yearOfDemolition)))
+                if(((yearOfConstruction == -4000 || yearOfDemolition == -4000) || (yearOfConstruction < year && year <= yearOfDemolition)))
                 {
                     node->setNodeMask(0xffffffff);
                 }
@@ -436,6 +438,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                      node->setNodeMask(0);
                 }
             }
+            #endif
 
             // check attributes from tags
             int yearOfConstruction;
@@ -449,7 +452,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 
             if(a && b)
             {
-                if((yearOfConstruction < year && year < yearOfDemolition))
+                if((yearOfConstruction < year && year <= yearOfDemolition))
                 {
                     node->setNodeMask(0xffffffff);
                 }

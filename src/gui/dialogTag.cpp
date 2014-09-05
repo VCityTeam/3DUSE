@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogTag.hpp"
 #include "ui_dialogTag.h"
 #include "gui/applicationGui.hpp"
@@ -113,14 +115,7 @@ void DialogTag::addTag(const vcity::URI& uri)
 
         if(obj)
         {
-            // add lod
-            ui->comboBox->addItem(uri.getLastNode().c_str());
-            geoms[uri.getLastNode()] = 0;
-
-            // add all bldg
-
-
-            // add flags
+            // add states
             std::vector<citygml::CityObjectState*>::const_iterator it = obj->getStates().begin();
             for(; it < obj->getStates().end(); ++it)
             {
@@ -128,10 +123,21 @@ void DialogTag::addTag(const vcity::URI& uri)
                 geoms[(*it)->getStringId()] = (*it)->getGeom();
             }
 
+            ui->comboBox->addItem("NULL");
 
+            // add lod
+            ui->comboBox->addItem(uri.getLastNode().c_str());
+            geoms[uri.getLastNode()] = nullptr;
+
+            // add all bldg
         }
-        ui->comboBox->addItem("NULL");
-        geoms["NULL"] = 0;
+        geoms["NULL"] = nullptr;
+
+        // auto adjust combobox
+        ui->comboBox->setCurrentIndex(obj->getTags().size());
+        QDate date(2000, 1, 1);
+        date = date.addYears(obj->getTags().size()*10);
+        ui->dateTimeEdit->setDate(date);
     }
 
     int res = exec();
@@ -141,14 +147,14 @@ void DialogTag::addTag(const vcity::URI& uri)
     if(res && obj) // && m_ui->treeWidget->currentItem())
     {
         citygml::CityObject* geom = nullptr;
-        citygml::CityObjectState* f = nullptr;
-        if((ui->comboBox->currentText().size() > 4 && ui->comboBox->currentText().left(4) == "STATE") ||
-           (ui->comboBox->currentText().size() > 7 && ui->comboBox->currentText().left(7) == "DYNSTATE"))
+        citygml::CityObjectState* state = nullptr;
+        if((ui->comboBox->currentText().size() > 5 && ui->comboBox->currentText().left(5) == "STATE") ||
+           (ui->comboBox->currentText().size() > 8 && ui->comboBox->currentText().left(8) == "DYNSTATE"))
         {
-            // get geom from flag
-            f = obj->getState(ui->comboBox->currentText().toStdString());
-            if(f) geom = f->getGeom();
-            std::cout << "use flag geom : " << ui->comboBox->currentText().toStdString() << " : " << f << " : " << geom << std::endl;
+            // get geom from state
+            state = obj->getState(ui->comboBox->currentText().toStdString());
+            if(state) geom = state->getGeom();
+            std::cout << "use state geom : " << ui->comboBox->currentText().toStdString() << " : " << state << " : " << geom << std::endl;
         }
         else if(ui->comboBox->currentText() != "NULL")
         {
@@ -159,7 +165,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         }
 
         citygml::CityObjectTag* tag = new citygml::CityObjectTag(ui->dateTimeEdit->date().year(), geom);
-        if(f) tag->m_state = f; // set state
+        if(state) tag->m_state = state; // set state
         tag->m_date = ui->dateTimeEdit->dateTime();
         tag->m_name = ui->lineEdit->text().toStdString();
         tag->m_parent = obj;

@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "importerAssimp.hpp"
 
@@ -26,6 +27,7 @@ void ImporterAssimp::assimpNodeToCityGML(const struct aiScene* aiScene, const st
     static int id = 0;
     CityObject* obj = new WallSurface("wall_"+std::to_string(id));
 
+    // rad geometry
     for(unsigned int i=0; i<aiNode->mNumMeshes; ++i)
     {
         const struct aiMesh* mesh = aiScene->mMeshes[ aiNode->mMeshes[i] ];
@@ -40,7 +42,7 @@ void ImporterAssimp::assimpNodeToCityGML(const struct aiScene* aiScene, const st
             for(unsigned ind=0; ind<face.mNumIndices; ++ind)
             {
                 const aiVector3D& vTmp = mesh->mVertices[face.mIndices[ind]];
-                TVec3d v(vTmp.x, vTmp.y, vTmp.z);
+                TVec3d v(vTmp.x + m_offsetX, vTmp.y + m_offsetY, vTmp.z);
                 ring->addVertex(v);
             }
             poly->addRing(ring);
@@ -96,15 +98,15 @@ void ImporterAssimp::assimpNodeToCityGML(const struct aiScene* aiScene, const st
 CityModel* ImporterAssimp::assimpSceneToCityGML(const struct aiScene* aiScene)
 {
     delete m_model;
-    m_model = new CityModel;
-    CityObject* bldg = new Building(std::string("bldg_")+aiScene->mRootNode->mName.C_Str());
+    m_model = new CityModel; // build root model
+    CityObject* bldg = new Building(std::string("bldg_")+aiScene->mRootNode->mName.C_Str()); // build root building
     m_model->addCityObject(bldg);
     m_model->addCityObjectAsRoot(bldg);
 
     const aiNode* aiNode = aiScene->mRootNode;
     assimpNodeToCityGML(aiScene, aiNode, bldg);
     ParserParams params;
-    m_model->finish(params);
+    m_model->finish(params); // call this to triangulate the polygons
 
     return m_model;
 }
@@ -112,8 +114,10 @@ CityModel* ImporterAssimp::assimpSceneToCityGML(const struct aiScene* aiScene)
 CityModel* ImporterAssimp::import(const std::string& fileName)
 {
     Assimp::Importer importer;
+    // read file with assimp
     const aiScene* aiScene = importer.ReadFile( fileName.c_str(), aiProcessPreset_TargetRealtime_Quality );
 
+    // convert it to CityGML
     CityModel* model = assimpSceneToCityGML(aiScene);
     model->computeEnvelope();
 

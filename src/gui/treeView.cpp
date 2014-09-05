@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/treeView.hpp"
 #include "moc/mainWindow.hpp"
@@ -9,6 +10,7 @@
 #include "moc/dialogDynState.hpp"
 #include "moc/dialogState.hpp"
 #include "moc/dialogTag.hpp"
+#include "moc/dialogDoc.hpp"
 #include "core/application.hpp"
 #include <iostream>
 #include <QMenu>
@@ -45,6 +47,7 @@ TreeView::~TreeView()
     delete m_actionDeleteTag;
     delete m_actionSelectAll;
     delete m_actionDeSelectAll;
+    delete m_actionAddDoc;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -74,6 +77,7 @@ void TreeView::init()
     m_actionDeleteTag = new QAction("Delete Tag", NULL);
     m_actionSelectAll = new QAction("Check all", NULL);
     m_actionDeSelectAll = new QAction("Check none", NULL);
+    m_actionAddDoc = new QAction("Add document", NULL);
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -98,6 +102,7 @@ void TreeView::init()
     connect(m_actionDeleteTag, SIGNAL(triggered()), this, SLOT(slotDeleteTag()));
     connect(m_actionSelectAll, SIGNAL(triggered()), this, SLOT(slotCheckAll()));
     connect(m_actionDeSelectAll, SIGNAL(triggered()), this, SLOT(slotUnCheckAll()));
+    connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
@@ -530,24 +535,28 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Building" << std::endl;
         m_tree->addAction(m_actionDeleteBuilding);
         m_tree->addAction(m_actionEditBuilding);
+        m_tree->addAction(m_actionAddDoc);
     }
     else if(item->text(1) == "Tag")
     {
         //std::cout << "Tag" << std::endl;
         m_tree->addAction(m_actionDeleteTag);
         m_tree->addAction(m_actionEditTag);
+        m_tree->addAction(m_actionAddDoc);
     }
     else if(item->text(1) == "State")
     {
         //std::cout << "State" << std::endl;
         m_tree->addAction(m_actionDeleteState);
         m_tree->addAction(m_actionEditState);
+        m_tree->addAction(m_actionAddDoc);
     }
     else if(item->text(1) == "DynState")
     {
         //std::cout << "DynState" << std::endl;
         m_tree->addAction(m_actionDeleteDynState);
         m_tree->addAction(m_actionEditDynState);
+        m_tree->addAction(m_actionAddDoc);
     }
 
     if(item->text(1) == "GenericCityObject" || item->text(1) == "Building" ||
@@ -569,6 +578,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionAddTag);
         m_tree->addAction(m_actionAddState);
         m_tree->addAction(m_actionAddDynState);
+        m_tree->addAction(m_actionAddDoc);
     }
 
     // actions on all types
@@ -770,6 +780,12 @@ void TreeView::slotUnCheckAll()
     setItemStateRec(getCurrentItem(), false);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotAddDoc()
+{
+    DialogDoc diag;
+    diag.addDoc(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::resetActions()
 {
     m_tree->removeAction(m_actionAddTile);
@@ -792,5 +808,6 @@ void TreeView::resetActions()
     m_tree->removeAction(m_actionDeleteTag);
     m_tree->removeAction(m_actionSelectAll);
     m_tree->removeAction(m_actionDeSelectAll);
+    m_tree->removeAction(m_actionAddDoc);
 }
 ////////////////////////////////////////////////////////////////////////////////

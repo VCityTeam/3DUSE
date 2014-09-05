@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogSettings.hpp"
 #include "ui_dialogSettings.h"
 #include "gui/applicationGui.hpp"
@@ -26,6 +28,7 @@ DialogSettings::~DialogSettings()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogSettings::doSettings()
 {
+    // TODO : need to be adjusted manually if we had other dataprofiles, should do something better
     ui->comboBoxDataProfile->addItem("None");
     ui->comboBoxDataProfile->addItem("Paris");
     ui->comboBoxDataProfile->addItem("Lyon");

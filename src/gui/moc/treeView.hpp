@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __TREEVIEW_HPP__
 #define __TREEVIEW_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -96,6 +98,7 @@ private slots:
     void slotDeleteTag();
     void slotCheckAll();
     void slotUnCheckAll();
+    void slotAddDoc();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
@@ -134,6 +137,7 @@ private:
     QAction* m_actionDeleteTag;
     QAction* m_actionSelectAll;
     QAction* m_actionDeSelectAll;
+    QAction* m_actionAddDoc;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __TREEVIEW_HPP__

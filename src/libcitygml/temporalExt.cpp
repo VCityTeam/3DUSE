@@ -1,3 +1,6 @@
+/* -*-c++-*- libcitygml - VCity project, 3DUSE, Liris
+ * Temporal addons */
+////////////////////////////////////////////////////////////////////////////////
 #include "temporalExt.hpp"
 #include <iostream>
 //#include <fstream> // MT 19/03/2014
@@ -62,6 +65,11 @@ CityObjectState::CityObjectState(CityObject* geom)
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+CityObjectState::~CityObjectState()
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
 int CityObjectState::getId() const
 {
     return m_id;
@@ -111,6 +119,10 @@ DataSource::DataSource(const std::string& attributeName)
 
 }
 ////////////////////////////////////////////////////////////////////////////////
+DataSource::~DataSource()
+{
+}
+////////////////////////////////////////////////////////////////////////////////
 std::string DataSource::getAttribute(const QDateTime& date) const
 {
     //std::cout << "DataSource::getAttribute" << std::endl;
@@ -120,6 +132,7 @@ std::string DataSource::getAttribute(const QDateTime& date) const
             return m_values[0];
     }
 
+    // find date interval
     for(size_t i=0; i<m_dates.size()-1; ++i)
     {
         if(m_dates[i] < date && date < m_dates[i+1])
@@ -143,6 +156,7 @@ DataSourceArray::DataSourceArray(const std::string& attributeName, const std::st
     dump();
 }
 ////////////////////////////////////////////////////////////////////////////////
+// helper function to read dates allowing multiple formats
 QDateTime getDate(const std::string& str)
 {
     const char* formats[] = {"yyyy/MM/dd-HH:mm:ss","yyyy/MM/dd-HH:mm","yyyy/MM/dd-HH","yyyy/MM/dd","yyyy/MM","yyyy"};
@@ -162,10 +176,12 @@ void DataSourceArray::parse(const std::string& data)
     std::cout << "add data source array : " << m_attribute << std::endl;
     std::cout << data << std::endl;
 
+    // read data :
+    // format : date(format : yyyy/MM/dd-HH:mm:ss) | value (separator : |)
     std::stringstream ss(data);
     std::string item;
     bool date = true;
-    while(std::getline(ss, item, '|'))
+    while(std::getline(ss, item, '|')) // split data using separator |
     {
         if(date)
         {
@@ -175,7 +191,7 @@ void DataSourceArray::parse(const std::string& data)
         {
             m_values.push_back(item);
         }
-        date = !date;
+        date = !date; // alternatively read a date and a value
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -195,10 +211,19 @@ void DataSourceFile::parse(const std::string& filePath)
     std::cout << "add data source file : " << m_attribute << std::endl;
     std::cout << filePath << std::endl;
 
+    // read data :
+    // format :
+    // date1(format : yyyy/MM/dd-HH:mm:ss)
+    // value1
+    // date2(format : yyyy/MM/dd-HH:mm:ss)
+    // value2
+    // date3(format : yyyy/MM/dd-HH:mm:ss)
+    // value3
+    ///...
     std::string item;
     std::ifstream file(filePath);
     bool date = true;
-    while(file >> item)
+    while(file >> item) // read line by line
     {
         if(date)
         {
@@ -208,7 +233,7 @@ void DataSourceFile::parse(const std::string& filePath)
         {
             m_values.push_back(item);
         }
-        date = !date;
+        date = !date; // alternatively read a date and a value
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -218,6 +243,10 @@ void DataSourceFile::parse(const std::string& filePath)
 ////////////////////////////////////////////////////////////////////////////////
 CityObjectDynState::CityObjectDynState(CityObject* geom)
     : CityObjectState(geom)
+{
+}
+////////////////////////////////////////////////////////////////////////////////
+CityObjectDynState::~CityObjectDynState()
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
