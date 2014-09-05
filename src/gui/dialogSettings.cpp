@@ -9,7 +9,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::DialogSettings(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogSettings)
+    ui(new Ui::DialogSettings),
+    m_updateDataProfile(false)
 {
     ui->setupUi(this);
     if(appGui().getMainWindow()->m_unlockLevel < 1)
@@ -43,9 +44,15 @@ void DialogSettings::doSettings()
 
     if(exec())
     {
-        vcity::app().getSettings().getDataProfile() = m_tmpDP;
-        setDataProfileFromUI(vcity::app().getSettings().getDataProfile());
-        appGui().getOsgScene()->updateGrid();
+        if(m_updateDataProfile)
+        {
+            vcity::app().getSettings().getDataProfile() = m_tmpDP;
+            setDataProfileFromUI(vcity::app().getSettings().getDataProfile());
+            appGui().getOsgScene()->updateGrid();
+        }
+
+        // reset update dataprofile flag
+        m_updateDataProfile = false;
 
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
         QSettings settings("liris", "virtualcity");
@@ -83,6 +90,8 @@ void DialogSettings::chooseDataProfileSlot(int i)
         m_tmpDP = vcity::createDataProfileDefault();
         break;
     }
+
+    m_updateDataProfile = true;
 
     setFromDataProfile(m_tmpDP);
 }

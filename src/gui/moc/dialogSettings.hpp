@@ -29,6 +29,7 @@ private:
     void setDataProfileFromUI(vcity::DataProfile& dp);
 
     vcity::DataProfile m_tmpDP;
+    bool m_updateDataProfile;
 
     Ui::DialogSettings *ui;
 };
