@@ -33,32 +33,10 @@
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
-
-
-	///////////////////////////////////////////////////////////////////////////////
-
-
-
-	///////////////////////////////////////////////////////////////////////////////
-
-
-		
-	///////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-	///////////////////////////////////////////////////////////////////////////////
-
-
-
-	///////////////////////////////////////////////////////////////////////////////
-
-
-
+CityModel::CityModel( const std::string& id)
+    : Object( id )
+{
+}
 ////////////////////////////////////////////////////////////////////////////////
 CityModel::~CityModel( void )
 {
@@ -73,6 +51,75 @@ CityModel::~CityModel( void )
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+// Return the envelope (ie. the bounding box) of the model
+const Envelope& CityModel::getEnvelope( void ) const
+{
+    return _envelope;
+}
+////////////////////////////////////////////////////////////////////////////////
+Envelope& CityModel::getEnvelope( void )
+{
+    return _envelope;
+}
+////////////////////////////////////////////////////////////////////////////////
+// Return the translation parameters of the model
+const TVec3d& CityModel::getTranslationParameters( void ) const
+{
+    return _translation;
+}
+////////////////////////////////////////////////////////////////////////////////
+// Get the number of city objects
+size_t CityModel::size( void ) const
+{
+    size_t count = 0;
+    CityObjectsMap::const_iterator it = _cityObjectsMap.begin();
+    for ( ; it != _cityObjectsMap.end(); ++it ) count += it->second.size();
+    return count;
+}
+////////////////////////////////////////////////////////////////////////////////
+const CityObjectsMap& CityModel::getCityObjectsMap( void ) const
+{
+    return _cityObjectsMap;
+}
+////////////////////////////////////////////////////////////////////////////////
+CityObjectsMap& CityModel::getCityObjectsMap( void )
+{
+    return _cityObjectsMap;
+}
+////////////////////////////////////////////////////////////////////////////////
+const CityObjects* CityModel::getCityObjectsByType( CityObjectsType type ) const
+{
+    CityObjectsMap::const_iterator it = _cityObjectsMap.find( type );
+    return ( it != _cityObjectsMap.end() ) ? &it->second : 0;
+}
+////////////////////////////////////////////////////////////////////////////////
+// Return the roots elements of the model. You can then navigate the hierarchy using object->getChildren().
+const CityObjects& CityModel::getCityObjectsRoots( void ) const
+{
+    return _roots;
+}
+////////////////////////////////////////////////////////////////////////////////
+CityObjects& CityModel::getCityObjectsRoots( void )
+{
+    return _roots;
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::string& CityModel::getSRSName( void ) const
+{
+    return _srsName;
+}
+////////////////////////////////////////////////////////////////////////////////
+AppearanceManager* CityModel::getAppearanceManager()
+{
+    return &_appearanceManager;
+}
+////////////////////////////////////////////////////////////////////////////////
+void CityModel::addCityObjectAsRoot( CityObject* o )
+{
+    if ( o )
+        _roots.push_back( o );
+}
+////////////////////////////////////////////////////////////////////////////////
 void CityModel::addCityObject( CityObject* o )
 {
     CityObjectsMap::iterator it = _cityObjectsMap.find( o->getType() );
@@ -84,6 +131,50 @@ void CityModel::addCityObject( CityObject* o )
     }
     else
         it->second.push_back( o );
+}
+////////////////////////////////////////////////////////////////////////////////
+CityObject* getNodeByIdRec(CityObject* node, const std::string& id)
+{
+    CityObject* res = nullptr;
+
+    if(node->getId() == id)
+    {
+        return node;
+    }
+
+    for(auto* child : node->getChildren())
+    {
+        res = getNodeByIdRec(child, id);
+        if(res) break;
+    }
+
+    return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+CityObject* CityModel::getNodeById(const std::string& id)
+{
+    CityObject* res = nullptr;
+    for(auto* child : _roots)
+    {
+        res = getNodeByIdRec(child, id);
+        if(res) break;
+    }
+
+    return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+CityObject* CityModel::getNode(const vcity::URI& uri)
+{
+	for(CityObject* obj : _roots)
+	{
+		if(uri.getCurrentNode() == obj->getId())
+		{
+			uri.popFront();
+			return obj->getNode(uri);
+		}
+	}
+
+	return nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void CityModel::finish( const ParserParams& params )

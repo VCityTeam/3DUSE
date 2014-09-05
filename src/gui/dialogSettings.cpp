@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogSettings.hpp"
 #include "ui_dialogSettings.h"
 #include "gui/applicationGui.hpp"
@@ -26,6 +28,7 @@ DialogSettings::~DialogSettings()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogSettings::doSettings()
 {
+    // TODO : need to be adjusted manually if we had other dataprofiles, should do something better
     ui->comboBoxDataProfile->addItem("None");
     ui->comboBoxDataProfile->addItem("Paris");
     ui->comboBoxDataProfile->addItem("Lyon");
@@ -42,6 +45,7 @@ void DialogSettings::doSettings()
     {
         vcity::app().getSettings().getDataProfile() = m_tmpDP;
         setDataProfileFromUI(vcity::app().getSettings().getDataProfile());
+        appGui().getOsgScene()->updateGrid();
 
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
         QSettings settings("liris", "virtualcity");
@@ -66,6 +70,9 @@ void DialogSettings::chooseDataProfileSlot(int i)
     //std::cout << ui->comboBoxDataProfile->itemText(i).toStdString() << std::endl;
     switch(i)
     {
+    case 0:
+        m_tmpDP = vcity::createDataProfileNone();
+        break;
     case 1:
         m_tmpDP = vcity::createDataProfileParis();
         break;

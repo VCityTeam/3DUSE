@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __TILE_HPP__
 #define __TILE_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -17,13 +19,18 @@ class Tile
 {
 public:
     Tile();
+
+    /// Build a tile and load a CityGML file
+    /// \param filepath CityGML file path
     Tile(const std::string& filepath);
     //Tile(const TVec3d& pMin, const TVec3d& pMax);
     ~Tile();
 
+    /// Get tile enveloppe
     citygml::Envelope& getEnvelope();
     const citygml::Envelope& getEnvelope() const;
 
+    /// Compute envoloppe
     void computeEnvelope();
 
     void load(const std::string& filepath);
@@ -32,7 +39,10 @@ public:
     citygml::CityModel* getCityModel();
     const citygml::CityModel* getCityModel() const;
 
+    /// Get tile name
     const std::string& getName() const;
+
+    /// Set tile name
     void setName(const std::string& name);
     //osg::ref_ptr<osg::Node> getOsgRoot();
 
@@ -47,6 +57,7 @@ public:
     /// \return Ptr to CityGML node or nullptr
     citygml::CityObject* getNode(const URI& uri);
 
+    /// Get the path of the CityGML file loaded
     const std::string& getCityGMLfilePath() const;
 
 private:
@@ -54,8 +65,8 @@ private:
     //std::map<std::string, citygml::CityObject*> m_cityObjects;
     //std::map<std::string, citygml::CityModel*> m_citygml;   ///< citygml data	// MT
     //std::map<std::string, int> m_shape;    ///< shape data	// MT
-    std::string m_name; ///< tile name
-    std::string m_citygmlFilePath;
+    std::string m_name;             ///< tile name
+    std::string m_citygmlFilePath;  ///< Path of the CityGML file loaded
 
     citygml::CityModel* m_root; // TODO : remove
 

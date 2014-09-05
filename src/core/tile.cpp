@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "tile.hpp"
 #include "gui/osg/osgCityGML.hpp"
@@ -96,9 +97,9 @@ void loadRec(citygml::CityObject* node, ReaderOsgCityGML& reader)
 void Tile::load(const std::string& filepath)
 {
     citygml::ParserParams params;
-    citygml::CityModel* citygmlmodel = citygml::load(filepath, params);
-    m_root = citygmlmodel;
-    citygmlmodel->computeEnvelope();
+    delete m_root;
+    m_root = citygml::load(filepath, params);
+    m_root->computeEnvelope();
     //std::cout << citygmlmodel->getEnvelope() << std::endl;
 
     m_citygmlFilePath = filepath;
@@ -239,7 +240,8 @@ void Tile::replaceNode(const std::string& /*name*/, citygml::CityObject* /*node*
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityObject* Tile::getNode(const URI& uri)
 {
-    std::string name = uri.getLastNode();
+	return m_root->getNode(uri);
+    /*std::string name = uri.getLastNode();
 
     citygml::CityObject* res = nullptr;
 
@@ -251,7 +253,7 @@ citygml::CityObject* Tile::getNode(const URI& uri)
         if(res) break;
     }
 
-    return res;
+    return res;*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::string& Tile::getCityGMLfilePath() const

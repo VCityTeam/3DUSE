@@ -1,3 +1,18 @@
+/* -*-c++-*- libcitygml - Copyright (c) 2010 Joachim Pouderoux, BRGM
+*
+* This file is part of libcitygml library
+* http://code.google.com/p/libcitygml
+*
+* libcitygml is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, either version 2.1 of the License, or
+* (at your option) any later version.
+*
+* libcitygml is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+*/
 ////////////////////////////////////////////////////////////////////////////////
 #include "polygon.hpp"
 //#include <fstream> // MT 18/07/2014
@@ -127,7 +142,7 @@ void Polygon::tesselate( AppearanceManager &appearanceManager, const TVec3d& nor
     _exteriorRing->finish( t ? &texCoords : &_texCoords );
     if ( t ) std::copy( texCoords.begin(), texCoords.end(), std::back_inserter( _texCoords ) );
 
-    for ( size_t i = 0; i < _interiorRings.size(); i++ ) {
+    for ( unsigned int i = 0; i < _interiorRings.size(); i++ ) {
         TexCoords texCoords;
         bool t = appearanceManager.getTexCoords( _interiorRings[i]->getId(), texCoords );
         _interiorRings[i]->finish( t ? &texCoords : &_texCoords );
@@ -332,12 +347,12 @@ void Polygon::finish( AppearanceManager& appearanceManager, Appearance* defAppea
         for(std::vector<TVec3d>::const_iterator it = vertices.begin(); it < vertices.end(); ++it)
         {
             TVec3d point = *it;
-            TVec2f tc;
+            TVec2d tc;
 
             tc.x = ((wParams.yPixelSize*point.x)-(wParams.xRotation*point.y)+(wParams.xRotation*wParams.yOrigin)-(wParams.yPixelSize*wParams.xOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
             tc.y = ((-wParams.yRotation*point.x)+(wParams.xPixelSize*point.y)+(wParams.yRotation*wParams.xOrigin)-(wParams.xPixelSize*wParams.yOrigin)) / ((wParams.xPixelSize*wParams.yPixelSize)-(wParams.yRotation*wParams.xRotation));
 
-            tc.y = 1.0f - tc.y;
+            tc.y = 1.0 - tc.y;
 
             // normalize later ? when converting to osg (because we can have image size at this time) ?
             //*
@@ -348,8 +363,8 @@ void Polygon::finish( AppearanceManager& appearanceManager, Appearance* defAppea
             tc.y /= 8192.0f;
             //*/
 
-            //std::cout << tc << std::endl;
-            _texCoords.push_back(tc);
+            //std::cout << tc << std::endl; 
+            _texCoords.push_back(TVec2f(tc.x, tc.y));
         }
     }
     else

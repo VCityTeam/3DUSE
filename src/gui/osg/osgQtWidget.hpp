@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __OSGQTWIDGET_HPP__
 #define __OSGQTWIDGET_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,7 +30,7 @@ public:
 
    void setPickHandler(PickHandler* pickhandler);
 
-   const std::string& getNodePicked() const;
+   //const std::string& getNodePicked() const;
 
    void centerCamera();
 

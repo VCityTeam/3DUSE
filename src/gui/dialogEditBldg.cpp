@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogEditBldg.hpp"
 #include "ui_dialogEditBldg.h"
 #include "applicationGui.hpp"

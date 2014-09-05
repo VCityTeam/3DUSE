@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgPicking.hpp"
 #include "osgTools.hpp"
@@ -14,14 +15,12 @@ PickHandler::PickHandler()
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::resetPicking()
 {
-    std::vector<vcity::URI>::const_iterator it = appGui().getSelectedNodes().begin();
-    for(; it != appGui().getSelectedNodes().end(); ++it)
+    for(const vcity::URI& uri : appGui().getSelectedNodes())
     {
-        //toggleSelected(*it);
-        deselectNode(*it);
+        deselectNode(uri);
     }
 }
-/////////////////////////////////////////œ///////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 void PickHandler::updateLabel(const vcity::URI& uri)
 {
     appGui().getMainWindow()->updateTextBox(uri);
@@ -91,7 +90,7 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
                 vcity::URI uri = appGui().getSelectedNodes()[0];
                 appGui().getControllerGui().resetSelection();
 
-                uri.pop();
+                uri.popBack();
                 appGui().getControllerGui().addSelection(uri);
                 //std::cout << "pick parent" << std::endl;
                 //std::cout << "pick parent : " << uri.getStringURI() << std::endl;
@@ -168,6 +167,12 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         //osg::Group* parent = (nodePath.size()>=2)?dynamic_cast<osg::Group*>(nodePath[nodePath.size()-2]):0;
         //osg::Group* parent = node->getParent(0);
 
+        // check that we are not on a geode
+        if(node->asGeode())
+        {
+            node = node->getParent(0);
+        }
+
         // get building
         if(m_pickingMode == 0) // face
         {
@@ -205,12 +210,6 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             {
                 node = nodeOri;
             }
-        }
-
-        // check that we are not on a geode
-        if(node->asGeode())
-        {
-            node = node->getParent(0);
         }
 
         if(m_addToSelection)
@@ -404,13 +403,15 @@ void PickHandler::selectNode(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::deselectNode(const vcity::URI& uri)
 {
+    uri.resetCursor();
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
     if(node)
     {
         node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
 
         vcity::URI uriInfo = uri;
-        uriInfo.prepend("infobubble");
+        uriInfo.append("infobubble");
+        uriInfo.resetCursor();
         appGui().getOsgScene()->deleteNode(uriInfo);
     }
 }

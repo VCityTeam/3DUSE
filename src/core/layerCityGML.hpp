@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __LAYERCITYGML_HPP__
 #define __LAYERCITYGML_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,8 +51,10 @@ public:
     /// \return Ptr to CityGML node or nullptr
     citygml::CityObject* getCityObjectNode(const URI& uri);
 
+    /// Get layer type as string
 	const std::string getType() const;
 
+    /// Get Layer URI
 	URI getURI() const;
 
     void dump();

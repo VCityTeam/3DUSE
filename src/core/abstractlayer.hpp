@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __ABSTRACTLAYER_HPP__
 #define __ABSTRACTLAYER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,8 +30,10 @@ public:
 
 	// --- pure virtual
 
+    /// Get layer type as string
 	virtual const std::string getType() const = 0;
 
+    /// get layer URI
 	virtual URI getURI() const = 0;
 
     virtual void dump() = 0;

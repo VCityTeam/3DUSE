@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "layerCityGML.hpp"
 #include "application.hpp"
@@ -30,8 +31,9 @@ Tile* LayerCityGML::getTile(const URI& uri)
     {
         for(std::vector<Tile*>::iterator it = m_tiles.begin(); it < m_tiles.end(); ++it)
         {
-            if(uri.getNode(1) == (*it)->getName())
+            if(uri.getCurrentNode() == (*it)->getName())
             {
+				uri.popFront();
                 return *it;
             }
         }
@@ -84,7 +86,7 @@ const std::string LayerCityGML::getType() const
 URI LayerCityGML::getURI() const
 {
     URI uri;
-    uri.append(getName());
+    uri.append(getName(), getType());
     uri.setType(getType());
 
     return uri;

@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "layerTiledCityGML.hpp"
 #include "application.hpp"
@@ -81,7 +82,7 @@ const std::string LayerTiledCityGML::getType() const
 URI LayerTiledCityGML::getURI() const
 {
     URI uri;
-    uri.append(getName());
+    uri.append(getName(), getType());
     uri.setType(getType());
 
     return uri;

@@ -1,9 +1,26 @@
+/* -*-c++-*- libcitygml - Copyright (c) 2010 Joachim Pouderoux, BRGM
+*
+* This file is part of libcitygml library
+* http://code.google.com/p/libcitygml
+*
+* libcitygml is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, either version 2.1 of the License, or
+* (at your option) any later version.
+*
+* libcitygml is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+*/
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_CITYOBJECT_HPP__
 #define __CITYGML_CITYOBJECT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "object.hpp"
 #include "geometry.hpp"
 #include "temporalExt.hpp"
+#include "core/URI.hpp"
 #include <ostream>
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
@@ -100,20 +117,43 @@ public:
 
     void insertNode(CityObject* node);
 
+    /// Get a node from a uri
+    /// \param uri uri pointing to requested node
+	CityObject* getNode(const vcity::URI& uri);
+
+    /// Add a State
     void addState(CityObjectState* state);
+
+    /// Get States vector
     std::vector<CityObjectState*>& getStates();
+
+    /// Get States vector (const)
     const std::vector<CityObjectState*>& getStates() const;
+
+    /// Get a State by name
+    /// \param name State name
     CityObjectState* getState(const std::string& name);
 
+    /// Add a TAg
     void addTag(CityObjectTag* tag);
+
+    /// Get Tags vector
     std::vector<CityObjectTag*>& getTags();
+
+    /// get Tags vector (const)
     const std::vector<CityObjectTag*>& getTags() const;
 
+    /// Internal method to reorganize Tags, reorder them by date
     void checkTags();
 
+    /// Temporal check : tell if the object is temporal
+    /// \return true if has Tags of States
     bool isTemporal() const;
 
-    //const std::string& getAttribute(const std::string& attribName, const QDateTime& date) const;
+    /// Get an attribute for a specific date (use when temporal)
+    /// \param attribName Attribute name
+    /// \param date Date wanted
+    std::string getAttributeTemporal(const std::string& attribName, const QDateTime& date) const;
 
 //protected:
     void finish( AppearanceManager&, const ParserParams& );
@@ -133,6 +173,7 @@ protected:
 
 public:
     std::string m_path;
+    bool m_temporalUse;
 };
 ////////////////////////////////////////////////////////////////////////////////
 LIBCITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );

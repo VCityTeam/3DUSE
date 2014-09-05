@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __OSGSCENE_HPP__
 #define __OSGSCENE_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,6 +37,7 @@ class OsgScene : public osg::Group
 public:
     OsgScene();
 
+    /// Init osg scene basic structure
     void init();
 
     /// \brief addTile Add a tile in a layer of the osg scene
@@ -85,17 +88,25 @@ public:
     /// \param uri URI pointing to the node
     void deleteNode(const vcity::URI& uri);
 
+    /// Update grid depending on dataprofile
     void updateGrid();
 
+    /// Enable / disable osg shadows
     void setShadow(bool shadow);
 
+    /// Set date for temporal use, use -4000 as year to disable temporal
     void setDate(const QDateTime& date);
 
+    /// reset osg scene
     void reset();
 
+    /// force
     void forceLOD(int lod);
 
+    /// Show or hide a node by ptr
     void showNode(osg::ref_ptr<osg::Node> node, bool show);
+
+    /// Show or hide a node by uri
     void showNode(const vcity::URI& uri, bool show);
 
     /// \brief centerOn Home camera on a node
@@ -104,9 +115,10 @@ public:
 
     void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth=0);
 
+    /// OSG optimizer test (destroy tree topology and picking does not work after)
     void optim();
 
-    osg::ref_ptr<osg::Geode> buildGrid(osg::Vec3 origin, float step, int n);
+    osg::ref_ptr<osg::Node> buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset);
     osg::ref_ptr<osg::Geode> buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound);
 
     /// \brief getNode Get a node in the osg scene with a URI
@@ -114,19 +126,30 @@ public:
     /// \return Node
     osg::ref_ptr<osg::Node> getNode(const vcity::URI& uri);
 
+    /// Insert info bubble for a node
     osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
 
 public:
-    osg::ref_ptr<osg::Node> buildTile(const vcity::Tile& tile);
-    void buildCityObject(osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0);
+    /// Build osg node from CityGML data
+    osg::ref_ptr<osg::Node> buildTile(const vcity::URI& uri, const vcity::Tile& tile);
+    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0);
 
-    bool m_shadow;
+    /// Build osg node from CityGML temporal data
+    void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
+    void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
+
+    bool m_shadow;                          ///< flag to use osg shadows or not
     osg::Vec4 m_shadowVec;
 
     osg::ref_ptr<osg::Group> m_layers;      ///< Group holding all layers, and below, all tiles, ...
 
     osg::ref_ptr<osg::Group> m_effectNone;
     osg::ref_ptr<osg::Group> m_effectShadow;
+
+private:
+    void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
+
+    std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief osgSceneBuild will create an osg tree (for rendering with osg) from a tile

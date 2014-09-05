@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogTag.hpp"
 #include "ui_dialogTag.h"
 #include "gui/applicationGui.hpp"
@@ -85,7 +87,7 @@ DialogTag::~DialogTag()
     delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, ReaderOsgCityGML& reader)
+/*void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, ReaderOsgCityGML& reader)
 {
     osg::ref_ptr<osg::Group> grp = reader.createCityObject(node);
     parent->addChild(grp);
@@ -95,7 +97,7 @@ void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, Rea
     {
         loadRecTest(*it, grp, reader);
     }
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void DialogTag::addTag(const vcity::URI& uri)
 {
@@ -108,18 +110,12 @@ void DialogTag::addTag(const vcity::URI& uri)
     //if(m_ui->treeWidget->currentItem())
     {
         //std::cout << "select node : " << m_ui->treeWidget->currentItem()->text(0).toStdString() << std::endl;
+        uri.resetCursor();
         obj = vcity::app().getScene().getCityObjectNode(uri);
 
         if(obj)
         {
-            // add lod
-            ui->comboBox->addItem(uri.getLastNode().c_str());
-            geoms[uri.getLastNode()] = 0;
-
-            // add all bldg
-
-
-            // add flags
+            // add states
             std::vector<citygml::CityObjectState*>::const_iterator it = obj->getStates().begin();
             for(; it < obj->getStates().end(); ++it)
             {
@@ -127,10 +123,21 @@ void DialogTag::addTag(const vcity::URI& uri)
                 geoms[(*it)->getStringId()] = (*it)->getGeom();
             }
 
+            ui->comboBox->addItem("NULL");
 
+            // add lod
+            ui->comboBox->addItem(uri.getLastNode().c_str());
+            geoms[uri.getLastNode()] = nullptr;
+
+            // add all bldg
         }
-        ui->comboBox->addItem("NULL");
-        geoms["NULL"] = 0;
+        geoms["NULL"] = nullptr;
+
+        // auto adjust combobox
+        ui->comboBox->setCurrentIndex(obj->getTags().size());
+        QDate date(2000, 1, 1);
+        date = date.addYears(obj->getTags().size()*10);
+        ui->dateTimeEdit->setDate(date);
     }
 
     int res = exec();
@@ -140,33 +147,35 @@ void DialogTag::addTag(const vcity::URI& uri)
     if(res && obj) // && m_ui->treeWidget->currentItem())
     {
         citygml::CityObject* geom = nullptr;
-        citygml::CityObjectState* f = nullptr;
-        if((ui->comboBox->currentText().size() > 4 && ui->comboBox->currentText().left(4) == "STATE") ||
-           (ui->comboBox->currentText().size() > 7 && ui->comboBox->currentText().left(7) == "DYNSTATE"))
+        citygml::CityObjectState* state = nullptr;
+        if((ui->comboBox->currentText().size() > 5 && ui->comboBox->currentText().left(5) == "STATE") ||
+           (ui->comboBox->currentText().size() > 8 && ui->comboBox->currentText().left(8) == "DYNSTATE"))
         {
-            // get geom from flag
-            f = obj->getState(ui->comboBox->currentText().toStdString());
-            if(f) geom = f->getGeom();
-            std::cout << "use flag geom : " << ui->comboBox->currentText().toStdString() << " : " << f << " : " << geom << std::endl;
+            // get geom from state
+            state = obj->getState(ui->comboBox->currentText().toStdString());
+            if(state) geom = state->getGeom();
+            std::cout << "use state geom : " << ui->comboBox->currentText().toStdString() << " : " << state << " : " << geom << std::endl;
         }
         else if(ui->comboBox->currentText() != "NULL")
         {
             // use existing
+            uri.resetCursor();
             geom = vcity::app().getScene().getCityObjectNode(uri);
             std::cout << "use existing : " << geom << std::endl;
         }
 
         citygml::CityObjectTag* tag = new citygml::CityObjectTag(ui->dateTimeEdit->date().year(), geom);
-        if(f) tag->m_state = f; // set state
+        if(state) tag->m_state = state; // set state
         tag->m_date = ui->dateTimeEdit->dateTime();
         tag->m_name = ui->lineEdit->text().toStdString();
         tag->m_parent = obj;
         //tag->m_year = ui.dateTimeEdit->date().year();
 
 
-        if(geom)
+        /*if(geom)
         {
             // get parent osg geom
+            uri.resetCursor();
             osg::ref_ptr<osg::Node> osgNode = appGui().getOsgScene()->getNode(uri);
             if(obj->getTags().size() == 0)
             {
@@ -183,17 +192,17 @@ void DialogTag::addTag(const vcity::URI& uri)
 
             // build osg geom for tag
 
-            /*vcity::URI uriTile = uri;
-            while(uriTile.getDepth() > 2)
-            {
-                uriTile.pop();
-            }
-            uriTile.setType("Tile");
-            vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);*/
+            //vcity::URI uriTile = uri;
+            //while(uriTile.getDepth() > 2)
+            //{
+            //    uriTile.pop();
+            //}
+            //uriTile.setType("Tile");
+            //vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
 
             size_t pos = geom->m_path.find_last_of("/\\");
             std::string path = geom->m_path.substr(0, pos);
-            path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
+            //path = "/mnt/docs/data/dd_backup/Donnees_IGN_unzip/EXPORT_1296-13731/export-CityGML/";
             ReaderOsgCityGML readerOsgGml(path);
             readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
             osg::ref_ptr<osg::Group> grp = readerOsgGml.createCityObject(geom);
@@ -223,22 +232,17 @@ void DialogTag::addTag(const vcity::URI& uri)
             //obj->getOsgNode()->setNodeMask(0);
 
             tag->setOsg(grp);
-        }
+        }//*/
 
         obj->addTag(tag);
 
-        QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(tag->getStringId().c_str()));
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
-        item->setText(1, "Tag");
-
-        QTreeWidgetItem* item2 = new QTreeWidgetItem(QStringList(ui->comboBox->currentText()));
-        item->addChild(item2);
-
+        // reorder tags
         obj->checkTags();
 
-        //m_ui->treeWidget->currentItem()->addChild(item);
+        // add in treeview
+        uri.resetCursor();
         appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
+        appGui().getControllerGui().addTag(uri, tag);
     }
 
     appGui().getMainWindow()->m_osgView->setActive(true);

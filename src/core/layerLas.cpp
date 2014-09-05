@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "layerLas.hpp"
 #include "application.hpp"
@@ -23,7 +24,7 @@ const std::string LayerLas::getType() const
 URI LayerLas::getURI() const
 {
     URI uri;
-    uri.append(getName());
+    uri.append(getName(), getType());
     uri.setType(getType());
 
     return uri;
