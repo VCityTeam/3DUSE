@@ -27,7 +27,7 @@ void ImporterAssimp::assimpNodeToCityGML(const struct aiScene* aiScene, const st
     static int id = 0;
     CityObject* obj = new WallSurface("wall_"+std::to_string(id));
 
-    // rad geometry
+    // read geometry
     for(unsigned int i=0; i<aiNode->mNumMeshes; ++i)
     {
         const struct aiMesh* mesh = aiScene->mMeshes[ aiNode->mMeshes[i] ];

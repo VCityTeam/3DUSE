@@ -146,6 +146,8 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
         uri.popFront();
     }
 
+    uri.resetCursor();
+
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
