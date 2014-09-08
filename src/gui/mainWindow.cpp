@@ -1169,7 +1169,7 @@ void MainWindow::generateLOD0()
 }
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
-/*void MainWindow::generateLOD1()
+void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
@@ -1193,10 +1193,10 @@ void MainWindow::generateLOD0()
 				if(obj)
 				{
 					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+                    OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 					double * heightmax = new double;
 					double * heightmin = new double;
-					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+                    vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
 					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
@@ -1229,7 +1229,7 @@ void MainWindow::generateLOD0()
 						OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 						double * heightmax = new double;
 						double * heightmin = new double;
-						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+                        vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
 						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
@@ -1246,9 +1246,9 @@ void MainWindow::generateLOD0()
 		exporter.endExport();
 	}
     QApplication::restoreOverrideCursor();
-}*/
+}
 
-void MainWindow::generateLOD1()
+/*void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
@@ -1328,7 +1328,7 @@ void MainWindow::generateLOD1()
 		exporter.endExport();
 	}
     QApplication::restoreOverrideCursor();
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {

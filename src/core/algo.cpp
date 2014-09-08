@@ -80,7 +80,7 @@ namespace vcity
 	* @param obj CityObject sélectionné
 	* @param roofProj un set de Polygon, le résultat de la projection
 	* @param heightmax Enregistre le Zmax des murs du bâtiment
-	* @param heightmin Enregistre le Zmin des murs du bâtiment
+    * @param heightmin Enregistre le Zmin des murs du bâtiment
 	*/
 	void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax, double * heightmin)
 	{
@@ -1059,12 +1059,10 @@ namespace vcity
 		for(int i = 0; i < MP->getNumGeometries(); ++i)	//On parcourt tous les polygons que l'on veut unir
 		{
 			try	//On vérifie qu'il n'y ait pas d'exceptions faisant planter le logiciel
-			{
-				std::cout << "TEST10" << std::endl;
+            {
 				OGRGeometry* tmp = ResUnion;
 				ResUnion = ResUnion->Union(MP->getGeometryRef(i)); //On fait l'union avant de la vérifier
-				delete tmp;
-				std::cout << "TEST20" << std::endl;
+                delete tmp;
 				std::vector<OGRGeometry*>* Polys = new std::vector<OGRGeometry*>(); //Vecteur contenant les différents polygones de l'union au fur et à mesure
 				
 				//OGRGeometryFactory::organizePolygons
@@ -1422,10 +1420,11 @@ namespace vcity
 
 				RingRoof->addVertex(TVec3d(x1, y1, *heightmax));
 
+                point = new OGRPoint;
 				ExtRing->getPoint(j+1, point);
 				double x2 = point->getX() + offset_.x;
 				double y2 = point->getY() + offset_.y;
-				delete point;
+                delete point;
 
 				RingWall->addVertex(TVec3d(x1, y1, *heightmin));
 				RingWall->addVertex(TVec3d(x2, y2, *heightmin));
@@ -3048,7 +3047,7 @@ namespace vcity
         //geos::geom::Geometry * ShapeResWithoutHolesSimp = geos::simplify::TopologyPreservingSimplifier::simplify(ShapeResWithoutHoles, 4).release();
 		//SaveGeometry("Shape_Close_WithoutHoles_Simplified", ShapeResWithoutHolesSimp);
 
-		// gen loa
+        // gen lod1
 		m_model = ConvertShapeToLOD1(ShapeResWithoutHoles, Hauteurs2);
 		//m_model = ConvertShapeToLOD1(ShapeResWithoutHolesSimp, Hauteurs2);
 
