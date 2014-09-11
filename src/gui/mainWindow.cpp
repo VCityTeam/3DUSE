@@ -369,7 +369,7 @@ bool MainWindow::loadFile(const QString& filepath)
             vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
             appGui().getControllerGui().addShpNode(uriLayer, poDS);
 
-            //addRecentFile(filepath);
+            addRecentFile(filepath);
 
             //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
         }
@@ -1056,7 +1056,7 @@ void MainWindow::generateAllLODs()
 }
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
-/*void MainWindow::generateLOD0()
+void MainWindow::generateLOD0()
 {
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	// get all selected nodes (with a uri)
@@ -1073,7 +1073,7 @@ void MainWindow::generateAllLODs()
 				OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 				double * heightmax = new double;
 				double * heightmin = new double;
-				vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+                vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
 				citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
@@ -1101,8 +1101,6 @@ void MainWindow::generateAllLODs()
 				uri.append(obj->getId(), "Building");
 				uri.setType("Building");
 
-				std::cout << uri.getStringURI() << std::endl;
-
 				if(obj)
 				{
 					std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
@@ -1110,7 +1108,7 @@ void MainWindow::generateAllLODs()
 					double * heightmax = new double;
 					double * heightmin = new double;
 
-					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+                    vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
 					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 
@@ -1123,14 +1121,16 @@ void MainWindow::generateAllLODs()
 					delete Enveloppe;
 					delete heightmax;
 					delete heightmin;
+
+                    std::cout<< "LOD0 genere sur "<< obj->getId() << std::endl;
 				}
 			}
 		}
-	}
+    }
 
 	QApplication::restoreOverrideCursor();
-}*/
-void MainWindow::generateLOD0()
+}
+/*void MainWindow::generateLOD0()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     // get all selected nodes (with a uri)
@@ -1166,10 +1166,10 @@ void MainWindow::generateLOD0()
 	}
 
 	QApplication::restoreOverrideCursor();
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
-/*void MainWindow::generateLOD1()
+void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
@@ -1193,10 +1193,10 @@ void MainWindow::generateLOD0()
 				if(obj)
 				{
 					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+                    OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 					double * heightmax = new double;
 					double * heightmin = new double;
-					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+                    vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
 					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
@@ -1221,7 +1221,7 @@ void MainWindow::generateLOD0()
 					uri.append(obj->getId(), "Building");
 					uri.setType("Building");
 		
-					std::cout << uri.getStringURI() << std::endl;
+                    //std::cout << uri.getStringURI() << std::endl;
 		
 					if(obj)
 					{
@@ -1229,7 +1229,7 @@ void MainWindow::generateLOD0()
 						OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 						double * heightmax = new double;
 						double * heightmin = new double;
-						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
+                        vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
 						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
@@ -1244,11 +1244,12 @@ void MainWindow::generateLOD0()
 			}
 		}
 		exporter.endExport();
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree" << std::endl;
 	}
     QApplication::restoreOverrideCursor();
-}*/
+}
 
-void MainWindow::generateLOD1()
+/*void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
@@ -1328,7 +1329,7 @@ void MainWindow::generateLOD1()
 		exporter.endExport();
 	}
     QApplication::restoreOverrideCursor();
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {
