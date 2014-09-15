@@ -1593,6 +1593,7 @@ namespace vcity
 			RoofCO->addGeometry(Roof);
 			GroundCO->addGeometry(Ground);
 			BuildingCO->insertNode(WallCO);
+			BuildingCO->insertNode(RoofCO);
 			BuildingCO->insertNode(GroundCO);
 
 			delete TempGeo;
