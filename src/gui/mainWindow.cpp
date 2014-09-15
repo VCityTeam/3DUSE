@@ -244,7 +244,7 @@ void MainWindow::openRecentFile()
 bool MainWindow::loadFile(const QString& filepath)
 {
     // date check
-    if(QDate::currentDate() > QDate(2015, 01, 01))
+    if(QDate::currentDate() > QDate(2015, 01, 15))
     {
         QMessageBox(QMessageBox::Critical,  "Error", "Expired").exec();
         return false;
@@ -651,6 +651,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->actionLOD2->setVisible(true);
         m_ui->actionLOD3->setVisible(true);
         m_ui->actionLOD4->setVisible(true);
+		m_ui->actionAll_LODs->setVisible(true);
         //m_ui->tab_16->setVisible(true);
         //break; // missing break on purpose
     case 1:
@@ -677,6 +678,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->actionLOD2->setVisible(false);
         m_ui->actionLOD3->setVisible(false);
         m_ui->actionLOD4->setVisible(false);
+		m_ui->actionAll_LODs->setVisible(false);
         break;
     default:
         break;
@@ -1332,6 +1334,7 @@ void MainWindow::generateLOD1()
 			}
 		}
 		exporter.endExport();
+		std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree" << std::endl;
 	}
     QApplication::restoreOverrideCursor();
 }

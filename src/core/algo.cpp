@@ -1412,7 +1412,7 @@ namespace vcity
 				continue;
 
             citygml::Geometry* Wall = new citygml::Geometry(name + "_Wall_" + std::to_string(i), citygml::GT_Wall, 1);
-			citygml::Geometry* Roof = new citygml::Geometry(name + "_Roof_" + std::to_string(i), citygml::GT_Roof, 0);
+			citygml::Geometry* Roof = new citygml::Geometry(name + "_Roof_" + std::to_string(i), citygml::GT_Roof, 1);
 
 			citygml::Polygon * PolyRoof = new citygml::Polygon(name + "_PolyRoof_" + std::to_string(i));
 			citygml::LinearRing * RingRoof = new citygml::LinearRing(name + "_RingRoof_" + std::to_string(i), true);
@@ -1463,9 +1463,10 @@ namespace vcity
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 
-		citygml::CityObject* BuildingCO = new citygml::Building(name + "_LOD1");
-		citygml::CityObject* WallCO = new citygml::WallSurface(name + "_Wall");
-		citygml::CityObject* RoofCO = new citygml::RoofSurface(name + "_Roof");
+		citygml::CityObject* BuildingCO = new citygml::Building("LOD1_" + name);
+		citygml::CityObject* WallCO = new citygml::WallSurface("LOD1_" + name);
+		citygml::CityObject* RoofCO = new citygml::RoofSurface("LOD1_" + name);
+		citygml::CityObject* GroundCO = new citygml::GroundSurface("LOD1_" + name);
 
 		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
 		{
@@ -1475,9 +1476,12 @@ namespace vcity
 
 			citygml::Geometry* Wall = new citygml::Geometry(name + "_Wall_" + std::to_string(i), citygml::GT_Wall, 1);
 			citygml::Geometry* Roof = new citygml::Geometry(name + "_Roof_" + std::to_string(i), citygml::GT_Roof, 1);
+			citygml::Geometry* Ground = new citygml::Geometry(name + "_Ground_" + std::to_string(i), citygml::GT_Ground, 0);
 
 			citygml::Polygon * PolyRoof = new citygml::Polygon(name + "_PolyRoof_" + std::to_string(i));//Polygone représentant le roof
+			citygml::Polygon * PolyGround = new citygml::Polygon(name + "_PolyGround_" + std::to_string(i));//Polygone représentant l'emprise au sol
 			citygml::LinearRing * RingRoof = new citygml::LinearRing(name + "_RingRoof_" + std::to_string(i), true);//Ring extérieur
+			citygml::LinearRing * RingGround = new citygml::LinearRing(name + "_RingGround_" + std::to_string(i), true);//Ring extérieur
 
 			if(!PolyGeos || PolyGeos->getNumInteriorRing() == 0) //Si ce n'est pas un polygone (geometry simple) ou si c'est un polygone sans trou, on parcourt simplement les coordonnées pour les copier dans des données CityGML
 			{
@@ -1491,6 +1495,8 @@ namespace vcity
 					double y1 = Coords->getAt(j).y + offset_.y;
 
 					RingRoof->addVertex(TVec3d(x1, y1, *heightmax));
+					RingGround->addVertex(TVec3d(x1,y1, *heightmin));
+
 
 					if(j < Coords->size() - 1) //Il n'y a pas besoin de construire de mur à partir du dernier point puisqu'il correspond au premier qui a déjà été traité
 					{
@@ -1508,6 +1514,8 @@ namespace vcity
 				}
 				PolyRoof->addRing(RingRoof);
 				Roof->addPolygon(PolyRoof);
+				PolyGround->addRing(RingGround);
+				Ground->addPolygon(PolyGround);
 			}
 			else //C'est un polygone avec trou(s) : un exterior ring et des interior ring
 			{
@@ -1522,6 +1530,7 @@ namespace vcity
 					double y1 = Coords->getAt(j).y + offset_.y;
 
 					RingRoof->addVertex(TVec3d(x1, y1, *heightmax));
+					RingGround->addVertex(TVec3d(x1,y1, *heightmin));
 
 					if(j < Coords->size() - 1) //Il n'y a pas besoin de construire de mur à partir du dernier point puisqu'il correspond au premier qui a déjà été traité
 					{
@@ -1538,10 +1547,12 @@ namespace vcity
 					}
 				}
 				PolyRoof->addRing(RingRoof);//Ajout de l'exterior ring au PolyRoof
+				PolyGround->addRing(RingGround);
 
 				for(size_t k = 0; k < PolyGeos->getNumInteriorRing(); ++k)
 				{
 					citygml::LinearRing * RingRoofInt = new citygml::LinearRing(name + "_RingRoofInt_" + std::to_string(i) + "_" + std::to_string(k), false);//Ring intérieur
+					citygml::LinearRing * RingGroundInt = new citygml::LinearRing(name + "_RingGroundInt_" + std::to_string(i) + "_" + std::to_string(k), false);//Ring intérieur
 
 					const geos::geom::LineString * IntRingGeos = PolyGeos->getInteriorRingN(k);
 					Coords = nullptr;
@@ -1556,6 +1567,7 @@ namespace vcity
 						double y1 = Coords->getAt(j).y + offset_.y;
 
 						RingRoofInt->addVertex(TVec3d(x1, y1, *heightmax));
+						RingGroundInt->addVertex(TVec3d(x1, y1, *heightmin));
 
 						if(j < Coords->size() - 1) //Il n'y a pas besoin de construire de mur à partir du dernier point puisqu'il correspond au premier qui a déjà été traité
 						{
@@ -1572,15 +1584,17 @@ namespace vcity
 						}
 					}
 					PolyRoof->addRing(RingRoofInt);//Ajout d'un interior ring au PolyRoof
+					PolyGround->addRing(RingGroundInt);//Ajout d'un interior ring au PolyRoof
 				}
 				Roof->addPolygon(PolyRoof);
+				Ground->addPolygon(PolyGround);
 			}
 			WallCO->addGeometry(Wall);
 			RoofCO->addGeometry(Roof);
+			GroundCO->addGeometry(Ground);
 			BuildingCO->insertNode(WallCO);
-			BuildingCO->insertNode(RoofCO);
+			BuildingCO->insertNode(GroundCO);
 
-			
 			delete TempGeo;
 			delete Coords;
 			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
@@ -2404,7 +2418,7 @@ namespace vcity
 			citygml::CityObject* obj2 = new citygml::GroundSurface("tmpObj");
 			obj2->addGeometry(geom);
 			obj->insertNode(obj2);
-			std::cout << "Lod 0 exporte en cityGML" << std::endl;
+			std::cout << "Lod 0 exporte dans " << name << ".shp" << std::endl;
 
 			SaveGeometrytoShape(name, Enveloppe);
 
