@@ -133,7 +133,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
+    connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
     connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
+    connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
@@ -640,14 +642,15 @@ void MainWindow::unlockFeatures(const QString& pass)
     case 2:
         m_ui->menuDebug->menuAction()->setVisible(true);
         m_ui->menuTest->menuAction()->setVisible(true);
-        m_ui->menuTools->menuAction()->setVisible(true);
-        m_ui->menuRender->menuAction()->setVisible(true);
         m_ui->actionExport_osg->setVisible(true);
         m_ui->actionExport_tiled_osga->setVisible(true);
         m_ui->actionLoad_bbox->setVisible(true);
-        //m_ui->actionLoad_recursive->setVisible(true);
         m_ui->actionShow_advanced_tools->setVisible(true);
         m_ui->actionHelp->setVisible(true);
+        m_ui->actionCityGML_cut->setVisible(true);
+        m_ui->actionLOD2->setVisible(true);
+        m_ui->actionLOD3->setVisible(true);
+        m_ui->actionLOD4->setVisible(true);
         //m_ui->tab_16->setVisible(true);
         //break; // missing break on purpose
     case 1:
@@ -658,20 +661,22 @@ void MainWindow::unlockFeatures(const QString& pass)
     case 0:
         m_ui->menuDebug->menuAction()->setVisible(false);
         m_ui->menuTest->menuAction()->setVisible(false);
-        //m_ui->menuTools->menuAction()->setVisible(false);
         m_ui->actionFix_building->setVisible(false);
-        //m_ui->menuRender->menuAction()->setVisible(false);
         m_ui->actionShadows->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
-        //m_ui->actionLoad_recursive->setVisible(false);
         m_ui->actionShow_advanced_tools->setVisible(false);
         m_ui->actionHelp->setVisible(false);
-        m_ui->tab_16->setVisible(false); m_ui->tabWidget->removeTab(1);
+        m_ui->tab_16->setVisible(false);
+        m_ui->tabWidget->removeTab(1);
         m_ui->widgetTemporal->setVisible(false);
         m_ui->hsplitter_bottom->setVisible(false);
         m_ui->actionShow_temporal_tools->setVisible(false);
+        m_ui->actionCityGML_cut->setVisible(false);
+        m_ui->actionLOD2->setVisible(false);
+        m_ui->actionLOD3->setVisible(false);
+        m_ui->actionLOD4->setVisible(false);
         break;
     default:
         break;
@@ -1056,7 +1061,7 @@ void MainWindow::generateAllLODs()
 }
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
-void MainWindow::generateLOD0()
+/*void MainWindow::generateLOD0()
 {
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	// get all selected nodes (with a uri)
@@ -1129,8 +1134,8 @@ void MainWindow::generateLOD0()
     }
 
 	QApplication::restoreOverrideCursor();
-}
-/*void MainWindow::generateLOD0()
+}*/
+void MainWindow::generateLOD0()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     // get all selected nodes (with a uri)
@@ -1166,10 +1171,10 @@ void MainWindow::generateLOD0()
 	}
 
 	QApplication::restoreOverrideCursor();
-}*/
+}
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
-void MainWindow::generateLOD1()
+/*void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
@@ -1247,9 +1252,9 @@ void MainWindow::generateLOD1()
         std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree" << std::endl;
 	}
     QApplication::restoreOverrideCursor();
-}
+}*/
 
-/*void MainWindow::generateLOD1()
+void MainWindow::generateLOD1()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
@@ -1329,26 +1334,23 @@ void MainWindow::generateLOD1()
 		exporter.endExport();
 	}
     QApplication::restoreOverrideCursor();
-}*/
+}
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().CompareTiles();
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD3()
 {	
     QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments); 
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD4()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1361,6 +1363,17 @@ void MainWindow::slotFixBuilding()
 
     // TODO
     //appGui().getControllerGui().update(uri);
+    QApplication::restoreOverrideCursor();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotCityGML_cut()
+{
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotCutCityGMLwithShapefile()
+{
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////

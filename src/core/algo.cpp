@@ -2504,6 +2504,16 @@ namespace vcity
 	*/
 	void Algo::DecoupeCityGML(geos::geom::Geometry * Shape, std::vector<BatimentShape> InfoBatiments)//LOD0 sur toute la scène + Comparaison entre CityGML et Cadastre
 	{
+        if(Shape == nullptr || Shape->isEmpty())
+        {
+            std::cout << "Erreur : Aucun fichier Shapefile n'a été trouvé." << std::endl;
+            return;
+        }
+        if(InfoBatiments.size() == 0)
+        {
+            std::cout << "Erreur : Aucun bâtiment CityGML n'a été trouvé." << std::endl;
+            return;
+        }
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
@@ -2829,7 +2839,10 @@ namespace vcity
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
 		if(tiles.size() != 2)
+        {
+            std::cout << "Erreur : Il faut ouvrir deux fichiers CityGML de la même zone, en commençant par le plus ancien." << std::endl;
 			return;
+        }
 
 		geos::geom::Geometry * EnveloppeCity[2];//On part du principe que le plus vieux est dans le 0 et le plus récent dans le 1
 		geos::geom::Geometry * EnveloppeCityU[2];//Version avec un seul polygone par bâtiment

@@ -85,6 +85,7 @@ public slots:
     void debugDumpOsg();
     void slotDumpScene();
     void slotDumpSelectedNodes();
+    void slotCutCityGMLwithShapefile();
 
     void about();
 
@@ -104,6 +105,7 @@ private slots:
     void generateLOD3();
     void generateLOD4();
 
+    void slotCityGML_cut();
     void slotFixBuilding();
     void slotObjToCityGML();
 
