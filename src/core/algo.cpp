@@ -1401,9 +1401,10 @@ namespace vcity
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 
-		citygml::CityObject* BuildingCO = new citygml::Building("LOD1_" + name);
-		citygml::CityObject* WallCO = new citygml::WallSurface("LOD1_" + name);
-		citygml::CityObject* RoofCO = new citygml::RoofSurface("LOD1_" + name);
+        citygml::CityObject* BuildingCO = new citygml::Building("LOD1_" + name);
+        citygml::CityObject* WallCO = new citygml::WallSurface("LOD1_" + name + "_Wall");
+        citygml::CityObject* RoofCO = new citygml::RoofSurface("LOD1_" + name + "_Roof");
+        //citygml::CityObject* GroundCO = new citygml::GroundSurface("LOD1_" + name + "_Ground");
 
 		for(int i = 0; i < Enveloppe->getNumGeometries(); ++i)
 		{
@@ -1463,10 +1464,10 @@ namespace vcity
 	{
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 
-		citygml::CityObject* BuildingCO = new citygml::Building("LOD1_" + name);
-		citygml::CityObject* WallCO = new citygml::WallSurface("LOD1_" + name);
-		citygml::CityObject* RoofCO = new citygml::RoofSurface("LOD1_" + name);
-		citygml::CityObject* GroundCO = new citygml::GroundSurface("LOD1_" + name);
+        citygml::CityObject* BuildingCO = new citygml::Building("LOD1_" + name);
+        citygml::CityObject* WallCO = new citygml::WallSurface("LOD1_" + name + "_Wall");
+        citygml::CityObject* RoofCO = new citygml::RoofSurface("LOD1_" + name + "_Roof");
+        citygml::CityObject* GroundCO = new citygml::GroundSurface("LOD1_" + name + "_Ground");
 
 		for(int i = 0; i < Geometry->getNumGeometries(); ++i)
 		{
@@ -1588,18 +1589,18 @@ namespace vcity
 				}
 				Roof->addPolygon(PolyRoof);
 				Ground->addPolygon(PolyGround);
-			}
-			WallCO->addGeometry(Wall);
-			RoofCO->addGeometry(Roof);
-			GroundCO->addGeometry(Ground);
-			BuildingCO->insertNode(WallCO);
-			BuildingCO->insertNode(RoofCO);
-			BuildingCO->insertNode(GroundCO);
+            }
+            WallCO->addGeometry(Wall);
+            RoofCO->addGeometry(Roof);
+            GroundCO->addGeometry(Ground);
 
 			delete TempGeo;
 			delete Coords;
 			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
-		}
+        }
+        BuildingCO->insertNode(WallCO);
+        BuildingCO->insertNode(RoofCO);
+        BuildingCO->insertNode(GroundCO);
 
 		return BuildingCO;
 	}
@@ -2269,7 +2270,7 @@ namespace vcity
 				VecGeoRes.push_back(factory->createGeometryCollection(VecGeo));
 
 				//citygml::CityObject* BuildingCO = new citygml::Building("Building_" + std::to_string(j));
-				citygml::CityObject* BuildingCO = new citygml::Building(InfoBatiments[j].ID);
+                citygml::CityObject* BuildingCO = new citygml::Building("Building_" + std::to_string(j) + ":" + InfoBatiments[j].ID);
 
 				for(size_t i = 0; i < VecGeo->size(); ++i)
 				{
