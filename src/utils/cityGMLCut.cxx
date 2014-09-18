@@ -30,6 +30,8 @@ struct FOUR_PLANES
 // TEMP
 FOUR_PLANES G_my4planes;
 double G_xmin, G_ymin, G_xmax, G_ymax;
+
+bool VERBOSE;
 // TEMP
 
 // todo:
@@ -286,7 +288,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 
 						if (i > (MAX_POINTS_IN_POSLIST+1))	// TEMP
 						{
-							printf("---> STOP ---> PLEASE, INCREASE MAX_POINTS_IN_POSLIST IN SOURCE CODE\n");
+							fprintf(stderr, "---> STOP ---> PLEASE, INCREASE MAX_POINTS_IN_POSLIST IN SOURCE CODE\n");
 							exit(-1);
 						}
 
@@ -414,16 +416,17 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							{
 								if ( (j==0) || (l1[j-1] != l1_temp) )
 								{
+									// TODO : s'assurer que M est bien dans ABC !!!
 									calcule_Z_uv(l0[s], l0[s+1], l0[s+2], &l1_temp, noeudUV, uv0[s], uv0[s+1], uv0[s+2], &uv1_temp);
 
 									l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 									coin=true;
 
-									if (i > 3)	// TEMP
+									/*if (i > 3)	// TEMP
 									{
-										printf("---> STOP ---> COIN WITH (i > 3) !\n");
+										fprintf(stderr, "---> STOP ---> COIN WITH (i > 3) !\n");
 										exit(-1);
-									}								
+									}*/
 								}
 							}
 						}
@@ -631,7 +634,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 														xmlAddChild(copy_node4, copy_node5);
 														xmlAddChild(copy_node5, copy_node6);
 															
-														printf("GeoreferencedTexture target COPIED: %s\n", p);
+														if (VERBOSE)
+															fprintf(stdout, "GeoreferencedTexture target COPIED: %s\n", p);
 													}
 
 													node_copied = true;
@@ -691,7 +695,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 													{
 														xmlAddChild(copy_node6, copy_node_target);
 
-														printf("ParameterizedTexture target COPIED: %s\n", p);
+														if (VERBOSE)
+															fprintf(stdout, "ParameterizedTexture target COPIED: %s\n", p);
 													}
 												}
 
@@ -708,7 +713,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 										else
 										{
 											if (copy_node3)
-												printf(" -> CAUTION: ParameterizedTexture child NOT COPIED: %s\n", nc2->name);
+												if (VERBOSE)
+													fprintf(stdout, " -> CAUTION: ParameterizedTexture child NOT COPIED: %s\n", nc2->name);
 										}
 									}
 								}
@@ -717,7 +723,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 						else
 						{
 							if (copy_node3)
-								printf(" -> NOT COPIED: %s\n", nc->name);
+								if (VERBOSE)
+									fprintf(stdout, " -> NOT COPIED: %s\n", nc->name);
 						}
 					}
 				}
@@ -725,7 +732,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 			else
 			{
 				if (copy_node3)
-					printf(" -> NOT COPIED: %s\n", n->name);
+					if (VERBOSE)
+						fprintf(stdout, " -> NOT COPIED: %s\n", n->name);
 			}
 		}
 	}
@@ -771,22 +779,31 @@ void parcours_prefixe_Building_ReliefFeature_textures(xmlNodePtr noeud, fct_proc
 
 int main(int argc, char** argv)
 {
-	if (argc != 7)
+	if ((argc != 7) && (argc != 8))
 	{
 		puts("");
-        puts("CityGMLCut 1.1.4 - September 3, 2014 - Martial TOLA");
+        puts("CityGMLCut 1.1.5 - September 18, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
-		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
+		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax> [VERBOSE]");
 		puts("");
 		puts("Example:");
 		puts("./CityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
-		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
+		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000 VERBOSE");
 		puts("");
     
 		return(EXIT_FAILURE);
 	}
+
+	VERBOSE = false;
+	if ((argc==8) && (strcmp(argv[7], "VERBOSE")==0))
+	{
+		VERBOSE = true;
+		fprintf(stdout, "VERBOSE is ON\n");
+	}
+	else
+		fprintf(stdout, "VERBOSE is OFF\n");
 
 	std::string folderIN, folderOUT;
 	int nbCopied = 0;
@@ -804,7 +821,10 @@ int main(int argc, char** argv)
 	G_ymax = atof(argv[6]);
 
 	if (! ((G_xmin < G_xmax) && (G_ymin < G_ymax)) )
+	{
+		fprintf(stderr, "xmin must be < xmax AND ymin must be < ymax !\n");
 		return(EXIT_FAILURE);
+	}
 
 	// ---
 	// 4 planes (normal and point)
@@ -866,7 +886,7 @@ int main(int argc, char** argv)
 	xmlNodePtr n = racine;
 	if (xmlStrEqual(n->name, BAD_CAST "CityModel"))
 	{
-		printf("%s\n", n->name);
+		fprintf(stdout, "%s\n", n->name);
 		xmlNodePtr copy_node1 = xmlCopyNode(n, 2);
 		xmlDocSetRootElement(out_doc, copy_node1);
 		out_root_node = xmlDocGetRootElement(out_doc);
@@ -896,7 +916,8 @@ int main(int argc, char** argv)
 
                         if ( !(xmax_Building < G_xmin) && !(ymax_Building < G_ymin) && !(xmin_Building > G_xmax) && !(ymin_Building > G_ymax) )
 							{
-								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
+								if (VERBOSE)
+									fprintf(stdout, "%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
 
 								//xmlNs ns = { 0 }; // initialisation à zéro de tous les membres
 								xmlNodePtr copy_node2 = xmlCopyNode(n, 1);
@@ -921,7 +942,10 @@ int main(int argc, char** argv)
 							}
 					}					
 					else
-						printf(" -> NOT COPIED: %s: %s\n", n->name, n->children->name);
+					{
+						if (VERBOSE)
+							fprintf(stdout, " -> NOT COPIED: %s: %s\n", n->name, n->children->name);
+					}
 				}
 				else if ( (xmlStrEqual(n->name, BAD_CAST "appearanceMember")) && (TEXTURE_PROCESS==true) )
 				{
@@ -931,14 +955,14 @@ int main(int argc, char** argv)
 					copy_node_appearanceMember = xmlCopyNode(appearanceMember_node, 2);
 					xmlAddChild(out_root_node, copy_node_appearanceMember);
 
-					printf(" -> PRE PROCESS TEXTURES (for uv coordinates) BEFORE ALL PARSING\n");
+					fprintf(stdout, " -> PRE PROCESS TEXTURES (for uv coordinates) BEFORE ALL PARSING\n");
 					parcours_prefixe_All_textureCoordinates(appearanceMember_node, process_All_textureCoordinates, &UUID_uv_map);
 
 					POST_PROCESS_TEXTURES = true;					
-					printf(" -> POST PROCESS TEXTURES (for texture files) AFTER ALL PARSING\n");
+					fprintf(stdout, " -> POST PROCESS TEXTURES (for texture files) AFTER ALL PARSING\n");
 				}
 				else
-					printf(" -> NOT COPIED: %s\n", n->name);
+					fprintf(stdout, " -> NOT COPIED: %s\n", n->name);
 			}
 		}
 
@@ -946,14 +970,14 @@ int main(int argc, char** argv)
 		{
 			UUID_uv_map.clear();
 
-			printf("\nPOST PROCESS TEXTURES (for texture files) \n");
+			fprintf(stdout, "POST PROCESS TEXTURES (for texture files) \n");
 
 			// CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
 			process_textures(appearanceMember_node, copy_node_appearanceMember, &UUID_full_set, folderIN, folderOUT);
 		}
 	}
 
-	printf(" -> NB COPIED: %d\n", nbCopied);
+	fprintf(stdout, "--> NB COPIED: %d\n", nbCopied);
 
     // dumping document to file
     xmlSaveFormatFileEnc(argv[2], out_doc, "ISO-8859-1", 1);
