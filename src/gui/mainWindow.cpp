@@ -1064,7 +1064,7 @@ void MainWindow::generateAllLODs()
 }
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
-/*void MainWindow::generateLOD0()
+void MainWindow::generateLOD0()
 {
     QFileDialog w;
     w.setFileMode(QFileDialog::Directory);
@@ -1149,8 +1149,9 @@ void MainWindow::generateAllLODs()
     }
 
 	QApplication::restoreOverrideCursor();
-}*/
-void MainWindow::generateLOD0()
+}
+
+/*void MainWindow::generateLOD0()
 {
     QFileDialog w;
     w.setFileMode(QFileDialog::Directory);
@@ -1198,10 +1199,10 @@ void MainWindow::generateLOD0()
 	}
 
 	QApplication::restoreOverrideCursor();
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
-/*void MainWindow::generateLOD1()
+void MainWindow::generateLOD1()
 {
     QFileDialog w;
     w.setFileMode(QFileDialog::Directory);
@@ -1295,12 +1296,12 @@ void MainWindow::generateLOD0()
             }
         }
         exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans" + Folder << std::endl;
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans " + Folder << std::endl;
 	}
     QApplication::restoreOverrideCursor();
-}*/
+}
 
-void MainWindow::generateLOD1()
+/*void MainWindow::generateLOD1()
 {
     QFileDialog w;
     w.setFileMode(QFileDialog::Directory);
@@ -1398,10 +1399,10 @@ void MainWindow::generateLOD1()
             }
 		}
 		exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans" + Folder << std::endl;
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans " + Folder << std::endl;
 	}
     QApplication::restoreOverrideCursor();
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {
