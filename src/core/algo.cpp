@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef _WIN32
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
+
 #include <crtdbg.h>
 #endif // _WIN32
 
@@ -65,7 +65,7 @@ namespace vcity
     Algo::Algo()
         : m_model(nullptr)
     {
-
+        Folder = "";
     }
     ////////////////////////////////////////////////////////////////////////////////
     Algo::~Algo()
@@ -83,7 +83,7 @@ namespace vcity
     * @param heightmin Enregistre le Zmin des murs du bâtiment
 	*/
 	void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax, double * heightmin)
-	{
+    {
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
 		if(obj->getType() == citygml::COT_RoofSurface) //Si surface de toit : COT_RoofSurface COT_WallSurface
 		{
@@ -762,7 +762,7 @@ namespace vcity
 		SaveImage(name, Im, width, height);
 
 		delete [] Im;
-	}
+    }
 
 	/**
 	* @brief Sauvegarde la geometry dans un fichier shape
@@ -820,7 +820,7 @@ namespace vcity
 			OGRFeature::DestroyFeature(Feature);
 		}
 	}
-	void SaveGeometrytoShape(std::string name, const geos::geom::Geometry* G)
+    void Algo::SaveGeometrytoShape(std::string name, const geos::geom::Geometry* G)
 	{
 		const char * DriverName = "ESRI Shapefile";
 		OGRSFDriver * Driver;
@@ -833,8 +833,11 @@ namespace vcity
 			return;
 		}
 		OGRDataSource * DS;
-		name = name + ".shp";
-		
+        std::string F = Folder;
+        name = name + ".shp";
+        if(F != "")
+            name = F + "/" + name;
+
 		remove(name.c_str());
 		DS = Driver->CreateDataSource(name.c_str(), NULL);
 
@@ -2156,7 +2159,7 @@ namespace vcity
 	* @param Batiments Contient la liste des geometries représentant les bâtiments à extruder.
 	* @param InfoBatiments Contient les informations de ces batiments contenues dans le fichier shape.
 	*/
-	void ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments)
+    void ExtruderBatiments(geos::geom::Geometry * Batiments, std::vector<BatimentShape> InfoBatiments, std::string Folder)
 	{
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
@@ -2168,7 +2171,7 @@ namespace vcity
 		std::vector<geos::geom::Geometry*> VecGeoRes;
 
 		// create citygml exporter to append data into
-		citygml::ExporterCityGML exporter("Batiments.citygml");
+        citygml::ExporterCityGML exporter(Folder + "/BatimentsDecoupes.citygml");
 		exporter.initExport();
 
 		for(size_t j = 0; j < Batiments->getNumGeometries(); ++j)
@@ -2836,7 +2839,7 @@ namespace vcity
 
 		std::cout << "Lancement de l'extrusion des donnees 3D\n";
 
-        ExtruderBatiments(Batiments, InfoBatimentsRes);
+        ExtruderBatiments(Batiments, InfoBatimentsRes, Folder);
 
 		delete Batiments;
 

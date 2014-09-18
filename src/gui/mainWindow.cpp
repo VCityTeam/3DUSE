@@ -456,7 +456,6 @@ void buildRecursiveFileList(const QDir& dir, QStringList& list)
 void MainWindow::loadSceneRecursive()
 {
     m_osgView->setActive(false);
-
     //std::cout<<"Load Scene recursive"<<std::endl;
     /*QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
@@ -484,6 +483,7 @@ void MainWindow::loadSceneRecursive()
 
     QFileDialog w;
     w.setFileMode(QFileDialog::Directory);
+
     //w.setFileMode(QFileDialog::AnyFile);
     //w.setOption(QFileDialog::DontUseNativeDialog,false);
     QStringList filters;
@@ -498,6 +498,7 @@ void MainWindow::loadSceneRecursive()
     {
         l->setSelectionMode(QAbstractItemView::MultiSelection);
     }*/
+
     QTreeView *t = w.findChild<QTreeView*>();
     if(t)
     {
@@ -1065,6 +1066,18 @@ void MainWindow::generateAllLODs()
 //Version GDAL
 /*void MainWindow::generateLOD0()
 {
+    QFileDialog w;
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+    vcity::app().getAlgo().Folder = Folder;
+
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	// get all selected nodes (with a uri)
 	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
@@ -1139,6 +1152,18 @@ void MainWindow::generateAllLODs()
 }*/
 void MainWindow::generateLOD0()
 {
+    QFileDialog w;
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+    vcity::app().getAlgo().Folder = Folder;
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
     // get all selected nodes (with a uri)
     const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
@@ -1178,6 +1203,17 @@ void MainWindow::generateLOD0()
 //Version GDAL
 /*void MainWindow::generateLOD1()
 {
+    QFileDialog w;
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
 	{
@@ -1187,7 +1223,7 @@ void MainWindow::generateLOD0()
 	}
 	else
 	{
-		citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
 		exporter.initExport();
 		// get all selected nodes (with a uri)
 		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
@@ -1218,10 +1254,11 @@ void MainWindow::generateLOD0()
 		}
 		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
 		{
+            int i = 0;
 			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
 			{
 				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-				{
+				{                    
 					vcity::URI uri;
 					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
 					uri.append(tile->getName(), "Tile");
@@ -1242,6 +1279,7 @@ void MainWindow::generateLOD0()
 
 						exporter.appendCityObject(*LOD1);
 						//appGui().getControllerGui().update(uri);
+                        ++i;
 
 						delete Enveloppe;
 						delete heightmax;
@@ -1249,15 +1287,32 @@ void MainWindow::generateLOD0()
 					}
 				}
 			}
-		}
-		exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree" << std::endl;
+            if(i == 0)
+            {
+                std::cout << "Erreur : Aucun batiment dans la scene." << std::endl;
+                QApplication::restoreOverrideCursor();
+                return;
+            }
+        }
+        exporter.endExport();
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans" + Folder << std::endl;
 	}
     QApplication::restoreOverrideCursor();
 }*/
 
 void MainWindow::generateLOD1()
 {
+    QFileDialog w;
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
 	if(ShapeGeo != nullptr)
 	{
@@ -1267,7 +1322,7 @@ void MainWindow::generateLOD1()
 	}
 	else
 	{
-		citygml::ExporterCityGML exporter(appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
 		exporter.initExport();
 		// get all selected nodes (with a uri)
 		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
@@ -1301,10 +1356,11 @@ void MainWindow::generateLOD1()
 		}
 		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
 		{
+            int i = 0;
 			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
-			{
+            {
 				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-				{
+                {
 					vcity::URI uri;
 					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
 					uri.append(tile->getName(), "Tile");
@@ -1324,7 +1380,9 @@ void MainWindow::generateLOD1()
 						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), *Enveloppe, heightmax, heightmin);
 
 						exporter.appendCityObject(*LOD1);
-						//appGui().getControllerGui().update(uri);
+						//appGui().getControllerGui().update(uri);                        
+
+                        ++i;
 
 						delete Enveloppe;
 						delete heightmax;
@@ -1332,9 +1390,15 @@ void MainWindow::generateLOD1()
 					}
 				}
 			}
+            if(i == 0)
+            {
+                std::cout << "Erreur : Aucun batiment dans la scene." << std::endl;
+                QApplication::restoreOverrideCursor();
+                return;
+            }
 		}
 		exporter.endExport();
-		std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree" << std::endl;
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans" + Folder << std::endl;
 	}
     QApplication::restoreOverrideCursor();
 }
@@ -1375,6 +1439,18 @@ void MainWindow::slotCityGML_cut()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutCityGMLwithShapefile()
 {
+    QFileDialog w;
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+    vcity::app().getAlgo().Folder = Folder;
+
     QApplication::setOverrideCursor(Qt::WaitCursor);
     vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);
     QApplication::restoreOverrideCursor();
@@ -1406,6 +1482,18 @@ void MainWindow::slotObjToCityGML()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotChangeDetection()
 {
+    QFileDialog w;
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+    vcity::app().getAlgo().Folder = Folder;
+
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	vcity::app().getAlgo().CompareTiles();
 	QApplication::restoreOverrideCursor();
