@@ -494,6 +494,50 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 
 					if (new_nb_points >= 4)
 					{
+						/*if ( xmlStrEqual(noeudLinearRing->parent->parent->name, BAD_CAST "Triangle") && ((new_nb_points-1) > 3) )
+						{						
+							//printf("must triangulate this polygon : %s has %d points\n", xmlGetProp(noeudLinearRing, BAD_CAST "id"), (new_nb_points-1));
+
+							TVec3d pp;
+							char *endpos = (char *) new_posList.c_str();
+							MyVectorOfVertices vv;
+
+							for (int ii=0; ii<(new_nb_points-1); ii++)
+							{
+								pp.x = strtod(endpos, &endpos); 
+								pp.y = strtod(endpos, &endpos);
+								pp.z = strtod(endpos, &endpos);
+
+								//printf("point %2d - (%lf %lf %lf)\n", ii, pp.x, pp.y, pp.z);
+								vv.push_back(pp);
+							}
+
+							MyVectorOfVertices result;
+							Triangulate::Process(vv, result);
+
+							int tcount = result.size()/3;
+							for (int i=0; i<tcount; i++)
+							{
+								const TVec3d &p1 = result[i*3+0];
+								const TVec3d &p2 = result[i*3+1];
+								const TVec3d &p3 = result[i*3+2];
+								//printf("Triangle %d => (%lf %lf %lf) (%lf %lf %lf) (%lf %lf %lf)\n", i+1, p1.x,p1.y,p1.z, p2.x,p2.y,p2.z, p3.x,p3.y,p3.z);
+								new_posList = "";
+								new_posList += std::to_string(p1.x); new_posList += " ";
+								new_posList += std::to_string(p1.y); new_posList += " ";
+								new_posList += std::to_string(p1.z); new_posList += " ";
+								new_posList += std::to_string(p2.x); new_posList += " ";
+								new_posList += std::to_string(p2.y); new_posList += " ";
+								new_posList += std::to_string(p2.z); new_posList += " ";
+								new_posList += std::to_string(p3.x); new_posList += " ";
+								new_posList += std::to_string(p3.y); new_posList += " ";
+								new_posList += std::to_string(p3.z); new_posList += " ";
+								new_posList += std::to_string(p1.x); new_posList += " ";
+								new_posList += std::to_string(p1.y); new_posList += " ";
+								new_posList += std::to_string(p1.z); new_posList += " ";
+							}
+						}*/
+
 						xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
 
 						//if ( (i+1) == new_nb_points )
@@ -782,7 +826,7 @@ int main(int argc, char** argv)
 	if ((argc != 7) && (argc != 8))
 	{
 		puts("");
-        puts("CityGMLCut 1.1.5 - September 18, 2014 - Martial TOLA");
+        puts("CityGMLCut 1.2.0b - September 19, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
@@ -997,7 +1041,7 @@ int main(int argc, char** argv)
   // Create a pretty complicated little contour by pushing them onto
   // an stl vector.
 
-  Vector2dVector a;
+  MyVectorOfVertices a;
 
   a.push_back( Vector2d(0,6));
   a.push_back( Vector2d(0,0));
@@ -1017,7 +1061,7 @@ int main(int argc, char** argv)
 
   // allocate an STL vector to hold the answer.
 
-  Vector2dVector result;
+  MyVectorOfVertices result;
 
   //  Invoke the triangulator to triangulate this polygon.
   Triangulate::Process(a,result);
