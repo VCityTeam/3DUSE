@@ -33,6 +33,7 @@ public:
 	void CompareTiles();
 
     void SaveGeometrytoShape(std::string name, const geos::geom::Geometry* G);
+    void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G);
 
     citygml::CityModel* getCitymodel();    
 

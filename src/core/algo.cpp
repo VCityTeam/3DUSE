@@ -854,6 +854,120 @@ namespace vcity
 
 		OGRDataSource::DestroyDataSource(DS);
 	}
+    void Algo::SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G)
+    {
+        const char * DriverName = "ESRI Shapefile";
+        OGRSFDriver * Driver;
+
+        OGRRegisterAll();
+        Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+        if( Driver == NULL )
+        {
+            printf( "%s driver not available.\n", DriverName );
+            return;
+        }
+        OGRDataSource * DS;
+        std::string F = Folder;
+        name = name + ".shp";
+        if(F != "")
+            name = F + "/" + name;
+
+        remove(name.c_str());
+        DS = Driver->CreateDataSource(name.c_str(), NULL);
+
+        OGRLayer * Layer = DS->CreateLayer("Layer1");
+
+        for(int i = 0; i < G->getNumGeometries(); ++i)
+        {
+            TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
+
+            if(G->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon)
+                continue;
+
+            OGRPolygon * Polygon =  dynamic_cast<OGRPolygon*>(G->getGeometryRef(i)->clone());
+
+            OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+            Feature->SetGeometry(Polygon);
+            Layer->CreateFeature(Feature);
+
+            OGRFeature::DestroyFeature(Feature);
+
+            OGRLinearRing * ExtRing = Polygon->getExteriorRing();
+
+            for(int j = 0; j < ExtRing->getNumPoints(); ++j)
+            {
+                OGRPoint * point = new OGRPoint;
+                ExtRing->getPoint(j, point);
+                std::cout << point->getX() << std::endl;
+                point->setX(10);
+                std::cout << point->getX() << std::endl;
+
+                OGRPoint * point2 = new OGRPoint;
+                ExtRing->getPoint(j, point2);
+                std::cout << point2->getX() << std::endl;
+
+                int a;
+                std::cin >> a;
+            }
+            for(int k = 0; k < Polygon->getNumInteriorRings(); ++k)
+            {
+                OGRLinearRing * IntRing = Polygon->getInteriorRing(k);
+
+                for(int j = 0; j < IntRing->getNumPoints(); ++j)
+                {
+                    OGRPoint * point = new OGRPoint;
+                    IntRing->getPoint(j, point);
+
+                }
+            }
+
+            delete Polygon;
+
+
+
+
+
+
+            /*OGRPolygon * Polygon = new OGRPolygon;
+            OGRLinearRing * ExtRing = new OGRLinearRing;
+
+            const geos::geom::CoordinateSequence * coord = p->getExteriorRing()->getCoordinates();
+            for(size_t j = 0; j < coord->size(); j++)
+            {
+                double x = coord->getAt(j).x + offset_.x;
+                double y = coord->getAt(j).y + offset_.y;
+
+                ExtRing->addPoint(x, y);
+            }
+            ExtRing->closeRings();
+            Polygon->addRingDirectly(ExtRing);
+
+            for(size_t k = 0; k < p->getNumInteriorRing(); k++)//On parcourt les holes du polygon
+            {
+                delete coord;
+                coord = p->getInteriorRingN(k)->getCoordinates();
+                OGRLinearRing * IntRing = new OGRLinearRing;
+                for(size_t j = 0; j < coord->size(); j++)
+                {
+                    double x = coord->getAt(j).x + offset_.x;
+                    double y = coord->getAt(j).y + offset_.y;
+
+                    IntRing->addPoint(x, y);
+                }
+                IntRing->closeRings();
+                Polygon->addRingDirectly(IntRing);
+            }
+
+            delete coord;
+            OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+            Feature->SetGeometry(Polygon);
+            Layer->CreateFeature(Feature);
+
+            OGRFeature::DestroyFeature(Feature);*/
+        }
+
+        OGRDataSource::DestroyDataSource(DS);
+    }
 
 	/**
 	* @brief Sauvegarde 3 geometry dans un même fichier image dans les trois canaux RGB

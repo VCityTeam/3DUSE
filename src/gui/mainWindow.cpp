@@ -1095,6 +1095,7 @@ void MainWindow::generateLOD0()
 				double * heightmin = new double;
                 vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
+                vcity::app().getAlgo().SaveGeometrytoShape("test", Enveloppe);
 				citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
 				obj2->addGeometry(geom);
@@ -1129,6 +1130,8 @@ void MainWindow::generateLOD0()
 					double * heightmin = new double;
 
                     vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+
+                    vcity::app().getAlgo().SaveGeometrytoShape("test", Enveloppe);
 
 					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 
