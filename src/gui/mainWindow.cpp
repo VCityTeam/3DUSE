@@ -872,6 +872,7 @@ void MainWindow::exportCityGML()
         std::vector<const citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
+            uri.resetCursor();
             std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
             const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
             if(obj) objs.push_back(obj);
@@ -894,6 +895,7 @@ void MainWindow::exportCityGML()
                     }
                 }
             }
+            uri.resetCursor();
         }
         exporter.exportCityObject(objs);
     }
@@ -983,6 +985,7 @@ void MainWindow::exportOBJ()
         std::vector<citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
+            uri.resetCursor();
             if(uri.getType() == "Tile")
             {
                 citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
@@ -999,6 +1002,7 @@ void MainWindow::exportOBJ()
                     objs.push_back(obj);
                 }
             }
+            uri.resetCursor();
         }
         exporter.exportCityObjects(objs, filename.toStdString());
     }
@@ -1030,6 +1034,7 @@ void MainWindow::exportOBJsplit()
         std::vector<citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
+            uri.resetCursor();
             if(uri.getType() == "Tile")
             {
                 citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
@@ -1046,6 +1051,7 @@ void MainWindow::exportOBJsplit()
                     objs.push_back(obj);
                 }
             }
+            uri.resetCursor();
         }
         exporter.exportCityObjects(objs, filename.toStdString());
     }

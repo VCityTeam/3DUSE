@@ -409,7 +409,7 @@ void PickHandler::deselectNode(const vcity::URI& uri)
     if(node)
     {
         // remove material (red highlight)
-        //node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
+        node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
 
         // remove infobubble
         osg::ref_ptr<osg::Group> grp = node->asGroup();
