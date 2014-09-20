@@ -375,6 +375,7 @@ void PickHandler::toggleSelected(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::selectNode(const vcity::URI& uri)
 {
+    uri.resetCursor();
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
     if(node)
     {
@@ -406,12 +407,28 @@ void PickHandler::deselectNode(const vcity::URI& uri)
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
     if(node)
     {
-        node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
+        // remove material (red highlight)
+        //node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
 
-        vcity::URI uriInfo = uri;
+        // remove infobubble
+        osg::ref_ptr<osg::Group> grp = node->asGroup();
+        if(grp)
+        {
+            int nb = grp->getNumChildren();
+            for(int i=0; i<nb; ++i)
+            {
+                if(grp->getChild(i)->getName() == "infobubble")
+                {
+                    grp->removeChild(i);
+                }
+            }
+        }
+
+        /*vcity::URI uriInfo = uri;
         uriInfo.append("infobubble");
         uriInfo.resetCursor();
         appGui().getOsgScene()->deleteNode(uriInfo);
+        */
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

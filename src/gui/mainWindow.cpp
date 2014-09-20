@@ -825,6 +825,8 @@ void MainWindow::toggleUseTemporal()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
 {
+    m_osgView->setActive(false);
+
     QString filename = QFileDialog::getSaveFileName();
 
     citygml::ExporterCityGML exporter(filename.toStdString());
@@ -840,11 +842,12 @@ void MainWindow::exportCityGML()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if(uris.size() > 0)
     {
-        std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
+        //std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
         std::vector<const citygml::CityObject*> objs;
         for(const vcity::URI& uri : uris)
         {
-            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uris[0]); // use getNode
+            std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
+            const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
             if(obj) objs.push_back(obj);
         }
         exporter.exportCityObject(objs);
@@ -857,17 +860,25 @@ void MainWindow::exportCityGML()
         citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
         exporter.exportCityModel(*model);
     }
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOsg()
 {
+    m_osgView->setActive(false);
+
     osg::ref_ptr<osg::Node> node = m_osgScene->m_layers;
     bool res = osgDB::writeNodeFile(*node, "scene.osg");
     std::cout << "export osg : " << res << std::endl;
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOsga()
 {
+    m_osgView->setActive(false);
+
     osg::ref_ptr<osg::Node> node = m_osgScene;
 
     //osg::ref_ptr<osgDB::Archive> archive = osgDB::openArchive("scene.osga", osgDB::Archive::CREATE);
@@ -881,10 +892,14 @@ void MainWindow::exportOsga()
         archive->writeNode(*node, "none");
     }
     archive->close();*/
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportJSON()
 {
+    m_osgView->setActive(false);
+
     QString filename = QFileDialog::getSaveFileName();
     QFileInfo fileInfo(filename);
     filename = fileInfo.path() + "/" + fileInfo.baseName();
@@ -903,10 +918,14 @@ void MainWindow::exportJSON()
             // only tiles
         }
     }
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOBJ()
 {
+    m_osgView->setActive(false);
+
     QString filename = QFileDialog::getSaveFileName();
     QFileInfo fileInfo(filename);
     filename = fileInfo.path() + "/" + fileInfo.baseName();
@@ -938,10 +957,14 @@ void MainWindow::exportOBJ()
         }
         exporter.exportCityObjects(objs, filename.toStdString());
     }
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOBJsplit()
 {
+    m_osgView->setActive(false);
+
     QString filename = QFileDialog::getSaveFileName();
     QFileInfo fileInfo(filename);
     filename = fileInfo.path() + "/" + fileInfo.baseName();
@@ -981,6 +1004,8 @@ void MainWindow::exportOBJsplit()
         }
         exporter.exportCityObjects(objs, filename.toStdString());
     }
+
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::debugDumpOsg()
