@@ -1,3 +1,5 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __URI_HPP__
 #define __URI_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -8,6 +10,8 @@ namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The URI class identifies a node
+///
+/// It is like a file path, to navigate in the data tree
 ///
 class URI
 {
@@ -30,8 +34,10 @@ public:
     /// \return The number of depth level
     int getDepth() const;
 
+    /// Get cursor position
     int getCursor() const;
 
+    /// Reset cursor position to the root of URI
     void resetCursor() const;
 
     /// \brief getNode Get a node name given a depth level
@@ -42,8 +48,10 @@ public:
 	/// Get node using cursor position
 	const std::string& getCurrentNode() const;
 
+    /// Get node type using cursor position
 	const std::string& getCurrentNodeType() const;
 
+    /// Get node type using depth
     const std::string& getNodeType(int depth) const;
 
     /// \brief getLastNode Get last node name, eg leaf name

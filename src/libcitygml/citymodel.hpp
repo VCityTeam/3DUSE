@@ -1,3 +1,19 @@
+/* -*-c++-*- libcitygml - Copyright (c) 2010 Joachim Pouderoux, BRGM
+*
+* This file is part of libcitygml library
+* http://code.google.com/p/libcitygml
+*
+* libcitygml is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, either version 2.1 of the License, or
+* (at your option) any later version.
+*
+* libcitygml is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+*/
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_CITYMODEL_HPP__
 #define __CITYGML_CITYMODEL_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,15 +66,29 @@ public:
 
     AppearanceManager* getAppearanceManager();
 
-    std::string m_basePath;
-
+    /// Add a direct child
     void addCityObjectAsRoot( CityObject* o );
 
+    /// Add a CityObject to the model (used for finish method for example)
+    ///
+    /// A CityObject should always be added on the CityObject and on the master CityModel
+    ///
+    /// Example usage : model is the CityModel, obj is a CityObject to add to a Wall
+    /// \code{.cpp}
+    /// model->addCityObject(obj);
+    /// wall->insertNode(obj);
+    /// \endcode
     void addCityObject( CityObject* o );
 
+    /// Get node by uri
 	CityObject* getNode(const vcity::URI& uri);
 
+    /// Get node by name
+    CityObject* getNodeById(const std::string& id);
+
     void finish( const ParserParams& );
+
+    std::string m_basePath;
 
 protected:
     Envelope _envelope;

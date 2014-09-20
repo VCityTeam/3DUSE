@@ -1,3 +1,19 @@
+/* -*-c++-*- libcitygml - Copyright (c) 2010 Joachim Pouderoux, BRGM
+*
+* This file is part of libcitygml library
+* http://code.google.com/p/libcitygml
+*
+* libcitygml is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published by
+* the Free Software Foundation, either version 2.1 of the License, or
+* (at your option) any later version.
+*
+* libcitygml is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU Lesser General Public License for more details.
+*/
+////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_APPEARANCEMANAGER_HPP__
 #define __CITYGML_APPEARANCEMANAGER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,9 +61,6 @@ public:
 
     Tesselator* getTesselator( void );
 
-    std::string m_basePath;
-
-protected:
     void refresh( void );
 
     template < typename AppType > AppType getAppearance( const std::string& nodeid, ForSide side = FS_ANY ) const;
@@ -56,6 +69,8 @@ protected:
     bool assignTexCoords( TexCoords* );
 
     void finish( void );
+
+    std::string m_basePath;
 
 protected:
     std::string _lastId;

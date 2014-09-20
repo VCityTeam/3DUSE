@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/treeView.hpp"
 #include "moc/mainWindow.hpp"
@@ -6,9 +7,10 @@
 #include "moc/dialogEditTile.hpp"
 #include "moc/dialogEditAssimpNode.hpp"
 #include "moc/dialogEditBldg.hpp"
-#include "moc/dialogDynFlag.hpp"
-#include "moc/dialogFlag.hpp"
+#include "moc/dialogDynState.hpp"
+#include "moc/dialogState.hpp"
 #include "moc/dialogTag.hpp"
+#include "moc/dialogDoc.hpp"
 #include "core/application.hpp"
 #include <iostream>
 #include <QMenu>
@@ -34,15 +36,18 @@ TreeView::~TreeView()
     delete m_actionAddBuilding;
     delete m_actionEditBuilding;
     delete m_actionDeleteBuilding;
-    delete m_actionAddFlag;
-    delete m_actionAddDynFlag;
+    delete m_actionAddState;
+    delete m_actionAddDynState;
     delete m_actionAddTag;
-    delete m_actionEditFlag;
-    delete m_actionEditDynFlag;
+    delete m_actionEditState;
+    delete m_actionEditDynState;
     delete m_actionEditTag;
-    delete m_actionDeleteFlag;
-    delete m_actionDeleteDynFlag;
+    delete m_actionDeleteState;
+    delete m_actionDeleteDynState;
     delete m_actionDeleteTag;
+    delete m_actionSelectAll;
+    delete m_actionDeSelectAll;
+    delete m_actionAddDoc;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -61,15 +66,18 @@ void TreeView::init()
     m_actionAddBuilding = new QAction("Add building", NULL);
     m_actionEditBuilding = new QAction("Edit building", NULL);
     m_actionDeleteBuilding = new QAction("Delete building", NULL);
-    m_actionAddFlag = new QAction("Add Flag", NULL);
-    m_actionAddDynFlag = new QAction("Add dynamic Flag", NULL);
+    m_actionAddState = new QAction("Add State", NULL);
+    m_actionAddDynState = new QAction("Add dynamic State", NULL);
     m_actionAddTag = new QAction("Add Tag", NULL);
-    m_actionEditFlag = new QAction("Edit Flag", NULL);
-    m_actionEditDynFlag = new QAction("Edit dynamic Flag", NULL);
+    m_actionEditState = new QAction("Edit State", NULL);
+    m_actionEditDynState = new QAction("Edit dynamic State", NULL);
     m_actionEditTag = new QAction("Edit Tag", NULL);
-    m_actionDeleteFlag = new QAction("Delete Flag", NULL);
-    m_actionDeleteDynFlag = new QAction("Delete dynamic Flag", NULL);
+    m_actionDeleteState = new QAction("Delete State", NULL);
+    m_actionDeleteDynState = new QAction("Delete dynamic State", NULL);
     m_actionDeleteTag = new QAction("Delete Tag", NULL);
+    m_actionSelectAll = new QAction("Check all", NULL);
+    m_actionDeSelectAll = new QAction("Check none", NULL);
+    m_actionAddDoc = new QAction("Add document", NULL);
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -83,21 +91,24 @@ void TreeView::init()
     connect(m_actionAddBuilding, SIGNAL(triggered()), this, SLOT(slotAddBuilding()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBuilding()));
     connect(m_actionDeleteBuilding, SIGNAL(triggered()), this, SLOT(slotDeleteBuilding()));
-    connect(m_actionAddFlag, SIGNAL(triggered()), this, SLOT(slotAddFlag()));
-    connect(m_actionAddDynFlag, SIGNAL(triggered()), this, SLOT(slotAddDynFlag()));
+    connect(m_actionAddState, SIGNAL(triggered()), this, SLOT(slotAddState()));
+    connect(m_actionAddDynState, SIGNAL(triggered()), this, SLOT(slotAddDynState()));
     connect(m_actionAddTag, SIGNAL(triggered()), this, SLOT(slotAddTag()));
-    connect(m_actionEditFlag, SIGNAL(triggered()), this, SLOT(slotEditFlag()));
-    connect(m_actionEditDynFlag, SIGNAL(triggered()), this, SLOT(slotEditDynFlag()));
+    connect(m_actionEditState, SIGNAL(triggered()), this, SLOT(slotEditState()));
+    connect(m_actionEditDynState, SIGNAL(triggered()), this, SLOT(slotEditDynState()));
     connect(m_actionEditTag, SIGNAL(triggered()), this, SLOT(slotEditTag()));
-    connect(m_actionDeleteFlag, SIGNAL(triggered()), this, SLOT(slotDeleteFlag()));
-    connect(m_actionDeleteDynFlag, SIGNAL(triggered()), this, SLOT(slotDeleteDynFlag()));
+    connect(m_actionDeleteState, SIGNAL(triggered()), this, SLOT(slotDeleteState()));
+    connect(m_actionDeleteDynState, SIGNAL(triggered()), this, SLOT(slotDeleteDynState()));
     connect(m_actionDeleteTag, SIGNAL(triggered()), this, SLOT(slotDeleteTag()));
+    connect(m_actionSelectAll, SIGNAL(triggered()), this, SLOT(slotCheckAll()));
+    connect(m_actionDeSelectAll, SIGNAL(triggered()), this, SLOT(slotUnCheckAll()));
+    connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
 
-    connect(m_actionAddFlag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddFlag()));
-    connect(m_actionAddDynFlag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddDynFlag()));
+    connect(m_actionAddState, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddState()));
+    connect(m_actionAddDynState, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddDynState()));
     connect(m_actionAddTag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddTag()));*/
 
 
@@ -153,8 +164,8 @@ QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString&
     QTreeWidgetItem* item = new QTreeWidgetItem(QStringList(name));
 	if (checkable)
 	{
-		item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-		item->setCheckState(0, Qt::Checked);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+        item->setCheckState(0, Qt::Checked);
 	}
     item->setText(1, type);
 
@@ -254,6 +265,24 @@ void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
     for( ; it != cityObjects.end(); ++it)
     {
         addCityObject(item, *it);
+    }
+
+    // add temporal elements after
+    for(auto* tag : node->getTags())
+    {
+        item->addChild(createItemGeneric(tag->getStringId().c_str(), "Tag"));
+    }
+
+    for(auto* state : node->getStates())
+    {
+        if(dynamic_cast<citygml::CityObjectDynState*>(state))
+        {
+            item->addChild(createItemGeneric(state->getStringId().c_str(), "DynState"));
+        }
+        else
+        {
+            item->addChild(createItemGeneric(state->getStringId().c_str(), "State"));
+        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -506,42 +535,87 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Building" << std::endl;
         m_tree->addAction(m_actionDeleteBuilding);
         m_tree->addAction(m_actionEditBuilding);
+        m_tree->addAction(m_actionAddDoc);
     }
     else if(item->text(1) == "Tag")
     {
         //std::cout << "Tag" << std::endl;
         m_tree->addAction(m_actionDeleteTag);
         m_tree->addAction(m_actionEditTag);
+        m_tree->addAction(m_actionAddDoc);
     }
-    else if(item->text(1) == "Flag")
+    else if(item->text(1) == "State")
     {
-        //std::cout << "Flag" << std::endl;
-        m_tree->addAction(m_actionDeleteFlag);
-        m_tree->addAction(m_actionEditFlag);
+        //std::cout << "State" << std::endl;
+        m_tree->addAction(m_actionDeleteState);
+        m_tree->addAction(m_actionEditState);
+        m_tree->addAction(m_actionAddDoc);
     }
-    else if(item->text(1) == "DynFlag")
+    else if(item->text(1) == "DynState")
     {
-        //std::cout << "Flag" << std::endl;
-        m_tree->addAction(m_actionDeleteDynFlag);
-        m_tree->addAction(m_actionEditDynFlag);
+        //std::cout << "DynState" << std::endl;
+        m_tree->addAction(m_actionDeleteDynState);
+        m_tree->addAction(m_actionEditDynState);
+        m_tree->addAction(m_actionAddDoc);
     }
 
-    if(item->text(1) == "Building" || item->text(1) == "BuildingPart" ||
-       item->text(1) == "WallSurface" || item->text(1) == "RoofSurface" ||
-       item->text(1) == "TINRelief")
+    if(item->text(1) == "GenericCityObject" || item->text(1) == "Building" ||
+       item->text(1) == "Room" || item->text(1) == "BuildingInstallation" ||
+       item->text(1) == "BuildingFurniture" || item->text(1) == "Door" ||
+       item->text(1) == "Window" || item->text(1) == "CityFurniture" ||
+       item->text(1) == "Track" || item->text(1) == "Road" ||
+       item->text(1) == "Railway" || item->text(1) == "Square" ||
+       item->text(1) == "PlantCover" || item->text(1) == "SolitaryVegetationObject" ||
+       item->text(1) == "WaterBody" || item->text(1) == "TINRelief" ||
+       item->text(1) == "LandUse" || item->text(1) == "Tunnel" ||
+       item->text(1) == "Bridge" || item->text(1) == "BridgeConstructionElement" ||
+       item->text(1) == "BridgeInstallation" || item->text(1) == "BridgePart" ||
+       item->text(1) == "BuildingPart" || item->text(1) == "WallSurface" ||
+       item->text(1) == "RoofSurface" || item->text(1) == "GroundSurface" ||
+       item->text(1) == "ClosureSurface" || item->text(1) == "FloorSurface" ||
+       item->text(1) == "InteriorWallSurface" || item->text(1) == "CeilingSurface")
     {
         m_tree->addAction(m_actionAddTag);
-        m_tree->addAction(m_actionAddFlag);
-        m_tree->addAction(m_actionAddDynFlag);
+        m_tree->addAction(m_actionAddState);
+        m_tree->addAction(m_actionAddDynState);
+        m_tree->addAction(m_actionAddDoc);
+    }
+
+    // actions on all types
+    m_tree->addAction(m_actionSelectAll);
+    m_tree->addAction(m_actionDeSelectAll);
+}
+////////////////////////////////////////////////////////////////////////////////
+void setItemStateRec(QTreeWidgetItem* item, bool state)
+{
+    if(!item) return;
+
+    int count = item->childCount();
+    for(int i=0; i<count; ++i)
+    {
+        Qt::CheckState s = state?Qt::CheckState::Checked:Qt::CheckState::Unchecked;
+        item->child(i)->setCheckState(0, s);
+        setItemStateRec(item->child(i), state);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotItemChanged(QTreeWidgetItem* item, int column)
+void TreeView::slotItemChanged(QTreeWidgetItem* item, int /*column*/)
 {
     Qt::CheckState state = item->checkState(0);
     bool show = true;
     if(state == Qt::CheckState::Unchecked) show = false;
     appGui().getOsgScene()->showNode(getURI(item), show);
+
+    if(show)
+    {
+        while((item = item->parent()))
+        {
+            item->setCheckState(0, Qt::CheckState::Checked);
+            appGui().getOsgScene()->showNode(getURI(item), true);
+        }
+    }
+
+    //setItemStateRec(item, show);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
@@ -648,16 +722,16 @@ void TreeView::slotDeleteBuilding()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddFlag()
+void TreeView::slotAddState()
 {
-    DialogFlag diag;
-    diag.addFlag(getURI(getCurrentItem()));
+    DialogState diag;
+    diag.addState(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddDynFlag()
+void TreeView::slotAddDynState()
 {
-    DialogDynFlag diag;
-    diag.addDynFlag(getURI(getCurrentItem()));
+    DialogDynState diag;
+    diag.addDynState(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddTag()
@@ -666,12 +740,12 @@ void TreeView::slotAddTag()
     diag.addTag(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditFlag()
+void TreeView::slotEditState()
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditDynFlag()
+void TreeView::slotEditDynState()
 {
 
 }
@@ -681,12 +755,12 @@ void TreeView::slotEditTag()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteFlag()
+void TreeView::slotDeleteState()
 {
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteDynFlag()
+void TreeView::slotDeleteDynState()
 {
 
 }
@@ -696,26 +770,44 @@ void TreeView::slotDeleteTag()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
- void TreeView::resetActions()
- {
-     m_tree->removeAction(m_actionAddTile);
-     m_tree->removeAction(m_actionEditTile);
-     m_tree->removeAction(m_actionDeleteTile);
-	 m_tree->removeAction(m_actionEditAssimpNode);
-     m_tree->removeAction(m_actionDeleteAssimpNode);
-     m_tree->removeAction(m_actionAddLayer);
-     m_tree->removeAction(m_actionEditLayer);
-     m_tree->removeAction(m_actionDeleteLayer);
-     m_tree->removeAction(m_actionAddBuilding);
-     m_tree->removeAction(m_actionEditBuilding);
-     m_tree->removeAction(m_actionDeleteBuilding);
-     m_tree->removeAction(m_actionAddFlag);
-     m_tree->removeAction(m_actionAddDynFlag);
-     m_tree->removeAction(m_actionAddTag);
-     m_tree->removeAction(m_actionEditFlag);
-     m_tree->removeAction(m_actionEditTag);
-     m_tree->removeAction(m_actionDeleteFlag);
-     m_tree->removeAction(m_actionDeleteTag);
-
- }
+void TreeView::slotCheckAll()
+{
+    setItemStateRec(getCurrentItem(), true);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotUnCheckAll()
+{
+    setItemStateRec(getCurrentItem(), false);
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotAddDoc()
+{
+    DialogDoc diag;
+    diag.addDoc(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::resetActions()
+{
+    m_tree->removeAction(m_actionAddTile);
+    m_tree->removeAction(m_actionEditTile);
+    m_tree->removeAction(m_actionDeleteTile);
+    m_tree->removeAction(m_actionEditAssimpNode);
+    m_tree->removeAction(m_actionDeleteAssimpNode);
+    m_tree->removeAction(m_actionAddLayer);
+    m_tree->removeAction(m_actionEditLayer);
+    m_tree->removeAction(m_actionDeleteLayer);
+    m_tree->removeAction(m_actionAddBuilding);
+    m_tree->removeAction(m_actionEditBuilding);
+    m_tree->removeAction(m_actionDeleteBuilding);
+    m_tree->removeAction(m_actionAddState);
+    m_tree->removeAction(m_actionAddDynState);
+    m_tree->removeAction(m_actionAddTag);
+    m_tree->removeAction(m_actionEditState);
+    m_tree->removeAction(m_actionEditTag);
+    m_tree->removeAction(m_actionDeleteState);
+    m_tree->removeAction(m_actionDeleteTag);
+    m_tree->removeAction(m_actionSelectAll);
+    m_tree->removeAction(m_actionDeSelectAll);
+    m_tree->removeAction(m_actionAddDoc);
+}
 ////////////////////////////////////////////////////////////////////////////////

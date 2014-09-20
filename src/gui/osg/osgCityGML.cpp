@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 // OSG plugin for reading OGC CityGML v0.3 - v1.0 format using libcitygml
 // http://code.google.com/p/libcitygml
@@ -119,9 +120,21 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
     //osg::ref_ptr<osg::Group> grp = new osg::Group;
     osg::ref_ptr<osg::PositionAttitudeTransform> grp = new osg::PositionAttitudeTransform;
-	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-    grp->addChild(geode);
-    geode->setName(object->getId());
+    osg::ref_ptr<osg::Geode> geodeLOD0 = new osg::Geode;
+    osg::ref_ptr<osg::Geode> geodeLOD1 = new osg::Geode;
+    osg::ref_ptr<osg::Geode> geodeLOD2 = new osg::Geode;
+    osg::ref_ptr<osg::Geode> geodeLOD3 = new osg::Geode;
+    osg::ref_ptr<osg::Geode> geodeLOD4 = new osg::Geode;
+    grp->addChild(geodeLOD0);
+    grp->addChild(geodeLOD1);
+    grp->addChild(geodeLOD2);
+    grp->addChild(geodeLOD3);
+    grp->addChild(geodeLOD4);
+    geodeLOD0->setName(object->getId());
+    geodeLOD1->setName(object->getId());
+    geodeLOD2->setName(object->getId());
+    geodeLOD3->setName(object->getId());
+    geodeLOD4->setName(object->getId());
     grp->setName(object->getId());
 
     //std::cout << "createCityObject : " << object->getId() << std::endl;
@@ -199,7 +212,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
 			geom->addPrimitiveSet( indices );
 
-			// Normals			
+            // Normals
 			osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array;
 			const std::vector<TVec3f>& norm = p->getNormals();
 			normals->reserve( norm.size() );
@@ -334,20 +347,21 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
 			geom->setColorBinding( osg::Geometry::BIND_OVERALL );
 #if 0
-			// Set lighting model to two sided
+            // Set lighting model to two sided
 			osg::ref_ptr< osg::LightModel > lightModel = new osg::LightModel;
 			lightModel->setTwoSided( true );
 			stateset->setAttributeAndModes( lightModel.get(), osg::StateAttribute::ON );
 #endif
-			// That's it!
-			geode->addDrawable( geom );			
+            // That's it!
+            grp->getChild(geometry.getLOD())->asGeode()->addDrawable(geom);
+            //geode->addDrawable( geom );
 		}
 	}
 
     if ( m_settings._printNames )
 	{
 		// Print the city object name on top of it
-		geode->getBoundingBox().center();
+        geodeLOD0->getBoundingBox().center();
 		osg::ref_ptr<osgText::Text> text = new osgText::Text;
 		text->setFont( "arial.ttf" );
 		text->setCharacterSize( 2 );
@@ -357,15 +371,15 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 		text->setCharacterSizeMode( osgText::TextBase::OBJECT_COORDS_WITH_MAXIMUM_SCREEN_SIZE_CAPPED_BY_FONT_HEIGHT );
 		text->setAxisAlignment( osgText::TextBase::SCREEN );
 		text->setAlignment( osgText::TextBase::CENTER_BOTTOM );
-		text->setPosition( geode->getBoundingBox().center() + osg::Vec3( 0, 0, geode->getBoundingBox().radius() ) );
+        text->setPosition( geodeLOD0->getBoundingBox().center() + osg::Vec3( 0, 0, geodeLOD0->getBoundingBox().radius() ) );
 		text->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE|osg::StateAttribute::OFF );
-		geode->addDrawable( text.get() );
+        geodeLOD0->addDrawable( text.get() );
 	}
 
 	// Manage transparency for windows
     if(object->getType() == citygml::COT_Window)
 	{
-        osg::StateSet* geodeSS(geode->getOrCreateStateSet());
+        osg::StateSet* geodeSS(geodeLOD0->getOrCreateStateSet());
 
         osg::ref_ptr<osg::BlendFunc> blendFunc = new osg::BlendFunc(osg::BlendFunc::ONE_MINUS_CONSTANT_ALPHA,osg::BlendFunc::CONSTANT_ALPHA);
 		geodeSS->setAttributeAndModes( blendFunc.get(), osg::StateAttribute::OVERRIDE|osg::StateAttribute::ON );
@@ -404,6 +418,21 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
             osg::ref_ptr<osg::Geode> bbox = osgTools::buildBBox(lb, ub);
             //geode->addDrawable(bbox->getDrawable(0));
         }
+    }
+
+    // temporal
+    std::string strAttr = object->getAttribute("yearOfConstruction");
+    int yearOfConstruction = (strAttr.empty()?-4000:std::stoi(strAttr));
+    strAttr = object->getAttribute("yearOfDemolition");
+    int yearOfDemolition = (strAttr.empty()?-4000:std::stoi(strAttr));
+
+    if(yearOfConstruction != -4000)
+    {
+        grp->setUserValue("yearOfConstruction", yearOfConstruction);
+    }
+    if(yearOfDemolition != -4000)
+    {
+        grp->setUserValue("yearOfDemolition", yearOfDemolition);
     }
 
     //std::cout << "build osg geom ok" << std::endl;

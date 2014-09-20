@@ -1,3 +1,4 @@
+// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "controller.hpp"
 #include "application.hpp"
@@ -66,6 +67,21 @@ void Controller::setTileName(const vcity::URI& uri, const std::string& name)
     {
         tile->setName(name);
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+void Controller::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void Controller::addState(const vcity::URI& uri, citygml::CityObjectState* state)
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void Controller::addDynState(const vcity::URI& uri, citygml::CityObjectDynState* state)
+{
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Controller::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
