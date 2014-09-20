@@ -11,6 +11,7 @@
 #include "src/gui/osg/osgGDAL.hpp"
 #include "osg/Geode"
 #include "osg/Geometry"
+#include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -31,7 +32,13 @@ public:
 	citygml::CityObject* ConvertLOD1ToCityGML(std::string name, geos::geom::Geometry * Geometry, double * heightmax, double * heightmin);
 	void CompareTiles();
 
-    citygml::CityModel* getCitymodel();
+    void SaveGeometrytoShape(std::string name, const geos::geom::Geometry* G);
+
+    citygml::CityModel* getCitymodel();    
+
+    std::string Folder;
+
+    //std::string GetFolder(){return Folder;}
 
 private:
     citygml::CityModel* m_model; ///< Generation result
