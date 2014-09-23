@@ -173,8 +173,10 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
 void ExporterOBJ::exportMaterials(const std::string& filename)
 {
     std::ofstream mat(filename);
+    int i = 0;
     for(auto& it : m_materials)
     {
+        ++i;
         mat << "newmtl " << it.first << "\n";
         mat << "Ka 1.000000 1.000000 1.000000\n";
         mat << "Kd 1.000000 1.000000 1.000000\n";
@@ -183,6 +185,17 @@ void ExporterOBJ::exportMaterials(const std::string& filename)
         mat << "illum 1\n";
         mat << "Ns 0.000000\n";
         mat << "map_Kd " << it.second << "\n\n";
+    }
+    if(i==0)//mat est vide, il faut cependant écrire dans le mtl sinon Assimp ne peut ouvrir le fichier
+    {
+        mat << "newmtl No Material \n";
+        mat << "Ka 1.000000 1.000000 1.000000\n";
+        mat << "Kd 1.000000 1.000000 1.000000\n";
+        mat << "Ks 0.000000 0.000000 0.000000\n";
+        mat << "Tr 1.000000\n";
+        mat << "illum 1\n";
+        mat << "Ns 0.000000\n";
+        mat << "map_Kd No Material \n\n";
     }
     mat.close();
 }
