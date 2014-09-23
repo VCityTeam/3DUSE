@@ -1109,7 +1109,7 @@ void MainWindow::generateLOD0()
 			}
 		}
 	}
-	else//Sinon, on génère les LOD0 de tous les bâtiments de la scène
+    else//Sinon, on genere les LOD0 de tous les bâtiments de la scène
 	{
 		//vcity::app().getAlgo().generateLOD0(vcity::URI());
 		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
@@ -1131,7 +1131,7 @@ void MainWindow::generateLOD0()
 
                     vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
 
-                    vcity::app().getAlgo().SaveGeometrytoShape("test", Enveloppe);
+                    vcity::app().getAlgo().SaveGeometrytoShape(obj->getId()+"_Footprint", Enveloppe);
 
 					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 

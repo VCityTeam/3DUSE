@@ -189,8 +189,6 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 		return;
 	}
 
-	TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
-
 	const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
     const geos::geom::CoordinateSequenceFactory * coordFactory = geos::geom::CoordinateArraySequenceFactory::instance();
     std::vector<geos::geom::Geometry*>* Polys = new std::vector<geos::geom::Geometry*>();
@@ -253,7 +251,7 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 						OGRPoint p;
 						poLR->getPoint(i, &p);
 
-						temp->add(geos::geom::Coordinate(p.getX() - offset_.x, p.getY() - offset_.y));
+                        temp->add(geos::geom::Coordinate(p.getX(), p.getY()));
 					}
 
 					shell=factory->createLinearRing(temp);
