@@ -41,9 +41,14 @@
 #include "bytestreamout_file.hpp"
 
 #ifdef UNORDERED
-#include <tr1/unordered_map>
-using namespace std;
-using namespace tr1;
+  #ifdef __APPLE__ // MT for clang Mac OS X
+    #include <unordered_map>
+    using namespace std;
+  #else
+    #include <tr1/unordered_map>
+    using namespace std;
+    using namespace tr1;
+  #endif
 typedef unordered_map<I32,U32> my_cell_hash;
 #else
 #include <hash_map>

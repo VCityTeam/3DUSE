@@ -53,7 +53,7 @@ typedef long long          I64;
 typedef float              F32;
 typedef double             F64;
 
-#if defined(_MSC_VER) && (_MSC_VER < 1300)
+#if defined(_MSC_VER)// && (_MSC_VER < 1300) // MT for Visual 2012
 typedef int                BOOL;
 #else
 typedef bool               BOOL;

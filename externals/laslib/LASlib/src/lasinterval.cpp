@@ -43,8 +43,12 @@
 using namespace std;
 
 #ifdef UNORDERED
-#include <tr1/unordered_map>
-using namespace tr1;
+  #ifdef __APPLE__ // MT for clang Mac OS X
+    #include <unordered_map>
+  #else
+    #include <tr1/unordered_map>
+    using namespace tr1;
+  #endif
 typedef unordered_map<I32, LASintervalStartCell*> my_cell_hash;
 #else
 #include <hash_map>
