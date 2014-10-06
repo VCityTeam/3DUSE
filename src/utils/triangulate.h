@@ -86,7 +86,7 @@ private:
 // a polygon/contour and a series of triangles.
 //typedef std::vector< Vector2d > MyVectorOfVertices;
 //typedef std::vector< Vector3d > MyVectorOfVertices;
-typedef std::vector< TVec3d > MyVectorOfVertices;
+typedef std::vector< TVec5d > MyVectorOfVertices; // TVec5d (for 3D + UV) // MT
 
 
 class Triangulate
