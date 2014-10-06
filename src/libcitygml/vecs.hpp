@@ -328,4 +328,39 @@ template<class T> inline std::istream& operator>>( std::istream & is, TVec4<T> &
 typedef TVec4< float >			TVec4f;
 typedef TVec4< double >			TVec4d;
 
+
+// 5D vector class (for 3D + UV) // MT
+
+template< class T > class TVec5
+{
+public:
+	T xyzUV[5];
+	struct { T x, y, z, U, V; };
+
+public:
+	TVec5( const T x = (T)0, const T y = (T)0, const T z = (T)0, const T U = (T)0, const T V = (T)0 )
+	{
+		this->x = x;
+		this->y = y;
+		this->z = z;
+		this->U = U;
+		this->V = V;
+	}
+
+	TVec5( const T vec[] ) { memcpy( xyzUV, vec, 5 * sizeof(T) ); }
+};
+
+template<class T> inline std::ostream& operator<<( std::ostream & os, TVec5<T> const & v )
+{
+	return os << std::fixed << v.x << " " << std::fixed << v.y << " " << std::fixed << v.z << " " << std::fixed << v.U << " " << std::fixed << v.V;
+}
+
+template<class T> inline std::istream& operator>>( std::istream & is, TVec5<T> & v )
+{
+	return is >> v.x >> v.y >> v.z >> v.U >> v.V;
+}
+
+typedef TVec5< float >			TVec5f;
+typedef TVec5< double >			TVec5d;
+
 #endif

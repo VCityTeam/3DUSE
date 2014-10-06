@@ -18,6 +18,7 @@
 #include "triangulate.h"
 
 #define TEXTURE_PROCESS			1
+#define TRIANGULATE_PROCESS		1
 
 #define MAX_POINTS_IN_POSLIST	200	// TEMP
 
@@ -30,11 +31,9 @@ struct FOUR_PLANES
 // TEMP
 FOUR_PLANES G_my4planes;
 double G_xmin, G_ymin, G_xmax, G_ymax;
-// TEMP
 
-// todo:
-//------
-// 1. split polygons > 3
+bool VERBOSE;
+// TEMP
 
 void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
@@ -134,11 +133,8 @@ void calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, 
 	}
 
     double s, t;
-    //t = (A.y * AB.x - A.x * AB.y + AB.y * M->x - AB.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
-    //s = (M->x - A.x - t * AC.x) / AB.x;
-
-    s = (A.y * AC.x - A.x * AC.y + AC.y * M->x - AC.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
     t = (A.y * AB.x - A.x * AB.y + AB.y * M->x - AB.x * M->y) / (AB.y * AC.x - AB.x * AC.y);
+    s = (M->x - A.x - t * AC.x) / AB.x;
 
     // AM = sAB + tAC
     M->z = A.z + s * AB.z + t * AC.z;
@@ -286,8 +282,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 
 						if (i > (MAX_POINTS_IN_POSLIST+1))	// TEMP
 						{
-							printf("---> STOP ---> PLEASE, INCREASE MAX_POINTS_IN_POSLIST IN SOURCE CODE\n");
-							exit(-1);
+							fprintf(stderr, "---> STOP : PLEASE, INCREASE MAX_POINTS_IN_POSLIST IN SOURCE CODE\n");
+							exit(EXIT_FAILURE);
 						}
 
 						l0[i].x = strtod(endptr, &endptr); 
@@ -414,16 +410,14 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							{
 								if ( (j==0) || (l1[j-1] != l1_temp) )
 								{
+									// TODO : s'assurer que M est bien dans ABC !!!
 									calcule_Z_uv(l0[s], l0[s+1], l0[s+2], &l1_temp, noeudUV, uv0[s], uv0[s+1], uv0[s+2], &uv1_temp);
 
 									l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 									coin=true;
 
-									if (i > 3)	// TEMP
-									{
-										printf("---> STOP ---> COIN WITH (i > 3) !\n");
-										exit(-1);
-									}								
+									if (i > 3)
+										fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, COIN WITH (i > 3)!\n", (unsigned long)noeudLinearRing); // TEMP
 								}
 							}
 						}
@@ -491,15 +485,133 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 
 					if (new_nb_points >= 4)
 					{
-						xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
-
-						//if ( (i+1) == new_nb_points )
+						xmlNodePtr noeudTriangle = noeudLinearRing->parent->parent;
+						if ( TRIANGULATE_PROCESS && xmlStrEqual(noeudTriangle->name, BAD_CAST "Triangle") && ((new_nb_points-1) > 3) )
 						{
-							//std::cout << "id LinearRing: " << xmlGetProp(noeudLinearRing, BAD_CAST "id") << ": (old nb_points==new nb_points): " << (i+1) << " - " << new_nb_points << std::endl;
+							//printf("must triangulate this polygon : %s has %d points\n", xmlGetProp(noeudLinearRing, BAD_CAST "id"), (new_nb_points-1));						
+
+							TVec5d pp;
+							char *endpos = (char *) new_posList.c_str(); char *endposUV = (char *) new_uvList.c_str();
+							MyVectorOfVertices vv;
+
+							bool same=false;
+							for (int ii=0; ii<(new_nb_points-1); ii++)
+							{
+								pp.x = strtod(endpos, &endpos); 
+								pp.y = strtod(endpos, &endpos);
+								pp.z = strtod(endpos, &endpos);
+
+								if (noeudUV)
+								{
+									pp.U = strtod(endposUV, &endposUV); 
+									pp.V = strtod(endposUV, &endposUV);
+								}
+								else
+								{
+									pp.U = 0; 
+									pp.V = 0;
+								}
+
+								//printf("point %2d - (%lf %lf %lf - uv: %lf %lf)\n", ii, pp.x, pp.y, pp.z, pp.U, pp.V);
+								bool pfound=false;
+								for (int dd=0; dd<vv.size(); dd++)
+								{
+									if ( (vv[dd].x == pp.x) && (vv[dd].y == pp.y) && (vv[dd].z == pp.z) )
+									{
+										pfound=true;
+										break;
+									}
+								}
+								if (pfound==true)
+								{
+									same=true;
+									fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, same point in polygon with %d points!\n", (unsigned long)noeudLinearRing, (new_nb_points-1)); // TEMP									
+								}
+								else
+									vv.push_back(pp);
+							}
+
+							if (same)
+							{
+								/*for (int dd=0; dd<vv.size(); dd++)
+									printf("point %2d - (%lf %lf %lf - uv: %lf %lf)\n", dd, vv[dd].x, vv[dd].y, vv[dd].z, vv[dd].U, vv[dd].V);*/
+								fprintf(stderr, " ----> noeudLinearRing: %lu, polygon NOW with %lu points\n", (unsigned long)noeudLinearRing, vv.size());
+							}
+
+							MyVectorOfVertices result;
+							Triangulate::Process(vv, result);
+
+							int tcount = result.size()/3;
+							for (int ii=0; ii<tcount; ii++)
+							{
+								const TVec5d &p1 = result[ii*3+0];
+								const TVec5d &p2 = result[ii*3+1];
+								const TVec5d &p3 = result[ii*3+2];
+								//if (same) fprintf(stderr, "Triangle %d => (%lf %lf %lf - uv: %lf %lf) (%lf %lf %lf - uv: %lf %lf) (%lf %lf %lf - uv: %lf %lf)\n", ii+1, p1.x,p1.y,p1.z,p1.U,p1.V, p2.x,p2.y,p2.z,p2.U,p2.V, p3.x,p3.y,p3.z,p3.U,p3.V);
+								new_posList = "";
+								new_posList += std::to_string(p1.x); new_posList += " ";
+								new_posList += std::to_string(p1.y); new_posList += " ";
+								new_posList += std::to_string(p1.z); new_posList += " ";
+								new_posList += std::to_string(p2.x); new_posList += " ";
+								new_posList += std::to_string(p2.y); new_posList += " ";
+								new_posList += std::to_string(p2.z); new_posList += " ";
+								new_posList += std::to_string(p3.x); new_posList += " ";
+								new_posList += std::to_string(p3.y); new_posList += " ";
+								new_posList += std::to_string(p3.z); new_posList += " ";
+								new_posList += std::to_string(p1.x); new_posList += " ";
+								new_posList += std::to_string(p1.y); new_posList += " ";
+								new_posList += std::to_string(p1.z); new_posList += " ";
+
+								if (noeudUV)
+								{
+									new_uvList = "";
+									new_uvList += std::to_string(p1.U); new_uvList += " ";
+									new_uvList += std::to_string(p1.V); new_uvList += " ";
+									new_uvList += std::to_string(p2.U); new_uvList += " ";
+									new_uvList += std::to_string(p2.V); new_uvList += " ";
+									new_uvList += std::to_string(p3.U); new_uvList += " ";
+									new_uvList += std::to_string(p3.V); new_uvList += " ";
+									new_uvList += std::to_string(p1.U); new_uvList += " ";
+									new_uvList += std::to_string(p1.V); new_uvList += " ";
+								}
+
+								xmlNodePtr copy_tr = xmlCopyNode(noeudTriangle, 1);
+									if (xmlGetProp(copy_tr->children->children, BAD_CAST "id"))
+										xmlSetProp(copy_tr->children->children, BAD_CAST "gml:id", BAD_CAST (std::string((char *) xmlGetProp(copy_tr->children->children, BAD_CAST "id"))+std::string("_TRIANGULATED_")+std::to_string(ii+1)).c_str());
+									xmlNodeSetContent(copy_tr->children->children->children, BAD_CAST new_posList.c_str());
+								xmlAddPrevSibling(noeudTriangle, copy_tr);
+
+								if (noeudUV)
+								{
+									xmlNodePtr copy_uv = xmlCopyNode(noeudUV, 1);
+										if (xmlGetProp(copy_uv, BAD_CAST "ring"))
+											xmlSetProp(copy_uv, BAD_CAST "ring", BAD_CAST (std::string((char *) xmlGetProp(copy_uv, BAD_CAST "ring"))+std::string("_TRIANGULATED_")+std::to_string(ii+1)).c_str());
+										xmlNodeSetContent(copy_uv, BAD_CAST new_uvList.c_str());
+									xmlAddPrevSibling(noeudUV, copy_uv);
+								}
+							}
+
+							xmlUnlinkNode(noeud);
+							xmlFreeNode(noeud);
+
 							if (noeudUV)
 							{
-								xmlNodeSetContent(noeudUV, BAD_CAST new_uvList.c_str());
-								//printf("old_uvList: %s - new_uvList: %s\n", contenuUV, new_uvList.c_str());
+								xmlUnlinkNode(noeudUV);
+								xmlFreeNode(noeudUV);
+							}
+						}
+						else
+						{
+							xmlNodeSetContent(noeud, BAD_CAST new_posList.c_str());
+
+							//if ( (i+1) == new_nb_points )
+							{
+								//std::cout << "id LinearRing: " << xmlGetProp(noeudLinearRing, BAD_CAST "id") << ": (old nb_points==new nb_points): " << (i+1) << " - " << new_nb_points << std::endl;
+								if (noeudUV)
+								{
+									xmlNodeSetContent(noeudUV, BAD_CAST new_uvList.c_str());
+									//printf("old_uvList: %s - new_uvList: %s\n", contenuUV, new_uvList.c_str());
+								}
 							}
 						}
 					}
@@ -631,7 +743,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 														xmlAddChild(copy_node4, copy_node5);
 														xmlAddChild(copy_node5, copy_node6);
 															
-														printf("GeoreferencedTexture target COPIED: %s\n", p);
+														if (VERBOSE)
+															fprintf(stdout, "GeoreferencedTexture target COPIED: %s\n", p);
 													}
 
 													node_copied = true;
@@ -691,7 +804,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 													{
 														xmlAddChild(copy_node6, copy_node_target);
 
-														printf("ParameterizedTexture target COPIED: %s\n", p);
+														if (VERBOSE)
+															fprintf(stdout, "ParameterizedTexture target COPIED: %s\n", p);
 													}
 												}
 
@@ -708,7 +822,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 										else
 										{
 											if (copy_node3)
-												printf(" -> CAUTION: ParameterizedTexture child NOT COPIED: %s\n", nc2->name);
+												if (VERBOSE)
+													fprintf(stdout, " -> CAUTION: ParameterizedTexture child NOT COPIED: %s\n", nc2->name);
 										}
 									}
 								}
@@ -717,7 +832,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 						else
 						{
 							if (copy_node3)
-								printf(" -> NOT COPIED: %s\n", nc->name);
+								if (VERBOSE)
+									fprintf(stdout, " -> NOT COPIED: %s\n", nc->name);
 						}
 					}
 				}
@@ -725,7 +841,8 @@ void process_textures(xmlNodePtr n, xmlNodePtr copy_node3, std::set<std::string>
 			else
 			{
 				if (copy_node3)
-					printf(" -> NOT COPIED: %s\n", n->name);
+					if (VERBOSE)
+						fprintf(stdout, " -> NOT COPIED: %s\n", n->name);
 			}
 		}
 	}
@@ -771,22 +888,31 @@ void parcours_prefixe_Building_ReliefFeature_textures(xmlNodePtr noeud, fct_proc
 
 int main(int argc, char** argv)
 {
-	if (argc != 7)
+	if ((argc != 7) && (argc != 8))
 	{
 		puts("");
-        puts("CityGMLCut 1.1.4 - September 3, 2014 - Martial TOLA");
+        puts("CityGMLCut 1.2.0 - September 30, 2014 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
-		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax>");
+		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax> [VERBOSE]");
 		puts("");
 		puts("Example:");
 		puts("./CityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
-		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000");
+		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000 VERBOSE");
 		puts("");
     
-		return(EXIT_FAILURE);
+		return EXIT_FAILURE;
 	}
+
+	VERBOSE = false;
+	if ((argc==8) && (strcmp(argv[7], "VERBOSE")==0))
+	{
+		VERBOSE = true;
+		fprintf(stdout, "VERBOSE is ON\n");
+	}
+	else
+		fprintf(stdout, "VERBOSE is OFF\n");
 
 	std::string folderIN, folderOUT;
 	int nbCopied = 0;
@@ -804,7 +930,10 @@ int main(int argc, char** argv)
 	G_ymax = atof(argv[6]);
 
 	if (! ((G_xmin < G_xmax) && (G_ymin < G_ymax)) )
-		return(EXIT_FAILURE);
+	{
+		fprintf(stderr, "xmin must be < xmax AND ymin must be < ymax !\n");
+		return EXIT_FAILURE;
+	}
 
 	// ---
 	// 4 planes (normal and point)
@@ -866,7 +995,7 @@ int main(int argc, char** argv)
 	xmlNodePtr n = racine;
 	if (xmlStrEqual(n->name, BAD_CAST "CityModel"))
 	{
-		printf("%s\n", n->name);
+		fprintf(stdout, "%s\n", n->name);
 		xmlNodePtr copy_node1 = xmlCopyNode(n, 2);
 		xmlDocSetRootElement(out_doc, copy_node1);
 		out_root_node = xmlDocGetRootElement(out_doc);
@@ -896,7 +1025,8 @@ int main(int argc, char** argv)
 
                         if ( !(xmax_Building < G_xmin) && !(ymax_Building < G_ymin) && !(xmin_Building > G_xmax) && !(ymin_Building > G_ymax) )
 							{
-								printf("%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
+								if (VERBOSE)
+									fprintf(stdout, "%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
 
 								//xmlNs ns = { 0 }; // initialisation à zéro de tous les membres
 								xmlNodePtr copy_node2 = xmlCopyNode(n, 1);
@@ -921,7 +1051,10 @@ int main(int argc, char** argv)
 							}
 					}					
 					else
-						printf(" -> NOT COPIED: %s: %s\n", n->name, n->children->name);
+					{
+						if (VERBOSE)
+							fprintf(stdout, " -> NOT COPIED: %s: %s\n", n->name, n->children->name);
+					}
 				}
 				else if ( (xmlStrEqual(n->name, BAD_CAST "appearanceMember")) && (TEXTURE_PROCESS==true) )
 				{
@@ -931,14 +1064,14 @@ int main(int argc, char** argv)
 					copy_node_appearanceMember = xmlCopyNode(appearanceMember_node, 2);
 					xmlAddChild(out_root_node, copy_node_appearanceMember);
 
-					printf(" -> PRE PROCESS TEXTURES (for uv coordinates) BEFORE ALL PARSING\n");
+					fprintf(stdout, " -> PRE PROCESS TEXTURES (for uv coordinates) BEFORE ALL PARSING\n");
 					parcours_prefixe_All_textureCoordinates(appearanceMember_node, process_All_textureCoordinates, &UUID_uv_map);
 
 					POST_PROCESS_TEXTURES = true;					
-					printf(" -> POST PROCESS TEXTURES (for texture files) AFTER ALL PARSING\n");
+					fprintf(stdout, " -> POST PROCESS TEXTURES (for texture files) AFTER ALL PARSING\n");
 				}
 				else
-					printf(" -> NOT COPIED: %s\n", n->name);
+					fprintf(stdout, " -> NOT COPIED: %s\n", n->name);
 			}
 		}
 
@@ -946,14 +1079,14 @@ int main(int argc, char** argv)
 		{
 			UUID_uv_map.clear();
 
-			printf("\nPOST PROCESS TEXTURES (for texture files) \n");
+			fprintf(stdout, "POST PROCESS TEXTURES (for texture files) \n");
 
 			// CAUTION : FOR NOW, WE SUPPOSE ONLY ONE appearanceMember
 			process_textures(appearanceMember_node, copy_node_appearanceMember, &UUID_full_set, folderIN, folderOUT);
 		}
 	}
 
-	printf(" -> NB COPIED: %d\n", nbCopied);
+	fprintf(stdout, "--> NB COPIED: %d\n", nbCopied);
 
     // dumping document to file
     xmlSaveFormatFileEnc(argv[2], out_doc, "ISO-8859-1", 1);
@@ -964,49 +1097,3 @@ int main(int argc, char** argv)
 
     return EXIT_SUCCESS;
 }
-/*{
-
-  // Small test application demonstrating the usage of the triangulate
-  // class.
-
-
-  // Create a pretty complicated little contour by pushing them onto
-  // an stl vector.
-
-  Vector2dVector a;
-
-  a.push_back( Vector2d(0,6));
-  a.push_back( Vector2d(0,0));
-  a.push_back( Vector2d(3,0));
-  a.push_back( Vector2d(4,1));
-  a.push_back( Vector2d(6,1));
-  a.push_back( Vector2d(8,0));
-  a.push_back( Vector2d(12,0));
-  a.push_back( Vector2d(13,2));
-  a.push_back( Vector2d(8,2));
-  a.push_back( Vector2d(8,4));
-  a.push_back( Vector2d(11,4));
-  a.push_back( Vector2d(11,6));
-  a.push_back( Vector2d(6,6));
-  a.push_back( Vector2d(4,3));
-  a.push_back( Vector2d(2,6));
-
-  // allocate an STL vector to hold the answer.
-
-  Vector2dVector result;
-
-  //  Invoke the triangulator to triangulate this polygon.
-  Triangulate::Process(a,result);
-
-  // print out the results.
-  int tcount = result.size()/3;
-
-  for (int i=0; i<tcount; i++)
-  {
-    const Vector2d &p1 = result[i*3+0];
-    const Vector2d &p2 = result[i*3+1];
-    const Vector2d &p3 = result[i*3+2];
-    printf("Triangle %d => (%0.0f,%0.0f) (%0.0f,%0.0f) (%0.0f,%0.0f)\n",i+1,p1.GetX(),p1.GetY(),p2.GetX(),p2.GetY(),p3.GetX(),p3.GetY());
-  }
-
-}*/

@@ -33,31 +33,60 @@
 
 #include <vector>  // Include STL vector class.
 
+#include "vecs.hpp" // MT
+class Vector3d // MT
+{
+public:
+  Vector3d(double x,double y,double z)
+  {
+    Set(x,y,z);
+  };
+
+  double GetX(void) const { return mX; };
+
+  double GetY(void) const { return mY; };
+
+  double GetZ(void) const { return mZ; };
+
+  void Set(double x,double y,double z)
+  {
+    mX = x;
+    mY = y;
+	mZ = z;
+  };
+private:
+  double mX;
+  double mY;
+  double mZ;
+};
+
 class Vector2d
 {
 public:
-  Vector2d(float x,float y)
+  Vector2d(double x,double y)
   {
     Set(x,y);
   };
 
-  float GetX(void) const { return mX; };
+  double GetX(void) const { return mX; };
 
-  float GetY(void) const { return mY; };
+  double GetY(void) const { return mY; };
 
-  void  Set(float x,float y)
+  void  Set(double x,double y)
   {
     mX = x;
     mY = y;
   };
 private:
-  float mX;
-  float mY;
+  double mX;
+  double mY;
 };
 
 // Typedef an STL vector of vertices which are used to represent
 // a polygon/contour and a series of triangles.
-typedef std::vector< Vector2d > Vector2dVector;
+//typedef std::vector< Vector2d > MyVectorOfVertices;
+//typedef std::vector< Vector3d > MyVectorOfVertices;
+typedef std::vector< TVec5d > MyVectorOfVertices; // TVec5d (for 3D + UV) // MT
 
 
 class Triangulate
@@ -66,22 +95,22 @@ public:
 
   // triangulate a contour/polygon, places results in STL vector
   // as series of triangles.
-  static bool Process(const Vector2dVector &contour,
-                      Vector2dVector &result);
+  static bool Process(const MyVectorOfVertices &contour,
+                      MyVectorOfVertices &result);
 
   // compute area of a contour/polygon
-  static float Area(const Vector2dVector &contour);
+  static double Area(const MyVectorOfVertices &contour);
 
   // decide if point Px/Py is inside triangle defined by
   // (Ax,Ay) (Bx,By) (Cx,Cy)
-  static bool InsideTriangle(float Ax, float Ay,
-                      float Bx, float By,
-                      float Cx, float Cy,
-                      float Px, float Py);
+  static bool InsideTriangle(double Ax, double Ay,
+                      double Bx, double By,
+                      double Cx, double Cy,
+                      double Px, double Py);
 
 
 private:
-  static bool Snip(const Vector2dVector &contour,int u,int v,int w,int n,int *V);
+  static bool Snip(const MyVectorOfVertices &contour,int u,int v,int w,int n,int *V);
 
 };
 
