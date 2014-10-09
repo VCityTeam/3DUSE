@@ -300,6 +300,14 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <widget class="QMenu" name="menuPicking_mode_2">
+     <property name="title">
+      <string>Picking mode</string>
+     </property>
+     <addaction name="actionBuilding"/>
+     <addaction name="actionFace"/>
+    </widget>
+    <addaction name="menuPicking_mode_2"/>
     <addaction name="actionClearSelection"/>
    </widget>
    <widget class="QMenu" name="menu">
@@ -319,13 +327,6 @@
     <property name="title">
      <string>Options</string>
     </property>
-    <widget class="QMenu" name="menuPicking_mode">
-     <property name="title">
-      <string>Picking mode</string>
-     </property>
-     <addaction name="actionBuilding"/>
-     <addaction name="actionFace"/>
-    </widget>
     <widget class="QMenu" name="menuRender">
      <property name="title">
       <string>Render</string>
@@ -341,7 +342,6 @@
      <addaction name="actionShadows"/>
      <addaction name="actionShadows_options"/>
     </widget>
-    <addaction name="menuPicking_mode"/>
     <addaction name="menuRender"/>
     <addaction name="actionShow_temporal_tools"/>
     <addaction name="actionShow_advanced_tools"/>
@@ -351,23 +351,12 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <widget class="QMenu" name="menuGenerate">
-     <property name="title">
-      <string>Generate</string>
-     </property>
-     <addaction name="actionAll_LODs"/>
-     <addaction name="actionLOD0"/>
-     <addaction name="actionLOD1"/>
-     <addaction name="actionLOD2"/>
-     <addaction name="actionLOD3"/>
-     <addaction name="actionLOD4"/>
-    </widget>
-    <addaction name="menuGenerate"/>
     <addaction name="actionFix_building"/>
     <addaction name="actionCityGML_cut"/>
     <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="actionChange_Detection"/>
     <addaction name="separator"/>
+    <addaction name="actionCut_CityGML_with_Shapefile"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -389,10 +378,28 @@
     <addaction name="actionTest_4"/>
     <addaction name="actionTest_5"/>
    </widget>
+   <widget class="QMenu" name="menuGenerate_2">
+    <property name="title">
+     <string>Generate</string>
+    </property>
+    <widget class="QMenu" name="menuLODs">
+     <property name="title">
+      <string>LODs</string>
+     </property>
+     <addaction name="actionAll_LODs"/>
+     <addaction name="actionLOD0"/>
+     <addaction name="actionLOD1"/>
+     <addaction name="actionLOD2"/>
+     <addaction name="actionLOD3"/>
+     <addaction name="actionLOD4"/>
+    </widget>
+    <addaction name="menuLODs"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuScene"/>
    <addaction name="menuTools"/>
+   <addaction name="menuGenerate_2"/>
    <addaction name="menuOptions"/>
    <addaction name="menuDebug"/>
    <addaction name="menuTest"/>
@@ -733,7 +740,17 @@
   </action>
   <action name="actionOBJ_to_CityGML">
    <property name="text">
-    <string>OBJ to CityGML...</string>
+    <string>Convert OBJ to CityGML</string>
+   </property>
+  </action>
+  <action name="actionFff">
+   <property name="text">
+    <string>fff</string>
+   </property>
+  </action>
+  <action name="actionCut_CityGML_with_Shapefile">
+   <property name="text">
+    <string>Cut CityGML with Shapefile</string>
    </property>
   </action>
  </widget>
