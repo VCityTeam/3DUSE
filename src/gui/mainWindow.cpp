@@ -39,6 +39,7 @@
 #include "osg/osgAssimp.hpp"
 
 #include "osg/osgMnt.hpp"
+#include "osg/osgLas.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = nullptr;
@@ -334,6 +335,28 @@ bool MainWindow::loadFile(const QString& filepath)
 			//mnt.sauve_log(std::string("mntAsc.txt").c_str(), std::string("mntAsc.tga").c_str()); // mntAsc.tga bidon
 			//mnt.sauve_partie(std::string("mntAsc_partie.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
 			//mnt.sauve_partie_XML(std::string("mntAsc_partie_xml.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+		}
+	}
+	// las importer
+	else if(ext ==  "las")
+    {
+		LAS las;
+
+		if (las.charge(filepath.toStdString().c_str()))
+		{
+            /*osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(-m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
+
+			// set mntAscNode name
+			static int id = 0;
+			std::stringstream ss;
+			ss << "mntAscNode" << id++;
+			node->setName(ss.str());
+
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerMnt")->getURI();
+			vcity::log() << uriLayer.getStringURI() << "\n";
+			appGui().getControllerGui().addMntAscNode(uriLayer, node);*/
+
+			addRecentFile(filepath);
 		}
 	}
     else if(ext == "shp")
