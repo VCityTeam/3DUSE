@@ -875,7 +875,7 @@ namespace vcity
 
         for(int i = 0; i < G->getNumGeometries(); ++i)
         {
-            if(G->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon)
+            if(G->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon && G->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon25D)
                 continue;
 
             OGRPolygon * Polygon =  dynamic_cast<OGRPolygon*>(G->getGeometryRef(i)->clone());
@@ -887,6 +887,8 @@ namespace vcity
             OGRFeature::DestroyFeature(Feature);
         }
         OGRDataSource::DestroyDataSource(DS);
+
+        std::cout << "Fichier " << name << " cree." << std::endl;
     }
 
 	/**
@@ -1199,12 +1201,12 @@ namespace vcity
         //ResUnion = OGRGeometryFactory::organizePolygons(Polys, MP->getNumGeometries(), NbValidGeom);
 
 		//On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
-		if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
+        if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
 		{
 			OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
 			return GeoCollection;
 		}
-		else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
+        else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
 		{
 			OGRMultiPolygon * GeoCollection = new OGRMultiPolygon;
 			GeoCollection->addGeometryDirectly(ResUnion);
@@ -1650,7 +1652,7 @@ namespace vcity
 			citygml::Polygon * Poly = new citygml::Polygon("Polygon");
 			citygml::LinearRing * Ring = new citygml::LinearRing("ExteriorRing", true);
 
-			if(Geometry->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon)
+            if(Geometry->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon && Geometry->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon25D)
 				continue;
 
 			OGRPolygon * Polygon =  dynamic_cast<OGRPolygon*>(Geometry->getGeometryRef(i)->clone());
@@ -1778,8 +1780,158 @@ namespace vcity
 	/**
 	* @brief Calcule la distance de Hausdorff unidirectionnelle entre un nuage de points et un triangle
 	* @param Points Correspond au nuage de points
-	* @param Geo Correspond au triangle sur lequel seront projetés les points
+    * @param Geo Correspond aux triangles sur lesquels seront projetés les points
 	*/
+    double Hausdorff(std::vector<OGRPoint *> Points, OGRMultiPolygon * Geo)
+    {
+        double D = 0;
+        for(size_t i = 0; i < Points.size(); ++i)
+        {
+            double D_1 = 10000;
+            OGRPoint * P0 = Points.at(i);
+            for(int j = 0; j < Geo->getNumGeometries(); ++j)
+            {
+                double D_2;
+                OGRPolygon * PolyTriangle = (OGRPolygon *)Geo->getGeometryRef(j);
+                OGRLinearRing * Triangle = PolyTriangle->getExteriorRing();
+                if(Triangle->getNumPoints() > 4 || Triangle->get_Area() < 0.01)//Si la géometry courante n'est pas un triangle
+                {
+                    continue;
+                }
+                OGRPoint * P1 = new OGRPoint; //Point du triangle
+                OGRPoint * P2 = new OGRPoint;
+                OGRPoint * P3 = new OGRPoint;
+                Triangle->getPoint(0, P1);
+                Triangle->getPoint(1, P2);
+                Triangle->getPoint(2, P3);
+
+
+                geos::geom::Coordinate P1P0(P0.x - P1.x, P0.y - P1.y, P0.z - P1.z); //Vecteur P1P0
+                geos::geom::Coordinate P2P0(P0.x - P2.x, P0.y - P2.y, P0.z - P2.z);
+                geos::geom::Coordinate P3P0(P0.x - P3.x, P0.y - P3.y, P0.z - P3.z);
+                double nP1P0 = sqrt(P1P0.x * P1P0.x + P1P0.y * P1P0.y + P1P0.z * P1P0.z); //Norme du vecteur P1P0
+                double nP2P0 = sqrt(P2P0.x * P2P0.x + P2P0.y * P2P0.y + P2P0.z * P2P0.z);
+                double nP3P0 = sqrt(P3P0.x * P3P0.x + P3P0.y * P3P0.y + P3P0.z * P3P0.z);
+
+                if(nP1P0 == 0 || nP2P0 == 0 || nP3P0 == 0) // Si le point P0 est confondu avec l'un des points du triangle
+                {
+                    D_1 = 0;
+                    break;
+                }
+
+                geos::geom::Coordinate P1P2(P2.x - P1.x, P2.y - P1.y, P2.z - P1.z); //Vecteur P1P2
+                geos::geom::Coordinate P1P3(P3.x - P1.x, P3.y - P1.y, P3.z - P1.z);
+                geos::geom::Coordinate P2P3(P3.x - P2.x, P3.y - P2.y, P3.z - P2.z);
+                //double nP1P2 = sqrt(P1P2.x * P1P2.x + P1P2.y * P1P2.y + P1P2.z * P1P2.z); //Norme du vecteur P1P2
+                //double nP1P3 = sqrt(P1P3.x * P1P3.x + P1P3.y * P1P3.y + P1P3.z * P1P3.z);
+                //double nP2P3 = sqrt(P2P3.x * P2P3.x + P2P3.y * P2P3.y + P2P3.z * P2P3.z);
+
+                geos::geom::Coordinate Np(P1P2.y * P1P3.z - P1P2.z * P1P3.y, P1P2.z * P1P3.x - P1P2.x * P1P3.z, P1P2.x * P1P3.y - P1P2.y * P1P3.x); //Normal du triangle
+                double nNp = sqrt(Np.x * Np.x + Np.y * Np.y + Np.z * Np.z);
+
+                double cosa = (P1P0.x * Np.x + P1P0.y * Np.y + P1P0.z * Np.z)/(nP1P0 * nNp); //Calcul du cosinus de langle a entre Np et P1P0
+
+                double nP0P0_ = nP1P0 * cosa;
+                geos::geom::Coordinate P0P0_(- nP0P0_ * Np.x / nNp, - nP0P0_ * Np.y / nNp, - nP0P0_ * Np.z / nNp); //Vecteur P0P0_, P0_ étant le projeté de P0 sur le plan du triangle
+
+                geos::geom::Coordinate P0_(P0.x + P0P0_.x, P0.y + P0P0_.y, P0.z + P0P0_.z); // Position du projeté de P0 sur le plan du triangle
+
+                double s, t;//Coordonnées barycentriques du point P0_ par rapport au point P1 et aux vecteurs P1P2 et P1P3
+
+                t = (P1.y * P1P2.x - P1.x * P1P2.y + P1P2.y * P0_.x - P1P2.x * P0_.y) / (P1P2.y * P1P3.x - P1P2.x * P1P3.y);
+                s = (P0_.x - P1.x - t * P1P3.x) / P1P2.x;
+
+                if(t >= 0 && s >= 0 && t + s <= 1)//Le projeté est dans le triangle
+                {
+                    D_2 = nP0P0_;
+                    if(D_1 > D_2)
+                        D_1 = D_2;
+                }
+                else//Le projeté est en dehors du triangle
+                {
+                    //On va donc le comparer aux trois arrêtes du triangle en le projetant à nouveau sur celles-ci
+                    geos::geom::Coordinate P0_P1(P1.x - P0_.x, P1.y - P0_.y, P1.z - P0_.z); //Vecteur P0_P1
+                    geos::geom::Coordinate P0_P2(P2.x - P0_.x, P2.y - P0_.y, P2.z - P0_.z);
+                    geos::geom::Coordinate P0_P3(P3.x - P0_.x, P3.y - P0_.y, P3.z - P0_.z);
+                    double nP0_P1 = sqrt(P0_P1.x * P0_P1.x + P0_P1.y * P0_P1.y + P0_P1.z * P0_P1.z); //Norme du vecteur P0_P1
+                    double nP0_P2 = sqrt(P0_P2.x * P0_P2.x + P0_P2.y * P0_P2.y + P0_P2.z * P0_P2.z);
+                    //double nP0_P3 = sqrt(P0_P3.x * P0_P3.x + P0_P3.y * P0_P3.y + P0_P3.z * P0_P3.z);
+
+                    //Sur P1P2 :
+                    geos::geom::Coordinate Temp(P0_P2.y * P0_P1.z - P0_P2.z * P0_P1.y, P0_P2.z * P0_P1.x - P0_P2.x * P0_P1.z, P0_P2.x * P0_P1.y - P0_P2.y * P0_P1.x);
+                    geos::geom::Coordinate R(Temp.y * P1P2.z - Temp.z * P1P2.y, Temp.z * P1P2.x - Temp.x * P1P2.z, Temp.x * P1P2.y - Temp.y * P1P2.x); //Direction de P0_ -> P0__
+                    double nR = sqrt(R.x * R.x + R.y * R.y + R.z * R.z);
+
+                    double cosg = (P0_P1.x * R.x + P0_P1.y * R.y + P0_P1.z * R.z)/(nP0_P1 * nR); //Calcul du cosinus de langle g entre R et P0_P1
+
+                    double nP0_P0__ = nP0_P1 * cosg;
+                    geos::geom::Coordinate P0_P0__(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__étant le projeté de P0_ sur l'arrête courante du triangle
+                    geos::geom::Coordinate P0__(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projeté de P0_ sur l'arrête du triangle
+
+                    double u = (P0__.x - P1.x) / (P1P2.x); //Position relative de P0__ sur le segment P1P2
+
+                    if(u <= 0)
+                        D_2 = nP1P0; //P0 est le plus proche de P1
+                    else if(u >= 1)
+                        D_2 = nP2P0; //P0 est le plus proche de P2
+                    else
+                        D_2 = sqrt(nP0_P0__ * nP0_P0__ + nP0P0_ * nP0P0_); //P0 est le plus proche de P0__
+
+                    if(D_1 > D_2)
+                        D_1 = D_2;
+
+                    //Sur P1P3 :
+                    Temp = geos::geom::Coordinate(P0_P3.y * P0_P1.z - P0_P3.z * P0_P1.y, P0_P3.z * P0_P1.x - P0_P3.x * P0_P1.z, P0_P3.x * P0_P1.y - P0_P3.y * P0_P1.x);
+                    R = geos::geom::Coordinate(Temp.y * P1P3.z - Temp.z * P1P3.y, Temp.z * P1P3.x - Temp.x * P1P3.z, Temp.x * P1P3.y - Temp.y * P1P3.x); //Direction de P0_ -> P0__
+                    nR = sqrt(R.x * R.x + R.y * R.y + R.z * R.z);
+
+                    cosg = (P0_P1.x * R.x + P0_P1.y * R.y + P0_P1.z * R.z)/(nP0_P1 * nR); //Calcul du cosinus de langle g entre R et P0_P1
+
+                    nP0_P0__ = nP0_P1 * cosg;
+                    P0_P0__ = geos::geom::Coordinate(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__étant le projeté de P0_ sur l'arrête courante du triangle
+                    P0__ = geos::geom::Coordinate(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projeté de P0_ sur l'arrête du triangle
+
+                    u = (P0__.x - P1.x) / (P1P3.x); //Position relative de P0__ sur le segment P1P3
+
+                    if(u <= 0)
+                        D_2 = nP1P0; //P0 est le plus proche de P1
+                    else if(u >= 1)
+                        D_2 = nP3P0; //P0 est le plus proche de P3
+                    else
+                        D_2 = sqrt(nP0_P0__ * nP0_P0__ + nP0P0_ * nP0P0_); //P0 est le plus proche de P0__
+
+                    if(D_1 > D_2)
+                        D_1 = D_2;
+
+                    //Sur P2P3 :
+                    Temp = geos::geom::Coordinate(P0_P3.y * P0_P2.z - P0_P3.z * P0_P2.y, P0_P3.z * P0_P2.x - P0_P3.x * P0_P2.z, P0_P3.x * P0_P2.y - P0_P3.y * P0_P2.x);
+                    R = geos::geom::Coordinate(Temp.y * P2P3.z - Temp.z * P2P3.y, Temp.z * P2P3.x - Temp.x * P2P3.z, Temp.x * P2P3.y - Temp.y * P2P3.x); //Direction de P0_ -> P0__
+                    nR = sqrt(R.x * R.x + R.y * R.y + R.z * R.z);
+
+                    cosg = (P0_P2.x * R.x + P0_P2.y * R.y + P0_P2.z * R.z)/(nP0_P2 * nR); //Calcul du cosinus de langle g entre R et P0_P2
+
+                    nP0_P0__ = nP0_P2 * cosg;
+                    P0_P0__ = geos::geom::Coordinate(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__étant le projeté de P0_ sur l'arrête courante du triangle
+                    P0__ = geos::geom::Coordinate(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projeté de P0_ sur l'arrête du triangle
+
+                    u = (P0__.x - P2.x) / (P2P3.x); //Position relative de P0__ sur le segment P2P3
+
+                    if(u <= 0)
+                        D_2 = nP2P0; //P0 est le plus proche de P2
+                    else if(u >= 1)
+                        D_2 = nP3P0; //P0 est le plus proche de P3
+                    else
+                        D_2 = sqrt(nP0_P0__ * nP0_P0__ + nP0P0_ * nP0P0_); //P0 est le plus proche de P0__
+
+                    if(D_1 > D_2)
+                        D_1 = D_2;
+                }
+            }
+            if(D_1 > D)
+                D = D_1;
+        }
+        return D;
+    }
 	double Hausdorff(geos::geom::CoordinateSequence * Points, const geos::geom::Geometry * Geo)
 	{
 		double D = 0;
@@ -1933,23 +2085,61 @@ namespace vcity
 	* @param Geo1 Geometrie correspondant au premier bâtiment
 	* @param Geo2 Geometrie correspondant au second bâtiment
 	*/
-	double DistanceHausdorff(const geos::geom::Geometry * Geo1, const geos::geom::Geometry * Geo2)
+    double DistanceHausdorff(OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2)
 	{
 		double D12 = 0;//Distance de Geo1 à Geo2
 		double D21 = 0;//Distance de Geo2 à Geo1
 
-		geos::geom::CoordinateSequence * Points1 = Geo1->getCoordinates();
-		geos::geom::CoordinateSequence * Points2 = Geo2->getCoordinates();
+        std::vector<OGRPoint *> Points1;
+        std::vector<OGRPoint *> Points2;
+        for(int i = 0; i < Geo1->getNumGeometries(); ++i)
+        {
+            OGRPolygon * Poly = (OGRPolygon *)Geo1->getGeometryRef(i);
+            OGRLinearRing * Ring = Poly->getExteriorRing();
+            for(int j = 0; j < Ring->getNumPoints(); ++j)
+            {
+                OGRPoint * Point = new OGRPoint;
+                Ring->getPoint(j, Point);
+                Points1.push_back(Point);
+            }
+        }
+        for(int i = 0; i < Geo2->getNumGeometries(); ++i)
+        {
+            OGRPolygon * Poly = (OGRPolygon *)Geo2->getGeometryRef(i);
+            OGRLinearRing * Ring = Poly->getExteriorRing();
+            for(int j = 0; j < Ring->getNumPoints(); ++j)
+            {
+                OGRPoint * Point = new OGRPoint;
+                Ring->getPoint(j, Point);
+                Points2.push_back(Point);
+            }
+        }
+
 		D12 = Hausdorff(Points1, Geo2);
 		D21 = Hausdorff(Points2, Geo1);
 
 		//std::cout << std::max(D12, D21) << std::endl;
 
 		return std::max(D12, D21);
-	}
+    }
+    double DistanceHausdorff(const geos::geom::Geometry * Geo1, const geos::geom::Geometry * Geo2)
+    {
+        double D12 = 0;//Distance de Geo1 à Geo2
+        double D21 = 0;//Distance de Geo2 à Geo1
+
+        geos::geom::CoordinateSequence * Points1 = Geo1->getCoordinates();
+        geos::geom::CoordinateSequence * Points2 = Geo2->getCoordinates();
+        D12 = Hausdorff(Points1, Geo2);
+        D21 = Hausdorff(Points2, Geo1);
+
+        //std::cout << std::max(D12, D21) << std::endl;
+
+        return std::max(D12, D21);
+    }
+
 
 	/**
-	* @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve dans les deux ensembles de geometries, dans un seul ou s'il a été modifié
+    * @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve de manière identique dans les deux ensembles de geometries, dans un seul ou s'il a été modifié
 	* @param Geo1 Premier ensemble de geometries qui ont été unies : deux triangles voisins sont réunis en un rectangle par exemple
 	* @param Geo2 Second ensemble de geometries qui ont été unies
 	* @param Geo1P Premier ensemble de geometries non unies
@@ -2064,6 +2254,76 @@ namespace vcity
 
 		return Res;
 	}
+    std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > CompareBati(OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2, std::vector<OGRMultiPolygon* > Geo1P, std::vector<OGRMultiPolygon *> Geo2P)
+    {
+        std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Res; //Enregistre les liens entre les polygones. Pour un polygone donnée de Geo1, si il est en lien avec un de Geo2, l'indice sera précédé de -1 ou -2 pour inchangé/changé
+
+        size_t NbGeo1 = Geo1->getNumGeometries(); //Nb de bâtiments de la date1
+        size_t NbGeo2 = Geo2->getNumGeometries(); //Nb de bâtiments de la date2
+
+        Res.first.resize(NbGeo1);
+        Res.second.resize(NbGeo2);
+
+        double moyenne = 0;
+        int cpt = 0;
+
+        for(size_t i = 0; i < NbGeo1; ++i)
+        {
+            OGRPolygon * Bati1 = (OGRPolygon *)Geo1->getGeometryRef(i)->clone();
+            //OGRLinearRing * Ring1 = Bati1->getExteriorRing();
+
+            for(int j = 0; j < NbGeo2; ++j)
+            {
+                OGRPolygon * Bati2 = (OGRPolygon *)Geo2->getGeometryRef(j)->clone();
+                //OGRLinearRing * Ring2 = Bati2->getExteriorRing();
+
+                OGRPolygon * tmp = (OGRPolygon *)Bati1->Intersection(Bati2);
+                double Area = tmp->get_Area();
+                delete tmp;
+                double val1 = Area/Bati1->get_Area();
+                double val2 = Area/Bati2->get_Area();
+
+                if(val1 > 0.99 && val2 > 0.99 && Bati1->get_Area() - Area < 5 && Bati2->get_Area() - Area < 5)//Les polygons sont identiques
+                {
+                    if(DistanceHausdorff(Geo1P.at(i), Geo2P.ad(j)) < 5)//Si la différence de hauteur est inférieure à 5m, et si la distance de Hausdorff entre les deux bâtimetns est inférieure à 5m.
+                    {
+                        moyenne += val1;
+                        moyenne += val2;
+                        cpt +=2;
+                        Res.first[i].push_back(-1);
+                        Res.second[j].push_back(-1);
+                        Res.first[i].push_back(j);
+                        Res.second[j].push_back(i);
+                        break;
+                    }
+                    else//Batiment modifie en "hauteur"
+                    {
+                        Res.first[i].push_back(-2);
+                        Res.second[j].push_back(-2);
+                        Res.first[i].push_back(j);
+                        Res.second[j].push_back(i);
+                        break;
+                    }
+                }
+                else if(val1 > 0.5 && val2 > 0.5)//Le polygon a été modifié
+                {
+                    Res.first[i].push_back(-2);
+                    Res.second[j].push_back(-2);
+                    Res.first[i].push_back(j);
+                    Res.second[j].push_back(i);
+                    break;
+                }
+                delete Bati2;
+            }
+            delete Bati1;
+
+            std::cout << "Avancement de CompareGeos : " << i + 1 << " / " << NbGeo1 << "\r" << std::flush;
+        }
+        std::cout << "\n";
+        std::cout << "Moyenne = " << moyenne/cpt << std::endl;
+
+        return Res;
+    }
 
 	/**
 	* @brief Convertit un polygon avec des trous en un ensemble de geometries distinctes
@@ -2454,10 +2714,7 @@ namespace vcity
 
 			delete GeosObj;
 			delete Enveloppe;
-		}
-#ifdef _WIN32
-			_CrtDumpMemoryLeaks();
-#endif // _WIN32
+        }
 	}
 	void Algo::generateLOD0(citygml::CityObject* obj)
 	{
@@ -2867,45 +3124,39 @@ namespace vcity
         ExtruderBatiments(Batiments, InfoBatimentsRes, Folder);
 
 		delete Batiments;
-
-#ifdef _WIN32
-        _CrtDumpMemoryLeaks();
-#endif // _WIN32
 	}
 
 	/**
 	* @brief Compare deux fichiers CityGML d'une même zone obtenus à deux dates différentes en donnant les modifications entre leurs bâtiments
 	*/
-	void Algo::CompareTiles()//Lorsqu'il y a deux tuiles dans VCity, cette fonction crée une image les regroupant pour pouvoir les comparer
-	{
-		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+    void Algo::CompareTiles(citygml::CityModel* City1, citygml::CityModel* City2)//Version GDAL
+    {
+        std::vector<citygml::CityModel *> tiles;
+        tiles.push_back(City1);
+        tiles.push_back(City2);
 
-		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
+        //On part du principe que le plus vieux est dans le 0 et le plus récent dans le 1
+        std::vector<OGRMultiPolygon *> EnveloppeCity[2];//Version avec un ensemble de polygones pour chaque bâtiment (un bâtiment = un polygone distinct après union)
+        OGRMultiPolygon * EnveloppeCityU[2];//Version avec des polygones unis pour représenter le bâtiment (ce n'est pas l'ensemble de polygones bruts)
+        //EnveloppeCity[0] = new OGRMultiPolygon;
+        //EnveloppeCity[1] = new OGRMultiPolygon;
+        EnveloppeCityU[0] = nullptr;
+        EnveloppeCityU[1] = nullptr;
 
-		if(tiles.size() != 2)
-        {
-            std::cout << "Erreur : Il faut ouvrir deux fichiers CityGML de la même zone, en commençant par le plus ancien." << std::endl;
-			return;
-        }
-
-		geos::geom::Geometry * EnveloppeCity[2];//On part du principe que le plus vieux est dans le 0 et le plus récent dans le 1
-		geos::geom::Geometry * EnveloppeCityU[2];//Version avec un seul polygone par bâtiment
-		EnveloppeCityU[0] = nullptr;
-		EnveloppeCityU[1] = nullptr;
-
-		for(int i = 0; i < 2; ++i)
+        for(int i = 0; i < 2; ++i)
 		{
-			citygml::CityModel* model = tiles[i]->getCityModel();
+            citygml::CityModel* model = tiles[i];
 			
 			int cpt = 0;
 
-			std::vector<geos::geom::Geometry*> GeoVecAll;
+            std::vector<OGRPolygon *> ModelPolygons;//GeoVecAll;//Contient tous les polygones composant le model courant
 
 			for(citygml::CityObject* obj : model->getCityObjectsRoots())
 			{
 				if(obj->getType() == citygml::COT_Building)
 				{
-					std::vector<geos::geom::Geometry*> GeoVec;
+                    OGRMultiPolygon* Building = new OGRMultiPolygon;//Version OGR du bâtiment qui va être remplie
+
 					for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall et Roof) du bâtiment
 					{
 						if(object->getType() == citygml::COT_RoofSurface)
@@ -2914,43 +3165,43 @@ namespace vcity
 							{
 								for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
 								{
-									geos::geom::CoordinateSequence * Coords = new geos::geom::CoordinateArraySequence;
+                                    OGRPolygon * OgrPoly = new OGRPolygon;
+                                    OGRLinearRing * OgrRing = new OGRLinearRing;
 					
 									for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 									{
-                                        Coords->add(geos::geom::Coordinate(Point.x, Point.y, Point.z));
+                                        OgrRing->addPoint(Point.x, Point.y, Point.z);
 									}
-									Coords->add(Coords->getAt(0));
-									if(Coords->size() > 3)
+                                    OgrRing->closeRings();
+                                    if(OgrRing->getNumPoints() > 3)
 									{
-										GeoVec.push_back(factory->createPolygon(factory->createLinearRing(Coords), nullptr));
-										GeoVecAll.push_back(factory->createPolygon(factory->createLinearRing(Coords), nullptr));
+                                        OgrPoly->addRingDirectly(OgrRing);
+                                        if(OgrPoly->IsValid())
+                                        {
+                                            Building->addGeometryDirectly(OgrPoly);
+                                            ModelPolygons.push_back(OgrPoly);
+                                        }
 									}
 									else
-										delete Coords;
+                                        delete OgrRing;
 								}
 							}
 						}
-					}
+                    }
 
-					geos::geom::MultiPolygon* Building = factory->createMultiPolygon(GeoVec);
-
-					/*PolySet roofPoints;
-
-					double heightmax = 0, heightmin = -1;
-					projectRoof(obj,roofPoints, &heightmax, &heightmin);
-
-					geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
-					geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
-					delete GeosObj;*/
-
-					geos::geom::Geometry * Enveloppe = GetEnveloppe(Building);
+                    SaveGeometrytoShape("Building", Building);
+                    OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
+                    //SaveGeometrytoShape("Enveloppe", Enveloppe);
 					if(EnveloppeCityU[i] == nullptr)
 						EnveloppeCityU[i] = Enveloppe;
 					else
 					{
-						geos::geom::Geometry * tmp = EnveloppeCityU[i];
-						EnveloppeCityU[i] = EnveloppeCityU[i]->Union(Enveloppe);
+                        OGRMultiPolygon * tmp = EnveloppeCityU[i];
+                        OGRGeometry * Test = EnveloppeCityU[i]->Union(Enveloppe);
+
+                        std::cout << "UNION : " << Test->getGeometryType() << std::endl;
+
+                        EnveloppeCityU[i] = (OGRMultiPolygon *)EnveloppeCityU[i]->Union(Enveloppe);
 						delete tmp;
 					}
 				}
@@ -2959,33 +3210,41 @@ namespace vcity
 			}
 			std::cout << std::endl;
 
-			//Création de EnveloppeCity : pour chaque bâtiment distinct, il contient la liste des polygones qui le composent
-			std::vector<geos::geom::Geometry*> GeoVec1;//Contiendra un geometrycollection par bâtiment
+            //Création de EnveloppeCity : pour chaque bâtiment distinct, il contient la liste des polygones qui le composent. Ces bâtiments ne correspondent pas à ceux du CityGML, mais
+            //aux polygones distincts apparus avec les unions successives.
+
             for(size_t g = 0; g < EnveloppeCityU[i]->getNumGeometries(); ++g)
 			{
-				std::vector<geos::geom::Geometry*> GeoVec2;//Contiendra liste des polygones pour bâtiment i
-				const geos::geom::Geometry * CurrBati = EnveloppeCityU[i]->getGeometryN(g); //On parcourt chaque bâtiment
-                for(size_t j = 0; j < GeoVecAll.size(); ++j)
+                OGRMultiPolygon * Bati = new OGRMultiPolygon;//Contiendra liste des polygones pour bâtiment i
+                OGRPolygon * CurrBati = (OGRPolygon *)EnveloppeCityU[i]->getGeometryRef(g); //On parcourt chaque bâtiment
+                for(size_t j = 0; j < ModelPolygons.size(); ++j)//Pour le bâtiment courant, on va chercher dans ModelPolygons quels sont les polygones qui le composent.
 				{
-					if(GeoVecAll[j]->intersects(CurrBati))
-					{
-						GeoVec2.push_back(GeoVecAll[j]);
-						GeoVecAll.erase(GeoVecAll.begin() + j);
+                    if(ModelPolygons[j]->Intersects(CurrBati))//Ce polygone appartient bien à CurrBati
+                    {
+                        Bati->addGeometryDirectly(ModelPolygons[j]);//Directly donne l'ownership à Bati au lieu de cloner le polygon
+                        ModelPolygons.erase(ModelPolygons.begin() + j);//On le retire de ModelPolygons car il est maintenant associé à CurrBati
 						j--;
 					}
-				}
-				GeoVec1.push_back(factory->createGeometryCollection(GeoVec2));
-			}
-			EnveloppeCity[i] = factory->createGeometryCollection(GeoVec1);
-		}
+                }
+                EnveloppeCity[i].push_back(Bati);
+            }
+        }
 
-		//Save3GeometryRGB("BatiCompare", EnveloppeCityU[0], EnveloppeCityU[1], EnveloppeCityU[0]);
-		//Save3GeometryRGB("Bati1", EnveloppeCityU[0], factory->createEmptyGeometry(), EnveloppeCityU[0]);
-		//Save3GeometryRGB("Bati2", factory->createEmptyGeometry(), EnveloppeCityU[1], factory->createEmptyGeometry());
+        std::cout << EnveloppeCity[0].size() << std::endl;
+        std::cout << EnveloppeCityU[0]->getNumGeometries() << std::endl;
+        std::cout << EnveloppeCity[1].size() << std::endl;
+        std::cout << EnveloppeCityU[1]->getNumGeometries() << std::endl;
 
-		std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compare = CompareGeos(EnveloppeCityU[0], EnveloppeCityU[1], EnveloppeCity[0], EnveloppeCity[1]);
+        std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compare = CompareBati(EnveloppeCityU[0], EnveloppeCityU[1], EnveloppeCity[0], EnveloppeCity[1]);
 
-		std::vector<geos::geom::Geometry *> BatiDetruits;
+        int a = 0;
+
+        a = a +10;
+
+        int b = a *2;
+
+        std::cout << std::endl << a << std::endl;
+        /*std::vector<geos::geom::Geometry *> BatiDetruits;
 		std::vector<geos::geom::Geometry *> BatiCrees;
 		std::vector<geos::geom::Geometry *> BatiModifies1;
 		std::vector<geos::geom::Geometry *> BatiModifies2;
@@ -3034,12 +3293,168 @@ namespace vcity
 		delete EnveloppeCityU[1];
 		delete EnveloppeCityU[0];
 		delete EnveloppeCity[1];
-		delete EnveloppeCity[0];
-
-#ifdef _WIN32
-        _CrtDumpMemoryLeaks();
-#endif // _WIN32
+        delete EnveloppeCity[0];*/
 	}
+    void Algo::CompareTiles()//Lorsqu'il y a deux tuiles dans VCity, cette fonction crée une image les regroupant pour pouvoir les comparer
+    {
+        const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
+
+        const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
+
+        if(tiles.size() != 2)
+        {
+            std::cout << "Erreur : Il faut ouvrir deux fichiers CityGML de la même zone, en commençant par le plus ancien." << std::endl;
+            return;
+        }
+
+        geos::geom::Geometry * EnveloppeCity[2];//On part du principe que le plus vieux est dans le 0 et le plus récent dans le 1
+        geos::geom::Geometry * EnveloppeCityU[2];//Version avec un seul polygone par bâtiment
+        EnveloppeCityU[0] = nullptr;
+        EnveloppeCityU[1] = nullptr;
+
+        for(int i = 0; i < 2; ++i)
+        {
+            citygml::CityModel* model = tiles[i]->getCityModel();
+
+            int cpt = 0;
+
+            std::vector<geos::geom::Geometry*> GeoVecAll;
+
+            for(citygml::CityObject* obj : model->getCityObjectsRoots())
+            {
+                if(obj->getType() == citygml::COT_Building)
+                {
+                    std::vector<geos::geom::Geometry*> GeoVec;
+                    for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall et Roof) du bâtiment
+                    {
+                        if(object->getType() == citygml::COT_RoofSurface)
+                        {
+                            for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+                            {
+                                for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
+                                {
+                                    geos::geom::CoordinateSequence * Coords = new geos::geom::CoordinateArraySequence;
+
+                                    for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+                                    {
+                                        Coords->add(geos::geom::Coordinate(Point.x, Point.y, Point.z));
+                                    }
+                                    Coords->add(Coords->getAt(0));
+                                    if(Coords->size() > 3)
+                                    {
+                                        GeoVec.push_back(factory->createPolygon(factory->createLinearRing(Coords), nullptr));
+                                        GeoVecAll.push_back(factory->createPolygon(factory->createLinearRing(Coords), nullptr));
+                                    }
+                                    else
+                                        delete Coords;
+                                }
+                            }
+                        }
+                    }
+
+                    geos::geom::MultiPolygon* Building = factory->createMultiPolygon(GeoVec);
+
+                    //PolySet roofPoints;
+
+                    //double heightmax = 0, heightmin = -1;
+                    //projectRoof(obj,roofPoints, &heightmax, &heightmin);
+
+                    //geos::geom::MultiPolygon * GeosObj = ConvertToGeos(roofPoints);
+                    //geos::geom::Geometry * Enveloppe = GetEnveloppe(GeosObj);
+                    //delete GeosObj;
+
+                    geos::geom::Geometry * Enveloppe = GetEnveloppe(Building);
+                    if(EnveloppeCityU[i] == nullptr)
+                        EnveloppeCityU[i] = Enveloppe;
+                    else
+                    {
+                        geos::geom::Geometry * tmp = EnveloppeCityU[i];
+                        EnveloppeCityU[i] = EnveloppeCityU[i]->Union(Enveloppe);
+                        delete tmp;
+                    }
+                }
+                cpt++;
+                std::cout << "Avancement tuile " << i+1 << " : " << cpt << "/" << model->getCityObjectsRoots().size() << " batiments traites.\r" << std::flush;
+            }
+            std::cout << std::endl;
+
+            //Création de EnveloppeCity : pour chaque bâtiment distinct, il contient la liste des polygones qui le composent
+            std::vector<geos::geom::Geometry*> GeoVec1;//Contiendra un geometrycollection par bâtiment
+            for(size_t g = 0; g < EnveloppeCityU[i]->getNumGeometries(); ++g)
+            {
+                std::vector<geos::geom::Geometry*> GeoVec2;//Contiendra liste des polygones pour bâtiment i
+                const geos::geom::Geometry * CurrBati = EnveloppeCityU[i]->getGeometryN(g); //On parcourt chaque bâtiment
+                for(size_t j = 0; j < GeoVecAll.size(); ++j)
+                {
+                    if(GeoVecAll[j]->intersects(CurrBati))
+                    {
+                        GeoVec2.push_back(GeoVecAll[j]);
+                        GeoVecAll.erase(GeoVecAll.begin() + j);
+                        j--;
+                    }
+                }
+                GeoVec1.push_back(factory->createGeometryCollection(GeoVec2));
+            }
+            EnveloppeCity[i] = factory->createGeometryCollection(GeoVec1);
+        }
+
+        //Save3GeometryRGB("BatiCompare", EnveloppeCityU[0], EnveloppeCityU[1], EnveloppeCityU[0]);
+        //Save3GeometryRGB("Bati1", EnveloppeCityU[0], factory->createEmptyGeometry(), EnveloppeCityU[0]);
+        //Save3GeometryRGB("Bati2", factory->createEmptyGeometry(), EnveloppeCityU[1], factory->createEmptyGeometry());
+
+        std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compare = CompareGeos(EnveloppeCityU[0], EnveloppeCityU[1], EnveloppeCity[0], EnveloppeCity[1]);
+
+        std::vector<geos::geom::Geometry *> BatiDetruits;
+        std::vector<geos::geom::Geometry *> BatiCrees;
+        std::vector<geos::geom::Geometry *> BatiModifies1;
+        std::vector<geos::geom::Geometry *> BatiModifies2;
+        std::vector<geos::geom::Geometry *> BatiInchanges;
+
+        for(size_t i = 0; i < EnveloppeCityU[0]->getNumGeometries(); ++i)
+        {
+            if(Compare.first[i].size() == 0)
+                BatiDetruits.push_back(EnveloppeCityU[0]->getGeometryN(i)->clone());
+            else
+            {
+                if(Compare.first[i][0] == -1)
+                    BatiInchanges.push_back(EnveloppeCityU[1]->getGeometryN(Compare.first[i][1])->clone());
+                else if(Compare.first[i][0] == -2)
+                {
+                    BatiModifies1.push_back(EnveloppeCityU[0]->getGeometryN(i)->clone());
+                    BatiModifies2.push_back(EnveloppeCityU[1]->getGeometryN(Compare.first[i][1])->clone());
+                }
+            }
+        }
+        for(size_t i = 0; i < EnveloppeCityU[1]->getNumGeometries(); ++i)
+        {
+            if(Compare.second[i].size() == 0)
+                BatiCrees.push_back(EnveloppeCityU[1]->getGeometryN(i)->clone());
+        }
+        //Scale = 10;
+        //Save3GeometryRGB("BatiCrees", EnveloppeCityU[1], factory->createEmptyGeometry(), factory->createGeometryCollection(BatiCrees));
+        //Save3GeometryRGB("BatiDetruits", EnveloppeCityU[1], factory->createEmptyGeometry(), factory->createGeometryCollection(BatiDetruits));
+        //Save3GeometryRGB("BatiModifies", EnveloppeCityU[1], factory->createGeometryCollection(BatiModifies1), factory->createGeometryCollection(BatiModifies2));
+        //Save3GeometryRGB("BatiInchanges", EnveloppeCityU[1], factory->createEmptyGeometry(), factory->createGeometryCollection(BatiInchanges));
+
+        SaveGeometrytoShape("Bati", EnveloppeCityU[1]);
+        SaveGeometrytoShape("BatiCrees", factory->createGeometryCollection(BatiCrees));
+        SaveGeometrytoShape("BatiDetruits", factory->createGeometryCollection(BatiDetruits));
+        SaveGeometrytoShape("BatiModifies", factory->createGeometryCollection(BatiModifies2));
+        SaveGeometrytoShape("BatiInchanges", factory->createGeometryCollection(BatiInchanges));
+
+        //Save3GeometryRGB("BatiCrees", EnveloppeCityU[1]->difference(factory->createGeometryCollection(BatiCrees)), factory->createGeometryCollection(BatiCrees), factory->createEmptyGeometry());
+
+        for(auto& it : BatiInchanges) delete it;
+        for(auto& it : BatiModifies2) delete it;
+        for(auto& it : BatiModifies1) delete it;
+        for(auto& it : BatiCrees) delete it;
+        for(auto& it : BatiDetruits) delete it;
+
+        delete EnveloppeCityU[1];
+        delete EnveloppeCityU[0];
+        delete EnveloppeCity[1];
+        delete EnveloppeCity[0];
+    }
 
 	/**
 	* @brief Génère un fichier CityGML en LOD1 à partir d'un fichier shape
@@ -3118,10 +3533,6 @@ namespace vcity
         // gen lod1
 		m_model = ConvertShapeToLOD1(ShapeResWithoutHoles, Hauteurs2);
 		//m_model = ConvertShapeToLOD1(ShapeResWithoutHolesSimp, Hauteurs2);
-
-#ifdef _WIN32
-        _CrtDumpMemoryLeaks();
-#endif // _WIN32
 	}
 
 	/**

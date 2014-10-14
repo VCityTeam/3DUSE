@@ -1530,7 +1530,23 @@ void MainWindow::slotChangeDetection()
     vcity::app().getAlgo().Folder = Folder;
 
 	QApplication::setOverrideCursor(Qt::WaitCursor);
-	vcity::app().getAlgo().CompareTiles();
+
+    //VersionGeos
+    //vcity::app().getAlgo().CompareTiles();
+
+    //VersionGDAL
+    const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
+
+    if(tiles.size() != 2)
+    {
+        std::cout << "Erreur : Il faut ouvrir deux fichiers CityGML de la même zone, en commençant par le plus ancien." << std::endl;
+        QApplication::restoreOverrideCursor();
+        return;
+    }
+
+    vcity::app().getAlgo().CompareTiles(tiles[0]->getCityModel(),tiles[1]->getCityModel());
+    //
+
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
