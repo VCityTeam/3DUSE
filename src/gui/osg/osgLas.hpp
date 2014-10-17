@@ -8,9 +8,11 @@
 #pragma warning(disable : 4267) // TEMP MT
 #endif
 
+// MT : the first time, you must do from /externals/laslib folder :
+// mkdir build; cd build; cmake .. -DCMAKE_BUILD_TYPE=Release; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
 #include <lasreader.hpp>
 
-//#include <osg/Geode>
+#include <osg/Geode>
 ////////////////////////////////////////////////////////////////////////////////
 class LAS
 {
@@ -18,10 +20,13 @@ public:
 	LAS();
 	~LAS();
 
-	bool charge(const char* nom_fichier);
+	bool open(const char* nom_fichier);
+	void close();
+	osg::ref_ptr<osg::Geode> buildLasPoints(float offset_x, float offset_y, float offset_z=0.0f, int zfactor=1);
 
 private:
 	LASreadOpener lasreadopener;
+	LASreader* lasreader;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __OSGLAS_HPP__

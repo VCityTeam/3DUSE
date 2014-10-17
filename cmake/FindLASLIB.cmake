@@ -14,7 +14,7 @@
 #---
 # Find include path:
 #---
-find_path( LASLIB_INCLUDE_DIR lasreader.hpp
+find_path( LASLIB_INCLUDE_DIR lasdefinitions.hpp
            PATHS 
            /usr/include
            /usr/local/include )

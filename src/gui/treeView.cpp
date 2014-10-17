@@ -155,8 +155,11 @@ void TreeView::reset()
     QTreeWidgetItem* layer2 = createItemLayer("layer_Mnt", "LayerMnt");
     root->addChild(layer2);
 
-    QTreeWidgetItem* layer3 = createItemLayer("layer_Shp", "LayerShp");
+	QTreeWidgetItem* layer3 = createItemLayer("layer_Las", "LayerLas");
     root->addChild(layer3);
+
+    QTreeWidgetItem* layer4 = createItemLayer("layer_Shp", "LayerShp");
+    root->addChild(layer4);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)
@@ -426,6 +429,21 @@ void TreeView::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg:
     m_tree->blockSignals(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    m_tree->blockSignals(true);
+
+    //QTreeWidgetItem* root = m_tree->topLevelItem(0);
+    QTreeWidgetItem* layer = getNode(uriLayer);
+
+    QTreeWidgetItem* item = createItemGeneric(node->getName().c_str(), "LasNode");
+    layer->addChild(item);
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::addShpNode(const vcity::URI& uriLayer, const std::string& nodeName)
 {
     m_tree->blockSignals(true);
@@ -509,7 +527,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         //std::cout << "Root" << std::endl;
         m_tree->addAction(m_actionAddLayer);
     }
-    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp" || item->text(1) == "LayerMnt" || item->text(1) == "LayerShp")
+    else if(item->text(1) == "LayerCityGML" || item->text(1) == "LayerAssimp" || item->text(1) == "LayerMnt" || item->text(1) == "LayerLas" || item->text(1) == "LayerShp")
     {
         std::cout << item->text(1).toStdString() << std::endl;
         m_tree->addAction(m_actionDeleteLayer);

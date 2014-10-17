@@ -280,9 +280,9 @@ bool MainWindow::loadFile(const QString& filepath)
          settings.setValue("recentfiles", list);*/
     }
 	// Assimp importer
-	else if(ext == "assimp" || ext ==  "dae" || ext ==  "blend" || ext ==  "3ds" || ext ==  "ase" || ext ==  "obj" || ext ==  "xgl" || ext ==  "ply" || ext ==  "dxf" || ext ==  "lwo" || ext ==  "lws" ||
-		ext == "lxo" || ext ==  "stl" || ext ==  "x" || ext ==  "ac" || ext ==  "ms3d" || ext ==  "scn" || ext ==  "xml" || ext ==  "irrmesh" || ext ==  "irr" ||
-		ext == "mdl" || ext ==  "md2" || ext ==  "md3" || ext ==  "pk3" || ext ==  "md5" || ext ==  "smd" || ext ==  "m3" || ext ==  "3d" || ext ==  "q3d" || ext ==  "off" || ext ==  "ter")
+	else if(ext == "assimp" || ext == "dae" || ext == "blend" || ext == "3ds" || ext == "ase" || ext == "obj" || ext == "xgl" || ext == "ply" || ext == "dxf" || ext == "lwo" || ext == "lws" ||
+		ext == "lxo" || ext == "stl" || ext == "x" || ext == "ac" || ext == "ms3d" || ext == "scn" || ext == "xml" || ext == "irrmesh" || ext == "irr" ||
+		ext == "mdl" || ext == "md2" || ext == "md3" || ext == "pk3" || ext == "md5" || ext == "smd" || ext == "m3" || ext == "3d" || ext == "q3d" || ext == "off" || ext == "ter")
     {
 		/*Assimp::Importer importer;
 		const aiScene *scene = importer.ReadFile(filepath.toStdString(), aiProcessPreset_TargetRealtime_Fast); // aiProcessPreset_TargetRealtime_Quality
@@ -312,7 +312,7 @@ bool MainWindow::loadFile(const QString& filepath)
 		}
 	}
 	// MntAsc importer
-	else if(ext ==  "asc")
+	else if(ext == "asc")
     {
 		MNT mnt;
 
@@ -338,23 +338,25 @@ bool MainWindow::loadFile(const QString& filepath)
 		}
 	}
 	// las importer
-	else if(ext ==  "las")
+	else if(ext == "las" || ext == "laz")
     {
 		LAS las;
 
-		if (las.charge(filepath.toStdString().c_str()))
+		if (las.open(filepath.toStdString().c_str()))
 		{
-            /*osg::ref_ptr<osg::Node> node = mnt.buildAltitudesGrid(-m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
+            osg::ref_ptr<osg::Node> node = las.buildLasPoints(-m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
 
-			// set mntAscNode name
+			// set lasNode name
 			static int id = 0;
 			std::stringstream ss;
-			ss << "mntAscNode" << id++;
+			ss << "lasNode" << id++;
 			node->setName(ss.str());
 
-			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerMnt")->getURI();
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerLas")->getURI();
 			vcity::log() << uriLayer.getStringURI() << "\n";
-			appGui().getControllerGui().addMntAscNode(uriLayer, node);*/
+			appGui().getControllerGui().addLasNode(uriLayer, node);
+
+			las.close();
 
 			addRecentFile(filepath);
 		}

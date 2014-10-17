@@ -292,7 +292,7 @@ osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(float offset_x, float offset_y,
 				indices->push_back( (y+1)*get_dim_x()+x );
 			}
 
-        geom->getOrCreateStateSet();
+        geom->getOrCreateStateSet(); // MT : rajouté par MM -> utilité ?
             
         geom->addPrimitiveSet( indices );
 		// Create geometry primitives
