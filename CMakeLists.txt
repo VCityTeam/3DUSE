@@ -104,6 +104,10 @@ IF(WIN32)
 	set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
 	set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
 	set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
+
+	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
+	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
+	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
 ENDIF(WIN32)
 
 # Find Qt
@@ -336,6 +340,14 @@ else(GEOS_FOUND)
   message(FATAL_ERROR "GEOS not found.")
 endif(GEOS_FOUND)
 
+# Find LASLIB
+find_package(LASLIB)
+if(LASLIB_FOUND)
+  include_directories(${LASLIB_INCLUDE_DIR})
+else(LASLIB_FOUND)
+  message(FATAL_ERROR "LASLIB not found.")
+endif(LASLIB_FOUND)
+
 file(
   GLOB_RECURSE
   VCITY_GUI_Qt_SRC
@@ -398,6 +410,7 @@ SET( VCITY_GUI_LIB
   ${LIBXML2_LIBRARIES}
   ${PROJ_LIBRARY}
   ${GEOS_LIBRARY}
+  ${LASLIB_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
 if (WITH_QT5)

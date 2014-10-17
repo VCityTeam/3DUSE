@@ -10,10 +10,6 @@ Scene::Scene()
     : m_layers()
 {
     reset();
-    //addLayer(new LayerCityGML("layer_CityGML"));
-    //addLayer(new LayerAssimp("layer_Assimp"));
-    //addLayer(new LayerMnt("layer_Mnt"));
-    //addLayer(new LayerShp("layer_Shp"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 Scene::~Scene()
@@ -107,8 +103,10 @@ void Scene::deleteLayer(const URI& uri)
         if(uri.getCurrentNode() == (*it)->getName())
         {
 			uri.popFront();
-            m_layers.erase(it);
+            //m_layers.erase(it); // MT : remove
             delete *it;
+			m_layers.erase(it); // MT : add
+			break; // MT : add
         }
     }
 }
@@ -212,6 +210,7 @@ void Scene::reset()
     addLayer(new LayerCityGML("layer_CityGML"));
     addLayer(new LayerAssimp("layer_Assimp"));
     addLayer(new LayerMnt("layer_Mnt"));
+    addLayer(new LayerLas("layer_Las"));
     addLayer(new LayerShp("layer_Shp"));
 }
 ////////////////////////////////////////////////////////////////////////////////
