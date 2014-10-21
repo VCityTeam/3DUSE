@@ -1706,13 +1706,27 @@ void MainWindow::test1()
 	//loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
 	//vcity::app().getAlgo().CompareTiles();
 
-	 m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
+	//Generate LOD1 on files and export results in Folder
+
+	m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
 
     std::cout<<"Load Scene"<<std::endl;
 
     QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Load scene files", lastdir);
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Sélectionner les fichiers à traiter", lastdir);
+
+	QFileDialog w;
+	w.setWindowTitle("Sélectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
 
     for(int i = 0; i < filenames.count(); ++i)
     {
@@ -1724,7 +1738,7 @@ void MainWindow::test1()
 		{
 			std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
 			continue;
-		}		
+		}
         settings.setValue("lastdir", file.dir().absolutePath());
 
 		QString ext = file2.suffix().toLower();
@@ -1736,18 +1750,33 @@ void MainWindow::test1()
 
 			//Generate LOD1 on tile and save in CityGML File
 
-			citygml::ExporterCityGML exporter(/*Folder + "/" + */file.baseName().toStdString() +"_LOD1.gml");
+			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1.gml");
 			exporter.initExport();
+
+			std::cout << tile->getCityModel()->getAttribute("xmlns") << std::endl;
+
+			//std::cout << tile->getCityModel()->getEnvelope() << std::endl;
+
+			/*citygml::AttributesMap Test = tile->getCityModel()->getAttributes();
+			
+			std::cout << "TEST_________________________________" << std::endl;
+			std::cout << Test.size() << std::endl;
+			for(citygml::AttributesMap::iterator it = Test.begin(); it != Test.end(); it++)
+			{
+				std::cout << it->first << " => " << it->second << '\n';
+			}*/
 
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 			{		
 				if(obj)
 				{
-					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+					std::cout<< "Generate LOD1 on "<< obj->getId() << std::endl;
 					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 					double * heightmax = new double;
 					double * heightmin = new double;
 					vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+
+
 
 					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
@@ -1759,7 +1788,7 @@ void MainWindow::test1()
 				}
 			}			
 			exporter.endExport();
-			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree."<< std::endl;			
+			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree dans " << Folder << std::endl;			
 			QApplication::restoreOverrideCursor();
 		}
     }
@@ -1769,20 +1798,85 @@ void MainWindow::test1()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test2()
 {
-    //loadFile("/home/maxime/docs/data/dd_gilles/IGN_Data/dpt_75/BDTOPO-75/BDTOPO/1_DONNEES_LIVRAISON_2011-12-00477/BDT_2-1_SHP_LAMB93_D075-ED113/E_BATI/BATI_INDIFFERENCIE.SHP");
-    /*loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13725/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13724/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13725/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13724/export-CityGML/ZoneAExporter.gml");
-
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1296-13726/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1295-13726/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13726/export-CityGML/ZoneAExporter.gml");
-    loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1294-13725/export-CityGML/ZoneAExporter.gml");*/
-	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
+	/*loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
 	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
-	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);
+	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);*/
+
+	//Generate LOD1 on files and export LOD1+LOD2 in Folder
+
+	m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
+
+    std::cout<<"Load Scene"<<std::endl;
+
+    QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Sélectionner les fichiers à traiter", lastdir);
+
+	QFileDialog w;
+	w.setWindowTitle("Sélectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+
+    for(int i = 0; i < filenames.count(); ++i)
+    {
+        QFileInfo file(filenames[i]);
+		QString filepath = file.absoluteFilePath();
+		QFileInfo file2(filepath);
+
+		if(!file2.exists())
+		{
+			std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
+			continue;
+		}
+        settings.setValue("lastdir", file.dir().absolutePath());
+
+		QString ext = file2.suffix().toLower();
+		if(ext == "citygml" || ext == "gml")
+		{
+			QApplication::setOverrideCursor(Qt::WaitCursor);
+			std::cout << "load citygml file : " << filepath.toStdString() << std::endl;
+			vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
+
+			//Generate LOD1 on tile and save in CityGML File
+
+			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1_LOD2.gml");
+			exporter.initExport();
+
+			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+			{		
+				if(obj)
+				{
+					std::cout<< "Generate LOD1 on "<< obj->getId() << std::endl;
+					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+					double * heightmax = new double;
+					double * heightmin = new double;
+					vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+
+					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+					exporter.appendCityObject(*obj);
+					//exporter.appendCityObject(*LOD1);
+
+					delete Enveloppe;
+					delete heightmax;
+					delete heightmin;
+				}
+			}			
+			exporter.endExport();
+			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1_LOD2.gml cree dans " << Folder << std::endl;			
+			QApplication::restoreOverrideCursor();
+		}
+    }
+
+    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
