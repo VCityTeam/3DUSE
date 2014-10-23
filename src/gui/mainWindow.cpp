@@ -1599,10 +1599,11 @@ void MainWindow::about()
     diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void buildJson()
+/*void buildJson()//Paris
 {
     QString dataPath("/mnt/docs/data/dd_backup/GIS_Data/Donnees_IGN");
-    std::string basePath("/tmp/json/");
+    //std::string basePath("/tmp/json/");
+    std::string basePath("/home/frederic/Documents/JSON/Paris/");
     int idOffsetX = 1286;
     int idOffsetY = 13714;
     double offsetX = 643000.0;
@@ -1645,9 +1646,59 @@ void buildJson()
         }
     }
     std::cout << std::endl;
+}*/
+void buildJson()//Villeurbanne
+{
+    //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
+
+    QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_BATIS_CITYGML/cut2");
+    //QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_MNT_CITYGML/cut");
+    //std::string basePath("/tmp/json/");
+    std::string basePath("/home/frederic/Documents/JSON/");
+    double offsetX = 1844500.0;
+    double offsetY = 5173500.0;
+    double stepX = 500.0;
+    double stepY = 500.0;
+
+    QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
+    while(iterator.hasNext())
+    {
+        iterator.next();
+        if(!iterator.fileInfo().isDir())
+        {
+            QString filename = iterator.filePath();
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+            {
+                citygml::ParserParams params;
+                citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
+                if(citygmlmodel)
+                {
+                    std::string id = filename.toStdString();
+                    id = id.substr(id.find("Villeurbanne_")+13);
+                    id = id.substr(0, id.find_first_of("."));
+                    int idX = std::stoi(id.substr(0,id.find('_')));
+                    int idY = std::stoi(id.substr(id.find('_')+1));
+                    std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
+                    std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
+
+                    id = std::to_string(idX) + "_" + std::to_string(idY);
+
+                    std::cout << "id : " << idX << ", " << idY << std::endl;
+
+                    citygml::ExporterJSON exporter;
+                    exporter.setBasePath(basePath);
+                    exporter.setOffset(offsetX+stepX*idX, offsetY+stepY*idY);
+                    exporter.setTileSize(stepX, stepY);
+                    exporter.exportCityModel(*citygmlmodel, f, id);
+                    delete citygmlmodel;
+                }
+            }
+        }
+    }
+    std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void buildJsonLod()
+void buildJsonLod()// bldg geo ref test #if 1 dans exportJSON.cpp
 {
     QString dataPath("/mnt/docs/upload/shp/paris/tiles");
     std::string basePath("/tmp/json/lod0/");
@@ -1808,8 +1859,8 @@ void MainWindow::test4()
     //loadFile("/home/maxime/docs/data/dd_gilles/3DPIE_Donnees_IGN_unzip/EXPORT_1304-13720/export-CityGML/ZoneAExporter.gml");
 
     // test json
-    //buildJson();
-    buildJsonLod();
+    buildJson();
+    //buildJsonLod();
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

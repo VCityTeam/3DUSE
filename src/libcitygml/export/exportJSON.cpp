@@ -37,8 +37,12 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
 
     TVec3d p;
 
+    std::cout << "ID  = " << id << std::endl;
+    std::cout << "Filename = " << fileName << std::endl;
+
     // bldg
-    #if 0
+    #if 1 //1 : ce if est actif, les 0 sont inactifs
+    std::cout << "bldg \n";
     addFilter(COT_WallSurface, "walls");
     addFilter(COT_RoofSurface, "roofs");
     m_outFile.open(m_basePath + "building/" + fileName + ".json");
@@ -63,6 +67,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
 
     // terrain
     #if 0
+    std::cout << "terrain \n";
     addFilter(COT_TINRelief, "terrain");
     m_outFile.open(m_basePath + "terrain/" + fileName + ".json");
     m_outFile << std::fixed;
@@ -86,6 +91,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
 
     // terrain geo ref test
     #if 0
+    std::cout << "terrain geo ref test \n";
     std::cout << "offset : " << m_offsetX << ", " << m_offsetY << std::endl;
     m_genTexCoords = true;
     addFilter(COT_TINRelief, "terrain");
@@ -110,7 +116,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     #endif
 
     // bldg geo ref test
-    #if 1
+    #if 0 //Passer à 1 pour JSON à partir de LOD ? BuildJsonLod
+    std::cout << "bldg geo ref test \n";
     m_genTexCoords = true;
     addFilter(COT_WallSurface, "walls");
     addFilter(COT_RoofSurface, "roofs");
@@ -260,6 +267,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
             m_outFile << " ],\n";
 
             indent(); m_outFile << "\"listUVs\":[ ";
+
             if(!m_genTexCoords)
             {
                 for(Geometry* geom : obj.getGeometries())
@@ -309,7 +317,10 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
             indent();
             if(!m_genTexCoords)
             {
-                m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+                //m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+                m_outFile << "\"texture\":\"" << "output" << m_id << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+
+
                 //if(!texture.empty())
                 //    m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
                 //else
