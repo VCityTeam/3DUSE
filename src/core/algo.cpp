@@ -3201,9 +3201,10 @@ namespace vcity
 						}
                     }
 
-                    //SaveGeometrytoShape("Building", Building);
+                    SaveGeometrytoShape("Building_"+std::to_string(i), Building);
                     OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
-                    //SaveGeometrytoShape("Enveloppe", Enveloppe);
+                    SaveGeometrytoShape("Enveloppe"+std::to_string(i), Enveloppe);
+
 					if(EnveloppeCityU[i] == nullptr)
 						EnveloppeCityU[i] = Enveloppe;
 					else
