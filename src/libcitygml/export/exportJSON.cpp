@@ -41,7 +41,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     std::cout << "Filename = " << fileName << std::endl;
 
     // bldg
-    #if 1 //1 : ce if est actif, les 0 sont inactifs
+    #if 0 //1 : ce if est actif, les 0 sont inactifs
     std::cout << "bldg \n";
     addFilter(COT_WallSurface, "walls");
     addFilter(COT_RoofSurface, "roofs");
@@ -90,12 +90,13 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     #endif
 
     // terrain geo ref test
-    #if 0
+    #if 1 //Terrain avec m_genTexCoords = true //Utile pour buildJSON lod ?
     std::cout << "terrain geo ref test \n";
     std::cout << "offset : " << m_offsetX << ", " << m_offsetY << std::endl;
     m_genTexCoords = true;
     addFilter(COT_TINRelief, "terrain");
-    m_outFile.open(m_basePath + "terrain/lod/" + fileName + ".json");
+    //m_outFile.open(m_basePath + "terrain/lod/" + fileName + ".json");
+    m_outFile.open(m_basePath + "terrain/" + fileName + ".json");
     m_outFile << std::fixed;
     openScope(); // global scope
     indent(); m_outFile << "\"id\":\"" << id << "\",\n";
@@ -116,7 +117,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     #endif
 
     // bldg geo ref test
-    #if 0 //Passer à 1 pour JSON à partir de LOD ? BuildJsonLod
+    #if 0 //Building avec m_genTexCoords = true
     std::cout << "bldg geo ref test \n";
     m_genTexCoords = true;
     addFilter(COT_WallSurface, "walls");
@@ -280,6 +281,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                                 std::cout << "Multiple textures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
                             texture = poly->getTexture()->getUrl();
                         }*/
+
 
                         for(const auto& uv : poly->getTexCoords())
                         {
