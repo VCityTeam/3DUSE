@@ -158,7 +158,7 @@ namespace vcity
 							*heightmax = Vertices.z;
 						//std::cout << " (x,y) = (" << Vertices.x<< "," << Vertices.y<< ")" << std::endl;
 					}
-					OgrRing->closeRings();
+                    OgrRing->closeRings();
                     if(OgrRing->getNumPoints() > 3)//Le polygone ne sera créé qu'à partir de 4 points
                     {
                         OgrPoly->addRingDirectly(OgrRing);
@@ -789,7 +789,7 @@ namespace vcity
 				
 				ExtRing->addPoint(x, y);
 			}
-			ExtRing->closeRings();
+            ExtRing->closeRings();
 			Polygon->addRingDirectly(ExtRing);
 			
 			for(size_t k = 0; k < p->getNumInteriorRing(); k++)//On parcourt les holes du polygon
@@ -3181,8 +3181,10 @@ namespace vcity
 									for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 									{
                                         OgrRing->addPoint(Point.x, Point.y, Point.z);
-									}
+                                    }
+
                                     OgrRing->closeRings();
+
                                     if(OgrRing->getNumPoints() > 3)
 									{
                                         OgrPoly->addRingDirectly(OgrRing);
