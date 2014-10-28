@@ -1667,6 +1667,7 @@ void buildJson()//Villeurbanne
         if(!iterator.fileInfo().isDir())
         {
             QString filename = iterator.filePath();
+
             if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
             {
                 citygml::ParserParams params;
@@ -1687,6 +1688,7 @@ void buildJson()//Villeurbanne
 
                     citygml::ExporterJSON exporter;
                     exporter.setBasePath(basePath);
+                    exporter.setPath(filename.toStdString());
                     exporter.setOffset(offsetX+stepX*idX, offsetY+stepY*idY);
                     exporter.setTileSize(stepX, stepY);
                     exporter.exportCityModel(*citygmlmodel, f, id);
