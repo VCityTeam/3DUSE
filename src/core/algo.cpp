@@ -890,6 +890,45 @@ namespace vcity
 
         std::cout << "Fichier " << name << " cree." << std::endl;
     }
+    //Pour être appelé n'importe où dans algo.cpp
+    void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G)
+    {
+        const char * DriverName = "ESRI Shapefile";
+        OGRSFDriver * Driver;
+
+        OGRRegisterAll();
+        Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+        if( Driver == NULL )
+        {
+            printf( "%s driver not available.\n", DriverName );
+            return;
+        }
+        OGRDataSource * DS;
+
+        name = name + ".shp";
+
+        remove(name.c_str());
+        DS = Driver->CreateDataSource(name.c_str(), NULL);
+
+        OGRLayer * Layer = DS->CreateLayer("Layer1");
+
+        for(int i = 0; i < G->getNumGeometries(); ++i)
+        {
+            if(G->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon && G->getGeometryRef(i)->getGeometryType() != OGRwkbGeometryType::wkbPolygon25D)
+                continue;
+
+            OGRPolygon * Polygon =  dynamic_cast<OGRPolygon*>(G->getGeometryRef(i)->clone());
+
+            OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+            Feature->SetGeometry(Polygon);
+            Layer->CreateFeature(Feature);
+
+            OGRFeature::DestroyFeature(Feature);
+        }
+        OGRDataSource::DestroyDataSource(DS);
+
+        std::cout << "Fichier " << name << " cree." << std::endl;
+    }
 
 	/**
 	* @brief Sauvegarde 3 geometry dans un même fichier image dans les trois canaux RGB
@@ -1093,126 +1132,131 @@ namespace vcity
 	}
 	OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
 	{
-		//std::cout << "Mise en place de l'union des polygons" << std::endl;
+        //std::cout << "Mise en place de l'union des polygons" << std::endl;
 
-		OGRGeometry* ResUnion = new OGRMultiPolygon;
+        /*OGRGeometry* ResUnion = new OGRMultiPolygon;
 
-        ResUnion = MP->UnionCascaded();
+        //ResUnion = MP->UnionCascaded();
+
+        //On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
+        if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
+        {
+            OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
+            return GeoCollection;
+        }
+        else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
+        {
+            OGRMultiPolygon * GeoCollection = new OGRMultiPolygon;
+            GeoCollection->addGeometryDirectly(ResUnion);
+            return GeoCollection;
+        }
+        return nullptr;*/
+
+        OGRMultiPolygon* ResUnion = new OGRMultiPolygon;
 
         //OGRGeometry** Polys = new OGRGeometry*[MP->getNumGeometries()]; //Vecteur contenant les différents polygones de l'union au fur et à mesure
 
-        //for(int i = 0; i < MP->getNumGeometries(); ++i)	//On parcourt tous les polygons que l'on veut unir
-        //{
+        for(int i = 0; i < MP->getNumGeometries(); ++i)	//On parcourt tous les polygons que l'on veut unir
+        {
+            //Polys[i] = MP->getGeometryRef(i)->clone();
 
-           // Polys[i] = MP->getGeometryRef(i)->clone();
-            /*try	//On vérifie qu'il n'y ait pas d'exceptions faisant planter le logiciel
+            if(ResUnion != nullptr)
             {
-                OGRGeometry* tmp = ResUnion;
-                ResUnion = tmp->Union(MP->getGeometryRef(i)); //On fait l'union avant de la vérifier
-                delete tmp;
-				std::vector<OGRGeometry*>* Polys = new std::vector<OGRGeometry*>(); //Vecteur contenant les différents polygones de l'union au fur et à mesure
+                std::cout << "IsValid " <<  ResUnion->IsValid() << "  " << MP->getGeometryRef(i)->IsValid() << std::endl;
+                SaveGeometrytoShape("Test_"+std::to_string(i), ResUnion);
+                OGRGeometry* tmp = ResUnion->Union(MP->getGeometryRef(i)); //On fait l'union avant de la vérifier
+                std::cout << tmp->IsValid() << std::endl;
+                std::cout << tmp->getGeometryName() << std::endl;
 
-                //int *a;
-                //OGRGeometryFactory::organizePolygons(Polys, 10, a, true);
-
-                if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon)
+                if(tmp->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || tmp->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
                 {
-                    OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
-                    for(size_t j = 0; j < GeoCollection->getNumGeometries(); ++j) //L'union peut être constitué de plusieurs polygons disjoints
+                    ResUnion = dynamic_cast<OGRMultiPolygon*>(tmp);
+                }
+                else if(tmp->getGeometryType() == OGRwkbGeometryType::wkbPolygon || tmp->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
+                {
+                    ResUnion->addGeometry(tmp);
+                }
+                delete tmp;
+            }
+            else
+            {
+                ResUnion->addGeometry(MP->getGeometryRef(i));
+            }
+
+            OGRMultiPolygon* Polys = new OGRMultiPolygon; //Contient les différents polygones de l'union au fur et à mesure
+
+            for(int j = 0; j < ResUnion->getNumGeometries(); ++j) //L'union peut être constitué de plusieurs polygons disjoints
+            {
+                OGRGeometry * Geometry = ResUnion->getGeometryRef(j);
+                if(Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon || Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)
+                {
+                    OGRLinearRing * tempcoord = new OGRLinearRing; //Contiendra les points au fur et à mesure que l'on parcourt le Ring
+
+                    OGRPolygon * Polygon = dynamic_cast<OGRPolygon*>(Geometry);
+                    OGRLinearRing * Ring = Polygon->getExteriorRing();
+
+                    double FirstPoint[2];
+                    FirstPoint[0] = -1;
+
+                    bool isHole = false;
+
+                    OGRPolygon* P = new OGRPolygon; //Polygone de sortie avec éventuellement des trous
+
+                    for(int k = 0; k < Ring->getNumPoints(); ++k) //On parcourt tous les points pour retrouver ceux qui apparaissent deux fois et qui définissent un polygon qu'il faut extraire
                     {
-                        OGRGeometry * Geometry = GeoCollection->getGeometryRef(j);
-                        if(Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon || Geometry->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)
-						{
-							//OGRPolygon * Polygon = dynamic_cast<OGRPolygon*>(Geometry);
-							//OGRLinearRing * Ring = Polygon->getExteriorRing();
+                        OGRPoint* Point = new OGRPoint;
+                        Ring->getPoint(k, Point);
+                        double x = Point->getX();
+                        double y = Point->getY();
 
-							geos::geom::CoordinateArraySequence tempcoord;
-                            const geos::geom::CoordinateSequence *coordGeo = GeoCollection->getGeometryRef(j)->getCoordinates(); //On récupère la liste des points de la géométrie courante
+                        tempcoord->addPoint(Point);//Pour stocker les points au fur et à mesure (en conservant la coordonnée z)
 
-							double FirstPoint[2];
-							FirstPoint[0] = -1;
+                        if(FirstPoint[0] == -1)
+                        {
+                            FirstPoint[0] = x;
+                            FirstPoint[1] = y;
+                        }
+                        else if(x == FirstPoint[0] && y == FirstPoint[1])
+                        {
+                            if(!isHole)
+                            {
+                                FirstPoint[0] = -1;
+                                isHole = true;
+                                std::cout << "Area = " << tempcoord->get_Area() << std::endl;
 
-							bool isHole = false;
-							geos::geom::LinearRing * shell;
-							std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>; //Vecteur contenant tous les polygones à l'intérieur du premier, qui sont donc considérés comme des trous
+                                P->addRing(tempcoord);
+                                delete tempcoord;
+                                tempcoord = new OGRLinearRing;
 
-							for(size_t k = 0; k < coordGeo->size(); ++k) //On parcourt tous les points pour retrouver ceux qui apparaissent deux fois et qui définissent un polygon qu'il faut extraire
-							{
-								double x = coordGeo->getAt(k).x;
-								double y = coordGeo->getAt(k).y;
+                                //break;//////////////////////// A COMMENTER POUR AVOIR LES TROUS DANS LES POLYGONS
+                            }
+                            else
+                            {
+                                if(tempcoord->getNumPoints() > 3 && tempcoord->IsValid() && tempcoord->get_Area() > 1)
+                                {
+                                    P->addRing(tempcoord);
+                                }
+                                FirstPoint[0] = -1;
 
-								tempcoord.add(coordGeo->getAt(k));//Pour avoir le z en plus
+                                delete tempcoord;
+                                tempcoord = new OGRLinearRing;
+                            }
+                        }
+                    }
+                    std::cout << "P->IsValid " << P->IsValid() << std::endl;
+                    Polys->addGeometry(P);
+                    std::cout << "Polys->IsValid " << Polys->IsValid() << std::endl;
 
-								if(FirstPoint[0] == -1)
-								{
-									FirstPoint[0] = x;
-									FirstPoint[1] = y;
-								}
-								else if(x == FirstPoint[0] && y == FirstPoint[1])
-								{
-									if(!isHole)
-									{
-										shell = factory->createLinearRing(tempcoord);
-										FirstPoint[0] = -1;
-										isHole = true;
-										tempcoord.clear();
-
-										//break;//////////////////////// A COMMENTER POUR AVOIR LES TROUS DANS LES POLYGONS
-									}
-									else
-									{
-										if(tempcoord.size() > 3)
-										{
-											geos::geom::LinearRing* Hole = factory->createLinearRing(tempcoord);
-											geos::geom::Polygon* polyArea = factory->createPolygon(*Hole, std::vector<geos::geom::Geometry*>());
-
-											if(polyArea->getArea() > 1)
-												Holes->push_back(static_cast<geos::geom::Geometry*>(Hole));
-
-											delete polyArea;
-										}
-										FirstPoint[0] = -1;
-										tempcoord.clear();
-									}
-								}
-							}
-							delete coordGeo;
-							geos::geom::Polygon *P;
-
-							if(Holes->size() == 0)
-								P = factory->createPolygon(shell, nullptr);
-							else
-								P = factory->createPolygon(shell, Holes);
-
-							Polys->push_back(P);
-						}
-					}
-				}
-				delete ResUnion;
-                ResUnion = factory->createMultiPolygon(Polys);
-			}
-			catch(std::exception& e)
-			{
-				std::cout << e.what() << '\n';
-            }*/
-        //}
+                    SaveGeometrytoShape("Poly1", ResUnion);
+                    SaveGeometrytoShape("Poly2", Polys);
+                }
+            }
+            delete ResUnion;
+            ResUnion = Polys;
+        }
 
         //int *NbValidGeom;
         //ResUnion = OGRGeometryFactory::organizePolygons(Polys, MP->getNumGeometries(), NbValidGeom);
-
-		//On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
-        if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
-		{
-			OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
-			return GeoCollection;
-		}
-        else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
-		{
-			OGRMultiPolygon * GeoCollection = new OGRMultiPolygon;
-			GeoCollection->addGeometryDirectly(ResUnion);
-			return GeoCollection;
-		}
-		return nullptr;
 	}
 
 	/**
