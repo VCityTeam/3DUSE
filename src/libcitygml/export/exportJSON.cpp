@@ -338,7 +338,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                                 tc.x = (vertex.x-offset_x)/409.6; // ATTENTION : fonctionne uniquement pour textures 4096x4096 avec ratio de 0.1 (c'est le cas sur Lyon)
                                 tc.y = (vertex.y-offset_y)/409.6;
 
-                                tc.y = - tc.y; //Car D est négatif
+                                tc.y = 1 + tc.y; //Car D est négatif
 
                                 m_outFile << tc.x << "," << tc.y << ",";
                             }

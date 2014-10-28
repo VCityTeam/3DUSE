@@ -1652,7 +1652,7 @@ void buildJson()//Villeurbanne
     //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
 
     //QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_BATIS_CITYGML/cut2"); //Découpe Bati (attention au #if dans exportJSON.cpp)
-    QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_MNT_CITYGML/cut2"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
+    QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_MNT_CITYGML/cut"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
 
     std::string basePath("/home/frederic/Documents/JSON/"); //Dossier de sortie
     double offsetX = 1844500.0;
