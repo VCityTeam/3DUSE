@@ -1151,29 +1151,32 @@ namespace vcity
         {
             OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
 
-            GeoCollection->closeRings();
+            OGRMultiPolygon * MultiPolygonRes = new OGRMultiPolygon;
 
-            std::vector<int> R;
             for(int i = 0; i < GeoCollection->getNumGeometries(); ++i)
             {
                 OGRGeometry * Geometry = GeoCollection->getGeometryRef(i);
 
-                SaveGeometrytoShape("Poly_" + std::to_string(i), Geometry);
-                /*if(Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon || Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)
+                if(Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon || Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)
                 {
                     OGRPolygon * Poly = dynamic_cast<OGRPolygon*>(Geometry);
+                    OGRPolygon * PolyRes = new OGRPolygon;
 
-                    //std::cout << Poly->getNumInteriorRings() << " " << Poly->get_Area() << std::endl;
+                    PolyRes->addRing(Poly->getExteriorRing());
 
-                    //if(Poly->getNumInteriorRings() > 0)
-                    //    R.push_back(i);
-                }*/
+                    for(int j = 0; j < Poly->getNumInteriorRings(); ++j)
+                    {
+                        const OGRLinearRing * IntRing = Poly->getInteriorRing(j);
+
+                        if(IntRing->get_Area() > 0.01) //Pour enlever les arêtes parasites formant des interior ring "plats"
+                            PolyRes->addRingDirectly(dynamic_cast<OGRLinearRing*>(IntRing->clone()));
+                    }
+
+                    MultiPolygonRes->addGeometryDirectly(PolyRes);
+                }
             }
 
-            /*for(int i = 0; i < R.size(); ++i)
-                GeoCollection->removeGeometry(R.at(i), true);*/
-
-            return GeoCollection;
+            return MultiPolygonRes;
         }
         else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
         {
