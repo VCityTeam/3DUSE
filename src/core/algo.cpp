@@ -929,8 +929,15 @@ namespace vcity
 
         std::cout << "Fichier " << name << " cree." << std::endl;
     }
+    void SaveGeometrytoShape(std::string name, const OGRGeometry* G)
+    {
+        OGRMultiPolygon * Temp = new OGRMultiPolygon;
+        Temp->addGeometry(G);
+        SaveGeometrytoShape(name, Temp);
+        delete Temp;
+    }
 
-	/**
+    /**
 	* @brief Sauvegarde 3 geometry dans un même fichier image dans les trois canaux RGB
 	* @param name Nom de l'image à enregistrer
 	* @param G1 Geometry à enregistrer dans le canal rouge du fichier image
@@ -1134,14 +1141,38 @@ namespace vcity
 	{
         //std::cout << "Mise en place de l'union des polygons" << std::endl;
 
-        /*OGRGeometry* ResUnion = new OGRMultiPolygon;
+#if 1
+        OGRGeometry* ResUnion = new OGRMultiPolygon;
 
-        //ResUnion = MP->UnionCascaded();
+        ResUnion = MP->UnionCascaded();
 
         //On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
         if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
         {
             OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
+
+            GeoCollection->closeRings();
+
+            std::vector<int> R;
+            for(int i = 0; i < GeoCollection->getNumGeometries(); ++i)
+            {
+                OGRGeometry * Geometry = GeoCollection->getGeometryRef(i);
+
+                SaveGeometrytoShape("Poly_" + std::to_string(i), Geometry);
+                /*if(Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon || Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)
+                {
+                    OGRPolygon * Poly = dynamic_cast<OGRPolygon*>(Geometry);
+
+                    //std::cout << Poly->getNumInteriorRings() << " " << Poly->get_Area() << std::endl;
+
+                    //if(Poly->getNumInteriorRings() > 0)
+                    //    R.push_back(i);
+                }*/
+            }
+
+            /*for(int i = 0; i < R.size(); ++i)
+                GeoCollection->removeGeometry(R.at(i), true);*/
+
             return GeoCollection;
         }
         else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
@@ -1150,8 +1181,9 @@ namespace vcity
             GeoCollection->addGeometryDirectly(ResUnion);
             return GeoCollection;
         }
-        return nullptr;*/
 
+        return nullptr;
+#else
         OGRMultiPolygon* ResUnion = new OGRMultiPolygon;
 
         //OGRGeometry** Polys = new OGRGeometry*[MP->getNumGeometries()]; //Vecteur contenant les différents polygones de l'union au fur et à mesure
@@ -1162,11 +1194,11 @@ namespace vcity
 
             if(ResUnion != nullptr)
             {
-                std::cout << "IsValid " <<  ResUnion->IsValid() << "  " << MP->getGeometryRef(i)->IsValid() << std::endl;
-                SaveGeometrytoShape("Test_"+std::to_string(i), ResUnion);
+                //std::cout << "IsValid " <<  ResUnion->IsValid() << "  " << MP->getGeometryRef(i)->IsValid() << std::endl;
+                //SaveGeometrytoShape("Test_"+std::to_string(i), ResUnion);
                 OGRGeometry* tmp = ResUnion->Union(MP->getGeometryRef(i)); //On fait l'union avant de la vérifier
-                std::cout << tmp->IsValid() << std::endl;
-                std::cout << tmp->getGeometryName() << std::endl;
+                //std::cout << tmp->IsValid() << std::endl;
+                //std::cout << tmp->getGeometryName() << std::endl;
 
                 if(tmp->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || tmp->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
                 {
@@ -1176,6 +1208,7 @@ namespace vcity
                 {
                     ResUnion->addGeometry(tmp);
                 }
+
                 delete tmp;
             }
             else
@@ -1185,9 +1218,15 @@ namespace vcity
 
             OGRMultiPolygon* Polys = new OGRMultiPolygon; //Contient les différents polygones de l'union au fur et à mesure
 
+            std::cout << "Num Geo = " << ResUnion->getNumGeometries() << std::endl;
             for(int j = 0; j < ResUnion->getNumGeometries(); ++j) //L'union peut être constitué de plusieurs polygons disjoints
             {
                 OGRGeometry * Geometry = ResUnion->getGeometryRef(j);
+
+                OGRMultiPolygon* Test = new OGRMultiPolygon;
+                Test->addGeometry(Geometry);
+
+                SaveGeometrytoShape("Geo_" + std::to_string(j), Test);
                 if(Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon || Geometry->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)
                 {
                     OGRLinearRing * tempcoord = new OGRLinearRing; //Contiendra les points au fur et à mesure que l'on parcourt le Ring
@@ -1228,7 +1267,7 @@ namespace vcity
                                 delete tempcoord;
                                 tempcoord = new OGRLinearRing;
 
-                                //break;//////////////////////// A COMMENTER POUR AVOIR LES TROUS DANS LES POLYGONS
+                                break;//////////////////////// A COMMENTER POUR AVOIR LES TROUS DANS LES POLYGONS
                             }
                             else
                             {
@@ -1247,14 +1286,14 @@ namespace vcity
                     Polys->addGeometry(P);
                     std::cout << "Polys->IsValid " << Polys->IsValid() << std::endl;
 
-                    SaveGeometrytoShape("Poly1", ResUnion);
-                    SaveGeometrytoShape("Poly2", Polys);
+                    //SaveGeometrytoShape("Poly1", ResUnion);
+                    //SaveGeometrytoShape("Poly2", Polys);
                 }
             }
             delete ResUnion;
             ResUnion = Polys;
         }
-
+#endif
         //int *NbValidGeom;
         //ResUnion = OGRGeometryFactory::organizePolygons(Polys, MP->getNumGeometries(), NbValidGeom);
 	}
@@ -2832,9 +2871,9 @@ namespace vcity
 		OGRMultiPolygon * Footprint = new OGRMultiPolygon;
 		GetFootprint(obj, Footprint, heightmax, heightmin);
 
-		*Enveloppe = GetEnveloppe(Footprint);
+        SaveGeometrytoShape("Footprint", Footprint);
 
-        //std::cout << "GDAL" << std::endl;
+        *Enveloppe = GetEnveloppe(Footprint);
 	}
 	void Algo::generateLOD0(citygml::CityObject* obj, geos::geom::Geometry ** Enveloppe, double * heightmax, double * heightmin)
 	{
@@ -3245,9 +3284,9 @@ namespace vcity
 						}
                     }
 
-                    SaveGeometrytoShape("Building_"+std::to_string(i), Building);
+                    SaveGeometrytoShape(std::to_string(i)+"_Building_", Building);
                     OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
-                    SaveGeometrytoShape("Enveloppe"+std::to_string(i), Enveloppe);
+                    SaveGeometrytoShape(std::to_string(i)+"_Enveloppe", Enveloppe);
 
 					if(EnveloppeCityU[i] == nullptr)
 						EnveloppeCityU[i] = Enveloppe;
