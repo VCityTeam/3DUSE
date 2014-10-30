@@ -1647,7 +1647,60 @@ void MainWindow::about()
     }
     std::cout << std::endl;
 }*/
-void buildJson()//Villeurbanne
+void buildJson()//Lyon03
+{
+    //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
+
+    //QString dataPath("/home/frederic/Telechargements/Data/Lyon03/LYON03_BATI/cut"); //Découpe Bati (attention au #if dans exportJSON.cpp)
+    QString dataPath("/home/frederic/Telechargements/Data/Lyon03/LYON03_MNT/cut"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
+
+    std::string basePath("/home/frederic/Documents/JSON/Lyon03/"); //Dossier de sortie
+    double offsetX = 1843000.0;
+    double offsetY = 5172500.0;
+    double stepX = 500.0;
+    double stepY = 500.0;
+
+    QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
+    while(iterator.hasNext())
+    {
+        iterator.next();
+        if(!iterator.fileInfo().isDir())
+        {
+            QString filename = iterator.filePath();
+
+            if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+            {
+                citygml::ParserParams params;
+                citygml::CityModel* citygmlmodel = citygml::load(filename.toStdString(), params);
+                if(citygmlmodel)
+                {
+                    std::string id = filename.toStdString();
+                    id = id.substr(id.find("Lyon03_")+7);
+                    id = id.substr(0, id.find_first_of("."));
+                    int idX = std::stoi(id.substr(0,id.find('_')));
+                    int idY = std::stoi(id.substr(id.find('_')+1));
+                    std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
+                    std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
+
+                    id = std::to_string(idX) + "_" + std::to_string(idY);
+
+                    std::cout << "id : " << idX << ", " << idY << std::endl;
+
+                    citygml::ExporterJSON exporter;
+                    exporter.setBasePath(basePath);
+                    exporter.setPath(filename.toStdString());
+                    exporter.setOffset(offsetX+stepX*idX, offsetY+stepY*idY);
+                    exporter.setTileSize(stepX, stepY);
+                    exporter.exportCityModel(*citygmlmodel, f, id);
+                    delete citygmlmodel;
+                }
+            }
+        }
+    }
+    std::cout << std::endl;
+}
+
+/*void buildJson()//Villeurbanne
 {
     //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
 
@@ -1698,7 +1751,7 @@ void buildJson()//Villeurbanne
         }
     }
     std::cout << std::endl;
-}
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void buildJsonLod()// bldg geo ref test #if 1 dans exportJSON.cpp
 {
