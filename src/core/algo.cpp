@@ -1296,9 +1296,9 @@ namespace vcity
             delete ResUnion;
             ResUnion = Polys;
         }
-#endif
         //int *NbValidGeom;
         //ResUnion = OGRGeometryFactory::organizePolygons(Polys, MP->getNumGeometries(), NbValidGeom);
+#endif
 	}
 
 	/**
@@ -2874,8 +2874,6 @@ namespace vcity
 		OGRMultiPolygon * Footprint = new OGRMultiPolygon;
 		GetFootprint(obj, Footprint, heightmax, heightmin);
 
-        SaveGeometrytoShape("Footprint", Footprint);
-
         *Enveloppe = GetEnveloppe(Footprint);
 	}
 	void Algo::generateLOD0(citygml::CityObject* obj, geos::geom::Geometry ** Enveloppe, double * heightmax, double * heightmin)
@@ -2889,9 +2887,6 @@ namespace vcity
 		geos::geom::MultiPolygon * Footprint = ConvertToGeos(roofPoints);
 
 		*Enveloppe = GetEnveloppe(Footprint);
-
-		//SaveGeometry("TEST1", Footprint);
-		//SaveGeometry("TEST2", *Enveloppe);
 	}
 
 	/**
@@ -3234,8 +3229,7 @@ namespace vcity
         //On part du principe que le plus vieux est dans le 0 et le plus récent dans le 1
         std::vector<OGRMultiPolygon *> EnveloppeCity[2];//Version avec un ensemble de polygones pour chaque bâtiment (un bâtiment = un polygone distinct après union)
         OGRMultiPolygon * EnveloppeCityU[2];//Version avec des polygones unis pour représenter le bâtiment (ce n'est pas l'ensemble de polygones bruts)
-        //EnveloppeCity[0] = new OGRMultiPolygon;
-        //EnveloppeCity[1] = new OGRMultiPolygon;
+
         EnveloppeCityU[0] = new OGRMultiPolygon;//nullptr;
         EnveloppeCityU[1] = new OGRMultiPolygon;//nullptr;
 
@@ -3287,17 +3281,15 @@ namespace vcity
 						}
                     }
 
-                    SaveGeometrytoShape(std::to_string(i)+"_Building_", Building);
+                   // SaveGeometrytoShape(std::to_string(i)+"_Building_", Building);
                     OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
-                    SaveGeometrytoShape(std::to_string(i)+"_Enveloppe", Enveloppe);
+                    //SaveGeometrytoShape(std::to_string(i)+"_Enveloppe", Enveloppe);
 
 					if(EnveloppeCityU[i] == nullptr)
 						EnveloppeCityU[i] = Enveloppe;
 					else
 					{
                         OGRMultiPolygon * tmp = EnveloppeCityU[i];
-                        //OGRGeometry * Test = EnveloppeCityU[i]->Union(Enveloppe);
-                        //std::cout << "UNION : " << Test->getGeometryType() << std::endl;
 
                         EnveloppeCityU[i] = (OGRMultiPolygon *)tmp->Union(Enveloppe);
 						delete tmp;
