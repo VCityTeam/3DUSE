@@ -25,12 +25,15 @@ public:
 	void DecoupeCityGML(geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
 	void generateLOD1(geos::geom::Geometry * ShapeGeo, std::vector<std::pair<double, double>> Hauteurs);
 	void generateLOD0(citygml::CityObject* obj, OGRMultiPolygon ** Enveloppe, double * heightmax, double * heightmin);
-	void generateLOD0(citygml::CityObject* obj, geos::geom::Geometry ** Enveloppe, double * heightmax, double * heightmin);
+    void generateLOD0(citygml::CityObject* obj, geos::geom::Geometry ** Enveloppe, double * heightmax, double * heightmin);
+
 	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geometry, double * heightmin);
-	citygml::Geometry* ConvertLOD0ToCityGML(std::string name, geos::geom::Geometry * Geometry, double Zmin);
+    citygml::Geometry* ConvertLOD0ToCityGML(std::string name, geos::geom::Geometry * Geometry, double Zmin);
 	citygml::CityObject* ConvertLOD1ToCityGML(std::string name, OGRMultiPolygon * Enveloppe, double * heightmax, double * heightmin);
-	citygml::CityObject* ConvertLOD1ToCityGML(std::string name, geos::geom::Geometry * Geometry, double * heightmax, double * heightmin);
-	void CompareTiles();
+    citygml::CityObject* ConvertLOD1ToCityGML(std::string name, geos::geom::Geometry * Geometry, double * heightmax, double * heightmin);
+
+    void CompareTiles(citygml::CityModel *City1, citygml::CityModel *City2);
+    void CompareTiles();
 
     void SaveGeometrytoShape(std::string name, const geos::geom::Geometry* G);
     void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G);
