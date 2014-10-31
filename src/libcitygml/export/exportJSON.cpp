@@ -8,9 +8,14 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 ExporterJSON::ExporterJSON()
-    : m_indentDepth(0), m_genTexCoords(false), m_offsetX(0.0), m_offsetY(0.0), m_tileSizeX(0.0), m_tileSizeY(0.0)
+    : m_indentDepth(0), m_genTexCoords(false), m_WorldTexCoords(false), m_offsetX(0.0), m_offsetY(0.0), m_tileSizeX(0.0), m_tileSizeY(0.0)
 {
 
+}
+////////////////////////////////////////////////////////////////////////////////
+void ExporterJSON::setPath(const std::string& Path)
+{
+    m_Path = Path;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ExporterJSON::setBasePath(const std::string& basePath)
@@ -37,8 +42,12 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
 
     TVec3d p;
 
+    std::cout << "ID  = " << id << std::endl;
+    std::cout << "Filename = " << fileName << std::endl;
+
     // bldg
-    #if 0
+    #if 0 //1 : ce if est actif, les 0 sont inactifs
+    std::cout << "bldg \n";
     addFilter(COT_WallSurface, "walls");
     addFilter(COT_RoofSurface, "roofs");
     m_outFile.open(m_basePath + "building/" + fileName + ".json");
@@ -54,7 +63,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listBldg scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_Building) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_Building) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listBldg scope
     closeScope(); // global scope
     m_outFile.close();
@@ -63,6 +73,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
 
     // terrain
     #if 0
+    std::cout << "terrain \n";
     addFilter(COT_TINRelief, "terrain");
     m_outFile.open(m_basePath + "terrain/" + fileName + ".json");
     m_outFile << std::fixed;
@@ -77,7 +88,34 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listTerrain scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_TINRelief) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    closeScope();  // listTerrain scope
+    closeScope(); // global scope
+    m_outFile.close();
+    resetFilters();
+    #endif
+
+    // terrain avec fichiers world .jgw
+    #if 1 //0
+    std::cout << "terrain \n";
+    m_WorldTexCoords = true;
+    addFilter(COT_TINRelief, "terrain");
+    m_outFile.open(m_basePath + "terrain/" + fileName + ".json");
+    m_outFile << std::fixed;
+    openScope(); // global scope
+    indent(); m_outFile << "\"id\":\"" << id << "\",\n";
+    indent(); m_outFile << "\"nbTerrain\":" << getNbFeature(model, COT_TINRelief) << ",\n";
+    p = model.getEnvelope().getLowerBound();
+    indent(); m_outFile << "\"min\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    p = model.getEnvelope().getUpperBound();
+    indent(); m_outFile << "\"max\":[" << p.x << "," << p.y << "," << p.z << "],\n";
+    indent(); m_outFile << "\"listTerrain\":";
+    openScope(); // listTerrain scope
+    for(CityObject* obj : model.getCityObjectsRoots())
+        if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
+    if(getNbFeature(model, COT_TINRelief) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listTerrain scope
     closeScope(); // global scope
     m_outFile.close();
@@ -85,7 +123,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     #endif
 
     // terrain geo ref test
-    #if 0
+    #if 0 //Terrain avec m_genTexCoords = true //Utile pour buildJSON lod ?
+    std::cout << "terrain geo ref test \n";
     std::cout << "offset : " << m_offsetX << ", " << m_offsetY << std::endl;
     m_genTexCoords = true;
     addFilter(COT_TINRelief, "terrain");
@@ -102,7 +141,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listTerrain scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_TINRelief) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listTerrain scope
     closeScope(); // global scope
     m_outFile.close();
@@ -110,7 +150,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     #endif
 
     // bldg geo ref test
-    #if 1
+    #if 0 //Building avec m_genTexCoords = true
+    std::cout << "bldg geo ref test \n";
     m_genTexCoords = true;
     addFilter(COT_WallSurface, "walls");
     addFilter(COT_RoofSurface, "roofs");
@@ -128,7 +169,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listBldg scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_Building) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_Building) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listBldg scope
     closeScope(); // global scope
     m_outFile.close();
@@ -219,6 +261,23 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
             openScope(); // feature scope
             //indent(); m_outFile << "\"nbTri\":" << getNbTris(obj) << ",\n";
 
+            double A, B, C ,D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement
+            double offset_x;
+            double offset_y;
+            if(m_WorldTexCoords) //Ouvrir le fichier .jgw
+            {
+                std::ifstream fichier(m_Path.substr(0, m_Path.find_last_of("/")) + "/" + texture.substr(0, texture.find_last_of('.'))+".jgw", std::ios::in);
+
+                //std::cout << "Open World File for texture : " << texture.substr(0, texture.find_last_of('.'))+".jgw" << std::endl;
+
+                if(fichier)
+                {
+                    fichier >> A >> B >> C >> D >> offset_x >> offset_y;
+                    fichier.close();
+                }
+                //std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;
+            }
+
             indent(); m_outFile << "\"listGeometries\":[ ";
             for(Geometry* geom : obj.getGeometries())
             {
@@ -260,6 +319,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
             m_outFile << " ],\n";
 
             indent(); m_outFile << "\"listUVs\":[ ";
+
             if(!m_genTexCoords)
             {
                 for(Geometry* geom : obj.getGeometries())
@@ -273,9 +333,27 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                             texture = poly->getTexture()->getUrl();
                         }*/
 
-                        for(const auto& uv : poly->getTexCoords())
+                        if(m_WorldTexCoords) //Générer les UV à partir du World File
                         {
-                            m_outFile << uv.x << "," << uv.y << ",";
+                            for(const auto& vertex : poly->getVertices())
+                            {
+                                //compute tex coords
+                                TVec2f tc;
+
+                                tc.x = (vertex.x-offset_x)/409.6; // ATTENTION : fonctionne uniquement pour textures 4096x4096 avec ratio de 0.1 (c'est le cas sur Lyon)
+                                tc.y = (vertex.y-offset_y)/409.6;
+
+                                tc.y = 1 + tc.y; //Car D est négatif
+
+                                m_outFile << tc.x << "," << tc.y << ",";
+                            }
+                        }
+                        else
+                        {
+                            for(const auto& uv : poly->getTexCoords())
+                            {
+                                m_outFile << uv.x << "," << uv.y << ",";
+                            }
                         }
                     }
                 }
@@ -309,7 +387,10 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
             indent();
             if(!m_genTexCoords)
             {
-                m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+                //m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+                m_outFile << "\"texture\":\"" << "output" << m_id << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+
+
                 //if(!texture.empty())
                 //    m_outFile << "\"texture\":\"" << "EXPORT_" << m_id.substr(0,4) << "-" <<  m_id.substr(5,5) << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
                 //else
@@ -318,7 +399,8 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
             }
             else
             {
-                m_outFile << "\"texture\":\"" << "tiles/tile_" << m_id << "\"\n";
+                //m_outFile << "\"texture\":\"" << "output" << m_id << "/" << texture.substr(0, texture.find_last_of('.')) << "\"\n";
+                m_outFile << "\"texture\":\"" << "tiles/tile_" << m_id << "\"\n"; //BuildJSONLOD ???????
             }
             --m_indentDepth;indent();m_outFile << "}";
         }

@@ -19,6 +19,9 @@ class ExporterJSON : public Exporter
 public:
     ExporterJSON();
 
+    /// Set file Path
+    void setPath(const std::string& Path);
+
     /// Set exporter base path
     void setBasePath(const std::string& basePath);
 
@@ -56,11 +59,13 @@ private:
 
     std::string m_id;
     std::string m_basePath;
+    std::string m_Path;
     std::string m_fileName;
     std::ofstream m_outFile;
     int m_indentDepth;
 
     bool m_genTexCoords;            ///< Activate texture coord generation (like GeoRefTexture) ?
+    bool m_WorldTexCoords;
     double m_offsetX, m_offsetY;
     double m_tileSizeX, m_tileSizeY;
 

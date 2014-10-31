@@ -5,18 +5,18 @@
 
 #include "triangulate.h"
 
-static const float EPSILON=0.0000000001f;
+static const double EPSILON=0.0000000001f;
 
-float Triangulate::Area(const Vector2dVector &contour)
+double Triangulate::Area(const MyVectorOfVertices &contour)
 {
 
   int n = contour.size();
 
-  float A=0.0f;
+  double A=0.0f;
 
   for(int p=n-1,q=0; q<n; p=q++)
   {
-    A+= contour[p].GetX()*contour[q].GetY() - contour[q].GetX()*contour[p].GetY();
+    A+= contour[p].x/*GetX()*/*contour[q].y/*GetY()*/ - contour[q].x/*GetX()*/*contour[p].y/*GetY()*/;
   }
   return A*0.5f;
 }
@@ -25,14 +25,14 @@ float Triangulate::Area(const Vector2dVector &contour)
      InsideTriangle decides if a point P is Inside of the triangle
      defined by A, B, C.
    */
-bool Triangulate::InsideTriangle(float Ax, float Ay,
-                      float Bx, float By,
-                      float Cx, float Cy,
-                      float Px, float Py)
+bool Triangulate::InsideTriangle(double Ax, double Ay,
+                      double Bx, double By,
+                      double Cx, double Cy,
+                      double Px, double Py)
 
 {
-  float ax, ay, bx, by, cx, cy, apx, apy, bpx, bpy, cpx, cpy;
-  float cCROSSap, bCROSScp, aCROSSbp;
+  double ax, ay, bx, by, cx, cy, apx, apy, bpx, bpy, cpx, cpy;
+  double cCROSSap, bCROSScp, aCROSSbp;
 
   ax = Cx - Bx;  ay = Cy - By;
   bx = Ax - Cx;  by = Ay - Cy;
@@ -48,34 +48,34 @@ bool Triangulate::InsideTriangle(float Ax, float Ay,
   return ((aCROSSbp >= 0.0f) && (bCROSScp >= 0.0f) && (cCROSSap >= 0.0f));
 };
 
-bool Triangulate::Snip(const Vector2dVector &contour,int u,int v,int w,int n,int *V)
+bool Triangulate::Snip(const MyVectorOfVertices &contour,int u,int v,int w,int n,int *V)
 {
   int p;
-  float Ax, Ay, Bx, By, Cx, Cy, Px, Py;
+  double Ax, Ay, Bx, By, Cx, Cy, Px, Py;
 
-  Ax = contour[V[u]].GetX();
-  Ay = contour[V[u]].GetY();
+  Ax = contour[V[u]].x/*GetX()*/;
+  Ay = contour[V[u]].y/*GetY()*/;
 
-  Bx = contour[V[v]].GetX();
-  By = contour[V[v]].GetY();
+  Bx = contour[V[v]].x/*GetX()*/;
+  By = contour[V[v]].y/*GetY()*/;
 
-  Cx = contour[V[w]].GetX();
-  Cy = contour[V[w]].GetY();
+  Cx = contour[V[w]].x/*GetX()*/;
+  Cy = contour[V[w]].y/*GetY()*/;
 
   if ( EPSILON > (((Bx-Ax)*(Cy-Ay)) - ((By-Ay)*(Cx-Ax))) ) return false;
 
   for (p=0;p<n;p++)
   {
     if( (p == u) || (p == v) || (p == w) ) continue;
-    Px = contour[V[p]].GetX();
-    Py = contour[V[p]].GetY();
+    Px = contour[V[p]].x/*GetX()*/;
+    Py = contour[V[p]].y/*GetY()*/;
     if (InsideTriangle(Ax,Ay,Bx,By,Cx,Cy,Px,Py)) return false;
   }
 
   return true;
 }
 
-bool Triangulate::Process(const Vector2dVector &contour,Vector2dVector &result)
+bool Triangulate::Process(const MyVectorOfVertices &contour,MyVectorOfVertices &result)
 {
   /* allocate and initialize list of Vertices in polygon */
 
