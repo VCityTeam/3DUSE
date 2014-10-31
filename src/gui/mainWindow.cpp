@@ -1741,6 +1741,7 @@ void MainWindow::test1()
 		}
         settings.setValue("lastdir", file.dir().absolutePath());
 
+
 		QString ext = file2.suffix().toLower();
 		if(ext == "citygml" || ext == "gml")
 		{
@@ -1752,19 +1753,6 @@ void MainWindow::test1()
 
 			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1.gml");
 			exporter.initExport();
-
-			std::cout << tile->getCityModel()->getAttribute("xmlns") << std::endl;
-
-			//std::cout << tile->getCityModel()->getEnvelope() << std::endl;
-
-			/*citygml::AttributesMap Test = tile->getCityModel()->getAttributes();
-			
-			std::cout << "TEST_________________________________" << std::endl;
-			std::cout << Test.size() << std::endl;
-			for(citygml::AttributesMap::iterator it = Test.begin(); it != Test.end(); it++)
-			{
-				std::cout << it->first << " => " << it->second << '\n';
-			}*/
 
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 			{		
