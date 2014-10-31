@@ -1663,7 +1663,7 @@ void MainWindow::about()
     }
     std::cout << std::endl;
 }*/
-void buildJson()//Lyon03
+/*void buildJson()//Lyon03
 {
     //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
 
@@ -1714,20 +1714,20 @@ void buildJson()//Lyon03
         }
     }
     std::cout << std::endl;
-}
+}*/
 
-/*void buildJson()//Villeurbanne
+void buildJson()//Villeurbanne
 {
     //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
 
-    //QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_BATIS_CITYGML/cut2"); //Découpe Bati (attention au #if dans exportJSON.cpp)
-    QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_MNT_CITYGML/cut"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
+    //QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_BATIS_CITYGML/cut1000"); //Découpe Bati (attention au #if dans exportJSON.cpp)
+    QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_MNT_CITYGML/cut1000"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
 
-    std::string basePath("/home/frederic/Documents/JSON/"); //Dossier de sortie
+    std::string basePath("/home/frederic/Documents/JSON/Villeurbanne1000/"); //Dossier de sortie
     double offsetX = 1844500.0;
     double offsetY = 5173500.0;
-    double stepX = 500.0;
-    double stepY = 500.0;
+    double stepX = 1000.0;//500.0;
+    double stepY = 1000.0;//500.0;
 
     QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
     while(iterator.hasNext())
@@ -1767,7 +1767,7 @@ void buildJson()//Lyon03
         }
     }
     std::cout << std::endl;
-}*/
+}
 ////////////////////////////////////////////////////////////////////////////////
 void buildJsonLod()// bldg geo ref test #if 1 dans exportJSON.cpp
 {

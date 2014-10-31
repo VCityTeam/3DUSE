@@ -63,7 +63,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listBldg scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_Building) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_Building) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listBldg scope
     closeScope(); // global scope
     m_outFile.close();
@@ -87,7 +88,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listTerrain scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_TINRelief) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listTerrain scope
     closeScope(); // global scope
     m_outFile.close();
@@ -95,7 +97,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     #endif
 
     // terrain avec fichiers world .jgw
-    #if 1
+    #if 1 //0
     std::cout << "terrain \n";
     m_WorldTexCoords = true;
     addFilter(COT_TINRelief, "terrain");
@@ -112,7 +114,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listTerrain scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_TINRelief) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listTerrain scope
     closeScope(); // global scope
     m_outFile.close();
@@ -138,7 +141,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listTerrain scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_TINRelief) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_TINRelief) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listTerrain scope
     closeScope(); // global scope
     m_outFile.close();
@@ -165,7 +169,8 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     openScope(); // listBldg scope
     for(CityObject* obj : model.getCityObjectsRoots())
         if(obj && obj->getType() == COT_Building) exportCityObject(*obj);
-    m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
+    if(getNbFeature(model, COT_Building) > 0)
+        m_outFile.seekp(-2, std::ios_base::cur); m_outFile << "\n";
     closeScope();  // listBldg scope
     closeScope(); // global scope
     m_outFile.close();
