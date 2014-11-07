@@ -96,7 +96,7 @@ void ExporterJSON::exportCityModel(CityModel& model, const std::string& fileName
     resetFilters();
     #endif
 
-    // terrain avec fichiers world .jgw
+    // terrain avec fichiers world .jgw : TERRAIN POUR DONNEES DE LYON
     #if 1 //0
     std::cout << "terrain \n";
     m_WorldTexCoords = true;

@@ -640,8 +640,8 @@ void CityGMLHandler::endElement( const std::string& name )
 		}
 		
 		_model->_translation = _translate;
-		std::cout << std::fixed << "The model coordinates were translated by x:" << _translate.x
-				      << " y:" << _translate.y << " z:" << _translate.z << std::endl;
+        //std::cout << std::fixed << "The model coordinates were translated by x:" << _translate.x
+        //		      << " y:" << _translate.y << " z:" << _translate.z << std::endl;
 		
 		popObject();
 		break;
