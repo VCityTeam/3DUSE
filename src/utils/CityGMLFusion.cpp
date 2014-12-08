@@ -289,7 +289,7 @@ void Fusion()
 
     foreach(std::string GML1, ListGML1)//On parcourt tous les fichiers CityGML de la première zone
     {
-        std::string Tile1 = GML1.substr(GML1.find_last_of("/")+1);
+        std::string Tile1 = GML1.substr(GML1.find_last_of("/") + 1);
         Tile1 = Tile1.substr(Tile1.find_first_of("_") + 1, Tile1.find(".") - (Tile1.find_first_of("_") + 1));
 
         int i = 0;
@@ -297,7 +297,7 @@ void Fusion()
 
         foreach(std::string GML2, ListGML2)//On parcourt tous les fichiers CityGML de la seconde zone
         {
-            std::string Tile2 = GML2.substr(GML2.find_last_of("/")+1);
+            std::string Tile2 = GML2.substr(GML2.find_last_of("/") + 1);
             Tile2 = Tile2.substr(Tile2.find_first_of("_") + 1, Tile2.find(".") - (Tile2.find_first_of("_") + 1));
 
             if(Tile1 == Tile2)//Si deux fichiers ont le même nom, cela signifie qu'ils sont sur la même tuile et qu'il faut les fusionner
@@ -339,9 +339,9 @@ void Fusion()
                     continue;
                 }
 
-                //std::cout << "Fusion : " << Tile1 << std::endl;
+                std::cout << "Fusion : " << Tile1 << std::endl;
 
-                Merge(FolderOut + "/" + Tile1 + ".gml", racine1, racine2);
+                Merge(FolderOut + "/Tile_" + Tile1 + ".gml", racine1, racine2);
 
                 Erase = true;
                 //xmlFreeDoc(doc1);
@@ -355,10 +355,10 @@ void Fusion()
             ListGML2.erase(ListGML2.begin()+i); //On supprime le CityGML de la seconde zone qui a été fusionné pour ne conserver que les CityGML propres à la seconde zone
         else //Le fichier CityGML courant de la première zone ne se retrouve pas dans la seconde zone donc il faut le dupliquer tel quel
         {
-            //std::cout << "Copie de " << Tile1 << std::endl;
+            std::cout << "Copie de " << Tile1 << std::endl;
 
             QFile file(GML1.c_str());
-            file.copy(QString::fromStdString(FolderOut + "/" + Tile1 + ".gml"));
+            file.copy(QString::fromStdString(FolderOut + "/Tile_" + Tile1 + ".gml"));
             /*std::string x = Tile1.substr(0, Tile1.find("_"));
             std::string y = Tile1.substr(Tile1.find("_") + 1);
             int X = std::stoi(x) + 3689;
@@ -373,15 +373,10 @@ void Fusion()
         std::string Tile2 = GML2.substr(GML2.find_last_of("/")+1);
         Tile2 = Tile2.substr(Tile2.find_first_of("_") + 1, Tile2.find(".") - (Tile2.find_first_of("_") + 1));
 
-        //std::cout << "Copie de " << Tile2 << std::endl;
+        std::cout << "Copie de " << Tile2 << std::endl;
 
         QFile file(GML2.c_str());
-        file.copy(QString::fromStdString(FolderOut + "/" + Tile2 + ".gml"));
-        /*std::string x = Tile2.substr(0, Tile2.find("_"));
-        std::string y = Tile2.substr(Tile2.find("_") + 1);
-        int X = std::stoi(x) + 3686;
-        int Y = std::stoi(y) + 10345;
-        file.copy(QString::fromStdString(FolderOut + "/Dossier2/Tile_" + std::to_string(X) + "_" + std::to_string(Y) + ".gml"));*/
+        file.copy(QString::fromStdString(FolderOut + "/Tile_" + Tile2 + ".gml"));
         file.close();
     }
 }

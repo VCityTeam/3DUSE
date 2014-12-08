@@ -1770,14 +1770,19 @@ void MainWindow::about()
     std::cout << std::endl;
 }*/
 
-void buildJson()//Villeurbanne + LYON03
+void buildJson()//GrandLyon
 {
-    //QString dataPath("/home/frederic/Telechargements/Data/Villeurbanne_Lyon03/Batiments"); //Découpe Bati (attention au #if dans exportJSON.cpp)
-    QString dataPath("/home/frederic/Telechargements/Data/Villeurbanne_Lyon03/Terrain"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
+    //QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_BATI"); //Découpe Bati (attention au #if dans exportJSON.cpp)
+    QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_MNT"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
+    //QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_BatiRemarquables"); //Découpe BatiRemarquables (attention au #if dans exportJSON.cpp)
 
-    std::string basePath("/home/frederic/Documents/JSON/Villeurbanne_Lyon03/"); //Dossier de sortie
+    std::string basePath("/home/frederic/Documents/JSON/GrandLyon/cut_500/"); //Dossier de sortie
+
     double stepX = 500.0;
     double stepY = 500.0;
+
+    //double stepX = 2000.0;
+    //double stepY = 2000.0;
 
     QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
     while(iterator.hasNext())
@@ -1794,8 +1799,8 @@ void buildJson()//Villeurbanne + LYON03
                 if(citygmlmodel)
                 {
                     std::string id = filename.toStdString();
-                    id = id.substr(id.find_last_of("/")+1);
-                    id = id.substr(0, id.find_first_of("."));
+                    id = id.substr(id.find_last_of("/") + 1);
+                    id = id.substr(id.find_first_of("_") + 1, id.find_first_of("."));
                     //std::cout << "id" << std::endl;
                     //std::cout << id.substr(0,id.find('_')) << std::endl;
                     //std::cout << id.substr(id.find('_')+1) << std::endl;
