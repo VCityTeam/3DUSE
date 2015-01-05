@@ -76,7 +76,7 @@ private:
     xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent);
     xmlNodePtr exportCityObjetStateXml(const citygml::CityObjectState& state, const std::string &nodeType, xmlNodePtr parent);
     xmlNodePtr exportCityObjetTagXml(const citygml::CityObjectTag& tag, const std::string &nodeType, xmlNodePtr parent);
-    xmlNodePtr exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string &nodeType, xmlNodePtr parent);
+    xmlNodePtr exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string &nodeType, xmlNodePtr parent, bool isSurface=false);
     xmlNodePtr exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent, bool rootLevel=false);
     xmlNodePtr exportPolygonAppearanceXml(const citygml::Polygon& poly, xmlNodePtr parent);
 

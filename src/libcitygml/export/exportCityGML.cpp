@@ -105,6 +105,9 @@ namespace citygml
 	{
 		xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST "gml:Envelope", NULL);
 
+        xmlNewProp(res, BAD_CAST "srsDimension", BAD_CAST "3");
+        xmlNewProp(res, BAD_CAST "srsName", BAD_CAST "EPSG:3946"); /// VALABLE QUE SUR LYON !!!!!!!!!
+
 		std::stringstream ss;
 		TVec3d vec = env.getLowerBound();
 		ss << std::fixed << vec.x << " " << vec.y << " " << vec.z;
@@ -159,11 +162,13 @@ namespace citygml
 	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent)
 	{
-		xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
-		//xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST bldg.getId().c_str());
-		/*xmlNodePtr node1 = */xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
-		xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(geom.getLOD())+"MultiSurface").c_str(), NULL);
-		xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:surfaceMember", NULL);
+        //xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL); //Maxime a ajouté un Wall (Roof) après le WallSurface (RoofSurface) alors qu'il n'y est pas dans les CityGML fournis
+        //xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
+
+        xmlNodePtr node1 = xmlNewChild(parent, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(geom.getLOD())+"MultiSurface").c_str(), NULL);
+        xmlNodePtr node2 = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
+        xmlNewProp(node2, BAD_CAST "srsDimension", BAD_CAST "3");
+        xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:surfaceMember", NULL);
 
 		for(const citygml::Polygon* poly : geom.getPolygons())
 		{
@@ -171,7 +176,8 @@ namespace citygml
 			exportPolygonXml(*poly, node3);
 		}
 
-		return res;
+        //return res;
+        return node1;
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent)
@@ -209,26 +215,53 @@ namespace citygml
 		return NULL;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string& nodeType, xmlNodePtr parent)
+    xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string& nodeType, xmlNodePtr parent, bool isSurface)
 	{
-		xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
-		xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
+        if(isSurface)
+        {
+            xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST "bldg:boundedBy", NULL);// Ajouté car présent dans les CityGML de Lyon et Paris
 
-		// children are not handled here, but in the upper call level (exportCityObjetXml)
-		/*for(const auto& child : obj.getChildren())
-		{
-		exportCityObjetXml(child, res);
-		}*/
+            xmlNodePtr res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
+            xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
 
-		// attributes
-		for(const auto& attr : obj.getAttributes())
-		{
-			xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
-			xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
-			xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
-		}
+            // children are not handled here, but in the upper call level (exportCityObjetXml)
+            /*for(const auto& child : obj.getChildren())
+            {
+            exportCityObjetXml(child, res);
+            }*/
 
-		return res;
+            // attributes
+            for(const auto& attr : obj.getAttributes())
+            {
+                xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
+                xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
+                xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+            }
+
+            return res;
+        }
+        else
+        {
+            xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
+            xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
+
+            // children are not handled here, but in the upper call level (exportCityObjetXml)
+            /*for(const auto& child : obj.getChildren())
+            {
+            exportCityObjetXml(child, res);
+            }*/
+
+            // attributes
+            for(const auto& attr : obj.getAttributes())
+            {
+                xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
+                xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
+                xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+            }
+
+            return res;
+        }
+
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportCityObjetStateXml(const citygml::CityObjectState& state, const std::string &nodeType, xmlNodePtr parent)
@@ -374,25 +407,25 @@ namespace citygml
 			res = exportCityObjetGenericXml(obj, "bldg:BuildingPart", parent);
 			break;
 		case citygml::COT_WallSurface:
-			res = exportCityObjetGenericXml(obj, "bldg:WallSurface", parent);
+            res = exportCityObjetGenericXml(obj, "bldg:WallSurface", parent, true);
 			break;
 		case citygml::COT_RoofSurface:
-			res = exportCityObjetGenericXml(obj, "bldg:RoofSurface", parent);
+            res = exportCityObjetGenericXml(obj, "bldg:RoofSurface", parent, true);
 			break;
 		case citygml::COT_GroundSurface:
-			res = exportCityObjetGenericXml(obj, "bldg:GroundSurface", parent);
+            res = exportCityObjetGenericXml(obj, "bldg:GroundSurface", parent, true);
 			break;
 		case citygml::COT_ClosureSurface:
-			res = exportCityObjetGenericXml(obj, "bldg:ClosureSurface", parent);
+            res = exportCityObjetGenericXml(obj, "bldg:ClosureSurface", parent, true);
 			break;
 		case citygml::COT_FloorSurface:
-			res = exportCityObjetGenericXml(obj, "bldg:FloorSurface", parent);
+            res = exportCityObjetGenericXml(obj, "bldg:FloorSurface", parent, true);
 			break;
 		case citygml::COT_InteriorWallSurface:
-			res = exportCityObjetGenericXml(obj, "bldg:InteriorWallSurface", parent);
+            res = exportCityObjetGenericXml(obj, "bldg:InteriorWallSurface", parent, true);
 			break;
 		case citygml::COT_CeilingSurface:
-			res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent);
+            res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent, true);
 			break;
 		default:
 			break;
@@ -533,7 +566,7 @@ namespace citygml
 		xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "CityModel");
 		
 		xmlNewProp(root, BAD_CAST "xmlns", BAD_CAST "http://www.opengis.net/citygml/1.0");
-		xmlNewProp(root, BAD_CAST "xmlns:app", BAD_CAST "http://www.opengis.net/citygml/appearance/1.0");
+        xmlNewProp(root, BAD_CAST "xmlns:app", BAD_CAST "http://www.opengis.net/citygml/appearance/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:bldg", BAD_CAST "http://www.opengis.net/citygml/building/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:core", BAD_CAST "http://www.opengis.net/citygml/base/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:dem", BAD_CAST "http://www.opengis.net/citygml/relief/1.0");
@@ -545,7 +578,7 @@ namespace citygml
 
 
 		// write envelope (bouned by)
-		xmlNodePtr nodeEnv = xmlNewChild(root, NULL, BAD_CAST "gml:boundedBy", NULL);
+        xmlNodePtr nodeEnv = xmlNewChild(root, NULL, BAD_CAST "gml:boundedBy", NULL);
 		exportEnvelopeXml(model.getEnvelope(), nodeEnv);
 
 		// do objects
@@ -562,7 +595,7 @@ namespace citygml
 	xmlNodePtr ExporterCityGML::exportCityObjectModelXml(const std::vector<const CityObject*>& objs)
 	{
 		//xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "core:CityModel");
-		xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "CityModel");
+        xmlNodePtr root = xmlNewNode(NULL, BAD_CAST "CityModel");
 
 		xmlNewProp(root, BAD_CAST "xmlns", BAD_CAST "http://www.opengis.net/citygml/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:app", BAD_CAST "http://www.opengis.net/citygml/appearance/1.0");
@@ -577,6 +610,7 @@ namespace citygml
 
 		// write envelope (bouned by)
 		xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "gml:boundedBy", NULL);
+
 		Envelope env;
 		for(const CityObject* obj : objs) // compute enveloppe
 		{
