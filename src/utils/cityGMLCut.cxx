@@ -18,7 +18,7 @@
 #include "triangulate.h"
 
 #define TEXTURE_PROCESS			1
-#define TRIANGULATE_PROCESS		1
+#define TRIANGULATE_PROCESS     1 //Mettre à 0, pour ne pas trianguler les polygones
 
 #define MAX_POINTS_IN_POSLIST	200	// TEMP
 
@@ -984,6 +984,15 @@ int main(int argc, char** argv)
 
     // get root
     racine = xmlDocGetRootElement(doc);
+
+    /*std::cout << "Name = " << racine->name << std::endl;
+    std::cout << "Content = " << racine->children->content << std::endl;
+    std::cout << "Properties = " << racine->properties->name << std::endl;
+    std::cout << "Properties2 = " << racine->properties->children->content << std::endl;
+
+    int a;
+    std::cin >> a;*/
+
     if (racine == NULL)
 	{
         fprintf(stderr, "Empty XML file\n");

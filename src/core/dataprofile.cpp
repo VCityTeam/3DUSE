@@ -67,20 +67,20 @@ DataProfile createDataProfileParis()
 DataProfile createDataProfileLyon()
 {
     DataProfile dp;
-    dp.m_offset.x = 1840000.0;
-    dp.m_offset.y = 5172500.0;
+    dp.m_offset.x = 1837500.0;//1840000.0;
+    dp.m_offset.y = 5169000.0;//5172500.0;
 
-    dp.m_bboxLowerBound.x = 1840000.0;
-    dp.m_bboxLowerBound.y = 5172500.0;
+    dp.m_bboxLowerBound.x = 1837500.0;//1840000.0;
+    dp.m_bboxLowerBound.y = 5169000.0;//5172500.0;
 
-    dp.m_bboxUpperBound.x = 1850500.0;
-    dp.m_bboxUpperBound.y = 5183500.0;
+    dp.m_bboxUpperBound.x = 1849500.0;
+    dp.m_bboxUpperBound.y = 5180500.0;
 
     dp.m_xStep = 500;
     dp.m_yStep = 500;
 
-    dp.m_TileIdOriginX = 0;
-    dp.m_TileIdOriginY = 0;
+    dp.m_TileIdOriginX = 1837500.0/500;
+    dp.m_TileIdOriginY = 5169000.0/500;
 
     dp.m_id = 2;
     dp.m_name = "Lyon";
