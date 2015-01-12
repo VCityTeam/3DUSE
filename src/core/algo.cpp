@@ -2351,9 +2351,6 @@ namespace vcity
         Res.first.resize(NbGeo1);
         Res.second.resize(NbGeo2);
 
-        double moyenne = 0;
-        int cpt = 0;
-
         for(size_t i = 0; i < NbGeo1; ++i)
         {
             OGRPolygon * Bati1 = (OGRPolygon *)Geo1->getGeometryRef(i)->clone();
@@ -2383,9 +2380,6 @@ namespace vcity
                 {
                     if(DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 5)//Si la différence de hauteur est inférieure à 5m, et si la distance de Hausdorff entre les deux bâtimetns est inférieure à 5m.
                     {
-                        moyenne += val1;
-                        moyenne += val2;
-                        cpt +=2;
                         Res.first[i].push_back(-1);
                         Res.second[j].push_back(-1);
                         Res.first[i].push_back(j);
@@ -2416,7 +2410,6 @@ namespace vcity
             std::cout << "Avancement de CompareGeos : " << i + 1 << " / " << NbGeo1 << "\r" << std::flush;
         }
         std::cout << "\n";
-        //std::cout << "Moyenne = " << moyenne/cpt << std::endl;
 
         return Res;
     }
