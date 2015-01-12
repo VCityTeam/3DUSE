@@ -40,6 +40,7 @@
 #include "osg/osgMnt.hpp"
 
 #include "utils/CityGMLFusion.h"
+#include "osg/osgLas.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = nullptr;
@@ -280,9 +281,9 @@ bool MainWindow::loadFile(const QString& filepath)
          settings.setValue("recentfiles", list);*/
     }
 	// Assimp importer
-	else if(ext == "assimp" || ext ==  "dae" || ext ==  "blend" || ext ==  "3ds" || ext ==  "ase" || ext ==  "obj" || ext ==  "xgl" || ext ==  "ply" || ext ==  "dxf" || ext ==  "lwo" || ext ==  "lws" ||
-		ext == "lxo" || ext ==  "stl" || ext ==  "x" || ext ==  "ac" || ext ==  "ms3d" || ext ==  "scn" || ext ==  "xml" || ext ==  "irrmesh" || ext ==  "irr" ||
-		ext == "mdl" || ext ==  "md2" || ext ==  "md3" || ext ==  "pk3" || ext ==  "md5" || ext ==  "smd" || ext ==  "m3" || ext ==  "3d" || ext ==  "q3d" || ext ==  "off" || ext ==  "ter")
+	else if(ext == "assimp" || ext == "dae" || ext == "blend" || ext == "3ds" || ext == "ase" || ext == "obj" || ext == "xgl" || ext == "ply" || ext == "dxf" || ext == "lwo" || ext == "lws" ||
+		ext == "lxo" || ext == "stl" || ext == "x" || ext == "ac" || ext == "ms3d" || ext == "scn" || ext == "xml" || ext == "irrmesh" || ext == "irr" ||
+		ext == "mdl" || ext == "md2" || ext == "md3" || ext == "pk3" || ext == "md5" || ext == "smd" || ext == "m3" || ext == "3d" || ext == "q3d" || ext == "off" || ext == "ter")
     {
 		/*Assimp::Importer importer;
 		const aiScene *scene = importer.ReadFile(filepath.toStdString(), aiProcessPreset_TargetRealtime_Fast); // aiProcessPreset_TargetRealtime_Quality
@@ -312,7 +313,7 @@ bool MainWindow::loadFile(const QString& filepath)
 		}
 	}
 	// MntAsc importer
-	else if(ext ==  "asc")
+	else if(ext == "asc")
     {
 		MNT mnt;
 
@@ -335,6 +336,30 @@ bool MainWindow::loadFile(const QString& filepath)
 			//mnt.sauve_log(std::string("mntAsc.txt").c_str(), std::string("mntAsc.tga").c_str()); // mntAsc.tga bidon
 			//mnt.sauve_partie(std::string("mntAsc_partie.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
 			//mnt.sauve_partie_XML(std::string("mntAsc_partie_xml.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+		}
+	}
+	// las importer
+	else if(ext == "las" || ext == "laz")
+    {
+		LAS las;
+
+		if (las.open(filepath.toStdString().c_str()))
+		{
+            osg::ref_ptr<osg::Node> node = las.buildLasPoints(-m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
+
+			// set lasNode name
+			static int id = 0;
+			std::stringstream ss;
+			ss << "lasNode" << id++;
+			node->setName(ss.str());
+
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerLas")->getURI();
+			vcity::log() << uriLayer.getStringURI() << "\n";
+			appGui().getControllerGui().addLasNode(uriLayer, node);
+
+			las.close();
+
+			addRecentFile(filepath);
 		}
 	}
     else if(ext == "shp")

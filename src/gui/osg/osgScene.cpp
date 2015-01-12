@@ -170,12 +170,12 @@ void OsgScene::init()
 
     // build forth default layer
     osg::ref_ptr<osg::Group> layer3 = new osg::Group();
-    layer3->setName("layer_Shp");
+    layer3->setName("layer_Las");
     m_layers->addChild(layer3);
 
     // build fifth default layer
     osg::ref_ptr<osg::Group> layer4 = new osg::Group();
-    layer4->setName("layer_Las");
+    layer4->setName("layer_Shp");
     m_layers->addChild(layer4);
 
     updateGrid();
@@ -248,6 +248,17 @@ void OsgScene::deleteAssimpNode(const vcity::URI& uri)
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+			layerGroup->addChild(node);
+    }
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
 {
     osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
     if(layer)
