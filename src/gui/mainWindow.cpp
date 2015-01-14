@@ -1946,7 +1946,6 @@ void MainWindow::test1()
 		}
         settings.setValue("lastdir", file.dir().absolutePath());
 
-
 		QString ext = file2.suffix().toLower();
 		if(ext == "citygml" || ext == "gml")
 		{
@@ -2022,7 +2021,7 @@ void MainWindow::test2()
     {
         QFileInfo file(filenames[i]);
 		QString filepath = file.absoluteFilePath();
-		QFileInfo file2(filepath);
+		QFileInfo file2(filepath); //Ces deux dernières lignes servent à transformer les \ en / dans le chemin de file.
 
 		if(!file2.exists())
 		{
@@ -2074,12 +2073,68 @@ void MainWindow::test2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-    Fusion();
+    //FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+
+	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+	QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QStringList File1 = QFileDialog::getOpenFileNames(this, "Sélectionner le premier fichier.", lastdir);
+
+	QFileInfo file1temp(File1[0]);
+	QString file1path = file1temp.absoluteFilePath();
+	QFileInfo file1(file1path);
+
+	QString ext = file1.suffix().toLower();
+	if(ext != "citygml" && ext != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+		return;
+	}
+
+	QStringList File2 = QFileDialog::getOpenFileNames(this, "Sélectionner le second fichier.", lastdir);
+
+	QFileInfo file2temp(File2[0]);
+	QString file2path = file2temp.absoluteFilePath();
+	QFileInfo file2(file2path);
+
+	ext = file2.suffix().toLower();
+	if(ext != "citygml" && ext != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+		return;
+	}
+
+	QFileDialog w;
+	w.setWindowTitle("Sélectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
+	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
+	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
+	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
+
+	citygml::CityModel * City1 = tile1->getCityModel();
+	citygml::CityModel * City2 = tile2->getCityModel();
+
+	FusionLODs(City1, City2);
+
+	citygml::ExporterCityGML exporter(Folder);
+
+	exporter.exportCityModel(*City2);
+
+	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 {
-    // test json
     buildJson();
     //buildJsonLod();
 }

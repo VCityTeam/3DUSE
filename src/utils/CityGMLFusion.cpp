@@ -1,8 +1,8 @@
 #include "CityGMLFusion.h"
 
-#include "citygml.hpp"
 #include "export/exportCityGML.hpp"
 #include <QFileDialog>
+#include <QSettings>
 #include <QDirIterator>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -10,7 +10,7 @@
 #include <iomanip>
 
 
-void Merge(std::string Path, citygml::CityModel* GML1, citygml::CityModel* GML2)
+void MergeTiles(std::string Path, citygml::CityModel* GML1, citygml::CityModel* GML2) //A SUPPRIMER ?
 {
     citygml::ExporterCityGML exporter(Path);
 
@@ -31,7 +31,7 @@ void Merge(std::string Path, citygml::CityModel* GML1, citygml::CityModel* GML2)
     }
     exporter.exportCityObject(Objs);
 }
-void Merge(std::string Path, xmlNodePtr GML1, xmlNodePtr GML2)
+void MergeTiles(std::string Path, xmlNodePtr GML1, xmlNodePtr GML2)
 {
     xmlDocPtr out_doc = NULL;			// output document pointer
     xmlNodePtr out_root_node = NULL;	// output root node pointer
@@ -73,7 +73,7 @@ void Merge(std::string Path, xmlNodePtr GML1, xmlNodePtr GML2)
                 xmlNodePtr n3;
                 for (n3 = n1->children->children; n3 != NULL; n3 = n3->next)
                 {
-                    ////////////// ATTENTION : LES DONNES DE PARTIS NUTILISENT PAS DE CORNER, MAIS DEUX GML:POS ///////////////// A PRENDRE EN COMPTE SI NECESSAIRE
+                    ////////////// ATTENTION : LES DONNES DE PARIS NUTILISENT PAS DE CORNER, MAIS DEUX GML:POS ///////////////// A PRENDRE EN COMPTE SI NECESSAIRE
                     if (xmlStrEqual(n3->name, BAD_CAST "lowerCorner"))
                     {
                         //std::cout << "Lower Corner N1 = " << n3->children->content << std::endl;
@@ -178,7 +178,10 @@ void Merge(std::string Path, xmlNodePtr GML1, xmlNodePtr GML2)
     // free the documents
     xmlFreeDoc(out_doc);
 }
-void Fusion()
+/**
+* @brief Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+*/
+void FusionTiles()
 {
     ///// Ouverture des fichiers CityGML de la première zone
     QFileDialog w;
@@ -341,7 +344,7 @@ void Fusion()
 
                 std::cout << "Fusion : " << Tile1 << std::endl;
 
-                Merge(FolderOut + "/Tile_" + Tile1 + ".gml", racine1, racine2);
+                MergeTiles(FolderOut + "/Tile_" + Tile1 + ".gml", racine1, racine2);
 
                 Erase = true;
                 //xmlFreeDoc(doc1);
@@ -379,4 +382,39 @@ void Fusion()
         file.copy(QString::fromStdString(FolderOut + "/Tile_" + Tile2 + ".gml"));
         file.close();
     }
+}
+
+void FusionLODs(citygml::CityModel * City1, citygml::CityModel * City2) //// Prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+{
+	citygml::CityObjects City1Obj = City1->getCityObjectsRoots();
+	citygml::CityObjects City2Obj = City2->getCityObjectsRoots();
+
+	for(citygml::CityObject * obj1 : City1Obj)
+	{
+		if(obj1)
+		{
+			bool test = false; //Passera à true si obj1 trouve son équivalent dans City2
+			for(citygml::CityObject * obj2 : City2Obj)
+			{
+				if(obj2)
+				{
+					if(obj1->getId() == obj2->getId()) //Fusion des geometries de obj1 et obj2 dans obj2
+					{
+						const std::vector<citygml::CityObject *> Surfaces = obj1->getChildren();
+						for(citygml::CityObject * Surface : Surfaces)
+						{
+							obj2->insertNode(Surface);
+						}
+
+						test = true;
+						break;
+					}
+				}
+			}
+			if(!test) //Ajout de l'obj1 dans City2
+			{
+				City2->addCityObject(obj1);
+			}
+		}
+	}
 }
