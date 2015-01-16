@@ -100,6 +100,7 @@ private slots:
     void slotCheckAll();
     void slotUnCheckAll();
     void slotAddDoc();
+	void slotExportJSON();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
@@ -139,6 +140,7 @@ private:
     QAction* m_actionSelectAll;
     QAction* m_actionDeSelectAll;
     QAction* m_actionAddDoc;
+	QAction* m_actionExportJSON;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __TREEVIEW_HPP__

@@ -5,6 +5,8 @@
 #include <time.h>
 #include <osg/Geometry>
 
+#include <core/application.hpp>
+
 static double taketime()
 {
   return (double)(clock())/CLOCKS_PER_SEC;
@@ -42,8 +44,14 @@ void LAS::close()
 	delete lasreader;
 }
 ////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> LAS::buildLasPoints(float offset_x, float offset_y, float offset_z, int zfactor)
+osg::ref_ptr<osg::Geode> LAS::buildLasPoints(const vcity::URI& uriLayer, float offset_x, float offset_y, float offset_z, int zfactor)
 {
+	// function ?
+	vcity::abstractLayer* layer = vcity::app().getScene().getLayer(uriLayer);
+	vcity::LayerLas* layerLas = NULL;
+    if(layer)
+		layerLas = dynamic_cast<vcity::LayerLas*>(layer);
+
     osg::ref_ptr<osg::Geode> geode;
 	geode = new osg::Geode;
 	geode->setName("lasPoints");
@@ -63,6 +71,8 @@ osg::ref_ptr<osg::Geode> LAS::buildLasPoints(float offset_x, float offset_y, flo
 			while (lasreader->read_point())
 			{
 				(*va)[i++].set( offset_x+(double)(lasreader->point.get_X())/100., offset_y+(double)(lasreader->point.get_Y())/100., (((double)(lasreader->point.get_Z())/100.)-offset_z) * zfactor );				
+				if (layerLas)
+					layerLas->addLASpoint(lasreader->point);
 
 				switch(lasreader->point.get_classification())
 				{
