@@ -345,16 +345,17 @@ bool MainWindow::loadFile(const QString& filepath)
 
 		if (las.open(filepath.toStdString().c_str()))
 		{
-            osg::ref_ptr<osg::Node> node = las.buildLasPoints(-m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerLas")->getURI();
+			vcity::log() << uriLayer.getStringURI() << "\n";
+
+            osg::ref_ptr<osg::Node> node = las.buildLasPoints(uriLayer, -m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
 
 			// set lasNode name
 			static int id = 0;
 			std::stringstream ss;
 			ss << "lasNode" << id++;
 			node->setName(ss.str());
-
-			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerLas")->getURI();
-			vcity::log() << uriLayer.getStringURI() << "\n";
+			
 			appGui().getControllerGui().addLasNode(uriLayer, node);
 
 			las.close();

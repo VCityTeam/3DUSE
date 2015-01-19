@@ -12,6 +12,8 @@
 // mkdir build; cd build; cmake .. -DCMAKE_BUILD_TYPE=Release; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
 #include <lasreader.hpp>
 
+#include <core/URI.hpp>
+
 #include <osg/Geode>
 ////////////////////////////////////////////////////////////////////////////////
 class LAS
@@ -22,7 +24,7 @@ public:
 
 	bool open(const char* nom_fichier);
 	void close();
-	osg::ref_ptr<osg::Geode> buildLasPoints(float offset_x, float offset_y, float offset_z=0.0f, int zfactor=1);
+	osg::ref_ptr<osg::Geode> buildLasPoints(const vcity::URI& uriLayer, float offset_x, float offset_y, float offset_z=0.0f, int zfactor=1);
 
 private:
 	LASreadOpener lasreadopener;

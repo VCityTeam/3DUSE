@@ -48,6 +48,7 @@ TreeView::~TreeView()
     delete m_actionSelectAll;
     delete m_actionDeSelectAll;
     delete m_actionAddDoc;
+	delete m_actionExportJSON;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -78,6 +79,7 @@ void TreeView::init()
     m_actionSelectAll = new QAction("Check all", NULL);
     m_actionDeSelectAll = new QAction("Check none", NULL);
     m_actionAddDoc = new QAction("Add document", NULL);
+	m_actionExportJSON = new QAction("Export JSON", NULL);
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -103,6 +105,7 @@ void TreeView::init()
     connect(m_actionSelectAll, SIGNAL(triggered()), this, SLOT(slotCheckAll()));
     connect(m_actionDeSelectAll, SIGNAL(triggered()), this, SLOT(slotUnCheckAll()));
     connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
+	connect(m_actionExportJSON, SIGNAL(triggered()), this, SLOT(slotExportJSON()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
@@ -534,6 +537,8 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionEditLayer);
 		if(item->text(1) == "LayerCityGML")
 			m_tree->addAction(m_actionAddTile);
+		if(item->text(1) == "LayerLas")
+			m_tree->addAction(m_actionExportJSON);
     }
     else if(item->text(1) == "Tile")
     {
@@ -804,6 +809,18 @@ void TreeView::slotAddDoc()
     diag.addDoc(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotExportJSON()
+{
+	// function ?
+	vcity::abstractLayer* layer = vcity::app().getScene().getLayer(getURI(getCurrentItem()));
+	vcity::LayerLas* layerLas = NULL;
+    if(layer)
+		layerLas = dynamic_cast<vcity::LayerLas*>(layer);
+
+	if (layerLas)
+		layerLas->exportJSON();
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::resetActions()
 {
     m_tree->removeAction(m_actionAddTile);
@@ -827,5 +844,6 @@ void TreeView::resetActions()
     m_tree->removeAction(m_actionSelectAll);
     m_tree->removeAction(m_actionDeSelectAll);
     m_tree->removeAction(m_actionAddDoc);
+	m_tree->removeAction(m_actionExportJSON);
 }
 ////////////////////////////////////////////////////////////////////////////////
