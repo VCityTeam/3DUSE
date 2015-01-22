@@ -52,6 +52,9 @@ public:
     /// Used to finish incremental export
     void endExport();
 
+	/// Used to write envelope in incremental export
+	void addEnvelope(const citygml::Envelope& env);
+
     /// \brief exportCityModel Export a complete CityModel
     /// \param model Model
     void exportCityModel(const CityModel& model);

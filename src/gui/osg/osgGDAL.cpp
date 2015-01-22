@@ -185,6 +185,8 @@ void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::
 			//int a;
 			//std::cin >> a;
 
+			//std::cout << poGeometry->getGeometryName() << std::endl;
+
 			if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
             {
                 OGRPolygon* poPG = (OGRPolygon*) poGeometry;

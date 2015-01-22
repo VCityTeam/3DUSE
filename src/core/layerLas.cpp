@@ -62,7 +62,7 @@ void LayerLas::exportJSON()
 	outFile << "{\n";
 
 	unsigned int cpt = 1;
-    for(std::vector<LayerLas_LASpoint>::iterator it=m_LASpoints.begin(); it<m_LASpoints.end(); ++it)
+    /*for(std::vector<LayerLas_LASpoint>::iterator it=m_LASpoints.begin(); it<m_LASpoints.end(); ++it)
     {
         outFile << "    "; // indent
 		outFile << "\"pts_" << cpt++ << "\":[" << (*it).X << "," << (*it).Y << "," << (*it).Z  << "," << (int)((*it).classification) << "]";
@@ -71,8 +71,42 @@ void LayerLas::exportJSON()
 			outFile << ",\n";
 		else
 			outFile << "\n"; // last
-    }
+    }*/
+	outFile << "    "; // indent
+	outFile << "\"vertices\":[";
+	bool test = false;
+	for(std::vector<LayerLas_LASpoint>::iterator it=m_LASpoints.begin(); it<m_LASpoints.end(); ++it)
+    {
+		if((*it).X < 1846000 || (*it).X >= 1846500 || (*it).Y < 5177500 || (*it).Y >= 5178000)
+			continue;
 
+		if(!test)
+			outFile << (*it).X << "," << (*it).Y << "," << (*it).Z;
+		else
+			outFile << "," << (*it).X << "," << (*it).Y << "," << (*it).Z;
+		test = true;
+
+		//if ((it+1)<m_LASpoints.end())
+		//	outFile << ",";
+    }
+	outFile << "],\n"; // last
+
+	outFile << "    "; // indent
+	outFile << "\"Color\":[";
+	test = false;
+	for(std::vector<LayerLas_LASpoint>::iterator it=m_LASpoints.begin(); it<m_LASpoints.end(); ++it)
+    {
+		if((*it).X < 1846000 || (*it).X >= 1846500 || (*it).Y < 5177500 || (*it).Y >= 5178000)
+			continue;
+
+		if(!test)
+			outFile << (int)((*it).classification);
+		else
+			outFile << "," << (int)((*it).classification);
+
+		test = true;
+    }
+	outFile << "]\n"; // last
 	outFile << "}\n";
 
 	outFile.close();

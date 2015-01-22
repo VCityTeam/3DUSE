@@ -910,6 +910,7 @@ void MainWindow::exportCityGML()
             uri.resetCursor();
             std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
             const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
+
             if(obj) objs.push_back(obj);
             if(uri.getType() == "Tile")
             {
@@ -1285,7 +1286,7 @@ void MainWindow::generateLOD1()
 	}
 	else
 	{
-        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml");
 		exporter.initExport();
 		// get all selected nodes (with a uri)
 		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
@@ -1358,7 +1359,7 @@ void MainWindow::generateLOD1()
             }
         }
         exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans " + Folder << std::endl;
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml cree dans " + Folder << std::endl;
 	}
     QApplication::restoreOverrideCursor();
 }
@@ -1385,7 +1386,7 @@ void MainWindow::generateLOD1()
 	}
 	else
 	{
-        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml");
 		exporter.initExport();
 		// get all selected nodes (with a uri)
 		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
@@ -1461,7 +1462,7 @@ void MainWindow::generateLOD1()
             }
 		}
 		exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans " + Folder << std::endl;
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml cree dans " + Folder << std::endl;
 	}
     QApplication::restoreOverrideCursor();
 }*/

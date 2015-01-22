@@ -1510,7 +1510,7 @@ namespace vcity
 			//std::cout << "Avancement creation LOD1 : " << i+1 << "/" << Geometry->getNumGeometries() << "\r" << std::flush;
 		}		
 
-        citygml::ExporterCityGML exporter("test.citygml");
+        citygml::ExporterCityGML exporter("test.gml");
         exporter.exportCityModel(*model);
 
 		std::cout << std::endl << "LOD1 cree.\n";
@@ -1865,11 +1865,25 @@ namespace vcity
 
 	/**
 	* @brief Calcule la distance de Hausdorff unidirectionnelle entre un nuage de points et un triangle
-	* @param Points Correspond au nuage de points
+	* @param GeoPoints Correspond à la géométrie contenant le nuage de points et que l'on va projeter sur la seconde géométrie
     * @param Geo Correspond aux triangles sur lesquels seront projetés les points
 	*/
-    double Hausdorff(std::vector<OGRPoint *> Points, OGRMultiPolygon * Geo)
+    double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
     {
+		std::vector<OGRPoint *> Points;
+
+        for(int i = 0; i < GeoPoints->getNumGeometries(); ++i)
+        {
+            OGRPolygon * Poly = (OGRPolygon *)GeoPoints->getGeometryRef(i);
+            OGRLinearRing * Ring = Poly->getExteriorRing();
+            for(int j = 0; j < Ring->getNumPoints(); ++j)
+            {
+                OGRPoint * Point = new OGRPoint;
+                Ring->getPoint(j, Point);
+                Points.push_back(Point);
+            }
+        }
+
         double D = 0;
         for(size_t i = 0; i < Points.size(); ++i)
         {
@@ -2181,7 +2195,7 @@ namespace vcity
 		double D12 = 0;//Distance de Geo1 à Geo2
 		double D21 = 0;//Distance de Geo2 à Geo1
 
-        std::vector<OGRPoint *> Points1;
+        /*std::vector<OGRPoint *> Points1;
         std::vector<OGRPoint *> Points2;
         for(int i = 0; i < Geo1->getNumGeometries(); ++i)
         {
@@ -2204,10 +2218,10 @@ namespace vcity
                 Ring->getPoint(j, Point);
                 Points2.push_back(Point);
             }
-        }
+        }*/
 
-		D12 = Hausdorff(Points1, Geo2);
-		D21 = Hausdorff(Points2, Geo1);
+		D12 = Hausdorff(Geo1, Geo2);
+		D21 = Hausdorff(Geo2, Geo1);
 
 		return std::max(D12, D21);
     }
@@ -2223,7 +2237,6 @@ namespace vcity
 
         return std::max(D12, D21);
     }
-
 
 	/**
     * @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve de manière identique dans les deux ensembles de geometries, dans un seul ou s'il a été modifié
@@ -2359,9 +2372,7 @@ namespace vcity
             for(int j = 0; j < NbGeo2; ++j)
             {
                 OGRPolygon * Bati2 = (OGRPolygon *)Geo2->getGeometryRef(j)->clone();
-                //OGRLinearRing * Ring2 = Bati2->getExteriorRing();
 
-                //OGRGeometry * Inter = Bati1->Intersection(Bati2);
                 double Area = 0;
 
                 OGRwkbGeometryType Type = Bati1->Intersection(Bati2)->getGeometryType();
@@ -2373,10 +2384,10 @@ namespace vcity
                     delete tmp;
                 }
 
-                double val1 = Area/Bati1->get_Area();
-                double val2 = Area/Bati2->get_Area();
+				double val1 = (Bati1->get_Area() - Area)/Area;
+                double val2 = (Bati2->get_Area() - Area)/Area;
 
-                if(val1 > 0.99 && val2 > 0.99 && Bati1->get_Area() - Area < 5 && Bati2->get_Area() - Area < 5)//Les polygons sont identiques
+                if(val1 < 0.01 && val2 < 0.01 && Bati1->get_Area() - Area < 5 && Bati2->get_Area() - Area < 5)//Les polygons sont identiques
                 {
                     if(DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 5)//Si la différence de hauteur est inférieure à 5m, et si la distance de Hausdorff entre les deux bâtimetns est inférieure à 5m.
                     {
@@ -2395,7 +2406,7 @@ namespace vcity
                         break;
                     }
                 }
-                else if(val1 > 0.5 && val2 > 0.5)//Le polygon a été modifié
+                if(val1 < 0.5 && val2 < 0.5)//Le bâtiment a été modifié car les emprises au sol restent suffisament proches
                 {
                     Res.first[i].push_back(-2);
                     Res.second[j].push_back(-2);
@@ -2403,6 +2414,14 @@ namespace vcity
                     Res.second[j].push_back(i);
                     break;
                 }
+				/*if(val1 < 0.01 && Hausdorff(Geo1P.at(i), Geo2P.at(j)) < 1 || val2 < 0.01 && Hausdorff(Geo2P.at(j), Geo1P.at(i)))//Le bâtiment a été modifié car une des géométries se retrouvent dans l'autre
+				{
+					Res.first[i].push_back(-2);
+                    Res.second[j].push_back(-2);
+                    Res.first[i].push_back(j);
+                    Res.second[j].push_back(i);
+                    break;
+				}*/
                 delete Bati2;
             }
             delete Bati1;
@@ -2539,19 +2558,20 @@ namespace vcity
 		const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
 
 		//citygml::CityModel* model = new citygml::CityModel;
+		citygml::Envelope Envelope; //Envelope de l'ensembles des bâtiments qui seront enregistrés dans le fichier CityGML de sortie.
 
 		const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
 		std::vector<geos::geom::Geometry*> VecGeoRes;
 
 		// create citygml exporter to append data into
-        citygml::ExporterCityGML exporter(Folder + "/BatimentsDecoupes.citygml");
+        citygml::ExporterCityGML exporter(Folder + "/BatimentsDecoupes.gml");
 		exporter.initExport();
 
 		for(size_t j = 0; j < Batiments->getNumGeometries(); ++j)
 		{
-			if(j%10 == 0)
-					std::cout << "Avancement : " << j << "/" << Batiments->getNumGeometries() << " batiments ajoutes au CityGML.\r" << std::flush;
+			//if(j%10 == 0)
+			//		std::cout << "Avancement : " << j << "/" << Batiments->getNumGeometries() << " batiments ajoutes au CityGML.\r" << std::flush;
 
 			const geos::geom::Geometry * Bati = Batiments->getGeometryN(j);
 
@@ -2561,7 +2581,7 @@ namespace vcity
 			for(size_t i = 0; i < tiles.size(); i++)//On parcourt les tuiles du CityGML
 			{
 				citygml::CityModel* model = tiles[i]->getCityModel();
-				
+
 				for(citygml::CityObject* Building : model->getCityObjectsRoots())//On parcourt les bâtiments de la tuile
 				{
 					if(Building->getType() != citygml::COT_Building)
@@ -2716,6 +2736,7 @@ namespace vcity
 						BuildingCO->insertNode(WallCO);
 					}
 					PolyRoof->addRing(RingRoof);
+					PolyRoof->getEnvelope();
 					Roof->addPolygon(PolyRoof);
 
 					citygml::CityObject* RoofCO = new citygml::RoofSurface("Roof_" + std::to_string(i));
@@ -2723,6 +2744,19 @@ namespace vcity
 					RoofCO->addGeometry(Roof);
 					//model->addCityObject(RoofCO);
 					BuildingCO->insertNode(RoofCO);
+
+					/*if(!InitEnvelope)
+					{
+						Envelope = BuildingCO->getEnvelope();
+						InitEnvelope = true;
+					}
+					else
+						Envelope.merge(BuildingCO->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+
+					std::cout << std::endl << "Envelope : " << Envelope.getLowerBound() << std::endl << Envelope.getUpperBound() << std::endl;
+
+					int a;
+					std::cin >> a;*/
 
 					PolyGround->addRing(RingGround);
 					Ground->addPolygon(PolyGround);
@@ -2735,7 +2769,11 @@ namespace vcity
 					delete Coords;
 				}
 				BuildingCO->setAttribute("ID_shape", InfoBatiments[j].ID);
+				
 				exporter.appendCityObject(*BuildingCO);
+				BuildingCO->computeEnvelope();
+				Envelope.merge(BuildingCO->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+
 				delete BuildingCO;
 
 				//model->addCityObject(BuildingCO);
@@ -2751,8 +2789,8 @@ namespace vcity
                 delete geom;
             }
 		}
-
         //exporter.exportCityModel(*model);
+		exporter.addEnvelope(Envelope);
         exporter.endExport();
 
         std::cout << std::endl << "Fichier CityGML cree." << std::endl;
