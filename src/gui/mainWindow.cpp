@@ -2030,8 +2030,7 @@ void MainWindow::test2()
 
 					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
-					exporter.appendCityObject(*obj);
-					//exporter.appendCityObject(*LOD1);
+                    exporter.appendCityObject(*LOD1);
 
 					delete Enveloppe;
 					delete heightmax;
