@@ -39,6 +39,9 @@ public:
 	// MntAsc
 	virtual void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
+	// Las
+	virtual void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+
     // Shp
     virtual void addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS) override;
 

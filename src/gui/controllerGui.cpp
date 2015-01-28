@@ -263,6 +263,19 @@ void ControllerGui::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr
     appGui().getOsgScene()->addMntAscNode(uriLayer, node);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    //Controller::addLasNode(uriLayer, node);
+
+    // fill treeview
+    uriLayer.resetCursor();
+    appGui().getTreeView()->addLasNode(uriLayer, node);
+
+    // fill osg scene
+    uriLayer.resetCursor();
+    appGui().getOsgScene()->addLasNode(uriLayer, node);
+}
+////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
 {
     Controller::addShpNode(uriLayer, poDS);

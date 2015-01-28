@@ -40,6 +40,7 @@
 #include "osg/osgMnt.hpp"
 
 #include "utils/CityGMLFusion.h"
+#include "osg/osgLas.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = nullptr;
@@ -280,9 +281,9 @@ bool MainWindow::loadFile(const QString& filepath)
          settings.setValue("recentfiles", list);*/
     }
 	// Assimp importer
-	else if(ext == "assimp" || ext ==  "dae" || ext ==  "blend" || ext ==  "3ds" || ext ==  "ase" || ext ==  "obj" || ext ==  "xgl" || ext ==  "ply" || ext ==  "dxf" || ext ==  "lwo" || ext ==  "lws" ||
-		ext == "lxo" || ext ==  "stl" || ext ==  "x" || ext ==  "ac" || ext ==  "ms3d" || ext ==  "scn" || ext ==  "xml" || ext ==  "irrmesh" || ext ==  "irr" ||
-		ext == "mdl" || ext ==  "md2" || ext ==  "md3" || ext ==  "pk3" || ext ==  "md5" || ext ==  "smd" || ext ==  "m3" || ext ==  "3d" || ext ==  "q3d" || ext ==  "off" || ext ==  "ter")
+	else if(ext == "assimp" || ext == "dae" || ext == "blend" || ext == "3ds" || ext == "ase" || ext == "obj" || ext == "xgl" || ext == "ply" || ext == "dxf" || ext == "lwo" || ext == "lws" ||
+		ext == "lxo" || ext == "stl" || ext == "x" || ext == "ac" || ext == "ms3d" || ext == "scn" || ext == "xml" || ext == "irrmesh" || ext == "irr" ||
+		ext == "mdl" || ext == "md2" || ext == "md3" || ext == "pk3" || ext == "md5" || ext == "smd" || ext == "m3" || ext == "3d" || ext == "q3d" || ext == "off" || ext == "ter")
     {
 		/*Assimp::Importer importer;
 		const aiScene *scene = importer.ReadFile(filepath.toStdString(), aiProcessPreset_TargetRealtime_Fast); // aiProcessPreset_TargetRealtime_Quality
@@ -312,7 +313,7 @@ bool MainWindow::loadFile(const QString& filepath)
 		}
 	}
 	// MntAsc importer
-	else if(ext ==  "asc")
+	else if(ext == "asc")
     {
 		MNT mnt;
 
@@ -335,6 +336,31 @@ bool MainWindow::loadFile(const QString& filepath)
 			//mnt.sauve_log(std::string("mntAsc.txt").c_str(), std::string("mntAsc.tga").c_str()); // mntAsc.tga bidon
 			//mnt.sauve_partie(std::string("mntAsc_partie.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
 			//mnt.sauve_partie_XML(std::string("mntAsc_partie_xml.txt").c_str(), 0, 0, mnt.get_dim_x(), mnt.get_dim_y());
+		}
+	}
+	// las importer
+	else if(ext == "las" || ext == "laz")
+    {
+		LAS las;
+
+		if (las.open(filepath.toStdString().c_str()))
+		{
+			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerLas")->getURI();
+			vcity::log() << uriLayer.getStringURI() << "\n";
+
+            osg::ref_ptr<osg::Node> node = las.buildLasPoints(uriLayer, -m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
+
+			// set lasNode name
+			static int id = 0;
+			std::stringstream ss;
+			ss << "lasNode" << id++;
+			node->setName(ss.str());
+			
+			appGui().getControllerGui().addLasNode(uriLayer, node);
+
+			las.close();
+
+			addRecentFile(filepath);
 		}
 	}
     else if(ext == "shp")
@@ -884,6 +910,7 @@ void MainWindow::exportCityGML()
             uri.resetCursor();
             std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
             const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
+
             if(obj) objs.push_back(obj);
             if(uri.getType() == "Tile")
             {
@@ -1095,7 +1122,6 @@ void MainWindow::generateAllLODs()
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-//Version GDAL
 void MainWindow::generateLOD0()
 {
     QFileDialog w;
@@ -1185,56 +1211,6 @@ void MainWindow::generateLOD0()
 
 	QApplication::restoreOverrideCursor();
 }
-
-/*void MainWindow::generateLOD0()
-{
-    QFileDialog w;
-    w.setFileMode(QFileDialog::Directory);
-
-    if(w.exec() == 0)
-    {
-        std::cout << "Annulation : Dossier non valide." << std::endl;
-        return;
-    }
-
-    std::string Folder = w.selectedFiles().at(0).toStdString();
-    vcity::app().getAlgo().Folder = Folder;
-
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    // get all selected nodes (with a uri)
-    const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-    if(uris.size() > 0)
-    {
-        // do all nodes selected
-        for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
-        {
-            vcity::app().getAlgo().generateLOD0(*it);
-
-            appGui().getControllerGui().update(*it);
-        }
-    }
-	else
-	{
-		//vcity::app().getAlgo().generateLOD0(vcity::URI());
-		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
-		{
-			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-			{
-				vcity::URI uri;
-				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
-				uri.append(tile->getName(), "Tile");
-				uri.append(obj->getId(), "Building");
-				uri.setType("Building");
-
-				vcity::app().getAlgo().generateLOD0(uri);
-
-				appGui().getControllerGui().update(uri);
-			}
-		}
-	}
-
-	QApplication::restoreOverrideCursor();
-}*/
 ////////////////////////////////////////////////////////////////////////////////
 //Version GDAL
 void MainWindow::generateLOD1()
@@ -1251,28 +1227,55 @@ void MainWindow::generateLOD1()
     std::string Folder = w.selectedFiles().at(0).toStdString();
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    if(ShapeGeo != nullptr) // A SUPPRIMER ? GENERE LOD1 A PARTIR DE SHAPEFILE MAIS UTILISE GEOS, TOUJOURS UTILE ?
+
+	citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml");
+	exporter.initExport();
+	// get all selected nodes (with a uri)
+	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
+	if(uris.size() > 0)//Si des bâtiments ont été selectionnés
 	{
-		vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
-		delete ShapeGeo;
-		ShapeGeo = nullptr;
-	}
-	else
-	{
-        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
-		exporter.initExport();
-		// get all selected nodes (with a uri)
-		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-		if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+		// do all nodes selected
+		for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
 		{
-			// do all nodes selected
-			for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
+			citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+			if(obj)
 			{
-				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
+				std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
+                OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+				double * heightmax = new double;
+				double * heightmin = new double;
+                vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+
+				citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+				exporter.appendCityObject(*LOD1);
+				//appGui().getControllerGui().update(*it);
+
+				delete Enveloppe;
+				delete heightmax;
+				delete heightmin;
+			}
+		}
+	}
+	else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
+	{
+        int i = 0;
+		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
+		{
+			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+			{                    
+				vcity::URI uri;
+				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
+				uri.append(tile->getName(), "Tile");
+				uri.append(obj->getId(), "Building");
+				uri.setType("Building");
+		
+                //std::cout << uri.getStringURI() << std::endl;
+		
 				if(obj)
 				{
 					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-                    OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 					double * heightmax = new double;
 					double * heightmin = new double;
                     vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
@@ -1280,7 +1283,8 @@ void MainWindow::generateLOD1()
 					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
 					exporter.appendCityObject(*LOD1);
-					//appGui().getControllerGui().update(*it);
+					//appGui().getControllerGui().update(uri);
+                    ++i;
 
 					delete Enveloppe;
 					delete heightmax;
@@ -1288,52 +1292,17 @@ void MainWindow::generateLOD1()
 				}
 			}
 		}
-		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
-		{
-            int i = 0;
-			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
-			{
-				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-				{                    
-					vcity::URI uri;
-					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
-					uri.append(tile->getName(), "Tile");
-					uri.append(obj->getId(), "Building");
-					uri.setType("Building");
-		
-                    //std::cout << uri.getStringURI() << std::endl;
-		
-					if(obj)
-					{
-						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-						OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
-						double * heightmax = new double;
-						double * heightmin = new double;
-                        vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
-
-						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
-
-						exporter.appendCityObject(*LOD1);
-						//appGui().getControllerGui().update(uri);
-                        ++i;
-
-						delete Enveloppe;
-						delete heightmax;
-						delete heightmin;
-					}
-				}
-			}
-            if(i == 0)
-            {
-                std::cout << "Erreur : Aucun batiment dans la scene." << std::endl;
-                QApplication::restoreOverrideCursor();
-				exporter.endExport();
-                return;
-            }
+        if(i == 0)
+        {
+            std::cout << "Erreur : Aucun batiment dans la scene." << std::endl;
+            QApplication::restoreOverrideCursor();
+			exporter.endExport();
+            return;
         }
-        exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans " + Folder << std::endl;
-	}
+    }
+    exporter.endExport();
+    std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml cree dans " + Folder << std::endl;
+
     QApplication::restoreOverrideCursor();
 }
 
@@ -1359,7 +1328,7 @@ void MainWindow::generateLOD1()
 	}
 	else
 	{
-        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml");
+        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml");
 		exporter.initExport();
 		// get all selected nodes (with a uri)
 		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
@@ -1435,7 +1404,7 @@ void MainWindow::generateLOD1()
             }
 		}
 		exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".citygml cree dans " + Folder << std::endl;
+        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml cree dans " + Folder << std::endl;
 	}
     QApplication::restoreOverrideCursor();
 }*/
@@ -1541,7 +1510,7 @@ void MainWindow::slotChangeDetection()
 
     if(tiles.size() != 2)
     {
-        std::cout << "Erreur : Il faut ouvrir deux fichiers CityGML de la même zone, en commençant par le plus ancien." << std::endl;
+        std::cout << "Erreur : Il faut ouvrir deux fichiers CityGML de la meme zone, en commencant par le plus ancien." << std::endl;
         QApplication::restoreOverrideCursor();
         return;
     }
@@ -1827,59 +1796,6 @@ void buildJson()//GrandLyon
     std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void buildJsonLod()// bldg geo ref test #if 1 dans exportJSON.cpp
-{
-    QString dataPath("/mnt/docs/upload/shp/paris/tiles");
-    std::string basePath("/tmp/json/lod0/");
-    int idOffsetX = 1286;
-    int idOffsetY = 13714;
-    double offsetX = 643000.0;
-    double offsetY = 6857000.0;
-    double stepX = 500.0;
-    double stepY = 500.0;
-
-    QDirIterator iterator(dataPath, QDirIterator::Subdirectories);
-    while(iterator.hasNext())
-    {
-        iterator.next();
-        if(!iterator.fileInfo().isDir())
-        {
-            QString filename = iterator.filePath();
-            if(filename.endsWith(".shp", Qt::CaseInsensitive))
-            {
-                //QFileInfo fileInfo(filename);
-                std::string id = filename.toStdString();
-                id = id.substr(id.find("tile_")+5);
-                id = id.substr(0, id.find('.'));
-                //std::cout << id; std::cout << " - " << id.substr(0,id.find('_')) << " / " << id.substr(id.find('_')+1) << std::endl;
-                int idX = std::stoi(id.substr(0,id.find('_')));
-                int idY = std::stoi(id.substr(id.find('_')+1));
-                std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
-                std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
-
-                std::cout << "id : " << idX << ", " << idY << std::endl;
-
-                OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.toStdString().c_str(), FALSE);
-				buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
-                vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
-
-                citygml::ExporterJSON exporter;
-                exporter.setBasePath(basePath);
-                exporter.setOffset(offsetX+stepX*(idX-idOffsetX), offsetY+stepY*(idY-idOffsetY));
-                exporter.setTileSize(stepX, stepY);
-                citygml::CityModel* model = vcity::app().getAlgo().getCitymodel();
-                if(model)
-                {
-                    exporter.exportCityModel(*model, f, id);
-                    delete model;
-                }
-                OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
-            }
-        }
-    }
-    std::cout << std::endl;
-}
-////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
 {
 	//loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
@@ -1894,10 +1810,10 @@ void MainWindow::test1()
 
     QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Sélectionner les fichiers à traiter", lastdir);
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
 
 	QFileDialog w;
-	w.setWindowTitle("Sélectionner le dossier de sortie");
+	w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
     if(w.exec() == 0)
@@ -1920,7 +1836,6 @@ void MainWindow::test1()
 			continue;
 		}
         settings.setValue("lastdir", file.dir().absolutePath());
-
 
 		QString ext = file2.suffix().toLower();
 		if(ext == "citygml" || ext == "gml")
@@ -1979,10 +1894,10 @@ void MainWindow::test2()
 
     QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Sélectionner les fichiers à traiter", lastdir);
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
 
 	QFileDialog w;
-	w.setWindowTitle("Sélectionner le dossier de sortie");
+	w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
     if(w.exec() == 0)
@@ -1997,7 +1912,7 @@ void MainWindow::test2()
     {
         QFileInfo file(filenames[i]);
 		QString filepath = file.absoluteFilePath();
-		QFileInfo file2(filepath);
+		QFileInfo file2(filepath); //Ces deux dernières lignes servent à transformer les \ en / dans le chemin de file.
 
 		if(!file2.exists())
 		{
@@ -2048,14 +1963,69 @@ void MainWindow::test2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-    Fusion();
+    //FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+
+	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+	QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QStringList File1 = QFileDialog::getOpenFileNames(this, "Sélectionner le premier fichier.", lastdir);
+
+	QFileInfo file1temp(File1[0]);
+	QString file1path = file1temp.absoluteFilePath();
+	QFileInfo file1(file1path);
+
+	QString ext = file1.suffix().toLower();
+	if(ext != "citygml" && ext != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+		return;
+	}
+
+	QStringList File2 = QFileDialog::getOpenFileNames(this, "Sélectionner le second fichier.", lastdir);
+
+	QFileInfo file2temp(File2[0]);
+	QString file2path = file2temp.absoluteFilePath();
+	QFileInfo file2(file2path);
+
+	ext = file2.suffix().toLower();
+	if(ext != "citygml" && ext != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+		return;
+	}
+
+	QFileDialog w;
+	w.setWindowTitle("Sélectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
+	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
+	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
+	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
+
+	citygml::CityModel * City1 = tile1->getCityModel();
+	citygml::CityModel * City2 = tile2->getCityModel();
+
+	FusionLODs(City1, City2);
+
+	citygml::ExporterCityGML exporter(Folder);
+
+	exporter.exportCityModel(*City2);
+
+	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 {
-    // test json
     buildJson();
-    //buildJsonLod();
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

@@ -59,6 +59,7 @@ public:
     void deleteAssimpNode(const vcity::URI& uri);
 
 	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+	void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     void addShpNode(const vcity::URI& uriLayer, const std::string& nodeName);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
@@ -99,6 +100,7 @@ private slots:
     void slotCheckAll();
     void slotUnCheckAll();
     void slotAddDoc();
+	void slotExportJSON();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
@@ -138,6 +140,7 @@ private:
     QAction* m_actionSelectAll;
     QAction* m_actionDeSelectAll;
     QAction* m_actionAddDoc;
+	QAction* m_actionExportJSON;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __TREEVIEW_HPP__

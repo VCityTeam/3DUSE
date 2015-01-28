@@ -4,13 +4,32 @@
 #define __LAYERLAS_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "abstractlayer.hpp"
+
 #include "URI.hpp"
 #include <string>
 #include <memory>
-#include "ogrsf_frmts.h"
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4996) // TEMP MT
+#pragma warning(disable : 4267) // TEMP MT
+#endif
+
+// MT : the first time, you must do from /externals/laslib folder :
+// mkdir build; cd build; cmake .. -DCMAKE_BUILD_TYPE=Release; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
+#include <lasdefinitions.hpp>
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
+struct LayerLas_LASpoint
+{
+  I32 X;
+  I32 Y;
+  I32 Z;
+
+  U8 classification : 5;
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief LayerLas class : it holds LAS points cloud
 class LayerLas : public abstractLayer
@@ -22,6 +41,10 @@ public:
 
     virtual ~LayerLas() override;
 
+    /// \brief addLASpoint Add a laspoint in a layer
+    /// \param laspoint The laspoint to add
+    void addLASpoint(const LASpoint& laspoint);
+
     /// Get layer type as string
 	const std::string getType() const;
 
@@ -30,8 +53,10 @@ public:
 
     void dump();
 
-public:
-    OGRDataSource* m_shp;
+	void exportJSON();
+
+private:
+    std::vector<LayerLas_LASpoint> m_LASpoints;
 };
 ////////////////////////////////////////////////////////////////////////////////
 typedef std::shared_ptr<LayerLas> LayerLasPtr;

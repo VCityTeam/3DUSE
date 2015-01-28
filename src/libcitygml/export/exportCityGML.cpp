@@ -68,6 +68,12 @@ namespace citygml
 		xmlMemoryDump();
 	}
 	////////////////////////////////////////////////////////////////////////////////
+	void ExporterCityGML::addEnvelope(const citygml::Envelope& env)
+	{
+		xmlNodePtr nodeEnv = xmlNewChild(m_root_node, NULL, BAD_CAST "gml:boundedBy", NULL);
+		exportEnvelopeXml(env, nodeEnv);
+	}
+	////////////////////////////////////////////////////////////////////////////////
 	void ExporterCityGML::exportCityModel(const CityModel& model)
 	{
 		initExport(false);
@@ -140,7 +146,8 @@ namespace citygml
 	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent)
 	{
-		xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST "gml:Polygon", NULL);
+		xmlNodePtr node = xmlNewChild(parent, NULL, BAD_CAST "gml:surfaceMember", NULL);
+		xmlNodePtr res = xmlNewChild(node, NULL, BAD_CAST "gml:Polygon", NULL);
 		xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
 
 		const std::vector<citygml::LinearRing*>& lrings = poly.getInteriorRings();
@@ -165,19 +172,19 @@ namespace citygml
         //xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL); //Maxime a ajouté un Wall (Roof) après le WallSurface (RoofSurface) alors qu'il n'y est pas dans les CityGML fournis
         //xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
 
-        xmlNodePtr node1 = xmlNewChild(parent, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(geom.getLOD())+"MultiSurface").c_str(), NULL);
-        xmlNodePtr node2 = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
-        xmlNewProp(node2, BAD_CAST "srsDimension", BAD_CAST "3");
-        xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:surfaceMember", NULL);
+       // xmlNodePtr node1 = xmlNewChild(parent, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(geom.getLOD())+"MultiSurface").c_str(), NULL);
+       // xmlNodePtr node2 = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
+       // xmlNewProp(node2, BAD_CAST "srsDimension", BAD_CAST "3");
+       // xmlNodePtr node3 = xmlNewChild(parent, NULL, BAD_CAST "gml:surfaceMember", NULL);
 
 		for(const citygml::Polygon* poly : geom.getPolygons())
 		{
 			exportPolygonAppearanceXml(*poly, m_currentAppearence);
-			exportPolygonXml(*poly, node3);
+			exportPolygonXml(*poly, parent);//node3
 		}
 
         //return res;
-        return node1;
+        return parent;//node1;
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent)
@@ -487,13 +494,24 @@ namespace citygml
 			m_currentAppearence = xmlNewChild(res, NULL, BAD_CAST "app:appearance", NULL);
 		}
 
+		xmlNodePtr node;
+		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
+		{
+			xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"MultiSurface").c_str(), NULL);
+			node = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
+			xmlNewProp(node, BAD_CAST "srsDimension", BAD_CAST "3");
+		}
+
 		for(const auto& geom : obj.getGeometries())
 		{
-			if(res) exportGeometryXml(*geom, res);
+			//std::cout << "Geometry" << std::endl;
+
+			if(res)
+				exportGeometryXml(*geom, node);
 			else exportGeometryXml(*geom, parent);
 		}
 
-		for(const auto& child : obj.getChildren())
+		for(const auto& child : obj.getChildren()) //Parcourt les WallSurface, RoofSurface par exemple d'un bâtiment.
 		{
 			if(res) exportCityObjetXml(*child, res);
 			else exportCityObjetXml(*child, parent);
