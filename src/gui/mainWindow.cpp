@@ -41,6 +41,11 @@
 
 #include "utils/CityGMLFusion.h"
 #include "osg/osgLas.hpp"
+
+#include "src/processes/lodsmanagement.hpp"
+#include "src/processes/ExportToShape.hpp"
+#include "src/processes/ChangeDetection.hpp"
+#include "src/processes/LinkCityGMLShape.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = nullptr;
@@ -126,8 +131,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // generate LODs signals
     connect(m_ui->actionAll_LODs, SIGNAL(triggered()), this, SLOT(generateAllLODs()));
-    connect(m_ui->actionLOD0, SIGNAL(triggered()), this, SLOT(generateLOD0()));
-    connect(m_ui->actionLOD1, SIGNAL(triggered()), this, SLOT(generateLOD1()));
+    connect(m_ui->actionScene_GenerateLOD0, SIGNAL(triggered()), this, SLOT(generateLOD0())); //Generate LOD0 on objects from scene
+    connect(m_ui->actionScene_GenerateLOD1, SIGNAL(triggered()), this, SLOT(generateLOD1()));
+    connect(m_ui->actionLOD0, SIGNAL(triggered()), this, SLOT(generateLOD0OnFile()));
+    connect(m_ui->actionLOD1, SIGNAL(triggered()), this, SLOT(generateLOD1OnFile())); //Generate LOD1 on objects from folder
     connect(m_ui->actionLOD2, SIGNAL(triggered()), this, SLOT(generateLOD2()));
     connect(m_ui->actionLOD3, SIGNAL(triggered()), this, SLOT(generateLOD3()));
     connect(m_ui->actionLOD4, SIGNAL(triggered()), this, SLOT(generateLOD4()));
@@ -509,6 +516,7 @@ void MainWindow::loadSceneRecursive()
 
 
     QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier contenant les fichiers a ouvrir");
     w.setFileMode(QFileDialog::Directory);
 
     //w.setFileMode(QFileDialog::AnyFile);
@@ -672,10 +680,12 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->menuTest->menuAction()->setVisible(true);
         m_ui->actionExport_osg->setVisible(true);
         m_ui->actionExport_tiled_osga->setVisible(true);
+        m_ui->actionExport_JSON->setVisible(true);
         m_ui->actionLoad_bbox->setVisible(true);
         m_ui->actionShow_advanced_tools->setVisible(true);
         m_ui->actionHelp->setVisible(true);
         m_ui->actionCityGML_cut->setVisible(true);
+        m_ui->actionLOD0->setVisible(true);
         m_ui->actionLOD2->setVisible(true);
         m_ui->actionLOD3->setVisible(true);
         m_ui->actionLOD4->setVisible(true);
@@ -689,11 +699,12 @@ void MainWindow::unlockFeatures(const QString& pass)
         break;
     case 0:
         m_ui->menuDebug->menuAction()->setVisible(false);
-        //m_ui->menuTest->menuAction()->setVisible(false); //A cacher
+        m_ui->menuTest->menuAction()->setVisible(false); //A cacher
         m_ui->actionFix_building->setVisible(false);
         m_ui->actionShadows->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
         m_ui->actionExport_tiled_osga->setVisible(false);
+        m_ui->actionExport_JSON->setVisible(false);
         m_ui->actionLoad_bbox->setVisible(false);
         m_ui->actionShow_advanced_tools->setVisible(false);
         m_ui->actionHelp->setVisible(false);
@@ -703,6 +714,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         m_ui->hsplitter_bottom->setVisible(false);
         m_ui->actionShow_temporal_tools->setVisible(false);
         m_ui->actionCityGML_cut->setVisible(false);
+        m_ui->actionLOD0->setVisible(false);
         m_ui->actionLOD2->setVisible(false);
         m_ui->actionLOD3->setVisible(false);
         m_ui->actionLOD4->setVisible(false);
@@ -1122,9 +1134,15 @@ void MainWindow::generateAllLODs()
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::generateLOD0OnFile()
+{
+
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD0()
 {
     QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
     if(w.exec() == 0)
@@ -1134,7 +1152,6 @@ void MainWindow::generateLOD0()
     }
 
     std::string Folder = w.selectedFiles().at(0).toStdString();
-    vcity::app().getAlgo().Folder = Folder;
 
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	// get all selected nodes (with a uri)
@@ -1151,10 +1168,10 @@ void MainWindow::generateLOD0()
 				OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 				double * heightmax = new double;
 				double * heightmin = new double;
-                vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+                generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
-                vcity::app().getAlgo().SaveGeometrytoShape(obj->getId()+"_Footprint", Enveloppe);
-				citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+                SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
+                citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
 				obj2->addGeometry(geom);
 				obj->insertNode(obj2);
@@ -1168,8 +1185,7 @@ void MainWindow::generateLOD0()
 		}
 	}
     else//Sinon, on genere les LOD0 de tous les bâtiments de la scène
-	{
-		//vcity::app().getAlgo().generateLOD0(vcity::URI());
+    {
 		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
 		{
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
@@ -1187,11 +1203,11 @@ void MainWindow::generateLOD0()
 					double * heightmax = new double;
 					double * heightmin = new double;
 
-                    vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+                    generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
-                    vcity::app().getAlgo().SaveGeometrytoShape(obj->getId()+"_Footprint", Enveloppe);
+                    SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
 
-					citygml::Geometry* geom = vcity::app().getAlgo().ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+                    citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 
 					citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
 					obj2->addGeometry(geom);
@@ -1212,10 +1228,167 @@ void MainWindow::generateLOD0()
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-//Version GDAL
+void MainWindow::generateLOD1OnFile()
+{
+    //Generate LOD1 on files and export results in Folder
+
+    m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
+
+    std::cout<<"Load Scene"<<std::endl;
+
+    QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
+
+    QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+
+    for(int i = 0; i < filenames.count(); ++i)
+    {
+        QFileInfo file(filenames[i]);
+        QString filepath = file.absoluteFilePath();
+        QFileInfo file2(filepath);
+
+        if(!file2.exists())
+        {
+            std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
+            continue;
+        }
+        settings.setValue("lastdir", file.dir().absolutePath());
+
+        QString ext = file2.suffix().toLower();
+        if(ext == "citygml" || ext == "gml")
+        {
+            QApplication::setOverrideCursor(Qt::WaitCursor);
+            std::cout << "load citygml file : " << filepath.toStdString() << std::endl;
+            vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
+
+            //Generate LOD1 on tile and save in CityGML File
+
+            citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1.gml");
+            exporter.initExport();
+            citygml::Envelope Envelope;
+
+            for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+            {
+                if(obj)
+                {
+                    std::cout<< "Generate LOD1 on "<< obj->getId() << std::endl;
+                    OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+                    double * heightmax = new double;
+                    double * heightmin = new double;
+                    generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
+
+
+
+                    citygml::CityObject* LOD1 = ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+                    exporter.appendCityObject(*LOD1);
+                    LOD1->computeEnvelope();
+                    Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+
+                    delete Enveloppe;
+                    delete heightmax;
+                    delete heightmin;
+                }
+            }
+            exporter.addEnvelope(Envelope);
+            exporter.endExport();
+            std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree dans " << Folder << std::endl;
+            QApplication::restoreOverrideCursor();
+        }
+    }
+
+    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
+
+    //Generate LOD1 on files and export LOD1+LOD2 in Folder
+
+   /* std::cout<<"Load Scene"<<std::endl;
+
+    QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
+
+    QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+
+    for(int i = 0; i < filenames.count(); ++i)
+    {
+        QFileInfo file(filenames[i]);
+        QString filepath = file.absoluteFilePath();
+        QFileInfo file2(filepath); //Ces deux dernières lignes servent à transformer les \ en / dans le chemin de file.
+
+        if(!file2.exists())
+        {
+            std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
+            continue;
+        }
+        settings.setValue("lastdir", file.dir().absolutePath());
+
+        QString ext = file2.suffix().toLower();
+        if(ext == "citygml" || ext == "gml")
+        {
+            QApplication::setOverrideCursor(Qt::WaitCursor);
+            std::cout << "load citygml file : " << filepath.toStdString() << std::endl;
+            vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
+
+            //Generate LOD1 on tile and save in CityGML File
+
+            citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1_LOD2.gml");
+            exporter.initExport();
+            citygml::Envelope Envelope;
+
+            for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
+            {
+                if(obj)
+                {
+                    std::cout<< "Generate LOD1 on "<< obj->getId() << std::endl;
+                    OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
+                    double * heightmax = new double;
+                    double * heightmin = new double;
+                    generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
+
+                    citygml::CityObject* LOD1 = ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+
+                    exporter.appendCityObject(*LOD1);
+                    LOD1->computeEnvelope();
+                    Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+
+                    delete Enveloppe;
+                    delete heightmax;
+                    delete heightmin;
+                }
+            }
+            exporter.addEnvelope(Envelope);
+            exporter.endExport();
+            std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1_LOD2.gml cree dans " << Folder << std::endl;
+            QApplication::restoreOverrideCursor();
+        }
+    }*/
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD1()
 {
     QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
     if(w.exec() == 0)
@@ -1230,6 +1403,8 @@ void MainWindow::generateLOD1()
 
 	citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml");
 	exporter.initExport();
+
+    citygml::Envelope Envelope;
 	// get all selected nodes (with a uri)
 	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
 	if(uris.size() > 0)//Si des bâtiments ont été selectionnés
@@ -1244,11 +1419,13 @@ void MainWindow::generateLOD1()
                 OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 				double * heightmax = new double;
 				double * heightmin = new double;
-                vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+                generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
-				citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+                citygml::CityObject* LOD1 = ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
 				exporter.appendCityObject(*LOD1);
+                LOD1->computeEnvelope();
+                Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
 				//appGui().getControllerGui().update(*it);
 
 				delete Enveloppe;
@@ -1278,11 +1455,13 @@ void MainWindow::generateLOD1()
 					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 					double * heightmax = new double;
 					double * heightmin = new double;
-                    vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
+                    generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
-					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
+                    citygml::CityObject* LOD1 = ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
 					exporter.appendCityObject(*LOD1);
+                    LOD1->computeEnvelope();
+                    Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
 					//appGui().getControllerGui().update(uri);
                     ++i;
 
@@ -1300,114 +1479,12 @@ void MainWindow::generateLOD1()
             return;
         }
     }
+    exporter.addEnvelope(Envelope);
     exporter.endExport();
     std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml cree dans " + Folder << std::endl;
 
     QApplication::restoreOverrideCursor();
 }
-
-/*void MainWindow::generateLOD1()
-{
-    QFileDialog w;
-    w.setFileMode(QFileDialog::Directory);
-
-    if(w.exec() == 0)
-    {
-        std::cout << "Annulation : Dossier non valide." << std::endl;
-        return;
-    }
-
-    std::string Folder = w.selectedFiles().at(0).toStdString();
-
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-	if(ShapeGeo != nullptr)
-	{
-		vcity::app().getAlgo().generateLOD1(ShapeGeo, Hauteurs);
-		delete ShapeGeo;
-		ShapeGeo = nullptr;
-	}
-	else
-	{
-        citygml::ExporterCityGML exporter(Folder + "/" + appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml");
-		exporter.initExport();
-		// get all selected nodes (with a uri)
-		const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-		if(uris.size() > 0)//Si des bâtiments ont été selectionnés
-		{
-			// do all nodes selected
-			for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
-			{
-				std::cout << it->getStringURI() << std::endl;
-				it->resetCursor();
-				citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
-
-				if(obj)
-				{
-					std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-					geos::geom::Geometry ** Enveloppe = new geos::geom::Geometry *;
-					double * heightmax = new double;
-					double * heightmin = new double;
-					vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
-
-					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), *Enveloppe, heightmax, heightmin);
-
-					exporter.appendCityObject(*LOD1);
-					//appGui().getControllerGui().update(*it);
-
-					delete Enveloppe;
-					delete heightmax;
-					delete heightmin;
-				}
-			}
-		}
-		else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
-		{
-            int i = 0;
-			for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
-            {
-				for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-                {
-					vcity::URI uri;
-					uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
-					uri.append(tile->getName(), "Tile");
-					uri.append(obj->getId(), "Building");
-					uri.setType("Building");
-		
-					//std::cout << uri.getStringURI() << std::endl;
-		
-					if(obj)
-					{
-						std::cout<< "GenerateLOD1 on "<< obj->getId() << std::endl;
-						geos::geom::Geometry ** Enveloppe = new geos::geom::Geometry *;
-						double * heightmax = new double;
-						double * heightmin = new double;
-						vcity::app().getAlgo().generateLOD0(obj, Enveloppe, heightmax, heightmin);
-
-						citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), *Enveloppe, heightmax, heightmin);
-
-						exporter.appendCityObject(*LOD1);
-						//appGui().getControllerGui().update(uri);                        
-
-                        ++i;
-
-						delete Enveloppe;
-						delete heightmax;
-						delete heightmin;
-					}
-				}
-			}
-            if(i == 0)
-            {
-                std::cout << "Erreur : Aucun batiment dans la scene." << std::endl;
-                QApplication::restoreOverrideCursor();
-                return;
-            }
-		}
-		exporter.endExport();
-        std::cout << "Fichier " << appGui().getScene().getDefaultLayer("LayerCityGML")->getName() +".gml cree dans " + Folder << std::endl;
-	}
-    QApplication::restoreOverrideCursor();
-}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::generateLOD2()
 {
@@ -1446,6 +1523,7 @@ void MainWindow::slotCityGML_cut()
 void MainWindow::slotCutCityGMLwithShapefile()
 {
     QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
     if(w.exec() == 0)
@@ -1455,10 +1533,9 @@ void MainWindow::slotCutCityGMLwithShapefile()
     }
 
     std::string Folder = w.selectedFiles().at(0).toStdString();
-    vcity::app().getAlgo().Folder = Folder;
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);
+    DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1489,6 +1566,7 @@ void MainWindow::slotObjToCityGML()
 void MainWindow::slotChangeDetection()
 {
     QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
     if(w.exec() == 0)
@@ -1498,14 +1576,9 @@ void MainWindow::slotChangeDetection()
     }
 
     std::string Folder = w.selectedFiles().at(0).toStdString();
-    vcity::app().getAlgo().Folder = Folder;
 
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    //VersionGeos
-    //vcity::app().getAlgo().CompareTiles();
-
-    //VersionGDAL
     const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
     if(tiles.size() != 2)
@@ -1515,7 +1588,7 @@ void MainWindow::slotChangeDetection()
         return;
     }
 
-    vcity::app().getAlgo().CompareTiles(tiles[0]->getCityModel(),tiles[1]->getCityModel());
+    CompareTiles(Folder, tiles[0]->getCityModel(),tiles[1]->getCityModel());
     //
 
 	QApplication::restoreOverrideCursor();
@@ -1798,167 +1871,10 @@ void buildJson()//GrandLyon
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
 {
-	//loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2009.gml");
-	//loadFile("C:/Users/Game Trap/Downloads/Data/Donnees_Sathonay/SATHONAY_CAMP_BATIS_2012.gml");
-	//vcity::app().getAlgo().CompareTiles();
-
-	//Generate LOD1 on files and export results in Folder
-
-	m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
-
-    std::cout<<"Load Scene"<<std::endl;
-
-    QSettings settings("liris", "virtualcity");
-    QString lastdir = settings.value("lastdir").toString();
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
-
-	QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-    w.setFileMode(QFileDialog::Directory);
-
-    if(w.exec() == 0)
-    {
-        std::cout << "Annulation : Dossier non valide." << std::endl;
-        return;
-    }
-
-    std::string Folder = w.selectedFiles().at(0).toStdString();
-
-    for(int i = 0; i < filenames.count(); ++i)
-    {
-        QFileInfo file(filenames[i]);
-		QString filepath = file.absoluteFilePath();
-		QFileInfo file2(filepath);
-
-		if(!file2.exists())
-		{
-			std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
-			continue;
-		}
-        settings.setValue("lastdir", file.dir().absolutePath());
-
-		QString ext = file2.suffix().toLower();
-		if(ext == "citygml" || ext == "gml")
-		{
-			QApplication::setOverrideCursor(Qt::WaitCursor);
-			std::cout << "load citygml file : " << filepath.toStdString() << std::endl;
-			vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
-
-			//Generate LOD1 on tile and save in CityGML File
-
-			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1.gml");
-			exporter.initExport();
-
-			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-			{		
-				if(obj)
-				{
-					std::cout<< "Generate LOD1 on "<< obj->getId() << std::endl;
-					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
-					double * heightmax = new double;
-					double * heightmin = new double;
-					vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
-
-
-
-					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
-
-					exporter.appendCityObject(*LOD1);
-
-					delete Enveloppe;
-					delete heightmax;
-					delete heightmin;
-				}
-			}			
-			exporter.endExport();
-			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree dans " << Folder << std::endl;			
-			QApplication::restoreOverrideCursor();
-		}
-    }
-
-    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test2()
 {
-	/*loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp");
-	loadFile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
-
-	vcity::app().getAlgo().DecoupeCityGML(ShapeGeo, InfoBatiments);*/
-
-	//Generate LOD1 on files and export LOD1+LOD2 in Folder
-
-	m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
-
-    std::cout<<"Load Scene"<<std::endl;
-
-    QSettings settings("liris", "virtualcity");
-    QString lastdir = settings.value("lastdir").toString();
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
-
-	QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-    w.setFileMode(QFileDialog::Directory);
-
-    if(w.exec() == 0)
-    {
-        std::cout << "Annulation : Dossier non valide." << std::endl;
-        return;
-    }
-
-    std::string Folder = w.selectedFiles().at(0).toStdString();
-
-    for(int i = 0; i < filenames.count(); ++i)
-    {
-        QFileInfo file(filenames[i]);
-		QString filepath = file.absoluteFilePath();
-		QFileInfo file2(filepath); //Ces deux dernières lignes servent à transformer les \ en / dans le chemin de file.
-
-		if(!file2.exists())
-		{
-			std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
-			continue;
-		}
-        settings.setValue("lastdir", file.dir().absolutePath());
-
-		QString ext = file2.suffix().toLower();
-		if(ext == "citygml" || ext == "gml")
-		{
-			QApplication::setOverrideCursor(Qt::WaitCursor);
-			std::cout << "load citygml file : " << filepath.toStdString() << std::endl;
-			vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
-
-			//Generate LOD1 on tile and save in CityGML File
-
-			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1_LOD2.gml");
-			exporter.initExport();
-
-			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
-			{		
-				if(obj)
-				{
-					std::cout<< "Generate LOD1 on "<< obj->getId() << std::endl;
-					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
-					double * heightmax = new double;
-					double * heightmin = new double;
-					vcity::app().getAlgo().generateLOD0(obj, &Enveloppe, heightmax, heightmin);
-
-					citygml::CityObject* LOD1 = vcity::app().getAlgo().ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
-
-                    exporter.appendCityObject(*LOD1);
-
-					delete Enveloppe;
-					delete heightmax;
-					delete heightmin;
-				}
-			}			
-			exporter.endExport();
-			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1_LOD2.gml cree dans " << Folder << std::endl;			
-			QApplication::restoreOverrideCursor();
-		}
-    }
-
-    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
@@ -1995,7 +1911,7 @@ void MainWindow::test3()
 	}
 
 	QFileDialog w;
-	w.setWindowTitle("Sélectionner le dossier de sortie");
+    w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
     if(w.exec() == 0)

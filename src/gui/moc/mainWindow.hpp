@@ -101,6 +101,8 @@ private slots:
     void generateAllLODs();
     void generateLOD0();
     void generateLOD1();
+    void generateLOD0OnFile();
+    void generateLOD1OnFile();
     void generateLOD2();
     void generateLOD3();
     void generateLOD4();
