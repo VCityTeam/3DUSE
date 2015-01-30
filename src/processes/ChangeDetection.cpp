@@ -204,7 +204,7 @@ double DistanceHausdorff(OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2)
 * @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve de manière identique dans les deux ensembles de geometries, dans un seul ou s'il a été modifié
 * @param Geo1 Premier ensemble de geometries qui ont été unies : deux triangles voisins sont réunis en un rectangle par exemple
 * @param Geo2 Second ensemble de geometries qui ont été unies
-* @param Geo1P Premier ensemble de geometries non unies
+* @param Geo1P Premier ensemble de geometries non unies : pour un polygone de Geo1, il donne la liste des polygones non unis qui le composent
 * @param Geo2P Second ensemble de geometries non unies
 */
 std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > CompareBati(OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2, std::vector<OGRMultiPolygon* > Geo1P, std::vector<OGRMultiPolygon *> Geo2P)
@@ -248,6 +248,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
                     Res.second[j].push_back(-1);
                     Res.first[i].push_back(j);
                     Res.second[j].push_back(i);
+					delete Bati2;
                     break;
                 }
                 else//Batiment modifie en "hauteur"
@@ -256,6 +257,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
                     Res.second[j].push_back(-2);
                     Res.first[i].push_back(j);
                     Res.second[j].push_back(i);
+					delete Bati2;
                     break;
                 }
             }
@@ -265,8 +267,10 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
                 Res.second[j].push_back(-2);
                 Res.first[i].push_back(j);
                 Res.second[j].push_back(i);
+				delete Bati2;
                 break;
             }
+			//// Si on arrive jusqu'ici, les premiers tests disent que les deux bâtiments sont respectivement détruit/construit. Dernier test pour extraire les bâtiments qui ont des parties identiques => bâtiment modifié
             /*if(val1 < 0.01 && Hausdorff(Geo1P.at(i), Geo2P.at(j)) < 1 || val2 < 0.01 && Hausdorff(Geo2P.at(j), Geo1P.at(i)))//Le bâtiment a été modifié car une des géométries se retrouvent dans l'autre
             {
                 Res.first[i].push_back(-2);
@@ -275,6 +279,9 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
                 Res.second[j].push_back(i);
                 break;
             }*/
+
+			
+
             delete Bati2;
         }
         delete Bati1;
@@ -309,7 +316,7 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
 
         int cpt = 0;
 
-        std::vector<OGRPolygon *> ModelPolygons;//GeoVecAll;//Contient tous les polygones composant le model courant
+		OGRMultiPolygon * ModelPolygons = new OGRMultiPolygon;//Contient tous les polygones composant le model courant
 
         for(citygml::CityObject* obj : model->getCityObjectsRoots())
         {
@@ -341,7 +348,7 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
                                     if(OgrPoly->IsValid())
                                     {
                                         Building->addGeometryDirectly(OgrPoly);
-                                        ModelPolygons.push_back(OgrPoly);
+										ModelPolygons->addGeometryDirectly(OgrPoly);
                                     }
                                 }
                                 else
@@ -350,7 +357,7 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
                         }
                     }
                 }
-
+				
                 OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
 
                 if(EnveloppeCityU[i] == nullptr)
@@ -375,13 +382,19 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
         {
             OGRMultiPolygon * Bati = new OGRMultiPolygon;//Contiendra liste des polygones pour bâtiment i
             OGRPolygon * CurrBati = (OGRPolygon *)EnveloppeCityU[i]->getGeometryRef(g); //On parcourt chaque bâtiment
-            for(size_t j = 0; j < ModelPolygons.size(); ++j)//Pour le bâtiment courant, on va chercher dans ModelPolygons quels sont les polygones qui le composent.
+
+			std::cout << "G = " << g << "/" << EnveloppeCityU[i]->getNumGeometries() << std::endl;
+			for(size_t j = 0; j < ModelPolygons->getNumGeometries(); ++j)//Pour le bâtiment courant, on va chercher dans ModelPolygons quels sont les polygones qui le composent.
             {
-                if(ModelPolygons[j]->Intersects(CurrBati))//Ce polygone appartient bien à CurrBati
-                {
-                    Bati->addGeometryDirectly(ModelPolygons[j]);//Directly donne l'ownership à Bati au lieu de cloner le polygon
-                    ModelPolygons.erase(ModelPolygons.begin() + j);//On le retire de ModelPolygons car il est maintenant associé à CurrBati
-                    j--;
+				if(ModelPolygons->getGeometryRef(j)->Intersect(CurrBati))//Ce polygone appartient bien à CurrBati
+				{
+					OGRGeometry * Inter = ModelPolygons->getGeometryRef(j)->Intersection(CurrBati);
+					if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D || Inter->getGeometryType() == wkbMultiPolygon || Inter->getGeometryType() == wkbMultiPolygon25D) //L'intersection n'est pas un simple point
+					{
+						Bati->addGeometry(ModelPolygons->getGeometryRef(j));
+						ModelPolygons->removeGeometry(j);//On le retire de ModelPolygons car il est maintenant associé à CurrBati
+						j--;
+					}
                 }
             }
             EnveloppeCity[i].push_back(Bati);
