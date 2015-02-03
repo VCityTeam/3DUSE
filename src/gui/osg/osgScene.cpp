@@ -520,7 +520,8 @@ void OsgScene::reset()
 }
 ////////////////////////////////////////////////////////////////////////////////
 void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
-{    
+{
+	appGui().getControllerGui().resetSelection();
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if(grp)
     {

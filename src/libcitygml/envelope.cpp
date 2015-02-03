@@ -49,13 +49,13 @@ void Envelope::merge(const Envelope& e)
 void Envelope::merge(const TVec3d& p)
 {
     if(p.x < _lowerBound.x) _lowerBound.x = p.x;
-    else if(p.x > _upperBound.x) _upperBound.x = p.x;
+    /*else*/if(p.x > _upperBound.x) _upperBound.x = p.x;
 
     if(p.y < _lowerBound.y) _lowerBound.y = p.y;
-    else if(p.y > _upperBound.y) _upperBound.y = p.y;
+    /*else*/if(p.y > _upperBound.y) _upperBound.y = p.y;
 
     if(p.z < _lowerBound.z) _lowerBound.z = p.z;
-    else if(p.z > _upperBound.z) _upperBound.z = p.z;
+    /*else*/if(p.z > _upperBound.z) _upperBound.z = p.z;
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream& os, const Envelope& e )
