@@ -46,6 +46,8 @@
 #include "src/processes/ExportToShape.hpp"
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
+
+#include <windows.h>
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = nullptr;
@@ -1579,7 +1581,7 @@ void MainWindow::slotChangeDetection()
 
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
+    /*const std::vector<vcity::Tile *> tiles = dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles();
 
     if(tiles.size() != 2)
     {
@@ -1588,8 +1590,56 @@ void MainWindow::slotChangeDetection()
         return;
     }
 
-    CompareTiles(Folder, tiles[0]->getCityModel(),tiles[1]->getCityModel());
-    //
+    CompareTiles(Folder, tiles[0]->getCityModel(),tiles[1]->getCityModel());*/ //COMPARE DEUX FICHIERS OUVERTS DANS 3DUSE
+
+    // Ouvre deux fichiers juste pour ce traitement
+
+	QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML de la premiere date.", lastdir);
+    QFileInfo file1(filename1);
+	QString filepath1 = file1.absoluteFilePath();
+	QString ext1 = file1.suffix().toLower();
+    if(ext1 != "citygml" && ext1 != "gml")
+    {
+		std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+    settings.setValue("lastdir", file1.dir().absolutePath());
+
+	lastdir = settings.value("lastdir").toString();
+    QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML de la seconde date.", lastdir);
+    QFileInfo file2(filename2);
+	QString filepath2 = file2.absoluteFilePath();
+	QString ext2 = file2.suffix().toLower();
+    if(ext2 != "citygml" && ext2 != "gml")
+    {
+		std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+    settings.setValue("lastdir", file2.dir().absolutePath());
+
+	ULARGE_INTEGER tbegin,tend;
+	FILETIME ttmp={0,0};
+	double texec=0.;
+	::GetSystemTimeAsFileTime(&ttmp);
+	tbegin.HighPart=ttmp.dwHighDateTime;
+	tbegin.LowPart=ttmp.dwLowDateTime;
+
+	vcity::Tile* tile1 = new vcity::Tile(filepath1.toStdString());
+	std::cout << "Le fichier " << filepath1.toStdString() <<" a ete charge." << std::endl;
+	vcity::Tile* tile2 = new vcity::Tile(filepath2.toStdString());
+	std::cout << "Le fichier " << filepath2.toStdString() <<" a ete charge." << std::endl;
+
+	CompareTiles(Folder, tile1->getCityModel(), tile2->getCityModel());
+
+	::GetSystemTimeAsFileTime(&ttmp);
+	tend.HighPart=ttmp.dwHighDateTime;
+	tend.LowPart=ttmp.dwLowDateTime;
+	texec=((double)((tend.QuadPart-tbegin.QuadPart)/10000))/1000.;
+	std::cout << "Execution time : " << texec <<std::endl;
 
 	QApplication::restoreOverrideCursor();
 }

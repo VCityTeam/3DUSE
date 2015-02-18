@@ -79,11 +79,13 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
     //On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
     if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
     {
-        OGRMultiPolygon * GeoCollection = dynamic_cast<OGRMultiPolygon*>(ResUnion->clone());
+        OGRMultiPolygon * GeoCollection = (OGRMultiPolygon*)(ResUnion);
+
+		//return GeoCollection;		//////////// Ignore le retrait des interior ring plats
 
         OGRMultiPolygon * MultiPolygonRes = new OGRMultiPolygon;
 
-        for(int i = 0; i < GeoCollection->getNumGeometries(); ++i)
+        for(int i = 0; i < GeoCollection->getNumGeometries(); ++i)//Pour enlever les arêtes parasites formant des interior ring "plats"
         {
             OGRGeometry * Geometry = GeoCollection->getGeometryRef(i);
 
@@ -98,7 +100,7 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
                 {
                     const OGRLinearRing * IntRing = Poly->getInteriorRing(j);
 
-                    if(IntRing->get_Area() > 0.01) //Pour enlever les arêtes parasites formant des interior ring "plats"
+                    if(IntRing->get_Area() > 0.1) //Pour enlever les arêtes parasites formant des interior ring "plats"
                         PolyRes->addRingDirectly(dynamic_cast<OGRLinearRing*>(IntRing->clone()));
                 }
 

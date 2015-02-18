@@ -14,6 +14,7 @@
 */
 void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G)
 {
+	//OGRGeomFieldDefn 
     const char * DriverName = "ESRI Shapefile";
     OGRSFDriver * Driver;
 
@@ -28,7 +29,10 @@ void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G)
     remove(name.c_str());
     OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
 
-    OGRLayer * Layer = DS->CreateLayer("Layer1");
+	//OGRSpatialReference * SRS = new OGRSpatialReference;
+	//SRS->importFromEPSG(3946);
+
+    OGRLayer * Layer = DS->CreateLayer("Layer1"/*, SRS*/);
 
     for(int i = 0; i < G->getNumGeometries(); ++i)
     {
@@ -38,6 +42,7 @@ void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G)
         OGRPolygon * Polygon =  dynamic_cast<OGRPolygon*>(G->getGeometryRef(i)->clone());
 
         OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+
         Feature->SetGeometry(Polygon);
         Layer->CreateFeature(Feature);
 
