@@ -18,7 +18,7 @@
 #include "triangulate.h"
 
 #define TEXTURE_PROCESS			1
-#define TRIANGULATE_PROCESS     1 //Mettre à 0, pour ne pas trianguler les polygones
+#define TRIANGULATE_PROCESS     1 // mettre à 0 pour ne pas trianguler les polygones
 
 #define MAX_POINTS_IN_POSLIST	200	// TEMP
 
@@ -115,9 +115,14 @@ xmlNodePtr parcours_prefixe_Building_ReliefFeature_textureCoordinates(xmlNodePtr
 }
 
 // ---
+bool is_inf_or_nan(double x) 
+{
+    return !(x <= DBL_MAX && x >= -DBL_MAX); 
+}
+
 // ABC forment un triangle
 // M est le point où on fait le calcul (M est dans ABC)
-void calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, TVec2d uvB, TVec2d uvC, TVec2d *uvM)
+bool calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, TVec2d uvB, TVec2d uvC, TVec2d *uvM)
 {
     // on va se servir des coordonnées x et y qui sont toutes connues pour déterminer s et t qui nous permettrons ensuite de calculer le z du point M
 
@@ -145,6 +150,8 @@ void calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, 
 		uvM->x = uvA.x + s * uvAB.x + t * uvAC.x;
 		uvM->y = uvA.y + s * uvAB.y + t * uvAC.y;
 	}
+
+	return !(is_inf_or_nan(M->z));
 }
 // ---
 
@@ -336,39 +343,48 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 								if ( (l0[s+1].x >= G_xmin) && (l0[s+1].x <= G_xmax) )
 									if ( (l0[s+1].y >= G_ymin) && (l0[s+1].y <= G_ymax) )
 									{
-										//printf(" -> KEEP INTER s+1\n");
-
 										l1_temp = l0[s]+l[s]*d; if (noeudUV) { uv1_temp = uv0[s]+uv[s]*d; }
-										if ( (j==0) || (l1[j-1] != l1_temp) )
-										{
-											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
-											inter=true;
-										}
-										l1_temp = l0[s+1]; if (noeudUV) { uv1_temp = uv0[s+1]; }
-										if ( (j==0) || (l1[j-1] != l1_temp) )
-										{
-											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
-											inter=true;
-										}
+										if ( (l1_temp.x >= G_xmin) && (l1_temp.x <= G_xmax) )
+											if ( (l1_temp.y >= G_ymin) && (l1_temp.y <= G_ymax) )
+											{
+												//printf(" -> KEEP INTER s+1\n");
+
+												if ( (j==0) || (l1[j-1] != l1_temp) )
+												{
+													l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+													inter=true;
+												}
+												l1_temp = l0[s+1]; if (noeudUV) { uv1_temp = uv0[s+1]; }
+												if ( (j==0) || (l1[j-1] != l1_temp) )
+												{
+													l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+													inter=true;
+												}
+											}
 									}
 
 								if ( (l0[s].x >= G_xmin) && (l0[s].x <= G_xmax) )
 									if ( (l0[s].y >= G_ymin) && (l0[s].y <= G_ymax) )
 									{
-										//printf(" -> KEEP INTER s\n");
+										l1_temp = l0[s]+l[s]*d; // just for test below
+										if ( (l1_temp.x >= G_xmin) && (l1_temp.x <= G_xmax) )
+											if ( (l1_temp.y >= G_ymin) && (l1_temp.y <= G_ymax) )
+											{
+												//printf(" -> KEEP INTER s\n");
 
-										l1_temp = l0[s]; if (noeudUV) { uv1_temp = uv0[s]; }
-										if ( (j==0) || (l1[j-1] != l1_temp) )
-										{
-											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
-											inter=true;
-										}
-										l1_temp = l0[s]+l[s]*d; if (noeudUV) { uv1_temp = uv0[s]+uv[s]*d; }
-										if ( (j==0) || (l1[j-1] != l1_temp) )
-										{
-											l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
-											inter=true;
-										}
+												l1_temp = l0[s]; if (noeudUV) { uv1_temp = uv0[s]; }
+												if ( (j==0) || (l1[j-1] != l1_temp) )
+												{
+													l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+													inter=true;
+												}
+												l1_temp = l0[s]+l[s]*d; if (noeudUV) { uv1_temp = uv0[s]+uv[s]*d; }
+												if ( (j==0) || (l1[j-1] != l1_temp) )
+												{
+													l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+													inter=true;
+												}
+											}
 									}	
 							}
 						}
@@ -410,14 +426,15 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							{
 								if ( (j==0) || (l1[j-1] != l1_temp) )
 								{
-									// TODO : s'assurer que M est bien dans ABC !!!
-									calcule_Z_uv(l0[s], l0[s+1], l0[s+2], &l1_temp, noeudUV, uv0[s], uv0[s+1], uv0[s+2], &uv1_temp);
+									// pas utile (?) de s'assurer que M est bien dans ABC car on teste la valeur de Z...
+									if (calcule_Z_uv(l0[s], l0[s+1], l0[s+2], &l1_temp, noeudUV, uv0[s], uv0[s+1], uv0[s+2], &uv1_temp))
+									{
+										l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+										coin=true;
 
-									l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
-									coin=true;
-
-									if (i > 3)
-										fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, COIN WITH (i > 3)!\n", (unsigned long)noeudLinearRing); // TEMP
+										if (i > 3)
+											fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, COIN WITH (i > 3)!\n", (unsigned long)noeudLinearRing); // TEMP
+									}
 								}
 							}
 						}
@@ -459,6 +476,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 								new_nb_points++;
 							}
 					}
+
+					//std::cout << "new posList (nb points: " << new_nb_points << "): " << new_posList << std::endl;
 
 					if (new_nb_points)
 					{
@@ -891,7 +910,7 @@ int main(int argc, char** argv)
 	if ((argc != 7) && (argc != 8))
 	{
 		puts("");
-        puts("CityGMLCut 1.2.0 - September 30, 2014 - Martial TOLA");
+        puts("CityGMLCut 1.2.1 - February 25, 2015 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");

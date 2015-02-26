@@ -127,8 +127,8 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
 
                 for(const TVec3d& v : poly->getVertices())
                 {
-                    m_outFile << "v " << v.x-m_offsetX << " " << v.y-m_offsetY << " " << v.z << "\n";
-                    //m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n";
+                    //m_outFile << "v " << v.x-m_offsetX << " " << v.y-m_offsetY << " " << v.z << "\n";
+                    m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n"; // MT 24/02/15
                 }
                 for(const TVec3f& vn : poly->getNormals())
                 {
