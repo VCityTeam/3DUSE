@@ -1884,7 +1884,7 @@ void MainWindow::test3()
 	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
 	QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
-    QStringList File1 = QFileDialog::getOpenFileNames(this, "Sélectionner le premier fichier.", lastdir);
+    QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
 
 	QFileInfo file1temp(File1[0]);
 	QString file1path = file1temp.absoluteFilePath();
@@ -1897,7 +1897,7 @@ void MainWindow::test3()
 		return;
 	}
 
-	QStringList File2 = QFileDialog::getOpenFileNames(this, "Sélectionner le second fichier.", lastdir);
+	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
 
 	QFileInfo file2temp(File2[0]);
 	QString file2path = file2temp.absoluteFilePath();

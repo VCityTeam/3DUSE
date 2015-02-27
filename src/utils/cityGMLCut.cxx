@@ -17,6 +17,8 @@
 
 #include "triangulate.h"
 
+#include <float.h> // MT : for DBL_MAX on MAC OS X
+
 #define TEXTURE_PROCESS			1
 #define TRIANGULATE_PROCESS     1 // mettre à 0 pour ne pas trianguler les polygones
 
