@@ -326,6 +326,12 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 					TVec3d l1_temp; TVec2d uv1_temp;
 					bool inter, coin;
 
+					TVec3d l1_old1; TVec2d uv1_old1;
+					TVec3d l1_old2; TVec2d uv1_old2;
+					TVec3d l1_save; TVec2d uv1_save;
+					double G_x, G_y;
+					int lastp = -1;
+
                     TVec3d triNormal = l[0].cross(l[1]);
 
                     for (int s=0; s<i; s++)
@@ -346,6 +352,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 									if ( (l0[s+1].y >= G_ymin) && (l0[s+1].y <= G_ymax) )
 									{
 										l1_temp = l0[s]+l[s]*d; if (noeudUV) { uv1_temp = uv0[s]+uv[s]*d; }
+										l1_save = l1_temp; uv1_save = uv1_temp;
 										if ( (l1_temp.x >= G_xmin) && (l1_temp.x <= G_xmax) )
 											if ( (l1_temp.y >= G_ymin) && (l1_temp.y <= G_ymax) )
 											{
@@ -362,6 +369,38 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 													l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 													inter=true;
 												}
+
+												l1_temp = l1_save; uv1_temp = uv1_save;
+												//printf(" -> KEEP INTER s+1 : p: %lf,%lf,%lf\n", l1_temp.x, l1_temp.y, l1_temp.z);												
+												l1_old1 = l1_temp; if (noeudUV) { uv1_old1 = uv1_temp; }
+												if (lastp == -1)
+													lastp = p;
+												else
+													if (lastp != p)
+													{
+														lastp = -1;
+
+														if (0) // set to 0 if PB
+														{
+															l1[j] = l1_old2; if (noeudUV) { uv1[j] = uv1_old2; } j++;
+
+															if (l1_old2.x==G_xmin) { G_x = G_xmin; /*printf("1\n");*/ }
+															if (l1_old2.x==G_xmax) { G_x = G_xmax; /*printf("2\n");*/ }
+															if (l1_old2.y==G_ymin) { G_y = G_ymin; /*printf("3\n");*/ }
+															if (l1_old2.y==G_ymax) { G_y = G_ymax; /*printf("4\n");*/ }
+															if (l1_temp.x==G_xmin) { G_x = G_xmin; /*printf("5\n");*/ }
+															if (l1_temp.x==G_xmax) { G_x = G_xmax; /*printf("6\n");*/ }
+															if (l1_temp.y==G_ymin) { G_y = G_ymin; /*printf("7\n");*/ }
+															if (l1_temp.y==G_ymax) { G_y = G_ymax; /*printf("8\n");*/ }
+
+															l1_temp.x = G_x; l1_temp.y = G_y; //l1_temp.z = 170.;
+															if (calcule_Z_uv(l1_old2, l0[s], l1[j-2], &l1_temp, noeudUV, uv1_old2, uv0[s], uv1[j-2], &uv1_temp))
+															{
+																//printf(" -> !!!!!!!!!!!!!!! DIFFERENT s+1 !!!!!!!!!!!!!!!!!!!!!\n");
+															}
+															l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+														}
+													}
 											}
 									}
 
@@ -386,6 +425,38 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 													l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 													inter=true;
 												}
+
+												//printf(" -> KEEP INTER s : p: %lf,%lf,%lf\n", l1_temp.x, l1_temp.y, l1_temp.z);
+												l1_old2 = l1_temp; if (noeudUV) { uv1_old2 = uv1_temp; }
+												if (lastp == -1)
+													lastp = p;
+												else
+													if (lastp != p)
+													{
+														lastp = -1;
+
+														if (1)
+														{
+															l1[j] = l1_old1; if (noeudUV) { uv1[j] = uv1_old1; } j++;
+															l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+
+															if (l1_old1.x==G_xmin) { G_x = G_xmin; /*printf("1\n");*/ }
+															if (l1_old1.x==G_xmax) { G_x = G_xmax; /*printf("2\n");*/ }
+															if (l1_old1.y==G_ymin) { G_y = G_ymin; /*printf("3\n");*/ }
+															if (l1_old1.y==G_ymax) { G_y = G_ymax; /*printf("4\n");*/ }
+															if (l1_temp.x==G_xmin) { G_x = G_xmin; /*printf("5\n");*/ }
+															if (l1_temp.x==G_xmax) { G_x = G_xmax; /*printf("6\n");*/ }
+															if (l1_temp.y==G_ymin) { G_y = G_ymin; /*printf("7\n");*/ }
+															if (l1_temp.y==G_ymax) { G_y = G_ymax; /*printf("8\n");*/ }
+
+															l1_temp.x = G_x; l1_temp.y = G_y; //l1_temp.z = 170.;
+															if (calcule_Z_uv(l1_old1, l0[s+1], l1[j-1], &l1_temp, noeudUV, uv1_old1, uv0[s+1], uv1[j-1], &uv1_temp))
+															{
+																//printf(" -> !!!!!!!!!!!!!!! DIFFERENT s !!!!!!!!!!!!!!!!!!!!!\n");
+															}
+															l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+														}
+													}
 											}
 									}	
 							}
@@ -546,7 +617,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 								if (pfound==true)
 								{
 									same=true;
-									fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, same point in polygon with %d points!\n", (unsigned long)noeudLinearRing, (new_nb_points-1)); // TEMP									
+									//fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, same point in polygon with %d points!\n", (unsigned long)noeudLinearRing, (new_nb_points-1)); // TEMP									
 								}
 								else
 									vv.push_back(pp);
@@ -556,7 +627,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							{
 								/*for (int dd=0; dd<vv.size(); dd++)
 									printf("point %2d - (%lf %lf %lf - uv: %lf %lf)\n", dd, vv[dd].x, vv[dd].y, vv[dd].z, vv[dd].U, vv[dd].V);*/
-								fprintf(stderr, " ----> noeudLinearRing: %lu, polygon NOW with %lu points\n", (unsigned long)noeudLinearRing, vv.size());
+								//fprintf(stderr, " ----> noeudLinearRing: %lu, polygon NOW with %lu points\n", (unsigned long)noeudLinearRing, vv.size()); // TEMP	
 							}
 
 							MyVectorOfVertices result;
@@ -912,7 +983,7 @@ int main(int argc, char** argv)
 	if ((argc != 7) && (argc != 8))
 	{
 		puts("");
-        puts("CityGMLCut 1.2.1 - February 25, 2015 - Martial TOLA");
+        puts("CityGMLCut 1.2.2 - March 13, 2015 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
