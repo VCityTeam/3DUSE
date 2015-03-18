@@ -415,7 +415,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 
             if(val1 < 0.01 && val2 < 0.01 && Bati1->get_Area() - Area < 5 && Bati2->get_Area() - Area < 5)//Les polygons sont identiques
             {
-                if(DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 5)//Si la différence de hauteur est inférieure à 5m, et si la distance de Hausdorff entre les deux bâtiments est inférieure à 5m.
+                if(DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 1)//Si la distance de Hausdorff entre les deux bâtiments est inférieure à 5m.
                 {
                     Res.first[i].push_back(-1);
                     Res.second[j].push_back(-1);
@@ -645,10 +645,7 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
 
                                 for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
                                 {
-									//std::cout << std::setprecision(15) << Point.x << "," << Point.y << "," << Point.z << std::endl;
-                                    //OgrRing->addPoint(std::floor(1000*Point.x)/1000, std::floor(1000*Point.y)/1000, std::floor(1000*Point.z)/1000);
 									OgrRing->addPoint(Point.x, Point.y, Point.z);
-									//std::cout << std::setprecision(15) << std::floor(1000*Point.x)/1000 << "," << std::floor(1000*Point.y)/1000 << "," << std::floor(1000*Point.z)/1000 << std::endl;
                                 }
 
                                 OgrRing->closeRings();

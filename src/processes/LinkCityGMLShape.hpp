@@ -10,5 +10,8 @@
 #include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
 void DecoupeCityGML(std::string Folder, geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
+
+citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile);
+citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LINKCITYGMLSHAPE_HPP__

@@ -701,7 +701,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         break;
     case 0:
         m_ui->menuDebug->menuAction()->setVisible(false);
-        m_ui->menuTest->menuAction()->setVisible(false); //A cacher
+        m_ui->menuTest->menuAction()->setVisible(true); //A cacher
         m_ui->actionFix_building->setVisible(false);
         m_ui->actionShadows->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
@@ -1153,6 +1153,8 @@ void MainWindow::generateLOD0()
         return;
     }
 
+	//OGRGeometry* LOD0 = new OGRMultiPolygon;
+
     std::string Folder = w.selectedFiles().at(0).toStdString();
 
 	QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -1166,13 +1168,17 @@ void MainWindow::generateLOD0()
 			citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(*it);
 			if(obj)
 			{
-				std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+				//std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
 				OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 				double * heightmax = new double;
 				double * heightmin = new double;
                 generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
                 SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
+				//OGRGeometry* tmp = LOD0;
+				//LOD0 = tmp->Union(Enveloppe);
+				//delete tmp;
+
                 citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
 				obj2->addGeometry(geom);
@@ -1200,7 +1206,7 @@ void MainWindow::generateLOD0()
 
 				if(obj)
 				{
-					std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
+					//std::cout<< "GenerateLOD0 on "<< obj->getId() << std::endl;
 					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 					double * heightmax = new double;
 					double * heightmin = new double;
@@ -1208,6 +1214,9 @@ void MainWindow::generateLOD0()
                     generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
                     SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
+					//OGRGeometry* tmp = LOD0;
+					//LOD0 = tmp->Union(Enveloppe);
+					//delete tmp;
 
                     citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 
@@ -1221,12 +1230,12 @@ void MainWindow::generateLOD0()
 					delete heightmax;
 					delete heightmin;
 
-                    std::cout<< "LOD0 genere sur "<< obj->getId() << std::endl;
+                    //std::cout<< "LOD0 genere sur "<< obj->getId() << std::endl;
 				}
 			}
 		}
     }
-
+	//SaveGeometrytoShape(Folder + "/LOD0.shp", LOD0);
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1524,7 +1533,16 @@ void MainWindow::slotCityGML_cut()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutCityGMLwithShapefile()
 {
-    QFileDialog w;
+	////SPLIT BUILDINGS FROM CITYGML => AJOUTER UN BOUTON + CHOIX DES FICHIERS ET DOSSIER DE SORTIE
+	/*//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
+	citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML);
+	ModelOut->computeEnvelope();
+
+	citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
+	exporter.exportCityModel(*ModelOut);*/
+
+    /*QFileDialog w;
     w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
 
@@ -1534,10 +1552,27 @@ void MainWindow::slotCutCityGMLwithShapefile()
         return;
     }
 
-    std::string Folder = w.selectedFiles().at(0).toStdString();
+    std::string Folder = w.selectedFiles().at(0).toStdString();*/
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);
+	////////// Ancienne version utilisant GEOS : 
+    //DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);
+	////////// Nouvelle version de découpe : 
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml");
+	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
+	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/VCity.git/VCity-build/BatiTest - Copie.shp", TRUE);
+	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile);
+
+	ModelOut->computeEnvelope();
+
+	citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
+	exporter.exportCityModel(*ModelOut);
+
+	std::cout << "Fichier cree" << std::endl;
+	//////////
     QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1921,10 +1956,116 @@ void buildJson()//GrandLyon
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
 {
+	////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+	OGRDataSource* Bati = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/batiout.shp", TRUE);
+	OGRDataSource* Terrain = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/terrainout.shp", TRUE);
+
+	OGRLayer *LayerBati = Bati->GetLayer(0);
+	OGRLayer *LayerTerrain = Terrain->GetLayer(0);
+
+	citygml::ExporterCityGML exporter("C:/Users/Game Trap/Downloads/Ilots.gml");
+    exporter.initExport();
+	citygml::Envelope Envelope;
+
+	OGRFeature *FeatureBati;
+	LayerBati->ResetReading();
+
+	int cpt = 0;
+
+	while((FeatureBati = LayerBati->GetNextFeature()) != NULL)
+	{
+		OGRMultiPolygon* GeometryBati = new OGRMultiPolygon;
+		GeometryBati->addGeometry(FeatureBati->GetGeometryRef());
+		double H = 20;
+		double Zmin = 0;
+		if(FeatureBati->GetFieldIndex("HAUTEUR") != -1)
+			H = FeatureBati->GetFieldAsDouble("HAUTEUR");
+		if(FeatureBati->GetFieldIndex("Z_MIN") != -1)
+			Zmin = FeatureBati->GetFieldAsDouble("Z_MIN");
+		double Zmax = Zmin + H;
+
+		Zmax = Zmin;
+		Zmin = Zmax-H;
+
+		citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotBati_" + std::to_string(cpt), GeometryBati, &Zmax, &Zmin);
+		++cpt;
+
+		exporter.appendCityObject(*Ilot);
+        Ilot->computeEnvelope();
+        Envelope.merge(Ilot->getEnvelope());
+
+		delete GeometryBati;
+	}
+
+	OGRFeature *FeatureTerrain;
+	LayerTerrain->ResetReading();
+
+	cpt = 0;
+
+	while((FeatureTerrain = LayerTerrain->GetNextFeature()) != NULL)
+	{
+		OGRMultiPolygon* GeometryTerrain = new OGRMultiPolygon;
+		GeometryTerrain->addGeometry(FeatureTerrain->GetGeometryRef());
+		double H = 1;
+		double Zmin = 0;
+		if(FeatureTerrain->GetFieldIndex("HAUTEUR") != -1)
+			H = FeatureTerrain->GetFieldAsDouble("HAUTEUR");
+		if(FeatureTerrain->GetFieldIndex("Z_MIN") != -1)
+			Zmin = FeatureTerrain->GetFieldAsDouble("Z_MIN");
+		double Zmax = Zmin + H;
+
+		citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotTerrain_" + std::to_string(cpt), GeometryTerrain, &Zmax, &Zmin);
+		++cpt;
+
+		exporter.appendCityObject(*Ilot);
+        Ilot->computeEnvelope();
+        Envelope.merge(Ilot->getEnvelope());
+
+		delete GeometryTerrain;
+	}
+
+	exporter.addEnvelope(Envelope);
+    exporter.endExport();
+
+	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test2()
 {
+	//Création d'ilots à partir de Shapefile contenant des routes
+	//OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/BD_TOPO_DPT69/A_RESEAU_ROUTIER/ROUTE_Test.SHP", TRUE);
+	OGRLayer *LayerRoutes = Routes->GetLayer(0);
+	OGRFeature *FeatureRoutes;
+	LayerRoutes->ResetReading();
+
+	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
+	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
+	{
+		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+		
+		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
+		{
+			ReseauRoutier->addGeometry(Route);
+		}
+	}
+
+	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+
+	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+
+	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
+	{
+		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
+		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
+			ReseauMP->addGeometry(temp);
+	}
+
+	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+
+	delete ReseauRoutier;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
