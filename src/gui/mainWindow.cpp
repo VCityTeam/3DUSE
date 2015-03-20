@@ -1534,14 +1534,15 @@ void MainWindow::slotCityGML_cut()
 void MainWindow::slotCutCityGMLwithShapefile()
 {
 	////SPLIT BUILDINGS FROM CITYGML => AJOUTER UN BOUTON + CHOIX DES FICHIERS ET DOSSIER DE SORTIE
-	/*//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
+	/*city::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 	citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML);
 	ModelOut->computeEnvelope();
 
 	citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
-	exporter.exportCityModel(*ModelOut);*/
+	exporter.exportCityModel(*ModelOut);
 
+	return;*/
     /*QFileDialog w;
     w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);

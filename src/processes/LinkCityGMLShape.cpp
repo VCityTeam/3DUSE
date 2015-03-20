@@ -2417,25 +2417,20 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile)
 						{
 							for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 							{
-								int PolyIsInBati = 0;
+								bool PolyIsInBati = true;
+
 								for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 								{
 									OGRPoint* P = new OGRPoint(Point.x, Point.y);
 									
-									if(P->Intersect(Building)) //Si un point ne se retrouve pas dans Building, alors le polygon correspondant ne doit pas lui être associé.
+									if(!P->Intersect(Building)) //Si un point ne se retrouve pas dans Building, alors le polygon correspondant ne doit pas lui être associé.
 									{
-										++PolyIsInBati;
-										delete P;
-										if(PolyIsInBati >= 2) //Inutile de tester les autres points, deux suffisent
-											break;
-										continue;
+										PolyIsInBati = false;
+										break;
 									}
-									delete P;
 								}
-								if(PolyIsInBati >= 2) //Si au moins deux points du polygone sont dans Building, il faut l'ajouter à celui ci
-								{
+								if(PolyIsInBati)
 									Roof->addPolygon(PolygonCityGML);
-								}
 							}
 						}
 					}
