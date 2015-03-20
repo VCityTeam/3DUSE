@@ -1558,20 +1558,35 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	////////// Ancienne version utilisant GEOS : 
     //DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);
 	////////// Nouvelle version de découpe : 
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml");
-	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
+
+	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+
+	OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
+
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/VCity.git/VCity-build/BatiTest - Copie.shp", TRUE);
+
+	ULARGE_INTEGER tbegin,tend;
+	FILETIME ttmp={0,0};
+	double texec=0.;
+	::GetSystemTimeAsFileTime(&ttmp);
+	tbegin.HighPart=ttmp.dwHighDateTime;
+	tbegin.LowPart=ttmp.dwLowDateTime;
+	
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile);
 
-	ModelOut->computeEnvelope();
+	::GetSystemTimeAsFileTime(&ttmp);
+	tend.HighPart=ttmp.dwHighDateTime;
+	tend.LowPart=ttmp.dwLowDateTime;
+	texec=((double)((tend.QuadPart-tbegin.QuadPart)/10000))/1000.;
+	std::cout << "Execution time : " << texec <<std::endl;
 
-	citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
-	exporter.exportCityModel(*ModelOut);
+	//ModelOut->computeEnvelope();
+	//citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
+	//exporter.exportCityModel(*ModelOut);
 
-	std::cout << "Fichier cree" << std::endl;
+	std::cout << "Fichier BatimentsDecoupes.gml cree" << std::endl;
 	//////////
     QApplication::restoreOverrideCursor();
 }
