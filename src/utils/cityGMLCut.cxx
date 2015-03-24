@@ -380,7 +380,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 													{
 														lastp = -1;
 
-														if (0) // set to 0 if PB
+														if (1) // set to 0 if PB
 														{
 															l1[j] = l1_old2; if (noeudUV) { uv1[j] = uv1_old2; } j++;
 
@@ -397,8 +397,12 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 															if (calcule_Z_uv(l1_old2, l0[s], l1[j-2], &l1_temp, noeudUV, uv1_old2, uv0[s], uv1[j-2], &uv1_temp))
 															{
 																//printf(" -> !!!!!!!!!!!!!!! DIFFERENT s+1 !!!!!!!!!!!!!!!!!!!!!\n");
+																l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 															}
-															l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+															else
+															{
+																j--;
+															}
 														}
 													}
 											}
@@ -453,8 +457,12 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 															if (calcule_Z_uv(l1_old1, l0[s+1], l1[j-1], &l1_temp, noeudUV, uv1_old1, uv0[s+1], uv1[j-1], &uv1_temp))
 															{
 																//printf(" -> !!!!!!!!!!!!!!! DIFFERENT s !!!!!!!!!!!!!!!!!!!!!\n");
+																l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
 															}
-															l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+															else
+															{
+																j--; j--;
+															}
 														}
 													}
 											}
@@ -983,7 +991,7 @@ int main(int argc, char** argv)
 	if ((argc != 7) && (argc != 8))
 	{
 		puts("");
-        puts("CityGMLCut 1.2.2 - March 13, 2015 - Martial TOLA");
+        puts("CityGMLCut 1.2.3 - March 23, 2015 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
