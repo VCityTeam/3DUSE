@@ -377,7 +377,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
         {
             OGRPolygon * Bati2 = (OGRPolygon *)Geo2->getGeometryRef(j)->clone();
 
-			if(!Bati1->Intersect(Bati2))
+            if(!Bati1->Intersects(Bati2))
 				continue;
 
 			//std::cout << "Avancement de CompareGeos : " << i << " - " << j << std::endl;
@@ -462,7 +462,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 					OGRPolygon* Poly2 = (OGRPolygon*)Geo2P.at(j)->getGeometryRef(v);
 					if(Poly2 == NULL)
 						continue;
-					if(!Poly1->Intersect(Poly2))
+                    if(!Poly1->Intersects(Poly2))
 						continue;
 
 					OGRGeometry* Inter = Poly1->Intersection(Poly2);
@@ -710,7 +710,7 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
 			//std::cout << "G = " << g << "/" << EnveloppeCityU[i]->getNumGeometries() << std::endl;
 			for(int j = 0; j < ModelPolygons->getNumGeometries(); ++j)//Pour le bâtiment courant, on va chercher dans ModelPolygons quels sont les polygones qui le composent.
             {
-				if(ModelPolygons->getGeometryRef(j)->Intersect(CurrBati))//Ce polygone appartient bien à CurrBati
+                if(ModelPolygons->getGeometryRef(j)->Intersects(CurrBati))//Ce polygone appartient bien à CurrBati
 				{
 					OGRGeometry * Inter = ModelPolygons->getGeometryRef(j)->Intersection(CurrBati);
 					if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D || Inter->getGeometryType() == wkbMultiPolygon || Inter->getGeometryType() == wkbMultiPolygon25D) //L'intersection n'est pas un simple point

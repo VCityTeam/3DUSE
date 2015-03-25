@@ -1134,6 +1134,7 @@ std::vector<OGRPolygon*> GetFootPrintsfromCityGML(citygml::CityModel* Model)
                                     Building = tmp->Union(OgrPoly);
 									delete tmp;
                                 }
+                                delete OgrPoly;
                             }
                             else
                                 delete OgrRing;
@@ -1181,7 +1182,7 @@ std::vector<OGRPolygon*> GetFootPrintsfromShapeFile(OGRLayer* Layer)
 		{
 			std::cout << "Erreur sur GetFootPrintsfromShapeFile Batiment " << cpt << std::endl;
 			ListFootPrints.push_back(nullptr);
-		}
+        }
 		++cpt;
 	}
 	return ListFootPrints;
@@ -1208,7 +1209,7 @@ std::vector<OGRPolygon*> GetFootPrintsfromShapeFile(OGRLayer* Layer)
 		LineBC->addPoint(PointCurr);
 		LineBC->addPoint(PointNext);
 				
-		if(!LineBC->Intersect(Point) && (DistMin == -1 || Point->Distance(LineBC) < DistMin))//On a trouvé le segment sur lequel sera projeté le point, il faut maintenant calculer cette projection : H est la projection de A sur [BC] de vecteur directeur v
+        if(!LineBC->Intersects(Point) && (DistMin == -1 || Point->Distance(LineBC) < DistMin))//On a trouvé le segment sur lequel sera projeté le point, il faut maintenant calculer cette projection : H est la projection de A sur [BC] de vecteur directeur v
 		{
 			double Ax = Point->getX();
 			double Ay = Point->getY();
@@ -1262,13 +1263,13 @@ std::vector<OGRPolygon*> GetFootPrintsfromShapeFile(OGRLayer* Layer)
 				OGRLineString* Line = new OGRLineString;
 				Line->addPoint(Point1);
 				Line->addPoint(Point2);
-				bool Test1 = Line->Intersect(Point);
-				bool Test2 = Line->Intersect(Proj);
+                bool Test1 = Line->Intersects(Point);
+                bool Test2 = Line->Intersects(Proj);
 				//if((Test1 && !Test2) || (!Test1 && Test2)) //Si la ligne contient un seul des deux points, c'est juste une des ligne sur laquelle est le Point. OU exclusif car les deux points sont sur Line, ça signifie que la ligne générée va être Line
 					//Or on ne veut pas créer une ligne déjà éxistante, du coup si c'est le cas on passera dans le if suivant qui empêchera ce projeté d'être retenu.
 				if(Test1 || Test2)
 					continue;
-				if(LineAH->Intersect(Line))
+                if(LineAH->Intersects(Line))
 				{
 					IntersectOtherLine = true;
 					break;
@@ -1310,8 +1311,13 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 		LineBC->addPoint(PointCurr);
 		LineBC->addPoint(PointNext);
 
-		if(LineBC->Intersect(Point)) //Si l'arête contient Point, inutile de calculer son projeté sur cette même arête.
+        if(LineBC->Intersects(Point)) //Si l'arête contient Point, inutile de calculer son projeté sur cette même arête.
+        {
+            delete PointCurr;
+            delete PointNext;
+            delete LineBC;
 			continue;
+        }
 		//On a trouvé un segment sur lequel sera projeté le point (il ne contient pas Point), il faut maintenant calculer cette projection : H est la projection de A sur [BC] de vecteur directeur v
 
 		double Ax = Point->getX();
@@ -1345,11 +1351,6 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 		double AHx = Hx - Ax;
 		double AHy = Hy - Ay;
 
-		//Il  faut savoir si AH intersecte une autre arête de l'envelope que celle contenant le point et celle sur laquelle on le projette : cela signifie que AH n'est pas incluse entièrement dans le polygone
-		OGRLineString* LineAH = new OGRLineString;
-		LineAH->addPoint(Point);
-		LineAH->addPoint(Hx, Hy);
-
 		OGRPoint * Proj = new OGRPoint; // Projeté de Point
 		Proj->setX(Hx);
 		Proj->setY(Hy);
@@ -1370,6 +1371,10 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 							   //formé par PrevLine et CurrLine => Visuellement c'est bien 
 
 		Projetes.push_back(Proj);
+
+        delete PointCurr;
+        delete PointNext;
+        delete LineBC;
 	}
 	for(int i = 0; i < Envelope->getNumInteriorRings(); ++i)
 	{
@@ -1384,8 +1389,13 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			LineBC->addPoint(PointCurr);
 			LineBC->addPoint(PointNext);
 
-			if(LineBC->Intersect(Point)) //Si l'arête contient Point, inutile de calculer son projeté sur cette même arête.
-				continue;
+            if(LineBC->Intersects(Point)) //Si l'arête contient Point, inutile de calculer son projeté sur cette même arête.
+            {
+                delete PointCurr;
+                delete PointNext;
+                delete LineBC;
+                continue;
+            }
 			//On a trouvé un segment sur lequel sera projeté le point (il ne contient pas Point), il faut maintenant calculer cette projection : H est la projection de A sur [BC] de vecteur directeur v
 
 			double Ax = Point->getX();
@@ -1393,9 +1403,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			double Bx = PointCurr->getX();
 			double By = PointCurr->getY();
 			double Cx = PointNext->getX();
-			double Cy = PointNext->getY();
-			delete PointCurr;
-			delete PointNext;
+            double Cy = PointNext->getY();
 			double vx = Cx-Bx;
 			double vy = Cy-By;
 			double Normev = sqrt(vx*vx + vy*vy);
@@ -1421,11 +1429,6 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			double AHx = Hx - Ax;
 			double AHy = Hy - Ay;
 
-			//Il  faut savoir si AH intersecte une autre arête de l'envelope que celle contenant le point et celle sur laquelle on le projette : cela signifie que AH n'est pas incluse entièrement dans le polygone
-			OGRLineString* LineAH = new OGRLineString;
-			LineAH->addPoint(Point);
-			LineAH->addPoint(Hx, Hy);
-
 			OGRPoint * Proj = new OGRPoint; // Projeté de Point
 			Proj->setX(Hx);
 			Proj->setY(Hy);
@@ -1446,6 +1449,9 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 								   //formé par PrevLine et CurrLine => Visuellement c'est bien 
 
 			Projetes.push_back(Proj);
+            delete PointCurr;
+            delete PointNext;
+            delete LineBC;
 		}
 	}
 
@@ -1455,7 +1461,8 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 	{
 		if(distance == -1 || distance > Distances.at(i))
 		{
-			projete = Projetes.at(i);
+            delete projete;
+            projete = (OGRPoint*)Projetes.at(i)->clone();
 			distance = Distances.at(i);
 			Angle = Angles.at(i);
 		}
@@ -1475,17 +1482,21 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 				//std::cout << Angle << " - " << Angles.at(i) << std::endl;
 				//int a;
 				//std::cin >>a;
-				projete = Projetes.at(i);
+                delete projete;
+                projete = (OGRPoint*)Projetes.at(i)->clone();
 				distance = Distances.at(i);
 			}
 		}
 	}
 
+    for(OGRPoint* PointTemp : Projetes)
+        delete PointTemp;
+
 	//Il faut vérifier que ces deux points ne forment pas une arête déjà existante, car dans ce cas là il ne sert à rien de la recréer. Point appartient à deux arêtes : CurrLine et la PrevLine précédente, il suffit donc de vérifier ces deux là.
-	bool LineFound = projete->Intersect(CurrLine) || projete->Intersect(PrevLine);
+    bool LineFound = projete->Intersects(CurrLine) || projete->Intersects(PrevLine);
 	//Il faut vérifier que la ligne formée par ces deux points soit bien contenue dans le polygone. On va tester le milieu formé par ce segment.	
 	OGRPoint* Milieu = new OGRPoint((Point->getX() + projete->getX())/2, (Point->getY() + projete->getY())/2);
-	bool Outside = !Milieu->Intersect(Envelope);
+    bool Outside = !Milieu->Intersects(Envelope);
 	delete Milieu;
 
 	if(LineFound || Outside) //On veut prolonger pour voir si on peut fixer le projeté plus loin tout en restant dans le PolygonGMLDiffShape, sinon on ne fait rien car cela signifie qu'il n'y a vraisemblablement pas besoin de couper le polygone en deux
@@ -1499,21 +1510,38 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 		ProlongementProjete->addPoint(projete);//Crée un point basé sur la droite Point-Projeté, mais un peu plus que loin le Projeté. La question est maintenant de savoir si il est en dehors de PolygonGMLDiffShape ou non.
 		ProlongementProjete->addPoint(Projete2);
 		//Il ne faut pas oublier qu'à ce moment, Projete n'est pas forcément sur PolygonGMLDiffShape à cause des imprécisions. Du coup il faut faire attention avec les tests d'intersection qui peuvent être faussés
-		if(!ProlongementProjete->Intersect(Envelope)) //Cela signifie que Projete2 n'est pas dans le polygon (et que l'intersection de Projete avec le polygon ne fonctionne pas, car Projete est très légèrement en dehors) : îl n'y a pas de projete valide
-			return new OGRPoint;
+        if(!ProlongementProjete->Intersects(Envelope)) //Cela signifie que Projete2 n'est pas dans le polygon (et que l'intersection de Projete avec le polygon ne fonctionne pas, car Projete est très légèrement en dehors) : îl n'y a pas de projete valide
+        {
+            delete ProlongementProjete;
+            delete Projete2;
+            delete projete;
+            return new OGRPoint;
+        }
 		OGRGeometry* Inter = ProlongementProjete->Intersection(Envelope);
 		if(Inter->getGeometryType() == wkbPoint || Inter->getGeometryType() == wkbPoint25D) //Cela signifie que Projete2 n'est pas dans le polygon (et que l'intersection de Projete avec le polygon a fonctionné)
-			return new OGRPoint;
+        {
+            delete ProlongementProjete;
+            delete Projete2;
+            delete projete;
+            delete Inter;
+            return new OGRPoint;
+        }
 		OGRLineString* InterLS = (OGRLineString*) Inter; //Arrivé ici, l'intersection est forcément une LineString
 		double Length = InterLS->get_Length();
 		if(Length < 10 * Precision_Vect) //Cela signifie que Projete2 n'est pas dans le polygon : l'intersection de Projete avec le polygon n'a pas fonctionné correctement car il est très légèrement à l'intérieur
-			return new OGRPoint;		 //et l'intersection donne donc une ligne très courte correspondant à la différence de précision entre Projete et la ligne du Polygon sur laquelle il censé être
+        {                                //et l'intersection donne donc une ligne très courte correspondant à la différence de précision entre Projete et la ligne du Polygon sur laquelle il censé être
+            delete ProlongementProjete;
+            delete Projete2;
+            delete projete;
+            delete InterLS;
+            return new OGRPoint;
+        }
 		//On considère qu'il faut prolonger la ligne jusqu'à la prochaine arête afin de couper le polygone en deux
 
 		int Coeff = 1;
 
 		bool Test1, Test2;
-		Test1 = Projete2->Intersect(Envelope); //Projete2 est dans le Polygon
+        Test1 = Projete2->Intersects(Envelope); //Projete2 est dans le Polygon
 		Test2 = (InterLS->getGeometryType() == wkbLineString || InterLS->getGeometryType() == wkbLineString25D); //Projete2 n'a pas traversé d'interioring Ring car l'intersection serait alors un MutliLineString puisqu'elle serait coupée en deux
 		while(Test1 && Test2)//Tant que Projete2 est inclus dans le Polygon et que nous n'avons pas traversé d'InteriorRing
 		{
@@ -1533,7 +1561,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			}
 			else
 			{
-				Test1 = Projete2->Intersect(Envelope);
+                Test1 = Projete2->Intersects(Envelope);
 			}
 		}//Si on sort avec !Test1 et Test2 -> On a trouvé le bon ProlongementProjete. Si on sort avec !Test2 -> On a traversé un Interior Ring donc il faut revenir en arrière sur le coeff pour que Projete2 tombe dedans.
 		//Si on sort avec !Test1 mais !Test2 -> On a traveré un InteriorRing, puis la portion de Polygon située derrière pour finalement ressortir (dans un autre InterioRing ou en dehors du Polygon). Pas bon non plus car il faut revenir avant l'intRing
@@ -1592,12 +1620,19 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			delete PointCurr;
 			delete PointNext;
 
-			if(!Line->Intersect(ProlongementProjete))
+            if(!Line->Intersects(ProlongementProjete))
+            {
+                delete Line;
 				continue;
+            }
 
 			OGRGeometry* PointInter = Line->Intersection(ProlongementProjete);
+            delete Line;
 			if(PointInter->getGeometryType() != wkbPoint && PointInter->getGeometryType() != wkbPoint25D)
+            {
+                delete PointInter;
 				continue;
+            }
 			double ecartement = PointInter->Distance(Point);
 			if(ecartement > distance)
 			{
@@ -1605,6 +1640,8 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 				projete = (OGRPoint*)PointInter;
 				distance = ecartement;
 			}
+            else
+                delete PointInter;
 		}
 		for(int k = 0; k < Envelope->getNumInteriorRings(); ++k)
 		{
@@ -1621,19 +1658,28 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 				delete PointCurr;
 				delete PointNext;
 
-				if(!Line->Intersect(ProlongementProjete))
-					continue;
+                if(!Line->Intersects(ProlongementProjete))
+                {
+                    delete Line;
+                    continue;
+                }
 
-				OGRGeometry* PointInter = Line->Intersection(ProlongementProjete);
-				if(PointInter->getGeometryType() != wkbPoint && PointInter->getGeometryType() != wkbPoint25D)
-					continue;
-				double ecartement = PointInter->Distance(Point);
-				if(ecartement > distance)
-				{
-					delete projete;
-					projete = (OGRPoint*)PointInter;
-					distance = ecartement;
-				}
+                OGRGeometry* PointInter = Line->Intersection(ProlongementProjete);
+                delete Line;
+                if(PointInter->getGeometryType() != wkbPoint && PointInter->getGeometryType() != wkbPoint25D)
+                {
+                    delete PointInter;
+                    continue;
+                }
+                double ecartement = PointInter->Distance(Point);
+                if(ecartement > distance)
+                {
+                    delete projete;
+                    projete = (OGRPoint*)PointInter;
+                    distance = ecartement;
+                }
+                else
+                    delete PointInter;
 			}
 		}
 		/*SaveGeometrytoShape("ProlongementProjete.shp", ProlongementProjete);
@@ -1698,23 +1744,31 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 					OGRPoint* P = new OGRPoint;
 					RingP->getPoint(p, P);
 
-					if(P->Intersect(P1) || P->Intersect(P2))
-						continue;
+                    if(P->Intersects(P1) || P->Intersects(P2))
+                    {
+                        delete P;
+                        continue;
+                    }
 
 					if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
 					{
 						bool AlreadyInVec = false;
 						for(OGRPoint* Ptemp:PointsCut)
 						{
-							if(P->Intersect(Ptemp))
+                            if(P->Intersects(Ptemp))
 							{
-								AlreadyInVec = true;
+                                AlreadyInVec = true;
+                                delete P;
 								break;
 							}
 						}
-						if(!AlreadyInVec)
-							PointsCut.push_back(P);
-					}
+                        if(!AlreadyInVec)
+                        {
+                            PointsCut.push_back(P);
+                            continue;
+                        }
+                    }
+                    delete P;
 				}
 			}
 
@@ -1735,11 +1789,15 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 						indice = j;
 					}
 				}
-				ResRing->addPoint((OGRPoint*)P->clone());
+                ResRing->addPoint(P);
 
 				delete P;
 				PointsCut.erase(PointsCut.begin() + indice);
-			}
+            }
+
+            delete P1;
+            delete P2;
+            delete Line;
 		}
 		ResRing->closeRings();
 		ResPoly->addRing(ResRing);
@@ -1775,23 +1833,31 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 						OGRPoint* P = new OGRPoint;
 						RingP->getPoint(p, P);
 			
-						if(P->Intersect(P1) || P->Intersect(P2))
+                        if(P->Intersects(P1) || P->Intersects(P2))
+                        {
+                            delete P;
 							continue;
+                        }
 			
 						if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
 						{
 							bool AlreadyInVec = false;
 							for(OGRPoint* Ptemp:PointsCut)
 							{
-								if(P->Intersect(Ptemp))
+                                if(P->Intersects(Ptemp))
 								{
 									AlreadyInVec = true;
+                                    delete P;
 									break;
 								}
 							}
-							if(!AlreadyInVec)
-								PointsCut.push_back(P);
-						}
+                            if(!AlreadyInVec)
+                            {
+                                PointsCut.push_back(P);
+                                continue;
+                            }
+                        }
+                        delete P;
 					}
 				}
 			
@@ -1812,11 +1878,15 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 							indice = j;
 						}
 					}
-					ResRing->addPoint((OGRPoint*)P->clone());
+                    ResRing->addPoint(P);
 			
 					delete P;
 					PointsCut.erase(PointsCut.begin() + indice);
-				}
+                }
+
+                delete P1;
+                delete P2;
+                delete Line;
 			}
 			ResRing->closeRings();
 			ResPoly->addRing(ResRing);
@@ -1824,7 +1894,7 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 			delete ResRing;
 		}
 
-		Res->addGeometry(ResPoly);
+        Res->addGeometryDirectly(ResPoly);
 	}
 
 	//SaveGeometrytoShape("VecShape1.shp", Lines);
@@ -1937,7 +2007,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 				int ShapesByPoint = 0; //Compte le nombre de polygons du Shape qui contiennent également le point courant
 				for(int k : Link->first.at(i)) //On parcourt tous les polygones du Shape liés au bâtiment CityGML courant
 				{
-					if(Point->Intersect(VecShape->at(k)))
+                    if(Point->Intersects(VecShape->at(k)))
 						++ShapesByPoint;
 					if(ShapesByPoint > 1) //Cela signifie que ce point est partagé par plusieurs emprises au sol de cadastre -> point que l'on doit projeter sur l'enveloppe du CityGML pour diviser le polygon g de GMLDiffShape
 					{
@@ -2045,14 +2115,19 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 					++l;
 				}
 			}
+
+            for(OGRPoint* PointTemp : ListAProjetes)
+                delete PointTemp;
+            for(OGRPoint* PointTemp : ListAProjetesModifies)
+                delete PointTemp;
+            for(OGRPoint* PointTemp : ListProjetes)
+                delete PointTemp;
+
 			/////////////////////////// Grâce aux nouvelles lignes insérées, on utilise la fonction Polygonize qui va les prendre en compte pour générer un nouvel ensemble de polygone. Si la ligne coupe PolygonGMLDiffShape en deux, Polygonize va 
 			/////////////////////////// ressortir les deux polygons désirés.
 
 			//for(int  j = 0; j < MultiLS->getNumGeometries(); ++j)
 			//	CutLines->addGeometry(MultiLS->getGeometryRef(j)->clone());
-
-			std::vector<OGRPoint*> ListAProjetes2 = ListAProjetes; //Debug : pour des test
-			std::vector<OGRPoint*> ListProjetes2 = ListProjetes;   //Debug : pour des test
 
 			OGRGeometryCollection* SplitPolygon = (OGRGeometryCollection*) MultiLS->Polygonize();
 
@@ -2061,23 +2136,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 				std::cout << "ERREUR : SPLIT POLYGON VIDE !!" << std::endl;
 				SaveGeometrytoShape("GeometryGMLDiffShape.shp", GeometryGMLDiffShape);
 				SaveGeometrytoShape("MultiLS.shp", MultiLS);
-
-				OGRMultiPoint* MP1 = new OGRMultiPoint;
-				OGRMultiPoint* MP2 = new OGRMultiPoint;
-				for(OGRPoint* P: ListAProjetes2)
-					MP1->addGeometry(P);
-				for(OGRPoint* P: ListProjetes2)
-					MP2->addGeometry(P);
-
-				SaveGeometrytoShape("TestAprojete.shp", MP1);
-				SaveGeometrytoShape("TestProjete.shp", MP2);
-
-				delete MP1;
-				delete MP2;
 				delete MultiLS;
-
-				//int a;
-				//std::cin >> a;
 				continue;
 			}
 
@@ -2090,19 +2149,14 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 				OGRGeometry* GeoBuffer = Geo->Buffer(1);
 				//CutPolygons->addGeometry(Geo->clone());
 
-				double distancemin = -1;
-
-				std::vector<OGRGeometry*> ListPolygonsInter;
-				std::vector<int> ListIndices;
-
-				double Area = 0;
+                double Area = 0;
 				int indice;
 
 				for(int k : Link->first.at(i)) //On parcourt tous les polygones du Shape liés au bâtiment CityGML courant. On va garder celui avec lequel la polygon dilaté a la plus grande surface d'intersection
 				{
 					OGRGeometry* GeoShape = VecShape->at(k);
 
-					if(GeoBuffer->Intersect(GeoShape))
+                    if(GeoBuffer->Intersects(GeoShape))
 					{
 						OGRGeometry* Inter = GeoBuffer->Intersection(GeoShape);
 						if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D)
@@ -2229,7 +2283,7 @@ std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> LinkCity
 			if(Vec2.at(j) == nullptr)
 				continue;
 			OGRPolygon* Poly2 = Vec2.at(j);
-			if(!Poly1->Intersect(Poly2))
+            if(!Poly1->Intersects(Poly2))
 				continue;
 
 			OGRGeometry* Inter = Poly1->Intersection(Poly2);
@@ -2238,6 +2292,7 @@ std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> LinkCity
 				Link.first[i].push_back(j);
 				Link.second[j].push_back(i);
 			}
+            delete Inter;
 		}
 	}
 	return Link;
@@ -2365,7 +2420,7 @@ OGRMultiPolygon* GetBuildingsFootprintsFromCityModel(citygml::CityModel* model, 
 				continue;
 
 			OGRPolygon* CurrentGeo = (OGRPolygon*) BuildingsFootprints->getGeometryRef(j);
-			if(CurrentMP->Intersect(CurrentGeo))
+            if(CurrentMP->Intersects(CurrentGeo))
 			{
 				++ cpt;
 				Names->at(j) = NameBuildings.at(i) + "_" + std::to_string(cpt);
@@ -2423,7 +2478,7 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile)
 								{
 									OGRPoint* P = new OGRPoint(Point.x, Point.y);
 									
-									if(!P->Intersect(Building)) //Si un point ne se retrouve pas dans Building, alors le polygon correspondant ne doit pas lui être associé.
+                                    if(!P->Intersects(Building)) //Si un point ne se retrouve pas dans Building, alors le polygon correspondant ne doit pas lui être associé.
 									{
 										PolyIsInBati = false;
 										break;

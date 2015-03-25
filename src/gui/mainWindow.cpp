@@ -47,7 +47,7 @@
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
 
-#include <windows.h>
+//#include <windows.h>
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = nullptr;
@@ -1560,34 +1560,44 @@ void MainWindow::slotCutCityGMLwithShapefile()
     //DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);
 	////////// Nouvelle version de découpe : 
 
-	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+    vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
 
-	OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
+    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
 
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/VCity.git/VCity-build/BatiTest - Copie.shp", TRUE);
 
-	ULARGE_INTEGER tbegin,tend;
+    /*ULARGE_INTEGER tbegin,tend;
 	FILETIME ttmp={0,0};
 	double texec=0.;
 	::GetSystemTimeAsFileTime(&ttmp);
 	tbegin.HighPart=ttmp.dwHighDateTime;
-	tbegin.LowPart=ttmp.dwLowDateTime;
+    tbegin.LowPart=ttmp.dwLowDateTime;*/
+
+    QTime time;
+    time.start();
 	
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile);
 
-	::GetSystemTimeAsFileTime(&ttmp);
+    /*::GetSystemTimeAsFileTime(&ttmp);
 	tend.HighPart=ttmp.dwHighDateTime;
 	tend.LowPart=ttmp.dwLowDateTime;
 	texec=((double)((tend.QuadPart-tbegin.QuadPart)/10000))/1000.;
-	std::cout << "Execution time : " << texec <<std::endl;
+    std::cout << "Execution time : " << texec <<std::endl;*/
 
 	//ModelOut->computeEnvelope();
 	//citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
 	//exporter.exportCityModel(*ModelOut);
 
-	std::cout << "Fichier BatimentsDecoupes.gml cree" << std::endl;
+    // millisecondes contient le nombre de millisecondes entre l'appel à la fonction start()
+    // et l'appel 0 la fonction elapsed()
+    int millisecondes = time.elapsed();
+    std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+
+    //std::cout << "Fichier BatimentsDecoupes.gml cree" << std::endl;
 	//////////
     QApplication::restoreOverrideCursor();
 }
@@ -1672,12 +1682,12 @@ void MainWindow::slotChangeDetection()
 	}
     settings.setValue("lastdir", file2.dir().absolutePath());
 
-	ULARGE_INTEGER tbegin,tend;
+    /*ULARGE_INTEGER tbegin,tend;
 	FILETIME ttmp={0,0};
 	double texec=0.;
 	::GetSystemTimeAsFileTime(&ttmp);
 	tbegin.HighPart=ttmp.dwHighDateTime;
-	tbegin.LowPart=ttmp.dwLowDateTime;
+    tbegin.LowPart=ttmp.dwLowDateTime;*/
 
 	vcity::Tile* tile1 = new vcity::Tile(filepath1.toStdString());
 	std::cout << "Le fichier " << filepath1.toStdString() <<" a ete charge." << std::endl;
@@ -1686,11 +1696,11 @@ void MainWindow::slotChangeDetection()
 
 	CompareTiles(Folder, tile1->getCityModel(), tile2->getCityModel());
 
-	::GetSystemTimeAsFileTime(&ttmp);
+    /*::GetSystemTimeAsFileTime(&ttmp);
 	tend.HighPart=ttmp.dwHighDateTime;
 	tend.LowPart=ttmp.dwLowDateTime;
-	texec=((double)((tend.QuadPart-tbegin.QuadPart)/10000))/1000.;
-	std::cout << "Execution time : " << texec <<std::endl;
+    texec=((double)((tend.QuadPart-tbegin.QuadPart)/10000))/1000.;
+    std::cout << "Execution time : " << texec <<std::endl;*/
 
 	QApplication::restoreOverrideCursor();
 }
