@@ -398,6 +398,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 															{
 																//printf(" -> !!!!!!!!!!!!!!! DIFFERENT s+1 !!!!!!!!!!!!!!!!!!!!!\n");
 																l1[j] = l1_temp; if (noeudUV) { uv1[j] = uv1_temp; } j++;
+																l1[j] = l1_save; if (noeudUV) { uv1[j] = uv1_save; } j++;
 															}
 															else
 															{
@@ -991,7 +992,7 @@ int main(int argc, char** argv)
 	if ((argc != 7) && (argc != 8))
 	{
 		puts("");
-        puts("CityGMLCut 1.2.3 - March 23, 2015 - Martial TOLA");
+        puts("CityGMLCut 1.2.4 - March 25, 2015 - Martial TOLA");
 		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
 		puts("Usage:");
 		puts("");
