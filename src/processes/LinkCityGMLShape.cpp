@@ -1538,7 +1538,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
         }
 		//On considère qu'il faut prolonger la ligne jusqu'à la prochaine arête afin de couper le polygone en deux
 
-		int Coeff = 1;
+		double Coeff = 1;
 
 		bool Test1, Test2;
         Test1 = Projete2->Intersects(Envelope); //Projete2 est dans le Polygon
@@ -1565,12 +1565,14 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			}
 		}//Si on sort avec !Test1 et Test2 -> On a trouvé le bon ProlongementProjete. Si on sort avec !Test2 -> On a traversé un Interior Ring donc il faut revenir en arrière sur le coeff pour que Projete2 tombe dedans.
 		//Si on sort avec !Test1 mais !Test2 -> On a traveré un InteriorRing, puis la portion de Polygon située derrière pour finalement ressortir (dans un autre InterioRing ou en dehors du Polygon). Pas bon non plus car il faut revenir avant l'intRing
-		int PrevCoeff = Coeff - 1; //Définit la valeur de Coeff précédente pour définir l'intervalle de recherche
+		double PrevCoeff = Coeff - 1; //Définit la valeur de Coeff précédente pour définir l'intervalle de recherche
 		int compteur = 0;
+		//std::cout << "NEW COEFF" << std::endl;
 		while(Test1 || !Test2)//Tant que Projete2 est inclus dans le Polygon
 		{
-			int TempCoeff = Coeff;
+			double TempCoeff = Coeff;
 			Coeff = (PrevCoeff + Coeff) / 2; //Dichotomie pour trouver le bon Coeff
+			//std::cout << "PrefCoeff = " << PrevCoeff << " TempCoeff = " << TempCoeff << " Coeff = " << Coeff << std::endl;
 			delete InterLS;
 			delete ProlongementProjete;
 			delete Projete2;
@@ -1584,6 +1586,13 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			if(compteur > 20)
 			{
 				std::cout << "Boucle Infinie ? Compteur = " << compteur << std::endl;
+				SaveGeometrytoShape("Polygon.shp", Envelope);
+				SaveGeometrytoShape("Point.shp", Point);
+				SaveGeometrytoShape("Projete1.shp", projete);
+				SaveGeometrytoShape("Prolongement.shp", ProlongementProjete);
+				std::cout << "PrefCoeff = " << PrevCoeff << " TempCoeff = " << TempCoeff << " Coeff = " << Coeff << std::endl;
+				int a;
+				std::cin >> a;
 			}
 			if(InterLS == nullptr)
 				Test2 = false;
@@ -1911,6 +1920,9 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 */
 std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::vector<OGRPolygon*>* VecShape, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link)
 {
+	////////////////////////A vérifier si le cas plusieurs Bati CityGML pour un seul Bati Shape fonctionne ! //////////////////////////////
+
+
 	std::vector<OGRPolygon*> NewVecShape;//Vector résultat
 
 	//OGRMultiPolygon* CutPolygons = new OGRMultiPolygon;
@@ -2145,8 +2157,10 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 
 			for(int j = 0; j < SplitPolygon->getNumGeometries(); ++j)
 			{
+				
 				OGRGeometry* Geo = SplitPolygon->getGeometryRef(j); //C'est forcément un Polygon
-				OGRGeometry* GeoBuffer = Geo->Buffer(1);
+
+				OGRGeometry* GeoBuffer = Geo->Buffer(0.1); //1
 				//CutPolygons->addGeometry(Geo->clone());
 
                 double Area = 0;
@@ -2159,6 +2173,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
                     if(GeoBuffer->Intersects(GeoShape))
 					{
 						OGRGeometry* Inter = GeoBuffer->Intersection(GeoShape);
+
 						if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D)
 						{
 							OGRPolygon* PolyInter = (OGRPolygon*) Inter;
@@ -2179,12 +2194,42 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 								indice = k;
 							}
 						}
+						else if(Inter->getGeometryType() == wkbGeometryCollection || Inter->getGeometryType() == wkbGeometryCollection25D)
+						{
+							OGRGeometryCollection* GC_Inter = (OGRGeometryCollection*) Inter;
+							for(int z = 0; z < GC_Inter->getNumGeometries(); ++z)
+							{
+								OGRGeometry* Geo = GC_Inter->getGeometryRef(z);
+								if(Geo->getGeometryType() == wkbPolygon || Geo->getGeometryType() == wkbPolygon25D)
+								{
+									OGRPolygon* PolyInter = (OGRPolygon*) Geo;
+									double InterArea = PolyInter->get_Area();
+									if(InterArea > Area)
+									{
+										Area = InterArea;
+										indice = k;
+									}
+								}
+								else if(Geo->getGeometryType() == wkbMultiPolygon || Geo->getGeometryType() == wkbMultiPolygon25D)
+								{
+									OGRMultiPolygon* PolyInter = (OGRMultiPolygon*) Geo;
+									double InterArea = PolyInter->get_Area();
+									if(InterArea > Area)
+									{
+										Area = InterArea;
+										indice = k;
+									}
+								}
+							}
+						}
 						delete Inter;
 					}
 				}
 				delete GeoBuffer;
+				
 
 				OGRGeometry* ShapeUnion = NewVecShape.at(indice)->Union(Geo);
+
 				delete NewVecShape.at(indice);
 				if(ShapeUnion->getGeometryType() != wkbPolygon && ShapeUnion->getGeometryType() != wkbPolygon25D) //A cause des imprécisions, on peut avoir un MultiPolygon ... Il faut combler les trous pour obtenir un Polygon
 				{
@@ -2228,6 +2273,9 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 
 	for(OGRPolygon* Poly:NewVecShape) //Pour retirer les artefacts dû à des imprécisions, on utilise une fermeture sur les polygones 
 	{
+		NewShape->addGeometry(Poly);
+		continue;
+
 		OGRGeometry* tmp = Poly->Buffer(Precision_Vect);
 		OGRGeometry* tmp2 = tmp->Buffer(-Precision_Vect);
 		if(tmp2->getGeometryType() == wkbMultiPolygon || tmp2->getGeometryType() == wkbMultiPolygon25D) //Présence inexpliquée de polygons négligeables suite au second buffer, mais qu'il faut retirer pour la suite
@@ -2255,8 +2303,25 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 		delete tmp;
 	}
 
+	/*OGRGeometryCollection* NewShapeInter = new OGRMultiPolygon;
+	for(int i = 0; i < NewShape->getNumGeometries(); ++i)
+	{
+		OGRGeometry* GeoShape = NewShape->getGeometryRef(i);
+		std::cout << Link->second.at(i).size() << std::endl;
+		for(int j : Link->second.at(i))
+		{
+			OGRGeometry* tmp = GeoShape;
+			GeoShape = tmp->Intersection(VecGML->at(j));
+			delete tmp;
+		}
+		NewShapeInter->addGeometryDirectly(GeoShape);
+	}*/
+
 	SaveGeometrytoShape("NewShape.shp", NewShape);
+	//SaveGeometrytoShape("NewShapeInter.shp", NewShapeInter);
+
 	delete NewShape;
+	//delete NewShapeInter;
 
 	return ResVecShape;
 }

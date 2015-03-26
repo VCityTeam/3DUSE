@@ -146,11 +146,7 @@ void SaveGeometrytoShape(std::string name, const OGRGeometry* G)
 		SaveGeometrytoShape(name, Temp);
 		delete Temp;
 	}
-	else if(G->getGeometryType() == wkbMultiPolygon || G->getGeometryType() == wkbMultiPolygon25D)
-	{
-		SaveGeometrytoShape(name, (OGRGeometryCollection *)G);
-	}
-	else if(G->getGeometryType() == wkbMultiLineString || G->getGeometryType() == wkbMultiLineString25D)
+	else if(G->getGeometryType() == wkbMultiPolygon || G->getGeometryType() == wkbMultiPolygon25D || G->getGeometryType() == wkbMultiLineString || G->getGeometryType() == wkbMultiLineString25D || G->getGeometryType() == wkbGeometryCollection || G->getGeometryType() == wkbGeometryCollection25D)
 	{
 		SaveGeometrytoShape(name, (OGRGeometryCollection *)G);
 	}
