@@ -1193,103 +1193,6 @@ std::vector<OGRPolygon*> GetFootPrintsfromShapeFile(OGRLayer* Layer)
 * @param Point que l'on veut projeter
 * @param Envelope Polygone sur lequel on souhaite projeter le point
 */
-/*OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope)
-{
-	OGRLinearRing* ExtRing = Envelope->getExteriorRing();
-
-	OGRPoint* projete = new OGRPoint;
-	double DistMin = -1;
-	for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j) //Il ne faut pas reparcourir le premier point qui est bouclé à la fin
-	{
-		OGRPoint * PointCurr = new OGRPoint;
-		ExtRing->getPoint(j, PointCurr);
-		OGRPoint * PointNext = new OGRPoint;
-		ExtRing->getPoint(j + 1, PointNext);
-		OGRLineString* LineBC = new OGRLineString;
-		LineBC->addPoint(PointCurr);
-		LineBC->addPoint(PointNext);
-				
-        if(!LineBC->Intersects(Point) && (DistMin == -1 || Point->Distance(LineBC) < DistMin))//On a trouvé le segment sur lequel sera projeté le point, il faut maintenant calculer cette projection : H est la projection de A sur [BC] de vecteur directeur v
-		{
-			double Ax = Point->getX();
-			double Ay = Point->getY();
-			double Bx = PointCurr->getX();
-			double By = PointCurr->getY();
-			double Cx = PointNext->getX();
-			double Cy = PointNext->getY();
-			double vx = Cx-Bx;
-			double vy = Cy-By;
-
-			double Normev = sqrt(vx*vx + vy*vy);
-			double BH = ((Ax - Bx) * vx + (Ay - By) * vy) / Normev; // <=> BA.v (produit scalaire)
-			double Hx;
-			double Hy;
-
-			if(BH < 0)
-			{
-				Hx = Bx;
-				Hy = By;
-			}
-			else if(BH > Normev)
-			{
-				Hx = Cx;
-				Hy = Cy;
-			}
-			else
-			{
-				Hx = Bx + BH * vx / Normev;
-				Hy = By + BH * vy / Normev;
-			}
-			
-			double AH = sqrt((Hx-Ax)*(Hx-Ax) + (Hy-Ay)*(Hy-Ay));
-
-			//Il ne faut pas que AH intersecte une autre arête de l'envelope que celle contenant le point et celle sur laquelle on le projette
-			OGRLineString* LineAH = new OGRLineString;
-			LineAH->addPoint(Point);
-			LineAH->addPoint(Hx, Hy);
-			
-			bool IntersectOtherLine = false;
-			for(int i = 0; i < ExtRing->getNumPoints() - 1; ++i)
-			{
-				if(i == j)
-					continue;
-				OGRPoint * Proj = new OGRPoint;
-				Proj->setX(Hx);
-				Proj->setY(Hy);
-				OGRPoint * Point1 = new OGRPoint;
-				ExtRing->getPoint(i, Point1);
-				OGRPoint * Point2 = new OGRPoint;
-				ExtRing->getPoint(i + 1, Point2);
-				OGRLineString* Line = new OGRLineString;
-				Line->addPoint(Point1);
-				Line->addPoint(Point2);
-                bool Test1 = Line->Intersects(Point);
-                bool Test2 = Line->Intersects(Proj);
-				//if((Test1 && !Test2) || (!Test1 && Test2)) //Si la ligne contient un seul des deux points, c'est juste une des ligne sur laquelle est le Point. OU exclusif car les deux points sont sur Line, ça signifie que la ligne générée va être Line
-					//Or on ne veut pas créer une ligne déjà éxistante, du coup si c'est le cas on passera dans le if suivant qui empêchera ce projeté d'être retenu.
-				if(Test1 || Test2)
-					continue;
-                if(LineAH->Intersects(Line))
-				{
-					IntersectOtherLine = true;
-					break;
-				}
-			}
-			if(!IntersectOtherLine) //Si la ligne que l'on veut tracer ne traverse aucune arrête intermédiaire, c'est bien ce que l'on souaite obtenir
-			{
-				OGRGeometry* Inter = LineAH->Intersection(Envelope);
-				if(Inter->getGeometryType() == wkbLineString || Inter->getGeometryType() == wkbLineString25D || Inter->getGeometryType() == wkbMultiLineString || Inter->getGeometryType() == wkbMultiLineString25D) //Sinon, cela signifie que AH est en dehors du polygon : pas valide
-				{
-					projete->setX(Hx);
-					projete->setY(Hy);
-					DistMin = AH;
-				}
-				delete Inter;
-			}
-		}
-	}
-	return projete;
-}*/
 OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineString* CurrLine, OGRLineString* PrevLine, bool* PointIsModified)
 {
 	OGRLinearRing* ExtRing = Envelope->getExteriorRing();
@@ -1709,7 +1612,191 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 }
 
 /**
-* @brief Parcourt les points des polygones de Points, regarde s'ils semblent appartenir à une arête de Lines et si c'est le cas, on coupe cette arête en deux afin que ce point existe et que l'intersection fonctionne. 
+* @brief Parcourt les points du polygones de Points, regarde s'ils semblent appartenir à une arête de Lines et si c'est le cas, on coupe cette arête en deux afin que ce point existe et que l'intersection fonctionne.
+* On retourne une les même polygone que Lines, mais avec des arêtes parfois partagées en deux. Globalement ça ne change rien, mais on pourra calculer l'intersection entre les points de Points et celles ci.
+* @param Points : Polygones auquels on va s'intéresser pour ses points
+* @param Lines : Polygones auquel on va s'intéresser pour ses arêtes
+*/
+OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
+{
+    if(Lines->getGeometryType() != wkbPolygon && Lines->getGeometryType() != wkbPolygon25D)
+        return nullptr;
+    if(Points->getGeometryType() != wkbPolygon && Points->getGeometryType() != wkbPolygon25D)
+        return nullptr;
+
+    OGRPolygon * PolyL = (OGRPolygon*) Lines;
+    OGRLinearRing * RingL = PolyL->getExteriorRing();
+
+    OGRPolygon * ResPoly = new OGRPolygon;
+    OGRLinearRing * ResRing = new OGRLinearRing;
+
+    for(int l = 0; l < RingL->getNumPoints() - 1; ++l)
+    {
+        OGRPoint* P1 = new OGRPoint;
+        OGRPoint* P2 = new OGRPoint;
+        RingL->getPoint(l, P1);
+        RingL->getPoint(l + 1, P2);
+        OGRLineString* Line = new OGRLineString;
+        Line->addPoint(P1);
+        Line->addPoint(P2);
+
+        std::vector<OGRPoint*> PointsCut; //Liste des points qu'il va falloir ajouter au nouveau ResRing
+
+        OGRPolygon * PolyP = (OGRPolygon*) Points;
+        OGRLinearRing * RingP = PolyP->getExteriorRing();
+        for(int p = 0; p < RingP->getNumPoints() - 1; ++p)
+        {
+            OGRPoint* P = new OGRPoint;
+            RingP->getPoint(p, P);
+
+            if(P->Intersects(P1) || P->Intersects(P2)) //Si le point existe déjà, inutile de le recréer
+            {
+                delete P;
+                continue;
+            }
+
+            if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
+            {
+                bool AlreadyInVec = false;
+                for(OGRPoint* Ptemp:PointsCut)
+                {
+                    if(P->Intersects(Ptemp))
+                    {
+                        AlreadyInVec = true;
+                        delete P;
+                        break;
+                    }
+                }
+                if(!AlreadyInVec)
+                {
+                    PointsCut.push_back(P);
+                    continue;
+                }
+            }
+            delete P;
+        }
+
+        ResRing->addPoint(P1);
+        while(!PointsCut.empty())// Trier les points du vector par ordre croissant en fonction de leurs distances par rapport à P1
+        {
+            OGRPoint* P = PointsCut.at(0);
+            double Dist = P->Distance(P1);
+            int indice = 0;
+            for(int j = 1; j < PointsCut.size(); ++j)
+            {
+                OGRPoint* PointTemp = PointsCut.at(j);
+                double DistTemp = PointTemp->Distance(P1);
+                if(DistTemp < Dist)
+                {
+                    P = PointTemp;
+                    Dist = DistTemp;
+                    indice = j;
+                }
+            }
+            ResRing->addPoint(P);
+
+            delete P;
+            PointsCut.erase(PointsCut.begin() + indice);
+        }
+
+        delete P1;
+        delete P2;
+        delete Line;
+    }
+    ResRing->closeRings();
+    ResPoly->addRing(ResRing);
+
+    delete ResRing;
+
+    for(int r = 0; r < PolyL->getNumInteriorRings(); ++r)
+    {
+        ResRing = new OGRLinearRing;
+        RingL = PolyL->getInteriorRing(r);
+
+        for(int l = 0; l < RingL->getNumPoints() - 1; ++l)
+        {
+            OGRPoint* P1 = new OGRPoint;
+            OGRPoint* P2 = new OGRPoint;
+            RingL->getPoint(l, P1);
+            RingL->getPoint(l + 1, P2);
+            OGRLineString* Line = new OGRLineString;
+            Line->addPoint(P1);
+            Line->addPoint(P2);
+
+            std::vector<OGRPoint*> PointsCut; //Liste des points qu'il va falloir ajouter au nouveau ResRing
+
+            OGRPolygon * PolyP = (OGRPolygon*) Points;
+            OGRLinearRing * RingP = PolyP->getExteriorRing();
+            for(int p = 0; p < RingP->getNumPoints() - 1; ++p)
+            {
+                OGRPoint* P = new OGRPoint;
+                RingP->getPoint(p, P);
+
+                if(P->Intersects(P1) || P->Intersects(P2))
+                {
+                    delete P;
+                    continue;
+                }
+
+                if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
+                {
+                    bool AlreadyInVec = false;
+                    for(OGRPoint* Ptemp:PointsCut)
+                    {
+                        if(P->Intersects(Ptemp))
+                        {
+                            AlreadyInVec = true;
+                            delete P;
+                            break;
+                        }
+                    }
+                    if(!AlreadyInVec)
+                    {
+                        PointsCut.push_back(P);
+                        continue;
+                    }
+                }
+                delete P;
+            }
+
+            ResRing->addPoint(P1);
+            while(!PointsCut.empty())// Trier les points du vector par ordre croissant en fonction de leurs distances par rapport à P1
+            {
+                OGRPoint* P = PointsCut.at(0);
+                double Dist = P->Distance(P1);
+                int indice = 0;
+                for(int j = 1; j < PointsCut.size(); ++j)
+                {
+                    OGRPoint* PointTemp = PointsCut.at(j);
+                    double DistTemp = PointTemp->Distance(P1);
+                    if(DistTemp < Dist)
+                    {
+                        P = PointTemp;
+                        Dist = DistTemp;
+                        indice = j;
+                    }
+                }
+                ResRing->addPoint(P);
+
+                delete P;
+                PointsCut.erase(PointsCut.begin() + indice);
+            }
+
+            delete P1;
+            delete P2;
+            delete Line;
+        }
+        ResRing->closeRings();
+        ResPoly->addRing(ResRing);
+
+        delete ResRing;
+    }
+
+    return ResPoly;
+}
+
+/**
+* @brief Parcourt les points des polygones de Points, regarde s'ils semblent appartenir à une arête de Lines et si c'est le cas, on coupe cette arête en deux afin que ce point existe et que l'intersection fonctionne.
 * On retourne une GeometryCollection qui contient les mêmes polygones que Lines, mais avec des arêtes parfois partagées en deux. Globalement ça ne change rien, mais on pourra calculer l'intersection entre les points de Points et celles ci.
 * @param Points Liste de polygones auxquels on va s'intéresser pour leurs points
 * @param Lines Liste de polygones auxquels on va s'intéresser pour leurs arêtes
@@ -1961,20 +2048,23 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 		/////////////////////////// Certains points des polygones de GC_GMLDiffShape qui sont censés s'intersecter avec les polygones cadastraux (qui ont servi à leur génération) ne correspondent pas à des points sur ceux ci (par exemple
 		/////////////////////////// ils se retrouvent au milieu d'une ligne d'un polygone cadastral). Du coup l'intersection ne fonctionne pas. Il faut donc créer ces points sur les lignes concernées car l'intersection Point-Point fonctionne.
 
-		OGRGeometryCollection* MP_VecShape = new OGRMultiPolygon;
-		for(OGRPolygon* Poly:*VecShape)
-			MP_VecShape->addGeometry(Poly);
+        //OGRGeometryCollection* MP_VecShape = new OGRMultiPolygon;
+        //for(OGRPolygon* Poly:*VecShape)
+        //	MP_VecShape->addGeometry(Poly);
 
-		OGRGeometryCollection* MP_VecShape2 = CreatePointsOnLine(GC_GMLDiffShape, MP_VecShape);
+        //OGRGeometryCollection* MP_VecShape2 = CreatePointsOnLine(GC_GMLDiffShape, MP_VecShape);
 
-		delete MP_VecShape;
+        //delete MP_VecShape;
 
-		for(int g = 0; g < MP_VecShape2->getNumGeometries(); ++g)//On met à jour NewVecShape avec des nouveaux polygons
-		{
-			NewVecShape.push_back((OGRPolygon*)(MP_VecShape2->getGeometryRef(g)->clone()));
-		}
+        //for(int g = 0; g < MP_VecShape2->getNumGeometries(); ++g)//On met à jour NewVecShape avec des nouveaux polygons
+        //{
+        //	NewVecShape.push_back((OGRPolygon*)(MP_VecShape2->getGeometryRef(g)->clone()));
+        //}
 
-		delete MP_VecShape2;
+        //delete MP_VecShape2;
+
+        for(OGRPolygon* Poly:*VecShape)
+            NewVecShape.push_back((OGRPolygon*)Poly->clone());
 
 		/////////////////////////// L'objectif est d'assigner chaque polygone de GC_GMLDiffShape à des emprises au sol du cadastre pour que celles ci recouvrent la surface totalement du bâtiment CityGML. Cependant, certains polygones de
 		/////////////////////////// GC_GMLDiffShape peuvent sembler pouvoir être assignés à deux (ou plus) polygones du cadastre, il faut donc les partager en plus petite parties qui seront chacune assignées à un bâtiment cadastral
@@ -2153,16 +2243,73 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 			}
 
 			delete MultiLS;
-			/////////////////////////// On parcourt les polygones de SplitPolygon afin de les assigner aux bâtiments cadastraux et générer les nouvelles emprises au sol de ces derniers.
+
+            /// On parcourt les polygones de SplitPolygon nouvellement créés pour mettre à jour les Polygon du Shape auxquels ils sont liés en ajoutant les éventuels points nécessaires
+            /// A une intersection/union fonctionnelle. On profite également de ce parcourt pour repérer à quel bâtiment du Shape chaque polygon de SplitPolygon va devoir être ajouté.
 
 			for(int j = 0; j < SplitPolygon->getNumGeometries(); ++j)
-			{
-				
+            {
+                //CutPolygons->addGeometry(Geo->clone());
 				OGRGeometry* Geo = SplitPolygon->getGeometryRef(j); //C'est forcément un Polygon
 
-				OGRGeometry* GeoBuffer = Geo->Buffer(0.1); //1
-				//CutPolygons->addGeometry(Geo->clone());
+                double distance = 0;
+                double area = 0;
+                int indice = -1;
+                int indice2 = -1;
 
+                for(int k : Link->first.at(i))
+                {
+                    if(Geo->Distance(VecShape->at(k)) > Precision_Vect) //Le polygon de SplitPolygon n'est pas lié au bâtiment shape courant, on passe au suivant
+                        continue;
+
+                    OGRGeometry* ShapeWithPoints = CreatePointsOnLine(Geo, VecShape->at(k)); //On considère que ces deux polygons s'intersectent, on va donc créer les points de Geo sur VecShape pour que ce soit effectivement le cas pour GDAL
+
+                    OGRGeometry* Inter = Geo->Intersection(ShapeWithPoints); //Inter peut être Point, LineString, MultiLineString ou GeometryCollection (Point + Line ?)
+
+                    delete ShapeWithPoints;
+
+                    if(Inter == nullptr)
+                    {
+                        indice = -1; //Bug difficilement compréhensible, donc on fait continue car isolé. Est apparu sur un cas où Geo était inclu dans le NewVecShape.at(k).
+                        indice2 = -1;
+                        break;//Pour pas que Geo soit assigné à un autre k car il y aurait alors du recouvrement entre les deux, on n'associe Geo à aucun polygon du Shape.
+
+                        //SaveGeometrytoShape("Geo1.shp", Geo);
+                        //SaveGeometrytoShape("Geo2.shp", NewVecShape.at(k));
+                    }
+
+                    OGRGeometryCollection* InterGC = dynamic_cast<OGRGeometryCollection*>(Inter);
+
+                    if(InterGC == nullptr) //Si Inter est un  Point ou un LineString, il ne pourra être converti en GC donc on va l'ajouter pour en faire un GC avec un seul élément, ce qui n'est pas gênant et évite trop de if
+                    {
+                        InterGC = new OGRGeometryCollection;
+                        InterGC->addGeometry(Inter);
+                    }
+                    double distanceTemp = 0;
+                    double areaTemp = 0;
+                    for(int z = 0; z < InterGC->getNumGeometries(); ++z)
+                    {
+                        OGRGeometry* CurrGeo = InterGC->getGeometryRef(z);
+                        if(CurrGeo->getGeometryType() == wkbLineString || CurrGeo->getGeometryType() == wkbLineString25D)
+                            distanceTemp += ((OGRLineString*)CurrGeo)->get_Length();
+                        else if(CurrGeo->getGeometryType() == wkbPolygon || CurrGeo->getGeometryType() == wkbPolygon25D)
+                            areaTemp += ((OGRPolygon*)CurrGeo)->get_Area();
+                    }
+                    if(distanceTemp > distance)
+                    {
+                        distance = distanceTemp;
+                        indice = k;
+                    }
+                    if(areaTemp > area)
+                    {
+                        area = areaTemp;
+                        indice2 = k;
+                    }
+                    delete Inter;
+                }
+
+                /*OGRGeometry* GeoBuffer = Geo->Buffer(0.1); //1
+                 *
                 double Area = 0;
 				int indice;
 
@@ -2226,13 +2373,45 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 					}
 				}
 				delete GeoBuffer;
+
+                OGRGeometry* ShapeWithPoints = CreatePointsOnLine(Geo, NewVecShape.at(indice));
 				
+                OGRGeometry* ShapeUnion = ShapeWithPoints->Union(Geo);*/
 
-				OGRGeometry* ShapeUnion = NewVecShape.at(indice)->Union(Geo);
+                if(indice2 != -1)
+                {
+                    indice = indice2;
+                }
+                if(indice == -1)
+                {
+                    std::cout << "INDICE -1" << std::endl;
+                    continue;
+                }
 
-				delete NewVecShape.at(indice);
+                OGRGeometry* ShapeWithPoints = CreatePointsOnLine(Geo, NewVecShape.at(indice));
+
+                delete NewVecShape.at(indice);
+                NewVecShape.at(indice) = (OGRPolygon*)ShapeWithPoints;
+
+                OGRGeometry* ShapeUnion = NewVecShape.at(indice)->Union(Geo);
+
 				if(ShapeUnion->getGeometryType() != wkbPolygon && ShapeUnion->getGeometryType() != wkbPolygon25D) //A cause des imprécisions, on peut avoir un MultiPolygon ... Il faut combler les trous pour obtenir un Polygon
-				{
+                {
+                    std::cout << ShapeUnion->getGeometryName() << std::endl;
+                    SaveGeometrytoShape("ShapeInit.shp", VecShape->at((indice)));
+                    SaveGeometrytoShape("ShapeInit2.shp", NewVecShape.at((indice)));
+
+                    SaveGeometrytoShape("ShapeGeo.shp", Geo);
+                    SaveGeometrytoShape("ShapeUnion.shp", ShapeUnion);
+
+                    OGRGeometryCollection* GC = (OGRGeometryCollection*)ShapeUnion;
+                    for(int m = 0; m < GC->getNumGeometries(); ++m)
+                    {
+                        SaveGeometrytoShape("Geo" + std::to_string(m) + ".shp", GC->getGeometryRef(m));
+                        std::cout << GC->getGeometryRef(m)->getGeometryName() << std::endl;
+                    }
+                    int a;
+                    std::cin >> a;
 					OGRGeometry* tmp = ShapeUnion->Buffer(Precision_Vect);
 					OGRGeometry* tmp2 = tmp->Buffer(-Precision_Vect);
 					
@@ -2246,6 +2425,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 							OGRPolygon * P = (OGRPolygon *)MP->getGeometryRef(z);
 							if(P->get_Area() > Precision_Vect)
 							{
+                                delete NewVecShape.at(indice);
 								NewVecShape.at(indice) = (OGRPolygon *) P->clone();
 								delete tmp2;
 								break;
@@ -2254,16 +2434,20 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 					}
 					else //Polygon
 					{
+                        delete NewVecShape.at(indice);
 						NewVecShape.at(indice) = (OGRPolygon*) tmp2;
-					}
+                    }
 				}
 				else
-					NewVecShape.at(indice) = (OGRPolygon*) ShapeUnion;
-			}
+                {
+                    delete NewVecShape.at(indice);
+                    NewVecShape.at(indice) = (OGRPolygon*) ShapeUnion;
+                }
+            }
 			delete SplitPolygon;
 		}
 		delete GC_GMLDiffShape;
-	}
+    }
 
 	//SaveGeometrytoShape("CutPolygons.shp", CutPolygons); //TODO : faire une fonction qui soustrait le cadastre au CityGML et ressort les différences (calcul d'air, shapefile des différences, ...)
 	//SaveGeometrytoShape("CutLines.shp", CutLines);
