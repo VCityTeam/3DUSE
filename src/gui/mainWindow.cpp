@@ -1152,7 +1152,7 @@ void MainWindow::generateLOD0()
         return;
     }
 
-	//OGRGeometry* LOD0 = new OGRMultiPolygon;
+	OGRGeometry* LOD0 = new OGRMultiPolygon;
 
     std::string Folder = w.selectedFiles().at(0).toStdString();
 
@@ -1212,18 +1212,18 @@ void MainWindow::generateLOD0()
 
                     generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
-                    SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
-					//OGRGeometry* tmp = LOD0;
-					//LOD0 = tmp->Union(Enveloppe);
-					//delete tmp;
+                    //SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
+					OGRGeometry* tmp = LOD0;
+					LOD0 = tmp->Union(Enveloppe);
+					delete tmp;
 
-                    citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+                   /* citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 
 					citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
 					obj2->addGeometry(geom);
 					obj->insertNode(obj2);
 
-					appGui().getControllerGui().update(uri);
+					appGui().getControllerGui().update(uri);*/
 
 					delete Enveloppe;
 					delete heightmax;
@@ -1234,7 +1234,7 @@ void MainWindow::generateLOD0()
 			}
 		}
     }
-	//SaveGeometrytoShape(Folder + "/LOD0.shp", LOD0);
+	SaveGeometrytoShape(Folder + "/LOD0.shp", LOD0);
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1560,18 +1560,16 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	////////// Nouvelle version de découpe : 
 
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-    vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
 
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00073_1.gml");
 
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
-    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
+    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
 
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest00073.shp", TRUE);
 
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/VCity.git/VCity-build/BatiTest - Copie.shp", TRUE);
 

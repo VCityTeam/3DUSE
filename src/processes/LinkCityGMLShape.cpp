@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <math.h>
 
-double Precision_Vect = 0.0001; //Précision pour les points des Wall qui ne se superposent pas parfaitement aux emprises au sol issue du Roff
+double Precision_Vect = 0.00001; //Précision pour les points des Wall qui ne se superposent pas parfaitement aux emprises au sol issue du Roff
 ////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
 #include <vector>
@@ -1152,8 +1152,26 @@ std::vector<OGRPolygon*> GetFootPrintsfromCityGML(citygml::CityModel* Model)
 				ListFootPrints.push_back(nullptr);
 				continue;
 			}
-
-			ListFootPrints.push_back((OGRPolygon*) Building);
+			OGRPolygon* Envelope = (OGRPolygon*)Building;
+			//On retire les InteriorRing avec une aire négligeable qui sont issues des imprécisions des données vectorielles
+			if(Envelope->getNumInteriorRings() > 0)
+			{
+				OGRPolygon* ResBuilding = new OGRPolygon;
+				ResBuilding->addRing((OGRLinearRing*)Envelope->getExteriorRing()->clone());
+				for(int r = 0; r < Envelope->getNumInteriorRings(); ++r)
+				{
+					OGRLinearRing* Ring = Envelope->getInteriorRing(r);
+					OGRPolygon* tmp = new OGRPolygon;
+					tmp->addRing(Ring);
+					if(tmp->get_Area() > 10 * Precision_Vect)
+						ResBuilding->addRing(Ring);
+					delete tmp;
+				}
+				delete Envelope;
+				ListFootPrints.push_back(ResBuilding);
+			}
+			else
+				ListFootPrints.push_back(Envelope);
         }
 
         ++cpt;
@@ -1376,7 +1394,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 	{
 		for(int i = 0; i < Distances.size(); ++i)// Si l'angle est trop faible, on va chercher un éventuel autre projeté avec une distance convenable et un meilleur angle
 		{
-			if(Distances.at(i) < distance && Angles.at(i) > Angle) //On juge la distance convenable si elle est inférieure au double de la distance min, et si on en trouve un après on fait récupère une valeur de distance non doublée
+			if(Distances.at(i) < distance && Angles.at(i) > 0.25) //On juge la distance convenable si elle est inférieure au double de la distance min, et si on en trouve un après on fait récupère une valeur de distance non doublée
 			{
 				//SaveGeometrytoShape("Point.shp", Point);
 				//SaveGeometrytoShape("Polygon.shp", Envelope);
@@ -1488,14 +1506,18 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 			++ compteur;
 			if(compteur > 20)
 			{
-				std::cout << "Boucle Infinie ? Compteur = " << compteur << std::endl;
-				SaveGeometrytoShape("Polygon.shp", Envelope);
+				//std::cout << "Boucle Infinie." << std::endl;
+				/*SaveGeometrytoShape("Polygon.shp", Envelope);
 				SaveGeometrytoShape("Point.shp", Point);
 				SaveGeometrytoShape("Projete1.shp", projete);
 				SaveGeometrytoShape("Prolongement.shp", ProlongementProjete);
 				std::cout << "PrefCoeff = " << PrevCoeff << " TempCoeff = " << TempCoeff << " Coeff = " << Coeff << std::endl;
 				int a;
-				std::cin >> a;
+				std::cin >> a;*/
+				delete InterLS;
+				delete ProlongementProjete;
+				delete Projete2;
+				return new OGRPoint;
 			}
 			if(InterLS == nullptr)
 				Test2 = false;
@@ -2009,8 +2031,9 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 {
 	////////////////////////A vérifier si le cas plusieurs Bati CityGML pour un seul Bati Shape fonctionne ! //////////////////////////////
 
-
 	std::vector<OGRPolygon*> NewVecShape;//Vector résultat
+	for(OGRPolygon* Poly:*VecShape)
+		NewVecShape.push_back((OGRPolygon*)Poly->clone());
 
 	//OGRMultiPolygon* CutPolygons = new OGRMultiPolygon;
 	//OGRMultiLineString* CutLines = new OGRMultiLineString;
@@ -2044,27 +2067,6 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 			GC_GMLDiffShape->addGeometryDirectly(GMLDiffShape);
 		else if(GMLDiffShape->getGeometryType() == wkbGeometryCollection || GMLDiffShape->getGeometryType() == wkbGeometryCollection25D || GMLDiffShape->getGeometryType() == wkbMultiPolygon || GMLDiffShape->getGeometryType() == wkbMultiPolygon25D)
 			GC_GMLDiffShape = (OGRGeometryCollection*) GMLDiffShape;
-
-		/////////////////////////// Certains points des polygones de GC_GMLDiffShape qui sont censés s'intersecter avec les polygones cadastraux (qui ont servi à leur génération) ne correspondent pas à des points sur ceux ci (par exemple
-		/////////////////////////// ils se retrouvent au milieu d'une ligne d'un polygone cadastral). Du coup l'intersection ne fonctionne pas. Il faut donc créer ces points sur les lignes concernées car l'intersection Point-Point fonctionne.
-
-        //OGRGeometryCollection* MP_VecShape = new OGRMultiPolygon;
-        //for(OGRPolygon* Poly:*VecShape)
-        //	MP_VecShape->addGeometry(Poly);
-
-        //OGRGeometryCollection* MP_VecShape2 = CreatePointsOnLine(GC_GMLDiffShape, MP_VecShape);
-
-        //delete MP_VecShape;
-
-        //for(int g = 0; g < MP_VecShape2->getNumGeometries(); ++g)//On met à jour NewVecShape avec des nouveaux polygons
-        //{
-        //	NewVecShape.push_back((OGRPolygon*)(MP_VecShape2->getGeometryRef(g)->clone()));
-        //}
-
-        //delete MP_VecShape2;
-
-        for(OGRPolygon* Poly:*VecShape)
-            NewVecShape.push_back((OGRPolygon*)Poly->clone());
 
 		/////////////////////////// L'objectif est d'assigner chaque polygone de GC_GMLDiffShape à des emprises au sol du cadastre pour que celles ci recouvrent la surface totalement du bâtiment CityGML. Cependant, certains polygones de
 		/////////////////////////// GC_GMLDiffShape peuvent sembler pouvoir être assignés à deux (ou plus) polygones du cadastre, il faut donc les partager en plus petite parties qui seront chacune assignées à un bâtiment cadastral
@@ -2143,12 +2145,87 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 				}
 			}
 
+			for(int r = 0; r < PolygonGMLDiffShape->getNumInteriorRings(); ++r) //Il faut faire pareil sur les Interior Ring, au cas où le CityGML enveloppe entièrement un bâtiment shape
+			{
+				OGRLinearRing* IntRingGMLDiffShape = PolygonGMLDiffShape->getInteriorRing(r);
+
+				for(int j = 0; j < IntRingGMLDiffShape->getNumPoints() - 1; ++j) // -1 car il ne faut pas reparcourir le premier point qui est bouclé à la fin
+				{
+					OGRPoint * Point = new OGRPoint;
+					IntRingGMLDiffShape->getPoint(j, Point);
+
+					OGRPoint * PointNext = new OGRPoint;
+					IntRingGMLDiffShape->getPoint(j + 1, PointNext);
+					OGRLineString* LS = new OGRLineString;
+					LS->addPoint(Point);
+					LS->addPoint(PointNext);
+					delete PointNext;
+
+					MultiLS->addGeometryDirectly(LS); //Pour remplir MultiLS qui servira dans l'étape suivante
+
+					int ShapesByPoint = 0; //Compte le nombre de polygons du Shape qui contiennent également le point courant
+					for(int k : Link->first.at(i)) //On parcourt tous les polygones du Shape liés au bâtiment CityGML courant
+					{
+						if(Point->Intersects(VecShape->at(k)))
+							++ShapesByPoint;
+						if(ShapesByPoint > 1) //Cela signifie que ce point est partagé par plusieurs emprises au sol de cadastre -> point que l'on doit projeter sur l'enveloppe du CityGML pour diviser le polygon g de GMLDiffShape
+						{
+							OGRLineString* PrevLine; //On calcule l'arête précédente car elle contient également Point
+							if(j == 0) //On est obligé d'aller chercher l'arête précédente à la fin du LinearRing
+							{
+								PrevLine = new OGRLineString;
+								OGRPoint* PrevPoint = new OGRPoint;
+								IntRingGMLDiffShape->getPoint(IntRingGMLDiffShape->getNumPoints() - 2, PrevPoint); //Il faut aller le chercher le -2 car le -1 est le même que Point;
+								PrevLine->addPoint(PrevPoint);
+								PrevLine->addPoint(Point);
+							}
+							else
+								PrevLine = (OGRLineString*)MultiLS->getGeometryRef(MultiLS->getNumGeometries() - 2); //On vient d'ajouter le LS courant, donc il faut aller chercher le -2
+
+							bool PointIsModified = false;
+
+							OGRPoint* Projete = ProjectPointOnEnvelope(Point, PolygonGMLDiffShape, LS, PrevLine, &PointIsModified);
+
+							if(Projete->getX() == 0.0 && Projete->getY() == 0.0) //La projection n'est pas nécessaire (si c'est sur un bord du polygon)
+								break;
+
+							if(PointIsModified)
+								ListAProjetesModifies.push_back((OGRPoint*)Point->clone());
+
+							ListAProjetes.push_back(Point);
+							ListProjetes.push_back(Projete);
+
+							break;//Inutile de continuer à parcourir les autres polygons du Shape, cela ne changera rien au résultat puisque la projection sera le même qu'il y ait 2 ou + polygones associés à un point donné
+						}
+					}
+				}
+			}
+
 			//////// !!!!! : Traiter le cas où un Polygon possède un InteriorRing et une seule projection qui le découpe : Risque de ne pas découper le polygon en deux car l'arête coupante s'arrêtera à l'InteriorRing.
 
 			/////////////////////////// On a une liste de couples de points (en deux vector remplis simultanément) qui doivent partager PolygonGMLDiffShape. Pour mettre en place cette découpe, on récupère la liste LS des arêtes du polygone,
 			/////////////////////////// on la parcourt en testant chaque ligne pour voir si elle contient (l'intersection ne fonctionne pas, test sur la distance) un des points projetés précédemment calculés. 
 			/////////////////////////// Si c'est le cas, on partage cette ligne en deux afin d'intégrer ce point dans LS, et on ajoute également la ligne formée par ce point et celui qui l'a généré au départ, celui dont il est le projeté.
 			
+			/*OGRGeometry* tmpMultiLS = MultiLS->clone(); ///////////////////////// DEBUG
+			
+			OGRMultiPoint* LAP = new OGRMultiPoint; ////// DEBUG
+			OGRMultiPoint* LAPM = new OGRMultiPoint; ////// DEBUG
+			OGRMultiPoint* LP = new OGRMultiPoint; ////// DEBUG
+			for(OGRPoint* PointTemp : ListAProjetes)
+			{
+				LAP->addGeometry(PointTemp);
+			}
+            for(OGRPoint* PointTemp : ListAProjetesModifies)
+			{
+				LAPM->addGeometry(PointTemp);
+			}
+            for(OGRPoint* PointTemp : ListProjetes)
+			{
+				LP->addGeometry(PointTemp);
+			}*/
+
+
 			for(int j = 0; j < MultiLS->getNumGeometries(); ++j)
 			{
 				OGRLineString* LS = (OGRLineString*)MultiLS->getGeometryRef(j);
@@ -2219,7 +2296,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 			}
 
             for(OGRPoint* PointTemp : ListAProjetes)
-                delete PointTemp;
+				delete PointTemp;
             for(OGRPoint* PointTemp : ListAProjetesModifies)
                 delete PointTemp;
             for(OGRPoint* PointTemp : ListProjetes)
@@ -2238,11 +2315,17 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 				std::cout << "ERREUR : SPLIT POLYGON VIDE !!" << std::endl;
 				SaveGeometrytoShape("GeometryGMLDiffShape.shp", GeometryGMLDiffShape);
 				SaveGeometrytoShape("MultiLS.shp", MultiLS);
+				/*SaveGeometrytoShape("MultiLS_Old.shp", tmpMultiLS);
+				SaveGeometrytoShape("ListAProjetes.shp", LAP);
+				SaveGeometrytoShape("ListAProjetesModifies.shp", LAPM);
+				SaveGeometrytoShape("ListProjetes.shp", LP);*/
 				delete MultiLS;
+				int a;
+				std::cin >> a;
 				continue;
 			}
 
-			delete MultiLS;
+			//delete MultiLS;
 
             /// On parcourt les polygones de SplitPolygon nouvellement créés pour mettre à jour les Polygon du Shape auxquels ils sont liés en ajoutant les éventuels points nécessaires
             /// A une intersection/union fonctionnelle. On profite également de ce parcourt pour repérer à quel bâtiment du Shape chaque polygon de SplitPolygon va devoir être ajouté.
@@ -2251,6 +2334,14 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
             {
                 //CutPolygons->addGeometry(Geo->clone());
 				OGRGeometry* Geo = SplitPolygon->getGeometryRef(j); //C'est forcément un Polygon
+
+				//Il faut retirer les Interior Ring de PolygonGMLDiffShape qui ont créé des polygons à cause de Polygonize : on calcule l'intersection et si l'intersection n'est pas un Polygon, c'est que Geo est un InteriorRing
+				OGRGeometry* InterGEO_GMLDiffShape = Geo->Intersection(PolygonGMLDiffShape);
+				if(InterGEO_GMLDiffShape->getGeometryType() != wkbPolygon && InterGEO_GMLDiffShape->getGeometryType() != wkbPolygon25D)
+					continue;
+
+				if(((OGRPolygon*)Geo)->get_Area() < 10 * Precision_Vect)
+					continue;
 
                 double distance = 0;
                 double area = 0;
@@ -2262,22 +2353,28 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
                     if(Geo->Distance(VecShape->at(k)) > Precision_Vect) //Le polygon de SplitPolygon n'est pas lié au bâtiment shape courant, on passe au suivant
                         continue;
 
+					/////////////////////////// Certains points de Geo qui sont censés s'intersecter avec les polygones cadastraux (qui ont servi à leur génération) ne correspondent pas à des points sur ceux ci (par exemple
+					/////////////////////////// ils se retrouvent au milieu d'une ligne d'un polygone cadastral). Du coup l'intersection ne fonctionne pas. Il faut donc créer ces points sur les lignes concernées car l'intersection Point-Point fonctionne.
+
                     OGRGeometry* ShapeWithPoints = CreatePointsOnLine(Geo, VecShape->at(k)); //On considère que ces deux polygons s'intersectent, on va donc créer les points de Geo sur VecShape pour que ce soit effectivement le cas pour GDAL
 
                     OGRGeometry* Inter = Geo->Intersection(ShapeWithPoints); //Inter peut être Point, LineString, MultiLineString ou GeometryCollection (Point + Line ?)
 
-                    delete ShapeWithPoints;
-
                     if(Inter == nullptr)
                     {
-                        indice = -1; //Bug difficilement compréhensible, donc on fait continue car isolé. Est apparu sur un cas où Geo était inclu dans le NewVecShape.at(k).
+                        indice = -1; //Voir slide 7 du Pwp CutCityGMLShape pour cas d'application où on passe ici.
                         indice2 = -1;
+
+						//SaveGeometrytoShape("Geo1.shp", Geo);
+						//SaveGeometrytoShape("Geo2.shp", VecShape->at(k));
+						//SaveGeometrytoShape("Geo3.shp", ShapeWithPoints);
+						//int a;
+						//std::cin >> a;
+						delete ShapeWithPoints;
+
                         break;//Pour pas que Geo soit assigné à un autre k car il y aurait alors du recouvrement entre les deux, on n'associe Geo à aucun polygon du Shape.
-
-                        //SaveGeometrytoShape("Geo1.shp", Geo);
-                        //SaveGeometrytoShape("Geo2.shp", NewVecShape.at(k));
                     }
-
+					delete ShapeWithPoints;
                     OGRGeometryCollection* InterGC = dynamic_cast<OGRGeometryCollection*>(Inter);
 
                     if(InterGC == nullptr) //Si Inter est un  Point ou un LineString, il ne pourra être converti en GC donc on va l'ajouter pour en faire un GC avec un seul élément, ce qui n'est pas gênant et évite trop de if
@@ -2305,6 +2402,9 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
                         area = areaTemp;
                         indice2 = k;
                     }
+					if(indice == -1)
+						indice = k; //Si aucun indice n'a été relevé et qu'on est arrivé jusqu'ici, cela signifie qu'il y a une intersection (Point) et qu'il faut donc l'ajouter au cas où on en trouve pas d'autre. On laisse distance à 0 
+									//Pour qu'il soit facilement changé si une intersection LineString ou Polygon est trouvée
                     delete Inter;
                 }
 
@@ -2378,13 +2478,25 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 				
                 OGRGeometry* ShapeUnion = ShapeWithPoints->Union(Geo);*/
 
-                if(indice2 != -1)
+                if(indice2 != -1) //On privilégie les intersections avec des aires, dû à des imprécisions mais qui témoignent d'une certaine proximité.
                 {
+					/*SaveGeometrytoShape("Geo.shp", Geo);
+					SaveGeometrytoShape("SplitPolygon.shp", SplitPolygon);
+					SaveGeometrytoShape("MultiLS.shp", MultiLS);
+					SaveGeometrytoShape("Geo1.shp", NewVecShape.at(indice));
+					SaveGeometrytoShape("Geo2.shp", NewVecShape.at(indice2));
+					std::cout << "AIRE " << area << "  " << distance << std::endl;
+					int a;
+					std::cin >> a;*/
                     indice = indice2;
                 }
-                if(indice == -1)
+                if(indice == -1) //Le polygon découpé n'a pas réussi à se lier à un bati Shape : A DEBUG
                 {
                     std::cout << "INDICE -1" << std::endl;
+
+					SaveGeometrytoShape("Geo1.shp", Geo);
+					int a;
+					std::cin >> a;
                     continue;
                 }
 
@@ -2397,22 +2509,36 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 
 				if(ShapeUnion->getGeometryType() != wkbPolygon && ShapeUnion->getGeometryType() != wkbPolygon25D) //A cause des imprécisions, on peut avoir un MultiPolygon ... Il faut combler les trous pour obtenir un Polygon
                 {
-                    std::cout << ShapeUnion->getGeometryName() << std::endl;
+                    /*std::cout << ShapeUnion->getGeometryName() << std::endl;
                     SaveGeometrytoShape("ShapeInit.shp", VecShape->at((indice)));
                     SaveGeometrytoShape("ShapeInit2.shp", NewVecShape.at((indice)));
 
                     SaveGeometrytoShape("ShapeGeo.shp", Geo);
-                    SaveGeometrytoShape("ShapeUnion.shp", ShapeUnion);
+                    SaveGeometrytoShape("ShapeUnion.shp", ShapeUnion);*/
 
                     OGRGeometryCollection* GC = (OGRGeometryCollection*)ShapeUnion;
+					OGRGeometry* Test = new OGRPolygon;
                     for(int m = 0; m < GC->getNumGeometries(); ++m)
                     {
-                        SaveGeometrytoShape("Geo" + std::to_string(m) + ".shp", GC->getGeometryRef(m));
-                        std::cout << GC->getGeometryRef(m)->getGeometryName() << std::endl;
+                        //SaveGeometrytoShape("Geo" + std::to_string(m) + ".shp", GC->getGeometryRef(m));
+                        //std::cout << GC->getGeometryRef(m)->getGeometryName() << std::endl;
+						if(GC->getGeometryRef(m)->getGeometryType() == wkbPolygon || GC->getGeometryRef(m)->getGeometryType() == wkbPolygon25D)
+						{
+							OGRGeometry* tmp = Test;
+							Test = tmp->Union(GC->getGeometryRef(m));
+							delete tmp;
+						}
                     }
-                    int a;
-                    std::cin >> a;
-					OGRGeometry* tmp = ShapeUnion->Buffer(Precision_Vect);
+					//std::cout << "Test : " << Test->getGeometryName() << std::endl;
+					//SaveGeometrytoShape("ShapeRes.shp", Test);
+
+					delete NewVecShape.at(indice);
+					NewVecShape.at(indice) = (OGRPolygon*) Test;
+
+                    //int a;
+                    //std::cin >> a;
+
+					/*OGRGeometry* tmp = ShapeUnion->Buffer(Precision_Vect);
 					OGRGeometry* tmp2 = tmp->Buffer(-Precision_Vect);
 					
 					delete ShapeUnion;
@@ -2436,7 +2562,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 					{
                         delete NewVecShape.at(indice);
 						NewVecShape.at(indice) = (OGRPolygon*) tmp2;
-                    }
+                    }*/
 				}
 				else
                 {
@@ -2563,6 +2689,10 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 	//Créer 2 tableaux de polygons correspondant aux emprises au sol des bâtiments du CityGML et à celles du cadastre. Conserver un lien vers le CityModel et le Layer.
 	std::cout << "Generation des emprises au sol du CityGML." << std::endl;
 	std::vector<OGRPolygon*> FootprintsCityGML = GetFootPrintsfromCityGML(Model); //On part du principe que chaque bâtiment CityGML correspond à une emprise au sol Polygon (et non MultiPolygon !). Passage dans SplitBuildingsFromCityGML obligatoire !
+	/*OGRMultiPolygon* FootPrintsBuildingsCityGML = new OGRMultiPolygon;
+	for(OGRPolygon* Poly:FootprintsCityGML)
+		FootPrintsBuildingsCityGML->addGeometry(Poly);
+	SaveGeometrytoShape("FootPrintsBuildingsCityGML.shp", FootPrintsBuildingsCityGML);*/
 	std::cout << "Generation des emprises au sol du ShapeFile." << std::endl;
 	std::vector<OGRPolygon*> FootprintsShapefile = GetFootPrintsfromShapeFile(Layer); //On part du principe que chaque featur du shapefile contient un unique polygon en geometry
 	//Lier Bâtiments CityGML <-> Bâtiments Cadastraux qui s'intersectent pour orienter les étapes suivantes.
