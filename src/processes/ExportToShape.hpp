@@ -8,7 +8,8 @@
 #include "src/gui/osg/osgGDAL.hpp"
 #include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
-void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G);
+//void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G);
+void SaveGeometrytoShape(std::string name, const OGRGeometryCollection* G);
 void SaveGeometrytoShape(std::string name, const OGRGeometry* G);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __EXPORTTOSHAPE_HPP__
