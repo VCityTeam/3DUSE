@@ -1567,9 +1567,10 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
-
-    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
+	
+	OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
+    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", FALSE);
 
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/VCity.git/VCity-build/BatiTest - Copie.shp", TRUE);
 
