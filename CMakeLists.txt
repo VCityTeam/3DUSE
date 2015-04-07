@@ -1,12 +1,17 @@
 if (WITH_QT5)
   cmake_minimum_required(VERSION 2.8.9) # because 2.8.8 has a bug with QT5_USE_MODULES
+else(WITH_QT5)
+  cmake_minimum_required(VERSION 2.8)
 endif(WITH_QT5)
 
 if (COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
   IF(POLICY CMP0020)
     cmake_policy(SET CMP0020 NEW)
-  ENDIF()
+  ENDIF(POLICY CMP0020)
+  if(POLICY CMP0054)
+	cmake_policy(SET CMP0054 OLD)
+  endif(POLICY CMP0054)
 endif (COMMAND cmake_policy)
 
 # Project configuration
