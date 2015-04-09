@@ -1468,7 +1468,7 @@ void MainWindow::generateLOD1()
                     generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
                     citygml::CityObject* LOD1 = ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
-
+                    
 					exporter.appendCityObject(*LOD1);
                     LOD1->computeEnvelope();
                     Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
@@ -1559,16 +1559,16 @@ void MainWindow::slotCutCityGMLwithShapefile()
     //DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);
 	////////// Nouvelle version de découpe : 
 
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+    vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
 
-	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
+    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
 	
-	OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
+    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", FALSE);
 
@@ -1579,16 +1579,16 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile);
 
-	//ModelOut->computeEnvelope();
-	//citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
-	//exporter.exportCityModel(*ModelOut);
+    ModelOut->computeEnvelope();
+    citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
+    exporter.exportCityModel(*ModelOut);
 
     // millisecondes contient le nombre de millisecondes entre l'appel à la fonction start()
     // et l'appel 0 la fonction elapsed()
     int millisecondes = time.elapsed();
     std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 
-    //std::cout << "Fichier BatimentsDecoupes.gml cree" << std::endl;
+    std::cout << "Fichier BatimentsDecoupes.gml cree" << std::endl;
 	//////////
     QApplication::restoreOverrideCursor();
 }

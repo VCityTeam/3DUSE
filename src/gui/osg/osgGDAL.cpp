@@ -137,9 +137,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                 {
                     printf( "%u %s no geometry\n", poGeometry->getGeometryType(), poGeometry->getGeometryName() );
                 }
-                //poFeature->get
                 OGRFeature::DestroyFeature( poFeature );
-                //poDS->get
             }
         }
 
