@@ -1234,7 +1234,6 @@ std::vector<OGRPolygon*> GetFootPrintsfromShapeFile(OGRLayer* Layer)
 	return ListFootPrints;
 }
 
-
 /**
 * @brief Projette le point désiré sur l'arête du polygone la plus proche et ne contenant pas ce point, retourne le point projeté
 * @param Point que l'on veut projeter
@@ -1661,7 +1660,6 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 	}
 	return projete;
 }
-
 
 /**
 * @brief Parcourt les points du polygones de Points, regarde s'ils semblent appartenir à une arête de Lines et si c'est le cas, on coupe cette arête en deux afin que ce point existe et que l'intersection fonctionne.
@@ -2787,6 +2785,10 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 
         OGRPolygon* BuildingShp = FootprintsShape->at(cpt);
 
+		std::vector<int> StatusPolygonsWall;
+		std::vector<OGRMultiLineString*> PolygonsWall; //Mis sous forme de MultiLineString car ce sont des Polygons en 2D et le terme Polygon de GDAL ne nous sert donc à rien (il ne les verra que comme un ensemble de lignes qui se superposent).
+		//TEXTURE : std::vector<UV> ?
+
         int cpt2 = - 1;
         for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
         {
@@ -2842,19 +2844,12 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                                                 {
                                                     for(int i = 0; i < CutMultiPoly->getNumGeometries(); ++i)
                                                     {
-                                                        OGRPolygon* tmpPoly = dynamic_cast<OGRPolygon*>(CutMultiPoly);
+														OGRPolygon* tmpPoly = dynamic_cast<OGRPolygon*>(CutMultiPoly->getGeometryRef(i));
                                                         if(tmpPoly != nullptr)
                                                             Roof->addPolygon(ConvertOGRPolytoGMLPoly(tmpPoly, Name));
                                                     }
                                                 }
                                             }
-                                        }
-                                        else
-                                        {
-                                            SaveGeometrytoShape("A_OgrPoly.shp",OgrPoly);
-                                            SaveGeometrytoShape("A_BuildingShp.shp",BuildingShp);
-                                            int a;
-                                            std::cin >> a;
                                         }
                                         delete CutPoly;
                                     }
@@ -2865,9 +2860,75 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                             }
                         }
                     }
+					else if(object->getType() == citygml::COT_WallSurface)
+                    {
+						for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+                        {
+                            for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
+                            {
+								OGRLinearRing * OgrRing = new OGRLinearRing;
+
+                                for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+                                    OgrRing->addPoint(Point.x, Point.y, Point.z);
+
+                                OgrRing->closeRings();
+
+                                if(OgrRing->getNumPoints() > 3)
+                                {
+									OGRPolygon * OgrPoly = new OGRPolygon;
+                                    OgrPoly->addRingDirectly(OgrRing);
+									if(OgrPoly->Distance(BuildingShp) < Precision_Vect)
+									{
+										Wall->addPolygon(ConvertOGRPolytoGMLPoly(OgrPoly, Name));
+									}
+									delete OgrPoly;
+								}
+								else
+									delete OgrRing;
+								/*OGRMultiLineString * MultiLS = new OGRMultiLineString;
+
+								int NbLine = 0; // Nombre d'arêtes du Polygon de Mur qui intersectent BuildingShp
+
+								std::vector<TVec3d> Points = PolygonCityGML->getExteriorRing()->getVertices();
+								if(Points.size() == 0)
+									continue;
+                                for(int i = 0; i < Points.size() - 1; ++i)
+								{
+									OGRLineString * Line = new OGRLineString;
+                                    Line->addPoint(Points.at(i).x, Points.at(i).y, Points.at(i).z);
+									Line->addPoint(Points.at(i + 1).x, Points.at(i + 1).y, Points.at(i + 1).z);
+
+									if(Line->Distance(BuildingShp) < Precision_Vect)
+										++NbLine;
+
+									MultiLS->addGeometryDirectly(Line);
+								}
+								OGRLineString * Line = new OGRLineString;
+                                Line->addPoint(Points.at(Points.size() - 1).x, Points.at(Points.size() - 1).y, Points.at(Points.size() - 1).z);
+								Line->addPoint(Points.at(0).x, Points.at(0).y, Points.at(0).z);
+
+								if(Line->Distance(BuildingShp) < Precision_Vect)
+									++NbLine;
+
+								MultiLS->addGeometryDirectly(Line);
+
+								if(NbLine > 0)
+								{
+									PolygonsWall.push_back(MultiLS);
+									StatusPolygonsWall.push_back(NbLine);
+								}
+								else
+									delete MultiLS;*/
+							}
+						}
+					}
                 }
             }
         }
+
+		//Traitement des murs enregistrés dans PolygonsWall
+
+
         RoofCO->addGeometry(Roof);
         ModelOut->addCityObject(RoofCO);
         BuildingCO->insertNode(RoofCO);
