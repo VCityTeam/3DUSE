@@ -1664,8 +1664,8 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 /**
 * @brief Parcourt les points du polygones de Points, regarde s'ils semblent appartenir à une arête de Lines et si c'est le cas, on coupe cette arête en deux afin que ce point existe et que l'intersection fonctionne.
 * On retourne une les même polygone que Lines, mais avec des arêtes parfois partagées en deux. Globalement ça ne change rien, mais on pourra calculer l'intersection entre les points de Points et celles ci.
-* @param Points : Polygones auquels on va s'intéresser pour ses points
-* @param Lines : Polygones auquel on va s'intéresser pour ses arêtes
+* @param Points : Polygone auquel on va s'intéresser pour ses points
+* @param Lines : Polygone auquel on va s'intéresser pour ses arêtes
 */
 OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 {
@@ -1673,6 +1673,24 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
         return nullptr;
     if(Points->getGeometryType() != wkbPolygon && Points->getGeometryType() != wkbPolygon25D)
         return nullptr;
+
+	OGRPolygon * PolyP = (OGRPolygon*) Points;
+    OGRLinearRing * ExtRingP = PolyP->getExteriorRing();
+
+	std::vector<OGRPoint*> ListPoints; //On stocke la liste des points du polygone Points, le reste ne nous intéresse pas.
+
+	for(int j = 0; j < ExtRingP->getNumPoints() - 1; ++j)
+	{
+		ListPoints.push_back(new OGRPoint(ExtRingP->getX(j), ExtRingP->getY(j), ExtRingP->getZ(j)));
+	}
+	for(int i = 0; i < PolyP->getNumInteriorRings(); ++i)
+	{
+		OGRLinearRing* IntRingP = PolyP->getInteriorRing(i);
+		for(int j = 0; j < IntRingP->getNumPoints() - 1; ++j)
+		{
+			ListPoints.push_back(new OGRPoint(IntRingP->getX(j), IntRingP->getY(j), IntRingP->getZ(j)));
+		}
+	}
 
     OGRPolygon * PolyL = (OGRPolygon*) Lines;
     OGRLinearRing * RingL = PolyL->getExteriorRing();
@@ -1692,18 +1710,23 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
         std::vector<OGRPoint*> PointsCut; //Liste des points qu'il va falloir ajouter au nouveau ResRing
 
-        OGRPolygon * PolyP = (OGRPolygon*) Points;
-        OGRLinearRing * RingP = PolyP->getExteriorRing();
-        for(int p = 0; p < RingP->getNumPoints() - 1; ++p)
+        for(OGRPoint* P:ListPoints)
         {
-            OGRPoint* P = new OGRPoint;
-            RingP->getPoint(p, P);
-
             if(P->Intersects(P1) || P->Intersects(P2)) //Si le point existe déjà, inutile de le recréer
-            {
-                delete P;
                 continue;
-            }
+
+			if(P->Distance(P1) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P1
+			{
+				delete P1;
+				P1 = (OGRPoint*) P->clone();
+				continue;
+			}
+			if(P->Distance(P2) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P2
+			{
+				delete P2;
+				P2 = (OGRPoint*) P->clone();
+				continue;
+			}
 
             if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
             {
@@ -1713,17 +1736,15 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
                     if(P->Intersects(Ptemp))
                     {
                         AlreadyInVec = true;
-                        delete P;
                         break;
                     }
                 }
                 if(!AlreadyInVec)
                 {
-                    PointsCut.push_back(P);
+                    PointsCut.push_back((OGRPoint*)P->clone());
                     continue;
                 }
             }
-            delete P;
         }
 
         ResRing->addPoint(P1);
@@ -1758,6 +1779,8 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
     delete ResRing;
 
+	//// Même traitement sur les InteriorRing du Polygon Lines
+
     for(int r = 0; r < PolyL->getNumInteriorRings(); ++r)
     {
         ResRing = new OGRLinearRing;
@@ -1775,18 +1798,23 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
             std::vector<OGRPoint*> PointsCut; //Liste des points qu'il va falloir ajouter au nouveau ResRing
 
-            OGRPolygon * PolyP = (OGRPolygon*) Points;
-            OGRLinearRing * RingP = PolyP->getExteriorRing();
-            for(int p = 0; p < RingP->getNumPoints() - 1; ++p)
+            for(OGRPoint* P:ListPoints)
             {
-                OGRPoint* P = new OGRPoint;
-                RingP->getPoint(p, P);
-
                 if(P->Intersects(P1) || P->Intersects(P2))
-                {
-                    delete P;
                     continue;
-                }
+
+				if(P->Distance(P1) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P1
+				{
+					delete P1;
+					P1 = (OGRPoint*) P->clone();
+					continue;
+				}
+				if(P->Distance(P2) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P2
+				{
+					delete P2;
+					P2 = (OGRPoint*) P->clone();
+					continue;
+				}
 
                 if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
                 {
@@ -1796,17 +1824,15 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
                         if(P->Intersects(Ptemp))
                         {
                             AlreadyInVec = true;
-                            delete P;
                             break;
                         }
                     }
                     if(!AlreadyInVec)
                     {
-                        PointsCut.push_back(P);
+                        PointsCut.push_back((OGRPoint*)P->clone());
                         continue;
                     }
                 }
-                delete P;
             }
 
             ResRing->addPoint(P1);
@@ -1841,6 +1867,9 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
         delete ResRing;
     }
+
+	for(OGRPoint* P:ListPoints)
+		delete P;
 
     return ResPoly;
 }
@@ -2680,7 +2709,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
         }
         return ResPoly;
     }
-    else //Si l'intersection ne représente pas un simple Polygon, il faut rechercher si c'est une GeometryCollection en contenant afin de les récupérer.
+    else //Si l'intersection ne représente pas un simple Polygon, il faut rechercher si c'est une GeometryCollection qui en contient, afin de pouvoir ensuite les récupérer.
     {
         //std::cout << "Pas Polygon !! " << Inter->getGeometryName() << std::endl;
 
@@ -2785,8 +2814,8 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 
         OGRPolygon* BuildingShp = FootprintsShape->at(cpt);
 
-		std::vector<int> StatusPolygonsWall;
-		std::vector<OGRMultiLineString*> PolygonsWall; //Mis sous forme de MultiLineString car ce sont des Polygons en 2D et le terme Polygon de GDAL ne nous sert donc à rien (il ne les verra que comme un ensemble de lignes qui se superposent).
+
+		std::vector<OGRPolygon*> PolygonsWall;
 		//TEXTURE : std::vector<UV> ?
 
         int cpt2 = - 1;
@@ -2866,59 +2895,96 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                         {
                             for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
                             {
-								OGRLinearRing * OgrRing = new OGRLinearRing;
+								OGRLinearRing * WallRing = new OGRLinearRing;
 
-                                for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
-                                    OgrRing->addPoint(Point.x, Point.y, Point.z);
+								std::vector<TVec3d> PointsWall = PolygonCityGML->getExteriorRing()->getVertices();
+                                for(int i = 0; i < PointsWall.size(); ++i) //Le premier point n'est pas répété à la fin
+								{
+									TVec3d Point = PointsWall.at(i);
+                                    WallRing->addPoint(Point.x, Point.y, Point.z);
+								}
+								
+                                WallRing->closeRings();
 
-                                OgrRing->closeRings();
-
-                                if(OgrRing->getNumPoints() > 3)
+                                if(WallRing->getNumPoints() > 3)
                                 {
-									OGRPolygon * OgrPoly = new OGRPolygon;
-                                    OgrPoly->addRingDirectly(OgrRing);
-									if(OgrPoly->Distance(BuildingShp) < Precision_Vect)
+									OGRPolygon * WallPoly = new OGRPolygon;
+                                    WallPoly->addRingDirectly(WallRing);
+									if(WallPoly->Distance(BuildingShp) < Precision_Vect)
 									{
-										Wall->addPolygon(ConvertOGRPolytoGMLPoly(OgrPoly, Name));
+										//Wall->addPolygon(ConvertOGRPolytoGMLPoly(WallPoly, Name));
+
+
+										OGRPolygon* BuildingShp2 = (OGRPolygon*) CreatePointsOnLine(WallPoly, BuildingShp); //On crée les points d'un polygone sur l'autre afin de pouvoir calculer les intersections des lignes correctement.
+										OGRPolygon* WallPoly2 = (OGRPolygon*) CreatePointsOnLine(BuildingShp, WallPoly);
+										//SaveGeometrytoShape("A_BuildingShp.shp", BuildingShp);
+										//SaveGeometrytoShape("A_BuildingShp2.shp", BuildingShp2);
+										//SaveGeometrytoShape("A_WallPoly.shp", WallPoly);
+										//SaveGeometrytoShape("A_WallPoly2.shp", WallPoly2);
+										//std::cout << WallPoly->Intersects(BuildingShp) << std::endl;
+										//std::cout << WallPoly2->Intersects(BuildingShp2) << std::endl;
+										//std::cout << std::setprecision(15) << WallPoly->Distance(BuildingShp) << std::endl;
+										//std::cout << WallPoly2->Distance(BuildingShp2) << std::endl;
+
+										OGRLinearRing* ExtRingWall = WallPoly2->getExteriorRing();
+										OGRLinearRing* ExtRingShp = BuildingShp2->getExteriorRing();
+
+										std::vector<OGRLinearRing*> IntRingShp;
+										for(int i = 0; i < BuildingShp2->getNumInteriorRings(); ++i)
+											IntRingShp.push_back(BuildingShp2->getInteriorRing(i));
+
+										for(int i = 0; i < ExtRingWall->getNumPoints() - 1; ++i)
+										{
+											OGRLineString* WallLine = new OGRLineString();
+											OGRPoint* WallPoint1 = new OGRPoint(ExtRingWall->getX(i), ExtRingWall->getY(i), ExtRingWall->getZ(i));
+											OGRPoint* WallPoint2 = new OGRPoint(ExtRingWall->getX(i + 1), ExtRingWall->getY(i + 1), ExtRingWall->getZ(i + 1));
+											WallLine->addPoint(WallPoint1);
+											WallLine->addPoint(WallPoint2);
+
+											OGRPolygon* WallPolyRes = new OGRPolygon; //Contiendra le polygon du Wall que l'on aura limité à la zone 2D formée par le polygon BuildingShp
+											OGRLinearRing* WallRingRes = new OGRLinearRing;
+
+											for(int j = 0; j < ExtRingShp->getNumPoints() - 1; ++j)
+											{
+												OGRLineString* ShpLine = new OGRLineString();
+												OGRPoint* ShpPoint1 = new OGRPoint(ExtRingShp->getX(j), ExtRingShp->getY(j), ExtRingShp->getZ(j));
+												OGRPoint* ShpPoint2 = new OGRPoint(ExtRingShp->getX(j + 1), ExtRingShp->getY(j + 1), ExtRingShp->getZ(j + 1));
+												ShpLine->addPoint(ShpPoint1);
+												ShpLine->addPoint(ShpPoint2);
+
+												if(WallLine->Intersects(ShpLine))
+												{
+													if(WallLine->Equals(ShpLine))
+														WallRingRes->addSubLineString(WallLine); //Inutile de modifier WallLine car il correspond parfaitement à une arête du Polygon Shape
+
+													OGRGeometry* Intersection = WallLine->Intersection(ShpLine);
+
+													if(Intersection->getGeometryType() == wkbPoint || Intersection->getGeometryType() == wkbPoint25D)
+														continue;
+
+													OGRLineString* LSInter = dynamic_cast<OGRLineString*>(Intersection);
+													if(Intersection->getGeometryType() == wkbMultiLineString || Intersection->getGeometryType() == wkbMultiLineString) //TODO : gérer le cas MultiLineString
+													{
+														std::cout << Intersection->getGeometryName() << std::endl;
+														SaveGeometrytoShape("A_WallLine.shp", WallLine);
+														SaveGeometrytoShape("A_ShpLine.shp", ShpLine);
+														SaveGeometrytoShape("A_Intersection.shp", Intersection);
+														int a;
+														std::cin >> a;
+														continue;
+													}
+													//Intersection est un LineString, il faut limiter les arêtes de WallPoly2 à ce segment
+
+
+												}
+											}
+											PolygonsWall.push_back(WallPolyRes);
+										}
 									}
-									delete OgrPoly;
+									delete WallPoly;
 								}
 								else
-									delete OgrRing;
-								/*OGRMultiLineString * MultiLS = new OGRMultiLineString;
-
-								int NbLine = 0; // Nombre d'arêtes du Polygon de Mur qui intersectent BuildingShp
-
-								std::vector<TVec3d> Points = PolygonCityGML->getExteriorRing()->getVertices();
-								if(Points.size() == 0)
-									continue;
-                                for(int i = 0; i < Points.size() - 1; ++i)
-								{
-									OGRLineString * Line = new OGRLineString;
-                                    Line->addPoint(Points.at(i).x, Points.at(i).y, Points.at(i).z);
-									Line->addPoint(Points.at(i + 1).x, Points.at(i + 1).y, Points.at(i + 1).z);
-
-									if(Line->Distance(BuildingShp) < Precision_Vect)
-										++NbLine;
-
-									MultiLS->addGeometryDirectly(Line);
-								}
-								OGRLineString * Line = new OGRLineString;
-                                Line->addPoint(Points.at(Points.size() - 1).x, Points.at(Points.size() - 1).y, Points.at(Points.size() - 1).z);
-								Line->addPoint(Points.at(0).x, Points.at(0).y, Points.at(0).z);
-
-								if(Line->Distance(BuildingShp) < Precision_Vect)
-									++NbLine;
-
-								MultiLS->addGeometryDirectly(Line);
-
-								if(NbLine > 0)
-								{
-									PolygonsWall.push_back(MultiLS);
-									StatusPolygonsWall.push_back(NbLine);
-								}
-								else
-									delete MultiLS;*/
+									delete WallRing;
 							}
 						}
 					}
