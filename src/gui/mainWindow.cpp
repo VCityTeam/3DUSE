@@ -1578,10 +1578,13 @@ void MainWindow::slotCutCityGMLwithShapefile()
     time.start();
 	
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile);
-
+	std::cout << "TEST B1" << std::endl;
     ModelOut->computeEnvelope();
+	std::cout << "TEST B2" << std::endl;
     citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
+	std::cout << "TEST B3" << std::endl;
     exporter.exportCityModel(*ModelOut);
+	std::cout << "TEST B4" << std::endl;
 
     // millisecondes contient le nombre de millisecondes entre l'appel à la fonction start()
     // et l'appel 0 la fonction elapsed()
