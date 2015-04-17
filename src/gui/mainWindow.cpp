@@ -1563,8 +1563,8 @@ void MainWindow::slotCutCityGMLwithShapefile()
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
 
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-    vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
 
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
@@ -1577,8 +1577,8 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
     QTime time;
     time.start();
-	
-	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile);
+	std::vector<TextureCityGML> ListTextures;
+	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile, &ListTextures);
 
 	delete BatiShapeFile;
 	delete BatiLOD2CityGML;
@@ -1586,7 +1586,8 @@ void MainWindow::slotCutCityGMLwithShapefile()
     ModelOut->computeEnvelope();
 
     citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
-	exporter.exportCityModel(*ModelOut);
+	//exporter.exportCityModel(*ModelOut);
+	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
 
     // millisecondes contient le nombre de millisecondes entre l'appel à la fonction start()
     // et l'appel 0 la fonction elapsed()

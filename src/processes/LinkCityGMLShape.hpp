@@ -7,11 +7,12 @@
 #include "libcitygml/citygml.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 #include "gui/moc/mainWindow.hpp"
+#include "export/exportCityGML.hpp"
 #include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
 void DecoupeCityGML(std::string Folder, geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
 
 citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile);
-citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile);
+citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML>* TexturesList);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LINKCITYGMLSHAPE_HPP__
