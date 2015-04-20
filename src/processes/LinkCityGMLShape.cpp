@@ -2844,7 +2844,7 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
     TVec3d AC;
 
     int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
-    for(int i = 1; i < Poly->size() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+    for(int i = 1; i < Poly->size(); ++i) //Le premier point n'est pas répété à la fin
     {
         if(test == 0)
         {
@@ -2873,38 +2873,30 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
         }
     }
 
-
-
 	double s, t;
 
-	
-	//t = (A.y * AB.x - A.x * AB.y + AB.y * Point.x - AB.x * Point.y) / (AB.y * AC.x - AB.x * AC.y);
-    //s = (Point.x - A.x - t * AC.x) / AB.x;
-	t = (A.z * AB.x - A.x * AB.z + AB.z * Point.x - AB.x * Point.z) / (AB.z * AC.x - AB.x * AC.z);
-	s = (Point.x - A.x - t * AC.x) / AB.x;
-
-	//t = (A.z * AB.y - A.y * AB.z + AB.z * Point.y - AB.y * Point.z) / (AB.z * AC.y - AB.y * AC.z);
-	//s = (Point.y - A.y - t * AC.y) / AB.y;
-
-	if(!(t > 0))
+	if(AB.x != 0)
 	{
-		std::cout << A << std::endl;
-		std::cout << B << std::endl;
-		std::cout << C << std::endl;
-		std::cout << AB << std::endl;
-		std::cout << AC << std::endl;
-		std::cout << Point << std::endl;
-		std::cout << s << " " << t << std::endl;// -1.#IND00
-
-		std::cout << A.y * AB.x - A.x * AB.y + AB.y * Point.x - AB.x * Point.y << std::endl;
-		std::cout << AB.y * AC.x - AB.x * AC.y << std::endl;
-		int a;
-		std::cin >> a;
+		t = (A.z * AB.x - A.x * AB.z + AB.z * Point.x - AB.x * Point.z) / (AB.z * AC.x - AB.x * AC.z);
+		s = (Point.x - A.x - t * AC.x) / AB.x;
+	}
+	else if(AB.y != 0)
+	{
+		t = (A.z * AB.y - A.y * AB.z + AB.z * Point.y - AB.y * Point.z) / (AB.z * AC.y - AB.y * AC.z);
+		s = (Point.y - A.y - t * AC.y) / AB.y;
+	}
+	else if(AB.z != 0)
+	{
+		t = (A.x * AB.z - A.z * AB.x + AB.x * Point.z - AB.z * Point.x) / (AB.x * AC.z - AB.z * AC.x);
+		s = (Point.z - A.z - t * AC.z) / AB.z;
+	}
+	else
+	{
+		t = (A.y * AB.z - A.z * AB.y + AB.y * Point.z - AB.z * Point.y) / (AB.y * AC.z - AB.z * AC.y);
+		s = (Point.z - A.z - t * AC.z) / AB.z;
 	}
 
-
-    TVec2f Res = TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y);
-
+	TVec2f Res = TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y);
 
 	return Res;
 }
@@ -2987,12 +2979,19 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                                     OgrPoly->addRingDirectly(OgrRing);
                                     if(OgrPoly->IsValid() && OgrPoly->Intersects(BuildingShp))
                                     {
-										std::string Url = PolygonCityGML->getTexture()->getUrl();
-										citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+										bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
 
+										std::string Url;
+										citygml::Texture::WrapMode WrapMode;
 										std::vector<std::vector<TVec2f>> TexUVout;
+										if(HasTexture)
+										{
+											Url = PolygonCityGML->getTexture()->getUrl();
+											WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+										}
 
                                         OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, BuildingShp, &TexUV, &TexUVout);
+
                                         if(CutPoly != nullptr)
                                         {
                                             if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
@@ -3000,13 +2999,16 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 												citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "Roof_" + std::to_string(cptPolyRoof));
                                                 Roof->addPolygon(GMLPoly);
 												PolygonsRoofBuildingShp->addGeometry(CutPoly);
-												TextureCityGML Texture;
-												Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
-												Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
-												Texture.Wrap = WrapMode;
-												Texture.Url = Url;
-												Texture.TexUV = TexUVout.at(0);
-												TexturesList->push_back(Texture);
+												if(HasTexture)
+												{
+													TextureCityGML Texture;
+													Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+													Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+													Texture.Wrap = WrapMode;
+													Texture.Url = Url;
+													Texture.TexUV = TexUVout.at(0);
+													TexturesList->push_back(Texture);
+												}
 												++cptPolyRoof;
                                             }
                                             else
@@ -3019,13 +3021,16 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 														citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutMultiPoly->getGeometryRef(i), Name + "Roof_" + std::to_string(cptPolyRoof));
                                                         Roof->addPolygon(GMLPoly);
 														PolygonsRoofBuildingShp->addGeometry(CutMultiPoly->getGeometryRef(i));
-														TextureCityGML Texture;
-														Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
-														Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
-														Texture.Wrap = WrapMode;
-														Texture.Url = Url;
-														Texture.TexUV = TexUVout.at(i);
-														TexturesList->push_back(Texture);
+														if(HasTexture)
+														{
+															TextureCityGML Texture;
+															Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+															Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+															Texture.Wrap = WrapMode;
+															Texture.Url = Url;
+															Texture.TexUV = TexUVout.at(i);
+															TexturesList->push_back(Texture);
+														}
 														++cptPolyRoof;
                                                     }
                                                 }
@@ -3086,12 +3091,20 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 									if(Zmin == -1 || Zmin > Point.z)
 										Zmin = Point.z;
 								}
+								WallRing->closeRings();
 
-								std::string Url = PolygonCityGML->getTexture()->getUrl();
-								citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
-								std::vector<TVec2f> TexUV = PolygonCityGML->getTexCoords();
-
-                                WallRing->closeRings();
+								bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
+								
+								std::string Url;
+								citygml::Texture::WrapMode WrapMode;
+								std::vector<TVec2f> TexUV;
+								
+								if(HasTexture)
+								{
+									 Url = PolygonCityGML->getTexture()->getUrl();
+									 WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+									 TexUV = PolygonCityGML->getTexCoords();
+								}
 
                                 if(WallRing->getNumPoints() > 3)
                                 {
@@ -3115,7 +3128,8 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 											if(PolyRoof->Distance(WallPoly) < Precision_Vect) //On recherche quels sont les polygons du Roof qui intersectent le polygon du Wall afin de créer les points de l'un sur l'autre.
 											{
 												OGRGeometry* PolyRoofwithWallPoints = CreatePointsOnLine(WallPoly, PolyRoof);
-												OGRGeometry* tmp = CreatePointsOnLine(PolyRoofwithWallPoints, WallPoly);
+												OGRGeometry* tmp = CreatePointsOnLine(PolyRoof, WallPoly);
+
 												delete WallPoly;
 												WallPoly = (OGRPolygon*) tmp;
 
@@ -3149,26 +3163,34 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 															prevX = WallRingRes->getX(i);
 															prevY = WallRingRes->getY(i);
 															prevZ = WallRingRes->getZ(i);
-															TexUVWall.push_back(CalculUV(&PointsWall, &TexUV, TVec3d(prevX, prevY, prevZ)));
+															if(HasTexture)
+																TexUVWall.push_back(CalculUV(&PointsWall, &TexUV, TVec3d(prevX, prevY, prevZ)));
 															
 															CleanWallRingRes->addPoint(prevX, prevY, prevZ);
 														}
 													}
-
+													
 													delete WallRingRes;
+													if(CleanWallRingRes->getNumPoints() < 4)
+													{
+														delete CleanWallRingRes;
+														continue;
+													}
 													WallPolyRes->addRingDirectly(CleanWallRingRes);
 													citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)WallPolyRes, Name + "Wall_" + std::to_string(cptPolyWall));
 													
 													Wall->addPolygon(GMLPoly);
 													delete WallPolyRes;
-													TextureCityGML Texture;
-													Texture.Id = Name + "Wall_" + std::to_string(cptPolyWall) + "_Poly";
-													Texture.IdRing = Name + "Wall_" + std::to_string(cptPolyWall) + "_Ring";
-													Texture.Wrap = WrapMode;
-													Texture.Url = Url;
-													Texture.TexUV = TexUVWall;
-													TexturesList->push_back(Texture);
-
+													if(HasTexture)
+													{
+														TextureCityGML Texture;
+														Texture.Id = Name + "Wall_" + std::to_string(cptPolyWall) + "_Poly";
+														Texture.IdRing = Name + "Wall_" + std::to_string(cptPolyWall) + "_Ring";
+														Texture.Wrap = WrapMode;
+														Texture.Url = Url;
+														Texture.TexUV = TexUVWall;
+														TexturesList->push_back(Texture);
+													}
 													++cptPolyWall;
 												}
 											}
