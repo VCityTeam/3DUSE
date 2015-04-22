@@ -1092,7 +1092,6 @@ void DecoupeCityGML(std::string Folder, geos::geom::Geometry * Shape, std::vecto
     delete Batiments;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /**
 * @brief Convertit un OGRPolygon* en citygml::Polygon*
@@ -1233,7 +1232,6 @@ std::vector<OGRPolygon*> GetFootPrintsfromShapeFile(OGRLayer* Layer)
 	}
 	return ListFootPrints;
 }
-
 
 /**
 * @brief Projette le point désiré sur l'arête du polygone la plus proche et ne contenant pas ce point, retourne le point projeté
@@ -1662,12 +1660,11 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 	return projete;
 }
 
-
 /**
 * @brief Parcourt les points du polygones de Points, regarde s'ils semblent appartenir à une arête de Lines et si c'est le cas, on coupe cette arête en deux afin que ce point existe et que l'intersection fonctionne.
 * On retourne une les même polygone que Lines, mais avec des arêtes parfois partagées en deux. Globalement ça ne change rien, mais on pourra calculer l'intersection entre les points de Points et celles ci.
-* @param Points : Polygones auquels on va s'intéresser pour ses points
-* @param Lines : Polygones auquel on va s'intéresser pour ses arêtes
+* @param Points : Polygone auquel on va s'intéresser pour ses points
+* @param Lines : Polygone auquel on va s'intéresser pour ses arêtes
 */
 OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 {
@@ -1676,11 +1673,31 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
     if(Points->getGeometryType() != wkbPolygon && Points->getGeometryType() != wkbPolygon25D)
         return nullptr;
 
+	OGRPolygon * PolyP = (OGRPolygon*) Points;
+    OGRLinearRing * ExtRingP = PolyP->getExteriorRing();
+
+	std::vector<OGRPoint*> ListPoints; //On stocke la liste des points du polygone Points, le reste ne nous intéresse pas.
+
+	for(int j = 0; j < ExtRingP->getNumPoints() - 1; ++j)
+	{
+		ListPoints.push_back(new OGRPoint(ExtRingP->getX(j), ExtRingP->getY(j), ExtRingP->getZ(j)));
+	}
+	for(int i = 0; i < PolyP->getNumInteriorRings(); ++i)
+	{
+		OGRLinearRing* IntRingP = PolyP->getInteriorRing(i);
+		for(int j = 0; j < IntRingP->getNumPoints() - 1; ++j)
+		{
+			ListPoints.push_back(new OGRPoint(IntRingP->getX(j), IntRingP->getY(j), IntRingP->getZ(j)));
+		}
+	}
+
     OGRPolygon * PolyL = (OGRPolygon*) Lines;
     OGRLinearRing * RingL = PolyL->getExteriorRing();
 
     OGRPolygon * ResPoly = new OGRPolygon;
     OGRLinearRing * ResRing = new OGRLinearRing;
+
+	//// !! On va ajouter les points intermédiaires dans les arêtes concernées, mais on va conserver les coordonnées en Z de Lines. !! ////
 
     for(int l = 0; l < RingL->getNumPoints() - 1; ++l)
     {
@@ -1694,18 +1711,23 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
         std::vector<OGRPoint*> PointsCut; //Liste des points qu'il va falloir ajouter au nouveau ResRing
 
-        OGRPolygon * PolyP = (OGRPolygon*) Points;
-        OGRLinearRing * RingP = PolyP->getExteriorRing();
-        for(int p = 0; p < RingP->getNumPoints() - 1; ++p)
+        for(OGRPoint* P:ListPoints)
         {
-            OGRPoint* P = new OGRPoint;
-            RingP->getPoint(p, P);
-
             if(P->Intersects(P1) || P->Intersects(P2)) //Si le point existe déjà, inutile de le recréer
-            {
-                delete P;
                 continue;
-            }
+
+			if(P->Distance(P1) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P1 (on garde z de P1)
+			{
+				P1->setX(P->getX());
+				P1->setY(P->getY());
+				continue;
+			}
+			if(P->Distance(P2) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P2 (on garde z de P2)
+			{
+				P2->setX(P->getX());
+				P2->setY(P->getY());
+				continue;
+			}
 
             if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
             {
@@ -1715,17 +1737,17 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
                     if(P->Intersects(Ptemp))
                     {
                         AlreadyInVec = true;
-                        delete P;
                         break;
                     }
                 }
                 if(!AlreadyInVec)
                 {
-                    PointsCut.push_back(P);
+					double zP = P1->getZ() + (P->getX() - P1->getX()) / (P2->getX() - P1->getX()) * (P2->getZ() - P1->getZ());
+					P->setZ(zP);
+                    PointsCut.push_back((OGRPoint*)P->clone());
                     continue;
                 }
             }
-            delete P;
         }
 
         ResRing->addPoint(P1);
@@ -1760,6 +1782,8 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
     delete ResRing;
 
+	//// Même traitement sur les InteriorRing du Polygon Lines
+
     for(int r = 0; r < PolyL->getNumInteriorRings(); ++r)
     {
         ResRing = new OGRLinearRing;
@@ -1777,18 +1801,23 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
             std::vector<OGRPoint*> PointsCut; //Liste des points qu'il va falloir ajouter au nouveau ResRing
 
-            OGRPolygon * PolyP = (OGRPolygon*) Points;
-            OGRLinearRing * RingP = PolyP->getExteriorRing();
-            for(int p = 0; p < RingP->getNumPoints() - 1; ++p)
+            for(OGRPoint* P:ListPoints)
             {
-                OGRPoint* P = new OGRPoint;
-                RingP->getPoint(p, P);
-
                 if(P->Intersects(P1) || P->Intersects(P2))
-                {
-                    delete P;
                     continue;
-                }
+
+				if(P->Distance(P1) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P1 (on garde z de P1)
+				{
+					P1->setX(P->getX());
+					P1->setY(P->getY());
+					continue;
+				}
+				if(P->Distance(P2) < Precision_Vect) //Il y a un problème de précision, on fixe P sur P2 (on garde z de P2)
+				{
+					P2->setX(P->getX());
+					P2->setY(P->getY());
+					continue;
+				}
 
                 if(P->Distance(Line) < Precision_Vect) // Le point doit intersecter Line donc on va créer un point afin que ce soit le cas.
                 {
@@ -1798,17 +1827,17 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
                         if(P->Intersects(Ptemp))
                         {
                             AlreadyInVec = true;
-                            delete P;
                             break;
                         }
                     }
                     if(!AlreadyInVec)
                     {
-                        PointsCut.push_back(P);
-                        continue;
+                        double zP = P1->getZ() + (P->getX() - P1->getX()) / (P2->getX() - P1->getX()) * (P2->getZ() - P1->getZ());
+						P->setZ(zP);
+						PointsCut.push_back((OGRPoint*)P->clone());
+						continue;
                     }
                 }
-                delete P;
             }
 
             ResRing->addPoint(P1);
@@ -1843,6 +1872,9 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 
         delete ResRing;
     }
+
+	for(OGRPoint* P:ListPoints)
+		delete P;
 
     return ResPoly;
 }
@@ -2554,7 +2586,7 @@ std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> LinkCity
 * @param GMLPoly représente le premier polygon 3D (issu du fichier CityGML)
 * @param BuildingShp représente le second polygon 2D (issu du fichier Shape et modifié pour coller aux emprises du CityGML)
 */
-OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
+OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, std::vector<TVec2f> *TexUV, std::vector<std::vector<TVec2f>>* TexUVout)
 {
     //SaveGeometrytoShape("A_GMLPoly.shp", GMLPoly);
     //SaveGeometrytoShape("A_BuildingShp.shp", BuildingShp);
@@ -2568,10 +2600,17 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
     TVec3d A;
     TVec3d B;
     TVec3d C;
+	TVec2f uvA;
+	TVec2f uvB;
+	TVec2f uvC;
+	TVec2f uvAB;
+	TVec2f uvAC;
 
     A.x = GMLRing->getX(0);
     A.y = GMLRing->getY(0);
     A.z = GMLRing->getZ(0);
+
+	uvA = TexUV->at(0);
 
     TVec3d AB;
     TVec3d AC;
@@ -2588,9 +2627,9 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
             if(A.x != B.x || A.y != B.y)
             {
                 ++test;// A est bien différent de B
-                AB.x = B.x - A.x;
-                AB.y = B.y - A.y;
-                AB.z = B.z - A.z;
+                AB = B - A;
+				uvB = TexUV->at(i);
+				uvAB = uvB - uvA;
             }
         }
         else if(test == 1)
@@ -2602,9 +2641,9 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
             if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
             {
                 ++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
-                AC.x = C.x - A.x;
-                AC.y = C.y - A.y;
-                AC.z = C.z - A.z;
+                AC = C - A;
+				uvC = TexUV->at(i);
+				uvAC = uvC - uvA;
                 break;
             }
         }
@@ -2624,11 +2663,14 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
         if(PolyInter->get_Area() == GMLPoly->get_Area())
         {
             delete Inter;
+			TexUVout->push_back(*TexUV);
             return GMLPoly->clone(); //GMLPoly est inclu dans BuildingShp, il n'y a pas besoin de le modifier
         }
         OGRPolygon* ResPoly = new OGRPolygon;
         OGRLinearRing* InterExtRing = PolyInter->getExteriorRing();
         OGRLinearRing* ResExtRing = new OGRLinearRing;
+
+		std::vector<TVec2f> uvPolyInter;
 
         for(int i = 0; i < InterExtRing->getNumPoints(); ++i)
         {
@@ -2648,13 +2690,17 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
 
             ResExtRing->addPoint(M.x, M.y, M.z);
 
+			uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
+
             delete P;
         }
 
         ResPoly->addRingDirectly(ResExtRing);
 
-        for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
+        /*for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
         {
+			std::cout << "INTERIOR RING" << std::endl;
+
             OGRLinearRing* InterIntRing = PolyInter->getInteriorRing(r);
             OGRLinearRing* ResIntRing = new OGRLinearRing;
 
@@ -2676,13 +2722,18 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
 
                 ResIntRing->addPoint(M.x, M.y, M.z);
 
+				uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y));
+
                 delete P;
             }
             ResPoly->addRingDirectly(ResIntRing);
-        }
+        }*/
+
+		TexUVout->push_back(uvPolyInter);
+
         return ResPoly;
     }
-    else //Si l'intersection ne représente pas un simple Polygon, il faut rechercher si c'est une GeometryCollection en contenant afin de les récupérer.
+    else //Si l'intersection ne représente pas un simple Polygon, il faut rechercher si c'est une GeometryCollection qui en contient, afin de pouvoir ensuite les récupérer.
     {
         //std::cout << "Pas Polygon !! " << Inter->getGeometryName() << std::endl;
 
@@ -2698,6 +2749,8 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
                     OGRPolygon* ResPoly = new OGRPolygon;
                     OGRLinearRing* InterExtRing = PolyInter->getExteriorRing();
                     OGRLinearRing* ResExtRing = new OGRLinearRing;
+
+					std::vector<TVec2f> uvPolyInter;
 
                     for(int i = 0; i < InterExtRing->getNumPoints(); ++i)
                     {
@@ -2717,13 +2770,17 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
 
                         ResExtRing->addPoint(M.x, M.y, M.z);
 
+						uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
+
                         delete P;
                     }
 
                     ResPoly->addRingDirectly(ResExtRing);
 
-                    for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
+                    /*for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
                     {
+						std::cout << "INTERIOR RING2" << std::endl;
+
                         OGRLinearRing* InterIntRing = PolyInter->getInteriorRing(r);
                         OGRLinearRing* ResIntRing = new OGRLinearRing;
 
@@ -2745,11 +2802,15 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
 
                             ResIntRing->addPoint(M.x, M.y, M.z);
 
+							uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
+
                             delete P;
                         }
                         ResPoly->addRingDirectly(ResIntRing);
-                    }
+                    }*/
                     ResMultiPoly->addGeometryDirectly(ResPoly);
+
+					TexUVout->push_back(uvPolyInter);
                 }
             }
             return ResMultiPoly;
@@ -2759,13 +2820,95 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
 }
 
 /**
+* @brief Calcul les coordonnées de texture UV d'un point par rapport à un polygone qui lui est coplanaire.
+* @param Poly Contient les coordonnées des points du polygone
+* @param UVs Contient les coordonnées de texture des points du polygone
+* @param Point Contient le point dont on désire calculer les coordonnées de texture
+*/
+TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Point)
+{
+	TVec3d A;
+    TVec3d B;
+    TVec3d C;
+	TVec2f uvA;
+	TVec2f uvB;
+	TVec2f uvC;
+	TVec2f uvAB;
+	TVec2f uvAC;
+
+    A = Poly->at(0);
+
+	uvA = UVs->at(0);
+
+    TVec3d AB;
+    TVec3d AC;
+
+    int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
+    for(int i = 1; i < Poly->size(); ++i) //Le premier point n'est pas répété à la fin
+    {
+        if(test == 0)
+        {
+            B = Poly->at(i);
+
+            if(A != B)
+            {
+                ++test;// A est bien différent de B
+                AB = B - A;
+				uvB = UVs->at(i);
+				uvAB = uvB - uvA;
+            }
+        }
+        else if(test == 1)
+        {
+            C = Poly->at(i);
+
+            if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y) || (C.z - A.z)/(B.z - A.z) != (C.y - A.y)/(B.y - A.y) || (C.x - A.x)/(B.x - A.x) != (C.z - A.z)/(B.z - A.z))
+            {
+                ++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+                AC = C - A;
+				uvC = UVs->at(i);
+				uvAC = uvC - uvA;
+                break;
+            }
+        }
+    }
+
+	double s, t;
+
+	if(AB.x != 0)
+	{
+		t = (A.z * AB.x - A.x * AB.z + AB.z * Point.x - AB.x * Point.z) / (AB.z * AC.x - AB.x * AC.z);
+		s = (Point.x - A.x - t * AC.x) / AB.x;
+	}
+	else if(AB.y != 0)
+	{
+		t = (A.z * AB.y - A.y * AB.z + AB.z * Point.y - AB.y * Point.z) / (AB.z * AC.y - AB.y * AC.z);
+		s = (Point.y - A.y - t * AC.y) / AB.y;
+	}
+	else if(AB.z != 0)
+	{
+		t = (A.x * AB.z - A.z * AB.x + AB.x * Point.z - AB.z * Point.x) / (AB.x * AC.z - AB.z * AC.x);
+		s = (Point.z - A.z - t * AC.z) / AB.z;
+	}
+	else
+	{
+		t = (A.y * AB.z - A.z * AB.y + AB.y * Point.z - AB.z * Point.y) / (AB.y * AC.z - AB.z * AC.y);
+		s = (Point.z - A.z - t * AC.z) / AB.z;
+	}
+
+	TVec2f Res = TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y);
+
+	return Res;
+}
+
+/**
 * @brief Parcourt les polygones des bâtiments d'un fichier CityGML et les assigne, selon leurs positions, à des emprises au sol générées à partir d'un fichier ShapeFile afin de créer un nouveau fichier CityGML.
 * @param FootprintsShape Contient les emprises au sol des bâtiments ShapeFile que l'on souhaite extruder en 3D grâce aux polygones CityGML.
 * @param LayerShape Contient toutes les données du ShapeFile afin de transférer les éventuelles informations sémantiques dans le CityGML créé.
 * @param ModelGML Contient toutes les données du CityGML que l'on va parcourir.
 * @param Link Contient les liens entre les bâtiments CityGML et Shape afin de savoir lesquels sont à mettre en relation.
 */
-citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* FootprintsShape, std::vector<OGRPolygon*>* FootprintsGML, OGRLayer* LayerShape, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link)
+citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* FootprintsShape, std::vector<OGRPolygon*>* FootprintsGML, OGRLayer* LayerShape, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link, std::vector<TextureCityGML>* TexturesList)
 {
     citygml::CityModel* ModelOut = new citygml::CityModel;
 
@@ -2777,6 +2920,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
     while((Feature = LayerShape->GetNextFeature()) != NULL)
     {
         ++cpt;
+		std::cout << cpt << " batiments generes en CityGML sur " << LayerShape->GetFeatureCount() << std::endl;
 
         std::string Name = NameModel + "_" + std::to_string(cpt);
         citygml::CityObject* BuildingCO = new citygml::Building(Name);
@@ -2786,8 +2930,14 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
         citygml::Geometry* Wall = new citygml::Geometry(Name+"_WallGeometry", citygml::GT_Wall, 2);
 
         OGRPolygon* BuildingShp = FootprintsShape->at(cpt);
+		OGRPolygon* BuildingShp2 = (OGRPolygon*) BuildingShp->clone(); //Contiendra le polygon Shape mais avec les points intermédiaires ajoutés à partir des Polygons du Wall pour que les intersections fonctionnent.
+		OGRMultiPolygon* PolygonsRoofBuildingShp = new OGRMultiPolygon; //Contiendra la liste des Polygons de toit ajouté.
 
+		std::vector<OGRPolygon*> ListPolygonsWall; //On va stocker tous les polygons de Wall qui sont liés à BuildingShp
+		
+		int cptPolyRoof = 0;
         int cpt2 = - 1;
+
         for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
         {
             ++cpt2;
@@ -2816,9 +2966,10 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                             for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
                             {
                                 OGRLinearRing * OgrRing = new OGRLinearRing;
-
                                 for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
                                     OgrRing->addPoint(Point.x, Point.y, Point.z);
+
+								std::vector<TVec2f> TexUV = PolygonCityGML->getTexCoords();
 
                                 OgrRing->closeRings();
 
@@ -2828,12 +2979,37 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                                     OgrPoly->addRingDirectly(OgrRing);
                                     if(OgrPoly->IsValid() && OgrPoly->Intersects(BuildingShp))
                                     {
-                                        OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, BuildingShp);
+										bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
+
+										std::string Url;
+										citygml::Texture::WrapMode WrapMode;
+										std::vector<std::vector<TVec2f>> TexUVout;
+										if(HasTexture)
+										{
+											Url = PolygonCityGML->getTexture()->getUrl();
+											WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+										}
+
+                                        OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, BuildingShp, &TexUV, &TexUVout);
+
                                         if(CutPoly != nullptr)
                                         {
                                             if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
                                             {
-                                                Roof->addPolygon(ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name));
+												citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "Roof_" + std::to_string(cptPolyRoof));
+                                                Roof->addPolygon(GMLPoly);
+												PolygonsRoofBuildingShp->addGeometry(CutPoly);
+												if(HasTexture)
+												{
+													TextureCityGML Texture;
+													Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+													Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+													Texture.Wrap = WrapMode;
+													Texture.Url = Url;
+													Texture.TexUV = TexUVout.at(0);
+													TexturesList->push_back(Texture);
+												}
+												++cptPolyRoof;
                                             }
                                             else
                                             {
@@ -2842,19 +3018,23 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                                                 {
                                                     for(int i = 0; i < CutMultiPoly->getNumGeometries(); ++i)
                                                     {
-                                                        OGRPolygon* tmpPoly = dynamic_cast<OGRPolygon*>(CutMultiPoly);
-                                                        if(tmpPoly != nullptr)
-                                                            Roof->addPolygon(ConvertOGRPolytoGMLPoly(tmpPoly, Name));
+														citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutMultiPoly->getGeometryRef(i), Name + "Roof_" + std::to_string(cptPolyRoof));
+                                                        Roof->addPolygon(GMLPoly);
+														PolygonsRoofBuildingShp->addGeometry(CutMultiPoly->getGeometryRef(i));
+														if(HasTexture)
+														{
+															TextureCityGML Texture;
+															Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+															Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+															Texture.Wrap = WrapMode;
+															Texture.Url = Url;
+															Texture.TexUV = TexUVout.at(i);
+															TexturesList->push_back(Texture);
+														}
+														++cptPolyRoof;
                                                     }
                                                 }
                                             }
-                                        }
-                                        else
-                                        {
-                                            SaveGeometrytoShape("A_OgrPoly.shp",OgrPoly);
-                                            SaveGeometrytoShape("A_BuildingShp.shp",BuildingShp);
-                                            int a;
-                                            std::cin >> a;
                                         }
                                         delete CutPoly;
                                     }
@@ -2865,10 +3045,283 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
                             }
                         }
                     }
+				}
+			}
+		}
+
+		cpt2 = - 1;
+		int cptPolyWall = 0;
+		double Zmin = -1; //Stock la valeur minimale en Z des murs afin d'avoir une valeur à appliquer pour les murs créés à partir de rien.
+
+        for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
+        {
+			
+            ++cpt2;
+            bool IsLinked = false;
+            for(int i : Link->second.at(cpt))
+            {
+                if(cpt2 == i)
+                {
+                    IsLinked = true;
+                    break;
+                }
+            }
+            if(!IsLinked) //On regarde si le bâtiment CityGML courant est en relation avec le bâtiment ShapeFile. Si ce n'est pas le cas, on passe au suivant.
+            {
+                continue;
+            }
+
+            if(obj->getType() == citygml::COT_Building)
+            {
+                for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
+                {
+					if(object->getType() == citygml::COT_WallSurface)
+                    {
+						for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+                        {
+                            for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
+                            {
+								OGRLinearRing * WallRing = new OGRLinearRing;
+
+								std::vector<TVec3d> PointsWall = PolygonCityGML->getExteriorRing()->getVertices();
+                                for(int i = 0; i < PointsWall.size(); ++i) //Le premier point n'est pas répété à la fin
+								{
+									TVec3d Point = PointsWall.at(i);
+                                    WallRing->addPoint(Point.x, Point.y, Point.z);
+									if(Zmin == -1 || Zmin > Point.z)
+										Zmin = Point.z;
+								}
+								WallRing->closeRings();
+
+								bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
+								
+								std::string Url;
+								citygml::Texture::WrapMode WrapMode;
+								std::vector<TVec2f> TexUV;
+								
+								if(HasTexture)
+								{
+									 Url = PolygonCityGML->getTexture()->getUrl();
+									 WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+									 TexUV = PolygonCityGML->getTexCoords();
+								}
+
+                                if(WallRing->getNumPoints() > 3)
+                                {
+									OGRPolygon * WallPoly = new OGRPolygon;
+                                    WallPoly->addRingDirectly(WallRing);
+									if(WallPoly->Distance(BuildingShp) < Precision_Vect) //Le polygon du Wall semble intersecter le Roof du Shape, on va donc l'ajouter à ce bâtiment.
+									{
+										//Wall->addPolygon(ConvertOGRPolytoGMLPoly(WallPoly, Name)); // Pour simplement ajouter les Polygons de Mur qui touchent un Polygon Shp -> Il y aura des doublons
+										//continue;
+
+										OGRPolygon* tmp = BuildingShp2;
+										BuildingShp2 = (OGRPolygon*) CreatePointsOnLine(WallPoly, BuildingShp2); //On crée les points du mur sur l'enveloppe du bâtiment pour la génération des murs non présents dans le CityGML.
+										delete tmp;
+
+										for(int i = 0; i < PolygonsRoofBuildingShp->getNumGeometries(); ++i)
+										{
+											OGRGeometry* PolyRoof = PolygonsRoofBuildingShp->getGeometryRef(i);
+
+											std::vector<TVec2f> TexUVWall;
+
+											if(PolyRoof->Distance(WallPoly) < Precision_Vect) //On recherche quels sont les polygons du Roof qui intersectent le polygon du Wall afin de créer les points de l'un sur l'autre.
+											{
+												OGRGeometry* PolyRoofwithWallPoints = CreatePointsOnLine(WallPoly, PolyRoof);
+												OGRGeometry* tmp = CreatePointsOnLine(PolyRoof, WallPoly);
+
+												delete WallPoly;
+												WallPoly = (OGRPolygon*) tmp;
+
+												OGRLinearRing* ExtRingWall = WallPoly->getExteriorRing();
+												OGRPolygon* WallPolyRes = new OGRPolygon; //Contiendra le polygon du Wall que l'on aura limité à la zone 2D formée par le polygon BuildingShp
+												OGRLinearRing* WallRingRes = new OGRLinearRing;
+
+												for(int i = 0; i < ExtRingWall->getNumPoints() - 1; ++i)
+												{
+													OGRPoint* WallPoint1 = new OGRPoint(ExtRingWall->getX(i), ExtRingWall->getY(i), ExtRingWall->getZ(i));
+													OGRPoint* WallPoint2 = new OGRPoint(ExtRingWall->getX(i+1), ExtRingWall->getY(i+1), ExtRingWall->getZ(i+1));
+
+													if(WallPoint1->Distance(PolyRoofwithWallPoints) == 0 && WallPoint2->Distance(PolyRoofwithWallPoints) == 0)
+													{
+														WallRingRes->addPoint(WallPoint1);
+														WallRingRes->addPoint(WallPoint2);
+													}
+													delete WallPoint1;
+													delete WallPoint2;
+												}
+
+												if(WallRingRes != nullptr && WallRingRes->getNumPoints() > 0)
+												{
+													WallRingRes->closeRings();
+													OGRLinearRing* CleanWallRingRes = new OGRLinearRing; //Des points dans WallRingRes sont potentiellement en double, il faut les retirer avant de créer le Polygon, on va mettre le LinearRing modifié ici.
+													double prevX = -1, prevY = -1, prevZ = -1;
+													for(int i = 0; i < WallRingRes->getNumPoints(); ++i)
+													{
+														if(WallRingRes->getX(i) != prevX || WallRingRes->getY(i) != prevY || WallRingRes->getZ(i) != prevZ)
+														{
+															prevX = WallRingRes->getX(i);
+															prevY = WallRingRes->getY(i);
+															prevZ = WallRingRes->getZ(i);
+															if(HasTexture)
+																TexUVWall.push_back(CalculUV(&PointsWall, &TexUV, TVec3d(prevX, prevY, prevZ)));
+															
+															CleanWallRingRes->addPoint(prevX, prevY, prevZ);
+														}
+													}
+													
+													delete WallRingRes;
+													if(CleanWallRingRes->getNumPoints() < 4)
+													{
+														delete CleanWallRingRes;
+														continue;
+													}
+													WallPolyRes->addRingDirectly(CleanWallRingRes);
+													citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)WallPolyRes, Name + "Wall_" + std::to_string(cptPolyWall));
+													
+													Wall->addPolygon(GMLPoly);
+													delete WallPolyRes;
+													if(HasTexture)
+													{
+														TextureCityGML Texture;
+														Texture.Id = Name + "Wall_" + std::to_string(cptPolyWall) + "_Poly";
+														Texture.IdRing = Name + "Wall_" + std::to_string(cptPolyWall) + "_Ring";
+														Texture.Wrap = WrapMode;
+														Texture.Url = Url;
+														Texture.TexUV = TexUVWall;
+														TexturesList->push_back(Texture);
+													}
+													++cptPolyWall;
+												}
+											}
+										}
+										//On convertit les polygones de WallPoly (qui sont en 2D) en 3D grâce à PolygonsRoofBuildingShpwithWallPoints
+
+										ListPolygonsWall.push_back(WallPoly);
+									}
+									else
+										delete WallPoly;
+								}
+								else
+									delete WallRing;
+							}
+						}
+					}
                 }
             }
         }
-        RoofCO->addGeometry(Roof);
+
+		//On veut générer des murs sur chaque facade du bâtiment, car les murs du CityGML ne couvrent pas tous les cas.
+		//Il faut commencer par stocker toutes les LineString de BuildingShp2 (provenant d'exterior Ring et d'interior Rings) car ces lignes doivent être la base de murs, qu'ils existent déjà dans le CityGML ou qu'il faille les créer.
+		std::vector<OGRLineString*> ListLinesShp;
+		OGRLinearRing* ExtRingShp = BuildingShp2->getExteriorRing();
+		for(int i = 0; i < ExtRingShp->getNumPoints() - 1; ++i)
+		{
+			OGRLineString* Line = new OGRLineString;
+			Line->addPoint(ExtRingShp->getX(i), ExtRingShp->getY(i), ExtRingShp->getZ(i));
+			Line->addPoint(ExtRingShp->getX(i+1), ExtRingShp->getY(i+1), ExtRingShp->getZ(i+1));
+			ListLinesShp.push_back(Line);
+		}
+		
+		for(int j = 0; j < BuildingShp2->getNumInteriorRings(); ++j)
+		{
+			OGRLinearRing* IntRingShp = BuildingShp2->getInteriorRing(j);
+			for(int i = 0; i < IntRingShp->getNumPoints() - 1; ++i)
+			{
+				OGRLineString* Line = new OGRLineString;
+				Line->addPoint(IntRingShp->getX(i), IntRingShp->getY(i), IntRingShp->getZ(i));
+				Line->addPoint(IntRingShp->getX(i+1), IntRingShp->getY(i+1), IntRingShp->getZ(i+1));
+				ListLinesShp.push_back(Line);
+			}
+		}
+
+		//SaveGeometrytoShape("A_BuildingShp2.shp", BuildingShp2);
+		//SaveGeometrytoShape("A_PolygonsRoofBuildingShp.shp", PolygonsRoofBuildingShp);
+
+		//On va parcourir toutes les LineString composant les polygones du toit du Building Shp. Pour chacune de ces arêtes, on va regarder si elle est sur sa frontière, et si elle n'a pas déjà de mur CityGML qui lui est lié. 
+		//Si ce n'est pas le cas, on va construire un mur générique afin de construire des objets fermés.
+		for(int i = 0; i < PolygonsRoofBuildingShp->getNumGeometries(); ++i)
+		{
+			OGRPolygon* Poly = (OGRPolygon*) PolygonsRoofBuildingShp->getGeometryRef(i);
+
+			OGRLinearRing* Ring = Poly->getExteriorRing();
+
+			for(int j = 0; j < Ring->getNumPoints() - 1; ++j)
+			{
+				OGRPoint* Point1R = new OGRPoint;
+				OGRPoint* Point2R = new OGRPoint;
+				OGRLineString* Line = new OGRLineString;
+
+				Ring->getPoint(j, Point1R);
+				Ring->getPoint(j+1, Point2R);
+				Line->addPoint(Point1R);
+				Line->addPoint(Point2R);
+				bool WallIsAlreadyBuilt = false;
+
+				for(int p = 0; p < ListPolygonsWall.size(); ++p)
+				{
+					OGRPolygon* WallPoly = ListPolygonsWall.at(p);
+
+					if(Line->Distance(WallPoly) > Precision_Vect)
+						continue;
+
+					if(Point1R->Distance(WallPoly) < Precision_Vect && Point2R->Distance(WallPoly) < Precision_Vect)
+					{
+						WallIsAlreadyBuilt = true;
+						break;
+					}
+				}
+				if(WallIsAlreadyBuilt) //Cette arête est déjà reliée à un mur CityGML
+				{
+					delete Point1R;
+					delete Point2R;
+					delete Line;
+					continue;
+				}
+				
+				bool LineIsOnEnvelope = false;
+				for(int l = 0; l < ListLinesShp.size(); ++l)
+				{
+					OGRLineString* ShpLine = ListLinesShp.at(l);
+					if(Point1R->Distance(ShpLine) < Precision_Vect && Point2R->Distance(ShpLine) < Precision_Vect)
+					{
+						LineIsOnEnvelope = true;
+						break;
+					}
+				}
+				if(!LineIsOnEnvelope) //Cette arête n'est pas sur l'envelope du bâtiment Shp
+				{
+					delete Point1R;
+					delete Point2R;
+					delete Line;
+					continue;
+				}
+				OGRLinearRing* WallLine = new OGRLinearRing;
+				WallLine->addPoint(Point1R);
+				WallLine->addPoint(Point1R->getX(), Point1R->getY(), Zmin);
+				WallLine->addPoint(Point2R->getX(), Point2R->getY(), Zmin);
+				WallLine->addPoint(Point2R);
+				WallLine->addPoint(Point1R);
+				OGRPolygon* NewWallPoly = new OGRPolygon;
+				NewWallPoly->addRingDirectly(WallLine);
+				Wall->addPolygon(ConvertOGRPolytoGMLPoly(NewWallPoly, Name));
+				delete NewWallPoly;
+				delete Point1R;
+				delete Point2R;
+				delete Line;
+			}
+		}
+
+		delete PolygonsRoofBuildingShp;
+		delete BuildingShp2;
+
+		for(OGRLineString* Line:ListLinesShp)
+			delete Line;
+
+		for(OGRPolygon* Poly:ListPolygonsWall)
+			delete Poly;
+
+		RoofCO->addGeometry(Roof);
         ModelOut->addCityObject(RoofCO);
         BuildingCO->insertNode(RoofCO);
         WallCO->addGeometry(Wall);
@@ -2889,7 +3342,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 * @param Tile Contient les données du fichier CityGML ouvert : il doit contenir un ensemble de bâtiments LOD2
 * @param DataSource Contient les données du fichier Shapefile ouvert : il doit contenir un ensemble d'emprises au sol définissant les bâtiments de la zone étudiée
 */
-citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* DataSource)
+citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* DataSource, std::vector<TextureCityGML>* TexturesList)
 {
     citygml::CityModel* Model = Tile->getCityModel();
 	OGRLayer* Layer = DataSource->GetLayer(0);
@@ -2908,11 +3361,19 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 	std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> Link = LinkCityGMLandShapefilesFootprints(FootprintsCityGML, FootprintsShapefile);
 	//Modifier chaque emprise au sol du Shapefile afin que ses arrêtes correspondent à celles des bâtiments du CityGML
 	std::cout << "Modification des polygones du cadastre." << std::endl;
-	std::vector<OGRPolygon*> NewFootprintsShapefile = FusionEnvelopes(&FootprintsCityGML, &FootprintsShapefile, &Link); //Passer en référence les vector
+	std::vector<OGRPolygon*> NewFootprintsShapefile = FusionEnvelopes(&FootprintsCityGML, &FootprintsShapefile, &Link);
+	for(OGRPolygon* Poly:FootprintsShapefile)
+		delete Poly;
     //On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectées avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
     //NewFootprintsShapefile. Chaque polygon correspond à un bâtiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un bâtiment CityGML lié. L'ensemble des emprises au sol
     //de NewFootprintsShapefile doit recouvrir les emprises au sol de tous les bâtiments CityGML. Il nous reste à parcourir les polygons du CityGML et à les assigner à ces différents bâtiments Shape.
-    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&NewFootprintsShapefile, &FootprintsCityGML, Layer, Model, &Link);
+	std::cout << "Decoupe des Polygons Wall et Roof du CityGML selon les emprises au sol generees a partir du cadastre." << std::endl;
+    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&NewFootprintsShapefile, &FootprintsCityGML, Layer, Model, &Link, TexturesList);
+
+	for(OGRPolygon* Poly:FootprintsCityGML)
+		delete Poly;
+	for(OGRPolygon* Poly:NewFootprintsShapefile)
+		delete Poly;
 
 	return ModelOut;
 }

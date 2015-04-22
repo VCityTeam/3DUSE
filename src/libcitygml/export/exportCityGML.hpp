@@ -7,6 +7,14 @@
 #include <libxml/tree.h>
 #include "citymodel.hpp"
 ////////////////////////////////////////////////////////////////////////////////
+struct TextureCityGML {
+	std::vector<TVec2f> TexUV;
+	std::string Url;
+	citygml::Texture::WrapMode Wrap;
+	std::string Id;
+	std::string IdRing;
+};
+////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,6 +67,11 @@ public:
     /// \param model Model
     void exportCityModel(const CityModel& model);
 
+	/// \brief exportCityModel Export a complete CityModel, with textures stored in ListTextures
+    /// \param model Model
+	/// \param ListTextures Textures List
+	void ExporterCityGML::exportCityModelWithListTextures(const CityModel& model, std::vector<TextureCityGML>* ListTextures);
+
     /// \brief exportCityObject Export an array of CityObjects
     /// \param objs CityObjects
     void exportCityObject(const std::vector<const CityObject*>& objs);
@@ -72,6 +85,7 @@ public:
 private:
     xmlNodePtr exportCityObjectModelXml(const std::vector<const CityObject*>& objs);
     xmlNodePtr exportCityModelXml(const citygml::CityModel& model);
+	xmlNodePtr ExporterCityGML::exportListTextures(xmlNodePtr root, std::vector<TextureCityGML>* ListTextures);
     xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent);
     xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent);
     xmlNodePtr exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent);
