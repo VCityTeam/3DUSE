@@ -70,7 +70,7 @@ public:
 	/// \brief exportCityModel Export a complete CityModel, with textures stored in ListTextures
     /// \param model Model
 	/// \param ListTextures Textures List
-	void ExporterCityGML::exportCityModelWithListTextures(const CityModel& model, std::vector<TextureCityGML>* ListTextures);
+    void exportCityModelWithListTextures(const CityModel& model, std::vector<TextureCityGML>* ListTextures);
 
     /// \brief exportCityObject Export an array of CityObjects
     /// \param objs CityObjects
@@ -85,7 +85,7 @@ public:
 private:
     xmlNodePtr exportCityObjectModelXml(const std::vector<const CityObject*>& objs);
     xmlNodePtr exportCityModelXml(const citygml::CityModel& model);
-	xmlNodePtr ExporterCityGML::exportListTextures(xmlNodePtr root, std::vector<TextureCityGML>* ListTextures);
+    xmlNodePtr exportListTextures(xmlNodePtr root, std::vector<TextureCityGML>* ListTextures);
     xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent);
     xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent);
     xmlNodePtr exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent);

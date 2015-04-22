@@ -3453,7 +3453,7 @@ OGRMultiPolygon* GetBuildingsFootprintsFromCityModel(citygml::CityModel* model, 
         }
 
         cpt++;
-        std::cout << "Avancement etape 1 : " << cpt << "/" << model->getCityObjectsRoots().size() << " batiments traites.\r" << std::flush;
+        std::cout << "Ouverture des batiments en entree : " << cpt << "/" << model->getCityObjectsRoots().size() << " batiments traites.\r" << std::flush;
     }
 	std::cout << std::endl;
 	
@@ -3487,7 +3487,6 @@ OGRMultiPolygon* GetBuildingsFootprintsFromCityModel(citygml::CityModel* model, 
 * @brief Traite un fichier CityGML afin de définir chaque objet 3D isolé comme étant un bâtiment : ressort le CityModel contenant tous ces nouveaux bâtiments
 * @param Tile : Contient les données du CityGML ouvert
 */
-//TODO : GESTION TEXTURES
 citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile)
 {
 	citygml::CityModel* model = Tile->getCityModel();
@@ -3578,9 +3577,9 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile)
 		ModelOut->addCityObject(BuildingCO);
         ModelOut->addCityObjectAsRoot(BuildingCO);
 
-		std::cout << "Avancement etape 2 : " << i+1 << "/" << BuildingsFootprints->getNumGeometries() << " batiments crees.\r" << std::flush;
+        std::cout << "Generation des batiments : " << i+1 << "/" << BuildingsFootprints->getNumGeometries() << " batiments crees.\r" << std::flush;
 	}
 	std::cout << std::endl;
-	
+
 	return ModelOut;
 }

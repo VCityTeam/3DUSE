@@ -86,6 +86,7 @@ public slots:
     void slotDumpScene();
     void slotDumpSelectedNodes();
     void slotCutCityGMLwithShapefile();
+    void slotSplitCityGMLBuildings();
 
     void about();
 

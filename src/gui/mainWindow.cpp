@@ -145,6 +145,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
     connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
     connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
+    connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
     connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
@@ -1530,20 +1531,61 @@ void MainWindow::slotCityGML_cut()
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotSplitCityGMLBuildings()
+{
+    QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+    QFileInfo file1(filename1);
+    QString filepath1 = file1.absoluteFilePath();
+    QString ext1 = file1.suffix().toLower();
+    if(ext1 != "citygml" && ext1 != "gml")
+    {
+        std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+        QApplication::restoreOverrideCursor();
+        return;
+    }
+    settings.setValue("lastdir", file1.dir().absolutePath());
+
+
+    QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS.gml");
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
+
+    QTime time;
+    time.start();
+
+    vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath1.toStdString());
+
+    citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML);
+    ModelOut->computeEnvelope();
+
+    citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_SplitBuildings.gml");
+    exporter.exportCityModel(*ModelOut);
+
+    int millisecondes = time.elapsed();
+    std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+
+    std::cout << Folder + "/" + file1.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;
+
+    return;
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutCityGMLwithShapefile()
 {
-	////SPLIT BUILDINGS FROM CITYGML => AJOUTER UN BOUTON + CHOIX DES FICHIERS ET DOSSIER DE SORTIE
-	/*vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS.gml"); 
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
-	citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML);
-	ModelOut->computeEnvelope();
-
-	citygml::ExporterCityGML exporter("LYON01_BATIS_Separes.gml");
-	exporter.exportCityModel(*ModelOut);
-
-	return;*/
-
+    ////////// Ancienne version utilisant GEOS :
     /*QFileDialog w;
     w.setWindowTitle("Selectionner le dossier de sortie");
     w.setFileMode(QFileDialog::Directory);
@@ -1554,17 +1596,64 @@ void MainWindow::slotCutCityGMLwithShapefile()
         return;
     }
 
-    std::string Folder = w.selectedFiles().at(0).toStdString();*/
+    std::string Folder = w.selectedFiles().at(0).toStdString();
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-	////////// Ancienne version utilisant GEOS : 
-    //DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);
+
+
+    //DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);*/
 	////////// Nouvelle version de découpe : 
 
+    QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+    QFileInfo file1(filename1);
+    QString filepath1 = file1.absoluteFilePath();
+    QString ext1 = file1.suffix().toLower();
+    if(ext1 != "citygml" && ext1 != "gml")
+    {
+        std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+        QApplication::restoreOverrideCursor();
+        return;
+    }
+    settings.setValue("lastdir", file1.dir().absolutePath());
+
+    lastdir = settings.value("lastdir").toString();
+    QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile.", lastdir);
+    QFileInfo file2(filename2);
+    QString filepath2 = file2.absoluteFilePath();
+    QString ext2 = file2.suffix().toLower();
+    if(ext2 != "shp")
+    {
+        std::cout << "Erreur : Le fichier n'est pas un Shapefile." << std::endl;
+        QApplication::restoreOverrideCursor();
+        return;
+    }
+    settings.setValue("lastdir", file2.dir().absolutePath());
+
+
+    QFileDialog w;
+    w.setWindowTitle("Selectionner le dossier de sortie");
+    w.setFileMode(QFileDialog::Directory);
+
+    if(w.exec() == 0)
+    {
+        std::cout << "Annulation : Dossier non valide." << std::endl;
+        return;
+    }
+
+    std::string Folder = w.selectedFiles().at(0).toStdString();
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath1.toStdString());
+
+    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), FALSE);
+
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
 
-    vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
@@ -1573,13 +1662,12 @@ void MainWindow::slotCutCityGMLwithShapefile()
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
 	
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
-    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", FALSE);
-
-	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/VCity.git/VCity-build/BatiTest - Copie.shp", TRUE);
 
     QTime time;
     time.start();
+
 	std::vector<TextureCityGML> ListTextures;
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile, &ListTextures);
 
@@ -1588,14 +1676,13 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
     ModelOut->computeEnvelope();
 
-    citygml::ExporterCityGML exporter("BatimentsDecoupes.gml");
+    citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml");
 	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
 
-    // millisecondes contient le nombre de millisecondes entre l'appel à la fonction start()
-    // et l'appel 0 la fonction elapsed()
     int millisecondes = time.elapsed();
     std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-    std::cout << "Fichier BatimentsDecoupes.gml cree" << std::endl;
+
+    std::cout << Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml a ete cree." << std::endl;
 
 	delete ModelOut;
 	//////////
