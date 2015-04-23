@@ -2873,6 +2873,9 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
         }
     }
 
+	if(AB.x == 0 && AB.y == 0 && AC.x == 0 && AC.y == 0) // Pour les polygones de murs tenant sur un seul point (x,y) (ces polygones sont inutiles ?)
+		return TVec2f(0, 0);
+
 	double s, t;
 
 	if(AB.x != 0)
@@ -2896,7 +2899,37 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 		s = (Point.z - A.z - t * AC.z) / AB.z;
 	}
 
+	if(AB.z == 0 && AC.z == 0)//Pour les bâtiments remarquables qui ne sont pas en LOD2 et qui ont des murs horizontaux, pour éviter les -1.#IND
+	{
+		t = (A.y * AB.x - A.x * AB.y + AB.y * Point.x - AB.x * Point.y) / (AB.y * AC.x - AB.x * AC.y);
+        s = (Point.x - A.x - t * AC.x) / AB.x;
+	}
+
 	TVec2f Res = TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y);
+
+	/*if(Res.x != Res.x || Res.y != Res.y)
+	{
+		std::cout << std::setprecision(15) << "s - t : " << s << " - " << t << std::endl;
+		std::cout << Res << std::endl;
+		std::cout << std::endl << "A : " << A << std::endl;
+		std::cout << "uvA : " << uvA << std::endl;
+		std::cout << "B : " << B << std::endl;
+		std::cout << "uvB : " << uvB << std::endl;
+		std::cout << "C : " << C << std::endl;
+		std::cout << "uvC : " << uvC << std::endl;
+		std::cout << "Point : " << Point << std::endl;
+
+		for(TVec3d Vec: *Poly)
+			std::cout << "Poly : " << Vec << std::endl;
+
+		std::cout << std::endl << "AB : " << AB << std::endl;
+		std::cout << "AC : " << AC << std::endl;
+		std::cout << "uvAB : " << uvAB << std::endl;
+		std::cout << "uvAC : " << uvAC << std::endl;
+
+		int a;
+		std::cin >> a;
+	}*/
 
 	return Res;
 }
@@ -2930,6 +2963,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
         citygml::Geometry* Wall = new citygml::Geometry(Name+"_WallGeometry", citygml::GT_Wall, 2);
 
         OGRPolygon* BuildingShp = FootprintsShape->at(cpt);
+		//SaveGeometrytoShape("A_BuildingShp.shp", BuildingShp);
 		OGRPolygon* BuildingShp2 = (OGRPolygon*) BuildingShp->clone(); //Contiendra le polygon Shape mais avec les points intermédiaires ajoutés à partir des Polygons du Wall pour que les intersections fonctionnent.
 		OGRMultiPolygon* PolygonsRoofBuildingShp = new OGRMultiPolygon; //Contiendra la liste des Polygons de toit ajouté.
 
@@ -3238,6 +3272,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 		//SaveGeometrytoShape("A_BuildingShp2.shp", BuildingShp2);
 		//SaveGeometrytoShape("A_PolygonsRoofBuildingShp.shp", PolygonsRoofBuildingShp);
 
+		cptPolyWall = 0;
 		//On va parcourir toutes les LineString composant les polygones du toit du Building Shp. Pour chacune de ces arêtes, on va regarder si elle est sur sa frontière, et si elle n'a pas déjà de mur CityGML qui lui est lié. 
 		//Si ce n'est pas le cas, on va construire un mur générique afin de construire des objets fermés.
 		for(int i = 0; i < PolygonsRoofBuildingShp->getNumGeometries(); ++i)
@@ -3304,7 +3339,8 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 				WallLine->addPoint(Point1R);
 				OGRPolygon* NewWallPoly = new OGRPolygon;
 				NewWallPoly->addRingDirectly(WallLine);
-				Wall->addPolygon(ConvertOGRPolytoGMLPoly(NewWallPoly, Name));
+				Wall->addPolygon(ConvertOGRPolytoGMLPoly(NewWallPoly, Name + "GenericWall_" + std::to_string(cptPolyWall)));
+				++ cptPolyWall;
 				delete NewWallPoly;
 				delete Point1R;
 				delete Point2R;

@@ -192,8 +192,28 @@ void CityModel::computeEnvelope()
 {
     for(CityObject* obj : _roots)
     {
-        obj->computeEnvelope();
-        _envelope.merge(obj->getEnvelope());
+       // obj->computeEnvelope();
+		
+		//TVec3d Low = _envelope.getLowerBound();
+		//TVec3d Up = _envelope.getUpperBound();
+       // _envelope.merge(obj->getEnvelope());
+
+		if(!obj->IsEmpty())
+		{
+			obj->computeEnvelope();
+			_envelope.merge(obj->getEnvelope());
+		}
+
+		/*if(_envelope.getLowerBound() != Low || _envelope.getUpperBound() != Up)
+		{
+			std::cout << obj->getId() << std::endl;
+			std::cout << obj->getEnvelope().getLowerBound() << std::endl;
+			std::cout << obj->getEnvelope().getUpperBound() << std::endl;
+			std::cout << _envelope.getLowerBound() << std::endl;
+			std::cout << _envelope.getUpperBound() << std::endl;
+			int a;
+			std::cin >> a;
+		}*/
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

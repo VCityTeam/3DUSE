@@ -81,6 +81,9 @@ public:
     // Return the envelope (ie. the bounding box) of the object
     const Envelope& getEnvelope( void ) const;
 
+	//Check is CityObject has geometries
+	bool IsEmpty();
+
     // Get the default diffuse color of this object class
     virtual TVec4f getDefaultColor( void ) const = 0;
 
@@ -163,6 +166,7 @@ protected:
     CityObject* _parent;
 
     Envelope _envelope;
+	bool _isEmpty;
     TVec3d _centroid;
 
     std::vector< Geometry* > _geometries;
