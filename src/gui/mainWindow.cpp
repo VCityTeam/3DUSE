@@ -1603,7 +1603,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
     //DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);*/
 	////////// Nouvelle version de découpe : 
 
-    /*QSettings settings("liris", "virtualcity");
+    QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
     QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
     QFileInfo file1(filename1);
@@ -1641,20 +1641,20 @@ void MainWindow::slotCutCityGMLwithShapefile()
         return;
     }
 
-    std::string Folder = w.selectedFiles().at(0).toStdString();*/
+    std::string Folder = w.selectedFiles().at(0).toStdString();
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath1.toStdString());
+    vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath1.toStdString());
 
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), FALSE);
+    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), FALSE);
 
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
 
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
 
@@ -1662,7 +1662,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
 	
     //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
-    OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", FALSE);
 
     QTime time;
@@ -1676,14 +1676,14 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
     ModelOut->computeEnvelope();
 
-    //citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml");
-	citygml::ExporterCityGML exporter("A_CutBuildings.gml");
+    citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml");
+	//citygml::ExporterCityGML exporter("A_CutBuildings.gml");
 	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
 
     int millisecondes = time.elapsed();
     std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 
-    //std::cout << Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml a ete cree." << std::endl;
+    std::cout << Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml a ete cree." << std::endl;
 
 	delete ModelOut;
 	//////////

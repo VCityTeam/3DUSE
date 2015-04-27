@@ -6,7 +6,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
-    std::cout << "GEOS : " << geos::geom::geosversion() << " ported from JTS " << geos::geom::jtsport() << std::endl;
+    std::cout << "3D-Use version 0.2.3" << std::endl;
 
 #ifdef Q_WS_X11
     QCoreApplication::setAttribute(Qt::AA_X11InitThreads);
