@@ -92,8 +92,6 @@ namespace citygml
 		if(ListTextures->size() > 0)
 			exportListTextures(m_root_node, ListTextures);
 
-
-
 		endExport();
 	}
 	////////////////////////////////////////////////////////////////////////////////
@@ -102,6 +100,18 @@ namespace citygml
 		initExport(false);
 
 		m_root_node = exportCityObjectModelXml(models);
+
+		endExport();
+	}
+	////////////////////////////////////////////////////////////////////////////////
+	void ExporterCityGML::exportCityObjectWithListTextures(const std::vector<const CityObject*>& models, std::vector<TextureCityGML*>* ListTextures)
+	{
+		initExport(false);
+
+		m_root_node = exportCityObjectModelXml(models);
+
+		if(ListTextures->size() > 0)
+			exportListTextures(m_root_node, ListTextures);
 
 		endExport();
 	}
@@ -193,7 +203,7 @@ namespace citygml
 
 		for(const citygml::Polygon* poly : geom.getPolygons())
 		{
-			exportPolygonAppearanceXml(*poly, m_currentAppearence);
+			//exportPolygonAppearanceXml(*poly, m_currentAppearence); ///////// EXPORT TEXTURE VERSION MAXIME -> Un appel du fichier image par Polygon. Commenté car texture gérée par exportCityModelWithListTextures.
 			exportPolygonXml(*poly, parent);//node3
 		}
 

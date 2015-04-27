@@ -3574,7 +3574,7 @@ OGRMultiPolygon* GetBuildingsFootprintsFromCityModel(citygml::CityModel* model, 
 * @brief Traite un fichier CityGML afin de définir chaque objet 3D isolé comme étant un bâtiment : ressort le CityModel contenant tous ces nouveaux bâtiments
 * @param Tile : Contient les données du CityGML ouvert
 */
-citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile)
+citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList)
 {
 	citygml::CityModel* model = Tile->getCityModel();
 	citygml::CityModel* ModelOut = new citygml::CityModel;
@@ -3621,7 +3621,41 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile)
 									}
 								}
 								if(PolyIsInBati)
+								{
                                     Roof->addPolygon(PolygonCityGML);
+
+									if(PolygonCityGML->getTexture() == nullptr)
+										continue;
+
+									//Remplissage de ListTextures
+									std::string Url = PolygonCityGML->getTexture()->getUrl();
+									citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+									TexturePolygonCityGML Poly;
+													
+									Poly.Id = PolygonCityGML->getId();
+									Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+									Poly.TexUV = PolygonCityGML->getTexCoords();
+
+									bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+									for(TextureCityGML* Tex: *TexturesList)
+									{
+										if(Tex->Url == Url)
+										{
+											URLTest = true;
+											Tex->ListPolygons.push_back(Poly);
+											break;
+										}
+									}
+									if(!URLTest)
+									{
+										TextureCityGML* Texture = new TextureCityGML;
+										Texture->Wrap = WrapMode;
+										Texture->Url = Url;
+										Texture->ListPolygons.push_back(Poly);
+										TexturesList->push_back(Texture);
+									}
+								}
 							}
 						}
 					}
@@ -3647,6 +3681,38 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile)
 								if(PolyIsInBati) //Si tous les points du polygone sont dans Building, il faut l'ajouter à celui ci
 								{
 									Wall->addPolygon(PolygonCityGML);
+
+									if(PolygonCityGML->getTexture() == nullptr)
+										continue;
+
+									//Remplissage de ListTextures
+									std::string Url = PolygonCityGML->getTexture()->getUrl();
+									citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+									TexturePolygonCityGML Poly;
+													
+									Poly.Id = PolygonCityGML->getId();
+									Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+									Poly.TexUV = PolygonCityGML->getTexCoords();
+
+									bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+									for(TextureCityGML* Tex: *TexturesList)
+									{
+										if(Tex->Url == Url)
+										{
+											URLTest = true;
+											Tex->ListPolygons.push_back(Poly);
+											break;
+										}
+									}
+									if(!URLTest)
+									{
+										TextureCityGML* Texture = new TextureCityGML;
+										Texture->Wrap = WrapMode;
+										Texture->Url = Url;
+										Texture->ListPolygons.push_back(Poly);
+										TexturesList->push_back(Texture);
+									}
 								}
 							}
 						}
