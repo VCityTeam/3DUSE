@@ -83,7 +83,7 @@ namespace citygml
 		endExport();
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	void ExporterCityGML::exportCityModelWithListTextures(const CityModel& model, std::vector<TextureCityGML>* ListTextures)
+	void ExporterCityGML::exportCityModelWithListTextures(const CityModel& model, std::vector<TextureCityGML*>* ListTextures)
 	{
 		initExport(false);
 
@@ -91,6 +91,8 @@ namespace citygml
 
 		if(ListTextures->size() > 0)
 			exportListTextures(m_root_node, ListTextures);
+
+
 
 		endExport();
 	}
@@ -622,28 +624,31 @@ namespace citygml
 		return root;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportListTextures(xmlNodePtr root, std::vector<TextureCityGML>* ListTextures)
+	xmlNodePtr ExporterCityGML::exportListTextures(xmlNodePtr root, std::vector<TextureCityGML*>* ListTextures)
 	{
 		xmlNodePtr AppMember = xmlNewChild(root, NULL, BAD_CAST "app:appearanceMember", NULL);
 		xmlNodePtr App = xmlNewChild(AppMember, NULL, BAD_CAST "app:Appearance", NULL);
-		for(TextureCityGML Tex : *ListTextures)
+		for(TextureCityGML* Tex : *ListTextures)
 		{
 			xmlNewChild(App, NULL, BAD_CAST "app:theme", BAD_CAST "texturation");
 			xmlNodePtr srf = xmlNewChild(App, NULL, BAD_CAST "app:surfaceDataMember", NULL);
 			xmlNodePtr tex = xmlNewChild(srf, NULL, BAD_CAST "app:ParameterizedTexture", NULL);
-			xmlNewChild(tex, NULL, BAD_CAST "app:imageURI", BAD_CAST Tex.Url.c_str());
-			xmlNewChild(tex, NULL, BAD_CAST "app:wrapMode", BAD_CAST getWrapMode(Tex.Wrap).c_str());
-			xmlNodePtr target = xmlNewChild(tex, NULL, BAD_CAST "app:target", NULL);
-			xmlNewProp(target, BAD_CAST "uri", BAD_CAST ("#" + Tex.Id).c_str());
-			xmlNodePtr tcl = xmlNewChild(target, NULL, BAD_CAST "app:TexCoordList", NULL);
-			std::string buf = "";
-			for(const TVec2f& coord : Tex.TexUV)
+			xmlNewChild(tex, NULL, BAD_CAST "app:imageURI", BAD_CAST Tex->Url.c_str());
+			xmlNewChild(tex, NULL, BAD_CAST "app:wrapMode", BAD_CAST getWrapMode(Tex->Wrap).c_str());
+			for(TexturePolygonCityGML Poly : Tex->ListPolygons)
 			{
-				buf += std::to_string(coord.x) + ' ' + std::to_string(coord.y) + ' ';
+				xmlNodePtr target = xmlNewChild(tex, NULL, BAD_CAST "app:target", NULL);
+				xmlNewProp(target, BAD_CAST "uri", BAD_CAST ("#" + Poly.Id).c_str());
+				xmlNodePtr tcl = xmlNewChild(target, NULL, BAD_CAST "app:TexCoordList", NULL);
+				std::string buf = "";
+				for(const TVec2f& coord : Poly.TexUV)
+				{
+					buf += std::to_string(coord.x) + ' ' + std::to_string(coord.y) + ' ';
+				}
+				xmlNodePtr tc = xmlNewChild(tcl, NULL, BAD_CAST "app:textureCoordinates", BAD_CAST buf.c_str());
+				buf = "#"+Poly.IdRing;
+				xmlNewProp(tc, BAD_CAST "ring", BAD_CAST buf.c_str());
 			}
-			xmlNodePtr tc = xmlNewChild(tcl, NULL, BAD_CAST "app:textureCoordinates", BAD_CAST buf.c_str());
-			buf = "#"+Tex.IdRing;
-			xmlNewProp(tc, BAD_CAST "ring", BAD_CAST buf.c_str());
 		}
 
 		return root;

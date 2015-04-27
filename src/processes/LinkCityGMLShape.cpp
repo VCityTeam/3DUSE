@@ -2941,7 +2941,7 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 * @param ModelGML Contient toutes les données du CityGML que l'on va parcourir.
 * @param Link Contient les liens entre les bâtiments CityGML et Shape afin de savoir lesquels sont à mettre en relation.
 */
-citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* FootprintsShape, std::vector<OGRPolygon*>* FootprintsGML, OGRLayer* LayerShape, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link, std::vector<TextureCityGML>* TexturesList)
+citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* FootprintsShape, std::vector<OGRPolygon*>* FootprintsGML, OGRLayer* LayerShape, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link, std::vector<TextureCityGML*>* TexturesList)
 {
     citygml::CityModel* ModelOut = new citygml::CityModel;
 
@@ -3035,13 +3035,30 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 												PolygonsRoofBuildingShp->addGeometry(CutPoly);
 												if(HasTexture)
 												{
-													TextureCityGML Texture;
-													Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
-													Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
-													Texture.Wrap = WrapMode;
-													Texture.Url = Url;
-													Texture.TexUV = TexUVout.at(0);
-													TexturesList->push_back(Texture);
+													TexturePolygonCityGML Poly;
+													
+													Poly.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+													Poly.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+													Poly.TexUV = TexUVout.at(0);
+
+													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+													for(TextureCityGML* Tex: *TexturesList)
+													{
+														if(Tex->Url == Url)
+														{
+															URLTest = true;
+															Tex->ListPolygons.push_back(Poly);
+															break;
+														}
+													}
+													if(!URLTest)
+													{
+														TextureCityGML* Texture = new TextureCityGML;
+														Texture->Wrap = WrapMode;
+														Texture->Url = Url;
+														Texture->ListPolygons.push_back(Poly);
+														TexturesList->push_back(Texture);
+													}
 												}
 												++cptPolyRoof;
                                             }
@@ -3057,13 +3074,30 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 														PolygonsRoofBuildingShp->addGeometry(CutMultiPoly->getGeometryRef(i));
 														if(HasTexture)
 														{
-															TextureCityGML Texture;
-															Texture.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
-															Texture.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
-															Texture.Wrap = WrapMode;
-															Texture.Url = Url;
-															Texture.TexUV = TexUVout.at(i);
-															TexturesList->push_back(Texture);
+															TexturePolygonCityGML Poly;
+													
+															Poly.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+															Poly.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+															Poly.TexUV = TexUVout.at(i);
+
+															bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+															for(TextureCityGML* Tex: *TexturesList)
+															{
+																if(Tex->Url == Url)
+																{
+																	URLTest = true;
+																	Tex->ListPolygons.push_back(Poly);
+																	break;
+																}
+															}
+															if(!URLTest)
+															{
+																TextureCityGML* Texture = new TextureCityGML;
+																Texture->Wrap = WrapMode;
+																Texture->Url = Url;
+																Texture->ListPolygons.push_back(Poly);
+																TexturesList->push_back(Texture);
+															}
 														}
 														++cptPolyRoof;
                                                     }
@@ -3217,13 +3251,30 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 													delete WallPolyRes;
 													if(HasTexture)
 													{
-														TextureCityGML Texture;
-														Texture.Id = Name + "Wall_" + std::to_string(cptPolyWall) + "_Poly";
-														Texture.IdRing = Name + "Wall_" + std::to_string(cptPolyWall) + "_Ring";
-														Texture.Wrap = WrapMode;
-														Texture.Url = Url;
-														Texture.TexUV = TexUVWall;
-														TexturesList->push_back(Texture);
+														TexturePolygonCityGML Poly;
+													
+														Poly.Id = Name + "Wall_" + std::to_string(cptPolyWall) + "_Poly";
+														Poly.IdRing = Name + "Wall_" + std::to_string(cptPolyWall) + "_Ring";
+														Poly.TexUV = TexUVWall;
+
+														bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+														for(TextureCityGML* Tex: *TexturesList)
+														{
+															if(Tex->Url == Url)
+															{
+																URLTest = true;
+																Tex->ListPolygons.push_back(Poly);
+																break;
+															}
+														}
+														if(!URLTest)
+														{
+															TextureCityGML* Texture = new TextureCityGML;
+															Texture->Wrap = WrapMode;
+															Texture->Url = Url;
+															Texture->ListPolygons.push_back(Poly);
+															TexturesList->push_back(Texture);
+														}
 													}
 													++cptPolyWall;
 												}
@@ -3378,7 +3429,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 * @param Tile Contient les données du fichier CityGML ouvert : il doit contenir un ensemble de bâtiments LOD2
 * @param DataSource Contient les données du fichier Shapefile ouvert : il doit contenir un ensemble d'emprises au sol définissant les bâtiments de la zone étudiée
 */
-citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* DataSource, std::vector<TextureCityGML>* TexturesList)
+citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* DataSource, std::vector<TextureCityGML*>* TexturesList)
 {
     citygml::CityModel* Model = Tile->getCityModel();
 	OGRLayer* Layer = DataSource->GetLayer(0);

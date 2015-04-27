@@ -1668,7 +1668,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
     QTime time;
     time.start();
 
-	std::vector<TextureCityGML> ListTextures;
+	std::vector<TextureCityGML*> ListTextures;
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile, &ListTextures);
 
 	delete BatiShapeFile;
