@@ -2585,6 +2585,8 @@ std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> LinkCity
 * @brief Découpe un polygon 3D GMLPoly suivant un second polygon 2D BuildingShp. Il faut que le polygon découpé soit encore en 3d.
 * @param GMLPoly représente le premier polygon 3D (issu du fichier CityGML)
 * @param BuildingShp représente le second polygon 2D (issu du fichier Shape et modifié pour coller aux emprises du CityGML)
+* @param TexUV représente les coordonnées de texture en entrée correspondant au GMLPoly
+* @param TexUVout représente les coordonnées de texture en sortie pour la Geometry résultat.
 */
 OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, std::vector<TVec2f> *TexUV, std::vector<std::vector<TVec2f>>* TexUVout)
 {
@@ -2820,6 +2822,151 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 }
 
 /**
+* @brief Découpe un polygon 3D GMLPoly suivant un second polygon 2D BuildingShp. Il faut que le polygon découpé soit encore en 3d.
+* @param GMLPoly représente le premier polygon 3D (issu du fichier CityGML)
+* @param BuildingShp représente le second polygon 2D (issu du fichier Shape et modifié pour coller aux emprises du CityGML)
+*/
+OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
+{
+    OGRGeometry* Inter = GMLPoly->Intersection(BuildingShp);
+
+    //On va parcourir chaque point P de Inter et calculer sa position dans GMLPoly afin de calculer sa coordonnée z (+ TODO : texture)
+    //On commence par récupérer trois points A, B et C de GMLPoly non alignés pour obtenir l'équation paramétrique du plan formé par ce polygon
+    OGRLinearRing* GMLRing = GMLPoly->getExteriorRing();
+
+    TVec3d A;
+    TVec3d B;
+    TVec3d C;
+
+    A.x = GMLRing->getX(0);
+    A.y = GMLRing->getY(0);
+    A.z = GMLRing->getZ(0);
+
+    TVec3d AB;
+    TVec3d AC;
+
+    int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
+    for(int i = 1; i < GMLRing->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+    {
+        if(test == 0)
+        {
+            B.x = GMLRing->getX(i);
+            B.y = GMLRing->getY(i);
+            B.z = GMLRing->getZ(i);
+
+            if(A.x != B.x || A.y != B.y)
+            {
+                ++test;// A est bien différent de B
+                AB = B - A;
+            }
+        }
+        else if(test == 1)
+        {
+            C.x = GMLRing->getX(i);
+            C.y = GMLRing->getY(i);
+            C.z = GMLRing->getZ(i);
+
+            if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
+            {
+                ++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+                AC = C - A;
+                break;
+            }
+        }
+    }
+
+    if(test != 2)
+    {
+        std::cout << "Erreur lors de la creation du plan. \n";
+        delete Inter;
+        return nullptr;
+    }
+
+    OGRPolygon* PolyInter = dynamic_cast<OGRPolygon*>(Inter);
+    if(PolyInter != nullptr)
+    {
+        if(PolyInter->get_Area() == GMLPoly->get_Area())
+        {
+            delete Inter;
+            return GMLPoly->clone(); //GMLPoly est inclu dans BuildingShp, il n'y a pas besoin de le modifier
+        }
+        OGRPolygon* ResPoly = new OGRPolygon;
+        OGRLinearRing* InterExtRing = PolyInter->getExteriorRing();
+        OGRLinearRing* ResExtRing = new OGRLinearRing;
+
+        for(int i = 0; i < InterExtRing->getNumPoints(); ++i)
+        {
+            OGRPoint* P = new OGRPoint;
+            InterExtRing->getPoint(i, P);
+
+            TVec3d M; // <=> P
+            M.x = P->getX();
+            M.y = P->getY();
+
+            double s, t;
+
+            t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
+            s = (M.x - A.x - t * AC.x) / AB.x;
+
+            M.z = A.z + s * AB.z + t * AC.z;
+
+            ResExtRing->addPoint(M.x, M.y, M.z);
+			
+            delete P;
+        }
+
+        ResPoly->addRingDirectly(ResExtRing);
+
+        return ResPoly;
+    }
+    else //Si l'intersection ne représente pas un simple Polygon, il faut rechercher si c'est une GeometryCollection qui en contient, afin de pouvoir ensuite les récupérer.
+    {
+        OGRGeometryCollection* GC_Inter = dynamic_cast<OGRGeometryCollection*>(Inter);
+        if(GC_Inter != nullptr)
+        {
+            OGRMultiPolygon* ResMultiPoly = new OGRMultiPolygon;
+            for(int j = 0; j < GC_Inter->getNumGeometries(); ++j)
+            {
+                OGRPolygon* PolyInter = dynamic_cast<OGRPolygon*>(GC_Inter->getGeometryRef(j));
+                if(PolyInter != nullptr)
+                {
+                    OGRPolygon* ResPoly = new OGRPolygon;
+                    OGRLinearRing* InterExtRing = PolyInter->getExteriorRing();
+                    OGRLinearRing* ResExtRing = new OGRLinearRing;
+
+                    for(int i = 0; i < InterExtRing->getNumPoints(); ++i)
+                    {
+                        OGRPoint* P = new OGRPoint;
+                        InterExtRing->getPoint(i, P);
+
+                        TVec3d M; // <=> P
+                        M.x = P->getX();
+                        M.y = P->getY();
+
+                        double s, t;
+
+                        t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
+                        s = (M.x - A.x - t * AC.x) / AB.x;
+
+                        M.z = A.z + s * AB.z + t * AC.z;
+
+                        ResExtRing->addPoint(M.x, M.y, M.z);
+						
+                        delete P;
+                    }
+
+                    ResPoly->addRingDirectly(ResExtRing);
+
+                    ResMultiPoly->addGeometryDirectly(ResPoly);
+                }
+            }
+            return ResMultiPoly;
+        }
+        return nullptr;
+    }
+}
+
+/**
 * @brief Calcul les coordonnées de texture UV d'un point par rapport à un polygone qui lui est coplanaire.
 * @param Poly Contient les coordonnées des points du polygone
 * @param UVs Contient les coordonnées de texture des points du polygone
@@ -2941,7 +3088,7 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 * @param ModelGML Contient toutes les données du CityGML que l'on va parcourir.
 * @param Link Contient les liens entre les bâtiments CityGML et Shape afin de savoir lesquels sont à mettre en relation.
 */
-citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* FootprintsShape, std::vector<OGRPolygon*>* FootprintsGML, OGRLayer* LayerShape, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link, std::vector<TextureCityGML*>* TexturesList)
+citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* FootprintsShape, OGRLayer* LayerShape, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link, std::vector<TextureCityGML*>* TexturesList)
 {
     citygml::CityModel* ModelOut = new citygml::CityModel;
 
@@ -2971,7 +3118,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 		
 		int cptPolyRoof = 0;
         int cpt2 = - 1;
-
         for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
         {
             ++cpt2;
@@ -3422,19 +3568,215 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
     return ModelOut;
 }
 
+/**
+* @brief Parcourt les polygones représentant des emprises au sol, leur assigne des polygones du toit du CityGML et propose une nouvelle version de ces emprises au sol corrigeant les incohérences 3D.
+* @param Footprints Contient les emprises au sol des bâtiments.
+* @param ModelGML Contient toutes les données du CityGML que l'on va parcourir.
+* @param Link Contient les liens entre les bâtiments CityGML et Shape afin de savoir lesquels sont à mettre en relation.
+*/
+std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footprints, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link)
+{
+	std::vector<OGRPolygon*> CleanedFootprints;
+	std::vector<OGRPolygon*>* ListPolygonsFootprints = new std::vector<OGRPolygon*>[Footprints->size()];
+
+	for(int i = 0; i < Footprints->size(); ++i)
+	{
+		OGRPolygon* Footprint = Footprints->at(i);
+				
+		int cpt2 = - 1;
+        for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
+        {
+            ++cpt2;
+            bool IsLinked = false;
+            for(int ind : Link->second.at(i))
+            {
+                if(cpt2 == ind)
+                {
+                    IsLinked = true;
+                    break;
+                }
+            }
+            if(!IsLinked) //On regarde si le bâtiment CityGML courant est en relation avec l'emprise au sol. Si ce n'est pas le cas, on passe au suivant.
+            {
+                continue;
+            }
+			if(obj->getType() == citygml::COT_Building)
+            {
+                for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
+                {
+                    if(object->getType() == citygml::COT_RoofSurface)
+                    {
+                        for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+                        {
+                            for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
+                            {
+                                OGRLinearRing * OgrRing = new OGRLinearRing;
+                                for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+                                    OgrRing->addPoint(Point.x, Point.y, Point.z);
+
+                                OgrRing->closeRings();
+
+                                if(OgrRing->getNumPoints() > 3)
+                                {
+                                    OGRPolygon * OgrPoly = new OGRPolygon;
+                                    OgrPoly->addRingDirectly(OgrRing);
+                                    if(OgrPoly->IsValid() && OgrPoly->Intersects(Footprint))
+                                    {
+                                        OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, Footprint);
+
+                                        if(CutPoly != nullptr)
+                                        {
+                                            if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
+												ListPolygonsFootprints[i].push_back((OGRPolygon*)CutPoly);
+                                            else
+                                            {
+                                                OGRMultiPolygon* CutMultiPoly = dynamic_cast<OGRMultiPolygon*>(CutPoly);
+                                                if(CutMultiPoly != nullptr)
+                                                {
+                                                    for(int i = 0; i < CutMultiPoly->getNumGeometries(); ++i)
+                                                    {
+														ListPolygonsFootprints[i].push_back((OGRPolygon*)CutMultiPoly->getGeometryRef(i));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        delete CutPoly;
+                                    }
+                                    delete OgrPoly;
+                                }
+                                else
+                                    delete OgrRing;
+                            }
+                        }
+                    }
+				}
+			}
+		}
+	}
+
+	for(int i = 0; i < Footprints->size(); ++i)
+	{
+		bool* PolyIsAssigned = new bool(ListPolygonsFootprints[i].size()); //Pour chaque Polygone de ListPolygonsFootprints[i], permet de stocker l'information de s'il a déjà été ajouté à un élément du toit.
+		memset(PolyIsAssigned, false, ListPolygonsFootprints[i].size() * sizeof(bool));
+
+		std::vector<OGRGeometry*> ListToits; //Liste des parties de toits séparés en 3D par un mur.
+		for(int j = 0; j < ListPolygonsFootprints[i].size(); ++j)
+		{
+			if(PolyIsAssigned[j])//Ici, on cherche à créer un nouveau PolyToit. Tous les indices < j sont déjà stockés dans des PolyToit auquel j n'a pas été ajouté, il faut donc lui en créer un nouveau et chercher ses éventuels voisins.
+				continue;
+
+			PolyIsAssigned[j] = true;
+
+			OGRPolygon* PolyBase = ListPolygonsFootprints[i].at(j);
+
+			OGRGeometry* PolyToit = PolyBase->clone(); //L'union des polygones qui se touchent en 3D, sera donc normalement un polygone.
+
+			std::vector<int> ListIndices; //Contient la liste des indices de Polygones reliés à PolyToit et pour lesquels le voisinage n'a pas encore été étudié.
+
+			OGRLinearRing* RingBase = PolyBase->getExteriorRing();
+
+			for(int k = j + 1; k < ListPolygonsFootprints[i].size(); ++k)
+			{
+				if(PolyIsAssigned[k])
+					continue;
+
+				OGRPolygon* PolyTest = ListPolygonsFootprints[i].at(k);
+
+				if(PolyBase->Disjoint(PolyTest)) //Un test 2D suffit pour déterminer si les polygones sont censés se toucher ou non.
+					continue;
+
+				OGRLinearRing* RingTest = PolyTest->getExteriorRing();
+
+				//On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
+				int cptPoint = 0;
+				for(int pB = 0; pB < RingBase->getNumPoints(); ++pB) 
+				{
+					for(int pT = 0; pT < RingTest->getNumPoints(); ++pT)
+					{
+						if(RingBase->getX(pB) == RingTest->getX(pT) && RingBase->getY(pB) == RingTest->getY(pT) && RingBase->getZ(pB) == RingTest->getZ(pT))
+							++cptPoint;
+						if(cptPoint > 1)
+							break;
+					}
+					if(cptPoint > 1)
+						break;
+				}
+
+				if(cptPoint > 1) //Les deux polygones ont au moins deux points en commun
+				{
+					PolyIsAssigned[k] = true;
+					OGRGeometry* tmp = PolyToit;
+					PolyToit = tmp->Union(PolyTest);
+					delete tmp;
+					ListIndices.push_back(k);
+				}
+			}
+
+			while(!ListIndices.empty())//On a assigné un certain nombre de polygones voisins de PolyBase, on va maintenant les parcourir afin de repérer leurs voisins (PolyIsAssigned permet de ne pas ajouter plusieurs fois le même polygone) de manière récursive
+			{
+				PolyBase = ListPolygonsFootprints[i].at(ListIndices.at(0));
+
+				for(int k = 0; k < ListPolygonsFootprints[i].size(); ++k)
+				{
+					if(PolyIsAssigned[k])
+						continue;
+
+					OGRPolygon* PolyTest = ListPolygonsFootprints[i].at(k);
+
+					if(PolyBase->Disjoint(PolyTest)) //Un test 2D suffit pour déterminer si les polygones sont censés se toucher ou non.
+						continue;
+
+					OGRLinearRing* RingTest = PolyTest->getExteriorRing();
+
+					//On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
+					int cptPoint = 0;
+					for(int pB = 0; pB < RingBase->getNumPoints(); ++pB) 
+					{
+						for(int pT = 0; pT < RingTest->getNumPoints(); ++pT)
+						{
+							if(RingBase->getX(pB) == RingTest->getX(pT) && RingBase->getY(pB) == RingTest->getY(pT) && RingBase->getZ(pB) == RingTest->getZ(pT))
+								++cptPoint;
+							if(cptPoint > 1)
+								break;
+						}
+						if(cptPoint > 1)
+							break;
+					}
+
+					if(cptPoint > 1) //Les deux polygones ont au moins deux points en commun
+					{
+						PolyIsAssigned[k] = true;
+						OGRGeometry* tmp = PolyToit;
+						PolyToit = tmp->Union(PolyTest);
+						delete tmp;
+						ListIndices.push_back(k);
+					}
+				}
+
+				ListIndices.erase(ListIndices.begin());
+			}
+			ListToits.push_back(PolyToit); //Logiquement, c'est un Polygone ...
+		}
+		delete [] PolyIsAssigned;
+	}
+
+	return CleanedFootprints;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
 * @brief Découpe les bâtiments du fichier CityGML ouvert dans Tile, à partie des bâtiments cadastraux contenus dans le fichier shapefile chargé dans DataSource.
 * @param Tile Contient les données du fichier CityGML ouvert : il doit contenir un ensemble de bâtiments LOD2
 * @param DataSource Contient les données du fichier Shapefile ouvert : il doit contenir un ensemble d'emprises au sol définissant les bâtiments de la zone étudiée
+* @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie;
 */
 citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* DataSource, std::vector<TextureCityGML*>* TexturesList)
 {
     citygml::CityModel* Model = Tile->getCityModel();
 	OGRLayer* Layer = DataSource->GetLayer(0);
 
-	//Créer 2 tableaux de polygons correspondant aux emprises au sol des bâtiments du CityGML et à celles du cadastre. Conserver un lien vers le CityModel et le Layer.
+	//Créer 2 tableaux de polygons correspondant aux emprises au sol des bâtiments du CityGML et à celles du cadastre. 
 	std::cout << "Generation des emprises au sol du CityGML." << std::endl;
 	std::vector<OGRPolygon*> FootprintsCityGML = GetFootPrintsfromCityGML(Model); //On part du principe que chaque bâtiment CityGML correspond à une emprise au sol Polygon (et non MultiPolygon !). Passage dans SplitBuildingsFromCityGML obligatoire !
 	/*OGRMultiPolygon* FootPrintsBuildingsCityGML = new OGRMultiPolygon;
@@ -3444,22 +3786,33 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 	std::cout << "Generation des emprises au sol du ShapeFile." << std::endl;
 	std::vector<OGRPolygon*> FootprintsShapefile = GetFootPrintsfromShapeFile(Layer); //On part du principe que chaque featur du shapefile contient un unique polygon en geometry
 	//Lier Bâtiments CityGML <-> Bâtiments Cadastraux qui s'intersectent pour orienter les étapes suivantes.
+
+	//Mettre en place un lien entre les éléments du CityGML et ceuc du ShapeFile.
 	std::cout << "Liaison des emprises au sol du CityGML avec celles du ShapeFile." << std::endl;
 	std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> Link = LinkCityGMLandShapefilesFootprints(FootprintsCityGML, FootprintsShapefile);
+
 	//Modifier chaque emprise au sol du Shapefile afin que ses arrêtes correspondent à celles des bâtiments du CityGML
 	std::cout << "Modification des polygones du cadastre." << std::endl;
 	std::vector<OGRPolygon*> NewFootprintsShapefile = FusionEnvelopes(&FootprintsCityGML, &FootprintsShapefile, &Link);
 	for(OGRPolygon* Poly:FootprintsShapefile)
 		delete Poly;
+	for(OGRPolygon* Poly:FootprintsCityGML)
+		delete Poly;
+
+	//Repérer les incohérences en 3D provenant de la découpe 2D afin d'améliorer celle ci.
+	std::cout << "Amélioration de la decoupe des emprises au sol." << std::endl;
+	std::vector<OGRPolygon*> CleanedFootprints = CleanFootprintsWith3D(&NewFootprintsShapefile, Model, &Link);
+
     //On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectées avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
     //NewFootprintsShapefile. Chaque polygon correspond à un bâtiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un bâtiment CityGML lié. L'ensemble des emprises au sol
     //de NewFootprintsShapefile doit recouvrir les emprises au sol de tous les bâtiments CityGML. Il nous reste à parcourir les polygons du CityGML et à les assigner à ces différents bâtiments Shape.
 	std::cout << "Decoupe des Polygons Wall et Roof du CityGML selon les emprises au sol generees a partir du cadastre." << std::endl;
-    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&NewFootprintsShapefile, &FootprintsCityGML, Layer, Model, &Link, TexturesList);
+    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&CleanedFootprints/*NewFootprintsShapefile*/, Layer, Model, &Link, TexturesList);
 
-	for(OGRPolygon* Poly:FootprintsCityGML)
-		delete Poly;
 	for(OGRPolygon* Poly:NewFootprintsShapefile)
+		delete Poly;
+
+	for(OGRPolygon* Poly:CleanedFootprints)
 		delete Poly;
 
 	return ModelOut;
