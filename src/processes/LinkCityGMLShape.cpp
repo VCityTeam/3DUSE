@@ -3627,7 +3627,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
                                         if(CutPoly != nullptr)
                                         {
                                             if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
-												ListPolygonsFootprints[i].push_back((OGRPolygon*)CutPoly);
+												ListPolygonsFootprints[i].push_back((OGRPolygon*)CutPoly->clone());
                                             else
                                             {
                                                 OGRMultiPolygon* CutMultiPoly = dynamic_cast<OGRMultiPolygon*>(CutPoly);
@@ -3635,7 +3635,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
                                                 {
                                                     for(int i = 0; i < CutMultiPoly->getNumGeometries(); ++i)
                                                     {
-														ListPolygonsFootprints[i].push_back((OGRPolygon*)CutMultiPoly->getGeometryRef(i));
+														ListPolygonsFootprints[i].push_back((OGRPolygon*)(CutMultiPoly->getGeometryRef(i)->clone()));
                                                     }
                                                 }
                                             }
@@ -3656,6 +3656,25 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 
 	for(int i = 0; i < Footprints->size(); ++i)
 	{
+		if(ListPolygonsFootprints[i].size() == 0)
+		{
+			std::cout << "ListPolygonsFootprints[i] vide." << std::endl;
+			continue;
+		}
+		//
+		//std::cout << ListPolygonsFootprints[i].size() << std::endl;
+		SaveGeometrytoShape("A_FootprintsShp.shp", Footprints->at(i));
+		OGRMultiPolygon* MP = new OGRMultiPolygon;
+		for(int j = 0; j < ListPolygonsFootprints[i].size(); ++j)
+		{
+			OGRPolygon* Poly = ListPolygonsFootprints[i].at(j);
+			std::wcout << (Poly == nullptr) << std::endl;
+			std::cout << j << " : " << Poly->IsEmpty() << std::endl << Poly->IsValid() << std::endl << Poly->getGeometryName() << std::endl;
+			MP->addGeometry(ListPolygonsFootprints[i].at(j));
+		}
+		SaveGeometrytoShape("A_MP.shp", MP);
+		int cpt = 0;
+		//
 		bool* PolyIsAssigned = new bool(ListPolygonsFootprints[i].size()); //Pour chaque Polygone de ListPolygonsFootprints[i], permet de stocker l'information de s'il a déjà été ajouté à un élément du toit.
 		memset(PolyIsAssigned, false, ListPolygonsFootprints[i].size() * sizeof(bool));
 
@@ -3670,6 +3689,12 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 			OGRPolygon* PolyBase = ListPolygonsFootprints[i].at(j);
 
 			OGRGeometry* PolyToit = PolyBase->clone(); //L'union des polygones qui se touchent en 3D, sera donc normalement un polygone.
+
+			//
+			std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
+			SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
+			cpt ++;
+			//
 
 			std::vector<int> ListIndices; //Contient la liste des indices de Polygones reliés à PolyToit et pour lesquels le voisinage n'a pas encore été étudié.
 
@@ -3688,7 +3713,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 				OGRLinearRing* RingTest = PolyTest->getExteriorRing();
 
 				//On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
-				int cptPoint = 0;
+				int cptPoint = 0; //Compteur de points communs
 				for(int pB = 0; pB < RingBase->getNumPoints(); ++pB) 
 				{
 					for(int pT = 0; pT < RingTest->getNumPoints(); ++pT)
@@ -3709,6 +3734,11 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 					PolyToit = tmp->Union(PolyTest);
 					delete tmp;
 					ListIndices.push_back(k);
+					//
+					std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
+					SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
+					cpt ++;
+					//
 				}
 			}
 
@@ -3750,13 +3780,34 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 						PolyToit = tmp->Union(PolyTest);
 						delete tmp;
 						ListIndices.push_back(k);
+						//
+						std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
+						SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
+						cpt ++;
+						//
 					}
 				}
 
 				ListIndices.erase(ListIndices.begin());
+
+				//
+				int a;
+				std::cout << "Fin : ";
+				std::cin >> a;
+				//
 			}
+			//
+			std::cout << "PushBack(PolyToit) : " << PolyToit->getGeometryName() << std::endl;
+			SaveGeometrytoShape("A_ListToits" + std::to_string(j) + ".shp", PolyToit);
+			cpt ++;
+			//
 			ListToits.push_back(PolyToit); //Logiquement, c'est un Polygone ...
 		}
+		//
+		int a;
+		std::cout << "Fin2 : ";
+		std::cin >> a;
+		//
 		delete [] PolyIsAssigned;
 	}
 
@@ -3800,14 +3851,14 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 		delete Poly;
 
 	//Repérer les incohérences en 3D provenant de la découpe 2D afin d'améliorer celle ci.
-	std::cout << "Amélioration de la decoupe des emprises au sol." << std::endl;
+	std::cout << "Amelioration de la decoupe des emprises au sol." << std::endl;
 	std::vector<OGRPolygon*> CleanedFootprints = CleanFootprintsWith3D(&NewFootprintsShapefile, Model, &Link);
 
     //On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectées avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
     //NewFootprintsShapefile. Chaque polygon correspond à un bâtiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un bâtiment CityGML lié. L'ensemble des emprises au sol
     //de NewFootprintsShapefile doit recouvrir les emprises au sol de tous les bâtiments CityGML. Il nous reste à parcourir les polygons du CityGML et à les assigner à ces différents bâtiments Shape.
 	std::cout << "Decoupe des Polygons Wall et Roof du CityGML selon les emprises au sol generees a partir du cadastre." << std::endl;
-    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&CleanedFootprints/*NewFootprintsShapefile*/, Layer, Model, &Link, TexturesList);
+    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&/*CleanedFootprints*/NewFootprintsShapefile, Layer, Model, &Link, TexturesList);
 
 	for(OGRPolygon* Poly:NewFootprintsShapefile)
 		delete Poly;
