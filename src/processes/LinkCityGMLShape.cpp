@@ -3569,6 +3569,30 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
 }
 
 /**
+* @brief Teste deux Ring afin de déterminer s'ils s'intersectent et comment. Retourne 0 si pas d'intersection, 1 pour un seul point commun et 2 pour plus.
+* @param Ring1 Premier Ring
+* @param Ring2 Second Ring
+*/
+int IntersectRings3D(OGRLinearRing* Ring1, OGRLinearRing* Ring2)
+{
+    int cptPoint = 0; //Compteur de points communs
+    for(int i1 = 0; i1 < Ring1->getNumPoints() - 1; ++i1)
+    {
+        for(int i2 = 0; i2 < Ring2->getNumPoints() - 1; ++i2)
+        {
+            if(std::abs(Ring1->getX(i1) - Ring2->getX(i2)) < Precision_Vect && std::abs(Ring1->getY(i1) - Ring2->getY(i2)) < Precision_Vect && std::abs(Ring1->getZ(i1) - Ring2->getZ(i2)) < Precision_Vect)
+                ++cptPoint;
+            if(cptPoint > 1)
+                break;
+        }
+        if(cptPoint > 1)
+            break;
+    }
+
+    return cptPoint;
+}
+
+/**
 * @brief Parcourt les polygones représentant des emprises au sol, leur assigne des polygones du toit du CityGML et propose une nouvelle version de ces emprises au sol corrigeant les incohérences 3D.
 * @param Footprints Contient les emprises au sol des bâtiments.
 * @param ModelGML Contient toutes les données du CityGML que l'on va parcourir.
@@ -3627,15 +3651,17 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
                                         if(CutPoly != nullptr)
                                         {
                                             if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
+                                            {
 												ListPolygonsFootprints[i].push_back((OGRPolygon*)CutPoly->clone());
+                                            }
                                             else
                                             {
                                                 OGRMultiPolygon* CutMultiPoly = dynamic_cast<OGRMultiPolygon*>(CutPoly);
                                                 if(CutMultiPoly != nullptr)
                                                 {
-                                                    for(int i = 0; i < CutMultiPoly->getNumGeometries(); ++i)
+                                                    for(int g = 0; g < CutMultiPoly->getNumGeometries(); ++g)
                                                     {
-														ListPolygonsFootprints[i].push_back((OGRPolygon*)(CutMultiPoly->getGeometryRef(i)->clone()));
+                                                        ListPolygonsFootprints[i].push_back((OGRPolygon*)(CutMultiPoly->getGeometryRef(g)->clone()));
                                                     }
                                                 }
                                             }
@@ -3651,35 +3677,39 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
                     }
 				}
 			}
-		}
+        }
 	}
 
+    OGRGeometryCollection* ToitsRes = new OGRGeometryCollection;
+
 	for(int i = 0; i < Footprints->size(); ++i)
-	{
-		if(ListPolygonsFootprints[i].size() == 0)
+    {
+        int numPolygonsFootprints = ListPolygonsFootprints[i].size();
+        if(numPolygonsFootprints == 0)
 		{
 			std::cout << "ListPolygonsFootprints[i] vide." << std::endl;
 			continue;
 		}
-		//
-		//std::cout << ListPolygonsFootprints[i].size() << std::endl;
-		SaveGeometrytoShape("A_FootprintsShp.shp", Footprints->at(i));
+
+        //
+        //SaveGeometrytoShape("A_FootprintsShp.shp", Footprints->at(i));
 		OGRMultiPolygon* MP = new OGRMultiPolygon;
-		for(int j = 0; j < ListPolygonsFootprints[i].size(); ++j)
+        for(int j = 0; j < numPolygonsFootprints; ++j)
 		{
-			OGRPolygon* Poly = ListPolygonsFootprints[i].at(j);
-			std::wcout << (Poly == nullptr) << std::endl;
-			std::cout << j << " : " << Poly->IsEmpty() << std::endl << Poly->IsValid() << std::endl << Poly->getGeometryName() << std::endl;
+            //OGRPolygon* Poly = ListPolygonsFootprints[i].at(j);
+            //std::wcout << (Poly == nullptr) << std::endl;
+            //std::cout << j << " : " << Poly->IsEmpty() << std::endl << Poly->IsValid() << std::endl << Poly->getGeometryName() << std::endl;
 			MP->addGeometry(ListPolygonsFootprints[i].at(j));
 		}
-		SaveGeometrytoShape("A_MP.shp", MP);
+        //SaveGeometrytoShape("A_MP.shp", MP);
 		int cpt = 0;
 		//
-		bool* PolyIsAssigned = new bool(ListPolygonsFootprints[i].size()); //Pour chaque Polygone de ListPolygonsFootprints[i], permet de stocker l'information de s'il a déjà été ajouté à un élément du toit.
-		memset(PolyIsAssigned, false, ListPolygonsFootprints[i].size() * sizeof(bool));
 
-		std::vector<OGRGeometry*> ListToits; //Liste des parties de toits séparés en 3D par un mur.
-		for(int j = 0; j < ListPolygonsFootprints[i].size(); ++j)
+        bool* PolyIsAssigned = new bool[numPolygonsFootprints]; //Pour chaque Polygone de ListPolygonsFootprints[i], permet de stocker l'information de s'il a déjà été ajouté à un élément du toit.
+        memset(PolyIsAssigned, false, numPolygonsFootprints * sizeof(bool));
+
+        std::vector<OGRGeometry*> ListElementsToits; //Liste des parties de toits séparés en 3D par un mur.
+        for(int j = 0; j < numPolygonsFootprints; ++j)
 		{
 			if(PolyIsAssigned[j])//Ici, on cherche à créer un nouveau PolyToit. Tous les indices < j sont déjà stockés dans des PolyToit auquel j n'a pas été ajouté, il faut donc lui en créer un nouveau et chercher ses éventuels voisins.
 				continue;
@@ -3691,89 +3721,66 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 			OGRGeometry* PolyToit = PolyBase->clone(); //L'union des polygones qui se touchent en 3D, sera donc normalement un polygone.
 
 			//
-			std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
-			SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
-			cpt ++;
+            //std::cout << std::endl << j << " : PolyBase : " << PolyToit->getGeometryName() << std::endl;
+            //SaveGeometrytoShape("A_PolyBase" + std::to_string(cpt) + ".shp", PolyToit);
+            //cpt ++;
 			//
 
 			std::vector<int> ListIndices; //Contient la liste des indices de Polygones reliés à PolyToit et pour lesquels le voisinage n'a pas encore été étudié.
 
 			OGRLinearRing* RingBase = PolyBase->getExteriorRing();
 
-			for(int k = j + 1; k < ListPolygonsFootprints[i].size(); ++k)
-			{
+            for(int k = j + 1; k < numPolygonsFootprints; ++k)
+            {
 				if(PolyIsAssigned[k])
 					continue;
 
-				OGRPolygon* PolyTest = ListPolygonsFootprints[i].at(k);
+                OGRPolygon* PolyTest = ListPolygonsFootprints[i].at(k);
 
-				if(PolyBase->Disjoint(PolyTest)) //Un test 2D suffit pour déterminer si les polygones sont censés se toucher ou non.
+                if(PolyBase->Distance(PolyTest) > Precision_Vect) //Un test 2D suffit pour déterminer si les polygones sont censés se toucher ou non.
 					continue;
 
 				OGRLinearRing* RingTest = PolyTest->getExteriorRing();
 
-				//On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
-				int cptPoint = 0; //Compteur de points communs
-				for(int pB = 0; pB < RingBase->getNumPoints(); ++pB) 
-				{
-					for(int pT = 0; pT < RingTest->getNumPoints(); ++pT)
-					{
-						if(RingBase->getX(pB) == RingTest->getX(pT) && RingBase->getY(pB) == RingTest->getY(pT) && RingBase->getZ(pB) == RingTest->getZ(pT))
-							++cptPoint;
-						if(cptPoint > 1)
-							break;
-					}
-					if(cptPoint > 1)
-						break;
-				}
+                //std::cout << "k : " << k << IntersectRings3D(RingBase, RingTest) << std::endl;
 
-				if(cptPoint > 1) //Les deux polygones ont au moins deux points en commun
-				{
+				//On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
+                if(IntersectRings3D(RingBase, RingTest) == 2) //Les deux polygones ont au moins deux points en commun
+                {
 					PolyIsAssigned[k] = true;
 					OGRGeometry* tmp = PolyToit;
 					PolyToit = tmp->Union(PolyTest);
 					delete tmp;
 					ListIndices.push_back(k);
 					//
-					std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
-					SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
-					cpt ++;
+                    //std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
+                    //SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
+                    //cpt ++;
 					//
-				}
-			}
+                }
+            }
 
 			while(!ListIndices.empty())//On a assigné un certain nombre de polygones voisins de PolyBase, on va maintenant les parcourir afin de repérer leurs voisins (PolyIsAssigned permet de ne pas ajouter plusieurs fois le même polygone) de manière récursive
 			{
-				PolyBase = ListPolygonsFootprints[i].at(ListIndices.at(0));
+                PolyBase = ListPolygonsFootprints[i].at(ListIndices.at(0));
 
-				for(int k = 0; k < ListPolygonsFootprints[i].size(); ++k)
+                RingBase = PolyBase->getExteriorRing();
+
+                for(int k = 0; k < numPolygonsFootprints; ++k)
 				{
 					if(PolyIsAssigned[k])
 						continue;
 
 					OGRPolygon* PolyTest = ListPolygonsFootprints[i].at(k);
 
-					if(PolyBase->Disjoint(PolyTest)) //Un test 2D suffit pour déterminer si les polygones sont censés se toucher ou non.
+                    if(PolyBase->Distance(PolyTest) > Precision_Vect) //Un test 2D suffit pour déterminer si les polygones sont censés se toucher ou non.
 						continue;
 
 					OGRLinearRing* RingTest = PolyTest->getExteriorRing();
 
-					//On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
-					int cptPoint = 0;
-					for(int pB = 0; pB < RingBase->getNumPoints(); ++pB) 
-					{
-						for(int pT = 0; pT < RingTest->getNumPoints(); ++pT)
-						{
-							if(RingBase->getX(pB) == RingTest->getX(pT) && RingBase->getY(pB) == RingTest->getY(pT) && RingBase->getZ(pB) == RingTest->getZ(pT))
-								++cptPoint;
-							if(cptPoint > 1)
-								break;
-						}
-						if(cptPoint > 1)
-							break;
-					}
+                    //On va comparer point par point les deux LinearRing afin de regarder si il y a au moins deux points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
 
-					if(cptPoint > 1) //Les deux polygones ont au moins deux points en commun
+                    if(IntersectRings3D(RingBase, RingTest) == 2) //Les deux polygones ont au moins deux points en commun
 					{
 						PolyIsAssigned[k] = true;
 						OGRGeometry* tmp = PolyToit;
@@ -3781,9 +3788,9 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 						delete tmp;
 						ListIndices.push_back(k);
 						//
-						std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
-						SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
-						cpt ++;
+                        //std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
+                        //SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
+                        //cpt ++;
 						//
 					}
 				}
@@ -3791,25 +3798,30 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 				ListIndices.erase(ListIndices.begin());
 
 				//
-				int a;
-				std::cout << "Fin : ";
-				std::cin >> a;
+                //int a;
+                //std::cout << "Fin : ";
+                //std::cin >> a;
 				//
 			}
 			//
-			std::cout << "PushBack(PolyToit) : " << PolyToit->getGeometryName() << std::endl;
-			SaveGeometrytoShape("A_ListToits" + std::to_string(j) + ".shp", PolyToit);
-			cpt ++;
+            //std::cout << "PushBack(PolyToit) : " << PolyToit->getGeometryName() << std::endl;
+            //SaveGeometrytoShape("A_ListToits" + std::to_string(j) + ".shp", PolyToit);
+            //int a;
+            //std::cout << "Fin2 : ";
+            //std::cin >> a;
 			//
-			ListToits.push_back(PolyToit); //Logiquement, c'est un Polygone ...
+            ListElementsToits.push_back(PolyToit); //Logiquement, c'est un Polygone ...
+            ToitsRes->addGeometry(PolyToit);
 		}
 		//
-		int a;
-		std::cout << "Fin2 : ";
-		std::cin >> a;
+        //int a;
+        //std::cout << "Fin3 : ";
+        //std::cin >> a;
 		//
 		delete [] PolyIsAssigned;
 	}
+
+    SaveGeometrytoShape("ToitsRes.shp", ToitsRes);
 
 	return CleanedFootprints;
 }
