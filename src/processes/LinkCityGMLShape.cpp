@@ -3687,7 +3687,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
         int numPolygonsFootprints = ListPolygonsFootprints[i].size();
         if(numPolygonsFootprints == 0)
 		{
-			std::cout << "ListPolygonsFootprints[i] vide." << std::endl;
+			//std::cout << "ListPolygonsFootprints[i] vide." << std::endl;
 			continue;
 		}
 
@@ -3811,6 +3811,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
             //std::cin >> a;
 			//
             ListElementsToits.push_back(PolyToit); //Logiquement, c'est un Polygone ...
+			std::cout << PolyToit->getGeometryName() << std::endl;
             ToitsRes->addGeometry(PolyToit);
 		}
 		//
@@ -3822,6 +3823,8 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 	}
 
     SaveGeometrytoShape("ToitsRes.shp", ToitsRes);
+
+	//Indice de compacité de Gravelius (1914) d'un Polygone : Kg = P / (2*sqrt(pi*A)), P = périmètre, A = aire. Kg = 1 : cercle, 1.3
 
 	return CleanedFootprints;
 }
