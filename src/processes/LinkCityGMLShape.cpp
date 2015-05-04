@@ -3580,7 +3580,7 @@ int IntersectRings3D(OGRLinearRing* Ring1, OGRLinearRing* Ring2)
     {
         for(int i2 = 0; i2 < Ring2->getNumPoints() - 1; ++i2)
         {
-            if(std::abs(Ring1->getX(i1) - Ring2->getX(i2)) < Precision_Vect && std::abs(Ring1->getY(i1) - Ring2->getY(i2)) < Precision_Vect && std::abs(Ring1->getZ(i1) - Ring2->getZ(i2)) < Precision_Vect)
+            if(std::abs(Ring1->getX(i1) - Ring2->getX(i2)) < 100*Precision_Vect && std::abs(Ring1->getY(i1) - Ring2->getY(i2)) < 100*Precision_Vect && std::abs(Ring1->getZ(i1) - Ring2->getZ(i2)) < 100*Precision_Vect)
                 ++cptPoint;
             if(cptPoint > 1)
                 break;
@@ -3681,7 +3681,26 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 				}
 			}
         }
-	}
+    }
+
+    /*//
+    OGRGeometryCollection* Res2 = new OGRGeometryCollection;
+
+    for(int i = 0; i < Footprints->size(); ++i)
+    {
+        OGRGeometry* MP = new OGRPolygon;
+        for(int j = 0; j < ListPolygonsFootprints[i].size(); ++j)
+        {
+            OGRGeometry* tmp = MP;
+            MP = tmp->Union(ListPolygonsFootprints[i].at(j));
+            delete tmp;
+        }
+        Res2->addGeometryDirectly(MP);
+    }
+
+    SaveGeometrytoShape("ListPolygonsFootprints.shp", Res2);
+    delete Res2;
+    //*/
 
     OGRMultiPolygon* PolygonsDiscontinus = new OGRMultiPolygon;
     std::vector<int> IndiceOrigineDesPolygonsDiscontinus[2]; //Contiendra l'indice du polygone Footprint à partir du quel chaque polygone discontinu aura été extrait, ainsi que sa place à l'intérieur de celui ci dans ListPolygonsFootprints.
@@ -3690,24 +3709,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
     {
         int numPolygonsFootprints = ListPolygonsFootprints[i].size();
         if(numPolygonsFootprints == 0)
-		{
-			//std::cout << "ListPolygonsFootprints[i] vide." << std::endl;
-			continue;
-		}
-
-        //
-        //SaveGeometrytoShape("A_FootprintsShp.shp", Footprints->at(i));
-        //OGRMultiPolygon* MP = new OGRMultiPolygon;
-        //for(int j = 0; j < numPolygonsFootprints; ++j)
-        //{
-            //OGRPolygon* Poly = ListPolygonsFootprints[i].at(j);
-            //std::wcout << (Poly == nullptr) << std::endl;
-            //std::cout << j << " : " << Poly->IsEmpty() << std::endl << Poly->IsValid() << std::endl << Poly->getGeometryName() << std::endl;
-            //MP->addGeometry(ListPolygonsFootprints[i].at(j));
-        //}
-        //SaveGeometrytoShape("A_MP.shp", MP);
-        //int cpt = 0;
-		//
+            continue;
 
         bool* PolyIsAssigned = new bool[numPolygonsFootprints]; //Pour chaque Polygone de ListPolygonsFootprints[i], permet de stocker l'information de s'il a déjà été ajouté à un élément du toit.
         memset(PolyIsAssigned, false, numPolygonsFootprints * sizeof(bool));
@@ -3723,12 +3725,6 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 
 			OGRGeometry* PolyToit = PolyBase->clone(); //L'union des polygones qui se touchent en 3D, sera donc normalement un polygone.
 
-			//
-            //std::cout << std::endl << j << " : PolyBase : " << PolyToit->getGeometryName() << std::endl;
-            //SaveGeometrytoShape("A_PolyBase" + std::to_string(cpt) + ".shp", PolyToit);
-            //cpt ++;
-			//
-
 			std::vector<int> ListIndices; //Contient la liste des indices de Polygones reliés à PolyToit et pour lesquels le voisinage n'a pas encore été étudié.
 
 			OGRLinearRing* RingBase = PolyBase->getExteriorRing();
@@ -3743,9 +3739,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
                 if(PolyBase->Distance(PolyTest) > Precision_Vect) //Un test 2D suffit pour déterminer si les polygones sont censés se toucher ou non.
 					continue;
 
-				OGRLinearRing* RingTest = PolyTest->getExteriorRing();
-
-                //std::cout << "k : " << k << IntersectRings3D(RingBase, RingTest) << std::endl;
+                OGRLinearRing* RingTest = PolyTest->getExteriorRing();
 
 				//On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
                 if(IntersectRings3D(RingBase, RingTest) == 2) //Les deux polygones ont au moins deux points en commun
@@ -3755,11 +3749,6 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 					PolyToit = tmp->Union(PolyTest);
 					delete tmp;
 					ListIndices.push_back(k);
-					//
-                    //std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
-                    //SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
-                    //cpt ++;
-					//
                 }
             }
 
@@ -3789,31 +3778,12 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
 						OGRGeometry* tmp = PolyToit;
 						PolyToit = tmp->Union(PolyTest);
 						delete tmp;
-						ListIndices.push_back(k);
-						//
-                        //std::cout << "PolyToit : " << PolyToit->getGeometryName() << std::endl;
-                        //SaveGeometrytoShape("A_PolyToit" + std::to_string(cpt) + ".shp", PolyToit);
-                        //cpt ++;
-						//
+                        ListIndices.push_back(k);
 					}
 				}
 
-				ListIndices.erase(ListIndices.begin());
-
-				//
-                //int a;
-                //std::cout << "Fin : ";
-                //std::cin >> a;
-				//
-			}
-
-			//
-            //std::cout << "PushBack(PolyToit) : " << PolyToit->getGeometryName() << std::endl;
-            //SaveGeometrytoShape("A_ListToits" + std::to_string(j) + ".shp", PolyToit);
-            //int a;
-            //std::cout << "Fin2 : ";
-            //std::cin >> a;
-			//
+                ListIndices.erase(ListIndices.begin());
+            }
 
             if(PolyToit->getGeometryType() != wkbPolygon && PolyToit->getGeometryType() != wkbPolygon25D)
             {
@@ -3826,6 +3796,7 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
             double A = ((OGRPolygon*)PolyToit)->get_Area();
             double P = ((OGRPolygon*)PolyToit)->getExteriorRing()->get_Length();
             double Kg = P / (2*sqrt(M_PI * A)); //Indice de compacité de Gravelius (1914) d'un Polygone : Kg = P / (2*sqrt(pi*A)), P = périmètre, A = aire. Kg = 1 : cercle.
+
             if(Kg > 2.0 || Kg > 1.3 && A < 5 || A < 1)
             {
                 PolygonsDiscontinus->addGeometry(PolyToit);
@@ -3838,12 +3809,8 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
                 CleanedFootprintsMP.at(i)->addGeometry(PolyToit);
             }
             delete PolyToit;
-		}
-		//
-        //int a;
-        //std::cout << "Fin3 : ";
-        //std::cin >> a;
-		//
+        }
+
 		delete [] PolyIsAssigned;
 	}
 
@@ -3852,8 +3819,8 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
     OGRMultiPolygon* PolygonsDiscontinus2 = new OGRMultiPolygon; //Même principe que PolygonsDiscontinus, mais avec les polygones voisins et continus regroupés.
     std::vector<int> IndiceOrigineDesPolygonsDiscontinus2[2];
 
-    //On commence par regarder si dans PolygonsDiscontinus, il y a des polygons voisins qui sont continus et qu'il faut donc regrouper, en conservans l'indice de celui avec la plus grande aire.
-    for(int i = 0; i < IndiceOrigineDesPolygonsDiscontinus[0].size(); ++i)
+    //On commence par regarder si dans PolygonsDiscontinus, il y a des polygons voisins qui sont continus et qu'il faut donc regrouper, en conservant l'indice de celui avec la plus grande aire.
+    for(int i = 0; i < PolygonsDiscontinus->getNumGeometries(); ++i)
     {
         OGRPolygon* Poly1 = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(i);
 
@@ -3941,61 +3908,78 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
     SaveGeometrytoShape("PolygonsDiscontinus2.shp", PolygonsDiscontinus2);
 
     //On va maintenant parcourir chaque polygone discontinu, regarder s'il semble voisin avec un autre Footprint que celui duquel il est issu et se rattacher à lui. S'il n'en trouve pas, on le remet simplement dans son Footprint d'origine.
-    for(int k = 0; k < IndiceOrigineDesPolygonsDiscontinus2[0].size(); ++k)
+    for(int k = 0; k < PolygonsDiscontinus2->getNumGeometries(); ++k)
     {
         OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus2->getGeometryRef(k);
         OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
 
         bool IsAssigned = false;
-        for(int i = 0; i < Footprints->size(); ++i)
+        for(int i = 0; i < CleanedFootprintsMP.size(); ++i)
         {
             if(i == IndiceOrigineDesPolygonsDiscontinus2[0].at(k)) //Il ne faut pas comparer PolyDiscontinu avec le Footprint depuis lequel il est issu
                 continue;
-            int numPolygonsFootprints = ListPolygonsFootprints[i].size();
-            if(numPolygonsFootprints == 0)
-                continue;
 
-            for(int j = 0; j < numPolygonsFootprints; ++j)
+            for(int j = 0; j < CleanedFootprintsMP.at(i)->getNumGeometries(); ++j)
             {
-                OGRPolygon* PolyFootprint = ListPolygonsFootprints[i].at(j);
+                OGRPolygon* PolyFootprint = dynamic_cast<OGRPolygon*>(CleanedFootprintsMP.at(i)->getGeometryRef(j));
+                if(PolyFootprint == nullptr)
+                {
+                    std::cout << "ERREUR : PolyFootprint n'est pas un Polygon : " << CleanedFootprintsMP.at(i)->getGeometryRef(j)->getGeometryName() << std::endl;
+                    int a;
+                    std::cin >> a;
+                }
                 OGRLinearRing* RingFootprint = PolyFootprint->getExteriorRing();
                 if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2)
                 {
+                    if(IsAssigned)
+                        std::cout << "DEJA ASSIGNE" << std::endl;
                     IsAssigned = true;
+                    //OGRGeometry* Inter = PolyDiscontinu->Intersection(PolyFootprint);
+                    //std::cout << Inter->getGeometryName() << std::endl;
                     CleanedFootprintsMP.at(i)->addGeometry(PolyDiscontinu);
                     break;
                 }
             }
-            if(IsAssigned)
-                break;
+            //if(IsAssigned)
+            //    break;
         }
+        if(k == 6 || k == 31)
+            std::cout << "IsAssigned : " << IsAssigned << std::endl;
         if(!IsAssigned)
             CleanedFootprintsMP.at(IndiceOrigineDesPolygonsDiscontinus2[0].at(k))->addGeometry(PolyDiscontinu);
     }
 
+    //On met ça en forme dans un vector de Polygon unissant tous les petits polygones, afin d'obtenir des emprises au sol propres.
     std::vector<OGRPolygon*> CleanedFootprints;
     OGRMultiPolygon* Res = new OGRMultiPolygon;
 
     for(int i = 0; i < CleanedFootprintsMP.size(); ++i)
     {
         OGRMultiPolygon* MP = CleanedFootprintsMP.at(i);
-        OGRGeometry* Union = new OGRPolygon;
+
+        if(MP->getNumGeometries() == 0)
+        {
+            CleanedFootprints.push_back(nullptr);
+            continue;
+        }
+
+        OGRGeometry* UnionPoly = new OGRPolygon;
         for(int j = 0; j < MP->getNumGeometries(); ++j)
         {
-            OGRGeometry* tmp = Union;
-            Union = tmp->Union(MP->getGeometryRef(j));
+            OGRGeometry* tmp = UnionPoly;
+            UnionPoly = tmp->Union(MP->getGeometryRef(j));
             delete tmp;
         }
-        if(Union->getGeometryType() != wkbPolygon && Union->getGeometryType() != wkbPolygon25D)
+        if(UnionPoly->getGeometryType() != wkbPolygon && UnionPoly->getGeometryType() != wkbPolygon25D)
         {
-            std::cout << "Erreur, Union n'est pas un Polygon : " << Union->getGeometryName() << std::endl;
+            std::cout << "Erreur, UnionPoly n'est pas un Polygon : " << UnionPoly->getGeometryName() << std::endl;
             SaveGeometrytoShape("MP.shp", MP);
-            SaveGeometrytoShape("Union.shp", Union);
+            SaveGeometrytoShape("UnionPoly.shp", UnionPoly);
             int a;
             std::cin >> a;
         }
-        CleanedFootprints.push_back((OGRPolygon*)Union);
-        Res->addGeometryDirectly(Union);
+        CleanedFootprints.push_back((OGRPolygon*)UnionPoly);
+        Res->addGeometryDirectly(UnionPoly);
     }
 
     SaveGeometrytoShape("FootPrintsShape_Modifie.shp", Res);
@@ -4043,6 +4027,9 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 	//Repérer les incohérences en 3D provenant de la découpe 2D afin d'améliorer celle ci.
 	std::cout << "Amelioration de la decoupe des emprises au sol." << std::endl;
 	std::vector<OGRPolygon*> CleanedFootprints = CleanFootprintsWith3D(&NewFootprintsShapefile, Model, &Link);
+
+    int a;
+    std::cin >> a;
 
     //On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectées avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
     //NewFootprintsShapefile. Chaque polygon correspond à un bâtiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un bâtiment CityGML lié. L'ensemble des emprises au sol
