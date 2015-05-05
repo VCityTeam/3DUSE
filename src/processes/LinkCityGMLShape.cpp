@@ -1324,6 +1324,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
         delete PointNext;
         delete LineBC;
 	}
+
 	for(int i = 0; i < Envelope->getNumInteriorRings(); ++i)
 	{
 		OGRLinearRing* IntRing = Envelope->getInteriorRing(i);
@@ -2355,6 +2356,9 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 					}
 					++l;
 				}
+
+                delete Point1;
+                delete Point2;
 			}
 
             for(OGRPoint* PointTemp : ListAProjetes)
@@ -2387,7 +2391,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
 				continue;
 			}
 
-			//delete MultiLS;
+            delete MultiLS;
 
             /// On parcourt les polygones de SplitPolygon nouvellement créés pour mettre à jour les Polygon du Shape auxquels ils sont liés en ajoutant les éventuels points nécessaires
             /// A une intersection/union fonctionnelle. On profite également de ce parcourt pour repérer à quel bâtiment du Shape chaque polygon de SplitPolygon va devoir être ajouté.
@@ -3102,6 +3106,11 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
         ++cpt;
 		std::cout << cpt << " batiments generes en CityGML sur " << LayerShape->GetFeatureCount() << std::endl;
 
+        OGRPolygon* BuildingShp = FootprintsShape->at(cpt);
+
+        if(BuildingShp == nullptr)
+            continue;
+
         std::string Name = NameModel + "_" + std::to_string(cpt);
         citygml::CityObject* BuildingCO = new citygml::Building(Name);
         citygml::CityObject* RoofCO = new citygml::RoofSurface(Name+"_Roof");
@@ -3109,7 +3118,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRPolygon*>* F
         citygml::CityObject* WallCO = new citygml::WallSurface(Name+"_Wall");
         citygml::Geometry* Wall = new citygml::Geometry(Name+"_WallGeometry", citygml::GT_Wall, 2);
 
-        OGRPolygon* BuildingShp = FootprintsShape->at(cpt);
 		//SaveGeometrytoShape("A_BuildingShp.shp", BuildingShp);
 		OGRPolygon* BuildingShp2 = (OGRPolygon*) BuildingShp->clone(); //Contiendra le polygon Shape mais avec les points intermédiaires ajoutés à partir des Polygons du Wall pour que les intersections fonctionnent.
 		OGRMultiPolygon* PolygonsRoofBuildingShp = new OGRMultiPolygon; //Contiendra la liste des Polygons de toit ajouté.
@@ -3580,7 +3588,7 @@ int IntersectRings3D(OGRLinearRing* Ring1, OGRLinearRing* Ring2)
     {
         for(int i2 = 0; i2 < Ring2->getNumPoints() - 1; ++i2)
         {
-            if(std::abs(Ring1->getX(i1) - Ring2->getX(i2)) < 100*Precision_Vect && std::abs(Ring1->getY(i1) - Ring2->getY(i2)) < 100*Precision_Vect && std::abs(Ring1->getZ(i1) - Ring2->getZ(i2)) < 100*Precision_Vect)
+            if(std::abs(Ring1->getX(i1) - Ring2->getX(i2)) < 100*Precision_Vect && std::abs(Ring1->getY(i1) - Ring2->getY(i2)) < 100*Precision_Vect && std::abs(Ring1->getZ(i1) - Ring2->getZ(i2)) < 1000*Precision_Vect)
                 ++cptPoint;
             if(cptPoint > 1)
                 break;
@@ -3905,15 +3913,23 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
         IndiceOrigineDesPolygonsDiscontinus2[1].push_back(Indice2);
     }
 
+
+    /////////////////// A VOIR SI C'EST ENCORE VRAIMENT UTILE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     SaveGeometrytoShape("PolygonsDiscontinus2.shp", PolygonsDiscontinus2);
 
     //On va maintenant parcourir chaque polygone discontinu, regarder s'il semble voisin avec un autre Footprint que celui duquel il est issu et se rattacher à lui. S'il n'en trouve pas, on le remet simplement dans son Footprint d'origine.
+
+    //Un polygon discontinu peut se lier à plusieurs polygons footprints si la séparation entre eux est purement 2D. Il faut donc ajouter une étape de découpe afin de partager si nécessaire le polygon discontinu entre eux.
+    std::vector<std::vector<int>> ListFootprintsLinkedtoPolyDiscontinu; //Chaque élément du vector contiendra une liste des indices (dans CleanedFootprintsMP) des polygons se partageant un polygon discontinu.
+    std::vector<int> IndicePolygonsDiscontinusToCut; //Contiendra la liste des indices (dans PolygonsDiscontinus2) des polygons discontinus concernés par ceci, afin de pouvoir les récupérer rapidement.
+
     for(int k = 0; k < PolygonsDiscontinus2->getNumGeometries(); ++k)
     {
         OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus2->getGeometryRef(k);
         OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
 
-        bool IsAssigned = false;
+        std::vector<int> IndicesPolygonsCommuns; //Contiendra les indices de tous les polygons qui ont en commun une continuité avec PolyDiscontinu.
+
         for(int i = 0; i < CleanedFootprintsMP.size(); ++i)
         {
             if(i == IndiceOrigineDesPolygonsDiscontinus2[0].at(k)) //Il ne faut pas comparer PolyDiscontinu avec le Footprint depuis lequel il est issu
@@ -3929,25 +3945,231 @@ std::vector<OGRPolygon*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footpri
                     std::cin >> a;
                 }
                 OGRLinearRing* RingFootprint = PolyFootprint->getExteriorRing();
-                if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2)
+                if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
                 {
-                    if(IsAssigned)
-                        std::cout << "DEJA ASSIGNE" << std::endl;
-                    IsAssigned = true;
-                    //OGRGeometry* Inter = PolyDiscontinu->Intersection(PolyFootprint);
-                    //std::cout << Inter->getGeometryName() << std::endl;
-                    CleanedFootprintsMP.at(i)->addGeometry(PolyDiscontinu);
+                    IndicesPolygonsCommuns.push_back(i); //On stocke ce polygon au cas où PolyDiscontinu veut se lier à un autre footprint afin que l'on ait la liste de tous les footprint concernés.
                     break;
                 }
             }
-            //if(IsAssigned)
-            //    break;
         }
-        if(k == 6 || k == 31)
-            std::cout << "IsAssigned : " << IsAssigned << std::endl;
-        if(!IsAssigned)
+
+        if(IndicesPolygonsCommuns.size() == 0) //Aucun footprint ne semble continue avec PolyDiscontinu, on va donc le laisser à son footprint initial.
             CleanedFootprintsMP.at(IndiceOrigineDesPolygonsDiscontinus2[0].at(k))->addGeometry(PolyDiscontinu);
+        else if(IndicesPolygonsCommuns.size() == 1) //Il n'y a qu'un seul polygon assigné, donc IndicesPolygonsCommuns ne contient qu'un seul indice, celui qui nous intéresse.
+            CleanedFootprintsMP.at(IndicesPolygonsCommuns.at(0))->addGeometry(PolyDiscontinu);
+        else if(IndicesPolygonsCommuns.size() > 1 ) //Il y a plusieurs polygons footprint assignés.
+        {
+            //CleanedFootprintsMP.at(IndicesPolygonsCommuns.at(0))->addGeometry(PolyDiscontinu); ///DECOMMENTER CECI (et commenter le reste) POUR VOIR CE QUE CA DONNE SANS DECOUPE
+
+            ListFootprintsLinkedtoPolyDiscontinu.push_back(IndicesPolygonsCommuns); //Pour le polygon discontinu K, on aura ici la liste des footprints avec lesquels il semble continu en 3D (partage d'une arrête).
+            IndicePolygonsDiscontinusToCut.push_back(k);
+        }
     }
+
+    //On va parcourir tous les cas de Polygons discontinus liés à plusieurs footprints afin de mettre en place une éventuelle découpe de ce polygon afin de le partager entre les footprints.
+    for(int i = 0; i < IndicePolygonsDiscontinusToCut.size(); ++i)
+    {
+        OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus2->getGeometryRef(IndicePolygonsDiscontinusToCut.at(i));
+        OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
+
+        std::vector<OGRPoint*> ListAProjetes; //Contiendra tous les points que l'on aura projetés
+        std::vector<OGRPoint*> ListProjetes; //Contiendra tous les points projetés dont on se servira afin de partager des LineString en deux
+        std::vector<OGRPoint*> ListAProjetesModifies; //Contiendra les points projetés "modifiés" : qui ne correspondent pas forcément à des points du Polygone et qu'il faudra donc créer sur le MultiLS
+        OGRMultiLineString* MultiLS = new OGRMultiLineString; //Contiendra les LineString qui serviront à générer les polygones désirés
+
+        //On va maintenant parcourir point par point ce PolyDiscontinu, afin de repérer quels sont ceux qui se trouvent sur une frontière entre deux PolygonsCommuns,
+        //ce seront ces points que l'on projettera pour chercher à découper PolyDiscontinu.
+        for(int j = 0; j < RingDiscontinu->getNumPoints() - 1; ++j)
+        {
+            OGRPoint * Point = new OGRPoint;
+            RingDiscontinu->getPoint(j, Point);
+            OGRPoint * PointNext = new OGRPoint;
+            RingDiscontinu->getPoint(j + 1, PointNext);
+
+            OGRLineString* LS = new OGRLineString;
+            LS->addPoint(Point);
+            LS->addPoint(PointNext);
+            delete PointNext;
+
+            MultiLS->addGeometryDirectly(LS);
+
+            int PolyByPoint = 0; //Compte le nombre de PolygonsCommuns (ce sont des Footprint) qui contiennent également le point courant
+            for(int k : ListFootprintsLinkedtoPolyDiscontinu.at(i)) //On parcourt tous les Footprint liés à PolyDiscontinu
+            {
+                OGRMultiPolygon* PolyFootprint = CleanedFootprintsMP.at(k);
+                if(Point->Distance(PolyFootprint) < Precision_Vect)
+                    ++PolyByPoint;
+                if(PolyByPoint > 1) //Cela signifie que ce point est partagé par plusieurs PolyFootprint : on doit le projeter pour tenter de découper PolyDiscontinu.
+                {
+                    OGRLineString* PrevLine; //On calcule l'arête précédente car elle contient également Point
+                    if(j == 0) //On est obligé d'aller chercher l'arête précédente à la fin du LinearRing
+                    {
+                        PrevLine = new OGRLineString;
+                        OGRPoint * PrevPoint = new OGRPoint;
+                        RingDiscontinu->getPoint(RingDiscontinu->getNumPoints() - 2, PrevPoint); //Il faut aller le chercher le -2 car le -1 est le même que Point;
+                        PrevLine->addPoint(PrevPoint);
+                        PrevLine->addPoint(Point);
+                    }
+                    else
+                        PrevLine = (OGRLineString*)MultiLS->getGeometryRef(MultiLS->getNumGeometries() - 2)->clone(); //On vient d'ajouter le LS courant, donc il faut aller chercher le -2
+
+                    bool PointIsModified = false;
+
+                    OGRPoint* Projete = ProjectPointOnEnvelope(Point, PolyDiscontinu, LS, PrevLine, &PointIsModified); ///ATTENTION : Le point projeté est en 2D
+
+                    delete PrevLine;
+
+                    if(Projete->getX() == 0.0 && Projete->getY() == 0.0) //La projection n'est pas nécessaire (si c'est sur un bord du polygon)'
+                    {
+                        delete Point;
+                        delete Projete;
+                        break;
+                    }
+
+                    if(PointIsModified)
+                        ListAProjetesModifies.push_back((OGRPoint*)Point->clone());
+
+                    ListAProjetes.push_back(Point);
+                    ListProjetes.push_back(Projete);
+
+                    break;//Inutile de continuer à parcourir les autres polygons du Shape, cela ne changera rien au résultat puisque la projection sera le même qu'il y ait 2 ou + polygones associés à un point donné
+                }
+            }
+            if(PolyByPoint <= 1)
+                delete Point;
+        }
+
+        //Avec MultiLS, on va mettre en place les polygones découpés
+        for(int j = 0; j < MultiLS->getNumGeometries(); ++j)
+        {
+            OGRLineString* LS = (OGRLineString*)MultiLS->getGeometryRef(j);
+            OGRPoint* Point1 = new OGRPoint;
+            LS->getPoint(0, Point1);
+            OGRPoint* Point2 = new OGRPoint;
+            LS->getPoint(1, Point2);
+
+            bool test = false;
+            int l = 0;
+            for(OGRPoint* Projete:ListProjetes)
+            {
+                if(Projete->Distance(LS) < Precision_Vect) //Utilisation de Distance avec un seuil très faible car l'intersection ne fonctionne pas entre un point et un segment qui est censé passer par ce point (à part si c'est un des deux points du segment)
+                {
+                    OGRLineString* LS1 = new OGRLineString;
+                    LS1->addPoint(Point1);
+                    LS1->addPoint(Projete);
+                    OGRLineString* LS2 = new OGRLineString;
+                    LS2->addPoint(Projete);
+                    LS2->addPoint(Point2);
+
+                    OGRLineString* LS3 = new OGRLineString; //Ligne qui "coupe en deux" les polygones
+                    LS3->addPoint(Projete);
+                    LS3->addPoint(ListAProjetes.at(l));
+
+                    delete ListProjetes.at(l);
+                    delete ListAProjetes.at(l);
+                    ListProjetes.erase(ListProjetes.begin() + l);
+                    ListAProjetes.erase(ListAProjetes.begin() + l);
+                    MultiLS->removeGeometry(j);
+                    MultiLS->addGeometryDirectly(LS1);
+                    MultiLS->addGeometryDirectly(LS2);
+                    MultiLS->addGeometryDirectly(LS3);
+                    --j;
+                    test = true;
+                    break;
+                }
+                ++l;
+            }
+
+            if(test) //Si on a déjà ajouté des points dans MultiLS via la boucle précédente, on sort.
+                continue;
+
+            l = 0;
+
+            for(OGRPoint* AProjete:ListAProjetesModifies) //Il faut s'assurer que les points à projeter qui ont changé, donc qui ne sont plus forcément directement sur le polygon, soient bien présents dans MultiLS
+            {
+                if(AProjete->Distance(LS) < Precision_Vect && AProjete->Distance(Point1) > Precision_Vect && AProjete->Distance(Point2) > Precision_Vect)
+                {
+                    OGRLineString* LS1 = new OGRLineString;
+                    LS1->addPoint(Point1);
+                    LS1->addPoint(AProjete);
+                    OGRLineString* LS2 = new OGRLineString;
+                    LS2->addPoint(AProjete);
+                    LS2->addPoint(Point2);
+
+                    delete ListAProjetesModifies.at(l);
+                    ListAProjetesModifies.erase(ListAProjetesModifies.begin() + l);
+
+                    MultiLS->removeGeometry(j);
+                    MultiLS->addGeometryDirectly(LS1);
+                    MultiLS->addGeometryDirectly(LS2);
+                    --j;
+                    break;
+                }
+                ++l;
+            }
+        }
+
+        for(OGRPoint* PointTemp : ListAProjetes)
+            delete PointTemp;
+        for(OGRPoint* PointTemp : ListAProjetesModifies)
+            delete PointTemp;
+        for(OGRPoint* PointTemp : ListProjetes)
+            delete PointTemp;
+
+        OGRGeometryCollection* ListSplitPolygons = (OGRGeometryCollection*) MultiLS->Polygonize();
+
+        delete MultiLS;
+
+        //Maintenant que l'on a les SplitPolygons, il faut les associer aux footprints correspondants.
+
+        if(SplitPolygon != nullptr)
+        {
+            for(int j = 0; j < ListSplitPolygons->getNumGeometries(); ++j)
+            {
+                OGRPolygon* SplitPolygon = dynamic_cast<OGRPolygon*>(ListSplitPolygons->getGeometryRef(j));
+                if(SplitPolygon == nullptr)
+                    continue;
+                OGRLinearRing* SplitRing = SplitPolygon->getExteriorRing();
+
+                double LengthMax = 0;
+                int indice = -1;
+                for(int k : ListFootprintsLinkedtoPolyDiscontinu.at(i)) //On parcourt tous les Footprint liés à PolyDiscontinu
+                {
+                    //On va rechercher le Footprint qui touche plus les arêtes de PolyDiscontinu
+                    double Length = 0;
+
+                    OGRMultiPolygon* PolyFootprint = CleanedFootprintsMP.at(k);
+                    for(int z = 0; z < SplitRing->getNumPoints() - 1; ++z)
+                    {
+                        OGRPoint* Point = new OGRPoint;
+                        OGRPoint* NextPoint = new OGRPoint;
+                        SplitRing->getPoint(z, Point);
+                        SplitRing->getPoint(z + 1, NextPoint);
+
+                        if(Point->Distance(PolyFootprint) < Precision_Vect && NextPoint->Distance(PolyFootprint) < Precision_Vect)
+                        {
+                            OGRLineString* Line = new OGRLineString;
+                            Line->addPoint(Point);
+                            Line->addPoint(NextPoint);
+                            Length += Line->get_Length();
+                            delete Line;
+                        }
+                        delete Point;
+                        delete NextPoint;
+                    }
+                    if(Length > LengthMax)
+                    {
+                        indice = k;
+                        LengthMax = Length;
+                    }
+                }
+                if(indice != -1)
+                    CleanedFootprintsMP.at(indice)->addGeometry(SplitPolygon);
+            }
+        }
+        delete ListSplitPolygons;
+    }
+
 
     //On met ça en forme dans un vector de Polygon unissant tous les petits polygones, afin d'obtenir des emprises au sol propres.
     std::vector<OGRPolygon*> CleanedFootprints;
@@ -4028,14 +4250,12 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 	std::cout << "Amelioration de la decoupe des emprises au sol." << std::endl;
 	std::vector<OGRPolygon*> CleanedFootprints = CleanFootprintsWith3D(&NewFootprintsShapefile, Model, &Link);
 
-    int a;
-    std::cin >> a;
 
     //On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectées avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
     //NewFootprintsShapefile. Chaque polygon correspond à un bâtiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un bâtiment CityGML lié. L'ensemble des emprises au sol
     //de NewFootprintsShapefile doit recouvrir les emprises au sol de tous les bâtiments CityGML. Il nous reste à parcourir les polygons du CityGML et à les assigner à ces différents bâtiments Shape.
 	std::cout << "Decoupe des Polygons Wall et Roof du CityGML selon les emprises au sol generees a partir du cadastre." << std::endl;
-    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&/*CleanedFootprints*/NewFootprintsShapefile, Layer, Model, &Link, TexturesList);
+    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&CleanedFootprints/*NewFootprintsShapefile*/, Layer, Model, &Link, TexturesList);
 
 	for(OGRPolygon* Poly:NewFootprintsShapefile)
 		delete Poly;

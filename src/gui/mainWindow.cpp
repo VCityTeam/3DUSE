@@ -1854,9 +1854,6 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	delete BatiShapeFile;
 	delete BatiLOD2CityGML;
 
-    int a;
-    std::cin >> a;
-
     ModelOut->computeEnvelope();
 
     //citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml");
