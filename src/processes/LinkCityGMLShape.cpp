@@ -3296,7 +3296,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
             for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
             {
-
                 ++cpt2;
                 bool IsLinked = false;
                 for(int i : Link->second.at(cpt))
@@ -3362,17 +3361,74 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
                                             for(int i = 0; i < PolygonsRoofBuildingShp->getNumGeometries(); ++i)
                                             {
-                                                OGRGeometry* PolyRoof = PolygonsRoofBuildingShp->getGeometryRef(i);
+                                                OGRPolygon* PolyRoof = (OGRPolygon*) PolygonsRoofBuildingShp->getGeometryRef(i);
 
                                                 std::vector<TVec2f> TexUVWall;
 
                                                 if(PolyRoof->Distance(WallPoly) < Precision_Vect) //On recherche quels sont les polygons du Roof qui intersectent le polygon du Wall afin de créer les points de l'un sur l'autre.
                                                 {
-                                                    OGRGeometry* PolyRoofwithWallPoints = CreatePointsOnLine(WallPoly, PolyRoof);
-                                                    OGRGeometry* tmp = CreatePointsOnLine(PolyRoof, WallPoly);
-
+                                                    OGRPolygon* PolyRoofwithWallPoints = (OGRPolygon*)CreatePointsOnLine(WallPoly, PolyRoof);
+                                                    OGRPolygon* tmp = (OGRPolygon*)CreatePointsOnLine(PolyRoof, WallPoly);
                                                     delete WallPoly;
-                                                    WallPoly = (OGRPolygon*) tmp;
+                                                    WallPoly = tmp;
+
+                                                    //On vérifie que le polygon du Wall se situe bien en dessous du polygon du Roof, sinon il ne faut pas l'ajouter à ce bâtiment (cas d'un mur frontière entre deux bâtiments)
+                                                    /*OGRLinearRing* RingPolyRoof = PolyRoof->getExteriorRing();
+                                                    OGRLinearRing* RingWallPoly = WallPoly->getExteriorRing();
+                                                    bool TestWall = false;
+                                                    for(int pw = 0; pw < RingWallPoly->getNumPoints() - 1; ++pw)
+                                                    {
+                                                        OGRPoint* PointWall = new OGRPoint;
+                                                        RingWallPoly->getPoint(pw, PointWall);
+                                                        if(PointWall->Distance(PolyRoof) > Precision_Vect)
+                                                            continue;
+
+                                                        TestWall = true;
+
+                                                        for(int pr = 0; pr < RingPolyRoof->getNumPoints() - 1; ++ pr)
+                                                        {
+                                                            if(PointWall->getZ() < RingPolyRoof->getZ(pr) + Precision_Vect/1000)
+                                                                TestWall = false;
+                                                        }
+                                                        delete PointWall;
+                                                        if(TestWall) //Cela signifie qu'il n'y a aucun point du Roof situé au dessus du point du Wall
+                                                            break;
+                                                    }*/
+                                                    OGRLinearRing* RingPolyRoofwithWallPoints = PolyRoofwithWallPoints->getExteriorRing();
+                                                    OGRLinearRing* RingWallPoly = WallPoly->getExteriorRing();
+                                                    bool TestWall = false;
+                                                    for(int pw = 0; pw < RingWallPoly->getNumPoints() - 1; ++pw)
+                                                    {
+                                                        OGRPoint* PointWall = new OGRPoint;
+                                                        RingWallPoly->getPoint(pw, PointWall);
+                                                        for(int pr = 0; pr < RingPolyRoofwithWallPoints->getNumPoints() - 1; ++ pr)
+                                                        {
+                                                            OGRPoint* PointRoof = new OGRPoint;
+                                                            RingPolyRoofwithWallPoints->getPoint(pr, PointRoof);
+                                                            if(PointRoof->Distance(PointWall) < Precision_Vect)
+                                                            {
+                                                                if(PointRoof->getZ() - PointWall->getZ() < - Precision_Vect/10000) //Cela signifie que le Wall est situé au dessus du Roof
+                                                                {
+                                                                    TestWall = true;
+                                                                    delete PointRoof;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            delete PointRoof;
+                                                        }
+                                                        delete PointWall;
+                                                        if(TestWall)
+                                                            break;
+                                                    }
+
+                                                    if(TestWall) //Si le mur est situé au dessus du toit, c'est que le mur ne doit pas appartenir à ce bâtiment (à part si un autre polygone du toit se situe bien en dessous, donc on continue et on break pas)
+                                                    {
+                                                        delete PolyRoofwithWallPoints;
+                                                        continue;
+                                                    }
+                                                    //
+
+
 
                                                     OGRLinearRing* ExtRingWall = WallPoly->getExteriorRing();
                                                     OGRPolygon* WallPolyRes = new OGRPolygon; //Contiendra le polygon du Wall que l'on aura limité à la zone 2D formée par le polygon BuildingShp
@@ -3391,6 +3447,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                         delete WallPoint1;
                                                         delete WallPoint2;
                                                     }
+                                                    delete PolyRoofwithWallPoints;
 
                                                     if(WallRingRes != nullptr && WallRingRes->getNumPoints() > 0)
                                                     {
