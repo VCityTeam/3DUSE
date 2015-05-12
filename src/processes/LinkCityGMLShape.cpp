@@ -3203,6 +3203,13 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                             {
                                                 if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
                                                 {
+                                                    if(((OGRPolygon*)CutPoly)->get_Area() < Precision_Vect) //Pour éliminer les polygons plats
+                                                    {
+                                                        delete OgrPoly;
+                                                        delete CutPoly;
+                                                        continue;
+                                                    }
+
                                                     citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "Roof_" + std::to_string(cptPolyRoof));
                                                     Roof->addPolygon(GMLPoly);
                                                     PolygonsRoofBuildingShp->addGeometry(CutPoly);
@@ -3242,6 +3249,9 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                     {
                                                         for(int i = 0; i < CutMultiPoly->getNumGeometries(); ++i)
                                                         {
+                                                            if(((OGRPolygon*)CutMultiPoly->getGeometryRef(i))->get_Area() < Precision_Vect)
+                                                                continue;
+
                                                             citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutMultiPoly->getGeometryRef(i), Name + "Roof_" + std::to_string(cptPolyRoof));
                                                             Roof->addPolygon(GMLPoly);
                                                             PolygonsRoofBuildingShp->addGeometry(CutMultiPoly->getGeometryRef(i));
@@ -3373,27 +3383,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                     WallPoly = tmp;
 
                                                     //On vérifie que le polygon du Wall se situe bien en dessous du polygon du Roof, sinon il ne faut pas l'ajouter à ce bâtiment (cas d'un mur frontière entre deux bâtiments)
-                                                    /*OGRLinearRing* RingPolyRoof = PolyRoof->getExteriorRing();
-                                                    OGRLinearRing* RingWallPoly = WallPoly->getExteriorRing();
-                                                    bool TestWall = false;
-                                                    for(int pw = 0; pw < RingWallPoly->getNumPoints() - 1; ++pw)
-                                                    {
-                                                        OGRPoint* PointWall = new OGRPoint;
-                                                        RingWallPoly->getPoint(pw, PointWall);
-                                                        if(PointWall->Distance(PolyRoof) > Precision_Vect)
-                                                            continue;
-
-                                                        TestWall = true;
-
-                                                        for(int pr = 0; pr < RingPolyRoof->getNumPoints() - 1; ++ pr)
-                                                        {
-                                                            if(PointWall->getZ() < RingPolyRoof->getZ(pr) + Precision_Vect/1000)
-                                                                TestWall = false;
-                                                        }
-                                                        delete PointWall;
-                                                        if(TestWall) //Cela signifie qu'il n'y a aucun point du Roof situé au dessus du point du Wall
-                                                            break;
-                                                    }*/
                                                     OGRLinearRing* RingPolyRoofwithWallPoints = PolyRoofwithWallPoints->getExteriorRing();
                                                     OGRLinearRing* RingWallPoly = WallPoly->getExteriorRing();
                                                     bool TestWall = false;
@@ -3407,7 +3396,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                             RingPolyRoofwithWallPoints->getPoint(pr, PointRoof);
                                                             if(PointRoof->Distance(PointWall) < Precision_Vect)
                                                             {
-                                                                if(PointRoof->getZ() - PointWall->getZ() < - Precision_Vect/10000) //Cela signifie que le Wall est situé au dessus du Roof
+                                                                if(PointRoof->getZ() - PointWall->getZ() < - Precision_Vect) //Cela signifie que le Wall est situé au dessus du Roof
                                                                 {
                                                                     TestWall = true;
                                                                     delete PointRoof;
@@ -3427,8 +3416,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                         continue;
                                                     }
                                                     //
-
-
 
                                                     OGRLinearRing* ExtRingWall = WallPoly->getExteriorRing();
                                                     OGRPolygon* WallPolyRes = new OGRPolygon; //Contiendra le polygon du Wall que l'on aura limité à la zone 2D formée par le polygon BuildingShp
@@ -3686,7 +3673,6 @@ int IntersectRings3D(OGRLinearRing* Ring1, OGRLinearRing* Ring2)
 std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon*>* Footprints, citygml::CityModel* ModelGML, std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>>* Link)
 {
     std::vector<OGRMultiPolygon*> CleanedFootprintsMP;
-    std::vector<OGRMultiPolygon*> CleanedFootprintsMPSaved;
 
 	std::vector<OGRPolygon*>* ListPolygonsFootprints = new std::vector<OGRPolygon*>[Footprints->size()];
 
@@ -3789,7 +3775,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
     //*/
 
     OGRMultiPolygon* PolygonsDiscontinus = new OGRMultiPolygon;
-    std::vector<int> IndiceOrigineDesPolygonsDiscontinus2[2]; //Contiendra l'indice du polygone Footprint à partir du quel chaque polygone discontinu aura été extrait, ainsi que sa place à l'intérieur de celui ci dans ListPolygonsFootprints.
+    std::vector<int> IndiceOrigineDesPolygonsDiscontinus; //Contiendra l'indice du polygone Footprint à partir duquel chaque polygone discontinu aura été extrait, ainsi que sa place à l'intérieur de celui ci dans ListPolygonsFootprints.
 
 	for(int i = 0; i < Footprints->size(); ++i)
     {
@@ -3881,8 +3867,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                 {
                     PolygonsDiscontinus->addGeometry(PolyToit);
 
-                    IndiceOrigineDesPolygonsDiscontinus2[0].push_back(i);
-                    IndiceOrigineDesPolygonsDiscontinus2[1].push_back(j);
+                    IndiceOrigineDesPolygonsDiscontinus.push_back(i);
                 }
                 else
                 {
@@ -3906,8 +3891,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                             {
                                 PolygonsDiscontinus->addGeometry(GC_PolyToit->getGeometryRef(k));
 
-                                IndiceOrigineDesPolygonsDiscontinus2[0].push_back(i);
-                                IndiceOrigineDesPolygonsDiscontinus2[1].push_back(j);
+                                IndiceOrigineDesPolygonsDiscontinus.push_back(i);
                             }
                             else
                             {
@@ -3925,118 +3909,28 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
     SaveGeometrytoShape("PolygonsDiscontinus.shp", PolygonsDiscontinus);
 
-    OGRMultiPolygon* PolygonsDiscontinus2 = new OGRMultiPolygon; //Même principe que PolygonsDiscontinus, mais avec les polygones voisins et continus regroupés.
-    //std::vector<int> IndiceOrigineDesPolygonsDiscontinus2[2];
-
-    //On commence par regarder si dans PolygonsDiscontinus, il y a des polygons voisins qui sont continus et qu'il faut donc regrouper, en conservant l'indice de celui avec la plus grande aire.
-    /*for(int i = 0; i < PolygonsDiscontinus->getNumGeometries(); ++i)
-    {
-        OGRPolygon* Poly1 = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(i);
-
-        if(IndiceOrigineDesPolygonsDiscontinus[0].at(i) == -1) // [1]
-            continue;
-
-        OGRLinearRing* Ring1 = Poly1->getExteriorRing();
-        std::vector<int> Listindices; //Contiendra les indices des polygones que l'on doit regrouper avec celui de i.
-
-        for(int j = i + 1; j < IndiceOrigineDesPolygonsDiscontinus[0].size(); ++j)
-        {
-            if(IndiceOrigineDesPolygonsDiscontinus[0].at(j) == -1) // [1]
-                    continue;
-
-            OGRPolygon* Poly2 = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(j);
-            if(Poly1->Distance(Poly2) > Precision_Vect)
-                continue;
-
-            OGRLinearRing* Ring2 = Poly2->getExteriorRing();
-            if(IntersectRings3D(Ring1, Ring2) == 2) //Les deux polygones ont au moins deux points en commun
-            {
-                Listindices.push_back(j);
-            }
-        }
-
-        int Indice1 = IndiceOrigineDesPolygonsDiscontinus[0].at(i);
-        int Indice2 = IndiceOrigineDesPolygonsDiscontinus[1].at(i);
-
-        if(Listindices.empty()) //Le polygone est isolé, il faut l'ajouter tel quel
-        {
-            PolygonsDiscontinus2->addGeometry(Poly1);
-
-            IndiceOrigineDesPolygonsDiscontinus2[0].push_back(Indice1);
-            IndiceOrigineDesPolygonsDiscontinus2[1].push_back(Indice2);
-
-            continue;
-        }
-
-        OGRGeometry* PolyUnion = Poly1->clone();
-        double MaxArea = Poly1->get_Area();
-
-        for(int j = 0; j < Listindices.size(); ++j)
-        {
-            OGRPolygon* PolyTemp = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(Listindices.at(j));
-
-            int IndiceTemp1 = IndiceOrigineDesPolygonsDiscontinus[0].at(Listindices.at(j)); //Numéro de footprint
-            int IndiceTemp2 = IndiceOrigineDesPolygonsDiscontinus[1].at(Listindices.at(j)); //Numéro du polygone dans le footprint de l'IndiceTemp1
-
-            IndiceOrigineDesPolygonsDiscontinus[0].at(Listindices.at(j)) = -1; //Pour qu'il ne soit plus parcouru dans la boucle i et la j précédente (voir commentaires [1])
-
-
-            if(MaxArea >= PolyTemp->get_Area()) //Cela signifie qu'il faut effacer ce Polygon discontinu de son Footprint initial, car il va être assimilé dans un autre (celui qui aura l'aire max)
-            {
-                ListPolygonsFootprints[IndiceTemp1].erase(ListPolygonsFootprints[IndiceTemp1].begin() + IndiceTemp2);
-            }
-            else //On a trouvé un polygone PolyTemp plus grand que le précédent, on va donc assigner PolyUnion à celui là (à part si on en trouve un plus grand dans les j qui vont suivre)
-            {
-                ListPolygonsFootprints[Indice1].erase(ListPolygonsFootprints[Indice1].begin() + Indice2);
-
-                MaxArea = PolyTemp->get_Area();
-                Indice1 = IndiceTemp1;
-                Indice2 = IndiceTemp2;
-            }
-
-            OGRGeometry* tmp = PolyUnion;
-            PolyUnion = tmp->Union(PolyTemp);
-            delete tmp;
-        }
-
-        if(PolyUnion->getGeometryType() != wkbPolygon && PolyUnion->getGeometryType() != wkbPolygon25D)
-        {
-            std::cout << "Erreur, PolyUnion n'est pas un polygon : " << PolyUnion->getGeometryName() << std::endl;
-            SaveGeometrytoShape("Footprint.shp", Footprints->at(i));
-            SaveGeometrytoShape("PolyUnion.shp", PolyUnion);
-            int a;
-            std::cin >> a;
-        }
-
-        PolygonsDiscontinus2->addGeometryDirectly(PolyUnion);
-
-        IndiceOrigineDesPolygonsDiscontinus2[0].push_back(Indice1);
-        IndiceOrigineDesPolygonsDiscontinus2[1].push_back(Indice2);
-    }*/
-
-    PolygonsDiscontinus2 = PolygonsDiscontinus;
-
-    //SaveGeometrytoShape("PolygonsDiscontinus2.shp", PolygonsDiscontinus2);
-
     //On va maintenant parcourir chaque polygone discontinu, regarder s'il semble voisin avec un autre Footprint que celui duquel il est issu et se rattacher à lui. S'il n'en trouve pas, on le remet simplement dans son Footprint d'origine.
 
     //Un polygon discontinu peut se lier à plusieurs polygons footprints si la séparation entre eux est purement 2D. Il faut donc ajouter une étape de découpe afin de partager si nécessaire le polygon discontinu entre eux.
     std::vector<std::vector<int>> ListFootprintsLinkedtoPolyDiscontinu; //Chaque élément du vector contiendra une liste des indices (dans CleanedFootprintsMP) des polygons se partageant un polygon discontinu.
-    std::vector<int> IndicePolygonsDiscontinusToCut; //Contiendra la liste des indices (dans PolygonsDiscontinus2) des polygons discontinus concernés par ceci, afin de pouvoir les récupérer rapidement.
+    std::vector<int> IndicePolygonsDiscontinusToCut; //Contiendra la liste des indices (dans PolygonsDiscontinus) des polygons discontinus concernés par ceci, afin de pouvoir les récupérer rapidement.
 
-    for(OGRMultiPolygon* MP : CleanedFootprintsMP) //On créer une sauvegarde de CleanedFootprintsMP car on va maintenant lui ajouter des PolygonsDiscontinus mais on veut conserver cette version pour faire les tests de IntersectRings3D
+    std::vector<OGRMultiPolygon*> CleanedFootprintsMPSaved;
+    for(OGRMultiPolygon* MP : CleanedFootprintsMP) //On crée une sauvegarde de CleanedFootprintsMP car on va maintenant lui ajouter des PolygonsDiscontinus mais on veut conserver cette version pour faire les tests de IntersectRings3D
         CleanedFootprintsMPSaved.push_back((OGRMultiPolygon*)MP->clone());
 
-    for(int k = 0; k < PolygonsDiscontinus2->getNumGeometries(); ++k)
+    std::vector<int> ListeDesPolygonsDiscontinusNonAssignes; //Contiendra les indices des PolygonsDiscontinus non assignés dès la première passe.
+
+    for(int k = 0; k < PolygonsDiscontinus->getNumGeometries(); ++k)
     {
-        OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus2->getGeometryRef(k);
+        OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(k);
         OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
 
         std::vector<int> IndicesPolygonsCommuns; //Contiendra les indices de tous les polygons qui ont en commun une continuité avec PolyDiscontinu.
 
         for(int i = 0; i < CleanedFootprintsMPSaved.size(); ++i)
         {
-            if(i == IndiceOrigineDesPolygonsDiscontinus2[0].at(k)) //Il ne faut pas comparer PolyDiscontinu avec le Footprint depuis lequel il est issu
+            if(i == IndiceOrigineDesPolygonsDiscontinus.at(k)) //Il ne faut pas comparer PolyDiscontinu avec le Footprint depuis lequel il est issu
                 continue;
 
             for(int j = 0; j < CleanedFootprintsMPSaved.at(i)->getNumGeometries(); ++j)
@@ -4063,7 +3957,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                     delete PolyFootprint;
                     break;
                 }
-                else
+                else //Le test a peut être négatif car il manquait des points sur Footprint, on va donc re tester une fois les points de PolyDiscontinu projetés dessus.
                 {
                     PolyFootprint = dynamic_cast<OGRPolygon*>(CreatePointsOnLine(PolyDiscontinu,CleanedFootprintsMPSaved.at(i)->getGeometryRef(j)));
                     RingFootprint = PolyFootprint->getExteriorRing();
@@ -4079,8 +3973,8 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
             }
         }
 
-        if(IndicesPolygonsCommuns.size() == 0) //Aucun footprint ne semble continue avec PolyDiscontinu, on va donc le laisser à son footprint initial.
-            CleanedFootprintsMP.at(IndiceOrigineDesPolygonsDiscontinus2[0].at(k))->addGeometry(PolyDiscontinu);
+        if(IndicesPolygonsCommuns.size() == 0)
+            ListeDesPolygonsDiscontinusNonAssignes.push_back(k); //On met de côté PolyDiscontinu pour l'instant
         else if(IndicesPolygonsCommuns.size() == 1) //Il n'y a qu'un seul polygon assigné, donc IndicesPolygonsCommuns ne contient qu'un seul indice, celui qui nous intéresse.
             CleanedFootprintsMP.at(IndicesPolygonsCommuns.at(0))->addGeometry(PolyDiscontinu);
         else if(IndicesPolygonsCommuns.size() > 1 ) //Il y a plusieurs polygons footprint assignés.
@@ -4094,11 +3988,84 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
     for(OGRMultiPolygon* MP : CleanedFootprintsMPSaved) //On n'a plus besoin de cette version
         delete MP;
+    std::vector<OGRMultiPolygon*> CleanedFootprintsMPSaved2;
+    for(OGRMultiPolygon* MP : CleanedFootprintsMP) //On crée une nouvelle sauvegarde de CleanedFootprintsMP car on va maintenant lui ajouter les PolygonsDiscontinus non assignés mais on veut conserver cette version pour faire les tests de IntersectRings3D
+        CleanedFootprintsMPSaved2.push_back((OGRMultiPolygon*)MP->clone());
+
+    for(int k = 0; k < ListeDesPolygonsDiscontinusNonAssignes.size(); ++k) //On faire un second passage en parcourant les polygons discontinus mis de côté afin de les comparer aux footprints déjà modifiés par des polygons discontinus
+        //Car un polygon discontinu peut se rattacher à un footprint par un autre polygon discontinu, et ceci n'était pas possible lors de la première phase car on comparait avec les footprints non modifiés
+    {
+        OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(ListeDesPolygonsDiscontinusNonAssignes.at(k));
+        OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
+
+        std::vector<int> IndicesPolygonsCommuns; //Contiendra les indices de tous les polygons qui ont en commun une continuité avec PolyDiscontinu.
+
+        for(int i = 0; i < CleanedFootprintsMPSaved2.size(); ++i)
+        {
+            if(i == IndiceOrigineDesPolygonsDiscontinus.at(ListeDesPolygonsDiscontinusNonAssignes.at(k))) //Il ne faut pas comparer PolyDiscontinu avec le Footprint depuis lequel il est issu
+                continue;
+
+            for(int j = 0; j < CleanedFootprintsMPSaved2.at(i)->getNumGeometries(); ++j)
+            {
+                OGRPolygon* PolyFootprint = dynamic_cast<OGRPolygon*>(CleanedFootprintsMPSaved2.at(i)->getGeometryRef(j)->clone());
+                if(PolyFootprint == nullptr)
+                {
+                    std::cout << "ERREUR : PolyFootprint n'est pas un Polygon : " << CleanedFootprintsMPSaved2.at(i)->getGeometryRef(j)->getGeometryName() << std::endl;
+                    int a;
+                    std::cin >> a;
+                    continue;
+                }
+                if(PolyDiscontinu->Distance(PolyFootprint) > Precision_Vect)
+                {
+                    delete PolyFootprint;
+                    continue;
+                }
+
+                OGRLinearRing* RingFootprint = PolyFootprint->getExteriorRing();
+                if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
+                {
+                    IndicesPolygonsCommuns.push_back(i); //On stocke ce polygon au cas où PolyDiscontinu veut se lier à un autre footprint afin que l'on ait la liste de tous les footprint concernés.
+
+                    delete PolyFootprint;
+                    break;
+                }
+                else //Le test a peut être négatif car il manquait des points sur Footprint, on va donc re tester une fois les points de PolyDiscontinu projetés dessus.
+                {
+                    PolyFootprint = dynamic_cast<OGRPolygon*>(CreatePointsOnLine(PolyDiscontinu,CleanedFootprintsMPSaved2.at(i)->getGeometryRef(j)));
+                    RingFootprint = PolyFootprint->getExteriorRing();
+                    if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
+                    {
+                        IndicesPolygonsCommuns.push_back(i); //On stocke ce polygon au cas où PolyDiscontinu veut se lier à un autre footprint afin que l'on ait la liste de tous les footprint concernés.
+
+                        delete PolyFootprint;
+                        break;
+                    }
+                }
+                delete PolyFootprint;
+            }
+        }
+
+        if(IndicesPolygonsCommuns.size() == 0)
+            CleanedFootprintsMP.at(IndiceOrigineDesPolygonsDiscontinus.at(ListeDesPolygonsDiscontinusNonAssignes.at(k)))->addGeometry(PolyDiscontinu); //Aucun footprint ne semble continue avec PolyDiscontinu, on va donc le laisser à son footprint initial.
+        else if(IndicesPolygonsCommuns.size() == 1) //Il n'y a qu'un seul polygon assigné, donc IndicesPolygonsCommuns ne contient qu'un seul indice, celui qui nous intéresse.
+        {
+            CleanedFootprintsMP.at(IndicesPolygonsCommuns.at(0))->addGeometry(PolyDiscontinu);
+        }
+        else if(IndicesPolygonsCommuns.size() > 1 ) //Il y a plusieurs polygons footprint assignés.
+        {
+            //CleanedFootprintsMP.at(IndicesPolygonsCommuns.at(0))->addGeometry(PolyDiscontinu); ///DECOMMENTER CECI (et commenter le reste) POUR VOIR CE QUE CA DONNE SANS DECOUPE
+            ListFootprintsLinkedtoPolyDiscontinu.push_back(IndicesPolygonsCommuns); //Pour le polygon discontinu K, on aura ici la liste des footprints avec lesquels il semble continu en 3D (partage d'une arrête).
+            IndicePolygonsDiscontinusToCut.push_back(ListeDesPolygonsDiscontinusNonAssignes.at(k));
+        }
+    }
+
+    for(OGRMultiPolygon* MP : CleanedFootprintsMPSaved2) //On n'a plus besoin de cette version
+        delete MP;
 
     //On va parcourir tous les cas de Polygons discontinus liés à plusieurs footprints afin de mettre en place une éventuelle découpe de ce polygon afin de le partager entre les footprints.
     for(int i = 0; i < IndicePolygonsDiscontinusToCut.size(); ++i)
     {
-        OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus2->getGeometryRef(IndicePolygonsDiscontinusToCut.at(i));
+        OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(IndicePolygonsDiscontinusToCut.at(i));
         OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
 
         std::vector<OGRPoint*> ListAProjetes; //Contiendra tous les points que l'on aura projetés
