@@ -1831,7 +1831,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
     vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
-   // vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
+    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
 
     //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
