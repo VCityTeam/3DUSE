@@ -3201,15 +3201,56 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
     citygml::CityModel* ModelOut = new citygml::CityModel;
 
     OGRFeature *Feature;
-    int cpt = -1;
 
     ///On effectue un premier passage afin de détecter les murs qu'il faudra générer pour avoir des bâtiments fermés
-    //std::vector<OGRMultiLineString>* ListGeneratedWalls = new std::vector<OGRMultiLineString>[FootprintsShape->size()];
+    std::vector<OGRMultiLineString*>* ListGeneratedWalls = new std::vector<OGRMultiLineString*>[FootprintsShape->size()];
 
     OGRGeometryCollection* Test = new OGRGeometryCollection;
-
-    for(std::vector<int> ListBatiShp : Link->first)
+    OGRGeometryCollection* Test2 = new OGRGeometryCollection;
+    int cpt = -1;
+    for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
     {
+        ++ cpt;
+
+        std::vector<OGRPolygon*> ListPolygonRoofCityGML; //Contiendra les polygons du toits du bâtiment CityGML courant
+
+        if(obj->getType() == citygml::COT_Building)
+        {
+            for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
+            {
+                if(object->getType() == citygml::COT_RoofSurface)
+                {
+                    for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+                    {
+                        for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
+                        {
+                            OGRLinearRing * OgrRing = new OGRLinearRing;
+                            for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+                                OgrRing->addPoint(Point.x, Point.y, Point.z);
+
+                            OgrRing->closeRings();
+
+                            if(OgrRing->getNumPoints() > 3)
+                            {
+                                OGRPolygon * OgrPoly = new OGRPolygon;
+                                OgrPoly->addRingDirectly(OgrRing);
+                                if(OgrPoly->IsValid())
+                                {
+                                    ListPolygonRoofCityGML.push_back(OgrPoly);
+                                }
+                                else
+                                    delete OgrPoly;
+                            }
+                            else
+                                delete OgrRing;
+                        }
+                    }
+                }
+            }
+        }
+
+        std::vector<int> ListBatiShp = Link->first.at(cpt); //Contient les indices des polygons Shp liés à ce Bâtiment CityGML
+
         for(int i = 0; i < ListBatiShp.size(); ++i) //On regroupe les bâtiment Shp par Bâtiment CityGML afin de faciliter la recherche de voisins
         {
             OGRGeometryCollection* Footprint1 = FootprintsShape->at(ListBatiShp.at(i));
@@ -3217,7 +3258,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
             if(Footprint1 == nullptr)
                 continue;
 
-            for(int j = i + 1; j < ListBatiShp.size(); ++j)
+            for(int j = i + 1; j < ListBatiShp.size(); ++j) //On va regarder les prochains footprints pour trouver les voisins et déterminer leurs frontières
             {
                 OGRGeometryCollection* Footprint2 = FootprintsShape->at(ListBatiShp.at(j));
                 if(Footprint2 == nullptr)
@@ -3228,9 +3269,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
                 OGRGeometryCollection* Footprint1WithPoints = CreatePointsOnLine(Footprint2, Footprint1);
                 OGRGeometryCollection* Footprint2WithPoints = CreatePointsOnLine(Footprint1, Footprint2);
-
-                //std::vector<OGRMultiLineString*> ListLineStrings1 = GetLineStringsFromMultiPolygon(Footprint1WithPoints);
-                //std::vector<OGRMultiLineString*> ListLineStrings2 = GetLineStringsFromMultiPolygon(Footprint2WithPoints);
 
                 if(!Footprint1WithPoints->Intersects(Footprint2WithPoints))
                     continue;
@@ -3248,8 +3286,12 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                     }
                 }*/
 
+                OGRMultiLineString* ListAretes = new OGRMultiLineString;
                 if(Intersection->getGeometryType() == wkbLineString || Intersection->getGeometryType() == wkbLineString25D)
+                {
+                    ListAretes->addGeometry(Intersection);
                     Test->addGeometry(Intersection);
+                }
                 else
                 {
                     OGRGeometryCollection* InterGC = dynamic_cast<OGRGeometryCollection*>(Intersection);
@@ -3263,17 +3305,97 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                     for(int k = 0; k < InterGC->getNumGeometries(); ++k)
                     {
                         if(InterGC->getGeometryRef(k)->getGeometryType() == wkbLineString || InterGC->getGeometryRef(k)->getGeometryType() == wkbLineString25D)
+                        {
+                            ListAretes->addGeometry(InterGC->getGeometryRef(k));
                             Test->addGeometry(InterGC->getGeometryRef(k));
+                        }
                     }
                 }
                 delete Footprint1WithPoints;
                 delete Footprint2WithPoints;
                 delete Intersection;
+
+                if(ListAretes == nullptr || ListAretes->getNumGeometries() == 0)
+                    continue;
+
+                OGRMultiLineString* ListAretesWithZ = new OGRMultiLineString;
+
+                for(int k = 0; k < ListAretes->getNumGeometries(); ++k)
+                {
+                    OGRLineString* Aretes = (OGRLineString*)ListAretes->getGeometryRef(k);
+                    OGRLineString* AretesWithZ = new OGRLineString;
+
+                    for(int a = 0; a < Aretes->getNumPoints(); ++a)
+                    {
+                        OGRPoint* PointArete = new OGRPoint;
+                        Aretes->getPoint(a, PointArete);
+
+                        double ZPoint = 99999; //Contiendra la valeur de Z que l'on va assigner au point de l'arête courante. Ce Z correspondra au Roof le plus bas qui aura été relié à l'arête.
+
+                        for(OGRPolygon* Poly : ListPolygonRoofCityGML)
+                        {
+                            if(PointArete->Distance(Poly) < Precision_Vect)
+                            {
+                                std::vector<OGRMultiLineString*> Rings = GetLineStringsFromPolygon(Poly);
+                                OGRMultiLineString* ExtRing = Rings.at(0);
+                                for(int l = 0; l < ExtRing->getNumGeometries(); ++l)
+                                {
+                                    if(PointArete->Distance(ExtRing->getGeometryRef(l)) > Precision_Vect)
+                                        continue;
+
+                                    OGRPoint* P1 = new OGRPoint;
+                                    OGRPoint* P2 = new OGRPoint;
+                                    ((OGRLineString*)ExtRing->getGeometryRef(l))->getPoint(0, P1);
+                                    ((OGRLineString*)ExtRing->getGeometryRef(l))->getPoint(1, P2);
+
+                                    if(PointArete->Distance(P1) < Precision_Vect)
+                                    {
+                                        if(ZPoint > P1->getZ())
+                                            ZPoint = P1->getZ();
+                                    }
+                                    else if(PointArete->Distance(P2) < Precision_Vect)
+                                    {
+                                        if(ZPoint > P2->getZ())
+                                            ZPoint = P2->getZ();
+                                    }
+                                    else
+                                    {
+                                        double temp = P1->getZ() + (PointArete->getX() - P1->getX()) / (P2->getX() - P1->getX()) * (P2->getZ() - P1->getZ());
+                                        if(ZPoint > temp)
+                                            ZPoint = temp;
+                                    }
+
+                                    delete P1;
+                                    delete P2;
+                                }
+                            }
+                        }
+                        if(ZPoint == 99999)
+                        {
+                            std::cout << "ERREUR CALCUL DE Z DU POINT ARETE" << std::endl; //LES POINTS DES ARETES NE SONT PAS FORCEMENT SUR LES POLYGONS DE BASE DU CITYGML ...
+                            SaveGeometrytoShape("PointArete.shp", PointArete);
+                            int a;
+                            std::cin >> a;
+                        }
+                        else
+                        {
+                            AretesWithZ->addPoint(PointArete->getX(), PointArete->getY(), ZPoint);
+                        }
+                        delete PointArete;
+                    }
+                    ListAretesWithZ->addGeometryDirectly(AretesWithZ);
+                    Test2->addGeometry(AretesWithZ);
+                }
+                std::cout << "Test 3" << std::endl;
+                ListGeneratedWalls[ListBatiShp.at(i)].push_back(ListAretesWithZ);
+                ListGeneratedWalls[ListBatiShp.at(j)].push_back(ListAretesWithZ);
+                std::cout << "Test 4" << std::endl;
             }
         }
     }
 
     SaveGeometrytoShape("Test.shp", Test);
+    SaveGeometrytoShape("Test2.shp", Test2);
 
     int a;
     std::cin >> a;
@@ -3281,6 +3403,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
     const std::string NameModel = ModelGML->getId();
     LayerShape->ResetReading();
+    cpt = -1;
     while((Feature = LayerShape->GetNextFeature()) != NULL)
     {
         ++cpt;
@@ -3804,6 +3927,8 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
         ModelOut->addCityObject(BuildingCO);
         ModelOut->addCityObjectAsRoot(BuildingCO);
     }
+
+    delete [] ListGeneratedWalls;
 
     return ModelOut;
 }
