@@ -2139,7 +2139,29 @@ void MainWindow::test4()
 {
 	//buildJson();
 	//DetectionToitsPlats("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml",5,0.98);
-	DetectionToitsPlats("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",5,0.98);
+	//DetectionToitsPlats("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",5,0.98);
+
+	QDir outputDir("./SkylineOutput/");
+	if(!outputDir.exists("./SkylineOutput/"))
+	{
+		 outputDir.mkpath(outputDir.absolutePath());
+	}
+
+	std::filebuf fb;
+	fb.open("./SkylineOutput/coord.txt",std::ios::app);
+
+	std::ostream file(&fb);
+	osg::Camera* cam = m_osgView->m_osgView->getCamera();
+	osg::Vec3d pos;
+	osg::Vec3d target;
+	osg::Vec3d up;
+	cam->getViewMatrixAsLookAt(pos,target,up);
+	
+	file << pos.x() << " " << pos.y() << " " << pos.z() << " " << target.x() << " " << target.y() << " " << target.z() << " " << up.x() << " " << up.y() << " " << up.z() << "\n";
+
+	fb.close();
+
+	RayTracing("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",m_app.getSettings().getDataProfile().m_offset,cam);
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
