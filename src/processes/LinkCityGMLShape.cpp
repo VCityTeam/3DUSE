@@ -3259,29 +3259,36 @@ std::vector<OGRMultiLineString*> GetLineStringsFromMultiPolygon(OGRGeometryColle
 
     return ListRing;
 }
-std::vector<OGRPoint*> GetPointsFromPolygon(OGRPolygon* Polygon)
+std::vector<OGRMultiPoint*> GetPointsFromPolygon(OGRPolygon* Polygon)
 {
-    std::vector<OGRPoint*> ListPoints;
+    std::vector<OGRMultiPoint*> ListPoints;
     if(Polygon == nullptr)
         return  ListPoints;
 
     OGRLinearRing* ExtRing = Polygon->getExteriorRing();
+
+    OGRMultiPoint* PointsExtRing = new OGRMultiPoint;
+
     for(int i = 0; i < ExtRing->getNumPoints(); ++i)
     {
         OGRPoint* P = new OGRPoint;
         ExtRing->getPoint(i, P);
-        ListPoints.push_back(P);
+        PointsExtRing->addGeometryDirectly(P);
     }
+    ListPoints.push_back(PointsExtRing);
 
     for(int j = 0; j < Polygon->getNumInteriorRings(); ++j)
     {
+        OGRMultiPoint* PointsIntRing = new OGRMultiPoint;
+
         OGRLinearRing* IntRing = Polygon->getInteriorRing(j);
         for(int i = 0; i < IntRing->getNumPoints(); ++i)
         {
             OGRPoint* P = new OGRPoint;
             ExtRing->getPoint(i, P);
-            ListPoints.push_back(P);
+            PointsIntRing->addGeometryDirectly(P);
         }
+        ListPoints.push_back(PointsIntRing);
     }
 
     return ListPoints;
@@ -3625,12 +3632,12 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
         }
     }
 
-    std::cout << "FIN " << std::endl;
+    //std::cout << "FIN " << std::endl;
 
     //SaveGeometrytoShape("Test.shp", Test);
     //SaveGeometrytoShape("Test2.shp", Test2);
-    int a;
-    std::cin >> a;
+    //int a;
+    //std::cin >> a;
     ///
 
     const std::string NameModel = ModelGML->getId();
@@ -4574,7 +4581,8 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                 }
                 else //Le test a peut être négatif car il manquait des points sur Footprint, on va donc re tester une fois les points de PolyDiscontinu projetés dessus.
                 {
-                    PolyFootprint = dynamic_cast<OGRPolygon*>(CreatePointsOnLine(PolyDiscontinu,CleanedFootprintsMPSaved.at(i)->getGeometryRef(j)));
+                    delete PolyFootprint;
+                    PolyFootprint = dynamic_cast<OGRPolygon*>(CreatePointsOnLine(PolyDiscontinu, CleanedFootprintsMPSaved.at(i)->getGeometryRef(j)));
                     RingFootprint = PolyFootprint->getExteriorRing();
                     if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
                     {
@@ -4585,29 +4593,20 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                     }
                     else if(PolyDiscontinu->getNumInteriorRings() > 0) //On va maintenant tester les éventuels Interior Rings de PolyDiscontinu
                     {
+                        bool test = false;
                         for(int r = 0; r < PolyDiscontinu->getNumInteriorRings(); ++r)
                         {
-                            OGRLinearRing* RingFootprint = PolyFootprint->getInteriorRing(r);
-                            if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
+                            OGRLinearRing* IntRingDiscontinu = PolyDiscontinu->getInteriorRing(r);
+                            if(IntersectRings3D(IntRingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
                             {
                                 IndicesPolygonsCommuns.push_back(i); //On stocke ce polygon au cas où PolyDiscontinu veut se lier à un autre footprint afin que l'on ait la liste de tous les footprint concernés.
 
                                 delete PolyFootprint;
-                                break;
-                            }
-                            else //Le test a peut être négatif car il manquait des points sur Footprint, on va donc re tester une fois les points de PolyDiscontinu projetés dessus.
-                            {
-                                PolyFootprint = dynamic_cast<OGRPolygon*>(CreatePointsOnLine(PolyDiscontinu,CleanedFootprintsMPSaved.at(i)->getGeometryRef(j)));
-                                RingFootprint = PolyFootprint->getExteriorRing();
-                                if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
-                                {
-                                    IndicesPolygonsCommuns.push_back(i); //On stocke ce polygon au cas où PolyDiscontinu veut se lier à un autre footprint afin que l'on ait la liste de tous les footprint concernés.
-
-                                    delete PolyFootprint;
-                                    break;
-                                }
+                                test = true;
                             }
                         }
+                        if(test)
+                            break;
                     }
                 }
                 delete PolyFootprint;
@@ -4637,7 +4636,8 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
         PolygonsToCut->addGeometry(PolyDiscontinu);////
 
-        OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
+        //OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
+        std::vector<OGRMultiPoint*> ListPoints = GetPointsFromPolygon(PolyDiscontinu); //Contient un OGRMultiPoint par Ring du Polygon
 
         std::vector<OGRPoint*> ListAProjetes; //Contiendra tous les points que l'on aura projetés
         std::vector<OGRPoint*> ListProjetes; //Contiendra tous les points projetés dont on se servira afin de partager des LineString en deux
@@ -4646,66 +4646,69 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
         //On va maintenant parcourir point par point ce PolyDiscontinu, afin de repérer quels sont ceux qui se trouvent sur une frontière entre deux PolygonsCommuns,
         //ce seront ces points que l'on projettera pour chercher à découper PolyDiscontinu.
-        for(int j = 0; j < RingDiscontinu->getNumPoints() - 1; ++j)
+        for(int l = 0; l < ListPoints.size(); ++l)
         {
-            OGRPoint * Point = new OGRPoint;
-            RingDiscontinu->getPoint(j, Point);
-            OGRPoint * PointNext = new OGRPoint;
-            RingDiscontinu->getPoint(j + 1, PointNext);
-
-            OGRLineString* LS = new OGRLineString;
-            LS->addPoint(Point);
-            LS->addPoint(PointNext);
-            delete PointNext;
-
-            MultiLS->addGeometryDirectly(LS);
-
-            int PolyByPoint = 0; //Compte le nombre de PolygonsCommuns (ce sont des Footprint) qui contiennent également le point courant
-            for(int k : ListFootprintsLinkedtoPolyDiscontinu.at(i)) //On parcourt tous les Footprint liés à PolyDiscontinu
+            for(int j = 0; j < ListPoints.at(l)->getNumGeometries() - 1; ++j)
             {
-                OGRMultiPolygon* PolyFootprint = CleanedFootprintsMPSaved.at(k);
+                OGRPoint * Point = (OGRPoint*)(ListPoints.at(l)->getGeometryRef(j)->clone());
+                OGRPoint * PointNext = (OGRPoint*)(ListPoints.at(l)->getGeometryRef(j + 1));
 
-                if(Point->Distance(PolyFootprint) < Precision_Vect)
-                    ++PolyByPoint;
-                if(PolyByPoint > 1) //Cela signifie que ce point est partagé par plusieurs PolyFootprint : on doit le projeter pour tenter de découper PolyDiscontinu.
+                OGRLineString* LS = new OGRLineString;
+                LS->addPoint(Point);
+                LS->addPoint(PointNext);
+
+                MultiLS->addGeometryDirectly(LS);
+
+                int PolyByPoint = 0; //Compte le nombre de PolygonsCommuns (ce sont des Footprint) qui contiennent également le point courant
+                for(int k : ListFootprintsLinkedtoPolyDiscontinu.at(i)) //On parcourt tous les Footprint liés à PolyDiscontinu
                 {
-                    OGRLineString* PrevLine; //On calcule l'arête précédente car elle contient également Point
-                    if(j == 0) //On est obligé d'aller chercher l'arête précédente à la fin du LinearRing
+                    OGRMultiPolygon* PolyFootprint = CleanedFootprintsMPSaved.at(k);
+
+                    if(Point->Distance(PolyFootprint) < Precision_Vect)
+                        ++PolyByPoint;
+                    if(PolyByPoint > 1) //Cela signifie que ce point est partagé par plusieurs PolyFootprint : on doit le projeter pour tenter de découper PolyDiscontinu.
                     {
-                        PrevLine = new OGRLineString;
-                        OGRPoint * PrevPoint = new OGRPoint;
-                        RingDiscontinu->getPoint(RingDiscontinu->getNumPoints() - 2, PrevPoint); //Il faut aller le chercher le -2 car le -1 est le même que Point;
-                        PrevLine->addPoint(PrevPoint);
-                        PrevLine->addPoint(Point);
+                        OGRLineString* PrevLine; //On calcule l'arête précédente car elle contient également Point
+                        if(j == 0) //On est obligé d'aller chercher l'arête précédente à la fin du LinearRing
+                        {
+                            PrevLine = new OGRLineString;
+                            OGRPoint * PrevPoint = (OGRPoint *)(ListPoints.at(l)->getGeometryRef(ListPoints.at(l)->getNumGeometries() - 2));//Il faut aller le chercher le -2 car le -1 est le même que Point;
+                            PrevLine->addPoint(PrevPoint);
+                            PrevLine->addPoint(Point);
+                        }
+                        else
+                            PrevLine = (OGRLineString*)MultiLS->getGeometryRef(MultiLS->getNumGeometries() - 2)->clone(); //On vient d'ajouter le LS courant, donc il faut aller chercher le -2
+
+                        bool PointIsModified = false;
+
+                        OGRPoint* Projete = ProjectPointOnEnvelope(Point, PolyDiscontinu, LS, PrevLine, &PointIsModified); ///ATTENTION : Le point projeté est en 2D
+
+                        delete PrevLine;
+
+                        if(Projete == nullptr)
+                            break;
+
+                        if(Projete->getX() == 0.0 && Projete->getY() == 0.0) //La projection n'est pas nécessaire (si c'est sur un bord du polygon)'
+                        {
+                            delete Projete;
+                            break;
+                        }
+
+                        if(PointIsModified)
+                            ListAProjetesModifies.push_back((OGRPoint*)Point->clone());
+                        ListAProjetes.push_back((OGRPoint*)Point->clone());
+
+                        ListProjetes.push_back(Projete);
+
+                        break;//Inutile de continuer à parcourir les autres polygons du Shape, cela ne changera rien au résultat puisque la projection sera le même qu'il y ait 2 ou + polygones associés à un point donné
                     }
-                    else
-                        PrevLine = (OGRLineString*)MultiLS->getGeometryRef(MultiLS->getNumGeometries() - 2)->clone(); //On vient d'ajouter le LS courant, donc il faut aller chercher le -2
-
-                    bool PointIsModified = false;
-
-                    OGRPoint* Projete = ProjectPointOnEnvelope(Point, PolyDiscontinu, LS, PrevLine, &PointIsModified); ///ATTENTION : Le point projeté est en 2D
-
-                    delete PrevLine;
-
-                    if(Projete->getX() == 0.0 && Projete->getY() == 0.0) //La projection n'est pas nécessaire (si c'est sur un bord du polygon)'
-                    {
-                        delete Point;
-                        delete Projete;
-                        break;
-                    }
-
-                    if(PointIsModified)
-                        ListAProjetesModifies.push_back((OGRPoint*)Point->clone());
-
-                    ListAProjetes.push_back(Point);
-                    ListProjetes.push_back(Projete);
-
-                    break;//Inutile de continuer à parcourir les autres polygons du Shape, cela ne changera rien au résultat puisque la projection sera le même qu'il y ait 2 ou + polygones associés à un point donné
                 }
-            }
-            if(PolyByPoint <= 1)
                 delete Point;
+            }
         }
+
+        for(OGRMultiPoint* MP: ListPoints)
+            delete MP;
 
         //Avec MultiLS, on va mettre en place les polygones découpés
         for(int j = 0; j < MultiLS->getNumGeometries(); ++j)
@@ -4889,6 +4892,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                 }
                 else //Le test a peut être négatif car il manquait des points sur Footprint, on va donc re tester une fois les points de PolyDiscontinu projetés dessus.
                 {
+                    delete PolyFootprint;
                     PolyFootprint = dynamic_cast<OGRPolygon*>(CreatePointsOnLine(PolyDiscontinu,CleanedFootprintsMPSaved2.at(i)->getGeometryRef(j)));
                     RingFootprint = PolyFootprint->getExteriorRing();
                     if(IntersectRings3D(RingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
@@ -4897,6 +4901,23 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
                         delete PolyFootprint;
                         break;
+                    }
+                    else if(PolyDiscontinu->getNumInteriorRings() > 0) //On va maintenant tester les éventuels Interior Rings de PolyDiscontinu
+                    {
+                        bool test = false;
+                        for(int r = 0; r < PolyDiscontinu->getNumInteriorRings(); ++r)
+                        {
+                            OGRLinearRing* IntRingDiscontinu = PolyDiscontinu->getInteriorRing(r);
+                            if(IntersectRings3D(IntRingDiscontinu, RingFootprint) == 2) //Cela signifie que PolyDiscontinu et PolyFootprint sont continus en 3D : ils partagent une arrête commune.
+                            {
+                                IndicesPolygonsCommuns.push_back(i); //On stocke ce polygon au cas où PolyDiscontinu veut se lier à un autre footprint afin que l'on ait la liste de tous les footprint concernés.
+
+                                delete PolyFootprint;
+                                test = true;
+                            }
+                        }
+                        if(test)
+                            break;
                     }
                 }
                 delete PolyFootprint;
