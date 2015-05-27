@@ -46,7 +46,7 @@
 #include "src/processes/ExportToShape.hpp"
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
-#include "src/processes/visibilite.hpp"
+#include "src/Visibilite/Visibilite.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2161,7 +2161,9 @@ void MainWindow::test4()
 
 	fb.close();
 
-	RayTracing("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",m_app.getSettings().getDataProfile().m_offset,cam);
+	//Analyse("C:/VCityData/Lyon01/LYON01_MNT.gml",m_app.getSettings().getDataProfile().m_offset,cam);
+	//Analyse("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml",m_app.getSettings().getDataProfile().m_offset,cam);
+	Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",m_app.getSettings().getDataProfile().m_offset,cam);
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
