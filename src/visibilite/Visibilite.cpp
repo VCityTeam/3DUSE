@@ -10,6 +10,8 @@
 #include <QImage>
 #include <QColor>
 
+#include <thread>
+
 #include "Hit.hpp"
 
 int RandInt(int low, int high)
@@ -44,9 +46,46 @@ void Analyse(std::string path, TVec3d offset,osg::Camera* cam)
 	delete tile;
 }
 
-void HeightLoop(Hit** result,Hit** resultRemarquable, unsigned int width, unsigned int height, float* minDistance, float* maxDistance, std::vector<std::pair<unsigned int,unsigned int>>* rowToDo)
+struct TempD
 {
+	Hit** result;
+	Hit** resultRemarquable;
+	float* minDistance; 
+	float* maxDistance; 
+	std::vector<Triangle*>* triangles; 
+	std::vector<std::pair<Ray,std::pair<unsigned int,unsigned int>>>* rowToDo;
+};
 
+void RayLoop(TempD data)
+{
+	for(unsigned int l = 0; l < data.triangles->size(); l++)
+	{
+		Triangle* tri = data.triangles->at(l);
+
+		for(unsigned int k = 0; k < data.rowToDo->size(); k++)
+		{
+			Ray ray = data.rowToDo->at(k).first;
+			unsigned int i = data.rowToDo->at(k).second.first;
+			unsigned int j = data.rowToDo->at(k).second.second;
+
+			Hit hit;
+			if(ray.Intersect(tri,&hit))//Check if the ray hit the triangle and
+			{
+				if(!data.result[i][j].intersect || data.result[i][j].distance > hit.distance)//Check if it is closer than the previous one
+				{
+					data.result[i][j] = hit;
+					*data.maxDistance = std::max(hit.distance,*data.maxDistance);
+					*data.minDistance = std::min(hit.distance,*data.minDistance);
+				}
+
+				QString tempStr(hit.triangle->parent->getId().c_str());
+				if(!tempStr.startsWith("LYON") && ( !data.resultRemarquable[i][j].intersect || data.resultRemarquable[i][j].distance > hit.distance ) )//Check if it is closer than the previous one
+				{
+					data.resultRemarquable[i][j] = hit;
+				}
+			}
+		}
+	}
 }
 
 RayTracingResult RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d offset, osg::Camera* cam)
@@ -88,49 +127,67 @@ RayTracingResult RayTracing(std::vector<Triangle*> triangles, GlobalData* global
 	Hit** result = new Hit*[WWIDTH];
 	Hit** resultRemarquable = new Hit*[WWIDTH];
 
-	std::vector<std::pair<unsigned int,unsigned int>> toDo;
+	QTime time;
+	time.start();
+
+	unsigned int tCount = std::thread::hardware_concurrency();
+
+	std::vector<std::pair<Ray,std::pair<unsigned int,unsigned int>>>* toDo = new std::vector<std::pair<Ray,std::pair<unsigned int,unsigned int>>>[tCount];
+	unsigned int current = 0;
+
 
 	for(unsigned int i = 0; i < WWIDTH; i++)
 	{
-		for(unsigned int j = 0; j < WHEIGHT; j++)//Foreach pixel on our image
-		{
-
-		}
-	}
-
-	for(unsigned int i = 0; i < WWIDTH; i++)
-	{
-		std::cout << i << std::endl;
 		result[i] = new Hit[WHEIGHT];
 		resultRemarquable[i] = new Hit[WHEIGHT];
 		for(unsigned int j = 0; j < WHEIGHT; j++)//Foreach pixel on our image
 		{
-			Ray ray = Ray::BuildRd(TVec2d(i,j),cam);//Build a ray
-
-			bool intersect = false;
-
-			for(Triangle* tri : triangles)//For each triangle of our scene
-			{
-				Hit hit;
-				if(ray.Intersect(tri,&hit))//Check if the ray hit the triangle and
-				{
-					if(!result[i][j].intersect || result[i][j].distance > hit.distance)//Check if it is closer than the previous one
-					{
-						result[i][j] = hit;
-						globalData->maxDistance = std::max(hit.distance,globalData->maxDistance);
-						globalData->minDistance = std::min(hit.distance,globalData->minDistance);
-					}
-
-					QString tempStr(hit.triangle->parent->getId().c_str());
-					if(!tempStr.startsWith("LYON") && ( !resultRemarquable[i][j].intersect || resultRemarquable[i][j].distance > hit.distance ) )//Check if it is closer than the previous one
-					{
-						resultRemarquable[i][j] = hit;
-					}
-				}
-			}
-
+			toDo[current].push_back(std::make_pair(Ray::BuildRd(TVec2d(i,j),cam), std::make_pair(i,j)));
+			current++;
+			current = current % tCount;
 		}
+	}	
+
+	std::cout << "Thread : " << tCount << std::endl;
+
+	float* minDist = new float[tCount];
+	float* maxDist = new float[tCount];
+
+	std::vector<std::thread*> threads;
+
+	for(unsigned int i = 0; i < tCount; i++)
+	{
+		minDist[i] = globalData->minDistance;
+		maxDist[i] = globalData->maxDistance;
+		TempD data;
+		data.result = result;
+		data.minDistance = &minDist[i];
+		data.maxDistance = &maxDist[i];
+		data.resultRemarquable = resultRemarquable;
+		data.triangles = &triangles;
+		data.rowToDo = &toDo[i];
+
+		std::thread* t = new std::thread(RayLoop,data);
+		threads.push_back(t);
 	}
+
+	std::cout << "Thread Launched " << std::endl;
+
+	for(unsigned int i = 0; i < tCount; i++)
+	{
+		(*threads[i]).join();
+		globalData->minDistance = std::min(globalData->minDistance,minDist[i]);
+		globalData->maxDistance = std::max(globalData->maxDistance,maxDist[i]);
+		delete threads[i];
+	}
+
+	std::cout << "The joining is completed" << std::endl;
+
+	delete[] minDist;
+	delete[] maxDist;
+	delete[] toDo;
+
+	std::cout << "Time : " << time.elapsed()/1000 << " sec" << std::endl;
 
 	RayTracingResult rtResult;
 	rtResult.width = WWIDTH;
