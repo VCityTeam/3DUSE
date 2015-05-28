@@ -34,6 +34,22 @@ struct GlobalData
 */
 struct RayTracingResult
 {
+	RayTracingResult(unsigned int width, unsigned int height)
+	{
+		this->width = width;
+		this->height = height;
+		hits = new Hit*[width];
+		for(unsigned int i = 0; i < width; i++)
+			hits[i] = new Hit[height];
+	}
+
+	~RayTracingResult()
+	{
+		for(unsigned int i = 0; i < width; i++)
+			delete[] hits[i];
+		delete[] hits;
+	}
+
 	Hit** hits;///< Hit of the rays
 	unsigned int width;///< Width of hits
 	unsigned int height;///< Height of hits
@@ -45,8 +61,9 @@ struct RayTracingResult
 *	@param path Path to the CityGML file on disk
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
+*	@param useSkipMiscBuilding If not remarquable building must be skip during the building analysis
 */
-void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr);
+void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr, bool useSkipMiscBuilding = false);
 
 /**
 *	@build Perform a raytracing on a CityGML tile
@@ -54,9 +71,9 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 *	@param globalData Where to write some data generate globaly
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
-*	@return The result
+*	@param result The result
 */
-RayTracingResult RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d offset, osg::Camera* cam = nullptr);
+void RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d offset, osg::Camera* cam, RayTracingResult* result);
 
 /**
 *	@brief Build list of triangle from a CityGML building tile
@@ -75,6 +92,6 @@ std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offse
 *	@param globalData Where to write some data generate from the triangle list
 *	@return The list of triangle from the CityGML tile
 */
-std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData);
+std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData);
 
 #endif
