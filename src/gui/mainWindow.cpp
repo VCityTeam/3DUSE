@@ -2163,7 +2163,8 @@ void MainWindow::test4()
 
 	//Analyse("C:/VCityData/Lyon01/LYON01_MNT.gml",m_app.getSettings().getDataProfile().m_offset,cam);
 	//Analyse("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml",m_app.getSettings().getDataProfile().m_offset,cam);
-	Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",m_app.getSettings().getDataProfile().m_offset,cam);
+	Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam);
+	//Analyse("C:/VCityData/Tile/Lyon01_BATI/Tile_3685_10351.gml","C:/VCityData/Tile/Lyon01_MNT/Tile_3685_10351.gml",m_app.getSettings().getDataProfile().m_offset,cam);
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

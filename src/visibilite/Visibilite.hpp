@@ -1,3 +1,6 @@
+#ifndef __VISIBILITE_HPP__
+#define __VISIBILITE_HPP__
+
 #include <string>
 #include <unordered_map>
 
@@ -32,7 +35,6 @@ struct GlobalData
 struct RayTracingResult
 {
 	Hit** hits;///< Hit of the rays
-	Hit** hitsRemarquableBuildingOnly;///< Hit of the rays but with only the remarquable building taken in account;
 	unsigned int width;///< Width of hits
 	unsigned int height;///< Height of hits
 	TVec3d lightDir;///< Direction of the light in the scene
@@ -44,7 +46,7 @@ struct RayTracingResult
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
 */
-void Analyse(std::string path, TVec3d offset,osg::Camera* cam = nullptr);
+void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr);
 
 /**
 *	@build Perform a raytracing on a CityGML tile
@@ -57,25 +59,22 @@ void Analyse(std::string path, TVec3d offset,osg::Camera* cam = nullptr);
 RayTracingResult RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d offset, osg::Camera* cam = nullptr);
 
 /**
-*	@brief Export image from a ray tracing result
-*	@param result Result from the ray tracing algorithm
-*	@param globalData Where to write some data generate globaly
+*	@brief Build list of triangle from a CityGML building tile
+*	@param tile CityGML tile from which we want the triangle list
+*	@param offset offset Offset of the geometry in 3Duse
+*	@param globalData Where to write some data generate from the triangle list
+*	@param ignoreMiscBuilding If true this will ignore building that are not remarquable
+*	@return The list of triangle from the CityGML tile
 */
-void ExportImage(RayTracingResult result, GlobalData* globalData);
+std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData, bool ignoreMiscBuilding);
 
 /**
-*	@brief Process the results of a ray tracing algorithm
-*	@param result Result from the ray tracing algorithm
-*	@param globalData Where to write some data generate globaly
-*/
-void ProcessResult(RayTracingResult result, GlobalData* globalData);
-
-/**
-*	@brief Build list of triangle from a CityGML tile
+*	@brief Build list of triangle from a CityGML terrain tile
 *	@param tile CityGML tile from which we want the triangle list
 *	@param offset offset Offset of the geometry in 3Duse
 *	@param globalData Where to write some data generate from the triangle list
 *	@return The list of triangle from the CityGML tile
 */
-std::vector<Triangle*> BuildTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData);
+std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData);
 
+#endif

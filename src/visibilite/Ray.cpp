@@ -87,42 +87,40 @@ bool Ray::Intersect(Triangle* triangle, Hit* hit)
 
 Ray Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
 {
-	/*double fov;
+	double fov;
 	double aspect;
 	double znear;
 	double zfar;
-	cam->getProjectionMatrixAsPerspective(fov,aspect,znear,zfar);*/
-
-	//See : https://www.shadertoy.com/view/MdX3Rr for the code to build a ray
-
-	osg::Vec3f temppos;
-	osg::Vec3f temptarget;
-	osg::Vec3f tempup;
-
-	cam->getViewMatrixAsLookAt(temppos,temptarget,tempup);
-
-	TVec3d camPos(temppos.x(),temppos.y(),temppos.z());
-	TVec3d camTarget(temptarget.x(),temptarget.y(),temptarget.z());
-	TVec3d camUp(tempup.x(),tempup.y(),tempup.z());
-
-	TVec3d ro = camPos;
-	TVec3d ta = camTarget;
-
-	// Calculate orthonormal camera reference system
-	TVec3d camDir   = Normalized(ta-ro); // direction for center ray
-	TVec3d camRight = Normalized(camDir.cross(camUp));
+	cam->getProjectionMatrixAsPerspective(fov,aspect,znear,zfar);
 
 	osg::Viewport* viewport = cam->getViewport();
-	int width = viewport->width();
-	int height = viewport->height();
 
-	TVec2d coord = TVec2d((fragCoord[0]/width*2)-1.0,(fragCoord[1]/height*2)-1.0);
-	coord[0] *= width/height;
+	float width = viewport->width();
+	float height = viewport->height();
 
-	// Get direction for this pixel
-	TVec3d rd = Normalized(camDir + (camRight*coord[0] + camUp*coord[1]));
+	fov = osg::DegreesToRadians(fov);
+	float fovy = (height/width)*fov;
 
-	return Ray(camPos,rd);
+	
+	//See : http://www.unknownroad.com/rtfm/graphics/rt_eyerays.html for the code to build a ray
+
+	float x = ((2*fragCoord.x - width)/width) * tan(fov);
+	float y = ((2*fragCoord.y - height)/height) * tan(fovy);
+
+	osg::Vec3f ori(0.0,0.0,0.0);
+	osg::Vec3f dir(x,y,-znear/2);
+
+	osg::Quat rot = osg::Matrixd::inverse(cam->getViewMatrix()).getRotate();
+
+	ori = ori * osg::Matrixd::inverse(cam->getViewMatrix());
+	dir = rot *  dir ;
+
+	dir.normalize();
+
+	TVec3d rayori(ori.x(),ori.y(),ori.z());
+	TVec3d raydir(dir.x(),dir.y(),dir.z());
+
+	return Ray(rayori,raydir);
 }
 
 float Ray::DotCross(TVec3d v0, TVec3d v1,

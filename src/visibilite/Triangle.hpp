@@ -21,8 +21,14 @@ struct Triangle
 		this->c = c;
 		polygon = nullptr;
 		geometry = nullptr;
+		subObject = nullptr;
 		object = nullptr;
-		parent = nullptr;
+	}
+
+	TVec3d GetNormal()
+	{
+		TVec3d normal = (b - a).cross(c - a);
+		return normal/normal.length();
 	}
 
 	TVec3d a; ///< First point of the triangle
@@ -31,8 +37,8 @@ struct Triangle
 
 	citygml::Polygon* polygon; ///< CityGML polygon in which the triangle belong
 	citygml::Geometry* geometry; ///< CityGML geometry in which the polygon belong
-	citygml::CityObject* object; ///< Roof or wall in which the geometry belong
-	citygml::CityObject* parent; ///< City Object in which the object belong
+	citygml::CityObject* subObject; ///< Roof or wall in which the geometry belong
+	citygml::CityObject* object; ///< City Object in which the object belong
 };
 
 #endif
