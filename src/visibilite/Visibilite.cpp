@@ -28,9 +28,14 @@ int RandInt(int low, int high)
 	return qrand() % ((high + 1) - low) + low;
 }
 
-void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, bool useSkipMiscBuilding)
+std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, bool useSkipMiscBuilding)
 {
-	RayTracingResult result(cam->getViewport()->width(),cam->getViewport()->height());
+	unsigned int oldWidth = cam->getViewport()->width();
+	unsigned int oldHeight = cam->getViewport()->height();
+
+	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),256,256);
+
+	ViewPoint result(cam->getViewport()->width(),cam->getViewport()->height());
 
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -42,15 +47,13 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 
 	result.lightDir = Ray::Normalized(camPos - camDir);
 
-	GlobalData globalData;
-
 	std::cout << "Loading Building Scene." << std::endl;
 	vcity::Tile* tile = new vcity::Tile(buildingPath);
 
 	//Get the triangle list
-	std::vector<Triangle*> triangles = BuildBuildingTriangleList(tile,offset,&globalData,useSkipMiscBuilding);
+	std::vector<Triangle*> triangles = BuildBuildingTriangleList(tile,offset,&result,useSkipMiscBuilding);
 
-	RayTracing(triangles,&globalData,offset,cam,&result);
+	RayTracing(triangles,&result,offset,cam);
 
 	vcity::Tile* tileT;
 	std::vector<Triangle*> trianglesT;
@@ -61,13 +64,23 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		tileT = new vcity::Tile(terrainPath);
 
 		//Get the triangle list
-		trianglesT = BuildTerrainTriangleList(tileT,offset,&globalData);
+		trianglesT = BuildTerrainTriangleList(tileT,offset,&result);
 
-		RayTracing(trianglesT,&globalData,offset,cam,&result);
+		RayTracing(trianglesT,&result,offset,cam);
 	}
 
-	ExportImages(&globalData,&result,useSkipMiscBuilding ? "onlyremarquable_" : "");
-	ExportData(&globalData,&result,useSkipMiscBuilding ? "onlyremarquable_" : "");
+	result.ComputeSkyline();
+	ExportData(&result,useSkipMiscBuilding ? "onlyremarquable_" : "");
+	ExportImages(&result,useSkipMiscBuilding ? "onlyremarquable_" : "");
+
+	std::vector<TVec3d> skylineReturn;
+
+	for(unsigned int i = 0; i < result.skyline.size(); i++)
+	{
+		Hit h = result.hits[result.skyline[i].first][result.skyline[i].second];
+		skylineReturn.push_back(h.point);
+	}
+
 
 	for(unsigned int i = 0; i != triangles.size(); i++)
 		delete triangles[i];
@@ -81,11 +94,15 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 
 		delete tileT;
 	}
+
+	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
+
+	return skylineReturn;
 }
 
 struct RayTracingData
 {
-	RayTracingResult* result;
+	ViewPoint* result;
 	float* minDistance; 
 	float* maxDistance; 
 	std::vector<Triangle*>* triangles; 
@@ -122,7 +139,7 @@ void RayLoop(RayTracingData data)
 	}
 }
 
-void RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d offset, osg::Camera* cam, RayTracingResult* result)
+void RayTracing(std::vector<Triangle*> triangles, ViewPoint* viewpoint, TVec3d offset, osg::Camera* cam)
 {
 	QTime time;
 	time.start();
@@ -134,7 +151,7 @@ void RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d
 
 	unsigned int current = 0;//At which thread we are going to add a ray
 
-	for(unsigned int i = 0; i < result->width; i++)
+	for(unsigned int i = 0; i < viewpoint->width; i++)
 	{
 		toDo[current].push_back(i);//Add a ray to a thread list
 		current++;
@@ -150,10 +167,10 @@ void RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d
 
 	for(unsigned int i = 0; i < tCount; i++)
 	{
-		minDistance[i] = globalData->minDistance;
-		maxDistance[i] = globalData->maxDistance;
+		minDistance[i] = viewpoint->minDistance;
+		maxDistance[i] = viewpoint->maxDistance;
 		RayTracingData data;
-		data.result = result;
+		data.result = viewpoint;
 		data.minDistance = &minDistance[i];
 		data.maxDistance = &maxDistance[i];
 		data.triangles = &triangles;
@@ -169,8 +186,8 @@ void RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d
 	for(unsigned int i = 0; i < tCount; i++)//Join all our thread and update global data min and max distance
 	{
 		(*threads[i]).join();
-		globalData->minDistance = std::min(globalData->minDistance,minDistance[i]);
-		globalData->maxDistance = std::max(globalData->maxDistance,maxDistance[i]);
+		viewpoint->minDistance = std::min(viewpoint->minDistance,minDistance[i]);
+		viewpoint->maxDistance = std::max(viewpoint->maxDistance,maxDistance[i]);
 		delete threads[i];
 	}
 
@@ -184,7 +201,7 @@ void RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d
 }
 
 
-std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData, bool ignoreMiscBuilding)
+std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding)
 {
 	std::vector<Triangle*> triangles;
 
@@ -200,7 +217,7 @@ std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offse
 
 			QColor objectColor = qRgba(RandInt(0,255),RandInt(0,255),RandInt(0,255),255);
 			std::pair<std::string,QColor> pair(obj->getId(),objectColor);
-			globalData->objectToColor.insert(pair);
+			viewpoint->objectToColor.insert(pair);
 
 			for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
 			{
@@ -235,7 +252,7 @@ std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offse
 	return triangles;
 }
 
-std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData)
+std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint)
 {
 	std::vector<Triangle*> triangles;
 
@@ -247,7 +264,7 @@ std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset
 		{
 			QColor objectColor = qRgba(RandInt(0,255),RandInt(0,255),RandInt(0,255),255);
 			std::pair<std::string,QColor> pair(obj->getId(),objectColor);
-			globalData->objectToColor.insert(pair);
+			viewpoint->objectToColor.insert(pair);
 			for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque géométrie
 			{
 				for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
@@ -276,4 +293,103 @@ std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset
 	}
 
 	return triangles;
+}
+
+std::pair<int, int> ViewPoint::GetCoord(Position p)
+{
+	switch (p)
+	{
+	case W:
+		return std::make_pair(-1,0);
+		break;
+	case NW:
+		return std::make_pair(-1,1);
+		break;
+	case N:
+		return std::make_pair(0,1);
+		break;
+	case NE:
+		return std::make_pair(1,1);
+		break;
+	case E:
+		return std::make_pair(1,0);
+		break;
+	case SE:
+		return std::make_pair(1,-1);
+		break;
+	case S:
+		return std::make_pair(0,-1);
+		break;
+	case SW:
+		return std::make_pair(-1,-1);
+		break;
+	default:
+		throw std::exception("Mega Error, pos not in enum range !");
+		break;
+	}
+}
+
+inline unsigned int ViewPoint::Clamp(unsigned int x,unsigned int a,unsigned int b)
+{
+	return x < a ? a : (x > b ? b : x);
+}
+
+void ViewPoint::ComputeSkyline()
+{
+	bool found = false;
+
+	unsigned int x = 0;
+	unsigned int y = 0;
+
+	for(unsigned int i = 0; i < width; i++)
+	{
+		for(unsigned int j = height - 1; j >= 0; j--)
+		{
+			if(hits[i][j].intersect)
+			{
+				found = true;
+				x = i;
+				y = j;
+				skyline.push_back(std::make_pair(i,j));
+				break;
+			}
+		}
+		if(found)
+			break;
+	}
+
+
+	Position pos = N;
+	std::pair<int, int> c = GetCoord(pos);
+
+	unsigned int realX = Clamp(x+c.first,0,width);
+	unsigned int realY = Clamp(y+c.second,0,height);
+
+	while(x < width - 1)
+	{
+		while(!hits[realX][realY].intersect)
+		{
+			int posInt = int(pos);
+			posInt++;
+			posInt = posInt % 8;
+			pos = Position(posInt);
+			c = GetCoord(pos);
+			realX = Clamp(x+c.first,0,width);
+			realY = Clamp(y+c.second,0,height);
+		}
+
+		x = realX;
+		y = realY;
+		skyline.push_back(std::make_pair(x,y));
+
+		int posInt = int(pos);
+		posInt += 5;
+		posInt = posInt % 8;
+		pos = Position(posInt);
+
+		c = GetCoord(pos);
+
+		realX = Clamp(x+c.first,0,width);
+		realY = Clamp(y+c.second,0,height);
+	}
 }

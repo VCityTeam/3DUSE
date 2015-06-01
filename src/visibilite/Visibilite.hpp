@@ -10,51 +10,67 @@
 #include "Triangle.hpp"
 #include "Hit.hpp"
 
-/**
-*	Data that are for the whole scene (not specific to a pixel)
-*/
-struct GlobalData
+struct ViewPoint
 {
-	/**
-	*	@brief Create a new Global
-	*/
-	GlobalData()
-	{
-		minDistance = FLT_MAX;
-		maxDistance = FLT_MIN;
-	}
-
-	float minDistance;///< Minimum distance to a triangle in the scene
-	float maxDistance;///< Maximum distance to a triangle in the scene
-	std::map<std::string,QColor> objectToColor;///< Map a city object id to a color
-};
-
-/**
-*	Result of a ray tracing algorithm
-*/
-struct RayTracingResult
-{
-	RayTracingResult(unsigned int width, unsigned int height)
+	ViewPoint(unsigned int width, unsigned int height)
 	{
 		this->width = width;
 		this->height = height;
 		hits = new Hit*[width];
 		for(unsigned int i = 0; i < width; i++)
 			hits[i] = new Hit[height];
+
+		minDistance = FLT_MAX;
+		maxDistance = FLT_MIN;
 	}
 
-	~RayTracingResult()
+	~ViewPoint()
 	{
 		for(unsigned int i = 0; i < width; i++)
 			delete[] hits[i];
 		delete[] hits;
 	}
 
+	/**
+	*	@brief Compute the skyline of the viewpoint
+	*/
+	void ComputeSkyline();
+
 	Hit** hits;///< Hit of the rays
 	unsigned int width;///< Width of hits
 	unsigned int height;///< Height of hits
 	TVec3d lightDir;///< Direction of the light in the scene
+	float minDistance;///< Minimum distance to a triangle in the scene
+	float maxDistance;///< Maximum distance to a triangle in the scene
+	std::map<std::string,QColor> objectToColor;///< Map a city object id to a color
+	std::vector<std::pair<unsigned int,unsigned int>> skyline;///< Skyline of the viewpoints
+
+private:
+	inline unsigned int Clamp(unsigned int x,unsigned int a,unsigned int b);
+
+	/**
+	*	Enum used when build skyline, position relative to a pixel
+	*/
+	enum Position
+	{
+		W = 0,//West
+		NW = 1,//North West
+		N = 2,//North
+		NE = 3,//North East
+		E = 4,//East
+		SE = 5,//South East
+		S = 6,//South
+		SW = 7//South West
+	};
+
+	/**
+	*	@brief Get the shift need to know the coordinate in the position p
+	*	@param p Position
+	*	@return Shift need in <x,y>
+	*/
+	std::pair<int, int> GetCoord(Position p);
 };
+
 
 /**
 *	@build Analyse a CityGML tile
@@ -62,36 +78,36 @@ struct RayTracingResult
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
 *	@param useSkipMiscBuilding If not remarquable building must be skip during the building analysis
+*	@return A skyline of the analysis
 */
-void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr, bool useSkipMiscBuilding = false);
+std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr, bool useSkipMiscBuilding = false);
 
 /**
 *	@build Perform a raytracing on a CityGML tile
 *	@param triangles The list of triangle from the CityGML tile
-*	@param globalData Where to write some data generate globaly
+*	@param viewpoint Data about the viewpoint we are rendering
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
-*	@param result The result
 */
-void RayTracing(std::vector<Triangle*> triangles, GlobalData* globalData, TVec3d offset, osg::Camera* cam, RayTracingResult* result);
+void RayTracing(std::vector<Triangle*> triangles, ViewPoint* viewpoint, TVec3d offset, osg::Camera* cam);
 
 /**
 *	@brief Build list of triangle from a CityGML building tile
 *	@param tile CityGML tile from which we want the triangle list
 *	@param offset offset Offset of the geometry in 3Duse
-*	@param globalData Where to write some data generate from the triangle list
+*	@param viewpoint Data about the viewpoint we are rendering
 *	@param ignoreMiscBuilding If true this will ignore building that are not remarquable
 *	@return The list of triangle from the CityGML tile
 */
-std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData, bool ignoreMiscBuilding);
+std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding);
 
 /**
 *	@brief Build list of triangle from a CityGML terrain tile
 *	@param tile CityGML tile from which we want the triangle list
 *	@param offset offset Offset of the geometry in 3Duse
-*	@param globalData Where to write some data generate from the triangle list
+*	@param viewpoint Data about the viewpoint we are rendering
 *	@return The list of triangle from the CityGML tile
 */
-std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, GlobalData* globalData);
+std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint);
 
 #endif
