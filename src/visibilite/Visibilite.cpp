@@ -28,7 +28,7 @@ int RandInt(int low, int high)
 	return qrand() % ((high + 1) - low) + low;
 }
 
-std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, bool useSkipMiscBuilding)
+std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, bool useSkipMiscBuilding, std::string exportFilePrefix)
 {
 	unsigned int oldWidth = cam->getViewport()->width();
 	unsigned int oldHeight = cam->getViewport()->height();
@@ -70,8 +70,8 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 	}
 
 	result.ComputeSkyline();
-	ExportData(&result,useSkipMiscBuilding ? "onlyremarquable_" : "");
-	ExportImages(&result,useSkipMiscBuilding ? "onlyremarquable_" : "");
+	ExportData(&result,exportFilePrefix);
+	ExportImages(&result,exportFilePrefix);
 
 	std::vector<TVec3d> skylineReturn;
 
@@ -98,6 +98,160 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
 
 	return skylineReturn;
+}
+
+void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
+{
+	osg::Vec3d pos;
+	osg::Vec3d target;
+	osg::Vec3d up;
+	cam->getViewMatrixAsLookAt(pos,target,up);
+
+	osg::Vec3d dir = target - pos;
+	dir.z() = 0;
+	dir.normalize();
+	target = pos + dir;
+	up = osg::Vec3d(0,0,1);
+	cam->setViewMatrixAsLookAt(pos,target,up);
+
+	unsigned int oldWidth = cam->getViewport()->width();
+	unsigned int oldHeight = cam->getViewport()->height();
+
+	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),256,256);
+
+	ViewPoint result(cam->getViewport()->width(),cam->getViewport()->height());
+
+	TVec3d camPos = TVec3d(pos.x(),pos.y(),pos.z());
+	TVec3d camDir = TVec3d(target.x(),target.y(),target.z());
+
+	result.lightDir = Ray::Normalized(camPos - camDir);
+
+	std::cout << "Loading Building Scene." << std::endl;
+	vcity::Tile* tile = new vcity::Tile(buildingPath);
+
+	//Get the triangle list
+	std::vector<Triangle*> triangles = BuildBuildingTriangleList(tile,offset,&result,false);
+
+	vcity::Tile* tileT;
+	std::vector<Triangle*> trianglesT;
+
+	if(terrainPath != "")
+	{
+		std::cout << "Loading Terrain Scene." << std::endl;
+		tileT = new vcity::Tile(terrainPath);
+
+		//Get the triangle list
+		trianglesT = BuildTerrainTriangleList(tileT,offset,&result);
+	}
+
+	for(unsigned int i = 0; i < count; i++)
+	{
+		RayTracing(triangles,&result,offset,cam);
+		if(terrainPath != "")
+			RayTracing(trianglesT,&result,offset,cam);
+
+		result.ComputeSkyline();
+		ExportData(&result,std::to_string(i)+"_");
+		ExportImages(&result,std::to_string(i)+"_");
+
+		result.Reset();
+
+		pos.z()+=zIncrement;
+		target.z()+=zIncrement;
+		cam->setViewMatrixAsLookAt(pos,target,up);
+	}
+
+	for(unsigned int i = 0; i != triangles.size(); i++)
+		delete triangles[i];
+
+	delete tile;
+
+	if(terrainPath != "")
+	{
+		for(unsigned int i = 0; i != trianglesT.size(); i++)
+			delete trianglesT[i];
+
+		delete tileT;
+	}
+
+	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
+}
+
+void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
+{
+	osg::Vec3d pos;
+	osg::Vec3d target;
+	osg::Vec3d up;
+	cam->getViewMatrixAsLookAt(pos,target,up);
+
+	osg::Vec3d dir = target - pos;
+	dir.z() = 0;
+	dir.normalize();
+	target = pos + dir;
+	up = osg::Vec3d(0,0,1);
+	cam->setViewMatrixAsLookAt(pos,target,up);
+
+	unsigned int oldWidth = cam->getViewport()->width();
+	unsigned int oldHeight = cam->getViewport()->height();
+
+	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),256,256);
+
+	ViewPoint result(cam->getViewport()->width(),cam->getViewport()->height());
+
+	TVec3d camPos = TVec3d(pos.x(),pos.y(),pos.z());
+	TVec3d camDir = TVec3d(target.x(),target.y(),target.z());
+
+	result.lightDir = Ray::Normalized(camPos - camDir);
+
+	std::cout << "Loading Building Scene." << std::endl;
+	vcity::Tile* tile = new vcity::Tile(buildingPath);
+
+	//Get the triangle list
+	std::vector<Triangle*> triangles = BuildBuildingTriangleList(tile,offset,&result,false);
+
+	vcity::Tile* tileT;
+	std::vector<Triangle*> trianglesT;
+
+	if(terrainPath != "")
+	{
+		std::cout << "Loading Terrain Scene." << std::endl;
+		tileT = new vcity::Tile(terrainPath);
+
+		//Get the triangle list
+		trianglesT = BuildTerrainTriangleList(tileT,offset,&result);
+	}
+
+	for(unsigned int i = 0; i < viewpoints.size(); i++)
+	{
+		pos = osg::Vec3d(viewpoints[i].first.x,viewpoints[i].first.y,viewpoints[i].first.z);
+		target = osg::Vec3d(viewpoints[i].second.x,viewpoints[i].second.y,viewpoints[i].second.z);
+		cam->setViewMatrixAsLookAt(pos,target,up);
+
+		RayTracing(triangles,&result,offset,cam);
+		if(terrainPath != "")
+			RayTracing(trianglesT,&result,offset,cam);
+
+		result.ComputeSkyline();
+		ExportData(&result,std::to_string(i)+"_");
+		ExportImages(&result,std::to_string(i)+"_");
+
+		result.Reset();
+	}
+
+	for(unsigned int i = 0; i != triangles.size(); i++)
+		delete triangles[i];
+
+	delete tile;
+
+	if(terrainPath != "")
+	{
+		for(unsigned int i = 0; i != trianglesT.size(); i++)
+			delete trianglesT[i];
+
+		delete tileT;
+	}
+
+	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
 }
 
 struct RayTracingData
@@ -343,7 +497,8 @@ void ViewPoint::ComputeSkyline()
 
 	for(unsigned int i = 0; i < width; i++)
 	{
-		for(unsigned int j = height - 1; j >= 0; j--)
+
+		for(int j = height - 1; j >= 0; j--)
 		{
 			if(hits[i][j].intersect)
 			{
@@ -358,7 +513,6 @@ void ViewPoint::ComputeSkyline()
 			break;
 	}
 
-
 	Position pos = N;
 	std::pair<int, int> c = GetCoord(pos);
 
@@ -367,19 +521,23 @@ void ViewPoint::ComputeSkyline()
 
 	while(x < width - 1)
 	{
-		while(!hits[realX][realY].intersect)
+		while(realY >= height || (realY < height && !hits[realX][realY].intersect))
 		{
 			int posInt = int(pos);
 			posInt++;
 			posInt = posInt % 8;
 			pos = Position(posInt);
 			c = GetCoord(pos);
-			realX = Clamp(x+c.first,0,width);
-			realY = Clamp(y+c.second,0,height);
+			realX = x+c.first,0,width;
+			realY = y+c.second,0,height;
 		}
 
 		x = realX;
 		y = realY;
+
+		if(x == skyline.front().first && y == skyline.front().second)
+			break;
+
 		skyline.push_back(std::make_pair(x,y));
 
 		int posInt = int(pos);
@@ -391,5 +549,21 @@ void ViewPoint::ComputeSkyline()
 
 		realX = Clamp(x+c.first,0,width);
 		realY = Clamp(y+c.second,0,height);
+	}
+}
+
+void ViewPoint::Reset()
+{
+	minDistance = FLT_MAX;
+	maxDistance = FLT_MIN;
+
+	skyline.clear();
+
+	for(unsigned int i = 0; i < width; i++)
+	{
+		for(unsigned int j = 0; j < height; j++)
+		{
+			hits[i][j] = Hit();
+		}
 	}
 }

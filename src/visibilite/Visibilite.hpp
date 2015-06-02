@@ -36,6 +36,11 @@ struct ViewPoint
 	*/
 	void ComputeSkyline();
 
+	/**
+	*	@brief Reset the viewpoint hits array
+	*/
+	void Reset();
+
 	Hit** hits;///< Hit of the rays
 	unsigned int width;///< Width of hits
 	unsigned int height;///< Height of hits
@@ -78,9 +83,29 @@ private:
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
 *	@param useSkipMiscBuilding If not remarquable building must be skip during the building analysis
+*	@param exportFilePrefix	If we must put something before the file name when exporting
 *	@return A skyline of the analysis
 */
-std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr, bool useSkipMiscBuilding = false);
+std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr, bool useSkipMiscBuilding = false, std::string exportFilePrefix = "");
+
+/**
+*	@build Analyse a CityGML tile
+*	@param path Path to the CityGML file on disk
+*	@param offset Offset of the geometry in 3Duse
+*	@param cam A camera that can be used for the ray tracing
+*	@param count How many time we rune the analysis
+*	@param zIncrement How much we increase the z coordinate of the cam each analysis
+*/
+void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
+
+/**
+*	@build Analyse a CityGML tile
+*	@param path Path to the CityGML file on disk
+*	@param offset Offset of the geometry in 3Duse
+*	@param cam A camera that can be used for the ray tracing
+*	@param viewpoints List of viewpoint where to analyse, <position,target>
+*/
+void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
 
 /**
 *	@build Perform a raytracing on a CityGML tile
