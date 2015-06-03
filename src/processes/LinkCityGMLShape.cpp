@@ -2631,7 +2631,7 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
         NewShape->addGeometry(Poly);
 	}
 
-    SaveGeometrytoShape("NewShape.shp", NewShape);
+    //SaveGeometrytoShape("NewShape.shp", NewShape);
 
     delete NewShape;
 
@@ -4477,7 +4477,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 		delete [] PolyIsAssigned;
 	}
 
-    SaveGeometrytoShape("PolygonsDiscontinus.shp", PolygonsDiscontinus);
+    //SaveGeometrytoShape("PolygonsDiscontinus.shp", PolygonsDiscontinus);
 
     /// Uniquement pour sauvegarder PolygonsNonDiscontinus.shp
 
@@ -4523,7 +4523,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         }
     }
 
-    SaveGeometrytoShape("PolygonsNonDiscontinus.shp", ResTemp);
+    //SaveGeometrytoShape("PolygonsNonDiscontinus.shp", ResTemp);
     delete ResTemp;
 
     /// Fin
@@ -4622,15 +4622,15 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         }
     }
 
-    OGRGeometryCollection* PolygonsToCut = new OGRGeometryCollection;//// Debug
-    OGRGeometryCollection* PolygonsCut = new OGRGeometryCollection;////
+    //OGRGeometryCollection* PolygonsToCut = new OGRGeometryCollection;//// Debug
+    //OGRGeometryCollection* PolygonsCut = new OGRGeometryCollection;////
 
     //On va parcourir tous les cas de Polygons discontinus liés à plusieurs footprints afin de mettre en place une éventuelle découpe de ce polygon afin de le partager entre les footprints.
     for(int i = 0; i < IndicePolygonsDiscontinusToCut.size(); ++i)
     {
         OGRPolygon* PolyDiscontinu = (OGRPolygon*) PolygonsDiscontinus->getGeometryRef(IndicePolygonsDiscontinusToCut.at(i));
 
-        PolygonsToCut->addGeometry(PolyDiscontinu);////
+        //PolygonsToCut->addGeometry(PolyDiscontinu);////
 
         //OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
         std::vector<OGRMultiPoint*> ListPoints = GetPointsFromPolygon(PolyDiscontinu); //Contient un OGRMultiPoint par Ring du Polygon
@@ -4797,7 +4797,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                 if(SplitPolygon == nullptr)
                     continue;
 
-                PolygonsCut->addGeometry(SplitPolygon);////
+                //PolygonsCut->addGeometry(SplitPolygon);////
 
                 OGRLinearRing* SplitRing = SplitPolygon->getExteriorRing();
 
@@ -4840,8 +4840,8 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         delete ListSplitPolygons;
     }
 
-    SaveGeometrytoShape("A_PolygonsToCut.shp", PolygonsToCut); ////
-    SaveGeometrytoShape("A_PolygonsCut.shp", PolygonsCut); ////
+    //SaveGeometrytoShape("A_PolygonsToCut.shp", PolygonsToCut); ////
+    //SaveGeometrytoShape("A_PolygonsCut.shp", PolygonsCut); ////
 
     for(OGRMultiPolygon* MP : CleanedFootprintsMPSaved) //On n'a plus besoin de cette version
         delete MP;
@@ -4987,7 +4987,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
     for(OGRMultiPolygon* MP : CleanedFootprintsMP)
         delete MP;
 
-    SaveGeometrytoShape("FootPrintsShape_Modifie.shp", Res);
+    //SaveGeometrytoShape("FootPrintsShape_Modifie.shp", Res);
 
 	return CleanedFootprints;
 }
