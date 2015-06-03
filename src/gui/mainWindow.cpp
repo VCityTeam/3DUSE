@@ -701,7 +701,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         break;
     case 0:
         m_ui->menuDebug->menuAction()->setVisible(false);
-        m_ui->menuTest->menuAction()->setVisible(true); //A cacher
+        m_ui->menuTest->menuAction()->setVisible(false); //A cacher
         m_ui->actionFix_building->setVisible(false);
         m_ui->actionShadows->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
