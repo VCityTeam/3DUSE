@@ -47,6 +47,7 @@
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
 #include "src/Visibilite/Visibilite.hpp"
+#include "src/Visibilite/AABB.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2141,7 +2142,7 @@ void MainWindow::test4()
 	//DetectionToitsPlats("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml",5,0.98);
 	//DetectionToitsPlats("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",5,0.98);
 
-	QDir outputDir("./SkylineOutput/");
+	/*QDir outputDir("./SkylineOutput/");
 	if(!outputDir.exists("./SkylineOutput/"))
 	{
 		 outputDir.mkpath(outputDir.absolutePath());
@@ -2159,7 +2160,7 @@ void MainWindow::test4()
 	
 	file << pos.x() << " " << pos.y() << " " << pos.z() << " " << target.x() << " " << target.y() << " " << target.z() << " " << up.x() << " " << up.y() << " " << up.z() << "\n";
 
-	fb.close();
+	fb.close();*/
 
 	/*target = osg::Vec3d(0,0,1);
 
@@ -2172,10 +2173,18 @@ void MainWindow::test4()
 	//Analyse("C:/VCityData/Tile/Lyon01_BATI/Tile_3685_10351.gml","C:/VCityData/Tile/Lyon01_MNT/Tile_3685_10351.gml",m_app.getSettings().getDataProfile().m_offset,cam);
 	//Analyse("C:/VCityData/Tile/Lyon01_BATI/Tile_3685_10351.gml","C:/VCityData/Tile/Lyon01_MNT/Tile_3685_10351.gml",m_app.getSettings().getDataProfile().m_offset,cam,true);
 	//Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
-    Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
+    //Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
 	
 	//Analyse("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml","C:/VCityData/Lyon01/LYON01_MNT.gml",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
-	
+
+	//BuildAABB("C:/VCityData/Tile/","Lyon01",m_app.getSettings().getDataProfile().m_offset);
+	std::pair<std::vector<AABB>,std::vector<AABB>> temp = LoadAABB("C:/VCityData/Tile/","Lyon01");
+
+	for(unsigned int i = 0; i < temp.first.size(); i++)
+	{
+		auto bbox = m_osgScene->buildBBox(temp.first[i].min,temp.first[i].max);
+		m_osgScene->addChild(bbox);
+	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
