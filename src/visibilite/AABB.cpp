@@ -2,10 +2,14 @@
 
 #include "gui/osg/osgScene.hpp"
 
+#include "Ray.hpp"
+
 #include <QDir>
 #include <QFile>
 
 #include <iostream>
+
+
 
 std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::string name)
 {

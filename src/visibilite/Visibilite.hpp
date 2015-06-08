@@ -41,6 +41,8 @@ struct ViewPoint
 	*/
 	void Reset();
 
+	
+
 	Hit** hits;///< Hit of the rays
 	unsigned int width;///< Width of hits
 	unsigned int height;///< Height of hits
@@ -134,5 +136,12 @@ std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offse
 *	@return The list of triangle from the CityGML tile
 */
 std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint);
+
+/**
+*	@brief Build the osg node to display a skyline in 3DUse
+*	@param skyline Skyline
+*	@return The osg node
+*/
+osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline);
 
 #endif

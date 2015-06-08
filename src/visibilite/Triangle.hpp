@@ -19,10 +19,12 @@ struct Triangle
 		this->a = a;
 		this->b = b;
 		this->c = c;
-		polygon = nullptr;
+		objectType = citygml::CityObjectsType::COT_All;
+		subObjectType = citygml::CityObjectsType::COT_All;
+		/*polygon = nullptr;
 		geometry = nullptr;
 		subObject = nullptr;
-		object = nullptr;
+		object = nullptr;*/
 	}
 
 	TVec3d GetNormal()
@@ -35,10 +37,14 @@ struct Triangle
 	TVec3d b; ///< Second point of the triangle
 	TVec3d c; ///< Third point of the triangle
 
-	citygml::Polygon* polygon; ///< CityGML polygon in which the triangle belong
+	/*citygml::Polygon* polygon; ///< CityGML polygon in which the triangle belong
 	citygml::Geometry* geometry; ///< CityGML geometry in which the polygon belong
 	citygml::CityObject* subObject; ///< Roof or wall in which the geometry belong
-	citygml::CityObject* object; ///< City Object in which the object belong
+	citygml::CityObject* object; ///< City Object in which the object belong */
+
+	citygml::CityObjectsType objectType;
+	citygml::CityObjectsType subObjectType;
+	std::string objectId;
 };
 
 #endif

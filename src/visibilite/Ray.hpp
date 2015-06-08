@@ -19,6 +19,10 @@ struct Ray
 	{
 		this->ori = ori;
 		this->dir = dir;
+		inv_dir = TVec3d(1/dir.x, 1/dir.y, 1/dir.z);
+		sign[0] = (inv_dir.x < 0);
+		sign[1] = (inv_dir.y < 0);
+		sign[2] = (inv_dir.z < 0);
 	}
 
 	/**
@@ -35,14 +39,16 @@ struct Ray
 	*	@return A newly created ray coresponding to the given coord on the cam screen
 	*/
 	static Ray BuildRd(TVec2d fragCoord,osg::Camera* cam);
-	
+
 	static float DotCross(TVec3d v0, TVec3d v1,
-			   TVec3d v2);
+		TVec3d v2);
 	static TVec3d Normalized(TVec3d vec);
 
 
 	TVec3d ori;///< Origin of the ray
 	TVec3d dir;///< Direction of the ray
+	TVec3d inv_dir;///< inv Direction of the ray
+	int sign[3];
 };
 
 #endif

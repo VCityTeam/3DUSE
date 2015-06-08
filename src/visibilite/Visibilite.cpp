@@ -390,10 +390,11 @@ std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offse
 							TVec3d c = vert[ind[ i * 3 + 2 ]] - offset;
 
 							Triangle* t = new Triangle(a,b,c);
-							t->polygon = PolygonCityGML;
-							t->geometry = Geometry;
-							t->subObject = object;
-							t->object = obj;
+							t->subObjectType = object->getType();
+							t->objectType = obj->getType();
+							t->objectId = obj->getId();
+
+
 
 							triangles.push_back(t);
 						}
@@ -434,9 +435,8 @@ std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset
 						TVec3d c = vert[ind[ i * 3 + 2 ]] - offset;
 
 						Triangle* t = new Triangle(a,b,c);
-						t->polygon = PolygonCityGML;
-						t->geometry = Geometry;
-						t->object = obj;
+						t->objectType = obj->getType();
+						t->objectId = obj->getId();
 
 						triangles.push_back(t);
 					}
@@ -447,6 +447,30 @@ std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset
 	}
 
 	return triangles;
+}
+
+osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline)
+{
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+    osg::Geometry* geom = new osg::Geometry;
+    osg::Vec3Array* vertices = new osg::Vec3Array;
+    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+	for(unsigned int i = 0; i < skyline.size(); i++)
+	{
+		vertices->push_back(osg::Vec3(skyline[i].x,skyline[i].y,skyline[i].z));
+	}
+
+	for(unsigned int i = 0; i < skyline.size()-1; i++)
+	{
+		indices->push_back(i); indices->push_back(i+1);
+	}
+
+    geom->setVertexArray(vertices);
+    geom->addPrimitiveSet(indices);
+    geode->addDrawable(geom);
+
+    return geode;
 }
 
 std::pair<int, int> ViewPoint::GetCoord(Position p)
@@ -567,3 +591,4 @@ void ViewPoint::Reset()
 		}
 	}
 }
+

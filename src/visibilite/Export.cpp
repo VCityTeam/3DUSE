@@ -24,22 +24,22 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 			{
 				cptHit++;
 
-				if(viewpoint->hits[i][j].triangle->object->getType() == citygml::COT_Building)
+				if(viewpoint->hits[i][j].triangle->objectType == citygml::COT_Building)
 				{
 					cptAllBuilding++;
 
-					if(viewpoint->hits[i][j].triangle->subObject->getType() == citygml::COT_RoofSurface)
+					if(viewpoint->hits[i][j].triangle->subObjectType == citygml::COT_RoofSurface)
 						cptRoof++;
 					else
 						cptWall++;
 
-					QString tempStr(viewpoint->hits[i][j].triangle->object->getId().c_str());
+					QString tempStr(viewpoint->hits[i][j].triangle->objectId.c_str());
 					if(tempStr.startsWith("LYON"))//Check to see if this is an important building
 						cptBuilding++;
 					else
 						cptRemarquable++;
 				}
-				else if(viewpoint->hits[i][j].triangle->object->getType() == citygml::COT_TINRelief)
+				else if(viewpoint->hits[i][j].triangle->objectType == citygml::COT_TINRelief)
 				{
 					cptTerrain++;
 				}
@@ -83,11 +83,11 @@ void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix)
 
 				float sundot = (normal.dot(light1) + 1.0)/2.0;
 
-				if(viewpoint->hits[i][j].triangle->object->getType() == citygml::COT_TINRelief)
+				if(viewpoint->hits[i][j].triangle->objectType == citygml::COT_TINRelief)
 					imageMurToit.setPixel(i,j,qRgba(78*sundot,61*sundot, 40*sundot,255*sundot));
 				else
 				{
-					if (viewpoint->hits[i][j].triangle->subObject->getType() == citygml::COT_RoofSurface)//Check if roof or wall
+					if (viewpoint->hits[i][j].triangle->subObjectType == citygml::COT_RoofSurface)//Check if roof or wall
 						imageMurToit.setPixel(i,j,qRgba(255*sundot,0,0,255));
 					else
 						imageMurToit.setPixel(i,j,qRgba(205*sundot,183*sundot,158*sundot,255));
@@ -143,11 +143,11 @@ void ExportImageObjectColor(ViewPoint* viewpoint, std::string filePrefix)
 
 				float sundot = (normal.dot(light1) + 1.0)/2.0;
 
-				if(viewpoint->hits[i][j].triangle->object->getType() == citygml::COT_TINRelief)
+				if(viewpoint->hits[i][j].triangle->objectType == citygml::COT_TINRelief)
 					imageObject.setPixel(i,j,qRgba(78*sundot,61*sundot, 40*sundot,255*sundot));
 				else
 				{
-					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle->object->getId()];
+					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle->objectId];
 					imageObject.setPixel(i,j,qRgba(color.red()*sundot,color.green()*sundot,color.blue()*sundot,255));//Set the color for the building
 				}
 			}
@@ -178,13 +178,13 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 
 				float sundot = (normal.dot(light1) + 1.0)/2.0;
 
-				if(viewpoint->hits[i][j].triangle->object->getType() == citygml::COT_TINRelief)
+				if(viewpoint->hits[i][j].triangle->objectType == citygml::COT_TINRelief)
 					imageBuilding.setPixel(i,j,qRgba(78*sundot,61*sundot, 40*sundot,255*sundot));
 				else
 				{
-					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle->object->getId()];
+					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle->objectId];
 
-					QString tempStr(viewpoint->hits[i][j].triangle->object->getId().c_str());
+					QString tempStr(viewpoint->hits[i][j].triangle->objectId.c_str());
 					if(tempStr.startsWith("LYON"))//Check to see if this is an important building
 						imageBuilding.setPixel(i,j,qRgba(205*sundot,183*sundot,158*sundot,255));
 					else

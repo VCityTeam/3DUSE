@@ -13,6 +13,8 @@ struct AABB
 	std::string name;
 };
 
+
+
 /**
 *	@brief Build bounding box for a set of tile
 *	@param dir Directory where citygml are located, must contain two directory for terrain and building
