@@ -51,4 +51,22 @@ struct Ray
 	int sign[3];
 };
 
+struct RayCollection
+{
+	RayCollection(std::vector<Ray*> rays)
+	{
+		this->rays = rays;
+	}
+
+	~RayCollection()
+	{
+		for(unsigned int i = 0; i < rays.size(); i++)
+		{
+			delete rays[i];
+		}
+	}
+
+	std::vector<Ray*> rays;
+};
+
 #endif

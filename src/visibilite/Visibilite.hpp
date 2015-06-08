@@ -116,7 +116,7 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
 */
-void RayTracing(std::vector<Triangle*> triangles, ViewPoint* viewpoint, TVec3d offset, osg::Camera* cam);
+void RayTracing(TriangleList* triangles, ViewPoint* viewpoint, TVec3d offset, osg::Camera* cam);
 
 /**
 *	@brief Build list of triangle from a CityGML building tile
@@ -126,7 +126,7 @@ void RayTracing(std::vector<Triangle*> triangles, ViewPoint* viewpoint, TVec3d o
 *	@param ignoreMiscBuilding If true this will ignore building that are not remarquable
 *	@return The list of triangle from the CityGML tile
 */
-std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding);
+TriangleList BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding);
 
 /**
 *	@brief Build list of triangle from a CityGML terrain tile
@@ -135,7 +135,7 @@ std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offse
 *	@param viewpoint Data about the viewpoint we are rendering
 *	@return The list of triangle from the CityGML tile
 */
-std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint);
+TriangleList BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint);
 
 /**
 *	@brief Build the osg node to display a skyline in 3DUse

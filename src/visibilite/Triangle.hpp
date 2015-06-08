@@ -3,6 +3,8 @@
 
 #include "gui/osg/osgScene.hpp"
 
+
+
 /**
 *	@brief A triangle create from a citygml polygon
 */
@@ -45,6 +47,28 @@ struct Triangle
 	citygml::CityObjectsType objectType;
 	citygml::CityObjectsType subObjectType;
 	std::string objectId;
+};
+
+/**
+*	A list of triangle
+*
+*/
+struct TriangleList
+{
+	TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>())
+	{
+		this->triangles = triangles;
+	}
+
+	~TriangleList()
+	{
+		for(unsigned int i = 0; i < triangles.size(); i++)
+		{
+			delete triangles[i];
+		}
+	}
+
+	std::vector<Triangle*> triangles;
 };
 
 #endif

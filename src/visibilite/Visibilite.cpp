@@ -51,12 +51,14 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 	vcity::Tile* tile = new vcity::Tile(buildingPath);
 
 	//Get the triangle list
-	std::vector<Triangle*> triangles = BuildBuildingTriangleList(tile,offset,&result,useSkipMiscBuilding);
+	TriangleList triangles = BuildBuildingTriangleList(tile,offset,&result,useSkipMiscBuilding);
 
-	RayTracing(triangles,&result,offset,cam);
+	delete tile;
+
+	RayTracing(&triangles,&result,offset,cam);
 
 	vcity::Tile* tileT;
-	std::vector<Triangle*> trianglesT;
+	TriangleList trianglesT;
 
 	if(terrainPath != "")
 	{
@@ -65,8 +67,10 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 
 		//Get the triangle list
 		trianglesT = BuildTerrainTriangleList(tileT,offset,&result);
+		
+		delete tileT;
 
-		RayTracing(trianglesT,&result,offset,cam);
+		RayTracing(&trianglesT,&result,offset,cam);
 	}
 
 	result.ComputeSkyline();
@@ -81,19 +85,6 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 		skylineReturn.push_back(h.point);
 	}
 
-
-	for(unsigned int i = 0; i != triangles.size(); i++)
-		delete triangles[i];
-
-	delete tile;
-
-	if(terrainPath != "")
-	{
-		for(unsigned int i = 0; i != trianglesT.size(); i++)
-			delete trianglesT[i];
-
-		delete tileT;
-	}
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
 
@@ -130,10 +121,12 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 	vcity::Tile* tile = new vcity::Tile(buildingPath);
 
 	//Get the triangle list
-	std::vector<Triangle*> triangles = BuildBuildingTriangleList(tile,offset,&result,false);
+	TriangleList triangles = BuildBuildingTriangleList(tile,offset,&result,false);
+
+	delete tile;
 
 	vcity::Tile* tileT;
-	std::vector<Triangle*> trianglesT;
+	TriangleList trianglesT;
 
 	if(terrainPath != "")
 	{
@@ -142,13 +135,15 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 
 		//Get the triangle list
 		trianglesT = BuildTerrainTriangleList(tileT,offset,&result);
+
+		delete tileT;
 	}
 
 	for(unsigned int i = 0; i < count; i++)
 	{
-		RayTracing(triangles,&result,offset,cam);
+		RayTracing(&triangles,&result,offset,cam);
 		if(terrainPath != "")
-			RayTracing(trianglesT,&result,offset,cam);
+			RayTracing(&trianglesT,&result,offset,cam);
 
 		result.ComputeSkyline();
 		ExportData(&result,std::to_string(i)+"_");
@@ -161,18 +156,6 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		cam->setViewMatrixAsLookAt(pos,target,up);
 	}
 
-	for(unsigned int i = 0; i != triangles.size(); i++)
-		delete triangles[i];
-
-	delete tile;
-
-	if(terrainPath != "")
-	{
-		for(unsigned int i = 0; i != trianglesT.size(); i++)
-			delete trianglesT[i];
-
-		delete tileT;
-	}
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
 }
@@ -207,10 +190,13 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 	vcity::Tile* tile = new vcity::Tile(buildingPath);
 
 	//Get the triangle list
-	std::vector<Triangle*> triangles = BuildBuildingTriangleList(tile,offset,&result,false);
+	TriangleList triangles = BuildBuildingTriangleList(tile,offset,&result,false);
+	
+
+	delete tile;
 
 	vcity::Tile* tileT;
-	std::vector<Triangle*> trianglesT;
+	TriangleList trianglesT;
 
 	if(terrainPath != "")
 	{
@@ -219,6 +205,8 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 
 		//Get the triangle list
 		trianglesT = BuildTerrainTriangleList(tileT,offset,&result);
+
+		delete tileT;
 	}
 
 	for(unsigned int i = 0; i < viewpoints.size(); i++)
@@ -227,28 +215,15 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		target = osg::Vec3d(viewpoints[i].second.x,viewpoints[i].second.y,viewpoints[i].second.z);
 		cam->setViewMatrixAsLookAt(pos,target,up);
 
-		RayTracing(triangles,&result,offset,cam);
+		RayTracing(&triangles,&result,offset,cam);
 		if(terrainPath != "")
-			RayTracing(trianglesT,&result,offset,cam);
+			RayTracing(&trianglesT,&result,offset,cam);
 
 		result.ComputeSkyline();
 		ExportData(&result,std::to_string(i)+"_");
 		ExportImages(&result,std::to_string(i)+"_");
 
 		result.Reset();
-	}
-
-	for(unsigned int i = 0; i != triangles.size(); i++)
-		delete triangles[i];
-
-	delete tile;
-
-	if(terrainPath != "")
-	{
-		for(unsigned int i = 0; i != trianglesT.size(); i++)
-			delete trianglesT[i];
-
-		delete tileT;
 	}
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
@@ -259,7 +234,7 @@ struct RayTracingData
 	ViewPoint* result;
 	float* minDistance; 
 	float* maxDistance; 
-	std::vector<Triangle*>* triangles; 
+	TriangleList* triangles; 
 	osg::Camera* cam;
 	std::vector<unsigned int>* rowToDo;
 };
@@ -274,9 +249,9 @@ void RayLoop(RayTracingData data)
 		for(unsigned int j = 0; j < data.cam->getViewport()->height(); j++)
 		{
 			Ray ray = Ray::BuildRd(TVec2d(i,j),data.cam);
-			for(unsigned int l = 0; l < data.triangles->size(); l++)
+			for(unsigned int l = 0; l < data.triangles->triangles.size(); l++)
 			{
-				Triangle* tri = data.triangles->at(l);
+				Triangle* tri = data.triangles->triangles.at(l);
 
 				Hit hit;
 				if(ray.Intersect(tri,&hit))//Check if the ray hit the triangle and
@@ -293,7 +268,7 @@ void RayLoop(RayTracingData data)
 	}
 }
 
-void RayTracing(std::vector<Triangle*> triangles, ViewPoint* viewpoint, TVec3d offset, osg::Camera* cam)
+void RayTracing(TriangleList* triangles, ViewPoint* viewpoint, TVec3d offset, osg::Camera* cam)
 {
 	QTime time;
 	time.start();
@@ -327,7 +302,7 @@ void RayTracing(std::vector<Triangle*> triangles, ViewPoint* viewpoint, TVec3d o
 		data.result = viewpoint;
 		data.minDistance = &minDistance[i];
 		data.maxDistance = &maxDistance[i];
-		data.triangles = &triangles;
+		data.triangles = triangles;
 		data.rowToDo = &toDo[i];
 		data.cam = cam;
 
@@ -355,7 +330,7 @@ void RayTracing(std::vector<Triangle*> triangles, ViewPoint* viewpoint, TVec3d o
 }
 
 
-std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding)
+TriangleList BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding)
 {
 	std::vector<Triangle*> triangles;
 
@@ -407,7 +382,7 @@ std::vector<Triangle*> BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offse
 	return triangles;
 }
 
-std::vector<Triangle*> BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint)
+TriangleList BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint)
 {
 	std::vector<Triangle*> triangles;
 
