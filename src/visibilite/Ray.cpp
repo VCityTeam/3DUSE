@@ -126,19 +126,7 @@ Ray* Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
 	return ray;
 }
 
-RayCollection RayCollection::BuildCollection(osg::Camera* cam)
-{
-	std::vector<Ray*> rays;
-	for(unsigned int i = 0; i < cam->getViewport()->width(); i++)
-	{
-		for(unsigned int j = 0; j < cam->getViewport()->height(); j++)
-		{
-			Ray* ray = Ray::BuildRd(TVec2d(i,j),cam);
-		}
-	}
 
-	return rays;
-}
 
 float Ray::DotCross(TVec3d v0, TVec3d v1,
 			   TVec3d v2)

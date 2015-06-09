@@ -10,6 +10,8 @@
 #include "Triangle.hpp"
 #include "Hit.hpp"
 
+
+
 struct ViewPoint
 {
 	ViewPoint(unsigned int width, unsigned int height)
@@ -79,6 +81,26 @@ private:
 	std::pair<int, int> GetCoord(Position p);
 };
 
+struct RayCollection
+{
+	RayCollection(std::vector<Ray*> rays = std::vector<Ray*>())
+	{
+		this->rays = rays;
+	}
+
+	~RayCollection()
+	{
+		for(unsigned int i = 0; i < rays.size(); i++)
+		{
+			delete rays[i];
+		}
+	}
+
+	static RayCollection* BuildCollection(osg::Camera* cam);
+
+	std::vector<Ray*> rays;
+	ViewPoint* viewpoint;///< The viewpoint render using this collection
+};
 
 /**
 *	@build Analyse a CityGML tile

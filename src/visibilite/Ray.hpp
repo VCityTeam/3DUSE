@@ -5,7 +5,7 @@
 
 struct Hit;
 
-
+struct RayCollection;
 
 /**
 *	@brief A simple ray
@@ -51,26 +51,9 @@ struct Ray
 	TVec3d dir;///< Direction of the ray
 	TVec3d inv_dir;///< inv Direction of the ray
 	int sign[3];
+	RayCollection* collection;///< Collection in which this ray belong
 };
 
-struct RayCollection
-{
-	RayCollection(std::vector<Ray*> rays = std::vector<Ray*>())
-	{
-		this->rays = rays;
-	}
 
-	~RayCollection()
-	{
-		for(unsigned int i = 0; i < rays.size(); i++)
-		{
-			delete rays[i];
-		}
-	}
-
-	static RayCollection BuildCollection(osg::Camera* cam);
-
-	std::vector<Ray*> rays;
-};
 
 #endif

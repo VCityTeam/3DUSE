@@ -55,9 +55,9 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 
 	delete tile;
 
-	RayCollection rays = RayCollection::BuildCollection(cam);
-	result.rays = &rays;
-	
+	RayCollection* rays = RayCollection::BuildCollection(cam);
+	result.rays = rays;
+	rays->viewpoint = &result;
 
 	RayTracing(&triangles,&result,offset,cam);
 
@@ -80,6 +80,8 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 	result.ComputeSkyline();
 	ExportData(&result,exportFilePrefix);
 	ExportImages(&result,exportFilePrefix);
+
+	delete rays;
 
 	std::vector<TVec3d> skylineReturn;
 
@@ -145,9 +147,9 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 
 	for(unsigned int i = 0; i < count; i++)
 	{
-		RayCollection rays = RayCollection::BuildCollection(cam);
-		result.rays = &rays;
-
+		RayCollection* rays = RayCollection::BuildCollection(cam);
+		result.rays = rays;
+		rays->viewpoint = &result;
 		RayTracing(&triangles,&result,offset,cam);
 		if(terrainPath != "")
 			RayTracing(&trianglesT,&result,offset,cam);
@@ -161,6 +163,8 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		pos.z()+=zIncrement;
 		target.z()+=zIncrement;
 		cam->setViewMatrixAsLookAt(pos,target,up);
+
+		delete rays;
 	}
 
 
@@ -222,9 +226,9 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		target = osg::Vec3d(viewpoints[i].second.x,viewpoints[i].second.y,viewpoints[i].second.z);
 		cam->setViewMatrixAsLookAt(pos,target,up);
 
-		RayCollection rays = RayCollection::BuildCollection(cam);
-		result.rays = &rays;
-
+		RayCollection* rays = RayCollection::BuildCollection(cam);
+		result.rays = rays;
+		rays->viewpoint = &result;
 		RayTracing(&triangles,&result,offset,cam);
 		if(terrainPath != "")
 			RayTracing(&trianglesT,&result,offset,cam);
@@ -234,6 +238,8 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		ExportImages(&result,std::to_string(i)+"_");
 
 		result.Reset();
+
+		delete rays;
 	}
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
@@ -241,12 +247,10 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 
 struct RayTracingData
 {
-	ViewPoint* result;
 	float* minDistance; 
 	float* maxDistance; 
 	TriangleList* triangles; 
-	osg::Camera* cam;
-	std::vector<unsigned int>* rowToDo;
+	std::vector<Ray*>* rowToDo;
 };
 
 //Loop through all triangles and check if any rays intersect with triangles
@@ -254,27 +258,23 @@ void RayLoop(RayTracingData data)
 {
 	for(unsigned int k = 0; k < data.rowToDo->size(); k++)
 	{
-		unsigned int i = data.rowToDo->at(k);
-
-		for(unsigned int j = 0; j < data.cam->getViewport()->height(); j++)
+		Ray* ray = data.rowToDo->at(k);
+		for(unsigned int l = 0; l < data.triangles->triangles.size(); l++)
 		{
-			Ray ray = *Ray::BuildRd(TVec2d(i,j),data.cam);
-			for(unsigned int l = 0; l < data.triangles->triangles.size(); l++)
-			{
-				Triangle* tri = data.triangles->triangles.at(l);
+			Triangle* tri = data.triangles->triangles.at(l);
 
-				Hit hit;
-				if(ray.Intersect(tri,&hit))//Check if the ray hit the triangle and
+			Hit hit;
+			if(ray->Intersect(tri,&hit))//Check if the ray hit the triangle and
+			{
+				if(!ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].intersect || ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].distance > hit.distance)//Check if it is closer than the previous one
 				{
-					if(!data.result->hits[i][j].intersect || data.result->hits[i][j].distance > hit.distance)//Check if it is closer than the previous one
-					{
-						data.result->hits[i][j] = hit;
-						*data.maxDistance = std::max(hit.distance,*data.maxDistance);
-						*data.minDistance = std::min(hit.distance,*data.minDistance);
-					}
+					ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)] = hit;
+					*data.maxDistance = std::max(hit.distance,*data.maxDistance);
+					*data.minDistance = std::min(hit.distance,*data.minDistance);
 				}
 			}
 		}
+		
 	}
 }
 
@@ -284,18 +284,15 @@ void RayTracing(TriangleList* triangles, ViewPoint* viewpoint, TVec3d offset, os
 	time.start();
 
 	unsigned int tCount = std::thread::hardware_concurrency();//Get how many thread we have
+	unsigned int rayPerThread = viewpoint->rays->rays.size() / tCount;
 
 	//List of rays and their frag coord
-	std::vector<unsigned int>* toDo = new std::vector<unsigned int>[tCount];//List of rays for each threads
+	std::vector<Ray*>* toDo = new std::vector<Ray*>[tCount];//List of rays for each threads
 
-	unsigned int current = 0;//At which thread we are going to add a ray
-
-	for(unsigned int i = 0; i < viewpoint->width; i++)
+	for(unsigned int i = 0; i < tCount; i++)
 	{
-		toDo[current].push_back(i);//Add a ray to a thread list
-		current++;
-		current = current % tCount;
-	}	
+		toDo[i].insert(toDo[i].begin(),viewpoint->rays->rays.begin()+i*rayPerThread,viewpoint->rays->rays.begin()+(i+1)*rayPerThread);
+	}
 
 	std::cout << "Thread : " << tCount << std::endl;
 
@@ -309,12 +306,10 @@ void RayTracing(TriangleList* triangles, ViewPoint* viewpoint, TVec3d offset, os
 		minDistance[i] = viewpoint->minDistance;
 		maxDistance[i] = viewpoint->maxDistance;
 		RayTracingData data;
-		data.result = viewpoint;
 		data.minDistance = &minDistance[i];
 		data.maxDistance = &maxDistance[i];
 		data.triangles = triangles;
 		data.rowToDo = &toDo[i];
-		data.cam = cam;
 
 		std::thread* t = new std::thread(RayLoop,data);
 		threads.push_back(t);
@@ -577,3 +572,18 @@ void ViewPoint::Reset()
 	}
 }
 
+RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
+{
+	RayCollection* rays = new RayCollection();
+	for(unsigned int i = 0; i < cam->getViewport()->width(); i++)
+	{
+		for(unsigned int j = 0; j < cam->getViewport()->height(); j++)
+		{
+			Ray* ray = Ray::BuildRd(TVec2d(i,j),cam);
+			ray->collection = rays;
+			rays->rays.push_back(ray);
+		}
+	}
+
+	return rays;
+}
