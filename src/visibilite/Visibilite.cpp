@@ -55,6 +55,10 @@ std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, T
 
 	delete tile;
 
+	RayCollection rays = RayCollection::BuildCollection(cam);
+	result.rays = &rays;
+	
+
 	RayTracing(&triangles,&result,offset,cam);
 
 	vcity::Tile* tileT;
@@ -141,6 +145,9 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 
 	for(unsigned int i = 0; i < count; i++)
 	{
+		RayCollection rays = RayCollection::BuildCollection(cam);
+		result.rays = &rays;
+
 		RayTracing(&triangles,&result,offset,cam);
 		if(terrainPath != "")
 			RayTracing(&trianglesT,&result,offset,cam);
@@ -215,6 +222,9 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		target = osg::Vec3d(viewpoints[i].second.x,viewpoints[i].second.y,viewpoints[i].second.z);
 		cam->setViewMatrixAsLookAt(pos,target,up);
 
+		RayCollection rays = RayCollection::BuildCollection(cam);
+		result.rays = &rays;
+
 		RayTracing(&triangles,&result,offset,cam);
 		if(terrainPath != "")
 			RayTracing(&trianglesT,&result,offset,cam);
@@ -248,7 +258,7 @@ void RayLoop(RayTracingData data)
 
 		for(unsigned int j = 0; j < data.cam->getViewport()->height(); j++)
 		{
-			Ray ray = Ray::BuildRd(TVec2d(i,j),data.cam);
+			Ray ray = *Ray::BuildRd(TVec2d(i,j),data.cam);
 			for(unsigned int l = 0; l < data.triangles->triangles.size(); l++)
 			{
 				Triangle* tri = data.triangles->triangles.at(l);

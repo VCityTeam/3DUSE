@@ -85,7 +85,7 @@ bool Ray::Intersect(Triangle* triangle, Hit* hit)
 	return result;
 }
 
-Ray Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
+Ray* Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
 {
 	double fov;
 	double aspect;
@@ -120,7 +120,24 @@ Ray Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
 	TVec3d rayori(ori.x(),ori.y(),ori.z());
 	TVec3d raydir(dir.x(),dir.y(),dir.z());
 
-	return Ray(rayori,raydir);
+	Ray* ray = new Ray(rayori,raydir);
+	ray->fragCoord = fragCoord;
+
+	return ray;
+}
+
+RayCollection RayCollection::BuildCollection(osg::Camera* cam)
+{
+	std::vector<Ray*> rays;
+	for(unsigned int i = 0; i < cam->getViewport()->width(); i++)
+	{
+		for(unsigned int j = 0; j < cam->getViewport()->height(); j++)
+		{
+			Ray* ray = Ray::BuildRd(TVec2d(i,j),cam);
+		}
+	}
+
+	return rays;
 }
 
 float Ray::DotCross(TVec3d v0, TVec3d v1,

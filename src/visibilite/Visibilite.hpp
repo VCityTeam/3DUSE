@@ -51,6 +51,7 @@ struct ViewPoint
 	float maxDistance;///< Maximum distance to a triangle in the scene
 	std::map<std::string,QColor> objectToColor;///< Map a city object id to a color
 	std::vector<std::pair<unsigned int,unsigned int>> skyline;///< Skyline of the viewpoints
+	RayCollection* rays;///< Ray used for rendering this viewpoint
 
 private:
 	inline unsigned int Clamp(unsigned int x,unsigned int a,unsigned int b);

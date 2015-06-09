@@ -5,6 +5,8 @@
 
 struct Hit;
 
+
+
 /**
 *	@brief A simple ray
 */
@@ -38,13 +40,13 @@ struct Ray
 	*	@param cam Camera used to build the ray
 	*	@return A newly created ray coresponding to the given coord on the cam screen
 	*/
-	static Ray BuildRd(TVec2d fragCoord,osg::Camera* cam);
+	static Ray* BuildRd(TVec2d fragCoord,osg::Camera* cam);
 
 	static float DotCross(TVec3d v0, TVec3d v1,
 		TVec3d v2);
 	static TVec3d Normalized(TVec3d vec);
 
-
+	TVec2d fragCoord;///< Fragment coordinate of the ray
 	TVec3d ori;///< Origin of the ray
 	TVec3d dir;///< Direction of the ray
 	TVec3d inv_dir;///< inv Direction of the ray
@@ -53,7 +55,7 @@ struct Ray
 
 struct RayCollection
 {
-	RayCollection(std::vector<Ray*> rays)
+	RayCollection(std::vector<Ray*> rays = std::vector<Ray*>())
 	{
 		this->rays = rays;
 	}
@@ -65,6 +67,8 @@ struct RayCollection
 			delete rays[i];
 		}
 	}
+
+	static RayCollection BuildCollection(osg::Camera* cam);
 
 	std::vector<Ray*> rays;
 };
