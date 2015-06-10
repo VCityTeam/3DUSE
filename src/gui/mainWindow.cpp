@@ -47,7 +47,7 @@
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
 #include "src/Visibilite/Visibilite.hpp"
-#include "src/Visibilite/AABB.h"
+#include "src/Visibilite/AABB.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 

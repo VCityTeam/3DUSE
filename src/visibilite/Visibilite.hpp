@@ -10,8 +10,6 @@
 #include "Triangle.hpp"
 #include "Hit.hpp"
 
-
-
 struct ViewPoint
 {
 	ViewPoint(unsigned int width, unsigned int height)
@@ -26,11 +24,21 @@ struct ViewPoint
 		maxDistance = FLT_MIN;
 	}
 
+	ViewPoint()
+	{
+		minDistance = FLT_MAX;
+		maxDistance = FLT_MIN;
+		hits = nullptr;
+	}
+
 	~ViewPoint()
 	{
-		for(unsigned int i = 0; i < width; i++)
-			delete[] hits[i];
-		delete[] hits;
+		if(hits != nullptr)
+		{
+			for(unsigned int i = 0; i < width; i++)
+				delete[] hits[i];
+			delete[] hits;
+		}
 	}
 
 	/**
@@ -43,7 +51,10 @@ struct ViewPoint
 	*/
 	void Reset();
 
-	
+	/**
+	*	@brief Compute the min and max distance
+	*/
+	void ComputeMinMaxDistance();
 
 	Hit** hits;///< Hit of the rays
 	unsigned int width;///< Width of hits
@@ -111,7 +122,7 @@ struct RayCollection
 *	@param exportFilePrefix	If we must put something before the file name when exporting
 *	@return A skyline of the analysis
 */
-std::vector<TVec3d> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr, bool useSkipMiscBuilding = false, std::string exportFilePrefix = "");
+void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam = nullptr, bool useSkipMiscBuilding = false, std::string exportFilePrefix = "");
 
 /**
 *	@build Analyse a CityGML tile
@@ -135,11 +146,10 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 /**
 *	@build Perform a raytracing on a CityGML tile
 *	@param triangles The list of triangle from the CityGML tile
-*	@param viewpoint Data about the viewpoint we are rendering
-*	@param offset Offset of the geometry in 3Duse
-*	@param cam A camera that can be used for the ray tracing
+*	@param viewpoint Data about the viewpoints we are rendering
+*	@param viewpointCount How many viewpoint there is
 */
-void RayTracing(TriangleList* triangles, ViewPoint* viewpoint, TVec3d offset, osg::Camera* cam);
+void RayTracing(TriangleList* triangles, ViewPoint** viewpoint, unsigned int viewpointCount = 1);
 
 /**
 *	@brief Build list of triangle from a CityGML building tile
