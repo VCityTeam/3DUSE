@@ -18,6 +18,7 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::st
 	bool foundTerrain = false;
 	QFileInfo tDat;
 
+	//Check if our bounding box files do exists
 	QDir dt(dir.c_str());
 	if(dt.exists())
 	{

@@ -2,6 +2,7 @@
 #define __RAY_HPP__
 
 #include "Triangle.hpp"
+#include "AABB.hpp"
 
 struct Hit;
 
@@ -25,6 +26,7 @@ struct Ray
 		sign[0] = (inv_dir.x < 0);
 		sign[1] = (inv_dir.y < 0);
 		sign[2] = (inv_dir.z < 0);
+		ignore = false;
 	}
 
 	/**
@@ -34,6 +36,15 @@ struct Ray
 	*	@return True if this ray intersect with triangle
 	*/
 	bool Intersect(Triangle* triangle, Hit* hit = nullptr);
+	/**
+	*	@brief To know if the ray instersect a given box
+	*	@param box Box to intersect
+	*	@param hitt0 t0 at when ray firt hit the box
+	*	@param hitt1 t0 at when ray firt leave the box
+	*	@return True if this ray intersect with the box
+	*/
+	bool Intersect(AABB box, float *hitt0, float *hitt1);
+
 	/**
 	*	@brief Build a ray 
 	*	@param fragCoord Coordinate on screen of the ray
@@ -52,6 +63,7 @@ struct Ray
 	TVec3d inv_dir;///< inv Direction of the ray
 	int sign[3];
 	RayCollection* collection;///< Collection in which this ray belong
+	bool ignore;///< If this ray must be ignore when doing raytracing
 };
 
 

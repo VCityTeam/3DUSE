@@ -28,10 +28,12 @@ int RandInt(int low, int high)
 	return qrand() % ((high + 1) - low) + low;
 }
 
-void DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::string buildingPath, std::string terrainPath, TVec3d offset)
+std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::string buildingPath, std::string terrainPath, TVec3d offset)
 {
 	ViewPoint** result = new ViewPoint*[cams.size()];
 	RayCollection** rays = new RayCollection*[cams.size()];
+
+	std::vector<Ray*> allRays;
 
 	for(unsigned int i = 0; i < cams.size(); i++)
 	{
@@ -48,7 +50,10 @@ void DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::string buildingP
 		result[i]->lightDir = Ray::Normalized(camPos - camDir);
 		rays[i] = RayCollection::BuildCollection(cam);
 		result[i]->rays = rays[i];
+
 		rays[i]->viewpoint = result[i];
+
+		allRays.insert(allRays.end(),rays[i]->rays.begin(),rays[i]->rays.end());
 	}
 
 	std::cout << "Loading Building Scene." << std::endl;
@@ -76,25 +81,39 @@ void DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::string buildingP
 	for(unsigned int i = 1; i < cams.size(); i++)
 		result[i]->objectToColor = result[0]->objectToColor;
 
-	RayTracing(&triangles,result,cams.size());
+	
+
+	RayTracing(&triangles,allRays);
 	if(terrainPath != "")
-		RayTracing(&trianglesT,result,cams.size());
+		RayTracing(&trianglesT,allRays);
+
+	std::vector<AnalysisResult> resReturn;
 
 	for(unsigned int i = 0; i < cams.size(); i++)
 	{
 		result[i]->ComputeSkyline();
 		result[i]->ComputeMinMaxDistance();
-		ExportData(result[i],std::to_string(i)+"_");
-		ExportImages(result[i],std::to_string(i)+"_");
-		delete result[i];
-		delete rays[i];
+		AnalysisResult temp;
+		temp.rays = rays[i];
+		temp.viewpoint = result[i];
+		temp.viewpointPosition = rays[i]->rays.front()->ori;
+		
+		for(unsigned int j = 0; j < result[i]->skyline.size(); j++)
+		{
+			Hit h = result[i]->hits[result[i]->skyline[j].first][result[i]->skyline[j].second];
+			temp.skyline.push_back(h.point);
+		}
+
+		resReturn.push_back(temp);
 	}
 
 	delete[] result;
 	delete[] rays;
+
+	return resReturn;
 }
 
-void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, bool useSkipMiscBuilding, std::string exportFilePrefix)
+std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam)
 {
 	unsigned int oldWidth = cam->getViewport()->width();
 	unsigned int oldHeight = cam->getViewport()->height();
@@ -106,14 +125,17 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 	osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
 	temp.push_back(mycam);
 
-	DoAnalyse(temp,buildingPath,terrainPath,offset);
+	std::vector<AnalysisResult> result = DoAnalyse(temp,buildingPath,terrainPath,offset);
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
 
+	return result;
 }
 
 
-void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
+
+
+std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
 {
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -145,13 +167,15 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 	}
 
 
-	DoAnalyse(temp,buildingPath,terrainPath,offset);
+	std::vector<AnalysisResult> result = DoAnalyse(temp,buildingPath,terrainPath,offset);
 
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
+
+	return result;
 }
 
-void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
+std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
 {
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -182,9 +206,11 @@ void Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,os
 		temp.push_back(mycam);
 	}
 
-	DoAnalyse(temp,buildingPath,terrainPath,offset);
+	std::vector<AnalysisResult> result = DoAnalyse(temp,buildingPath,terrainPath,offset);
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);
+
+	return result;
 }
 
 struct RayTracingData
@@ -216,32 +242,20 @@ void RayLoop(RayTracingData data)
 	}
 }
 
-void RayTracing(TriangleList* triangles, ViewPoint** viewpoint, unsigned int viewpointCount)
+void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 {
 	QTime time;
 	time.start();
 
-	unsigned int rayCount = 0;
-
-	for(unsigned int i = 0;i < viewpointCount;i++)
-		rayCount+=viewpoint[i]->rays->rays.size();
-
 	unsigned int tCount = std::thread::hardware_concurrency();//Get how many thread we have
-	unsigned int rayPerThread = rayCount / tCount;
+	unsigned int rayPerThread = rays.size() / tCount;
 
 	//List of rays and their frag coord
 	std::vector<Ray*>* toDo = new std::vector<Ray*>[tCount];//List of rays for each threads
 
-	std::vector<Ray*> raysTemp;
-	raysTemp.reserve(rayCount);
-
-	for(unsigned int i = 0;i < viewpointCount;i++)
-		raysTemp.insert(raysTemp.begin(),viewpoint[i]->rays->rays.begin(),viewpoint[i]->rays->rays.end());
-
-
 	for(unsigned int i = 0; i < tCount; i++)
 	{
-		toDo[i].insert(toDo[i].begin(),raysTemp.begin()+i*rayPerThread,raysTemp.begin()+(i+1)*rayPerThread);
+		toDo[i].insert(toDo[i].begin(),rays.begin()+i*rayPerThread,rays.begin()+(i+1)*rayPerThread);
 	}
 
 	std::cout << "Thread : " << tCount << std::endl;
@@ -373,11 +387,13 @@ osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline)
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	osg::Geometry* geom = new osg::Geometry;
 	osg::Vec3Array* vertices = new osg::Vec3Array;
+	osg::Vec3Array* colors = new osg::Vec3Array;
 	osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
 	for(unsigned int i = 0; i < skyline.size(); i++)
 	{
 		vertices->push_back(osg::Vec3(skyline[i].x,skyline[i].y,skyline[i].z));
+		colors->push_back(osg::Vec3(0.0,0.0,0.0));
 	}
 
 	for(unsigned int i = 0; i < skyline.size()-1; i++)
@@ -385,7 +401,9 @@ osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline)
 		indices->push_back(i); indices->push_back(i+1);
 	}
 
+	
 	geom->setVertexArray(vertices);
+	geom->setColorArray(colors);
 	geom->addPrimitiveSet(indices);
 	geode->addDrawable(geom);
 
@@ -455,6 +473,9 @@ void ViewPoint::ComputeSkyline()
 		if(found)
 			break;
 	}
+
+	if(!found)
+		return;
 
 	Position pos = N;
 	std::pair<int, int> c = GetCoord(pos);
