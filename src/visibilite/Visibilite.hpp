@@ -115,16 +115,8 @@ struct RayCollection
 
 struct AnalysisResult
 {
-	~AnalysisResult()
-	{
-		if(viewpoint != nullptr)
-		delete viewpoint;
-		if(rays != nullptr)
-		delete rays;
-	}
+	
 
-	ViewPoint* viewpoint;
-	RayCollection* rays;
 	std::vector<TVec3d> skyline;
 	TVec3d viewpointPosition;
 };
@@ -136,7 +128,7 @@ struct AnalysisResult
 *	@param terrainPath Path to the citygml file of the terrains
 *	@param offset Offset of the geometry in 3Duse
 */
-std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::string buildingPath, std::string terrainPath, TVec3d offset);
+std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset);
 
 /**
 *	@brief Prep camera for a single viewpoint analysis
@@ -145,7 +137,7 @@ std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cam
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
 */
-std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam);
+std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset,osg::Camera* cam);
 
 /**
 *	@brief Prep camera for cascade viewpoints
@@ -156,7 +148,7 @@ std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrai
 *	@param count How many time we rune the analysis
 *	@param zIncrement How much we increase the z coordinate of the cam each analysis
 */
-std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
+std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
 
 /**
 *	@brief Prep camera for a list of viewpoint
@@ -166,7 +158,7 @@ std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrai
 *	@param cam A camera that can be used for the ray tracing
 *	@param viewpoints List of viewpoint where to analyse, <position,target>
 */
-std::vector<AnalysisResult> Analyse(std::string buildingPath, std::string terrainPath, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
+std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
 
 /**
 *	@build Perform a raytracing on a set of triangles
@@ -183,7 +175,7 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays);
 *	@param ignoreMiscBuilding If true this will ignore building that are not remarquable
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding);
+TriangleList* BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding);
 
 /**
 *	@brief Build list of triangle from a CityGML terrain tile
@@ -192,7 +184,7 @@ TriangleList BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoi
 *	@param viewpoint Data about the viewpoint we are rendering
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint);
+TriangleList* BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint);
 
 /**
 *	@brief Build the osg node to display a skyline in 3DUse

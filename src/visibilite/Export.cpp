@@ -66,6 +66,16 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	ofs.close();
 }
 
+TVec3d SkyShadeBlue(TVec3d d, TVec3d light)
+{
+  	// light direction
+	TVec3d lig = light;
+	float sun = (lig.dot(d)+1.0)/2.0;
+	TVec3d color = TVec3d(0.35,0.45,0.75)*(0.75-0.5*d[2]);
+	color = color + TVec3d(0.65,0.6,0.55)*pow( sun, 8.0 );
+	return color;
+}
+
 void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix)
 {
 	QImage imageMurToit(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);//Wall/Roof Image
@@ -75,7 +85,10 @@ void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix)
 		for(unsigned int j = 0; j < viewpoint->height; j++)
 		{
 			if(!viewpoint->hits[i][j].intersect)
-				imageMurToit.setPixel(i,j,qRgba(0,0,0,0));
+			{
+				TVec3d col = SkyShadeBlue(viewpoint->hits[i][j].ray.dir,viewpoint->lightDir);
+				imageMurToit.setPixel(i,j,qRgba(col.r*255,col.g*255,col.b*255,255));
+			}
 			else 
 			{
 				//Get its normal
@@ -110,7 +123,7 @@ void ExportImageZBuffer(ViewPoint* viewpoint, std::string filePrefix)
 		{
 			if(!viewpoint->hits[i][j].intersect)
 			{
-				imageZBuffer.setPixel(i,j,qRgba(255,255,255,0));
+				imageZBuffer.setPixel(i,j,qRgba(255,255,255,255));
 			}
 			else 
 			{
@@ -135,7 +148,10 @@ void ExportImageObjectColor(ViewPoint* viewpoint, std::string filePrefix)
 		for(unsigned int j = 0; j < viewpoint->height; j++)
 		{
 			if(!viewpoint->hits[i][j].intersect)
-				imageObject.setPixel(i,j,qRgba(0,0,0,0));
+			{
+				TVec3d col = SkyShadeBlue(viewpoint->hits[i][j].ray.dir,viewpoint->lightDir);
+				imageObject.setPixel(i,j,qRgba(col.r*255,col.g*255,col.b*255,255));
+			}
 			else 
 			{
 				//Get its normal
@@ -169,7 +185,8 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 		{
 			if(!viewpoint->hits[i][j].intersect)
 			{
-				imageBuilding.setPixel(i,j,qRgba(0,0,0,0));
+				TVec3d col = SkyShadeBlue(viewpoint->hits[i][j].ray.dir,viewpoint->lightDir);
+				imageBuilding.setPixel(i,j,qRgba(col.r*255,col.g*255,col.b*255,255));
 			}
 			else 
 			{

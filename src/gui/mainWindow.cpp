@@ -2185,7 +2185,20 @@ void MainWindow::test4()
 		m_osgScene->addChild(bbox);
 	}*/
 
-	m_osgScene->addChild(BuildSkylineOSGNode(Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
+	//m_osgScene->addChild(BuildSkylineOSGNode(Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
+
+	std::vector<std::string> building;
+	building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml");
+	//building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00036.gml");
+	//building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00163.gml");
+	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_BATI_2012.gml");
+	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_BATI_REMARQUABLE_2012.gml");
+	
+	std::vector<std::string> terrain;
+	//terrain.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_TIN_2012.gml");
+
+	Analyse(building,terrain,m_app.getSettings().getDataProfile().m_offset,cam);
+	//Analyse(building,terrain,m_app.getSettings().getDataProfile().m_offset,cam,6,20);
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

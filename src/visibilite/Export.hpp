@@ -4,6 +4,13 @@
 #include "Visibilite.hpp"
 
 /**
+*	@brief Get the color of the sky
+*	@param d Direction of the ray
+*	@param light Direction of the light
+*/
+TVec3d SkyShadeBlue(TVec3d d, TVec3d light);
+
+/**
 *	@brief Process the results of a ray tracing algorithm
 *	@param viewpoint Data about the viewpoint we are rendering
 *	@param result Result from the ray tracing algorithm
