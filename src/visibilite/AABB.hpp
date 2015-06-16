@@ -16,7 +16,27 @@ struct AABB
 	std::string name;///< Name of the box
 };
 
+struct RayBoxHit
+{
+	AABB box;
+	float minDistance;
 
+	bool operator<(RayBoxHit const& b)
+	{
+		return this->minDistance < b.minDistance;
+	}
+};
+
+struct BoxOrder
+{
+	std::string box;
+	unsigned int order;
+
+	bool operator<(BoxOrder const& b)
+	{
+		return this->order < b.order;
+	}
+};
 
 /**
 *	@brief Build bounding box for a set of tile, bounding box are saved on disk, not returned

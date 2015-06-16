@@ -64,6 +64,8 @@ struct Ray
 	int sign[3];
 	RayCollection* collection;///< Collection in which this ray belong
 	bool ignore;///< If this ray must be ignore when doing raytracing
+
+	std::vector<RayBoxHit> boxes;
 };
 
 

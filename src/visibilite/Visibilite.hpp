@@ -115,11 +115,12 @@ struct RayCollection
 
 struct AnalysisResult
 {
-	
-
 	std::vector<TVec3d> skyline;
 	TVec3d viewpointPosition;
 };
+
+std::vector<AnalysisResult> Analyse(std::string dir, std::string name, TVec3d offset, osg::Camera* cam);
+
 
 /**
 *	@brief Perform a viewpoint analysis on different viewpoin
