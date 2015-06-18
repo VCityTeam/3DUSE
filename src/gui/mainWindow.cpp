@@ -5,6 +5,7 @@
 #include "moc/dialogLoadBBox.hpp"
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
+#include "moc/dialogTilingCityGML.hpp"
 
 #include "controllerGui.hpp"
 
@@ -147,6 +148,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
     connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
     connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
+
+    connect(m_ui->actionTiling_CityGML, SIGNAL(triggered()), this, SLOT(slotTilingCityGML()));
 
     connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
     connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
@@ -1964,6 +1967,12 @@ void MainWindow::slotChangeDetection()
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::TilingCityGML(std::string CityGMLPath, std::string OutputPath, int TileX, int TileY)
+{
+    std::cout << (TileX + TileY)<< std::endl;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotOptimOSG()
 {
     QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -2025,6 +2034,12 @@ void MainWindow::about()
     // TODO : add Liris image and text
     //QMessageBox::about(this, "VCity", "VCity is an environment editor");
     DialogAbout diag;
+    diag.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotTilingCityGML()
+{
+    DialogTilingCityGML diag;
     diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -87,6 +87,8 @@ public slots:
     void slotDumpSelectedNodes();
     void slotCutCityGMLwithShapefile();
     void slotSplitCityGMLBuildings();
+    void slotTilingCityGML();
+    void TilingCityGML(std::string CityGMLPath, std::string OutputPath, int TileX, int TileY);
 
     void about();
 
