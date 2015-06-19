@@ -119,7 +119,7 @@ struct AnalysisResult
 	TVec3d viewpointPosition;
 };
 
-std::vector<AnalysisResult> Analyse(std::string dir, std::string name, TVec3d offset, osg::Camera* cam);
+std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset, osg::Camera* cam);
 
 
 /**
@@ -129,7 +129,10 @@ std::vector<AnalysisResult> Analyse(std::string dir, std::string name, TVec3d of
 *	@param terrainPath Path to the citygml file of the terrains
 *	@param offset Offset of the geometry in 3Duse
 */
-std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset);
+std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths, TVec3d offset);
+
+
+std::vector<AnalysisResult> AnalyseTestCam(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam);
 
 /**
 *	@brief Prep camera for a single viewpoint analysis
@@ -138,7 +141,7 @@ std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cam
 *	@param offset Offset of the geometry in 3Duse
 *	@param cam A camera that can be used for the ray tracing
 */
-std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset,osg::Camera* cam);
+std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam);
 
 /**
 *	@brief Prep camera for cascade viewpoints
@@ -149,7 +152,7 @@ std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::
 *	@param count How many time we rune the analysis
 *	@param zIncrement How much we increase the z coordinate of the cam each analysis
 */
-std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
+std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
 
 /**
 *	@brief Prep camera for a list of viewpoint
@@ -159,7 +162,7 @@ std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::
 *	@param cam A camera that can be used for the ray tracing
 *	@param viewpoints List of viewpoint where to analyse, <position,target>
 */
-std::vector<AnalysisResult> Analyse(std::vector<std::string> buildingPath, std::vector<std::string> terrainPath, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
+std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
 
 /**
 *	@build Perform a raytracing on a set of triangles

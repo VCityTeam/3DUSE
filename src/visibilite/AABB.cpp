@@ -11,7 +11,7 @@
 
 
 
-std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::string name)
+std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir)
 {
 	bool foundBuild = false;
 	QFileInfo bDat;
@@ -26,12 +26,12 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::st
 		{
 			if(f.isFile())
 			{
-				if(f.fileName() == (name+"_BATI_AABB.dat").c_str())
+				if(f.fileName() == "_BATI_AABB.dat")
 				{
 					bDat = f.absoluteFilePath();
 					foundBuild = true;
 				}
-				if(f.fileName() == (name+"_MNT_AABB.dat").c_str())
+				if(f.fileName() == "_MNT_AABB.dat")
 				{
 					tDat = f.absoluteFilePath();
 					foundTerrain = true;
@@ -52,7 +52,7 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::st
 	{
 		char line[256];
 
-		std::ifstream ifs (dir+name+"_BATI_AABB.dat", std::ifstream::in);
+		std::ifstream ifs (dir+"_BATI_AABB.dat", std::ifstream::in);
 
 		ifs.getline(line,256);
 
@@ -77,22 +77,23 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::st
 			ifs.getline(line,256);maxy = atof(line);
 			ifs.getline(line,256);maxz = atof(line);
 
-			if(minx < maxx)
+			if(minx < maxx && miny < maxy && minz < maxz)
 			{
 				box.min = osg::Vec3d(minx,miny,minz);
 				box.max = osg::Vec3d(maxx,maxy,maxz);
 				bSet.push_back(box);
+
 			}
 		}
 
 		ifs.close();
 	}
 
-	if(foundBuild)
+	if(foundTerrain)
 	{
 		char line[256];
 
-		std::ifstream ifs (dir+name+"_MNT_AABB.dat", std::ifstream::in);
+		std::ifstream ifs (dir+"_MNT_AABB.dat", std::ifstream::in);
 
 		ifs.getline(line,256);
 
@@ -117,7 +118,7 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::st
 			ifs.getline(line,256);maxy = atof(line);
 			ifs.getline(line,256);maxz = atof(line);
 
-			if(minx < maxx)
+			if(minx < maxx && miny < maxy && minz < maxz)
 			{
 				box.min = osg::Vec3d(minx,miny,minz);
 				box.max = osg::Vec3d(maxx,maxy,maxz);
@@ -131,12 +132,10 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::st
 	return std::make_pair(bSet,tSet);
 }
 
-void BuildAABB(std::string dir, std::string name, TVec3d offset)
+void BuildAABB(std::string dir, TVec3d offset)
 {
-	bool foundBuild = false;
-	QDir bDir;
-	bool foundTerrain = false;
-	QDir tDir;
+	std::vector<QDir> bDirs;
+	std::vector<QDir> tDirs;
 
 	QDir dt(dir.c_str());
 	if(dt.exists())
@@ -146,16 +145,10 @@ void BuildAABB(std::string dir, std::string name, TVec3d offset)
 			std::cout << f.baseName().toAscii().data() << std::endl;
 			if(f.isDir())
 			{
-				if(f.baseName() == (name+"_BATI").c_str())
-				{
-					bDir = f.absoluteFilePath();
-					foundBuild = true;
-				}
-				if(f.baseName() == (name+"_MNT").c_str())
-				{
-					tDir = f.absoluteFilePath();
-					foundTerrain = true;
-				}
+				if(f.baseName().endsWith("_BATI"))
+					bDirs.push_back(f.absoluteFilePath());
+				if(f.baseName().endsWith("_MNT"))
+					tDirs.push_back(f.absoluteFilePath());
 			}
 		}
 	}
@@ -169,18 +162,20 @@ void BuildAABB(std::string dir, std::string name, TVec3d offset)
 	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs;
 
 
-
-	if(foundBuild)
+	
+	for(QDir bDir : bDirs)
 	{
 		for(QFileInfo f : bDir.entryInfoList())
 		{
 			TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
 			TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
 
-			std::cout << f.absoluteFilePath().toAscii().data() << std::endl;
 			if(f.absoluteFilePath().endsWith(".gml"))
 			{
+
 				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
+
+				
 
 				citygml::CityModel * model = tile->getCityModel();
 				for(citygml::CityObject* obj : model->getCityObjectsRoots()) //For each city object
@@ -198,30 +193,30 @@ void BuildAABB(std::string dir, std::string name, TVec3d offset)
 										TVec3d a = vert[ind[ i * 3 + 0 ]] - offset;
 										TVec3d b = vert[ind[ i * 3 + 1 ]] - offset;
 										TVec3d c = vert[ind[ i * 3 + 2 ]] - offset;
-										min.x = std::min(a.x,min.x);min.y = std::min(a.y,min.y);min.z = std::min(a.z,min.z);
-										min.x = std::min(b.x,min.x);min.y = std::min(b.y,min.y);min.z = std::min(b.z,min.z);
-										min.x = std::min(c.x,min.x);min.y = std::min(c.y,min.y);min.z = std::min(c.z,min.z);
-										max.x = std::max(a.x,max.x);max.y = std::max(a.y,max.y);max.z = std::max(a.z,max.z);
-										max.x = std::max(b.x,max.x);max.y = std::max(b.y,max.y);max.z = std::max(b.z,max.z);
-										max.x = std::max(c.x,max.x);max.y = std::max(c.y,max.y);max.z = std::max(c.z,max.z);
+
+										min.x = std::min(a.x,min.x);min.y = std::min(a.y,min.y);if(a.z > -500) min.z = std::min(a.z,min.z);
+										min.x = std::min(b.x,min.x);min.y = std::min(b.y,min.y);if(b.z > -500) min.z = std::min(b.z,min.z);
+										min.x = std::min(c.x,min.x);min.y = std::min(c.y,min.y);if(b.z > -500) min.z = std::min(c.z,min.z);
+										max.x = std::max(a.x,max.x);max.y = std::max(a.y,max.y);if(a.z < 1000) max.z = std::max(a.z,max.z);
+										max.x = std::max(b.x,max.x);max.y = std::max(b.y,max.y);if(b.z < 1000) max.z = std::max(b.z,max.z);
+										max.x = std::max(c.x,max.x);max.y = std::max(c.y,max.y);if(c.z < 1000) max.z = std::max(c.z,max.z);
 									}
 								}
 
-								bAABBs.insert(std::make_pair(f.baseName().toAscii().data(),std::make_pair(min,max)));
-
+								bAABBs.insert(std::make_pair((bDir.dirName()+"/"+f.fileName()).toAscii().data(),std::make_pair(min,max)));
+								std::cout << (bDir.dirName()+"/"+f.fileName()).toAscii().data() << std::endl;
 								delete tile;
 			}
 		}
 	}
 
-	if(foundTerrain)
+	for(QDir tDir : tDirs)
 	{
 		for(QFileInfo f : tDir.entryInfoList())
 		{
 			TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
 			TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
 
-			std::cout << f.absoluteFilePath().toAscii().data() << std::endl;
 			if(f.absoluteFilePath().endsWith(".gml"))
 			{
 				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
@@ -250,8 +245,8 @@ void BuildAABB(std::string dir, std::string name, TVec3d offset)
 								}
 							}
 
-							tAABBs.insert(std::make_pair(f.baseName().toAscii().data(),std::make_pair(min,max)));
-
+							tAABBs.insert(std::make_pair((tDir.dirName()+"/"+f.fileName()).toAscii().data(),std::make_pair(min,max)));
+							std::cout << (tDir.dirName()+"/"+f.fileName()).toAscii().data() << std::endl;
 							delete tile;
 			}
 		}
@@ -259,7 +254,7 @@ void BuildAABB(std::string dir, std::string name, TVec3d offset)
 
 
 	std::filebuf fb;
-	fb.open(dir+name+"_BATI_AABB.dat",std::ios::out);
+	fb.open(dir+"_BATI_AABB.dat",std::ios::out);
 
 	std::ostream file(&fb);
 
@@ -279,7 +274,7 @@ void BuildAABB(std::string dir, std::string name, TVec3d offset)
 	fb.close();
 
 	std::filebuf ft;
-	ft.open(dir+name+"_MNT_AABB.dat",std::ios::out);
+	ft.open(dir+"_MNT_AABB.dat",std::ios::out);
 
 	std::ostream filet(&ft);
 

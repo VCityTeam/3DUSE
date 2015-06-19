@@ -40,11 +40,10 @@ struct BoxOrder
 
 /**
 *	@brief Build bounding box for a set of tile, bounding box are saved on disk, not returned
-*	@param dir Directory where citygml are located, must contain two directory for terrain and building
-*	@param name Name of the tiles to build
+*	@param dir Directory where citygml are located
 *	@param offset Offset of the geometry in 3Duse
 */
-void BuildAABB(std::string dir, std::string name, TVec3d offset);
+void BuildAABB(std::string dir, TVec3d offset);
 
 /**
 *	@brief Load an aabb set previously build
@@ -52,6 +51,6 @@ void BuildAABB(std::string dir, std::string name, TVec3d offset);
 *	@param name Name of the set of tile to load
 *	@return List of AABB for the set of tile, <BuildingAABB,TerrainAABB>
 */
-std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir, std::string name);
+std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir);
 
 #endif
