@@ -243,6 +243,8 @@ void DialogTag::addTag(const vcity::URI& uri)
         uri.resetCursor();
         appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
         appGui().getControllerGui().addTag(uri, tag);
+
+		obj->checkTags();
     }
 
     appGui().getMainWindow()->m_osgView->setActive(true);

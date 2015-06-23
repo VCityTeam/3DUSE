@@ -648,7 +648,7 @@ void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject*
     {
         appGui().getControllerGui().addTag(uri, tag);
     }
-
+	obj->checkTags();
     // recursive call
     for(citygml::CityObject* child : obj->getChildren())
     {
