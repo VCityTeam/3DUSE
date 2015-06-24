@@ -244,6 +244,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
         appGui().getControllerGui().addTag(uri, tag);
 
+		//add yearOfConstruction and yearOfDemolition to tags geom
 		obj->checkTags();
     }
 
