@@ -31,6 +31,9 @@
 #include <fstream>
 #include <set>
 
+//forward declaration
+class ADEHandler;
+
 namespace citygml
 {	
 	#define NODETYPE(_t_) CG_ ## _t_
@@ -189,10 +192,11 @@ namespace citygml
 		NODETYPE( ambientIntensity ),
 		NODETYPE( isFront )
 	};
-	
+
 	// CityGML SAX parsing handler
 	class CityGMLHandler
 	{
+	friend class ADEHandler;
 	public:
 
 		CityGMLHandler( const ParserParams& params );

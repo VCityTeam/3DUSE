@@ -22,6 +22,7 @@
 #include "parser.hpp"
 #include "transform.hpp"
 #include "utils.hpp"
+#include "temporalHandler.hpp"
 
 #ifndef MSVC
 	#include <typeinfo>
@@ -608,11 +609,11 @@ void CityGMLHandler::endElement( const std::string& name )
 
 	if ( NODETYPE_FILTER() ) { clearBuffer(); return; }
 
-	if ( nodeType == NODETYPE( Unknown ) ) // unknown node ? skip now to avoid the buffer triming pass
+	/*if ( nodeType == NODETYPE( Unknown ) ) // unknown node ? skip now to avoid the buffer triming pass
 	{
 		clearBuffer();
 		return; 
-	}
+	}*/
 
 	// Trim the char buffer  
 	std::stringstream buffer;
@@ -986,6 +987,12 @@ void CityGMLHandler::endElement( const std::string& name )
 		if ( GeoreferencedTexture* geoRefTexture = dynamic_cast<GeoreferencedTexture*>( _currentAppearance ) )  
 		{
 			parseValue( buffer, geoRefTexture->_preferWorldFile );
+		}
+		break;
+	case NODETYPE( Unknown ):
+		{
+			TempHandler* tHandler = new TempHandler(this);
+			tHandler->endElement(name);
 		}
 		break;
 	default:
