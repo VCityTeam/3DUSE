@@ -22,7 +22,7 @@
 #include "parser.hpp"
 #include "transform.hpp"
 #include "utils.hpp"
-#include "temporalHandler.hpp"
+#include "ADE.hpp"
 
 #ifndef MSVC
 	#include <typeinfo>
@@ -991,8 +991,17 @@ void CityGMLHandler::endElement( const std::string& name )
 		break;
 	case NODETYPE( Unknown ):
 		{
-			TempHandler* tHandler = new TempHandler(this);
-			tHandler->endElement(name);
+			size_t pos = name.find_first_of( ":" );
+			if ( pos != std::string::npos )
+			{
+				std::string nspace = name.substr( 0, pos );
+				ADEHandler* tHandler = ADEHandlerFactory::createInstance(nspace);
+				if (tHandler)
+				{
+					tHandler->setGMLHandler(this);
+					tHandler->endElement(name);
+				}
+			}
 		}
 		break;
 	default:

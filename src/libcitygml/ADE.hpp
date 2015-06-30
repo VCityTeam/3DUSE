@@ -3,22 +3,23 @@
 
 #include "parser.hpp"
 
-#include <libxml/parser.h>
-#include <libxml/SAX.h>
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Base ADE Handler class, containing methods to access the CityGMLHandler members
 class ADEHandler
 {
 public:
-	ADEHandler(void);
-	ADEHandler(citygml::CityGMLHandler*);
+	ADEHandler(void){gmlHandler=NULL;}
+	ADEHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
 	~ADEHandler(void);
-	void endElement(std::string);
+	void setGMLHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
+	virtual void endElement(std::string){};
 protected:
 	citygml::CityGMLHandler* gmlHandler;
 	//access to gmlHandler members
-	//std::map< std::string, citygml::CityGMLNodeType >* getCityGMLNodeTypeMap(){return &(gmlHandler->s_cityGMLNodeTypeMap);}
-	//std::vector< std::string >* getKnownNamespace(){return &(gmlHandler->s_knownNamespace);}
-	//std::vector< std::string >* getNodePath(){return &(gmlHandler->_nodePath);}
+	std::map< std::string, citygml::CityGMLNodeType >* getCityGMLNodeTypeMap(){return &(gmlHandler->s_cityGMLNodeTypeMap);}
+	std::vector< std::string >* getKnownNamespace(){return &(gmlHandler->s_knownNamespace);}
+	std::vector< std::string >* getNodePath(){return &(gmlHandler->_nodePath);}
 	std::stringstream* getBuff(){return &(gmlHandler->_buff);}
 	citygml::ParserParams* getParams(){return &(gmlHandler->_params);}
 		//
@@ -69,5 +70,41 @@ protected:
   //      citygml::CityObjectDynState* m_currentDynState;
 	citygml::CityObjectTag** getCurrentTag(){return &(gmlHandler->m_currentTag);}
 };
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  Derived ADE handlers management :
 
+//template for creating a handler of the given type
+template<typename T> ADEHandler* createT() {return new T();};
+
+//Contains the map for the derived ADE handlers
+struct ADEHandlerFactory
+{
+	typedef std::map<std::string,ADEHandler*(*)()> mapType;
+	static ADEHandler* createInstance(std::string const& s) 
+	{
+		mapType::iterator it = getMap()->find(s);
+		if(it == getMap()->end())
+			return 0;
+		return it->second();
+    }
+protected:
+	static mapType* getMap() {if (!ADEmap) {ADEmap = new mapType();} return ADEmap;}
+private:
+	static mapType* ADEmap;
+};
+//added to avoid linking errors?
+ADEHandlerFactory::mapType * ADEHandlerFactory::ADEmap = new mapType();
+
+//template for registring each ADE handler in the ADEHandlerFactory map
+template<typename T> struct ADERegister:ADEHandlerFactory
+{
+	ADERegister(const std::string s)
+	{
+		std::pair<std::string,ADEHandler*(*)()> entry (s,&createT<T>);
+		getMap()->insert(entry);
+	}
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 #endif

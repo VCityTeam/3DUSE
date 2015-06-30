@@ -1,9 +1,20 @@
 #include "temporalHandler.hpp"
 #include "utils.hpp"
 
+TempHandler::TempHandler(void):ADEHandler()
+{
+}
+
 TempHandler::TempHandler(citygml::CityGMLHandler* gHandler):ADEHandler(gHandler)
 {
 }
+
+//Adding to ADE register (template in ADE.hpp)
+ADERegister<TempHandler> TempHandler::reg("tmp");
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Parsing routines
 
 void TempHandler::endElement(std::string name)
 {
