@@ -13,6 +13,7 @@ public:
 	ADEHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
 	~ADEHandler(void);
 	void setGMLHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
+	virtual void startElement(std::string,void*){};
 	virtual void endElement(std::string){};
 protected:
 	citygml::CityGMLHandler* gmlHandler;
@@ -22,57 +23,39 @@ protected:
 	std::vector< std::string >* getNodePath(){return &(gmlHandler->_nodePath);}
 	std::stringstream* getBuff(){return &(gmlHandler->_buff);}
 	citygml::ParserParams* getParams(){return &(gmlHandler->_params);}
-		//
-		//citygml::CityModel* _model;
+	citygml::CityModel** getModel(){return &(gmlHandler->_model);}
+	TVec3d* getTranslate(){return &(gmlHandler->_translate);}
+	citygml::CityObject** getCurrentCityObject(){return &(gmlHandler->_currentCityObject);}
+	std::stack<citygml::CityObject*>* getCityObjectStack(){return &(gmlHandler->_cityObjectStack);}
+	citygml::Object** getCurrentObject(){return &(gmlHandler->_currentObject);}
+	std::stack<citygml::Object*>* getObjectStack(){return &(gmlHandler->_objectStack);}
+	citygml::Geometry** getCurrentGeometry(){return &(gmlHandler->_currentGeometry);}
+	std::set<citygml::Geometry*>* getGeometries(){return &(gmlHandler->_geometries);}
+	citygml::Polygon** getCurrentPolygon(){return &(gmlHandler->_currentPolygon);}
+	citygml::LinearRing** getCurrentRing(){return &(gmlHandler->_currentRing);}
+	citygml::Appearance** getCurrentAppearance(){return &(gmlHandler->_currentAppearance);}
+	citygml::CityObjectsTypeMask* getObjectsMask(){return &(gmlHandler->_objectsMask);}
+	std::string* getAttributeName(){return &(gmlHandler->_attributeName);}
+	int* getCurrentLOD(){return &(gmlHandler->_currentLOD);}
+	bool* getFilterNodeType(){return &(gmlHandler->_filterNodeType);}
+	(unsigned int)* getFilterDepth(){return &(gmlHandler->_filterDepth);}
+	std::vector<TVec3d>* getPoints(){return &(gmlHandler->_points);}
+	int* getSrsDimension(){return &(gmlHandler->_srsDimension);}
+	char* getOrientation(){return &(gmlHandler->_orientation);}
+	bool* getExterior(){return &(gmlHandler->_exterior);}
+	bool* getAppearanceAssigned(){return &(gmlHandler->_appearanceAssigned);}
+	citygml::GeometryType* getCurrentGeometryType(){return &(gmlHandler->_currentGeometryType);}
+	void** getGeoTransform(){return &(gmlHandler->_geoTransform);}
 
-		//TVec3d _translate;
-
-		//citygml::CityObject* _currentCityObject;
-		//std::stack<citygml::CityObject*> _cityObjectStack;
-
-		//citygml::Object* _currentObject;
-		//std::stack<citygml::Object*> _objectStack;
-
-		//citygml::Geometry* _currentGeometry;
-  //      std::set<citygml::Geometry*> _geometries;
-
-		//citygml::Polygon* _currentPolygon;
-
-		//citygml::LinearRing* _currentRing;
-
-		//citygml::Appearance* _currentAppearance;
-
-		//citygml::CityObjectsTypeMask _objectsMask;
-
-		//std::string _attributeName;
-
-		//int _currentLOD;
-
-		//bool _filterNodeType;
-		//unsigned int _filterDepth;
-
-		//std::vector<TVec3d> _points;
-
-		//int _srsDimension;
-
-		//char _orientation;
-
-		//bool _exterior;
-
-		//bool _appearanceAssigned;
-
-		//citygml::GeometryType _currentGeometryType;
-
-		//void* _geoTransform;
-
-  //      // temporal ext
-  //      citygml::CityObjectState* m_currentState;
-  //      citygml::CityObjectDynState* m_currentDynState;
+	citygml::CityObjectState** getCurrentState(){return &(gmlHandler->m_currentState);}
+	citygml::CityObjectDynState** getCurrentDynState(){return &(gmlHandler->m_currentDynState);}
 	citygml::CityObjectTag** getCurrentTag(){return &(gmlHandler->m_currentTag);}
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //  Derived ADE handlers management :
+// inspired from http://stackoverflow.com/questions/582331/is-there-a-way-to-instantiate-objects-from-a-string-holding-their-class-name
+//
 
 //template for creating a handler of the given type
 template<typename T> ADEHandler* createT() {return new T();};
