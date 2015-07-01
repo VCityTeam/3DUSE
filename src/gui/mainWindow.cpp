@@ -2176,12 +2176,12 @@ void MainWindow::test4()
 	
 	//Analyse("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml","C:/VCityData/Lyon01/LYON01_MNT.gml",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
 
-	//BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
-	/*std::pair<std::vector<AABB>,std::vector<AABB>> temp = LoadAABB("C:/VCityData/Tile/");
+	/*BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
+	AABBCollection temp = LoadAABB("C:/VCityData/Tile/");
 
-	for(unsigned int i = 0; i < temp.first.size(); i++)
+	for(unsigned int i = 0; i < temp.building.size(); i++)
 	{
-		auto bbox = m_osgScene->buildBBox(temp.first[i].min,temp.first[i].max);
+		auto bbox = m_osgScene->buildBBox(temp.building[i].min,temp.building[i].max);
 		m_osgScene->addChild(bbox);
 	}*/
 

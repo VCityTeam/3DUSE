@@ -14,6 +14,7 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	float cptBuilding = 0.0f;
 	float cptRemarquable = 0.0f;
 	float cptTerrain = 0.0f;
+	float cptWater = 0.0f;
 
 	for(unsigned int i = 0; i < viewpoint->width; i++)
 	{
@@ -43,6 +44,10 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 				{
 					cptTerrain++;
 				}
+				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_WaterBody)
+				{
+					cptWater++;
+				}
 			}
 			else
 				cptMiss++;
@@ -57,6 +62,7 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	ofs << "Hit;"<< cptHit << ";" << cptHit/cpt * 100.f << std::endl;
 	ofs << "Miss;"<<cptMiss << ";" << cptMiss/cpt * 100.f << std::endl;
 	ofs << "Terrain;"<<cptTerrain << ";" << cptTerrain/cpt * 100.f << ";" << cptTerrain/cptHit * 100.f << std::endl;
+	ofs << "Water;"<<cptWater << ";" << cptWater/cpt * 100.f << ";" << cptWater/cptHit * 100.f << std::endl;
 	ofs << "All Building;"<<cptAllBuilding << ";" << cptAllBuilding/cpt * 100.f << ";" << cptAllBuilding/cptHit * 100.f << std::endl;
 	ofs << "Roof;" << cptRoof << ";" << cptRoof/cpt * 100.f << ";" << cptRoof/cptHit * 100.f << std::endl;
 	ofs << "Wall;" << cptWall << ";" << cptWall/cpt * 100.f << ";" << cptWall/cptHit * 100.f << std::endl;
@@ -102,6 +108,8 @@ void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix)
 
 				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_TINRelief)
 					imageMurToit.setPixel(i,j,qRgba(78*sundot,61*sundot, 40*sundot,255));
+				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_WaterBody)
+					imageMurToit.setPixel(i,j,qRgba(0*sundot,0*sundot, 255*sundot,255));
 				else
 				{
 					if (viewpoint->hits[i][j].triangle.subObjectType == citygml::COT_RoofSurface)//Check if roof or wall
@@ -150,8 +158,10 @@ void ExportImageTest(ViewPoint* viewpoint, std::string filePrefix)
 				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_TINRelief)
 				{
 					TVec3d col = SkyShadeBlue(viewpoint->hits[i][j].ray.dir,viewpoint->lightDir);
-				imageMurToit.setPixel(i,j,qRgba(col.r*255,col.g*255,col.b*255,255));
+					imageMurToit.setPixel(i,j,qRgba(col.r*255,col.g*255,col.b*255,255));
 				}
+				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_WaterBody)
+					imageMurToit.setPixel(i,j,qRgba(0*sundot,0*sundot, 255*sundot,255));
 				else
 				{
 						imageMurToit.setPixel(i,j,qRgba(255*sundot,255*sundot,255*sundot,255));
@@ -218,6 +228,8 @@ void ExportImageObjectColor(ViewPoint* viewpoint, std::string filePrefix)
 
 				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_TINRelief)
 					imageObject.setPixel(i,j,qRgba(78*sundot,61*sundot, 40*sundot,255));
+				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_WaterBody)
+					imageObject.setPixel(i,j,qRgba(0*sundot,0*sundot, 255*sundot,255));
 				else
 				{
 					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle.objectId];
@@ -258,6 +270,8 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 
 				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_TINRelief)
 					imageBuilding.setPixel(i,j,qRgba(78*sundot,61*sundot, 40*sundot,255));
+				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_WaterBody)
+					imageBuilding.setPixel(i,j,qRgba(0*sundot,0*sundot, 255*sundot,255));
 				else
 				{
 					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle.objectId];

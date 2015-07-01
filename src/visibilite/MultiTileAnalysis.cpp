@@ -162,6 +162,31 @@ void MergeViewpoint(ViewPoint* a, ViewPoint* b)
 	}
 }
 
+bool AreSame(float a, float b)
+{
+    return fabs(a - b) < 2*std::numeric_limits<float>::epsilon();
+}
+
+void MergeViewpointTerrainOther(ViewPoint* terrain, ViewPoint* other)
+{
+	if(terrain->width != other->width || terrain->height != other->height)
+		return;
+
+	for(unsigned int i = 0; i < terrain->width; i++)
+	{
+		for(unsigned int j = 0; j < terrain->height; j++)
+		{
+			Hit hita = terrain->hits[i][j];
+			Hit hitb = other->hits[i][j];
+
+			if(!hita.intersect && hitb.intersect || (hita.intersect && hitb.intersect && hitb.distance < hita.distance)|| (hita.intersect && hitb.intersect && AreSame(hitb.distance,hita.distance)))
+			{
+				terrain->hits[i][j] = hitb;
+			}
+		}
+	}
+}
+
 std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset, osg::Camera* cam, std::string prefix)
 {
 	QTime time;
@@ -172,11 +197,14 @@ std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset, osg::Cam
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),256,256);
 
-	std::pair<std::vector<AABB>,std::vector<AABB>> boxes = LoadAABB(dirTile);
+	AABBCollection boxes = LoadAABB(dirTile);
 
-	ViewPoint* viewpoint = DoMultiTileAnalysis(dirTile,boxes.first,offset,cam,citygml::CityObjectsType::COT_Building);
-	ViewPoint* viewpointBis = DoMultiTileAnalysis(dirTile,boxes.second,offset,cam,citygml::CityObjectsType::COT_TINRelief);
+	ViewPoint* viewpoint = DoMultiTileAnalysis(dirTile,boxes.building,offset,cam,citygml::CityObjectsType::COT_Building);
+	ViewPoint* viewpointBis = DoMultiTileAnalysis(dirTile,boxes.terrain,offset,cam,citygml::CityObjectsType::COT_TINRelief);
+	ViewPoint* viewpointTer = DoMultiTileAnalysis(dirTile,boxes.water,offset,cam,citygml::CityObjectsType::COT_WaterBody);
 
+
+	MergeViewpointTerrainOther(viewpointBis,viewpointTer);
 	MergeViewpoint(viewpoint,viewpointBis);
 	
 	viewpoint->ComputeSkyline();
@@ -188,6 +216,7 @@ std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset, osg::Cam
 	
 	delete viewpoint;
 	delete viewpointBis;
+	delete viewpointTer;
 
 	
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),oldWidth,oldHeight);

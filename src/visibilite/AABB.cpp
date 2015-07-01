@@ -11,12 +11,59 @@
 
 #include "visibilite/Visibilite.hpp"
 
-std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir)
+std::vector<AABB> DoLoadAABB(std::string path)
+{
+	std::vector<AABB> bSet;
+
+	char line[256];
+
+	std::ifstream ifs (path, std::ifstream::in);
+
+	ifs.getline(line,256);
+
+	unsigned int count = atoi(line);
+
+	for(unsigned int i = 0; i < count; i++)
+	{
+		AABB box;
+		ifs.getline(line,256);
+		box.name = std::string(line);
+		double minx;
+		double miny;
+		double minz;
+		double maxx;
+		double maxy;
+		double maxz;
+			
+		ifs.getline(line,256);minx = atof(line);
+		ifs.getline(line,256);miny = atof(line);
+		ifs.getline(line,256);minz = atof(line);
+		ifs.getline(line,256);maxx = atof(line);
+		ifs.getline(line,256);maxy = atof(line);
+		ifs.getline(line,256);maxz = atof(line);
+
+		if(minx < maxx && miny < maxy && minz < maxz)
+		{
+			box.min = osg::Vec3d(minx,miny,minz);
+			box.max = osg::Vec3d(maxx,maxy,maxz);
+			bSet.push_back(box);
+
+		}
+	}
+
+	ifs.close();
+
+	return bSet;
+}
+
+AABBCollection LoadAABB(std::string dir)
 {
 	bool foundBuild = false;
 	QFileInfo bDat;
 	bool foundTerrain = false;
 	QFileInfo tDat;
+	bool foundWater = false;
+	QFileInfo wDat;
 
 	//Check if our bounding box files do exists
 	QDir dt(dir.c_str());
@@ -36,6 +83,11 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir)
 					tDat = f.absoluteFilePath();
 					foundTerrain = true;
 				}
+				if(f.fileName() == "_WATER_AABB.dat")
+				{
+					wDat = f.absoluteFilePath();
+					foundWater = true;
+				}
 			}
 		}
 	}
@@ -46,96 +98,93 @@ std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir)
 
 	std::vector<AABB> bSet;
 	std::vector<AABB> tSet;
+	std::vector<AABB> wSet;
 
 
 	if(foundBuild)
-	{
-		char line[256];
-
-		std::ifstream ifs (dir+"_BATI_AABB.dat", std::ifstream::in);
-
-		ifs.getline(line,256);
-
-		unsigned int count = atoi(line);
-
-		for(unsigned int i = 0; i < count; i++)
-		{
-			AABB box;
-			ifs.getline(line,256);
-			box.name = std::string(line);
-			double minx;
-			double miny;
-			double minz;
-			double maxx;
-			double maxy;
-			double maxz;
-			
-			ifs.getline(line,256);minx = atof(line);
-			ifs.getline(line,256);miny = atof(line);
-			ifs.getline(line,256);minz = atof(line);
-			ifs.getline(line,256);maxx = atof(line);
-			ifs.getline(line,256);maxy = atof(line);
-			ifs.getline(line,256);maxz = atof(line);
-
-			if(minx < maxx && miny < maxy && minz < maxz)
-			{
-				box.min = osg::Vec3d(minx,miny,minz);
-				box.max = osg::Vec3d(maxx,maxy,maxz);
-				bSet.push_back(box);
-
-			}
-		}
-
-		ifs.close();
-	}
+		bSet = DoLoadAABB(dir+"_BATI_AABB.dat");
 
 	if(foundTerrain)
+		tSet = DoLoadAABB(dir+"_MNT_AABB.dat");
+
+	if(foundWater)
+		wSet = DoLoadAABB(dir+"_WATER_AABB.dat");
+
+	AABBCollection collection;
+	collection.building = bSet;
+	collection.terrain = tSet;
+	collection.water = wSet;
+
+	return collection;
+}
+
+std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dirs, TVec3d offset, citygml::CityObjectsType type)
+{
+	std::map<std::string,std::pair<TVec3d,TVec3d>> AABBs;
+
+	for(QDir bDir : dirs)
 	{
-		char line[256];
-
-		std::ifstream ifs (dir+"_MNT_AABB.dat", std::ifstream::in);
-
-		ifs.getline(line,256);
-
-		unsigned int count = atoi(line);
-
-		for(unsigned int i = 0; i < count; i++)
+		for(QFileInfo f : bDir.entryInfoList())
 		{
-			AABB box;
-			ifs.getline(line,256);
-			box.name = std::string(line);
-			double minx;
-			double miny;
-			double minz;
-			double maxx;
-			double maxy;
-			double maxz;
-			
-			ifs.getline(line,256);minx = atof(line);
-			ifs.getline(line,256);miny = atof(line);
-			ifs.getline(line,256);minz = atof(line);
-			ifs.getline(line,256);maxx = atof(line);
-			ifs.getline(line,256);maxy = atof(line);
-			ifs.getline(line,256);maxz = atof(line);
+			TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
+			TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
 
-			if(minx < maxx && miny < maxy && minz < maxz)
+			if(f.absoluteFilePath().endsWith(".gml"))
 			{
-				box.min = osg::Vec3d(minx,miny,minz);
-				box.max = osg::Vec3d(maxx,maxy,maxz);
-				tSet.push_back(box);
+				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
+
+				TriangleList* list = BuildTriangleList(tile,offset,nullptr,type);
+
+				for(Triangle* t : list->triangles)
+				{
+					min.x = std::min(t->a.x,min.x);min.y = std::min(t->a.y,min.y);if(t->a.z > -500) min.z = std::min(t->a.z,min.z);
+					min.x = std::min(t->b.x,min.x);min.y = std::min(t->b.y,min.y);if(t->b.z > -500) min.z = std::min(t->b.z,min.z);
+					min.x = std::min(t->c.x,min.x);min.y = std::min(t->c.y,min.y);if(t->b.z > -500) min.z = std::min(t->c.z,min.z);
+					max.x = std::max(t->a.x,max.x);max.y = std::max(t->a.y,max.y);if(t->a.z < 1000) max.z = std::max(t->a.z,max.z);
+					max.x = std::max(t->b.x,max.x);max.y = std::max(t->b.y,max.y);if(t->b.z < 1000) max.z = std::max(t->b.z,max.z);
+					max.x = std::max(t->c.x,max.x);max.y = std::max(t->c.y,max.y);if(t->c.z < 1000) max.z = std::max(t->c.z,max.z);
+				}
+
+				AABBs.insert(std::make_pair((bDir.dirName()+"/"+f.fileName()).toAscii().data(),std::make_pair(min,max)));
+				std::cout << (bDir.dirName()+"/"+f.fileName()).toAscii().data() << std::endl;
+				
+				delete list;
+				delete tile;
 			}
 		}
-
-		ifs.close();
 	}
 
-	return std::make_pair(bSet,tSet);
+	return AABBs;
+}
+
+void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec3d>> AABBs)
+{
+	std::filebuf fb;
+	fb.open(filePath,std::ios::out);
+
+	std::ostream file(&fb);
+
+	file << AABBs.size() << "\n";
+
+	for(std::pair<std::string,std::pair<TVec3d,TVec3d>> p : AABBs)
+	{
+		file << p.first << "\n";
+		file << p.second.first.x << "\n";
+		file << p.second.first.y << "\n";
+		file << p.second.first.z << "\n";
+		file << p.second.second.x << "\n";
+		file << p.second.second.y << "\n";
+		file << p.second.second.z << "\n";
+	}
+
+	fb.close();
 }
 
 void BuildAABB(std::string dir, TVec3d offset)
 {
 	std::vector<QDir> bDirs;
 	std::vector<QDir> tDirs;
+	std::vector<QDir> wDirs;
 
 	QDir dt(dir.c_str());
 	if(dt.exists())
@@ -149,6 +198,8 @@ void BuildAABB(std::string dir, TVec3d offset)
 					bDirs.push_back(f.absoluteFilePath());
 				if(f.baseName().endsWith("_MNT"))
 					tDirs.push_back(f.absoluteFilePath());
+				if(f.baseName().endsWith("_WATER"))
+					wDirs.push_back(f.absoluteFilePath());
 			}
 		}
 	}
@@ -158,150 +209,13 @@ void BuildAABB(std::string dir, TVec3d offset)
 	}
 
 
-	std::map<std::string,std::pair<TVec3d,TVec3d>> bAABBs;
-	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs;
+	std::map<std::string,std::pair<TVec3d,TVec3d>> bAABBs = DoBuildAABB(bDirs,offset,citygml::CityObjectsType::COT_Building);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs = DoBuildAABB(tDirs,offset,citygml::CityObjectsType::COT_TINRelief);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> wAABBs = DoBuildAABB(wDirs,offset,citygml::CityObjectsType::COT_WaterBody);
 
-
-	
-	for(QDir bDir : bDirs)
-	{
-		for(QFileInfo f : bDir.entryInfoList())
-		{
-			TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
-			TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
-
-			if(f.absoluteFilePath().endsWith(".gml"))
-			{
-
-				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
-
-				/*TriangleList* list = BuildTriangleList(tile,offset,nullptr,citygml::CityObjectsType::COT_Building);
-
-				for(Triangle* t : list->triangles)
-				{
-					min.x = std::min(t->a.x,min.x);min.y = std::min(t->a.y,min.y);if(t->a.z > -500) min.z = std::min(t->a.z,min.z);
-					min.x = std::min(t->b.x,min.x);min.y = std::min(t->b.y,min.y);if(t->b.z > -500) min.z = std::min(t->b.z,min.z);
-					min.x = std::min(t->c.x,min.x);min.y = std::min(t->c.y,min.y);if(t->b.z > -500) min.z = std::min(t->c.z,min.z);
-					max.x = std::max(t->a.x,max.x);max.y = std::max(t->a.y,max.y);if(t->a.z < 1000) max.z = std::max(t->a.z,max.z);
-					max.x = std::max(t->b.x,max.x);max.y = std::max(t->b.y,max.y);if(t->b.z < 1000) max.z = std::max(t->b.z,max.z);
-					max.x = std::max(t->c.x,max.x);max.y = std::max(t->c.y,max.y);if(t->c.z < 1000) max.z = std::max(t->c.z,max.z);
-				}*/
-
-				citygml::CityModel * model = tile->getCityModel();
-				for(citygml::CityObject* obj : model->getCityObjectsRoots()) //For each city object
-					if(obj->getType() == citygml::COT_Building ) //We only take building or terrain
-						for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
-							for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
-								for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
-								{
-									//Get triangle list
-									const std::vector<TVec3d>& vert = PolygonCityGML->getVertices();
-									const std::vector<unsigned int>& ind = PolygonCityGML->getIndices();
-
-									for(unsigned int i = 0 ; i < ind.size() / 3; i++)//Push all triangle of the polygon in our list
-									{
-										TVec3d a = vert[ind[ i * 3 + 0 ]] - offset;
-										TVec3d b = vert[ind[ i * 3 + 1 ]] - offset;
-										TVec3d c = vert[ind[ i * 3 + 2 ]] - offset;
-
-										min.x = std::min(a.x,min.x);min.y = std::min(a.y,min.y);if(a.z > -500) min.z = std::min(a.z,min.z);
-										min.x = std::min(b.x,min.x);min.y = std::min(b.y,min.y);if(b.z > -500) min.z = std::min(b.z,min.z);
-										min.x = std::min(c.x,min.x);min.y = std::min(c.y,min.y);if(b.z > -500) min.z = std::min(c.z,min.z);
-										max.x = std::max(a.x,max.x);max.y = std::max(a.y,max.y);if(a.z < 1000) max.z = std::max(a.z,max.z);
-										max.x = std::max(b.x,max.x);max.y = std::max(b.y,max.y);if(b.z < 1000) max.z = std::max(b.z,max.z);
-										max.x = std::max(c.x,max.x);max.y = std::max(c.y,max.y);if(c.z < 1000) max.z = std::max(c.z,max.z);
-									}
-								}
-
-								bAABBs.insert(std::make_pair((bDir.dirName()+"/"+f.fileName()).toAscii().data(),std::make_pair(min,max)));
-								std::cout << (bDir.dirName()+"/"+f.fileName()).toAscii().data() << std::endl;
-								delete tile;
-			}
-		}
-	}
-
-	for(QDir tDir : tDirs)
-	{
-		for(QFileInfo f : tDir.entryInfoList())
-		{
-			TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
-			TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
-
-			if(f.absoluteFilePath().endsWith(".gml"))
-			{
-				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
-
-				citygml::CityModel * model = tile->getCityModel();
-				for(citygml::CityObject* obj : model->getCityObjectsRoots()) //For each city object
-					if(obj->getType() == citygml::COT_TINRelief ) //We only take building or terrain
-						for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque géométrie
-							for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
-							{
-								//Get triangle list
-								const std::vector<TVec3d>& vert = PolygonCityGML->getVertices();
-								const std::vector<unsigned int>& ind = PolygonCityGML->getIndices();
-
-								for(unsigned int i = 0 ; i < ind.size() / 3; i++)//Push all triangle of the polygon in our list
-								{
-									TVec3d a = vert[ind[ i * 3 + 0 ]] - offset;
-									TVec3d b = vert[ind[ i * 3 + 1 ]] - offset;
-									TVec3d c = vert[ind[ i * 3 + 2 ]] - offset;
-									min.x = std::min(a.x,min.x);min.y = std::min(a.y,min.y);min.z = std::min(a.z,min.z);
-									min.x = std::min(b.x,min.x);min.y = std::min(b.y,min.y);min.z = std::min(b.z,min.z);
-									min.x = std::min(c.x,min.x);min.y = std::min(c.y,min.y);min.z = std::min(c.z,min.z);
-									max.x = std::max(a.x,max.x);max.y = std::max(a.y,max.y);max.z = std::max(a.z,max.z);
-									max.x = std::max(b.x,max.x);max.y = std::max(b.y,max.y);max.z = std::max(b.z,max.z);
-									max.x = std::max(c.x,max.x);max.y = std::max(c.y,max.y);max.z = std::max(c.z,max.z);
-								}
-							}
-
-							tAABBs.insert(std::make_pair((tDir.dirName()+"/"+f.fileName()).toAscii().data(),std::make_pair(min,max)));
-							std::cout << (tDir.dirName()+"/"+f.fileName()).toAscii().data() << std::endl;
-							delete tile;
-			}
-		}
-	}
-
-
-	std::filebuf fb;
-	fb.open(dir+"_BATI_AABB.dat",std::ios::out);
-
-	std::ostream file(&fb);
-
-	file << bAABBs.size() << "\n";
-
-	for(std::pair<std::string,std::pair<TVec3d,TVec3d>> p : bAABBs)
-	{
-		file << p.first << "\n";
-		file << p.second.first.x << "\n";
-		file << p.second.first.y << "\n";
-		file << p.second.first.z << "\n";
-		file << p.second.second.x << "\n";
-		file << p.second.second.y << "\n";
-		file << p.second.second.z << "\n";
-	}
-
-	fb.close();
-
-	std::filebuf ft;
-	ft.open(dir+"_MNT_AABB.dat",std::ios::out);
-
-	std::ostream filet(&ft);
-
-	filet << tAABBs.size() << "\n";
-
-	for(std::pair<std::string,std::pair<TVec3d,TVec3d>> p : tAABBs)
-	{
-		filet << p.first << "\n";
-		filet << p.second.first.x << "\n";
-		filet << p.second.first.y << "\n";
-		filet << p.second.first.z << "\n";
-		filet << p.second.second.x << "\n";
-		filet << p.second.second.y << "\n";
-		filet << p.second.second.z << "\n";
-	}
-
-	fb.close();
+	DoSaveAABB(dir+"_BATI_AABB.dat",bAABBs);
+	DoSaveAABB(dir+"_MNT_AABB.dat",tAABBs);
+	DoSaveAABB(dir+"_WATER_AABB.dat",wAABBs);
 
 	std::cout << "Done." << std::endl;
 }

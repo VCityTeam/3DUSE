@@ -38,6 +38,13 @@ struct BoxOrder
 	}
 };
 
+struct AABBCollection
+{
+	std::vector<AABB> building;
+	std::vector<AABB> terrain;
+	std::vector<AABB> water;
+};
+
 /**
 *	@brief Build bounding box for a set of tile, bounding box are saved on disk, not returned
 *	@param dir Directory where citygml are located
@@ -51,6 +58,6 @@ void BuildAABB(std::string dir, TVec3d offset);
 *	@param name Name of the set of tile to load
 *	@return List of AABB for the set of tile, <BuildingAABB,TerrainAABB>
 */
-std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir);
+AABBCollection LoadAABB(std::string dir);
 
 #endif
