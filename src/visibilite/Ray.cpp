@@ -64,7 +64,7 @@ bool Ray::Intersect(Triangle* triangle, Hit* hit)
 						this->dir * tempHit.parameter;
 
 					tempHit.distance = (this->dir * tempHit.parameter).length();
-					tempHit.triangle = triangle;
+					tempHit.triangle = *triangle;
 					tempHit.ray = (*this);
 
 					if(hit != nullptr)

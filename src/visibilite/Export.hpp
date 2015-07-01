@@ -60,4 +60,11 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 */
 void ExportImageSkyline(ViewPoint* viewpoint, std::string filePrefix = "");
 
+/**
+*	@brief Export image Test
+*	@param viewpoint Data about the viewpoint we are rendering
+*	@param result Result from the ray tracing algorithm
+*/
+void ExportImageTest(ViewPoint* viewpoint, std::string filePrefix = "");
+
 #endif

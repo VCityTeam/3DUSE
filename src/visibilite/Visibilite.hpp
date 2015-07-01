@@ -119,17 +119,18 @@ struct AnalysisResult
 	TVec3d viewpointPosition;
 };
 
-std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset, osg::Camera* cam);
-
+std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset, osg::Camera* cam, std::string prefix = "");
+std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
+std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
 
 /**
-*	@brief Perform a viewpoint analysis on different viewpoin
+*	@brief Perform a viewpoint analysis on different viewpoint
 *	@param cams List of camera corresponding to viewpoints
 *	@param buildingPath Path to the citygml file of the buildings
 *	@param terrainPath Path to the citygml file of the terrains
 *	@param offset Offset of the geometry in 3Duse
 */
-std::vector<AnalysisResult> DoAnalyse(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths, TVec3d offset);
+std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths, TVec3d offset);
 
 
 std::vector<AnalysisResult> AnalyseTestCam(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam);
@@ -164,6 +165,9 @@ std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offse
 */
 std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
 
+
+std::vector<AnalysisResult> AnalyseTestViewport(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam);
+
 /**
 *	@build Perform a raytracing on a set of triangles
 *	@param triangles The list of triangle from the CityGML tile
@@ -179,16 +183,7 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays);
 *	@param ignoreMiscBuilding If true this will ignore building that are not remarquable
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList* BuildBuildingTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, bool ignoreMiscBuilding);
-
-/**
-*	@brief Build list of triangle from a CityGML terrain tile
-*	@param tile CityGML tile from which we want the triangle list
-*	@param offset offset Offset of the geometry in 3Duse
-*	@param viewpoint Data about the viewpoint we are rendering
-*	@return The list of triangle from the CityGML tile
-*/
-TriangleList* BuildTerrainTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint);
+TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType);
 
 /**
 *	@brief Build the osg node to display a skyline in 3DUse

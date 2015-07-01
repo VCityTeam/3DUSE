@@ -14,7 +14,6 @@ struct Hit
 	Hit()
 	{
 		intersect = false;
-		triangle = false;
 	}
 
 	Ray ray;///< The ray that hit
@@ -23,7 +22,7 @@ struct Hit
 	float parameter;///< T0
 	float triangleBary[3];///< ?
 	TVec3d point;///< Hit position
-	Triangle* triangle;///< Triangle that was hit
+	Triangle triangle;///< Triangle that was hit
 };
 
 #endif

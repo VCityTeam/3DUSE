@@ -2177,19 +2177,20 @@ void MainWindow::test4()
 	//Analyse("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml","C:/VCityData/Lyon01/LYON01_MNT.gml",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
 
 	//BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
-	std::pair<std::vector<AABB>,std::vector<AABB>> temp = LoadAABB("C:/VCityData/Tile/");
+	/*std::pair<std::vector<AABB>,std::vector<AABB>> temp = LoadAABB("C:/VCityData/Tile/");
 
 	for(unsigned int i = 0; i < temp.first.size(); i++)
 	{
 		auto bbox = m_osgScene->buildBBox(temp.first[i].min,temp.first[i].max);
 		m_osgScene->addChild(bbox);
-	}
+	}*/
 
 	//m_osgScene->addChild(BuildSkylineOSGNode(Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
 
 	/*std::vector<std::string> building;
-	//building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml");
-	building.push_back("C:/VCityData/Lyon01/LYON01_BATIS.gml");
+	//building.push_back("C:/VCityData/Jeux de test/LYON_2EME_WATER_2012.gml");
+	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
+	//building.push_back("C:/VCityData/Lyon01/LYON01_BATIS.gml");
 	//building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00036.gml");
 	//building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00163.gml");
 	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_BATI_2012.gml");
@@ -2197,11 +2198,12 @@ void MainWindow::test4()
 	
 	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_TIN_2012.gml");
 
-	//AnalyseTestCam(building,m_app.getSettings().getDataProfile().m_offset,cam);
-	Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse(building,terrain,m_app.getSettings().getDataProfile().m_offset,cam,6,20);*/
+	AnalyseTestViewport(building,m_app.getSettings().getDataProfile().m_offset,cam);*/
+	//Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+	//Analyse(building,terrain,m_app.getSettings().getDataProfile().m_offset,cam,6,20);
 
-	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
+	Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
+	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam,3,15);
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

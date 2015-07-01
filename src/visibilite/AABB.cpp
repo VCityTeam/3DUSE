@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-
+#include "visibilite/Visibilite.hpp"
 
 std::pair<std::vector<AABB>,std::vector<AABB>> LoadAABB(std::string dir)
 {
@@ -175,7 +175,17 @@ void BuildAABB(std::string dir, TVec3d offset)
 
 				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
 
-				
+				/*TriangleList* list = BuildTriangleList(tile,offset,nullptr,citygml::CityObjectsType::COT_Building);
+
+				for(Triangle* t : list->triangles)
+				{
+					min.x = std::min(t->a.x,min.x);min.y = std::min(t->a.y,min.y);if(t->a.z > -500) min.z = std::min(t->a.z,min.z);
+					min.x = std::min(t->b.x,min.x);min.y = std::min(t->b.y,min.y);if(t->b.z > -500) min.z = std::min(t->b.z,min.z);
+					min.x = std::min(t->c.x,min.x);min.y = std::min(t->c.y,min.y);if(t->b.z > -500) min.z = std::min(t->c.z,min.z);
+					max.x = std::max(t->a.x,max.x);max.y = std::max(t->a.y,max.y);if(t->a.z < 1000) max.z = std::max(t->a.z,max.z);
+					max.x = std::max(t->b.x,max.x);max.y = std::max(t->b.y,max.y);if(t->b.z < 1000) max.z = std::max(t->b.z,max.z);
+					max.x = std::max(t->c.x,max.x);max.y = std::max(t->c.y,max.y);if(t->c.z < 1000) max.z = std::max(t->c.z,max.z);
+				}*/
 
 				citygml::CityModel * model = tile->getCityModel();
 				for(citygml::CityObject* obj : model->getCityObjectsRoots()) //For each city object
