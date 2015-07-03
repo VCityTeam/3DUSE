@@ -23,6 +23,9 @@
 #include "core/URI.hpp"
 #include <ostream>
 ////////////////////////////////////////////////////////////////////////////////
+//forward declaration
+class ADEHandler;
+////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,6 +69,7 @@ typedef unsigned int CityObjectsTypeMask;
 class CityObject : public Object
 {
     friend class CityGMLHandler;
+	friend class ADEHandler;
     friend class CityModel;
     friend std::ostream& operator<<( std::ostream&, const CityObject & );
 public:

@@ -593,6 +593,22 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		_attributeName = getAttribute( attributes, "name", "" );
 		break;
 
+	case NODETYPE( Unknown ):
+		{
+			size_t pos = name.find_first_of( ":" );
+			if ( pos != std::string::npos )
+			{
+				std::string nspace = name.substr( 0, pos );
+				ADEHandler* tHandler = ADEHandlerFactory::createInstance(nspace);
+				if (tHandler)
+				{
+					tHandler->setGMLHandler(this);
+					tHandler->startElement(name, attributes);
+				}
+			}
+		}
+		break;
+
 	default:
         //std::cout << localname << std::endl;
 		break;

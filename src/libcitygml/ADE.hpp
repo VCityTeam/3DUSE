@@ -47,9 +47,54 @@ protected:
 	citygml::GeometryType* getCurrentGeometryType(){return &(gmlHandler->_currentGeometryType);}
 	void** getGeoTransform(){return &(gmlHandler->_geoTransform);}
 
+	//access to temporal members, to be moved from CityGMLHandler to TempHandler class
 	citygml::CityObjectState** getCurrentState(){return &(gmlHandler->m_currentState);}
 	citygml::CityObjectDynState** getCurrentDynState(){return &(gmlHandler->m_currentDynState);}
 	citygml::CityObjectTag** getCurrentTag(){return &(gmlHandler->m_currentTag);}
+
+	//some gmlHandler methods
+	virtual std::string getAttribute( void*, const std::string&, const std::string&){return "";}
+	inline std::string getGmlIdAttribute( void* attributes ) { return getAttribute( attributes, "gml:id", "" ); }
+	inline unsigned int getPathDepth( void ) { return (getNodePath())->size(); }
+	inline void pushCityObject( citygml::CityObject* object )
+	{
+		citygml::CityObject** currentCityObject = getCurrentCityObject();
+        // add parent relation
+        if(*currentCityObject)
+        {
+            object->_parent = *currentCityObject;
+        }
+
+		if ( *currentCityObject && object ) (*currentCityObject)->getChildren().push_back( object );
+		std::stack<citygml::CityObject*>* cityObjectStack = getCityObjectStack();
+		cityObjectStack->push( *currentCityObject );
+		*currentCityObject = object;
+	}
+	inline void pushObject( citygml::Object* object )
+	{
+		std::stack<citygml::Object*>* objectStack = getObjectStack();
+		objectStack->push( object );
+		citygml::Object** currentObject = getCurrentObject();
+		*currentObject = object;
+	}
+	inline void popCityObject( void )
+	{
+		citygml::CityObject** currentCityObject = getCurrentCityObject();
+		std::stack<citygml::CityObject*>* cityObjectStack = getCityObjectStack();
+		*currentCityObject = 0; 
+		if ( cityObjectStack->empty() ) return; 
+		*currentCityObject = cityObjectStack->top(); 
+		cityObjectStack->pop();
+	}
+	inline void popObject( void )
+	{
+		citygml::Object** currentObject = getCurrentObject();
+		std::stack<citygml::Object*>* objectStack = getObjectStack();
+		*currentObject = 0; 
+		if ( objectStack->empty() ) return; 
+		objectStack->pop();
+		*currentObject = objectStack->empty() ? 0 : objectStack->top();			
+	}
 };
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
