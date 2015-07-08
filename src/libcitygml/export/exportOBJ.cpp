@@ -1,6 +1,7 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "exportOBJ.hpp"
+//#include "core/application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -127,8 +128,8 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
 
                 for(const TVec3d& v : poly->getVertices())
                 {
-                    //m_outFile << "v " << v.x-m_offsetX << " " << v.y-m_offsetY << " " << v.z << "\n";
-                    m_outFile << "v " << v.x << " " << v.y << " " << v.z << "\n"; // MT 24/02/15
+                    m_outFile << "v " << v.x-m_offsetX << " " << v.y-m_offsetY << " " << v.z << "\n";
+                    //m_outFile << "v " << (v.x - vcity::app().getSettings().getDataProfile().m_offset.x) << " " << (v.y - vcity::app().getSettings().getDataProfile().m_offset.x) << " " << v.z << "\n"; // MT 24/02/15
                 }
                 for(const TVec3f& vn : poly->getNormals())
                 {

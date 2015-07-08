@@ -4992,6 +4992,110 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 	return CleanedFootprints;
 }
 
+void CompareFootprints(std::vector<OGRPolygon*> FootprintsCityGML, std::vector<OGRPolygon*> FootprintsShp)
+{
+	int NbGMLNontrouve = 0;
+	int NbShpNontrouve = 0;
+
+	OGRMultiPolygon* GMLNontrouve = new OGRMultiPolygon;
+	OGRMultiPolygon* ShpNontrouve = new OGRMultiPolygon;
+
+	double AireTotaleGML = 0;
+	double AireTotaleShp = 0;
+	double AireGMLNontrouve = 0;
+	double AireShpNontrouve = 0;
+	double AireCommune = 0;
+
+	for(OGRPolygon* GMLPoly:FootprintsCityGML)
+	{
+		bool test = false;
+		for(OGRPolygon* ShpPoly:FootprintsShp)
+		{
+			if(!GMLPoly->Intersects(ShpPoly))
+				continue;
+
+			OGRGeometry* Inter = GMLPoly->Intersection(ShpPoly);
+			if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D)
+			{
+				test = true;
+				AireCommune += ((OGRPolygon*)Inter)->get_Area();
+				continue;
+			}
+			
+			OGRGeometryCollection* Inter_GC = dynamic_cast<OGRGeometryCollection*>(Inter);
+			if(Inter_GC == nullptr)
+				continue;
+			for(int i = 0; i < Inter_GC->getNumGeometries(); ++i)
+			{
+				OGRGeometry* Geo = Inter_GC->getGeometryRef(i);
+				if(Geo->getGeometryType() == wkbPolygon || Geo->getGeometryType() == wkbPolygon25D)
+				{
+					test = true;
+					AireCommune += ((OGRPolygon*)Geo)->get_Area();
+				}
+			}
+		}
+		if(!test)
+		{
+			GMLNontrouve->addGeometry(GMLPoly);
+			AireGMLNontrouve += GMLPoly->get_Area();
+			NbGMLNontrouve ++;
+		}
+		else
+			AireTotaleGML += GMLPoly->get_Area();
+	}
+
+	for(OGRPolygon* ShpPoly:FootprintsShp)
+	{
+		bool test = false;
+		for(OGRPolygon* GMLPoly:FootprintsCityGML)
+		{
+			if(!GMLPoly->Intersects(ShpPoly))
+				continue;
+
+			OGRGeometry* Inter = GMLPoly->Intersection(ShpPoly);
+			if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D)
+			{
+				test = true;
+				continue;
+			}
+			
+			OGRGeometryCollection* Inter_GC = dynamic_cast<OGRGeometryCollection*>(Inter);
+			if(Inter_GC == nullptr)
+				continue;
+			for(int i = 0; i < Inter_GC->getNumGeometries(); ++i)
+			{
+				OGRGeometry* Geo = Inter_GC->getGeometryRef(i);
+				if(Geo->getGeometryType() == wkbPolygon || Geo->getGeometryType() == wkbPolygon25D)
+				{
+					test = true;
+					break;
+				}
+			}
+		}
+		if(!test)
+		{
+			ShpNontrouve->addGeometry(ShpPoly);
+			AireShpNontrouve += ShpPoly->get_Area();
+			NbShpNontrouve ++;
+		}
+		else
+			AireTotaleShp += ShpPoly->get_Area();
+	}
+
+	SaveGeometrytoShape("ShpNontrouve.shp", ShpNontrouve);
+	SaveGeometrytoShape("GMLNontrouve.shp", GMLNontrouve);
+	std::cout << "NbGML = " << FootprintsCityGML.size() << std::endl;
+	std::cout << "NbShp = " << FootprintsShp.size() << std::endl;
+	std::cout << "NbGMLNontrouve = " << NbGMLNontrouve << std::endl;
+	std::cout << "NbShpNontrouve = " << NbShpNontrouve << std::endl;
+	std::cout << "AireTotaleGML = " << AireTotaleGML << std::endl;
+	std::cout << "AireTotaleShp = " << AireTotaleShp << std::endl;
+	std::cout << "AireCommune = " << AireCommune << std::endl;
+	std::cout << "AireGMLNontrouve = " << AireGMLNontrouve << std::endl;
+	std::cout << "AireShpNontrouve = " << AireShpNontrouve << std::endl;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -5016,6 +5120,18 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 	std::vector<OGRPolygon*> FootprintsShapefile = GetFootPrintsfromShapeFile(Layer); //On part du principe que chaque featur du shapefile contient un unique polygon en geometry
 	//Lier Bâtiments CityGML <-> Bâtiments Cadastraux qui s'intersectent pour orienter les étapes suivantes.
 
+	//std::vector<OGRGeometryCollection*> FootprintsShapefile_GC; //Pour générer une découpe brute avec les polygons du cadastre non modifiés
+	//for(OGRPolygon* Poly : FootprintsShapefile)
+	//{
+	//	OGRGeometryCollection* GC = new OGRMultiPolygon;
+	//	GC->addGeometry(Poly);
+	//	FootprintsShapefile_GC.push_back(GC);
+	//}
+
+	//CompareFootprints(FootprintsCityGML, FootprintsShapefile);
+	//int a;
+	//std::cin >> a;
+
 	//Mettre en place un lien entre les éléments du CityGML et ceuc du ShapeFile.
 	std::cout << "Liaison des emprises au sol du CityGML avec celles du ShapeFile." << std::endl;
 	std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> Link = LinkCityGMLandShapefilesFootprints(FootprintsCityGML, FootprintsShapefile);
@@ -5032,12 +5148,11 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
 	std::cout << "Amelioration de la decoupe des emprises au sol." << std::endl;
     std::vector<OGRGeometryCollection*> CleanedFootprints = CleanFootprintsWith3D(&NewFootprintsShapefile, Model, &Link);
 
-
     //On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectées avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
     //NewFootprintsShapefile. Chaque polygon correspond à un bâtiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un bâtiment CityGML lié. L'ensemble des emprises au sol
     //de NewFootprintsShapefile doit recouvrir les emprises au sol de tous les bâtiments CityGML. Il nous reste à parcourir les polygons du CityGML et à les assigner à ces différents bâtiments Shape.
 	std::cout << "Decoupe des Polygons Wall et Roof du CityGML selon les emprises au sol generees a partir du cadastre." << std::endl;
-    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&CleanedFootprints/*NewFootprintsShapefile*/, Layer, Model, &Link, TexturesList);
+    citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&/*FootprintsShapefile_GC*/CleanedFootprints/*NewFootprintsShapefile*/, Layer, Model, &Link, TexturesList);
 
     std::cout << "Decoupe terminee." << std::endl;
 	for(OGRPolygon* Poly:NewFootprintsShapefile)
