@@ -36,7 +36,6 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 		result[i] = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height());
 		result[i]->lightDir = Ray::Normalized(camPos - camDir);
 		rays[i] = RayCollection::BuildCollection(cam);
-		result[i]->rays = rays[i];
 
 		rays[i]->viewpoint = result[i];
 
@@ -74,6 +73,7 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 		ExportImages(result[i],std::to_string(i)+"_");
 		AnalysisResult temp;
 		temp.viewpointPosition = rays[i]->rays.front()->ori;
+		temp.viewpoint = result[i];
 
 		for(unsigned int j = 0; j < result[i]->skyline.size(); j++)
 		{
@@ -86,7 +86,6 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 
 	for(unsigned int i = 0; i < cams.size(); i++)
 	{
-		delete result[i];
 		delete rays[i];
 	}
 
@@ -109,6 +108,8 @@ std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offse
 
 	cam->setViewport(cam->getViewport()->x(),cam->getViewport()->y(),256,256);
 
+
+
 	std::vector<osg::ref_ptr<osg::Camera>> temp;
 
 	osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
@@ -123,9 +124,6 @@ std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offse
 	return result;
 
 }
-
-
-
 
 std::vector<AnalysisResult> Analyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
 {

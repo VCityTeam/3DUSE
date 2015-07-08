@@ -16,6 +16,8 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	float cptTerrain = 0.0f;
 	float cptWater = 0.0f;
 
+	std::map<std::string,float> cptMapBuilding;
+
 	for(unsigned int i = 0; i < viewpoint->width; i++)
 	{
 		for(unsigned int j = 0; j < viewpoint->height; j++)
@@ -27,6 +29,13 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 
 				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_Building)
 				{
+					QString tempStr(viewpoint->hits[i][j].triangle.objectId.c_str());
+					std::string temp = tempStr.toStdString();
+					if(cptMapBuilding.find(temp)  == cptMapBuilding.end())
+						cptMapBuilding.insert(std::make_pair(temp,1.f));
+					else
+						cptMapBuilding[temp]++;
+
 					cptAllBuilding++;
 
 					if(viewpoint->hits[i][j].triangle.subObjectType == citygml::COT_RoofSurface)
@@ -34,7 +43,7 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 					else
 						cptWall++;
 
-					QString tempStr(viewpoint->hits[i][j].triangle.objectId.c_str());
+
 					if(tempStr.startsWith("LYON"))//Check to see if this is an important building
 						cptBuilding++;
 					else
@@ -68,6 +77,12 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	ofs << "Wall;" << cptWall << ";" << cptWall/cpt * 100.f << ";" << cptWall/cptHit * 100.f << std::endl;
 	ofs << "Building Misc;" << cptBuilding << ";" << cptBuilding/cpt * 100.f << ";" << cptBuilding/cptHit * 100.f <<  ";" << cptBuilding / cptAllBuilding * 100.f<<  std::endl;
 	ofs << "Remarquable Building;" << cptRemarquable << ";" << cptRemarquable/cpt * 100.f << ";" << cptRemarquable/cptHit * 100.f << ";" << cptRemarquable / cptAllBuilding * 100.f << std::endl;
+	ofs << std::endl;
+	for(auto it = cptMapBuilding.begin(); it != cptMapBuilding.end(); it++)
+	{
+		ofs << it->first << ";" << it->second << ";" << it->second/cpt * 100.f << ";" << it->second/cptHit * 100.f <<  ";" << it->second / cptAllBuilding * 100.f<<  std::endl;
+	}
+
 
 	ofs.close();
 }

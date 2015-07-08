@@ -6,6 +6,7 @@
 #include "cpl_conv.h" // for CPLMalloc()
 #include "ogrsf_frmts.h"
 #include "src/gui/osg/osgGDAL.hpp"
+#include "osg/LineWidth"
 
 #include <thread>
 #include <queue>
@@ -60,7 +61,7 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 	QTime time;
 	time.start();
 
-	unsigned int tCount = std::thread::hardware_concurrency();//Get how many thread we have
+	unsigned int tCount = std::thread::hardware_concurrency()-1;//Get how many thread we have
 	unsigned int rayPerThread = rays.size() / tCount;
 
 	//List of rays and their frag coord
@@ -183,7 +184,7 @@ osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline)
 	for(unsigned int i = 0; i < skyline.size(); i++)
 	{
 		vertices->push_back(osg::Vec3(skyline[i].x,skyline[i].y,skyline[i].z));
-		colors->push_back(osg::Vec3(0.0,0.0,0.0));
+		colors->push_back(osg::Vec3(1.0,0.0,1.0));
 	}
 
 	for(unsigned int i = 0; i < skyline.size()-1; i++)
@@ -194,8 +195,60 @@ osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline)
 
 	geom->setVertexArray(vertices);
 	geom->setColorArray(colors);
+	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 	geom->addPrimitiveSet(indices);
 	geode->addDrawable(geom);
+
+	osg::LineWidth* linewidth = new osg::LineWidth(); 
+	linewidth->setWidth(3.0f); 
+	geode->getOrCreateStateSet()->setAttributeAndModes(linewidth); 
+
+	return geode;
+}
+
+osg::ref_ptr<osg::Geode> BuildViewshedOSGNode(AnalysisResult result)
+{
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	osg::Geometry* geom = new osg::Geometry;
+	osg::Vec3Array* vertices = new osg::Vec3Array;
+	osg::Vec3Array* colors = new osg::Vec3Array;
+	osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+	ViewPoint* viewpoint = result.viewpoint;
+
+	unsigned int cpt = 0;
+
+	std::cout << "Beginning" << std::endl;
+
+	for(unsigned int i = 0; i < viewpoint->width; i++)
+	{
+		for(unsigned int j = 0; j < viewpoint->height; j++)
+		{
+			Hit hit = viewpoint->hits[i][j];
+
+			if(hit.intersect)
+			{
+				TVec3d point = hit.point;
+				vertices->push_back(osg::Vec3(point.x,point.y,point.z));
+				vertices->push_back(osg::Vec3(point.x,point.y,point.z+1.0));
+				colors->push_back(osg::Vec3(0.0,1.0,0.0));
+				colors->push_back(osg::Vec3(0.0,1.0,0.0));
+				indices->push_back(cpt++);
+				indices->push_back(cpt++);
+			}
+		}
+	}
+	std::cout << "Ending" << std::endl;
+
+	geom->setVertexArray(vertices);
+	geom->setColorArray(colors);
+	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+	geom->addPrimitiveSet(indices);
+	geode->addDrawable(geom);
+
+	osg::LineWidth* linewidth = new osg::LineWidth(); 
+	linewidth->setWidth(6.0f); 
+	geode->getOrCreateStateSet()->setAttributeAndModes(linewidth); 
 
 	return geode;
 }
@@ -272,9 +325,9 @@ void ViewPoint::ComputeSkyline()
 	Position pos = N;
 	std::pair<int, int> c = GetCoord(pos);
 
-	unsigned int realX = Clamp(x+c.first,0,width);
-	unsigned int realY = Clamp(y+c.second,0,height);
-
+	unsigned int realX = Clamp(x+c.first,0,width-1);
+	unsigned int realY = Clamp(y+c.second,0,height-1);
+	
 	while(x < width - 1)
 	{
 		while(realY >= height || (realY < height && !hits[realX][realY].intersect))

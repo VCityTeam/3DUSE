@@ -64,7 +64,6 @@ struct ViewPoint
 	float maxDistance;///< Maximum distance to a triangle in the scene
 	std::map<std::string,QColor> objectToColor;///< Map a city object id to a color
 	std::vector<std::pair<unsigned int,unsigned int>> skyline;///< Skyline of the viewpoints
-	RayCollection* rays;///< Ray used for rendering this viewpoint
 
 private:
 	inline unsigned int Clamp(unsigned int x,unsigned int a,unsigned int b);
@@ -117,11 +116,13 @@ struct AnalysisResult
 {
 	std::vector<TVec3d> skyline;
 	TVec3d viewpointPosition;
+	ViewPoint* viewpoint;
 };
 
 std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset, osg::Camera* cam, std::string prefix = "");
 std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
 std::vector<AnalysisResult> Analyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
+std::vector<AnalysisResult> AnalysePanorama(std::string dirTile, TVec3d offset,osg::Camera* cam);
 
 /**
 *	@brief Perform a viewpoint analysis on different viewpoint
@@ -191,5 +192,11 @@ TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* vie
 *	@return The osg node
 */
 osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline);
+
+/**
+*	@Brief Build the viewshed
+*	@param result Result of the analysis
+*/
+osg::ref_ptr<osg::Geode> BuildViewshedOSGNode(AnalysisResult result);
 
 #endif

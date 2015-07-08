@@ -2198,11 +2198,20 @@ void MainWindow::test4()
 	
 	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_TIN_2012.gml");
 
-	AnalyseTestViewport(building,m_app.getSettings().getDataProfile().m_offset,cam);*/
-	//Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+	//AnalyseTestViewport(building,m_app.getSettings().getDataProfile().m_offset,cam);*/
+	//m_osgScene->addChild(BuildSkylineOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
+	//m_osgScene->addChild(BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
 	//Analyse(building,terrain,m_app.getSettings().getDataProfile().m_offset,cam,6,20);
 
-	Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
+	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
+	std::vector<AnalysisResult> results = AnalysePanorama("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
+
+	for(AnalysisResult a : results)
+	{
+		m_osgScene->addChild(BuildSkylineOSGNode(a.skyline));
+		m_osgScene->addChild(BuildViewshedOSGNode(a));
+	}
+
 	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam,3,15);
 }
 ////////////////////////////////////////////////////////////////////////////////
