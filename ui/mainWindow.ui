@@ -367,6 +367,8 @@
     <addaction name="separator"/>
     <addaction name="actionSplit_CityGML_Buildings"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
+    <addaction name="separator"/>
+    <addaction name="actionTiling_CityGML"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -781,6 +783,11 @@
   <action name="actionCut_CityGML_with_Cadastre">
    <property name="text">
     <string>Cut CityGML with Cadastre</string>
+   </property>
+  </action>
+  <action name="actionTiling_CityGML">
+   <property name="text">
+    <string>Tiling CityGML</string>
    </property>
   </action>
  </widget>
