@@ -79,8 +79,8 @@ DataProfile createDataProfileLyon()
     dp.m_xStep = 500;
     dp.m_yStep = 500;
 
-    dp.m_TileIdOriginX = 1837500.0/500;
-    dp.m_TileIdOriginY = 5169000.0/500;
+    dp.m_TileIdOriginX = (int)(1837500.0/500);
+    dp.m_TileIdOriginY = (int)(5169000.0/500);
 
     dp.m_id = 2;
     dp.m_name = "Lyon";

@@ -1,0 +1,32 @@
+1) dans le fichier /CMakeLists.txt, dupliquer intégralement le bloc de texte suivant :
+# --> CityGMLEmptyQtPlugin : QtPlugin [BEGIN]
+...
+...
+# --> CityGMLEmptyQtPlugin : QtPlugin [END]
+
+2) remplacer ensuite au sein du bloc dupliqué la chaine 'Empty' par la chaine 'VotreNomDePlugin'
+
+3) faire de même avec le bloc suivant :
+if (BUILD_CityGMLEmptyQtPlugin)
+	set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
+endif (BUILD_CityGMLEmptyQtPlugin)
+
+4) rajouter votre plugin dans le processus d'installation (targets INSTALL et PACKAGE...) en rajoutant :
+${CityGMLVotreNomDePluginQtPlugin}
+à la fin de la ligne comportant le commentaire suivant :
+# add your plugin installation here
+
+5) se positionner ensuite dans le dossier /src/plugins
+6) dupliquer le dossier CityGMLEmptyQtPlugin
+7) renommer le dossier dupliqué et les fichiers (récursivement) en changeant 'Empty' par 'VotreNomDePlugin'
+
+8) remplacer ensuite (récursivement) la chaine 'GMLEmpty' par la chaine 'GMLVotreNomDePlugin' dans tous les fichiers du dossier de votre nouveau plugin (.ui, .h, .cxx)
+
+---
+
+Note:
+-----
+
+Si dans votre plugin Qt vous avez besoin d'appeler du code existant, vous devrez impérativement rajouter les fichiers .cxx dans le fichier /CMakeLists.txt,
+pour se faire, localiser le commentaire ci-dessous dans le bloc 'QtPlugin [BEGIN] ... QtPlugin [END]' correspondant à votre plugin :
+# if need, add cxx files here before the ')'

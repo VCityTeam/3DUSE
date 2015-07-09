@@ -12,6 +12,9 @@
 #include "gui/osg/osgScene.hpp"
 #include "gui/osg/osgPicking.hpp"
 #include "core/scene.hpp"
+
+#include <QDir>
+#include <QActionGroup>
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class MainWindow;
@@ -59,6 +62,19 @@ public:
     void unlockFeatures(const QString& pass);
 
     QLineEdit* getFilter();
+
+private:
+	// plugins
+	QDir pluginsDir;
+	QStringList pluginFileNames;
+	QMenu *pluginMenu;
+	QAction *aboutPluginsAct;
+
+    void loadPlugins();
+    void populateMenus(QObject *plugin);
+    void addToMenu(QObject *plugin, const QStringList &texts, QMenu *menu,
+                   const char *member, QActionGroup *actionGroup = 0);
+	// plugins
 
 public slots:
     void loadScene();
@@ -123,6 +139,11 @@ private slots:
 
     void slotTemporalAnim();
     void slotTemporalAnimUpdate();
+
+	// plugins
+	void applyPlugin();
+	void aboutPlugins();
+	// plugins
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // MAINWINDOW_HPP

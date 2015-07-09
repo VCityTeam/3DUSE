@@ -31,7 +31,7 @@ bool LinearRing::isExterior() const
 ////////////////////////////////////////////////////////////////////////////////
 unsigned int LinearRing::size() const
 {
-    return _vertices.size();
+    return (unsigned int)_vertices.size();
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::vector<TVec3d>& LinearRing::getVertices() const
@@ -77,7 +77,7 @@ TVec3d LinearRing::computeNormal( void ) const
 void LinearRing::finish( TexCoords* texCoords )
 {
     // Remove duplicated vertex
-    unsigned int len = _vertices.size();
+    unsigned int len = (unsigned int)_vertices.size();
     if ( len < 2 ) return;
 
     for ( unsigned int i = 0; i < len; i++ )
