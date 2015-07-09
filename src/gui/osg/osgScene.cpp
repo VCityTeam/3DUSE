@@ -648,7 +648,8 @@ void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject*
     {
         appGui().getControllerGui().addTag(uri, tag);
     }
-
+	//add yearOfConstruction and yearOfDemolition to tags geom
+	obj->checkTags();
     // recursive call
     for(citygml::CityObject* child : obj->getChildren())
     {
