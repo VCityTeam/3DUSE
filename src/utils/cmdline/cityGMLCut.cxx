@@ -1,19 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <libxml/tree.h>
 #include <libxml/parser.h>
 
 #include <string>
-#include <set>
-
-#include <map>
 
 #include <iostream>
 #include <QFileInfo>
 #include <QDir>
 #include <QFile>
-
-#include "vecs.hpp"
 
 #include "triangulate.h"
 
@@ -24,17 +18,13 @@
 
 #define MAX_POINTS_IN_POSLIST	200	// TEMP
 
-struct FOUR_PLANES
-{
-	TVec3d n[4];
-	TVec3d p0[4];
-};
+#include "cityGMLCut.h"
 
 // TEMP
-FOUR_PLANES G_my4planes;
+bool VERBOSE;
 double G_xmin, G_ymin, G_xmax, G_ymax;
 
-bool VERBOSE;
+FOUR_PLANES G_my4planes;
 // TEMP
 
 void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlNodePtr> *UUID_uvm)
@@ -55,7 +45,7 @@ void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlN
     }
 }
 
-typedef void (*fct_process_All_textureCoordinates)(xmlNodePtr, std::map<std::string, xmlNodePtr> *);
+//typedef void (*fct_process_All_textureCoordinates)(xmlNodePtr, std::map<std::string, xmlNodePtr> *);
 void parcours_prefixe_All_textureCoordinates(xmlNodePtr noeud, fct_process_All_textureCoordinates f, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
     xmlNodePtr n;
@@ -93,7 +83,7 @@ xmlNodePtr process_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, x
 	return NULL;
 }
 
-typedef xmlNodePtr (*fct_process_Building_ReliefFeature_textureCoordinates)(xmlNodePtr, xmlNodePtr);
+//typedef xmlNodePtr (*fct_process_Building_ReliefFeature_textureCoordinates)(xmlNodePtr, xmlNodePtr);
 xmlNodePtr parcours_prefixe_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, fct_process_Building_ReliefFeature_textureCoordinates f, xmlNodePtr noeud_id)
 {
     xmlNodePtr n;
@@ -344,7 +334,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							//printf("plan: %ld\n", p);
 
 							// intersection
-							if ( (intersectPlane(G_my4planes.n[p], G_my4planes.p0[p], l0[s], l[s], d)) && d>=0. && d<1. )
+							if ( (intersectPlane(G_my4planes.n[p], G_my4planes.p0[p], l0[s], l[s], d)) && d>0. && d<1. )
 							{
 								//printf("INTER s%d-p%d - %lf\n", s, p, d);
 
@@ -672,7 +662,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 							MyVectorOfVertices result;
 							Triangulate::Process(vv, result);
 
-							int tcount = result.size()/3;
+							int tcount = (int)(result.size()/3);
 							for (int ii=0; ii<tcount; ii++)
 							{
 								const TVec5d &p1 = result[ii*3+0];
@@ -781,7 +771,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
     }
 }
 
-typedef void (*fct_process_Building_ReliefFeature_boundingbox)(xmlNodePtr, bool *, double *, double *, double *, double *, double *, double *, std::set<std::string> *, xmlNodePtr, std::map<std::string, xmlNodePtr> *);
+//typedef void (*fct_process_Building_ReliefFeature_boundingbox)(xmlNodePtr, bool *, double *, double *, double *, double *, double *, double *, std::set<std::string> *, xmlNodePtr, std::map<std::string, xmlNodePtr> *);
 void parcours_prefixe_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, fct_process_Building_ReliefFeature_boundingbox f, bool *first, double *xmin, double *ymin, double *zmin, double *xmax, double *ymax, double *zmax, std::set<std::string> *UUID_s, xmlNodePtr b_rf, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
     xmlNodePtr n;
@@ -1001,7 +991,7 @@ void process_Building_ReliefFeature_textures(xmlNodePtr noeud, std::set<std::str
     }
 }
 
-typedef void (*fct_process_Building_ReliefFeature_textures)(xmlNodePtr, std::set<std::string> *, std::string, std::string);
+//typedef void (*fct_process_Building_ReliefFeature_textures)(xmlNodePtr, std::set<std::string> *, std::string, std::string);
 void parcours_prefixe_Building_ReliefFeature_textures(xmlNodePtr noeud, fct_process_Building_ReliefFeature_textures f, std::set<std::string> *UUID_s, std::string folderIN, std::string folderOUT)
 {
 	xmlNodePtr n;
@@ -1017,33 +1007,27 @@ void parcours_prefixe_Building_ReliefFeature_textures(xmlNodePtr noeud, fct_proc
     }
 }
 
-int main(int argc, char** argv)
+int CityGMLCut::Run(char *xml_file_in, char *xml_file_out, double xmin, double ymin, double xmax, double ymax, bool verbose)
 {
-	if ((argc != 7) && (argc != 8))
-	{
-		puts("");
-        puts("CityGMLCut 1.3.1 - April 9, 2015 - Martial TOLA");
-		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
-		puts("Usage:");
-		puts("");
-		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax> [VERBOSE]");
-		puts("");
-		puts("Example:");
-		puts("./CityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
-		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000 VERBOSE");
-		puts("");
-    
-		return EXIT_FAILURE;
-	}
+	// init
+	VERBOSE = verbose;
 
-	VERBOSE = false;
-	if ((argc==8) && (strcmp(argv[7], "VERBOSE")==0))
-	{
-		VERBOSE = true;
+	G_xmin = xmin;
+	G_ymin = ymin;
+	G_xmax = xmax;
+	G_ymax = ymax;
+	// init
+
+	if (VERBOSE)
 		fprintf(stdout, "VERBOSE is ON\n");
-	}
 	else
 		fprintf(stdout, "VERBOSE is OFF\n");
+
+	if (! ((G_xmin < G_xmax) && (G_ymin < G_ymax)) )
+	{
+		fprintf(stderr, "xmin must be < xmax AND ymin must be < ymax !\n");
+		return EXIT_FAILURE;
+	}
 
 	std::string folderIN, folderOUT;
 	int nbCopied = 0;
@@ -1054,17 +1038,6 @@ int main(int argc, char** argv)
 
 	xmlNodePtr nodeToFindUV = NULL;
 	std::map<std::string, xmlNodePtr> UUID_uv_map;
-
-	G_xmin = atof(argv[3]);
-	G_ymin = atof(argv[4]);
-	G_xmax = atof(argv[5]);
-	G_ymax = atof(argv[6]);
-
-	if (! ((G_xmin < G_xmax) && (G_ymin < G_ymax)) )
-	{
-		fprintf(stderr, "xmin must be < xmax AND ymin must be < ymax !\n");
-		return EXIT_FAILURE;
-	}
 
 	// ---
 	// 4 planes (normal and point)
@@ -1095,18 +1068,18 @@ int main(int argc, char** argv)
  
     // opens document
     xmlKeepBlanksDefault(0); // ignore les noeuds texte composant la mise en forme
-    doc = xmlParseFile(argv[1]);
+    doc = xmlParseFile(xml_file_in);
     if (doc == NULL)
 	{
         fprintf(stderr, "Invalid XML file\n");
         return EXIT_FAILURE;
     }
 
-	QFileInfo fiIN(argv[1]);
+	QFileInfo fiIN(xml_file_in);
 	folderIN = fiIN.absolutePath().toStdString();
 	std::cout << " -> folderIN: " << folderIN << std::endl;
 
-	QFileInfo fiOUT(argv[2]);
+	QFileInfo fiOUT(xml_file_out);
 	folderOUT = fiOUT.absolutePath().toStdString();
 	std::cout << " -> folderOUT: " << folderOUT << std::endl;
 	QDir dir(fiOUT.absolutePath());
@@ -1229,11 +1202,47 @@ int main(int argc, char** argv)
 	fprintf(stdout, "--> NB COPIED: %d\n", nbCopied);
 
     // dumping document to file
-    xmlSaveFormatFileEnc(argv[2], out_doc, "ISO-8859-1", 1);
+    xmlSaveFormatFileEnc(xml_file_out, out_doc, "ISO-8859-1", 1);
 
     // free the documents
     xmlFreeDoc(out_doc);
     xmlFreeDoc(doc);
 
     return EXIT_SUCCESS;
+}
+
+int main(int argc, char** argv)
+{
+	bool b_VERBOSE;
+	double d_G_xmin, d_G_ymin, d_G_xmax, d_G_ymax;
+
+	CityGMLCut cityGMLCut;
+
+	if ((argc != 7) && (argc != 8))
+	{
+		puts("");
+        puts("CityGMLCut 1.4.0 - July 9, 2015 - Martial TOLA");
+		puts("-> this tool parses a CityGML file according to a 2d bounding box and extracts/cuts Buildings, ReliefFeatures and corresponding surfaceDataMembers.");
+		puts("Usage:");
+		puts("");
+		puts("CityGMLCut <file-to-parse> <output-file> <xmin> <ymin> <xmax> <ymax> [VERBOSE]");
+		puts("");
+		puts("Example:");
+		puts("./CityGMLCut ZoneAExporter.gml outP.gml 643200 6861700 643300 6861800");
+		puts("./CityGMLCut LYON_3.gml outL.gml 1843000 5174000 1844000 5175000 VERBOSE");
+		puts("");
+    
+		return EXIT_FAILURE;
+	}
+
+	b_VERBOSE = false;
+	if ((argc==8) && (strcmp(argv[7], "VERBOSE")==0))
+		b_VERBOSE = true;
+
+	d_G_xmin = atof(argv[3]);
+	d_G_ymin = atof(argv[4]);
+	d_G_xmax = atof(argv[5]);
+	d_G_ymax = atof(argv[6]);	
+
+	return cityGMLCut.Run(argv[1], argv[2], d_G_xmin, d_G_ymin, d_G_xmax, d_G_ymax, b_VERBOSE);
 }

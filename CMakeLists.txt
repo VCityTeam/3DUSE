@@ -472,9 +472,10 @@ IF(APPLE)
   SET(VCITY_GUI_ICON resources/vcity.icns)
 ENDIF(APPLE)
 
-ADD_EXECUTABLE(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
+add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 target_link_libraries (${PRJ_NAME} ${VCITY_GUI_LIB})
 if (WITH_QT5)
+  ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
   if (WITH_QT3D)
     QT5_USE_MODULES( ${PRJ_NAME} 3D )
@@ -482,15 +483,78 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-add_executable(CityGMLCut src/utils/cityGMLCut.cxx src/utils/triangulate.cxx)
+add_executable(CityGMLCut src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx)
 target_link_libraries (CityGMLCut ${VCITY_GUI_LIB})
 if (WITH_QT5)
+  ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( CityGMLCut Widgets Xml OpenGL )
   if (WITH_QT3D)
     QT5_USE_MODULES( CityGMLCut 3D )
   endif(WITH_QT3D)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
+
+################
+# 3DUSE plugins
+################
+# --> CityGMLCutQtPlugin : QtPlugin [BEGIN]
+OPTION(BUILD_CityGMLCutQtPlugin "BUILD CityGMLCutQtPlugin " ON)
+if (BUILD_CityGMLCutQtPlugin)
+	set(CityGMLCut_Qt_Plugin_HEADER src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.h src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.h)
+	set(CityGMLCut_Qt_Plugin_UI src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui)
+	if (WITH_QT5)
+	  set(CMAKE_AUTOMOC OFF) # Instruct CMake to not run moc automatically when needed
+	  ADD_DEFINITIONS("-DWITH_QT5")
+	  QT5_WRAP_CPP(CityGMLCut_Qt_Plugin_MOC_CPP ${CityGMLCut_Qt_Plugin_HEADER})
+	  QT5_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
+	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
+	else(WITH_QT5) 
+	  QT4_WRAP_CPP(CityGMLCut_Qt_Plugin_MOC_CPP ${CityGMLCut_Qt_Plugin_HEADER})
+	  QT4_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
+	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
+	  set(CityGMLCut_Qt_Plugin_LIB ${CityGMLCut_Qt_Plugin_LIB} ${QT_LIBRARIES})
+	endif(WITH_QT5)
+
+	add_library(CityGMLCutQtPlugin SHARED src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.cxx
+				${CityGMLCut_Qt_Plugin_HEADER} ${CityGMLCut_Qt_Plugin_SRC}
+				src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx) # if need, add cxx files here before the ')'
+	target_link_libraries (CityGMLCutQtPlugin ${CityGMLCut_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+	if (WITH_QT5)
+	  QT5_USE_MODULES(CityGMLCutQtPlugin Core Widgets)
+	endif(WITH_QT5)
+endif (BUILD_CityGMLCutQtPlugin)
+# --> CityGMLCutQtPlugin : QtPlugin [END]
+
+# --> CityGMLEmptyQtPlugin : QtPlugin [BEGIN]
+OPTION(BUILD_CityGMLEmptyQtPlugin "BUILD CityGMLEmptyQtPlugin " ON)
+if (BUILD_CityGMLEmptyQtPlugin)
+	set(CityGMLEmpty_Qt_Plugin_HEADER src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.h src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.h)
+	set(CityGMLEmpty_Qt_Plugin_UI src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.ui)
+	if (WITH_QT5)
+	  set(CMAKE_AUTOMOC OFF) # Instruct CMake to not run moc automatically when needed
+	  ADD_DEFINITIONS("-DWITH_QT5")
+	  QT5_WRAP_CPP(CityGMLEmpty_Qt_Plugin_MOC_CPP ${CityGMLEmpty_Qt_Plugin_HEADER})
+	  QT5_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
+	  set(CityGMLEmpty_Qt_Plugin_SRC ${CityGMLEmpty_Qt_Plugin_SRC} ${CityGMLEmpty_Qt_Plugin_MOC_CPP} ${CityGMLEmpty_Qt_Plugin_UI_CPP})
+	else(WITH_QT5) 
+	  QT4_WRAP_CPP(CityGMLEmpty_Qt_Plugin_MOC_CPP ${CityGMLEmpty_Qt_Plugin_HEADER})
+	  QT4_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
+	  set(CityGMLEmpty_Qt_Plugin_SRC ${CityGMLEmpty_Qt_Plugin_SRC} ${CityGMLEmpty_Qt_Plugin_MOC_CPP} ${CityGMLEmpty_Qt_Plugin_UI_CPP})
+	  set(CityGMLEmpty_Qt_Plugin_LIB ${CityGMLEmpty_Qt_Plugin_LIB} ${QT_LIBRARIES})
+	endif(WITH_QT5)
+
+	add_library(CityGMLEmptyQtPlugin SHARED src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.cxx
+				${CityGMLEmpty_Qt_Plugin_HEADER} ${CityGMLEmpty_Qt_Plugin_SRC}
+				) # if need, add cxx files here before the ')'
+	target_link_libraries (CityGMLEmptyQtPlugin ${CityGMLEmpty_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+	if (WITH_QT5)
+	  QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets)
+	endif(WITH_QT5)
+endif (BUILD_CityGMLEmptyQtPlugin)
+# --> CityGMLEmptyQtPlugin : QtPlugin [END]
+################
+# 3DUSE plugins
+################
 
 	#--------------------------------------------------------------------------------
 	# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
@@ -510,9 +574,22 @@ SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DE
 	#--------------------------------------------------------------------------------
 	# Install the application, on Apple, the bundle is at the root of the
 	# install tree, and on other platforms it'll go to the same directory.
-	INSTALL(TARGETS ${PRJ_NAME}
+	################
+	# 3DUSE plugins
+	################
+	if (BUILD_CityGMLCutQtPlugin)
+		set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
+	endif (BUILD_CityGMLCutQtPlugin)
+	if (BUILD_CityGMLEmptyQtPlugin)
+		set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
+	endif (BUILD_CityGMLEmptyQtPlugin)
+	################
+	# 3DUSE plugins
+	################
+	INSTALL(TARGETS ${PRJ_NAME} CityGMLCut ${CityGMLCutQtPlugin} ${CityGMLEmptyQtPlugin} # add your plugin installation here
 		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
 		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
+		LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
 	)
 
 	#--------------------------------------------------------------------------------

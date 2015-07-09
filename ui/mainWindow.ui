@@ -270,7 +270,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>27</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -403,6 +403,11 @@
     </widget>
     <addaction name="menuLODs"/>
    </widget>
+   <widget class="QMenu" name="menuPlugins">
+    <property name="title">
+     <string>Plugins</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuScene"/>
@@ -411,6 +416,7 @@
    <addaction name="menuOptions"/>
    <addaction name="menuDebug"/>
    <addaction name="menuTest"/>
+   <addaction name="menuPlugins"/>
    <addaction name="menu"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">

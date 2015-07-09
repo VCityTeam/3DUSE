@@ -10,7 +10,7 @@ static const double EPSILON=0.0000000001f;
 double Triangulate::Area(const MyVectorOfVertices &contour)
 {
 
-  int n = contour.size();
+  int n = (int)contour.size();
 
   double A=0.0f;
 
@@ -79,7 +79,7 @@ bool Triangulate::Process(const MyVectorOfVertices &contour,MyVectorOfVertices &
 {
   /* allocate and initialize list of Vertices in polygon */
 
-  int n = contour.size();
+  int n = (int)contour.size();
   if ( n < 3 ) return false;
 
   int *V = new int[n];
