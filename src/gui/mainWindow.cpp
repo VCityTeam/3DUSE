@@ -48,6 +48,10 @@
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
 
+#include <QPluginLoader>
+#include "pluginInterface.h"
+#include "moc/plugindialog.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 
 geos::geom::Geometry* ShapeGeo = nullptr;
@@ -170,6 +174,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_treeView->init();
 
+	// plugins
+    aboutPluginsAct = new QAction(tr("About &Plugins"), this);
+    connect(aboutPluginsAct, SIGNAL(triggered()), this, SLOT(aboutPlugins()));
+
+    pluginMenu = m_ui->menuPlugins;
+    pluginMenu->clear();          
+    pluginMenu->addAction(aboutPluginsAct);
+
+    loadPlugins();
+	// plugins
+
     //m_ui->statusBar->showMessage("none");
     
     setlocale(LC_ALL, "C"); // MT : important for Linux
@@ -177,12 +192,91 @@ MainWindow::MainWindow(QWidget *parent) :
 ////////////////////////////////////////////////////////////////////////////////
 MainWindow::~MainWindow()
 {
+	delete aboutPluginsAct;
     delete ShapeGeo;
 
     delete m_treeView;
     delete m_osgView;
     delete m_ui;
 }
+////////////////////////////////////////////////////////////////////////////////
+// Plugins
+////////////////////////////////////////////////////////////////////////////////
+  void MainWindow::loadPlugins()
+  {
+    foreach (QObject *plugin, QPluginLoader::staticInstances())
+      populateMenus(plugin);
+    
+    //std::cout << "-> loadPlugins from " << qApp->applicationDirPath().toStdString() << "\n";
+    pluginsDir = QDir(qApp->applicationDirPath());
+    
+#if defined(Q_OS_WIN)
+    /*if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+      pluginsDir.cdUp();*/
+#elif defined(Q_OS_MAC)
+    if (pluginsDir.dirName() == "MacOS") {
+      pluginsDir.cdUp();
+      pluginsDir.cdUp();
+      pluginsDir.cdUp();
+    }
+#endif
+    //pluginsDir.cd("plugins");
+    
+    foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+    {
+      if (/*fileName.contains("Filter") && */QLibrary::isLibrary(fileName))
+      {
+        QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+        QObject *plugin = loader.instance();
+        if (plugin) {
+          pluginMenu->addSeparator();
+          populateMenus(plugin);
+          pluginFileNames += fileName;
+        }
+      }
+    }
+    
+    pluginMenu->setEnabled(!pluginMenu->actions().isEmpty());
+  }
+  
+  void MainWindow::populateMenus(QObject *plugin)
+  {
+    Generic_PluginInterface *iGeneric_Filter = qobject_cast<Generic_PluginInterface *>(plugin);
+    if (iGeneric_Filter)
+      addToMenu(plugin, iGeneric_Filter->Generic_plugins(), pluginMenu, SLOT(applyPlugin()));
+  }
+  
+  void MainWindow::addToMenu(QObject *plugin, const QStringList &texts,
+                                                    QMenu *menu, const char *member,
+                                                    QActionGroup *actionGroup)
+  {
+    foreach (QString text, texts) {
+      QAction *action = new QAction(text, plugin);
+      connect(action, SIGNAL(triggered()), this, member);
+      menu->addAction(action);
+      
+      if (actionGroup) {
+        action->setCheckable(true);
+        actionGroup->addAction(action);
+      }
+    }
+  }
+  
+  void MainWindow::applyPlugin()
+  {
+    QAction *action = qobject_cast<QAction *>(sender());
+
+    Generic_PluginInterface *iGeneric_Filter 
+      = qobject_cast<Generic_PluginInterface *>(action->parent());
+    if (iGeneric_Filter)
+		iGeneric_Filter->Generic_plugin(action->text());
+  }
+
+  void MainWindow::aboutPlugins()
+  {
+    PluginDialog dialog(pluginsDir.path(), pluginFileNames, this);
+    dialog.exec();
+  }
 ////////////////////////////////////////////////////////////////////////////////
 // Recent files
 ////////////////////////////////////////////////////////////////////////////////

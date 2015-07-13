@@ -171,8 +171,11 @@ osgQtWidget::osgQtWidget(QWidget* parent)
 #ifdef Q_WS_X11
    setThreadingModel(osgViewer::ViewerBase::CullThreadPerCameraDrawThreadPerContext);
 #else
-   //setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
-    setThreadingModel(osgViewer::ViewerBase::CullThreadPerCameraDrawThreadPerContext);
+	#if (WITH_QT5)
+		setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
+	#else
+		setThreadingModel(osgViewer::ViewerBase::CullThreadPerCameraDrawThreadPerContext);
+	#endif
 #endif
    m_widget = addViewWidget(createGraphicsWindow(0,0,100,100), parent);
    connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
