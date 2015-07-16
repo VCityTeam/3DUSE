@@ -192,17 +192,17 @@ void CityModel::computeEnvelope()
 {
     for(CityObject* obj : _roots)
     {
-       // obj->computeEnvelope();
+		if(obj->IsEmpty())
+			continue;
+
+        obj->computeEnvelope();
+
+		if(obj->getEnvelope().getUpperBound().x > 1000000000) //Pour pas qu'un bâtiment qui bug gêne le calcul de l'enveloppe
+			continue;
 		
 		//TVec3d Low = _envelope.getLowerBound();
 		//TVec3d Up = _envelope.getUpperBound();
-       // _envelope.merge(obj->getEnvelope());
-
-		if(!obj->IsEmpty())
-		{
-			obj->computeEnvelope();
-			_envelope.merge(obj->getEnvelope());
-		}
+        _envelope.merge(obj->getEnvelope());
 
 		/*if(_envelope.getLowerBound() != Low || _envelope.getUpperBound() != Up)
 		{

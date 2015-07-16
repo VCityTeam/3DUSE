@@ -3353,23 +3353,16 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                 }
             }
         }
-
-       // std::cout << "Test1_A" << std::endl;
-
+		
         std::vector<int> ListBatiShp = Link->first.at(cpt); //Contient les indices des polygons Shp liés à ce Bâtiment CityGML
-
-        //std::cout << "Test1_A2" << std::endl;
 
         if(ListBatiShp.empty())
             continue;
 
-       // std::cout << "Test1_B" << std::endl;
-
         for(int i = 0; i < ListBatiShp.size() - 1; ++i) //On regroupe les bâtiment Shp par Bâtiment CityGML afin de faciliter la recherche de voisins
         {
-            //std::cout << "Test1_C" << std::endl;
             OGRGeometryCollection* Footprint1 = FootprintsShape->at(ListBatiShp.at(i));
-            //std::cout << "Test1_D" << std::endl;
+
             if(Footprint1 == nullptr || Footprint1->IsEmpty())
                 continue;
 
@@ -3381,27 +3374,9 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
                 if(Footprint1->Distance(Footprint2) > Precision_Vect)
                     continue;
-
-                //std::cout << "Test1_E" << std::endl;
-
+				
                 //OGRGeometryCollection* Footprint1WithPoints = CreatePointsOnLine(Footprint2, Footprint1);
                 //OGRGeometryCollection* Footprint2WithPoints = CreatePointsOnLine(Footprint1, Footprint2);
-
-                /*if(cpt == 137) //357
-                {
-                    OGRMultiPolygon* MP = new OGRMultiPolygon;
-
-                    for(OGRPolygon* Poly : ListPolygonRoofCityGML)
-                        MP->addGeometry(Poly);
-
-                    SaveGeometrytoShape("A_ListPolygonRoofCityGML.shp", MP);
-                    delete MP;
-
-                    SaveGeometrytoShape("A_Footprint1.shp", Footprint1);
-                    SaveGeometrytoShape("A_Footprint2.shp", Footprint2);
-                }*/
-
-                //std::cout << "Test1_F" << std::endl;
 
                 OGRMultiLineString* ListAretesIntersection = new OGRMultiLineString;
 
@@ -3437,21 +3412,17 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
                 for(int G1 = 0; G1 < Footprint1->getNumGeometries(); ++G1)
                 {
-                    //std::cout << "TestA" << std::endl;
                     OGRGeometry* Geo1 = Footprint1->getGeometryRef(G1);
-                    //std::cout << "TestB" << std::endl;
+
                     if(Geo1->getGeometryType() != wkbPolygon && Geo1->getGeometryType() != wkbPolygon25D)
                         continue;
                     if(((OGRPolygon*)Geo1)->get_Area() < Precision_Vect)
                         continue;
                     if(Geo1->Distance(Footprint2) > Precision_Vect)
                         continue;
-                    //std::cout << "TestC" << std::endl;
 
                     OGRLinearRing* Ring1 = ((OGRPolygon*)Geo1)->getExteriorRing();
-
-                    //std::cout << "TestD" << std::endl;
-
+					
                     for(int G2 = 0; G2 < Footprint2->getNumGeometries(); ++G2)
                     {
                         OGRGeometry* Geo2 = Footprint2->getGeometryRef(G2);
@@ -3502,7 +3473,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
                 for(int k = 0; k < ListAretesIntersection->getNumGeometries(); ++k)
                 {
-                    //std::cout << "Test2_1" << std::endl;
                     OGRLineString* Aretes = (OGRLineString*)ListAretesIntersection->getGeometryRef(k); //Chaque arête correspond à seulement deux points
 
                     OGRPoint * PointArete1 = new OGRPoint;
@@ -3582,7 +3552,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                     }
                     delete PointArete1;
                     delete PointArete2;
-                    //std::cout << "Test2_2" << std::endl;
 
                     /*for(int a = 0; a < Aretes->getNumPoints(); ++a)
                     {
@@ -3618,12 +3587,10 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                     }
                     ListAretesWithZ->addGeometryDirectly(AretesWithZ);*/
                 }
-                //std::cout << "Test3_1" << std::endl;
+
                 ListGeneratedWalls[ListBatiShp.at(i)].push_back(ListAretesWithZ);
                 ListGeneratedWalls[ListBatiShp.at(j)].push_back(ListAretesWithZ);
-                //std::cout << "Test3_2" << std::endl;
                 delete ListAretesIntersection;
-                //std::cout << "Test3_3" << std::endl;
             }
         }
     }
@@ -3656,6 +3623,10 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
         citygml::CityObject* WallCO = new citygml::WallSurface(Name+"_Wall");
         citygml::Geometry* Wall = new citygml::Geometry(Name+"_WallGeometry", citygml::GT_Wall, 2);
 
+		int cptPolyRoof = 0; //Compteur de polygones représentant un Roof du bâtiment courant (pour avoir des noms différents)
+		int cptPolyWall = 0; //Compteur de polygones représentant un Wall du bâtiment courant (pour avoir des noms différents)
+		int cptPolyGenericWall = 0; //Compteur de polygones représentant un GenericWall du bâtiment courant (pour avoir des noms différents)
+
         for(int b = 0; b < Building->getNumGeometries(); ++b)
         {
             OGRPolygon* BuildingShp = dynamic_cast<OGRPolygon*>(Building->getGeometryRef(b));
@@ -3668,7 +3639,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
 
             std::vector<OGRPolygon*> ListPolygonsWall; //On va stocker tous les polygons de Wall qui sont liés à BuildingShp
 
-            int cptPolyRoof = 0;
             int cpt2 = - 1;
             for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
             {
@@ -3735,15 +3705,15 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                         continue;
                                                     }
 
-                                                    citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "Roof_" + std::to_string(cptPolyRoof));
+                                                    citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "_Roof_" + std::to_string(cptPolyRoof));
                                                     Roof->addPolygon(GMLPoly);
                                                     PolygonsRoofBuildingShp->addGeometry(CutPoly);
                                                     if(HasTexture)
                                                     {
                                                         TexturePolygonCityGML Poly;
 
-                                                        Poly.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
-                                                        Poly.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+                                                        Poly.Id = Name + "_Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+                                                        Poly.IdRing = Name + "_Roof_" + std::to_string(cptPolyRoof) + "_Ring";
                                                         Poly.TexUV = TexUVout.at(0);
 
                                                         bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
@@ -3777,15 +3747,15 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                             if(((OGRPolygon*)CutMultiPoly->getGeometryRef(i))->get_Area() < Precision_Vect)
                                                                 continue;
 
-                                                            citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutMultiPoly->getGeometryRef(i), Name + "Roof_" + std::to_string(cptPolyRoof));
+                                                            citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutMultiPoly->getGeometryRef(i), Name + "_Roof_" + std::to_string(cptPolyRoof));
                                                             Roof->addPolygon(GMLPoly);
                                                             PolygonsRoofBuildingShp->addGeometry(CutMultiPoly->getGeometryRef(i));
                                                             if(HasTexture)
                                                             {
                                                                 TexturePolygonCityGML Poly;
 
-                                                                Poly.Id = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Poly";
-                                                                Poly.IdRing = Name + "Roof_" + std::to_string(cptPolyRoof) + "_Ring";
+                                                                Poly.Id = Name + "_Roof_" + std::to_string(cptPolyRoof) + "_Poly";
+                                                                Poly.IdRing = Name + "_Roof_" + std::to_string(cptPolyRoof) + "_Ring";
                                                                 Poly.TexUV = TexUVout.at(i);
 
                                                                 bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
@@ -3826,7 +3796,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
             }
 
             cpt2 = - 1;
-            int cptPolyWall = 0;
             double Zmin = -1; //Stock la valeur minimale en Z des murs afin d'avoir une valeur à appliquer pour les murs créés à partir de rien.
 
             for(citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
@@ -3988,7 +3957,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                             continue;
                                                         }
                                                         WallPolyRes->addRingDirectly(CleanWallRingRes);
-                                                        citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)WallPolyRes, Name + "Wall_" + std::to_string(cptPolyWall));
+                                                        citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)WallPolyRes, Name + "_Wall_" + std::to_string(cptPolyWall));
 
                                                         Wall->addPolygon(GMLPoly);
                                                         ListPolygonsWall.push_back((OGRPolygon*)WallPolyRes);
@@ -3998,8 +3967,8 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                                                         {
                                                             TexturePolygonCityGML Poly;
 
-                                                            Poly.Id = Name + "Wall_" + std::to_string(cptPolyWall) + "_Poly";
-                                                            Poly.IdRing = Name + "Wall_" + std::to_string(cptPolyWall) + "_Ring";
+                                                            Poly.Id = Name + "_Wall_" + std::to_string(cptPolyWall) + "_Poly";
+                                                            Poly.IdRing = Name + "_Wall_" + std::to_string(cptPolyWall) + "_Ring";
                                                             Poly.TexUV = TexUVWall;
 
                                                             bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
@@ -4040,7 +4009,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
             }
 
             //Création des murs correspondant aux arêtes intérieures des bâtiments afin d'avoir des objets 3D fermés
-            cptPolyWall = 0;
+
             for(OGRMultiLineString* MultiLS : ListGeneratedWalls[cpt])
             {
                 for(int i = 0; i < MultiLS->getNumGeometries(); ++i)
@@ -4067,8 +4036,8 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                     WallLine->addPoint(Point1R);
                     OGRPolygon* NewWallPoly = new OGRPolygon;
                     NewWallPoly->addRingDirectly(WallLine);
-                    Wall->addPolygon(ConvertOGRPolytoGMLPoly(NewWallPoly, Name + "GenericWall_" + std::to_string(cptPolyWall)));
-                    ++ cptPolyWall;
+                    Wall->addPolygon(ConvertOGRPolytoGMLPoly(NewWallPoly, Name + "_GenericWall_" + std::to_string(cptPolyGenericWall)));
+                    ++ cptPolyGenericWall;
                     delete NewWallPoly;
                     delete Point1R;
                     delete Point2R;
