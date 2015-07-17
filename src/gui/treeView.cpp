@@ -858,6 +858,6 @@ void TreeView::resetActions()
     m_tree->removeAction(m_actionDeSelectAll);
     m_tree->removeAction(m_actionAddDoc);
 	m_tree->removeAction(m_actionExportJSON);
-	//m_tree->removeAction(m_actionAddYocYod);
+	m_tree->removeAction(m_actionAddYocYod);
 }
 ////////////////////////////////////////////////////////////////////////////////
