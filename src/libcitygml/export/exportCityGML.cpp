@@ -240,9 +240,23 @@ namespace citygml
             // attributes
             for(const auto& attr : obj.getAttributes())
             {
-                xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
-                xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
-                xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+				std::string attrName = attr.first; 
+				if(attrName=="yearOfConstruction"||attrName=="yearOfDemolition")
+				{
+					std::string cName = "bldg:"+attrName;
+					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
+				}
+				else if (attrName=="creationDate"||attrName=="terminationDate")
+				{					
+					std::string cName = "core:"+attrName;
+					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
+				}
+				else
+				{
+					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
+					xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
+					xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+				}
             }
 
             return res;
@@ -261,9 +275,23 @@ namespace citygml
             // attributes
             for(const auto& attr : obj.getAttributes())
             {
+				std::string attrName = attr.first; 
+				if(attrName=="yearOfConstruction"||attrName=="yearOfDemolition")
+				{
+					std::string cName = "bldg:"+attrName;
+					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
+				}
+				else if (attrName=="creationDate"||attrName=="terminationDate")
+				{					
+					std::string cName = "core:"+attrName;
+					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
+				}
+				else
+				{
                 xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
                 xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
                 xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
+				}
             }
 
             return res;
