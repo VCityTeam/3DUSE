@@ -8,7 +8,6 @@ DialogYearOfConst::DialogYearOfConst(QWidget *parent) :
 {
     ui->setupUi(this);
 	connect(ui->checkBoxConst,SIGNAL(toggled(bool)),this,SLOT(constChecked(bool)));
-	connect(ui->checkBoxDemol,SIGNAL(toggled(bool)),this,SLOT(demolChecked(bool)));
 }
 
 DialogYearOfConst::~DialogYearOfConst()
@@ -24,10 +23,8 @@ void DialogYearOfConst::editDates(const vcity::URI& uri)
 	osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
 
     int yearOfConstruction;
-    int yearOfDemolition;
 
     bool a = node->getUserValue("yearOfConstruction", yearOfConstruction);
-    bool b = node->getUserValue("yearOfDemolition", yearOfDemolition);
 
 	ui->checkBoxConst->setChecked(a);
 	ui->dateConstrEdit->setEnabled(a);
@@ -36,30 +33,17 @@ void DialogYearOfConst::editDates(const vcity::URI& uri)
 		//(yearOfConstruction,1,1);
 		ui->dateConstrEdit->setDate(QDate(yearOfConstruction,1,1));
 	}
-	ui->checkBoxDemol->setChecked(b);
-	ui->dateDemolEdit->setEnabled(b);
-	if (b)
-	{
-		ui->dateDemolEdit->setDate(QDate(yearOfDemolition,1,1));
-	}
 
 	//window execution
 	int res = exec();
 	if (res)
 	{
 		QDate yoC = ui->dateConstrEdit->date();
-		QDate yoD = ui->dateDemolEdit->date();
 
 		if (ui->checkBoxConst->isChecked())
 		{
 			obj->setAttribute("yearOfConstruction",yoC.toString("yyyy").toStdString());
 			node->setUserValue("yearOfConstruction",yoC.year());
-		}
-	
-		if (ui->checkBoxDemol->isChecked())
-		{
-			obj->setAttribute("yearOfDemolition",yoD.toString("yyyy").toStdString());
-			node->setUserValue("yearOfDemolition",yoD.year());
 		}
 	}
 }
@@ -67,9 +51,4 @@ void DialogYearOfConst::editDates(const vcity::URI& uri)
 void DialogYearOfConst::constChecked(bool checked)
 {
 	ui->dateConstrEdit->setEnabled(checked);
-}
-
-void DialogYearOfConst::demolChecked(bool checked)
-{
-	ui->dateDemolEdit->setEnabled(checked);
 }

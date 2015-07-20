@@ -12,6 +12,7 @@
 #include "moc/dialogTag.hpp"
 #include "moc/dialogDoc.hpp"
 #include "moc/dialogYearOfConst.hpp"
+#include "moc/dialogYearOfDemol.hpp"
 #include "core/application.hpp"
 #include <iostream>
 #include <QMenu>
@@ -50,7 +51,8 @@ TreeView::~TreeView()
     delete m_actionDeSelectAll;
     delete m_actionAddDoc;
 	delete m_actionExportJSON;
-	delete m_actionAddYocYod;
+	delete m_actionAddYearOfConst;
+	delete m_actionAddYearOfDemol;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -83,7 +85,8 @@ void TreeView::init()
     m_actionAddDoc = new QAction("Add document", NULL);
 	m_actionExportJSON = new QAction("Export JSON", NULL);
 	//ajout yearOfConstruction/yearOfDemolition
-	m_actionAddYocYod = new QAction("Add year of Construction/Demolition",NULL);
+	m_actionAddYearOfConst = new QAction("Add year of Construction",NULL);
+	m_actionAddYearOfDemol = new QAction("Add year of Demolition",NULL);
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -111,7 +114,8 @@ void TreeView::init()
     connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
 	connect(m_actionExportJSON, SIGNAL(triggered()), this, SLOT(slotExportJSON()));
 	//ajout yearOfConstruction/yearOfDemolition
-	connect(m_actionAddYocYod, SIGNAL(triggered()), this, SLOT(slotAddYocYod()));
+	connect(m_actionAddYearOfConst, SIGNAL(triggered()), this, SLOT(slotAddYearOfConst()));
+	connect(m_actionAddYearOfDemol, SIGNAL(triggered()), this, SLOT(slotAddYearOfDemol()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
@@ -608,7 +612,8 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionAddState);
         m_tree->addAction(m_actionAddDynState);
         m_tree->addAction(m_actionAddDoc);
-		m_tree->addAction(m_actionAddYocYod);
+		m_tree->addAction(m_actionAddYearOfConst);
+		m_tree->addAction(m_actionAddYearOfDemol);
     }
 
     // actions on all types
@@ -828,9 +833,15 @@ void TreeView::slotExportJSON()
 		layerLas->exportJSON();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddYocYod()
+void TreeView::slotAddYearOfConst()
 {
 	DialogYearOfConst diag;
+	diag.editDates(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotAddYearOfDemol()
+{
+	DialogYearOfDemol diag;
 	diag.editDates(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -858,6 +869,7 @@ void TreeView::resetActions()
     m_tree->removeAction(m_actionDeSelectAll);
     m_tree->removeAction(m_actionAddDoc);
 	m_tree->removeAction(m_actionExportJSON);
-	m_tree->removeAction(m_actionAddYocYod);
+	m_tree->removeAction(m_actionAddYearOfConst);
+	m_tree->removeAction(m_actionAddYearOfDemol);
 }
 ////////////////////////////////////////////////////////////////////////////////

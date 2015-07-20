@@ -441,7 +441,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 		strAttr.erase(7,1); //yyyy-MM-dd -> yyyy-MMdd
 		strAttr.erase(4,1); //yyyy-MMdd -> yyyyMMdd
 		grp->setUserValue("creationDate", std::stoi(strAttr));
-		//std::cout<<"creationDate: "<<strAttr<<std::endl;
+		//std::cout<<"creationDate: "<<std::stoi(strAttr)<<std::endl;
 	}
 	strAttr = object->getAttribute("terminationDate");
 	if(!strAttr.empty())
