@@ -5,6 +5,7 @@
 #include "moc/dialogLoadBBox.hpp"
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
+#include "moc/dialogShpLoad.hpp"
 
 #include "controllerGui.hpp"
 
@@ -46,6 +47,9 @@
 #include "src/processes/ExportToShape.hpp"
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
+#include "src/Visibilite/Visibilite.hpp"
+#include "src/Visibilite/AABB.hpp"
+#include "src/Visibilite/FlatRoof.hpp"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
@@ -467,45 +471,7 @@ bool MainWindow::loadFile(const QString& filepath)
 	}
     else if(ext == "shp")
     {
-        std::cout << "load shp file : " << filepath.toStdString() << std::endl;
-        OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
-
-		//Pour sauvegarder un shapefile
-		/*const char *pszDriverName = "ESRI Shapefile";
-		OGRSFDriver *poDriver;
-		OGRRegisterAll();
-		poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
-
-		if( poDriver == NULL )
-		{
-			printf( "%s driver not available.\n", pszDriverName );
-			return false;
-		}
-		OGRDataSource *poDS2;
-		remove("Polygon.shp");
-		poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
-		
-		poDS2->CopyLayer(poDS->GetLayer(0), "test");
-		OGRDataSource::DestroyDataSource(poDS2);
-
-		return false;*/
-
-        //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
-		
-        // clean previous shapeGeo
-        delete ShapeGeo;
-		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
-        if(poDS)
-        {
-            vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
-            appGui().getControllerGui().addShpNode(uriLayer, poDS);
-
-            addRecentFile(filepath);
-
-            //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
-        }
-
-		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
+        loadShpFile(filepath);
     }
     else if(ext == "dxf")
     {
@@ -2227,12 +2193,16 @@ void MainWindow::test3()
 
 	QApplication::restoreOverrideCursor();
 }
+
+#define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
+
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 {
     //buildJson();
-	//DetectionToitsPlats("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml",5,0.98);
-	//DetectionToitsPlats("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml",5,0.98);
+
+	//DetectionToitsPlats("C:/VCityData/Big/Lyon01/LYON01_BATIS.gml",5,0.98);
+	DetectionToitsPlats("C:/VCityData/Jeux de test/LYON_1ER_00136.gml",5,0.98);
 
 	QDir outputDir("./SkylineOutput/");
 	if(!outputDir.exists("./SkylineOutput/"))
@@ -2279,7 +2249,7 @@ void MainWindow::test4()
 
 	//m_osgScene->addChild(BuildSkylineOSGNode(Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
 
-	/*std::vector<std::string> building;
+	std::vector<std::string> building;
 	//building.push_back("C:/VCityData/Jeux de test/LYON_2EME_WATER_2012.gml");
 	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
 	//building.push_back("C:/VCityData/Lyon01/LYON01_BATIS.gml");
@@ -2291,18 +2261,33 @@ void MainWindow::test4()
 	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_TIN_2012.gml");
 
 	//AnalyseTestViewport(building,m_app.getSettings().getDataProfile().m_offset,cam);*/
+	
 	//m_osgScene->addChild(BuildSkylineOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
-	//m_osgScene->addChild(BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
+	//osg::ref_ptr<osg::Node> node = (BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
+	//appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
+	
+	/*std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+
+	int cpt = 0;
+	for(AnalysisResult ar : res)
+	{
+		addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
+		addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
+		cpt++;
+	}*/
+	
+	//addTree(BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
+	//addTree(BuildSkylineOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
 	//Analyse(building,terrain,m_app.getSettings().getDataProfile().m_offset,cam,6,20);
 
 	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
-	std::vector<AnalysisResult> results = AnalysePanorama("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
+	/*std::vector<AnalysisResult> results = AnalysePanorama("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
 
 	for(AnalysisResult a : results)
 	{
 		m_osgScene->addChild(BuildSkylineOSGNode(a.skyline));
 		m_osgScene->addChild(BuildViewshedOSGNode(a));
-	}
+	}*/
 
 	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam,3,15);
 }
@@ -2365,5 +2350,55 @@ void MainWindow::test5()
         test5rec(obj);
         appGui().getControllerGui().update(appGui().getSelectedNodes()[0]);
     }
+}
+////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::loadShpBbox()
+{
+	DialogShpLoad dial(this,this);
+	dial.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::loadShpFile(const QString& filepath)
+{
+	std::cout << "load shp file : " << filepath.toStdString() << std::endl;
+    OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
+
+	//Pour sauvegarder un shapefile
+	/*const char *pszDriverName = "ESRI Shapefile";
+	OGRSFDriver *poDriver;
+	OGRRegisterAll();
+	poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
+
+	if( poDriver == NULL )
+	{
+		printf( "%s driver not available.\n", pszDriverName );
+		return false;
+	}
+	OGRDataSource *poDS2;
+	remove("Polygon.shp");
+	poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
+		
+	poDS2->CopyLayer(poDS->GetLayer(0), "test");
+	OGRDataSource::DestroyDataSource(poDS2);
+
+	return false;*/
+
+    //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+		
+    // clean previous shapeGeo
+    delete ShapeGeo;
+	buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
+    if(poDS)
+    {
+        vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+        appGui().getControllerGui().addShpNode(uriLayer, poDS);
+
+        addRecentFile(filepath);
+
+        //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+    }
+
+		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
 ////////////////////////////////////////////////////////////////////////////////

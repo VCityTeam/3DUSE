@@ -191,12 +191,12 @@ TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* vie
 *	@param skyline Skyline
 *	@return The osg node
 */
-osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline);
+osg::ref_ptr<osg::Node> BuildSkylineOSGNode(std::vector<TVec3d> skyline, std::string prefix = "");
 
 /**
 *	@Brief Build the viewshed
 *	@param result Result of the analysis
 */
-osg::ref_ptr<osg::Geode> BuildViewshedOSGNode(AnalysisResult result);
+osg::ref_ptr<osg::Node> BuildViewshedOSGNode(AnalysisResult result, std::string prefix = "");
 
 #endif

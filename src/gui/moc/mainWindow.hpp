@@ -74,6 +74,8 @@ private:
     void populateMenus(QObject *plugin);
     void addToMenu(QObject *plugin, const QStringList &texts, QMenu *menu,
                    const char *member, QActionGroup *actionGroup = 0);
+
+	void loadShpFile(const QString& filepath);
 	// plugins
 
 public slots:
@@ -102,6 +104,7 @@ public slots:
     void slotDumpScene();
     void slotDumpSelectedNodes();
     void slotCutCityGMLwithShapefile();
+	void loadShpBbox();
 
     void about();
 

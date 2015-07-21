@@ -285,6 +285,7 @@
     <addaction name="actionLoad"/>
     <addaction name="actionLoad_recursive"/>
     <addaction name="actionLoad_bbox"/>
+    <addaction name="actionLoad_Shape_Bbox"/>
     <addaction name="menuRecent_files"/>
     <addaction name="separator"/>
     <addaction name="actionExport_citygml"/>
@@ -363,6 +364,7 @@
     <addaction name="actionCityGML_cut"/>
     <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="actionChange_Detection"/>
+    <addaction name="actionShp_Tool"/>
     <addaction name="separator"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
    </widget>
@@ -775,6 +777,16 @@
   <action name="actionScene_GenerateLOD1">
    <property name="text">
     <string>LOD1</string>
+   </property>
+  </action>
+  <action name="actionShp_Tool">
+   <property name="text">
+    <string>Shp Tool</string>
+   </property>
+  </action>
+  <action name="actionLoad_Shape_Bbox">
+   <property name="text">
+    <string>Load Shape Bbox...</string>
    </property>
   </action>
  </widget>

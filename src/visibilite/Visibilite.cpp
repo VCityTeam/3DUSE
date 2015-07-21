@@ -173,7 +173,7 @@ TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* vie
 	return new TriangleList(triangles);
 }
 
-osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline)
+osg::ref_ptr<osg::Node> BuildSkylineOSGNode(std::vector<TVec3d> skyline, std::string prefix)
 {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	osg::Geometry* geom = new osg::Geometry;
@@ -203,10 +203,13 @@ osg::ref_ptr<osg::Geode> BuildSkylineOSGNode(std::vector<TVec3d> skyline)
 	linewidth->setWidth(3.0f); 
 	geode->getOrCreateStateSet()->setAttributeAndModes(linewidth); 
 
-	return geode;
+	osg::ref_ptr<osg::Node> node = geode;
+	node->setName(prefix+"ViewShed");
+
+	return node;
 }
 
-osg::ref_ptr<osg::Geode> BuildViewshedOSGNode(AnalysisResult result)
+osg::ref_ptr<osg::Node> BuildViewshedOSGNode(AnalysisResult result, std::string prefix)
 {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	osg::Geometry* geom = new osg::Geometry;
@@ -250,7 +253,10 @@ osg::ref_ptr<osg::Geode> BuildViewshedOSGNode(AnalysisResult result)
 	linewidth->setWidth(6.0f); 
 	geode->getOrCreateStateSet()->setAttributeAndModes(linewidth); 
 
-	return geode;
+	osg::ref_ptr<osg::Node> node = geode;
+	node->setName(prefix+"Skyline");
+
+	return node;
 }
 
 std::pair<int, int> ViewPoint::GetCoord(Position p)
