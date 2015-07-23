@@ -20,8 +20,10 @@ public:
 
 private:
     Ui::DialogYearOfConst *ui;
+	int creationDate;
+	int yearOfConstruction;
 	private	slots:
-	void constChecked(bool);
+		void indexChanged(int);
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGYEAROFCONST_HPP

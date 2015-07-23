@@ -20,8 +20,10 @@ public:
 
 private:
     Ui::DialogYearOfDemol *ui;
+	int terminationDate;
+	int yearOfDemolition;
 	private	slots:
-	void constChecked(bool);
+		void indexChanged(int);
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGYEAROFDEMOL_HPP

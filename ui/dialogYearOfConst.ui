@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Edit dates of construction and demolition</string>
+   <string>Edit date of construction</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -26,17 +26,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QCheckBox" name="checkBoxConst">
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
-          <property name="autoFillBackground">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Date of Construction: </string>
-          </property>
-         </widget>
+         <widget class="QComboBox" name="comboBox"/>
         </item>
         <item>
          <widget class="QDateTimeEdit" name="dateConstrEdit">
