@@ -3,6 +3,8 @@
 #include "osgGDAL.hpp"
 #include <osg/Geode>
 #include <osg/Geometry>
+#include <osg/Point>
+#include <osg/PolygonMode>
 #include <stdio.h>
 #include <iostream>
 #include "libcitygml/tesselator.hpp"
@@ -12,6 +14,8 @@
 #include "geos/geom/Polygon.h"
 #include "geos/geom/CoordinateArraySequence.h"
 #include "geos/geom/CoordinateArraySequenceFactory.h"
+
+//#define FILL_POLYGON
 
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
@@ -73,9 +77,11 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                 }
                 else if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
                 {
+#ifdef FILL_POLYGON
                     osg::Geometry* geom = new osg::Geometry;
                     osg::Vec3Array* vertices = new osg::Vec3Array;
                     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES , 0);
+					osg::Vec3Array* colors = new osg::Vec3Array;
 
                     OGRPolygon* poPG = (OGRPolygon*) poGeometry;
                     OGRLinearRing* poLR = poPG->getExteriorRing();
@@ -121,6 +127,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
                     {
                         osg::Vec3d pt = osg::Vec3d(v.x, v.y, v.z) - offset;
                         vertices->push_back(pt);
+                        colors->push_back(osg::Vec3d(0.0,1.0,0.0));
                     }
                     for(unsigned int id : tess.getIndices())
                     {
@@ -131,8 +138,105 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 
                     geom->setVertexArray(vertices);
                     geom->addPrimitiveSet(indices);
+
                     geode->addDrawable(geom);
+#else
+					//TODO : Mieux gérer les indices, pour l'instance c'est sale
+					osg::Geometry* geom = new osg::Geometry;
+                    osg::Vec3Array* vertices = new osg::Vec3Array;
+                    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES , 0);
+					osg::Vec3Array* colors = new osg::Vec3Array;
+
+					unsigned int cpt = 0;
+
+                    OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+
+					{
+						OGRLinearRing* poLR = poPG->getExteriorRing();
+
+						OGRPoint p;
+						osg::Vec3d v;
+						for(int i=0; i<poLR->getNumPoints()-1; ++i)
+						{
+							poLR->getPoint(i, &p);
+							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							vertices->push_back(v);
+							poLR->getPoint(i+1, &p);
+							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							vertices->push_back(v);
+							indices->push_back(cpt++);
+							indices->push_back(cpt++);
+						}
+
+						poLR->getPoint(poLR->getNumPoints()-1, &p);
+						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						vertices->push_back(v);
+						poLR->getPoint(0, &p);
+						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						vertices->push_back(v);
+						indices->push_back(cpt++);
+						indices->push_back(cpt++);
+					}
+
+					for(unsigned int k = 0; k < poPG->getNumInteriorRings(); k++)
+					{
+						OGRLinearRing* poLR = poPG->getInteriorRing(k);
+
+						OGRPoint p;
+						osg::Vec3d v;
+						for(int i=0; i<poLR->getNumPoints()-1; ++i)
+						{
+							poLR->getPoint(i, &p);
+							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							vertices->push_back(v);
+							poLR->getPoint(i+1, &p);
+							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							vertices->push_back(v);
+							indices->push_back(cpt++);
+							indices->push_back(cpt++);
+						}
+
+						poLR->getPoint(poLR->getNumPoints()-1, &p);
+						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						vertices->push_back(v);
+						poLR->getPoint(0, &p);
+						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						vertices->push_back(v);
+						indices->push_back(cpt++);
+						indices->push_back(cpt++);
+					}
+
+					colors->push_back(osg::Vec3d(0.0,1.0,0.0));
+
+					geom->setVertexArray(vertices);
+                    geom->addPrimitiveSet(indices);
+					geom->setColorArray(colors);
+					geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+                    geode->addDrawable(geom);
+#endif
+
                 }
+				else if(poGeometry != NULL && poGeometry->getGeometryType() == wkbPoint)
+				{
+					osg::Geometry* geom = new osg::Geometry;
+                    osg::Vec3Array* vertices = new osg::Vec3Array;
+                    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::POINTS, 0);
+
+                    OGRPoint* poP = (OGRPoint*) poGeometry;
+                    
+					osg::Vec3d point(poP->getX(),poP->getY(),0.0);
+					vertices->push_back(point - offset);
+                    indices->push_back(0);
+
+
+                    geom->setVertexArray(vertices);
+                    geom->addPrimitiveSet(indices);
+                    geode->addDrawable(geom);
+
+					osg::Point* pointsize = new osg::Point(3.0f); 
+					geode->getOrCreateStateSet()->setAttributeAndModes(pointsize); 
+				}
                 else
                 {
                     printf( "%u %s no geometry\n", poGeometry->getGeometryType(), poGeometry->getGeometryName() );

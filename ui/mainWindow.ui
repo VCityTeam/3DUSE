@@ -285,7 +285,6 @@
     <addaction name="actionLoad"/>
     <addaction name="actionLoad_recursive"/>
     <addaction name="actionLoad_bbox"/>
-    <addaction name="actionLoad_Shape_Bbox"/>
     <addaction name="menuRecent_files"/>
     <addaction name="separator"/>
     <addaction name="actionExport_citygml"/>
@@ -364,7 +363,7 @@
     <addaction name="actionCityGML_cut"/>
     <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="actionChange_Detection"/>
-    <addaction name="actionShp_Tool"/>
+    <addaction name="actionShp_Extrusion"/>
     <addaction name="separator"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
    </widget>
@@ -779,14 +778,9 @@
     <string>LOD1</string>
    </property>
   </action>
-  <action name="actionShp_Tool">
+  <action name="actionShp_Extrusion">
    <property name="text">
-    <string>Shp Tool</string>
-   </property>
-  </action>
-  <action name="actionLoad_Shape_Bbox">
-   <property name="text">
-    <string>Load Shape Bbox...</string>
+    <string>Shp Extrusion</string>
    </property>
   </action>
  </widget>

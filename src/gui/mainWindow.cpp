@@ -50,6 +50,7 @@
 #include "src/Visibilite/Visibilite.hpp"
 #include "src/Visibilite/AABB.hpp"
 #include "src/Visibilite/FlatRoof.hpp"
+#include "src/utils/ShpExtrusion.h"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
@@ -128,6 +129,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
     connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
+	connect(m_ui->actionShp_Extrusion, SIGNAL(triggered()), this, SLOT(ShpExtrusionSlot()));
 
     connect(m_ui->toolButton, SIGNAL(clicked()), this, SLOT(slotTemporalAnim()));
 
@@ -2359,7 +2361,7 @@ void MainWindow::loadShpBbox()
 	dial.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::loadShpFile(const QString& filepath)
+void MainWindow::loadShpFile(const QString& filepath, bool useBBox, TVec2d boxMin, TVec2d boxMax)
 {
 	std::cout << "load shp file : " << filepath.toStdString() << std::endl;
     OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
@@ -2402,3 +2404,7 @@ void MainWindow::loadShpFile(const QString& filepath)
 		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::ShpExtrusionSlot()
+{
+	ShpExtruction();
+}
