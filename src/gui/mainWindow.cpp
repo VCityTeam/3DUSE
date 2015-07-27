@@ -798,7 +798,7 @@ void MainWindow::unlockFeatures(const QString& pass)
         break;
     case 0:
         m_ui->menuDebug->menuAction()->setVisible(false);
-        m_ui->menuTest->menuAction()->setVisible(false); //A cacher
+        m_ui->menuTest->menuAction()->setVisible(true); //A cacher
         m_ui->actionFix_building->setVisible(false);
         m_ui->actionShadows->setVisible(false);
         m_ui->actionExport_osg->setVisible(false);
@@ -2350,6 +2350,21 @@ void buildJson()//GrandLyon
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test1()
 {
+	QTime time;
+    time.start();
+
+	//vcity::app().getAlgo().ConvertLasToPCD();
+	//vcity::app().getAlgo().ExtractGround();
+	//vcity::app().getAlgo().ExtractBuildings();
+	//vcity::app().getAlgo().RemoveGroundWithTIN();
+	//vcity::app().getAlgo().CompareBuildings();
+	vcity::app().getAlgo().ConstructRoofs();
+
+    int millisecondes = time.elapsed();
+    std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+
+	return;
+
 	////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 

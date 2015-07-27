@@ -3,14 +3,7 @@
 #ifndef __ALGO_HPP__
 #define __ALGO_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "URI.hpp"
-#include "geos/geom/GeometryFactory.h"
-#include "libcitygml/citygml.hpp"
 
-#include "src/gui/osg/osgGDAL.hpp"
-#include "osg/Geode"
-#include "osg/Geometry"
-#include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -19,6 +12,14 @@ class Algo
 public:
 	Algo();
     ~Algo();
+
+	void ConvertLasToPCD();
+	void ExtractGround();
+	void ExtractBuildings();
+	void RemoveGroundWithTIN();
+	void PrepareTIN();
+	void CompareBuildings();
+	void ConstructRoofs();
 
 private:
 };
