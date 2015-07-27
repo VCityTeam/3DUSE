@@ -21,8 +21,84 @@ DialogYearOfConst::~DialogYearOfConst()
 
 void DialogYearOfConst::editDates(const vcity::URI& uri)
 {
+	if (uri.getType() == "Tile")
+	{
+		editTileDates(uri);
+	}
+	else
+	{
+		editObjectDates(uri);
+	}
+}
+
+void DialogYearOfConst::editTileDates(const vcity::URI& uri)
+{
+
+	ui->comboBox->setCurrentIndex(0);
+	ui->dateConstrEdit->setEnabled(false);
+
+	//window execution
+	int res = exec();
+	if (res)
+	{
+		vcity::Tile* tile = vcity::app().getScene().getTile(uri);
+		uri.resetCursor();
+		osg::ref_ptr<osg::Group> grp = appGui().getOsgScene()->getNode(uri)->asGroup();
+		QDate creaDate = ui->dateConstrEdit->date();
+		int index = ui->comboBox->currentIndex();
+		if(grp)
+		{
+			for(unsigned int i=0; i<grp->getNumChildren(); ++i)
+			{
+				osg::ref_ptr<osg::Node> child = grp->getChild(i);
+				switch (index)
+				{
+				case 1:
+					//o->setAttribute("yearOfConstruction",creaDate.toString("yyyy").toStdString());
+					child->setUserValue("yearOfConstruction",creaDate.year());
+					break;
+				case 2:
+					{
+						//o->setAttribute("creationDate",creaDate.toString("yyyy-MM-dd").toStdString());
+						int cDate = (creaDate.toString("yyyyMMdd")).toInt();
+						child->getUserValue("creationDate",cDate);
+					}
+					break;
+				default:
+					//do nothing
+					break;
+				}
+			}
+		}
+		for(citygml::CityObject* o : tile->getCityModel()->getCityObjectsRoots())
+        {
+			switch (index)
+			{
+			case 1:
+				o->setAttribute("yearOfConstruction",creaDate.toString("yyyy").toStdString());
+				//node->setUserValue("yearOfConstruction",creaDate.year());
+				break;
+			case 2:
+				{
+					o->setAttribute("creationDate",creaDate.toString("yyyy-MM-dd").toStdString());
+					int cDate = (creaDate.toString("yyyyMMdd")).toInt();
+					//node->getUserValue("creationDate",cDate);
+				}
+				break;
+			default:
+				//do nothing
+				break;
+			}               
+        }
+
+	}
+}
+
+void DialogYearOfConst::editObjectDates(const vcity::URI& uri)
+{
 	citygml::CityObject* obj = nullptr;
 	uri.resetCursor();
+
     obj = vcity::app().getScene().getCityObjectNode(uri);
 	osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
 
@@ -49,14 +125,6 @@ void DialogYearOfConst::editDates(const vcity::URI& uri)
 		ui->dateConstrEdit->setEnabled(false);
 	}
 
-	//ui->checkBoxConst->setChecked(a);
-	//ui->dateConstrEdit->setEnabled(a);
-	//if (a) 
-	//{
-	//	//(yearOfConstruction,1,1);
-	//	ui->dateConstrEdit->setDate(QDate(yearOfConstruction,1,1));
-	//}
-
 	//window execution
 	int res = exec();
 	if (res)
@@ -80,13 +148,6 @@ void DialogYearOfConst::editDates(const vcity::URI& uri)
 			//do nothing
 			break;
 		}
-		//QDate yoC = ui->dateConstrEdit->date();
-
-		//if (ui->checkBoxConst->isChecked())
-		//{
-		//	obj->setAttribute("yearOfConstruction",yoC.toString("yyyy").toStdString());
-		//	node->setUserValue("yearOfConstruction",yoC.year());
-		//}
 	}
 }
 

@@ -22,6 +22,10 @@ private:
     Ui::DialogYearOfDemol *ui;
 	int terminationDate;
 	int yearOfDemolition;
+		
+	void editTileDates(const vcity::URI& uri);
+	void editObjectDates(const vcity::URI& uri);
+
 	private	slots:
 		void indexChanged(int);
 };

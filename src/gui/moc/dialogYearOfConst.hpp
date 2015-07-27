@@ -22,6 +22,10 @@ private:
     Ui::DialogYearOfConst *ui;
 	int creationDate;
 	int yearOfConstruction;
+	
+	void editTileDates(const vcity::URI& uri);
+	void editObjectDates(const vcity::URI& uri);
+
 	private	slots:
 		void indexChanged(int);
 };

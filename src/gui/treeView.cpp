@@ -556,6 +556,8 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionDeleteTile);
         m_tree->addAction(m_actionEditTile);
         m_tree->addAction(m_actionAddBuilding);
+		m_tree->addAction(m_actionAddYearOfConst);
+		m_tree->addAction(m_actionAddYearOfDemol);
     }
 	else if(item->text(1) == "AssimpNode")
     {
