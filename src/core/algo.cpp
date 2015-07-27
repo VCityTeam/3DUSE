@@ -188,18 +188,19 @@ namespace vcity
 	{
 		pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud(new pcl::PointCloud<pcl::PointXYZ>(*Cloud2));
 
-		 ///The smallest scale to use in the DoN filter.
-  double scale1;
+		///The smallest scale to use in the DoN filter.
+		double scale1;
 
-  ///The largest scale to use in the DoN filter.
-  double scale2;
+		///The largest scale to use in the DoN filter.
+		double scale2;
 
-  ///The minimum DoN magnitude to threshold by
-  double threshold;
+		///The minimum DoN magnitude to threshold by
+		double threshold;
 
-  ///segment scene into clusters with given distance tolerance using euclidean clustering
-  double segradius;
+		///segment scene into clusters with given distance tolerance using euclidean clustering
+		double segradius;
 
+		
 	}
 
 
