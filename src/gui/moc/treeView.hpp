@@ -105,6 +105,9 @@ private slots:
 	void slotAddYearOfConst();
 	void slotAddYearOfDemol();
 
+	//edit CityGML Export ID (alias)
+	void slotEditExportAlias();
+
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
     void slotItemClicked(QTreeWidgetItem* item,int column);
