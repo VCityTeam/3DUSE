@@ -186,21 +186,151 @@ namespace vcity
 
 	void SegmentationByNormal(pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud2)
 	{
-		pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud(new pcl::PointCloud<pcl::PointXYZ>(*Cloud2));
+		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>(*Cloud2));
 
 		///The smallest scale to use in the DoN filter.
-		double scale1;
+		double scale1 = 0.5;
 
 		///The largest scale to use in the DoN filter.
-		double scale2;
+		double scale2 = 1;
 
 		///The minimum DoN magnitude to threshold by
-		double threshold;
+		double threshold = 0.1;
+		std::cout << "threshold ? " << std::endl;
+		std::cin >> threshold;
 
 		///segment scene into clusters with given distance tolerance using euclidean clustering
-		double segradius;
+		double segradius = 0.5;
+		std::cout << "segradius ? " << std::endl;
+		std::cin >> segradius;
 
+		// Create a search tree, use KDTreee for non-organized data.
+		pcl::search::Search<pcl::PointXYZ>::Ptr tree;
+		tree.reset (new pcl::search::KdTree<pcl::PointXYZ> (false));
+
+		// Set the input pointcloud for the search tree
+		tree->setInputCloud (cloud);
+
+		// Compute normals using both small and large scales at each point
+		pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::PointNormal> ne;
+		ne.setInputCloud (cloud);
+		ne.setSearchMethod (tree);
+
+		/**
+		* NOTE: setting viewpoint is very important, so that we can ensure
+		* normals are all pointed in the same direction!
+		*/
+		ne.setViewPoint (std::numeric_limits<float>::max (), std::numeric_limits<float>::max (), std::numeric_limits<float>::max ());
+
+		// calculate normals with the small scale
+		std::cout << "Calculating normals for scale..." << scale1 << std::endl;
+		pcl::PointCloud<pcl::PointNormal>::Ptr normals_small_scale (new pcl::PointCloud<pcl::PointNormal>);
+
+		ne.setRadiusSearch (scale1);
+		ne.compute (*normals_small_scale);
+
+		// calculate normals with the large scale
+		std::cout << "Calculating normals for scale..." << scale2 << std::endl;
+		pcl::PointCloud<pcl::PointNormal>::Ptr normals_large_scale (new pcl::PointCloud<pcl::PointNormal>);
+
+		ne.setRadiusSearch (scale2);
+		ne.compute (*normals_large_scale);
+
+		// Create output cloud for DoN results
+		pcl::PointCloud<pcl::PointNormal>::Ptr doncloud (new pcl::PointCloud<pcl::PointNormal>);
+		pcl::copyPointCloud<pcl::PointXYZ, pcl::PointNormal>(*cloud, *doncloud);
+
+		std::cout << "Calculating DoN... " << std::endl;
+		// Create DoN operator
+		pcl::DifferenceOfNormalsEstimation<pcl::PointXYZ, pcl::PointNormal, pcl::PointNormal> don;
+		don.setInputCloud (cloud);
+		don.setNormalScaleLarge (normals_large_scale);
+		don.setNormalScaleSmall (normals_small_scale);
+
+		if (!don.initCompute ())
+		{
+			std::cerr << "Error: Could not intialize DoN feature operator" << std::endl;
+			exit (EXIT_FAILURE);
+		}
+
+		// Compute DoN
+		don.computeFeature (*doncloud);
+
+		std::cout << "Pointcloud: " << doncloud->points.size () << " data points." << std::endl;
+
+		pcl::PCDWriter writer;
+		// Save DoN features
+		doncloud->width = (int)doncloud->points.size();
+		doncloud->height = 1;
+
+		writer.write<pcl::PointNormal> ("don.pcd", *doncloud, false); 
 		
+		// Filter by magnitude
+		std::cout << "Filtering out DoN mag <= " << threshold << "..." << std::endl;
+
+		// Build the condition for filtering
+		pcl::ConditionOr<pcl::PointNormal>::Ptr range_cond (
+			new pcl::ConditionOr<pcl::PointNormal> ()
+			);
+		range_cond->addComparison (pcl::FieldComparison<pcl::PointNormal>::ConstPtr (
+			new pcl::FieldComparison<pcl::PointNormal> ("curvature", pcl::ComparisonOps::GT, threshold))
+			);
+		// Build the filter
+		pcl::ConditionalRemoval<pcl::PointNormal> condrem (range_cond);
+		condrem.setInputCloud (doncloud);
+
+		pcl::PointCloud<pcl::PointNormal>::Ptr doncloud_filtered (new pcl::PointCloud<pcl::PointNormal>);
+
+		// Apply filter
+		condrem.filter (*doncloud_filtered);
+
+		doncloud = doncloud_filtered;
+
+		// Save filtered output
+		std::cout << "Filtered Pointcloud: " << doncloud->points.size () << " data points." << std::endl;
+
+		doncloud->width = (int)doncloud->points.size();
+		doncloud->height = 1;
+		writer.write<pcl::PointNormal> ("don_filtered.pcd", *doncloud, false); 
+
+		// Filter by magnitude
+		std::cout << "Clustering using EuclideanClusterExtraction with tolerance <= " << segradius << "..." << std::endl;
+
+		pcl::search::KdTree<pcl::PointNormal>::Ptr segtree (new pcl::search::KdTree<pcl::PointNormal>);
+		segtree->setInputCloud (doncloud);
+
+		std::vector<pcl::PointIndices> cluster_indices;
+		pcl::EuclideanClusterExtraction<pcl::PointNormal> ec;
+
+		ec.setClusterTolerance (segradius);
+		ec.setMinClusterSize (50);
+		ec.setMaxClusterSize (100000);
+		ec.setSearchMethod (segtree);
+		ec.setInputCloud (doncloud);
+		ec.extract (cluster_indices);
+
+		int j = 0;
+		for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it, j++)
+		{
+			pcl::PointCloud<pcl::PointNormal>::Ptr cloud_cluster_don (new pcl::PointCloud<pcl::PointNormal>);
+			for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+			{
+				cloud_cluster_don->points.push_back (doncloud->points[*pit]);
+			}
+
+			cloud_cluster_don->width = int (cloud_cluster_don->points.size ());
+			cloud_cluster_don->height = 1;
+			cloud_cluster_don->is_dense = true;
+
+			//Save cluster
+			std::cout << "PointCloud representing the Cluster: " << cloud_cluster_don->points.size () << " data points." << std::endl;
+			std::stringstream ss;
+			ss << "don_cluster_" << j << ".pcd";
+			cloud_cluster_don->width = (int)cloud_cluster_don->points.size();
+			cloud_cluster_don->height = 1;
+			writer.write<pcl::PointNormal> (ss.str (), *cloud_cluster_don, false);
+			++j;
+		}
 	}
 
 
@@ -223,7 +353,7 @@ namespace vcity
 			cloud->points.push_back(point);
 		}
 
-		cloud->width = cloud->points.size();
+		cloud->width = (int)cloud->points.size();
 		cloud->height = 1;
 		cloud->is_dense = false;
 
@@ -321,7 +451,7 @@ namespace vcity
 			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
 			for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
 				cloud_cluster->points.push_back (cloud->points[*pit]); //*
-			cloud_cluster->width = cloud_cluster->points.size ();
+			cloud_cluster->width = (int)cloud_cluster->points.size ();
 			cloud_cluster->height = 1;
 			cloud_cluster->is_dense = true;
 
@@ -348,7 +478,7 @@ namespace vcity
 			//j++;
 		}
 
-		Cloud_trie->width = Cloud_trie->points.size ();
+		Cloud_trie->width = (int)Cloud_trie->points.size ();
 		Cloud_trie->height = 1;
 
 		writer.write<pcl::PointXYZRGB>("1845_5181_NoGround_Trie.pcd", *Cloud_trie, false);
@@ -592,10 +722,10 @@ namespace vcity
 			}
 		}
 
-		cloudGround->width = cloudGround->points.size();
+		cloudGround->width = (int)cloudGround->points.size();
 		cloudGround->height = 1;
 		cloudGround->is_dense = false;
-		cloudNoGround->width = cloudNoGround->points.size();
+		cloudNoGround->width = (int)cloudNoGround->points.size();
 		cloudNoGround->height = 1;
 		cloudNoGround->is_dense = false;
 
@@ -742,14 +872,16 @@ namespace vcity
 				if(currcloud->points.size() > 0)
 				{
 					pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud2(new pcl::PointCloud<pcl::PointXYZ>(*currcloud));
-					Cloud2->width = currcloud->points.size();
+					Cloud2->width = (int)currcloud->points.size();
 					Cloud2->height = 1;
 					Cloud2->is_dense = false;
 					writer.write<pcl::PointXYZ> ("CurrCloud.pcd", *Cloud2, false);
-					std::cout << "CurrCloud.pcd cree." << std::endl;
+					//std::cout << "CurrCloud.pcd cree." << std::endl;
 
-					std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> Planes = ExtractPlansFromCloud(currcloud);
+					SegmentationByNormal(currcloud);
+					//std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> Planes = ExtractPlansFromCloud(currcloud);
 					currcloud->clear();
+					std::cout << "Continue ? " << std::endl;
 					int a;
 					std::cin >> a;
 				}
