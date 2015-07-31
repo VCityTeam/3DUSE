@@ -46,7 +46,7 @@ public:
 
     QTimer m_timer;         ///< anim timer
 
-	std::map<std::string,std::string> CityGMLExportAliasMap;
+	std::map<citygml::Object,std::string> GMLExportAliasMap;
 
     void addRecentFile(const QString& filepath);
     void removeRecentFile(const QString& filepath);

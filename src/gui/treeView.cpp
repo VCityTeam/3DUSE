@@ -89,8 +89,6 @@ void TreeView::init()
 	//ajout yearOfConstruction/yearOfDemolition
 	m_actionAddYearOfConst = new QAction("Add year of Construction",NULL);
 	m_actionAddYearOfDemol = new QAction("Add year of Demolition",NULL);
-	//edit CityGML export alias
-	m_actionEditExportAlias = new QAction("Edit CityGML Export ID", NULL);
 
 
     // connect right click menu actions
@@ -121,8 +119,6 @@ void TreeView::init()
 	//ajout yearOfConstruction/yearOfDemolition
 	connect(m_actionAddYearOfConst, SIGNAL(triggered()), this, SLOT(slotAddYearOfConst()));
 	connect(m_actionAddYearOfDemol, SIGNAL(triggered()), this, SLOT(slotAddYearOfDemol()));
-	//edit CityGML export alias
-	connect(m_actionEditExportAlias,SIGNAL(triggered()), this, SLOT(slotEditExportAlias()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
@@ -623,7 +619,6 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionAddDoc);
 		m_tree->addAction(m_actionAddYearOfConst);
 		m_tree->addAction(m_actionAddYearOfDemol);
-		m_tree->addAction(m_actionEditExportAlias);
     }
 
     // actions on all types
@@ -858,7 +853,6 @@ void TreeView::slotAddYearOfDemol()
 void TreeView::slotEditExportAlias()
 {
 	DialogExportAlias diag;
-	diag.editAlias(getURI(getCurrentItem()),&m_mainWindow->CityGMLExportAliasMap);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::resetActions()
@@ -887,6 +881,5 @@ void TreeView::resetActions()
 	m_tree->removeAction(m_actionExportJSON);
 	m_tree->removeAction(m_actionAddYearOfConst);
 	m_tree->removeAction(m_actionAddYearOfDemol);
-	m_tree->removeAction(m_actionEditExportAlias);
 }
 ////////////////////////////////////////////////////////////////////////////////

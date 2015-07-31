@@ -687,8 +687,6 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     if(obj)
     {
         ss << "ID : " << obj->getId() << std::endl;
-		std::map<std::string,std::string>::iterator aliasIt = CityGMLExportAliasMap.find(uri.getStringURI());
-		if (aliasIt!=CityGMLExportAliasMap.end()) ss << "EXPORT ID : " << aliasIt->second << std::endl;
         ss << "Type : " << obj->getTypeAsString() << std::endl;
         //obj->l
         ss << "Temporal : " << obj->isTemporal() << std::endl;

@@ -3,7 +3,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include "core/URI.hpp"
-#include <map>
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogExportAlias;
@@ -16,8 +15,6 @@ class DialogExportAlias : public QDialog
 public:
     explicit DialogExportAlias(QWidget *parent = 0);
     ~DialogExportAlias();
-
-	void editAlias(vcity::URI,std::map<std::string,std::string>*);
 
 private:
     Ui::DialogExportAlias *ui;
