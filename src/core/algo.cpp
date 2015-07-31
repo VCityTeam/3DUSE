@@ -200,7 +200,7 @@ namespace vcity
 		std::cin >> threshold;
 
 		///segment scene into clusters with given distance tolerance using euclidean clustering
-		double segradius = 0.5;
+		double segradius = 3;
 		std::cout << "segradius ? " << std::endl;
 		std::cin >> segradius;
 

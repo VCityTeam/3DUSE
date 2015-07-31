@@ -35,6 +35,6 @@ void DialogTilingCityGML::chooseOutputPathSlot()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogTilingCityGML::TilingCityGMLSlot()
 {
-    appGui().getMainWindow()->TilingCityGML(ui->lineEditDataPath->text().toStdString(), ui->lineEditDataPath_2->text().toStdString(), ui->lineTileSizeX->text().toInt(), ui->lineTileSizeY->text().toInt());
+    appGui().getMainWindow()->TilingCityGML(ui->lineEditDataPath->text(), ui->lineEditDataPath_2->text().toStdString(), ui->lineTileSizeX->text().toInt(), ui->lineTileSizeY->text().toInt());
 }
 ////////////////////////////////////////////////////////////////////////////////
