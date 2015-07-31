@@ -150,8 +150,6 @@ private:
 	//ajout yearOfConstruction/yearOfDemolition
 	QAction* m_actionAddYearOfConst;
 	QAction* m_actionAddYearOfDemol;
-	//edit CityGML Export ID (alias)
-	QAction* m_actionEditExportAlias;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __TREEVIEW_HPP__

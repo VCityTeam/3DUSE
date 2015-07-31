@@ -13,7 +13,6 @@
 #include "moc/dialogDoc.hpp"
 #include "moc/dialogYearOfConst.hpp"
 #include "moc/dialogYearOfDemol.hpp"
-#include "moc/dialogExportAlias.hpp"
 #include "core/application.hpp"
 #include <iostream>
 #include <QMenu>
@@ -54,7 +53,6 @@ TreeView::~TreeView()
 	delete m_actionExportJSON;
 	delete m_actionAddYearOfConst;
 	delete m_actionAddYearOfDemol;
-	delete m_actionEditExportAlias;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -89,7 +87,6 @@ void TreeView::init()
 	//ajout yearOfConstruction/yearOfDemolition
 	m_actionAddYearOfConst = new QAction("Add year of Construction",NULL);
 	m_actionAddYearOfDemol = new QAction("Add year of Demolition",NULL);
-
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -848,11 +845,6 @@ void TreeView::slotAddYearOfDemol()
 {
 	DialogYearOfDemol diag;
 	diag.editDates(getURI(getCurrentItem()));
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditExportAlias()
-{
-	DialogExportAlias diag;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::resetActions()
