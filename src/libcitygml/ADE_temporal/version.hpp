@@ -1,7 +1,7 @@
 #ifndef _VERSION_HPP_
 #define _VERSION_HPP_
 
-#include "citygml.hpp"
+#include "cityobject.hpp"
 
 namespace temporal
 {

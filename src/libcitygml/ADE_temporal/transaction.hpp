@@ -1,7 +1,7 @@
 #ifndef _TRANSACTION_HPP_
 #define _TRANSACTION_HPP_
 
-#include "citygml.hpp"
+#include "cityobject.hpp"
 
 namespace temporal
 {

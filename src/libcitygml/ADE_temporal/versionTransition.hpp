@@ -1,7 +1,6 @@
 #ifndef _VERSION_TRANSITION_HPP_
 #define _VERSION_TRANSITION_HPP_
 
-#include "citygml.hpp"
 #include "transaction.hpp"
 
 namespace temporal
