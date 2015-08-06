@@ -91,6 +91,8 @@ namespace citygml
 		NODETYPE( lod3Geometry ),
 		NODETYPE( lod4Geometry ),
 
+		NODETYPE( identifier ),
+
 		// bldg
 		NODETYPE( Building ),
 		NODETYPE( BuildingPart ),

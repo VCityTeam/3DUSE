@@ -105,6 +105,8 @@ void CityGMLHandler::initNodes( void )
 	INSERTNODETYPE( lod3Geometry );
 	INSERTNODETYPE( lod4Geometry );
 
+	INSERTNODETYPE ( identifier );
+
 	// bldg
 	INSERTNODETYPE( Building );
 	INSERTNODETYPE( BuildingPart );
@@ -432,6 +434,8 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         _currentGeometryType = GT_ ## _t_;\
         if ( _objectsMask & COT_ ## _t_ ## Surface )\
         {\
+		/* TODO: CONSIDER THE CASE WHERE WE DON'T HAVE A GML:ID BUT A XLINK/XPATH QUERY  \
+		 */                                                                              \
             pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
@@ -816,6 +820,7 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( measuredHeight ):
 	case NODETYPE( creationDate ):
 	case NODETYPE( terminationDate ):
+	case NODETYPE( identifier ):
 		if ( _currentObject ) _currentObject->setAttribute( localname, buffer.str(), false );
 		break;
 
