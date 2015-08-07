@@ -293,6 +293,8 @@ namespace citygml
 
 		static CityGMLNodeType getNodeTypeFromName( const std::string& );
 
+		static std::string getXLinkQueryIdentifier( const std::string& );
+
 	protected:
 
 		static std::map< std::string, CityGMLNodeType > s_cityGMLNodeTypeMap;
