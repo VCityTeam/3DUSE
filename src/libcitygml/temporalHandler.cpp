@@ -32,65 +32,8 @@ std::string TempHandler::getAttribute( void* attributes, const std::string& attn
 
 void TempHandler::startElement(std::string name, void* attributes)
 {
+
 #if 0
-		if(name.find("Building")!=std::string::npos){
-		citygml::CityObjectsTypeMask objectsMask = *getObjectsMask();
-		if ( objectsMask & citygml::COT_Building )
-        {\
-		pushCityObject( new citygml::Building( getGmlIdAttribute( attributes ) ) );
-			citygml::CityObject** currentCityObject = getCurrentCityObject();
-            pushObject( *currentCityObject ); std::cout << "new "<< "Building" << " - " << (*currentCityObject)->getId() << std::endl;
-			citygml::ParserParams* params = getParams();
-            if(params->temporalImport)
-            {
-                std::string id = getGmlIdAttribute( attributes );
-                auto it = id.find("_TAG");
-                auto it1 = id.find("_STATE");
-                auto it2 = id.find("_DYNSTATE");
-                if(it!=std::string::npos)
-                {
-					citygml::CityObjectTag** currentTag = getCurrentTag();
-                    *currentTag = new citygml::CityObjectTag(0, *currentCityObject);
-					citygml::CityModel** model = getModel();
-                    citygml::CityObject* o = (*model)->getNodeById(id.substr(0, it));
-                    o->addTag(*currentTag);
-                    (*currentTag)->m_parent = o;
-                    o->checkTags();
-                    (*currentCityObject)->m_temporalUse = true;
-                }
-                else if(it1!=std::string::npos)
-                {
-					citygml::CityObjectState** currentState = getCurrentState();
-                    *currentState = new citygml::CityObjectState(*currentCityObject);
-					citygml::CityModel** model = getModel();
-                    citygml::CityObject* o = (*model)->getNodeById(id.substr(0, it1));
-                    o->addState(*currentState);
-                    (*currentState)->m_parent = o;
-                    (*currentCityObject)->m_temporalUse = true;
-                }
-                else if(it2!=std::string::npos)
-                {
-					citygml::CityObjectDynState** currentDynState = getCurrentDynState();
-                    *currentDynState = new citygml::CityObjectDynState(*currentCityObject);
-					citygml::CityModel** model = getModel();
-                    citygml::CityObject* o = (*model)->getNodeById(id.substr(0, it2));
-                    o->addState(*currentDynState);
-                    (*currentDynState)->m_parent = o;
-                    (*currentCityObject)->m_temporalUse = true;
-                }
-            }
-        }
-        else
-        {
-            pushCityObject( nullptr );
-			bool* filterNodeType = getFilterNodeType();
-            *filterNodeType = true;
-			unsigned int * filterDepth = getFilterDepth();
-            *filterDepth = getPathDepth();
-        }
-	}
-#endif
-#if 1
 #define MANAGE_OBJECT( _t_ )\
 	if(name.find(#_t_)!=std::string::npos){\
 		citygml::CityObjectsTypeMask objectsMask = *getObjectsMask();\
@@ -173,7 +116,7 @@ void TempHandler::startElement(std::string name, void* attributes)
 	MANAGE_OBJECT( BridgeInstallation );
 	MANAGE_OBJECT( BridgePart );
 #undef MANAGE_OBJECT
-#endif
+
 
 	std::string nameSurface;
 #define MANAGE_SURFACETYPE( _t_ )\
@@ -245,10 +188,12 @@ void TempHandler::startElement(std::string name, void* attributes)
 	MANAGE_SURFACETYPE( InteriorWall );
 	MANAGE_SURFACETYPE( Ceiling );
 #undef MANAGE_SURFACETYPE
+#endif
 }
 /******************************************************/
 void TempHandler::endElement(std::string name)
 {
+#if 0
 	std::stringstream buffer;
 	buffer << trim( getBuff()->str() );
 	if (name=="tmp:creationDate")
@@ -322,4 +267,5 @@ void TempHandler::endElement(std::string name)
 		citygml::GeometryType* currentGeometryType = getCurrentGeometryType();
 		*currentGeometryType = citygml::GT_Unknown;
 	}
+#endif
 }
