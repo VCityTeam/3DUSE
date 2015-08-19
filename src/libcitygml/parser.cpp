@@ -384,7 +384,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 					_t_##* newVersionable = new _t_( identifier );\
 					if ( _currentCityObject ) \
 					{\
-						newVersionable->_parent = _currentCityObject->_parent;\
+					newVersionable->_parent = nullptr;/*i want the parent of BP12 to be B1020 but how do I do this ?*/\
 						_currentCityObject->getChildren().push_back( newVersionable );\
 					}\
 					_cityObjectStack.push( _currentCityObject );\
@@ -475,9 +475,33 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         _currentGeometryType = GT_ ## _t_;\
         if ( _objectsMask & COT_ ## _t_ ## Surface )\
         {\
-		/* TODO: CONSIDER THE CASE WHERE WE DON'T HAVE A GML:ID BUT A XLINK/XPATH QUERY  \
-		 */                                                                              \
-            pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
+			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
+			if (xLinkQuery=="")\
+			{\
+				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
+				CityObject* o = _model->getNodeById(identifier);\
+				if (o == nullptr)\
+				{\
+					_t_##Surface* newVersionable = new _t_##Surface( identifier );\
+					if ( _currentCityObject ) \
+					{\
+					newVersionable->_parent = nullptr;/*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+						_currentCityObject->getChildren().push_back( newVersionable );\
+					}\
+					_cityObjectStack.push( _currentCityObject );\
+					_currentCityObject = newVersionable;\
+				}\
+				else\
+				{\
+					if ( _currentCityObject ) \
+					{\
+						_currentCityObject->getChildren().push_back( o );\
+					}\
+					_cityObjectStack.push( _currentCityObject );\
+					_currentCityObject = o;\
+				}\
+			}\
+			else pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -876,8 +900,11 @@ void CityGMLHandler::endElement( const std::string& name )
 				if (COType == #_t_ )\
 					{\
 						_t_##* newVersionable = new _t_( identifier );\
-						if(_currentCityObject) newVersionable->_parent = _currentCityObject->_parent;\
-						/*TODO: add _currentCityObject as child of newVersionable and newVersionable as a child of the parent*/\
+						if(_currentCityObject)\
+						{\
+							newVersionable->_parent = nullptr; /*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+							newVersionable->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
+						}\
 					}
 				//end #define
 				CREATEVERSIONABLE( GenericCityObject )
@@ -915,7 +942,8 @@ void CityGMLHandler::endElement( const std::string& name )
 			}
 			else // if o exists
 			{
-				/*TODO: add _currentCityObject as child of o */
+				_currentCityObject->_parent = o->getParent();
+				o->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
 			}
 		}
 		break;
