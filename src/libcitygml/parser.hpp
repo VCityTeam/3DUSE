@@ -91,6 +91,8 @@ namespace citygml
 		NODETYPE( lod3Geometry ),
 		NODETYPE( lod4Geometry ),
 
+		NODETYPE( identifier ),
+
 		// bldg
 		NODETYPE( Building ),
 		NODETYPE( BuildingPart ),
@@ -290,6 +292,8 @@ namespace citygml
 		static std::string getNodeName( const std::string& );
 
 		static CityGMLNodeType getNodeTypeFromName( const std::string& );
+
+		static std::string getXLinkQueryIdentifier( const std::string& );
 
 	protected:
 

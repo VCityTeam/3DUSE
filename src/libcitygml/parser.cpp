@@ -105,6 +105,8 @@ void CityGMLHandler::initNodes( void )
 	INSERTNODETYPE( lod3Geometry );
 	INSERTNODETYPE( lod4Geometry );
 
+	INSERTNODETYPE ( identifier );
+
 	// bldg
 	INSERTNODETYPE( Building );
 	INSERTNODETYPE( BuildingPart );
@@ -323,6 +325,21 @@ std::string CityGMLHandler::getNodeName( const std::string& name )
 	return name;
 }
 
+std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
+{
+	// query should be under the format "//identifier[text()='XXXXXXXX']"
+	std::cout<<"XLink query found : "<<query<<std::endl;
+	size_t pos1 = query.find("//identifier[text()='");
+	size_t pos2 = query.find("']",pos1);
+	if (pos1!=std::string::npos && pos2!=std::string::npos)
+	{
+		std::string identifier = query.substr(pos1+21,pos2-(pos1+21));
+		std::cout<<"Identifier = "<<identifier<<std::endl;
+		return identifier;
+	}
+	return "";
+}
+
 void CityGMLHandler::startElement( const std::string& name, void* attributes ) 
 {
 	std::string localname = getNodeName( name );
@@ -357,7 +374,33 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	case CG_ ## _t_ :\
         if ( _objectsMask & COT_ ## _t_ )\
         {\
-            pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
+			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
+			if (xLinkQuery=="")\
+			{\
+				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
+				CityObject* o = _model->getNodeById(identifier);\
+				if (o == nullptr)\
+				{\
+					_t_##* newVersionable = new _t_( identifier );\
+					if ( _currentCityObject ) \
+					{\
+					newVersionable->_parent = nullptr;/*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+						_currentCityObject->getChildren().push_back( newVersionable );\
+					}\
+					_cityObjectStack.push( _currentCityObject );\
+					_currentCityObject = newVersionable;\
+				}\
+				else\
+				{\
+					if ( _currentCityObject ) \
+					{\
+						_currentCityObject->getChildren().push_back( o );\
+					}\
+					_cityObjectStack.push( _currentCityObject );\
+					_currentCityObject = o;\
+				}\
+			}\
+			else pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -432,7 +475,33 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         _currentGeometryType = GT_ ## _t_;\
         if ( _objectsMask & COT_ ## _t_ ## Surface )\
         {\
-            pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
+			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
+			if (xLinkQuery=="")\
+			{\
+				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
+				CityObject* o = _model->getNodeById(identifier);\
+				if (o == nullptr)\
+				{\
+					_t_##Surface* newVersionable = new _t_##Surface( identifier );\
+					if ( _currentCityObject ) \
+					{\
+					newVersionable->_parent = nullptr;/*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+						_currentCityObject->getChildren().push_back( newVersionable );\
+					}\
+					_cityObjectStack.push( _currentCityObject );\
+					_currentCityObject = newVersionable;\
+				}\
+				else\
+				{\
+					if ( _currentCityObject ) \
+					{\
+						_currentCityObject->getChildren().push_back( o );\
+					}\
+					_cityObjectStack.push( _currentCityObject );\
+					_currentCityObject = o;\
+				}\
+			}\
+			else pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -817,6 +886,66 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( creationDate ):
 	case NODETYPE( terminationDate ):
 		if ( _currentObject ) _currentObject->setAttribute( localname, buffer.str(), false );
+		break;
+
+	case NODETYPE( identifier ):
+		{
+			std::string identifier = buffer.str();
+			if ( _currentObject ) _currentObject->setAttribute( localname, identifier, false );
+			CityObject* o = _model->getNodeById(identifier);
+			if (o == nullptr)
+			{
+				std::string COType = _currentCityObject->getTypeAsString();
+				#define CREATEVERSIONABLE( _t_ )\
+				if (COType == #_t_ )\
+					{\
+						_t_##* newVersionable = new _t_( identifier );\
+						if(_currentCityObject)\
+						{\
+							newVersionable->_parent = nullptr; /*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+							newVersionable->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
+						}\
+					}
+				//end #define
+				CREATEVERSIONABLE( GenericCityObject )
+				CREATEVERSIONABLE( Building )
+				CREATEVERSIONABLE( BuildingPart )
+				CREATEVERSIONABLE( Room )
+				CREATEVERSIONABLE( BuildingInstallation )
+				CREATEVERSIONABLE( BuildingFurniture )
+				CREATEVERSIONABLE( Door )
+				CREATEVERSIONABLE( Window )
+				CREATEVERSIONABLE( CityFurniture )
+				CREATEVERSIONABLE( Track )
+				CREATEVERSIONABLE( Road )
+				CREATEVERSIONABLE( Railway )
+				CREATEVERSIONABLE( Square )
+				CREATEVERSIONABLE( PlantCover )
+				CREATEVERSIONABLE( SolitaryVegetationObject )
+				CREATEVERSIONABLE( WaterBody )
+				CREATEVERSIONABLE( TINRelief )
+				CREATEVERSIONABLE( LandUse )
+				CREATEVERSIONABLE( Tunnel )
+				CREATEVERSIONABLE( Bridge )
+				CREATEVERSIONABLE( BridgeConstructionElement )
+				CREATEVERSIONABLE( BridgeInstallation )
+				CREATEVERSIONABLE( BridgePart )
+				CREATEVERSIONABLE( WallSurface )
+				CREATEVERSIONABLE( RoofSurface )
+				CREATEVERSIONABLE( GroundSurface )
+				CREATEVERSIONABLE( ClosureSurface )
+				CREATEVERSIONABLE( FloorSurface )
+				CREATEVERSIONABLE( InteriorWallSurface )
+				CREATEVERSIONABLE( CeilingSurface )
+
+				#undef CREATEVERSIONABLE
+			}
+			else // if o exists
+			{
+				_currentCityObject->_parent = o->getParent();
+				o->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
+			}
+		}
 		break;
 
     case NODETYPE( value ):
