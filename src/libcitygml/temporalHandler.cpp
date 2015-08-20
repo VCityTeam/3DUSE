@@ -268,4 +268,14 @@ void TempHandler::endElement(std::string name)
 		*currentGeometryType = citygml::GT_Unknown;
 	}
 #endif
+	if (name=="tmp:validFrom")
+	{
+		citygml::Object** currentObject = getCurrentObject();
+		if ( *currentObject ) (*currentObject)->setAttribute( "validFrom", getBuff()->str(), false );
+	}
+	if (name=="tmp:validTo")
+	{
+		citygml::Object** currentObject = getCurrentObject();
+		if ( *currentObject ) (*currentObject)->setAttribute( "validTo", getBuff()->str(), false );
+	}
 }

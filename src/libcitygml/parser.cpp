@@ -375,7 +375,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         if ( _objectsMask & COT_ ## _t_ )\
         {\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
-			if (xLinkQuery=="")\
+			if (xLinkQuery!="")\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
 				CityObject* o = _model->getNodeById(identifier);\
@@ -476,7 +476,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         if ( _objectsMask & COT_ ## _t_ ## Surface )\
         {\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
-			if (xLinkQuery=="")\
+			if (xLinkQuery!="")\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
 				CityObject* o = _model->getNodeById(identifier);\
@@ -902,7 +902,7 @@ void CityGMLHandler::endElement( const std::string& name )
 						_t_##* newVersionable = new _t_( identifier );\
 						if(_currentCityObject)\
 						{\
-							newVersionable->_parent = nullptr; /*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+							newVersionable->_parent = nullptr; /*how do I know who is its parent?*/\
 							newVersionable->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
 						}\
 					}
@@ -942,8 +942,20 @@ void CityGMLHandler::endElement( const std::string& name )
 			}
 			else // if o exists
 			{
+				//remove from false parent Children
+				std::vector<CityObject*> pChildren = _currentCityObject->getParent()->getChildren();
+				int i = 0;
+				for (std::vector<CityObject*>::iterator it = pChildren.begin(); it != pChildren.end(); it++)
+				{
+					if(pChildren[i] == _currentCityObject)
+					{
+						pChildren.erase(it);
+						break;
+					}
+					i++;
+				}
 				_currentCityObject->_parent = o->getParent();
-				o->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
+				o->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/
 			}
 		}
 		break;
