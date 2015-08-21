@@ -384,7 +384,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 					_t_##* newVersionable = new _t_( identifier );\
 					if ( _currentCityObject ) \
 					{\
-					newVersionable->_parent = nullptr;/*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+						newVersionable->_parent= _currentCityObject;\
 						_currentCityObject->getChildren().push_back( newVersionable );\
 					}\
 					_cityObjectStack.push( _currentCityObject );\
@@ -485,7 +485,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 					_t_##Surface* newVersionable = new _t_##Surface( identifier );\
 					if ( _currentCityObject ) \
 					{\
-					newVersionable->_parent = nullptr;/*i want the parent of BP12 to be B1020 but how do I do this ?*/\
+						newVersionable->_parent= _currentCityObject;\
 						_currentCityObject->getChildren().push_back( newVersionable );\
 					}\
 					_cityObjectStack.push( _currentCityObject );\
@@ -774,11 +774,16 @@ void CityGMLHandler::endElement( const std::string& name )
                 m_currentState = nullptr;
                 m_currentDynState = nullptr;
             }
-            else
+            else if(_currentCityObject->_versioned)
+			{
+				if ( _cityObjectStack.size() > 1 ) _currentCityObject->_parent=_currentCityObject->getParent()->getParent();
+			}
+			else
             {
                 _model->addCityObject( _currentCityObject );
                 if ( _cityObjectStack.size() == 1 ) _model->addCityObjectAsRoot( _currentCityObject );
             }
+			
 		}
 		else delete _currentCityObject; 
 		popCityObject();
@@ -892,6 +897,7 @@ void CityGMLHandler::endElement( const std::string& name )
 		{
 			std::string identifier = buffer.str();
 			if ( _currentObject ) _currentObject->setAttribute( localname, identifier, false );
+			_currentCityObject->_versioned=true;
 			CityObject* o = _model->getNodeById(identifier);
 			if (o == nullptr)
 			{
@@ -900,11 +906,12 @@ void CityGMLHandler::endElement( const std::string& name )
 				if (COType == #_t_ )\
 					{\
 						_t_##* newVersionable = new _t_( identifier );\
-						if(_currentCityObject)\
+						if( _cityObjectStack.size() > 1 )\
 						{\
+							_currentCityObject->_parent = newVersionable;/*parent will be modified when leaving the current city object*/\
 							newVersionable->_parent = nullptr; /*how do I know who is its parent?*/\
-							newVersionable->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
 						}\
+						newVersionable->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
 					}
 				//end #define
 				CREATEVERSIONABLE( GenericCityObject )
@@ -942,19 +949,35 @@ void CityGMLHandler::endElement( const std::string& name )
 			}
 			else // if o exists
 			{
-				//remove from false parent Children
-				std::vector<CityObject*> pChildren = _currentCityObject->getParent()->getChildren();
-				int i = 0;
-				for (std::vector<CityObject*>::iterator it = pChildren.begin(); it != pChildren.end(); it++)
+				//remove from false parent's Children
+				if ( _cityObjectStack.size() == 1 )
 				{
-					if(pChildren[i] == _currentCityObject)
+					CityObjects modelRoots = _model->getCityObjectsRoots();
+					int i = 0;
+					for (CityObjects::iterator it = modelRoots.begin(); it != modelRoots.end(); it++)
 					{
-						pChildren.erase(it);
-						break;
+						if(modelRoots[i] == _currentCityObject)
+						{
+							modelRoots.erase(it);
+							break;
+						}
+						i++;
 					}
-					i++;
+
+				} else {
+					std::vector<CityObject*> pChildren = _currentCityObject->getParent()->getChildren();
+					int i = 0;
+					for (std::vector<CityObject*>::iterator it = pChildren.begin(); it != pChildren.end(); it++)
+					{
+						if(pChildren[i] == _currentCityObject)
+						{
+							pChildren.erase(it);
+							break;
+						}
+						i++;
+					}
 				}
-				_currentCityObject->_parent = o->getParent();
+				_currentCityObject->_parent = o;//parent may be modified when leaving the current city object
 				o->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/
 			}
 		}
