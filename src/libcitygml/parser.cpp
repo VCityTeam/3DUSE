@@ -328,13 +328,13 @@ std::string CityGMLHandler::getNodeName( const std::string& name )
 std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
 {
 	// query should be under the format "//identifier[text()='XXXXXXXX']"
-	std::cout<<"XLink query found : "<<query<<std::endl;
+	//std::cout<<"XLink query found : "<<query<<std::endl;
 	size_t pos1 = query.find("//identifier[text()='");
 	size_t pos2 = query.find("']",pos1);
 	if (pos1!=std::string::npos && pos2!=std::string::npos)
 	{
 		std::string identifier = query.substr(pos1+21,pos2-(pos1+21));
-		std::cout<<"Identifier = "<<identifier<<std::endl;
+		//std::cout<<"Identifier = "<<identifier<<std::endl;
 		return identifier;
 	}
 	return "";
@@ -388,16 +388,32 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 						_currentCityObject->getChildren().push_back( newVersionable );\
 					}\
 					_cityObjectStack.push( _currentCityObject );\
-					_currentCityObject = newVersionable;\
+					_currentCityObject=newVersionable;\
 				}\
 				else\
 				{\
-					if ( _currentCityObject ) \
+					if (o->getParent()==nullptr && _cityObjectStack.size() > 1 )\
 					{\
-						_currentCityObject->getChildren().push_back( o );\
+						CityObject* parent = (_currentCityObject->_versioned)?(_currentCityObject->getParent()):(_currentCityObject);\
+						o->_parent=parent;\
+						for (CityObject* child: o->getChildren())\
+						{\
+							child->_parent=parent;\
+						}\
 					}\
+					int i = 0;\
+					for (CityObjects::iterator it = _model->_roots.begin(); it != _model->_roots.end(); it++)\
+					{\
+						if(_model->_roots[i] == o)\
+						{\
+							_model->_roots.erase(it);\
+							break;\
+						}\
+						i++;\
+					}\
+					if ( _currentCityObject ) _currentCityObject->getChildren().push_back( o );\
 					_cityObjectStack.push( _currentCityObject );\
-					_currentCityObject = o;\
+					_currentCityObject=o;\
 				}\
 			}\
 			else pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
@@ -493,12 +509,28 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				}\
 				else\
 				{\
-					if ( _currentCityObject ) \
+					if (o->getParent()==nullptr && _cityObjectStack.size() > 1 )\
 					{\
-						_currentCityObject->getChildren().push_back( o );\
+						CityObject* parent = (_currentCityObject->_versioned)?(_currentCityObject->getParent()):(_currentCityObject);\
+						o->_parent=parent;\
+						for (CityObject* child: o->getChildren())\
+						{\
+							child->_parent=parent;\
+						}\
 					}\
+					int i = 0;\
+					for (CityObjects::iterator it = _model->_roots.begin(); it != _model->_roots.end(); it++)\
+					{\
+						if(_model->_roots[i] == o)\
+						{\
+							_model->_roots.erase(it);\
+							break;\
+						}\
+						i++;\
+					}\
+					if ( _currentCityObject ) _currentCityObject->getChildren().push_back( o );\
 					_cityObjectStack.push( _currentCityObject );\
-					_currentCityObject = o;\
+					_currentCityObject=o;\
 				}\
 			}\
 			else pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
@@ -781,7 +813,10 @@ void CityGMLHandler::endElement( const std::string& name )
 			else
             {
                 _model->addCityObject( _currentCityObject );
-                if ( _cityObjectStack.size() == 1 ) _model->addCityObjectAsRoot( _currentCityObject );
+                if ( _cityObjectStack.size() == 1 ) 
+				{
+					_model->addCityObjectAsRoot( _currentCityObject );
+				}
             }
 			
 		}
@@ -906,12 +941,11 @@ void CityGMLHandler::endElement( const std::string& name )
 				if (COType == #_t_ )\
 					{\
 						_t_##* newVersionable = new _t_( identifier );\
-						if( _cityObjectStack.size() > 1 )\
-						{\
-							_currentCityObject->_parent = newVersionable;/*parent will be modified when leaving the current city object*/\
-							newVersionable->_parent = nullptr; /*how do I know who is its parent?*/\
-						}\
+						_currentCityObject->_parent = newVersionable;/*parent will be modified when leaving the current city object*/\
+						newVersionable->_parent = nullptr; /*how do I know who is its parent?*/\
 						newVersionable->getChildren().push_back( _currentCityObject ); /*maybe change Children by sth else*/ \
+						_model->addCityObject( newVersionable );\
+						_model->addCityObjectAsRoot( newVersionable );\
 					}
 				//end #define
 				CREATEVERSIONABLE( GenericCityObject )
@@ -952,13 +986,12 @@ void CityGMLHandler::endElement( const std::string& name )
 				//remove from false parent's Children
 				if ( _cityObjectStack.size() == 1 )
 				{
-					CityObjects modelRoots = _model->getCityObjectsRoots();
 					int i = 0;
-					for (CityObjects::iterator it = modelRoots.begin(); it != modelRoots.end(); it++)
+					for (CityObjects::iterator it = _model->_roots.begin(); it != _model->_roots.end(); it++)
 					{
-						if(modelRoots[i] == _currentCityObject)
+						if(_model->_roots[i] == _currentCityObject)
 						{
-							modelRoots.erase(it);
+							_model->_roots.erase(it);
 							break;
 						}
 						i++;
@@ -1187,7 +1220,6 @@ void CityGMLHandler::endElement( const std::string& name )
 	default:
 		break;
 	};
-
 	clearBuffer();
 }
 
