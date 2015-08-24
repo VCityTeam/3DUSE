@@ -363,6 +363,7 @@
     <addaction name="actionCityGML_cut"/>
     <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="actionChange_Detection"/>
+    <addaction name="actionVisibilite"/>
     <addaction name="actionShp_Extrusion"/>
     <addaction name="separator"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
@@ -781,6 +782,11 @@
   <action name="actionShp_Extrusion">
    <property name="text">
     <string>Shp Extrusion</string>
+   </property>
+  </action>
+  <action name="actionVisibilite">
+   <property name="text">
+    <string>Visibilite...</string>
    </property>
   </action>
  </widget>

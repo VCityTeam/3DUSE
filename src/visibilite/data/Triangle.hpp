@@ -3,7 +3,7 @@
 
 #include "gui/osg/osgScene.hpp"
 
-
+struct ViewPoint;
 
 /**
 *	@brief A triangle create from a citygml polygon
@@ -55,11 +55,17 @@ struct Triangle
 */
 struct TriangleList
 {
+	/**
+	*	@brief Build a new collection of triangle
+	*/
 	TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>())
 	{
 		this->triangles = triangles;
 	}
 
+	/**
+	*	@brief Delete all triangles from the list
+	*/
 	~TriangleList()
 	{
 		for(unsigned int i = 0; i < triangles.size(); i++)
@@ -68,7 +74,17 @@ struct TriangleList
 		}
 	}
 
-	std::vector<Triangle*> triangles;
+	std::vector<Triangle*> triangles;///< Triangles of the list
 };
+
+/**
+*	@brief Build list of triangle from a CityGML building tile
+*	@param tile CityGML tile from which we want the triangle list
+*	@param offset offset Offset of the geometry in 3Duse
+*	@param viewpoint Data about the viewpoint we are rendering
+*	@param objectType The type of cityobject to load
+*	@return The list of triangle from the CityGML tile
+*/
+TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType);
 
 #endif

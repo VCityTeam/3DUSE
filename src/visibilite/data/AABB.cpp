@@ -11,6 +11,11 @@
 
 #include "visibilite/Visibilite.hpp"
 
+/**
+*	@brief Load a collection of box from a file
+*	@param path Path to the file
+*	@return A collection of box
+*/
 std::vector<AABB> DoLoadAABB(std::string path)
 {
 	std::vector<AABB> bSet;
@@ -64,6 +69,8 @@ AABBCollection LoadAABB(std::string dir)
 	QFileInfo tDat;
 	bool foundWater = false;
 	QFileInfo wDat;
+	bool foundVeget = false;
+	QFileInfo vDat;
 
 	//Check if our bounding box files do exists
 	QDir dt(dir.c_str());
@@ -88,6 +95,11 @@ AABBCollection LoadAABB(std::string dir)
 					wDat = f.absoluteFilePath();
 					foundWater = true;
 				}
+				if(f.fileName() == "_VEGET_AABB.dat")
+				{
+					vDat = f.absoluteFilePath();
+					foundVeget = true;
+				}
 			}
 		}
 	}
@@ -99,6 +111,7 @@ AABBCollection LoadAABB(std::string dir)
 	std::vector<AABB> bSet;
 	std::vector<AABB> tSet;
 	std::vector<AABB> wSet;
+	std::vector<AABB> vSet;
 
 
 	if(foundBuild)
@@ -110,14 +123,25 @@ AABBCollection LoadAABB(std::string dir)
 	if(foundWater)
 		wSet = DoLoadAABB(dir+"_WATER_AABB.dat");
 
+	if(foundVeget)
+		vSet = DoLoadAABB(dir+"_VEGET_AABB.dat");
+
 	AABBCollection collection;
 	collection.building = bSet;
 	collection.terrain = tSet;
 	collection.water = wSet;
+	collection.veget = vSet;
 
 	return collection;
 }
 
+/**
+*	@brief Build a collection of box from a citygml file in a set of directory
+*	@param dirs Directories when citygml files are located
+*	@param offset 3D offset used by the application
+*	@param type Types of cityobject to use
+*	@return collection of box, key = nameo of the box, value = <min of the box, max of the box>
+*/
 std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dirs, TVec3d offset, citygml::CityObjectsType type)
 {
 	std::map<std::string,std::pair<TVec3d,TVec3d>> AABBs;
@@ -157,6 +181,11 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 	return AABBs;
 }
 
+/**
+*	@brief Save a collection of box on disk
+*	@param filePath Where to save the collection
+*	@param AABBs The collection of box
+*/
 void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec3d>> AABBs)
 {
 	std::filebuf fb;
@@ -185,6 +214,7 @@ void BuildAABB(std::string dir, TVec3d offset)
 	std::vector<QDir> bDirs;
 	std::vector<QDir> tDirs;
 	std::vector<QDir> wDirs;
+	std::vector<QDir> vDirs;
 
 	QDir dt(dir.c_str());
 	if(dt.exists())
@@ -200,6 +230,8 @@ void BuildAABB(std::string dir, TVec3d offset)
 					tDirs.push_back(f.absoluteFilePath());
 				if(f.baseName().endsWith("_WATER"))
 					wDirs.push_back(f.absoluteFilePath());
+				if(f.baseName().endsWith("_VEGET"))
+					vDirs.push_back(f.absoluteFilePath());
 			}
 		}
 	}
@@ -212,10 +244,12 @@ void BuildAABB(std::string dir, TVec3d offset)
 	std::map<std::string,std::pair<TVec3d,TVec3d>> bAABBs = DoBuildAABB(bDirs,offset,citygml::CityObjectsType::COT_Building);
 	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs = DoBuildAABB(tDirs,offset,citygml::CityObjectsType::COT_TINRelief);
 	std::map<std::string,std::pair<TVec3d,TVec3d>> wAABBs = DoBuildAABB(wDirs,offset,citygml::CityObjectsType::COT_WaterBody);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> vAABBs = DoBuildAABB(vDirs,offset,citygml::CityObjectsType::COT_SolitaryVegetationObject);
 
 	DoSaveAABB(dir+"_BATI_AABB.dat",bAABBs);
 	DoSaveAABB(dir+"_MNT_AABB.dat",tAABBs);
 	DoSaveAABB(dir+"_WATER_AABB.dat",wAABBs);
+	DoSaveAABB(dir+"_VEGET_AABB.dat",vAABBs);
 
 	std::cout << "Done." << std::endl;
 }

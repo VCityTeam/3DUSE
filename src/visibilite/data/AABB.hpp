@@ -14,12 +14,20 @@ struct AABB
 	osg::Vec3d min;///< Min point of the box
 	osg::Vec3d max;///< Max point of the box
 	std::string name;///< Name of the box
+
+	bool operator==(AABB const& other)
+	{
+		return name == other.name;
+	}
 };
 
+/**
+*	@brief A hit between a ray and a bounding box
+*/
 struct RayBoxHit
 {
-	AABB box;
-	float minDistance;
+	AABB box;///< Box hitted
+	float minDistance;///< Distance between the ray origin and the bounding box
 
 	bool operator<(RayBoxHit const& b)
 	{
@@ -27,10 +35,13 @@ struct RayBoxHit
 	}
 };
 
+/**
+*	Used when ordering a collection of bounding box
+*/
 struct BoxOrder
 {
-	std::string box;
-	unsigned int order;
+	std::string box;///< Name of the bounding box
+	unsigned int order;///< Order of the box in the collection
 
 	bool operator<(BoxOrder const& b)
 	{
@@ -38,11 +49,15 @@ struct BoxOrder
 	}
 };
 
+/**
+*	Used to store bounding box collection of different layer
+*/
 struct AABBCollection
 {
-	std::vector<AABB> building;
-	std::vector<AABB> terrain;
-	std::vector<AABB> water;
+	std::vector<AABB> building;///< Bounding box of the building layer
+	std::vector<AABB> terrain;///< Bounding box of the terrain layer
+	std::vector<AABB> water;///< Bounding box of the water layer
+	std::vector<AABB> veget;///< Bounding box of the veget layer
 };
 
 /**

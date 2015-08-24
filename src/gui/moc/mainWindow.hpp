@@ -12,6 +12,7 @@
 #include "gui/osg/osgScene.hpp"
 #include "gui/osg/osgPicking.hpp"
 #include "core/scene.hpp"
+#include "gui/moc/dialogVisibilite.hpp"
 
 #include <QDir>
 #include <QActionGroup>
@@ -69,6 +70,7 @@ private:
 	QStringList pluginFileNames;
 	QMenu *pluginMenu;
 	QAction *aboutPluginsAct;
+	DialogVisibilite* dialVisibilite;
 
     void loadPlugins();
     void populateMenus(QObject *plugin);

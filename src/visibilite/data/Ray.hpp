@@ -5,8 +5,8 @@
 #include "AABB.hpp"
 
 struct Hit;
-
 struct RayCollection;
+struct ViewPoint;
 
 /**
 *	@brief A simple ray
@@ -65,9 +65,41 @@ struct Ray
 	RayCollection* collection;///< Collection in which this ray belong
 	bool ignore;///< If this ray must be ignore when doing raytracing
 
-	std::vector<RayBoxHit> boxes;
+	std::vector<RayBoxHit> boxes;///< List of boxes that this ray go through for the multitile algorithm
 };
 
+/**
+*	@brief A collection of rays
+*/
+struct RayCollection
+{
+	/**
+	*	@brief Build a new collection
+	*/
+	RayCollection(std::vector<Ray*> rays = std::vector<Ray*>())
+	{
+		this->rays = rays;
+	}
 
+	/**
+	*	Delete of the rays of the collection
+	*/
+	~RayCollection()
+	{
+		for(unsigned int i = 0; i < rays.size(); i++)
+		{
+			delete rays[i];
+		}
+	}
+
+	/**
+	*	@brief Build a collection of rays from a camera
+	*	@param cam The camera we want to used to build the collection
+	*/
+	static RayCollection* BuildCollection(osg::Camera* cam);
+
+	std::vector<Ray*> rays;///< The rays of the collection
+	ViewPoint* viewpoint;///< The viewpoint render using this collection
+};
 
 #endif

@@ -4,6 +4,32 @@
 #include "Visibilite.hpp"
 
 /**
+*	@brief % of element in a emblematic view, values are in % 
+*/	
+struct EmblematicView
+{
+public:
+	float sky;
+	float building;
+	float remarquableBuilding;
+	float vegetation;
+	float water;
+	float terrain;
+};
+
+class ExportParameter
+{
+public:
+	EmblematicView emblematicView;
+
+	inline static void SetGobalParameter(ExportParameter param) { globalParam = param; }
+	inline static ExportParameter GetGlobalParameter() { return globalParam; }
+
+private:
+	static ExportParameter globalParam;
+};
+
+/**
 *	@brief Get the color of the sky
 *	@param d Direction of the ray
 *	@param light Direction of the light
@@ -61,10 +87,18 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 void ExportImageSkyline(ViewPoint* viewpoint, std::string filePrefix = "");
 
 /**
-*	@brief Export image Test
-*	@param viewpoint Data about the viewpoint we are rendering
-*	@param result Result from the ray tracing algorithm
+*	@brief Export the data of the skyline of a panorama to a text file
+*	@param front Front view of the panorama
+*	@param right Right view of the panorama
+*	@param back Back view of the panorama
+*	@param left Left view of the panorama
+*	@param filePrefix Prefix of the text file created
 */
-void ExportImageTest(ViewPoint* viewpoint, std::string filePrefix = "");
+void ExportPanoramaSkyline(AnalysisResult front, AnalysisResult right, AnalysisResult back, AnalysisResult left, std::string filePrefix = "");
+
+/**
+*	@brief Compute the skyline volume of a cascade panorama
+*/
+void ProcessSkylineVolume();
 
 #endif

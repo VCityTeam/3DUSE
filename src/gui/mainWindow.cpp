@@ -48,9 +48,14 @@
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
 #include "src/Visibilite/Visibilite.hpp"
-#include "src/Visibilite/AABB.hpp"
-#include "src/Visibilite/FlatRoof.hpp"
-#include "src/utils/ShpExtrusion.h"
+#include "src/Visibilite/BuildOSGNode.h"
+#include "src/Visibilite/Export.hpp"
+#include "src/Visibilite/data/AABB.hpp"
+#include "src/processes/FlatRoof.hpp"
+#include "src/visibilite/ShpExtrusion.h"
+#include "src/visibilite/AlignementTree.hpp"
+#include "src/visibilite/VegetTool.hpp"
+#include "src/visibilite/ProcessCloudPoint.h"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
@@ -91,6 +96,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // setup osgQt view
     m_osgView->setSceneData(m_osgScene);
+
+	dialVisibilite = new DialogVisibilite(this,this);
 
     // init gdal
     GDALAllRegister();
@@ -163,6 +170,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionTest_4, SIGNAL(triggered()), this, SLOT(test4()));
     connect(m_ui->actionTest_5, SIGNAL(triggered()), this, SLOT(test5()));
 
+	connect(m_ui->actionVisibilite, SIGNAL(triggered()), dialVisibilite, SLOT(show()));
+
     // filter search
     connect(m_ui->filterButton, SIGNAL(clicked()), m_treeView, SLOT(slotFilter()));
 
@@ -197,6 +206,7 @@ MainWindow::~MainWindow()
 	delete aboutPluginsAct;
     delete ShapeGeo;
 
+	delete dialVisibilite;
     delete m_treeView;
     delete m_osgView;
     delete m_ui;
@@ -2203,72 +2213,10 @@ void MainWindow::test4()
 {
     //buildJson();
 
-	//DetectionToitsPlats("C:/VCityData/Big/Lyon01/LYON01_BATIS.gml",5,0.98);
-	DetectionToitsPlats("C:/VCityData/Jeux de test/LYON_1ER_00136.gml",5,0.98);
-
-	QDir outputDir("./SkylineOutput/");
-	if(!outputDir.exists("./SkylineOutput/"))
-	{
-		 outputDir.mkpath(outputDir.absolutePath());
-	}
-
-	std::filebuf fb;
-	fb.open("./SkylineOutput/coord.txt",std::ios::app);
-
-	std::ostream file(&fb);
-	osg::Camera* cam = m_osgView->m_osgView->getCamera();
-	osg::Vec3d pos;
-	osg::Vec3d target;
-	osg::Vec3d up;
-	cam->getViewMatrixAsLookAt(pos,target,up);
-	
-	file << pos.x() << " " << pos.y() << " " << pos.z() << " " << target.x() << " " << target.y() << " " << target.z() << " " << up.x() << " " << up.y() << " " << up.z() << "\n";
-
-	fb.close();
-
-
-	//Analyse("C:/VCityData/Lyon01/LYON01_MNT.gml",m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml","",m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00036.gml","",m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00163.gml","",m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse("C:/VCityData/Tile/Lyon01_BATI/Tile_3685_10351.gml","C:/VCityData/Tile/Lyon01_MNT/Tile_3685_10351.gml",m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse("C:/VCityData/Tile/Lyon01_BATI/Tile_3685_10351.gml","C:/VCityData/Tile/Lyon01_MNT/Tile_3685_10351.gml",m_app.getSettings().getDataProfile().m_offset,cam);
-	//Analyse("C:/VCityData/Tile/Lyon01_BATI/Tile_3685_10351.gml","C:/VCityData/Tile/Lyon01_MNT/Tile_3685_10351.gml",m_app.getSettings().getDataProfile().m_offset,cam,true);
-	//Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
-    //Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
-	
-	//Analyse("C:/VCityData/Lyon01/LYON01_BATIS_WithoutTextures.gml","C:/VCityData/Lyon01/LYON01_MNT.gml",m_app.getSettings().getDataProfile().m_offset,cam,4,15);
-
-	/*BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
-	AABBCollection temp = LoadAABB("C:/VCityData/Tile/");
-
-	for(unsigned int i = 0; i < temp.building.size(); i++)
-	{
-		auto bbox = m_osgScene->buildBBox(temp.building[i].min,temp.building[i].max);
-		m_osgScene->addChild(bbox);
-	}*/
-
-	//m_osgScene->addChild(BuildSkylineOSGNode(Analyse("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00136.gml","",m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
-
-	std::vector<std::string> building;
-	//building.push_back("C:/VCityData/Jeux de test/LYON_2EME_WATER_2012.gml");
+	/*std::vector<std::string> building;
 	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
-	//building.push_back("C:/VCityData/Lyon01/LYON01_BATIS.gml");
-	//building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00036.gml");
-	//building.push_back("C:/VCityData/Lyon01/Jeux de test/LYON_1ER_00163.gml");
-	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_BATI_2012.gml");
-	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_BATI_REMARQUABLE_2012.gml");
 	
-	//building.push_back("C:/VCityData/LYON_3EME_2012/LYON_3EME_TIN_2012.gml");
-
-	//AnalyseTestViewport(building,m_app.getSettings().getDataProfile().m_offset,cam);*/
-	
-	//m_osgScene->addChild(BuildSkylineOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
-	//osg::ref_ptr<osg::Node> node = (BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
-	//appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
-	
-	/*std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+	std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
 
 	int cpt = 0;
 	for(AnalysisResult ar : res)
@@ -2277,21 +2225,26 @@ void MainWindow::test4()
 		addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
 		cpt++;
 	}*/
-	
-	//addTree(BuildViewshedOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front()));
-	//addTree(BuildSkylineOSGNode(Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam).front().skyline));
-	//Analyse(building,terrain,m_app.getSettings().getDataProfile().m_offset,cam,6,20);
 
-	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
-	/*std::vector<AnalysisResult> results = AnalysePanorama("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam);
+	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
 
-	for(AnalysisResult a : results)
+	//ProcessLasShpVeget();
+
+	//ProcessCL();
+
+	//BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
+
+	/*LASreadOpener lasreadopener;
+	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
+	LASreader* lasreader = lasreadopener.open();
+
+	OGRMultiPoint* mp = new OGRMultiPoint;
+
+	while (lasreader->read_point())
 	{
-		m_osgScene->addChild(BuildSkylineOSGNode(a.skyline));
-		m_osgScene->addChild(BuildViewshedOSGNode(a));
+		OGRPoint* point = new OGRPoint;
+		mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
-
-	//Analyse("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset,cam,3,15);
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
