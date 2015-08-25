@@ -378,9 +378,15 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			if (xLinkQuery!="")\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
-				_t_##* nCityObject = new _t_(identifier);\
-				nCityObject->_versioned = true;\
-				pushCityObject( nCityObject );\
+				CityObject* o = _model->getNodeById(identifier);\
+				if (o == nullptr)\
+				{\
+					_t_##* nCityObject = new _t_(identifier);\
+					nCityObject->_isXlink = true;\
+					pushCityObject( nCityObject );\
+				} else {\
+					pushCityObject( o );\
+				}\
 			}\
 			else pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
@@ -461,9 +467,15 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			if (xLinkQuery!="")\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
-				_t_##Surface* nCityObject = new _t_##Surface(identifier);\
-				nCityObject->_versioned = true;\
-				pushCityObject( nCityObject );\
+				CityObject* o = _model->getNodeById(identifier);\
+				if (o == nullptr)\
+				{\
+					_t_##Surface* nCityObject = new _t_##Surface(identifier);\
+					nCityObject->_isXlink = true;\
+					pushCityObject( nCityObject );\
+				} else {\
+					pushCityObject( o );\
+				}\
 			}\
 			else pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
@@ -1129,8 +1141,10 @@ void CityGMLHandler::endDocument( )
 
 void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 {
-    if(node->_versioned)
+	bool versioned=false;
+    if(node->_isXlink)
     {
+		versioned=true;
 		std::string identifier = node->getId();
 		CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
 		if ( it != _identifiersMap.end() )
@@ -1141,10 +1155,12 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 				if ( node && version ) node->getChildren().push_back( version );
 			}
 		}
+		node->_isXlink=false;
     }
 
     for(auto* child : node->getChildren())
     {
         fetchVersionedCityObjectsRec(child);
+		if (versioned) child->_parent=node->_parent;
     }
 }

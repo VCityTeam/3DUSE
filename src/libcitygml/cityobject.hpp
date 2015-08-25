@@ -178,7 +178,7 @@ protected:
 public:
     std::string m_path;
     bool m_temporalUse;
-	bool _versioned;
+	bool _isXlink;
 };
 ////////////////////////////////////////////////////////////////////////////////
 LIBCITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );
