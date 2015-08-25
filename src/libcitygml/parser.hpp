@@ -36,6 +36,8 @@ class ADEHandler;
 
 namespace citygml
 {	
+	typedef std::map< std::string, CityObjects > CityObjectIdentifiersMap;
+
 	#define NODETYPE(_t_) CG_ ## _t_
 
 	// CityGML node types
@@ -207,7 +209,7 @@ namespace citygml
 
 		virtual void startDocument( void ) {}
 
-		virtual void endDocument( void ) {}
+		virtual void endDocument( void );
 
 		virtual void startElement( const std::string&, void* );
 
@@ -295,6 +297,8 @@ namespace citygml
 
 		static std::string getXLinkQueryIdentifier( const std::string& );
 
+		void fetchVersionedCityObjectsRec(CityObject*);
+
 	protected:
 
 		static std::map< std::string, CityGMLNodeType > s_cityGMLNodeTypeMap;
@@ -352,6 +356,8 @@ namespace citygml
         CityObjectState* m_currentState;
         CityObjectDynState* m_currentDynState;
         CityObjectTag* m_currentTag;
+
+		CityObjectIdentifiersMap _identifiersMap;
 
 	};
 }
