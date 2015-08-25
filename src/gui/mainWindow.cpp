@@ -944,12 +944,12 @@ void MainWindow::optionShowAdvancedTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-    // date is starting at year 1900 and ending at 2100
+    // date is starting at year 1800 and ending at 2100
     // this is controlled in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     if(value == -1) value = m_ui->horizontalSlider->value();
-    QDate date(1900, 1, 1);
+    QDate date(1800, 1, 1);
     date = date.addDays(value);
     //m_ui->buttonBrowserTemporal->setText(date.toString());
     m_ui->dateTimeEdit->setDate(date);
@@ -962,15 +962,15 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-    // date is starting at year 1900 and ending at 2100
+    // date is starting at year 1800 and ending at 2100
     // this is controlled in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     m_useTemporal = !m_useTemporal;
 
     if(m_useTemporal)
     {
-        QDate date(1900, 1, 1);
+        QDate date(1800, 1, 1);
         date = date.addDays(m_ui->horizontalSlider->value());
         QDateTime datetime(date);
         m_osgScene->setDate(datetime);
