@@ -65,6 +65,8 @@ enum CityObjectsType {
     COT_All                         = 0xFFFFFFFF
 };
 typedef unsigned int CityObjectsTypeMask;
+
+enum xLinkState { NONE, LINKED, UNLINKED, TARGET };
 ////////////////////////////////////////////////////////////////////////////////
 class CityObject : public Object
 {
@@ -158,6 +160,7 @@ public:
     /// \param attribName Attribute name
     /// \param date Date wanted
     std::string getAttributeTemporal(const std::string& attribName, const QDateTime& date) const;
+	std::vector<CityObject*>& getXLinkTargets();
 
 //protected:
     void finish( AppearanceManager&, const ParserParams& );
@@ -174,11 +177,12 @@ protected:
 
     std::vector<CityObjectState*> m_states;
     std::vector<CityObjectTag*> m_tags;
+	std::vector<CityObject*> _xLinkTargets;
 
 public:
     std::string m_path;
     bool m_temporalUse;
-	bool _isXlink;
+	xLinkState _isXlink;
 };
 ////////////////////////////////////////////////////////////////////////////////
 LIBCITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );

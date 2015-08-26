@@ -374,21 +374,14 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	case CG_ ## _t_ :\
         if ( _objectsMask & COT_ ## _t_ )\
         {\
+			pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
 			if (xLinkQuery!="")\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
-				CityObject* o = _model->getNodeById(identifier);\
-				if (o == nullptr)\
-				{\
-					_t_##* nCityObject = new _t_(identifier);\
-					nCityObject->_isXlink = true;\
-					pushCityObject( nCityObject );\
-				} else {\
-					pushCityObject( o );\
-				}\
+				_currentCityObject->setAttribute( "identifier", identifier, false );\
+				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
-			else pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -463,21 +456,14 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         _currentGeometryType = GT_ ## _t_;\
         if ( _objectsMask & COT_ ## _t_ ## Surface )\
         {\
+			pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
 			if (xLinkQuery!="")\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
-				CityObject* o = _model->getNodeById(identifier);\
-				if (o == nullptr)\
-				{\
-					_t_##Surface* nCityObject = new _t_##Surface(identifier);\
-					nCityObject->_isXlink = true;\
-					pushCityObject( nCityObject );\
-				} else {\
-					pushCityObject( o );\
-				}\
+				_currentCityObject->setAttribute( "identifier", identifier, false );\
+				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
-			else pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -750,6 +736,10 @@ void CityGMLHandler::endElement( const std::string& name )
                 m_currentState = nullptr;
                 m_currentDynState = nullptr;
             }
+			/*else if (_currentCityObject->_isXlink==xLinkState::TARGET)
+			{
+				//do nothing
+			}*/
 			else
             {
                 _model->addCityObject( _currentCityObject );
@@ -868,6 +858,7 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( identifier ):
 		{
 			std::string identifier = buffer.str();
+			_currentCityObject->_isXlink=xLinkState::TARGET;
 			if ( _currentCityObject ) _currentCityObject->setAttribute( localname, identifier, false );
 			CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
 			if ( it == _identifiersMap.end() )
@@ -1141,26 +1132,29 @@ void CityGMLHandler::endDocument( )
 
 void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 {
-	bool versioned=false;
-    if(node->_isXlink)
+	if(node->_isXlink==xLinkState::UNLINKED)
     {
-		versioned=true;
-		std::string identifier = node->getId();
+		std::string identifier = node->getAttribute("identifier");
 		CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
 		if ( it != _identifiersMap.end() )
 		{
-			for (CityObject* version:(it->second))
+			for (CityObject* target:(it->second))
 			{
-				version->_parent = node;
-				if ( node && version ) node->getChildren().push_back( version );
+				target->_parent = node;
+				node->_xLinkTargets.push_back( target );
 			}
 		}
-		node->_isXlink=false;
+		node->_isXlink=xLinkState::LINKED;
+		for(auto* child : node->getXLinkTargets())
+		{
+			fetchVersionedCityObjectsRec(child);
+			child->_parent=node->_parent;
+		}
     }
 
     for(auto* child : node->getChildren())
     {
         fetchVersionedCityObjectsRec(child);
-		if (versioned) child->_parent=node->_parent;
+		if (node->_isXlink==xLinkState::LINKED) child->_parent=node->_parent;
     }
 }

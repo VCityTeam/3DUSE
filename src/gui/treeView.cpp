@@ -273,7 +273,8 @@ void TreeView::deleteLayer(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 {
-    QTreeWidgetItem* item = createItemGeneric(node->getId().c_str(), node->getTypeAsString().c_str());
+	std::string type = (node->_isXlink==citygml::xLinkState::LINKED) ? "xLink:"+node->getTypeAsString() : node->getTypeAsString();
+    QTreeWidgetItem* item = createItemGeneric(node->getId().c_str(), type.c_str());
     parent->addChild(item);
 
     citygml::CityObjects& cityObjects = node->getChildren();
@@ -282,7 +283,10 @@ void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
     {
         addCityObject(item, *it);
     }
-
+	for(citygml::CityObjects::iterator it = node->getXLinkTargets().begin();it != node->getXLinkTargets().end(); ++it)
+	{
+        addCityObject(item, *it);
+    }
     // add temporal elements after
     for(auto* tag : node->getTags())
     {

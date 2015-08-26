@@ -691,6 +691,13 @@ void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> n
         u.resetCursor();
         buildCityObject(u, node, child, reader, depth+1);
     }
+	for(citygml::CityObject* child : obj->getXLinkTargets())
+    {
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildCityObject(u, node, child, reader, depth+1);
+    }
 
     // add tags geom
     /*for(citygml::CityObjectTag* tag : obj->getTags())

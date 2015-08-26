@@ -21,7 +21,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::CityObject( const std::string& id, CityObjectsType type )
-    : Object( id ), _type( type ), m_path(""), m_temporalUse(false), _isXlink(false)
+	: Object( id ), _type( type ), m_path(""), m_temporalUse(false), _isXlink(xLinkState::NONE)
 {}
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::~CityObject()
@@ -30,7 +30,7 @@ CityObject::~CityObject()
         delete geom;
 
     for(CityObject* obj : _children)
-        delete obj;
+		delete obj;
 
     for(CityObjectState* state : m_states)
         delete state;
@@ -149,6 +149,11 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
     uri.resetCursor();
 
     return res;
+}
+////////////////////////////////////////////////////////////////////////////////
+std::vector<CityObject*>& CityObject::getXLinkTargets()
+{
+    return _xLinkTargets;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::addState(CityObjectState* state)
