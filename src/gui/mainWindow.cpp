@@ -2064,7 +2064,7 @@ void MainWindow::slotChangeDetection()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int TileX, int TileY)
 {
-	CityGMLPath = "C:/Users/FredLiris/Downloads/TestTiling/Lyon01";
+	CityGMLPath = "C:/Users/FredLiris/Downloads/TestTiling/Lyon";
 	OutputPath = "C:/Users/FredLiris/Downloads/TestTiling";
 
 	CPLPushErrorHandler( CPLQuietErrorHandler ); //POUR CACHER LES WARNING DE GDAL
@@ -2110,13 +2110,27 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 			{
 				std::vector<TextureCityGML*> TexturesList;
 
-				std::cout << "Tuile : " << x << " : " << y << std::endl;
+				std::cout << "Tuile : " << x/TileX << "_" << y/TileY << std::endl;
 				citygml::CityModel* Tuile = TileCityGML(Tile, &TexturesList, TVec2d(x, y), TVec2d(x + TileX, y + TileY));
 				Tuile->computeEnvelope();
 
-				//TODO : REGARDER SI LE FICHIER EXISTE DEJA. SI C'EST LE CAS, IL FAUT ALORS LE FUSIONNER AVEC CE CITYMODEL
-				citygml::ExporterCityGML exporter(OutputPath + "/" + std::to_string((int)(x / TileX)) + "_" + std::to_string((int)(y / TileY))  + ".gml");
-				exporter.exportCityModelWithListTextures(*Tuile, &TexturesList);
+				std::string FileName = OutputPath + "/" + std::to_string((int)(x / TileX)) + "_" + std::to_string((int)(y / TileY))  + ".gml";
+
+				FILE * fp = fopen(FileName.c_str(), "rb");
+				if(fp == nullptr) //Le fichier correspondant à la tuile courante n'existe pas, on peut donc le créer
+				{
+					citygml::ExporterCityGML exporter(FileName);
+					exporter.exportCityModelWithListTextures(*Tuile, &TexturesList);
+				}
+				else // Cette tuile existe déjà, il faut donc la fusionner avec la nouvelle découpe
+				{
+					std::cout << "Le fichier existe deja" << std::endl;
+					vcity::Tile* OldTile = new vcity::Tile(FileName);
+					MergingTile(OldTile, Tuile, &TexturesList);
+
+					citygml::ExporterCityGML exporter(FileName);
+					exporter.exportCityModelWithListTextures(*Tuile, &TexturesList);
+				}
 				delete Tuile;
 				for(TextureCityGML* Tex : TexturesList)
 					delete Tex;

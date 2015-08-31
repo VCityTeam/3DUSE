@@ -11,5 +11,6 @@
 #include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList, TVec2d MinTile, TVec2d MaxTile);
+void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<TextureCityGML*>* TexturesList);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LINKCITYGMLSHAPE_HPP__

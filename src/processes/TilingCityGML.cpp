@@ -22,13 +22,12 @@ double Precision_Vect = 0.00001; //Précision pour les points des Wall qui ne se
 * @param OGRPoly OGRPolygon* à convertir.
 * @param Name Nom du Polygon CityGML à retourner.
 */
-citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name)
+citygml::Polygon * ConvertOGRPolytoGMLPoly2(OGRPolygon* OGRPoly, std::string Name)
 {
 	citygml::Polygon * Poly = new citygml::Polygon(Name + "_Poly");
 	citygml::LinearRing * Ring = new citygml::LinearRing(Name + "_Ring", true);
 
 	const OGRLinearRing * ExtRing = OGRPoly->getExteriorRing();
-
 	for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
 	{
 		OGRPoint * point = new OGRPoint;
@@ -36,6 +35,32 @@ citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name
 		double x = point->getX();
 		double y = point->getY();
 		double z = point->getZ();
+		/*bool test = false;
+		if(Name == "UUID_5b02decf-369a-429b-9b03-af9bd95c89c6_197")
+		{
+			std::cout << "Test1" << std::endl;
+			test = true;
+			std::cout << x << ", " << y << ", " << z << std::endl;
+		}
+		if(x == 1841413.498 && y == 5175947.002)
+		{
+			std::cout << "Test2" << std::endl;
+			test = true;
+			std::cout << Name << std::endl;
+			std::cout << x << ", " << y << ", " << z << std::endl;
+		}
+		if(z < 0 || z > 300)
+		{
+			test = true;
+			std::cout << "Test3" << std::endl;
+			std::cout << Name << std::endl;
+			std::cout << x << ", " << y << ", " << z << std::endl;
+		}
+		if(test)
+		{
+			int a;
+			std::cin >> a;
+		}*/
 		delete point;
 
 		Ring->addVertex(TVec3d(x, y, z));
@@ -119,11 +144,11 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 /**
 * @brief Découpe un polygon 3D GMLPoly suivant un second polygon 2D BuildingShp. Il faut que le polygon découpé soit encore en 3d.
 * @param GMLPoly représente le premier polygon 3D (issu du fichier CityGML)
-* @param BuildingShp représente le second polygon 2D (issu du fichier Shape et modifié pour coller aux emprises du CityGML)
+* @param BuildingShp représente le second polygon 2D qui va découper GMLPoly
 * @param TexUV représente les coordonnées de texture en entrée correspondant au GMLPoly
 * @param TexUVout représente les coordonnées de texture en sortie pour la Geometry résultat.
 */
-OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, std::vector<TVec2f> *TexUV, std::vector<std::vector<TVec2f>>* TexUVout)
+OGRGeometry * CutPolyGMLwithShape2(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, std::vector<TVec2f> *TexUV, std::vector<std::vector<TVec2f>>* TexUVout)
 {
 	//SaveGeometrytoShape("A_GMLPoly.shp", GMLPoly);
 	//SaveGeometrytoShape("A_BuildingShp.shp", BuildingShp);
@@ -224,6 +249,17 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 			s = (M.x - A.x - t * AC.x) / AB.x;
 
 			M.z = A.z + s * AB.z + t * AC.z;
+
+			if(M.x == 1841413.498 && M.y == 5175947.002)
+			{
+				std::cout << A << std::endl << B << std::endl << C << std::endl << std::endl;
+
+				std::cout << M << std::endl;
+
+				std::cout << s << " _ " << t << std::endl;
+				int a;
+				std::cin >> a;
+			}
 
 			ResExtRing->addPoint(M.x, M.y, M.z);
 
@@ -708,7 +744,103 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 
 	for(citygml::CityObject* obj : Model->getCityObjectsRoots())
 	{
-		if(obj->getType() == citygml::COT_Building)
+		if(obj->getType() == citygml::COT_TINRelief)
+		{
+			std::string Name = obj->getId();
+			citygml::CityObject* TIN_CO = new citygml::TINRelief(Name);
+
+			citygml::Geometry* TIN = new citygml::Geometry(Name + "_TINGeometry", citygml::GT_Unknown, 2);
+
+			citygml::CityObject* BuildingCO = new citygml::Building(Name);
+			citygml::CityObject* RoofCO = new citygml::RoofSurface(Name + "_Roof");
+			citygml::Geometry* Roof = new citygml::Geometry(Name + "_RoofGeometry", citygml::GT_Roof, 2);
+
+			int cptPolyTIN = 0;
+
+			for(citygml::Geometry* Geometry : obj->getGeometries())
+			{
+				for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+				{
+					OGRLinearRing * OgrRing = new OGRLinearRing;
+					for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+						OgrRing->addPoint(Point.x, Point.y, Point.z);
+
+					std::vector<TVec2f> TexUV = PolygonCityGML->getTexCoords();
+
+					OgrRing->closeRings();
+					if(OgrRing->getNumPoints() > 3)
+					{
+						OGRPolygon * OgrPoly = new OGRPolygon;
+						OgrPoly->addRingDirectly(OgrRing);
+						if(OgrPoly->IsValid() && OgrPoly->Intersects(PolyTile))
+						{
+							bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
+							HasTexture = false; //////////////////////////
+
+							std::string Url;
+							citygml::Texture::WrapMode WrapMode;
+							std::vector<std::vector<TVec2f>> TexUVout;
+							if(HasTexture)
+							{
+								Url = PolygonCityGML->getTexture()->getUrl();
+								WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+							}
+
+							OGRGeometry * CutPoly = CutPolyGMLwithShape2(OgrPoly, PolyTile, &TexUV, &TexUVout);
+
+							if(CutPoly != nullptr)
+							{
+								if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
+								{
+									citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly2((OGRPolygon*)CutPoly, Name + "_" + std::to_string(cptPolyTIN));
+									TIN->addPolygon(GMLPoly);
+									//Roof->addPolygon(GMLPoly);
+									if(HasTexture)
+									{
+										TexturePolygonCityGML Poly;
+
+										Poly.Id = Name + "_" + std::to_string(cptPolyTIN) + "_Poly";
+										Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
+										Poly.TexUV = TexUVout.at(0);
+
+										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+										for(TextureCityGML* Tex: *TexturesList)
+										{
+											if(Tex->Url == Url)
+											{
+												URLTest = true;
+												Tex->ListPolygons.push_back(Poly);
+												break;
+											}
+										}
+										if(!URLTest)
+										{
+											TextureCityGML* Texture = new TextureCityGML;
+											Texture->Wrap = WrapMode;
+											Texture->Url = Url;
+											Texture->ListPolygons.push_back(Poly);
+											TexturesList->push_back(Texture);
+										}
+									}
+									++cptPolyTIN;
+								}
+							}
+						}
+						// TODO : Re-trianguler les polygones du TIN découpés.
+					}
+				}
+			}
+			/*RoofCO->addGeometry(Roof);
+			Tuile->addCityObject(RoofCO);
+			BuildingCO->insertNode(RoofCO);
+			Tuile->addCityObject(BuildingCO);
+			Tuile->addCityObjectAsRoot(BuildingCO);*/
+
+			TIN_CO->addGeometry(TIN);
+			Tuile->addCityObject(TIN_CO);
+			Tuile->addCityObjectAsRoot(TIN_CO);
+		}
+		else if(obj->getType() == citygml::COT_Building)
 		{
 			std::string Name = obj->getId();
 			citygml::CityObject* BuildingCO = new citygml::Building(Name);
@@ -752,7 +884,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 										WrapMode = PolygonCityGML->getTexture()->getWrapMode();
 									}
 
-									OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, PolyTile, &TexUV, &TexUVout);
+									OGRGeometry * CutPoly = CutPolyGMLwithShape2(OgrPoly, PolyTile, &TexUV, &TexUVout);
 
 									if(CutPoly != nullptr)
 									{
@@ -765,7 +897,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 												continue;
 											}
 
-											citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "_Roof_" + std::to_string(cptPolyRoof));
+											citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly2((OGRPolygon*)CutPoly, Name + "_Roof_" + std::to_string(cptPolyRoof));
 											Roof->addPolygon(GMLPoly);
 											if(HasTexture)
 											{
@@ -806,7 +938,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 													if(((OGRPolygon*)CutMultiPoly->getGeometryRef(i))->get_Area() < Precision_Vect)
 														continue;
 
-													citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutMultiPoly->getGeometryRef(i), Name + "_Roof_" + std::to_string(cptPolyRoof));
+													citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly2((OGRPolygon*)CutMultiPoly->getGeometryRef(i), Name + "_Roof_" + std::to_string(cptPolyRoof));
 													Roof->addPolygon(GMLPoly);
 													if(HasTexture)
 													{
@@ -1032,7 +1164,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 									{
 										WallRingRes->closeRings();
 										WallPolyRes->addRingDirectly(WallRingRes);
-										citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)WallPolyRes, Name + "_Wall_" + std::to_string(cptPolyWall));
+										citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly2((OGRPolygon*)WallPolyRes, Name + "_Wall_" + std::to_string(cptPolyWall));
 										delete WallPolyRes;
 
 										Wall->addPolygon(GMLPoly);
@@ -1106,6 +1238,67 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 	delete PolyTile;
 
 	return Tuile;
+}
+
+/**
+* @brief Fusionne deux CityModel représentant la même tuile mais générées à partir de deux fichiers différents
+* @param OldTile Contient les données du fichier CityGML déjà existant qui modélise la tuile : il doit contenir un ensemble de bâtiments LOD2 ou du terrain
+* @param NewTile Contient les données du CityModel nouvellemeent créé que l'on souhaite enregistrer en le fusionnant avec OldTile
+* @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie, sachant qu'il est déjà rempli avec les textures de NewTile
+*/
+void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<TextureCityGML*>* TexturesList)
+{
+	citygml::CityModel* Model = OldTile->getCityModel();
+
+	for(citygml::CityObject* obj : Model->getCityObjectsRoots())
+	{
+		if(obj->getType() == citygml::COT_Building)
+		{
+			NewTile->addCityObject(obj);
+			NewTile->addCityObjectAsRoot(obj);
+
+			for(citygml::CityObject* object : obj->getChildren())
+			{
+				for(citygml::Geometry* Geometry : object->getGeometries())
+				{
+					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+					{
+						bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
+
+						if(!HasTexture)
+							continue;
+
+						std::string Url = PolygonCityGML->getTexture()->getUrl();
+						citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+						TexturePolygonCityGML Poly;
+						Poly.Id = PolygonCityGML->getId();
+						Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
+						Poly.TexUV = PolygonCityGML->getTexCoords();
+
+						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+						for(TextureCityGML* Tex: *TexturesList)
+						{
+							if(Tex->Url == Url)
+							{
+								URLTest = true;
+								Tex->ListPolygons.push_back(Poly);
+								break;
+							}
+						}
+						if(!URLTest)
+						{
+							TextureCityGML* Texture = new TextureCityGML;
+							Texture->Wrap = WrapMode;
+							Texture->Url = Url;
+							Texture->ListPolygons.push_back(Poly);
+							TexturesList->push_back(Texture);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
