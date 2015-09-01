@@ -2745,6 +2745,24 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
         }
     }
 
+	if(AB.x == 0) //Pour le calcul de s et t, cela pose problème donc on intervertit B et C pour avoir un AB.x != 0. En effet, AB.x et AC.x ne peuvent tous deux être égaux à 0 sinon le triangle serait plat.
+	{
+		TVec2f uvTemp = uvAB;
+		TVec3d VecTemp = AB;
+
+		uvAB = uvAC;
+		AB = AC;
+		uvAC = uvTemp;
+		AC = VecTemp;
+
+		uvTemp = uvB;
+		VecTemp = B;
+		uvB = uvC;
+		B = C;
+		uvC = uvTemp;
+		C = VecTemp;
+	}
+
     if(test != 2)
     {
         std::cout << "Erreur lors de la creation du plan. \n";
@@ -2968,6 +2986,18 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp)
             }
         }
     }
+
+	if(AB.x == 0) //Pour le calcul de s et t, cela pose problème donc on intervertit B et C pour avoir un AB.x != 0. En effet, AB.x et AC.x ne peuvent tous deux être égaux à 0 sinon le triangle serait plat.
+	{
+		TVec3d VecTemp = AB;
+
+		AB = AC;
+		AC = VecTemp;
+
+		VecTemp = B;
+		B = C;
+		C = VecTemp;
+	}
 
     if(test != 2)
     {

@@ -2111,7 +2111,7 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 				std::vector<TextureCityGML*> TexturesList;
 
 				std::cout << "Tuile : " << x/TileX << "_" << y/TileY << std::endl;
-				citygml::CityModel* Tuile = TileCityGML(Tile, &TexturesList, TVec2d(x, y), TVec2d(x + TileX, y + TileY));
+				citygml::CityModel* Tuile = TileCityGML(Tile, &TexturesList, TVec2d(x, y), TVec2d(x + TileX, y + TileY), CityGMLPath.toStdString().substr(0, CityGMLPath.toStdString().find_last_of("/")));
 				Tuile->computeEnvelope();
 
 				std::string FileName = OutputPath + "/" + std::to_string((int)(x / TileX)) + "_" + std::to_string((int)(y / TileY))  + ".gml";
