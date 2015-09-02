@@ -16,7 +16,7 @@
 *	@param path Path to the file
 *	@return A collection of box
 */
-std::vector<AABB> DoLoadAABB(std::string path, TVec3d offset)
+std::vector<AABB> DoLoadAABB(std::string path)
 {
 	std::vector<AABB> bSet;
 
@@ -49,8 +49,8 @@ std::vector<AABB> DoLoadAABB(std::string path, TVec3d offset)
 
 		if(minx < maxx && miny < maxy && minz < maxz)
 		{
-			box.min = TVec3d(minx,miny,minz) - offset;
-			box.max = TVec3d(maxx,maxy,maxz) - offset;
+			box.min = TVec3d(minx,miny,minz);
+			box.max = TVec3d(maxx,maxy,maxz);
 			bSet.push_back(box);
 
 		}
@@ -61,7 +61,7 @@ std::vector<AABB> DoLoadAABB(std::string path, TVec3d offset)
 	return bSet;
 }
 
-AABBCollection LoadAABB(std::string dir, TVec3d offset)
+AABBCollection LoadAABB(std::string dir)
 {
 	bool foundBuild = false;
 	QFileInfo bDat;
@@ -115,16 +115,16 @@ AABBCollection LoadAABB(std::string dir, TVec3d offset)
 
 
 	if(foundBuild)
-		bSet = DoLoadAABB(dir+"_BATI_AABB.dat",offset);
+		bSet = DoLoadAABB(dir+"_BATI_AABB.dat");
 
 	if(foundTerrain)
-		tSet = DoLoadAABB(dir+"_MNT_AABB.dat",offset);
+		tSet = DoLoadAABB(dir+"_MNT_AABB.dat");
 
 	if(foundWater)
-		wSet = DoLoadAABB(dir+"_WATER_AABB.dat",offset);
+		wSet = DoLoadAABB(dir+"_WATER_AABB.dat");
 
 	if(foundVeget)
-		vSet = DoLoadAABB(dir+"_VEGET_AABB.dat",offset);
+		vSet = DoLoadAABB(dir+"_VEGET_AABB.dat");
 
 	AABBCollection collection;
 	collection.building = bSet;
@@ -142,7 +142,7 @@ AABBCollection LoadAABB(std::string dir, TVec3d offset)
 *	@param type Types of cityobject to use
 *	@return collection of box, key = nameo of the box, value = <min of the box, max of the box>
 */
-std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dirs, TVec3d offset, citygml::CityObjectsType type)
+std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dirs, citygml::CityObjectsType type)
 {
 	std::map<std::string,std::pair<TVec3d,TVec3d>> AABBs;
 
@@ -157,7 +157,7 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 			{
 				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
 
-				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toAscii().data(),TVec3d(0.0,0.0,0.0),nullptr,type);
+				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toAscii().data(),nullptr,type);
 
 				for(Triangle* t : list->triangles)
 				{
@@ -209,7 +209,7 @@ void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec
 	fb.close();
 }
 
-void BuildAABB(std::string dir, TVec3d offset)
+void BuildAABB(std::string dir)
 {
 	std::vector<QDir> bDirs;
 	std::vector<QDir> tDirs;
@@ -241,10 +241,10 @@ void BuildAABB(std::string dir, TVec3d offset)
 	}
 
 
-	std::map<std::string,std::pair<TVec3d,TVec3d>> bAABBs = DoBuildAABB(bDirs,offset,citygml::CityObjectsType::COT_Building);
-	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs = DoBuildAABB(tDirs,offset,citygml::CityObjectsType::COT_TINRelief);
-	std::map<std::string,std::pair<TVec3d,TVec3d>> wAABBs = DoBuildAABB(wDirs,offset,citygml::CityObjectsType::COT_WaterBody);
-	std::map<std::string,std::pair<TVec3d,TVec3d>> vAABBs = DoBuildAABB(vDirs,offset,citygml::CityObjectsType::COT_SolitaryVegetationObject);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> bAABBs = DoBuildAABB(bDirs,citygml::CityObjectsType::COT_Building);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs = DoBuildAABB(tDirs,citygml::CityObjectsType::COT_TINRelief);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> wAABBs = DoBuildAABB(wDirs,citygml::CityObjectsType::COT_WaterBody);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> vAABBs = DoBuildAABB(vDirs,citygml::CityObjectsType::COT_SolitaryVegetationObject);
 
 	DoSaveAABB(dir+"_BATI_AABB.dat",bAABBs);
 	DoSaveAABB(dir+"_MNT_AABB.dat",tAABBs);

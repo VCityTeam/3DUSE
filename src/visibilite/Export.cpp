@@ -462,8 +462,6 @@ bool functionCompareTVec3Z(TVec3d a, TVec3d b) { return a.z < b.z; }
 
 void ProcessSkylineVolume()
 {
-	TVec3d offset = vcity::app().getSettings().getDataProfile().m_offset;
-
 	std::cout << "Processing Plan..." << std::endl;
 	for(unsigned int i = 0; i < 10; i++)
 	{
@@ -489,7 +487,7 @@ void ProcessSkylineVolume()
 			ifs.getline(line,256);x = atof(line);
 			ifs.getline(line,256);y = atof(line);
 			ifs.getline(line,256);z = atof(line);
-			points.push_back(TVec3d(x,y,z)+offset);
+			points.push_back(TVec3d(x,y,z));
 		}
 
 		std::string name = std::to_string(i)+"_skyline";
@@ -558,12 +556,12 @@ void ProcessSkylineVolume()
 
 			if(tx > lastCoord)
 			{
-				points.push_back(TVec3d(x,y,z)+offset);
+				points.push_back(TVec3d(x,y,z));
 				lastCoord = tx;
 			}
 			else if(tx == 0)
 			{
-				points.push_back(TVec3d(x,y,z)+offset);
+				points.push_back(TVec3d(x,y,z));
 				lastCoord = -1;
 			}
 		}

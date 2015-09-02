@@ -18,7 +18,7 @@ struct Ray
 	*	@param ori Origin of the ray
 	*	@param dir Direction of the ray
 	*/
-	Ray(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(0.0,0.0,0.0))
+	Ray(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0))
 	{
 		this->ori = ori;
 		this->dir = dir;

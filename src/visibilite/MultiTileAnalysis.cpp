@@ -83,7 +83,7 @@ std::queue<std::string> Setup(std::vector<AABB> boxes,RayCollection* rays)
 /**
 *	@brief Perform the multitile analysis
 */
-ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, TVec3d offset, osg::Camera* cam, citygml::CityObjectsType objectType)
+ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg::Camera* cam, citygml::CityObjectsType objectType)
 {
 	//Create the viewpoint
 	ViewPoint* viewpoint = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height());
@@ -141,7 +141,7 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, TVe
 
 		//Get the triangle list
 		TriangleList* trianglesTemp;
-		trianglesTemp = BuildTriangleList(path,offset,viewpoint,objectType);
+		trianglesTemp = BuildTriangleList(path,viewpoint,objectType);
 
 		RayTracing(trianglesTemp,raysTemp.rays);
 
@@ -204,27 +204,27 @@ void MergeViewpointTerrainOther(ViewPoint* terrain, ViewPoint* other)
 	}
 }
 
-std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, TVec3d offset, osg::Camera* cam, std::string prefix)
+std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* cam, std::string prefix)
 {
 	QTime time;
 	time.start();
 
-	AABBCollection boxes = LoadAABB(dirTile,offset);
+	AABBCollection boxes = LoadAABB(dirTile);
 
 	//Do the analysis for each layers, building, terrain, water
-	ViewPoint* result = DoMultiTileAnalysis(dirTile,boxes.building,offset,cam,citygml::CityObjectsType::COT_Building);
+	ViewPoint* result = DoMultiTileAnalysis(dirTile,boxes.building,cam,citygml::CityObjectsType::COT_Building);
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Building Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;
-	ViewPoint* resultBis = DoMultiTileAnalysis(dirTile,boxes.terrain,offset,cam,citygml::CityObjectsType::COT_TINRelief);
+	ViewPoint* resultBis = DoMultiTileAnalysis(dirTile,boxes.terrain,cam,citygml::CityObjectsType::COT_TINRelief);
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Terrain Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;
-	ViewPoint* resultTer = DoMultiTileAnalysis(dirTile,boxes.water,offset,cam,citygml::CityObjectsType::COT_WaterBody);
+	ViewPoint* resultTer = DoMultiTileAnalysis(dirTile,boxes.water,cam,citygml::CityObjectsType::COT_WaterBody);
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Water Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;
-	ViewPoint* resultQuad = DoMultiTileAnalysis(dirTile,boxes.veget,offset,cam,citygml::CityObjectsType::COT_SolitaryVegetationObject);
+	ViewPoint* resultQuad = DoMultiTileAnalysis(dirTile,boxes.veget,cam,citygml::CityObjectsType::COT_SolitaryVegetationObject);
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Veget Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;
@@ -250,7 +250,7 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, TVec3d offset
 	return returns;
 }
 
-std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
+std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile,osg::Camera* cam, unsigned int count, float zIncrement)
 {
 	//See monotile cascade analyse
 	osg::Vec3d pos;
@@ -271,7 +271,7 @@ std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile, TVec3d offs
 	{
 		osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
 
-		results.push_back(MultiTileBasicAnalyse(dirTile,offset,mycam, std::to_string(i)+"_").front());
+		results.push_back(MultiTileBasicAnalyse(dirTile,mycam, std::to_string(i)+"_").front());
 
 		pos.z()+=zIncrement;
 		target.z()+=zIncrement;
@@ -281,7 +281,7 @@ std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile, TVec3d offs
 	return results;
 }
 
-std::vector<ViewPoint*> MultiTileMultiViewpointAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
+std::vector<ViewPoint*> MultiTileMultiViewpointAnalyse(std::string dirTile,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
 {
 	//See monotile multiviewpoint analyse
 	osg::Vec3d pos;
@@ -301,7 +301,7 @@ std::vector<ViewPoint*> MultiTileMultiViewpointAnalyse(std::string dirTile, TVec
 	for(unsigned int i = 0; i < viewpoints.size(); i++)
 	{
 		osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
-		results.push_back(MultiTileBasicAnalyse(dirTile,offset,mycam, std::to_string(i)+"_").front());
+		results.push_back(MultiTileBasicAnalyse(dirTile,mycam, std::to_string(i)+"_").front());
 
 		pos = osg::Vec3d(viewpoints[i].first.x,viewpoints[i].first.y,viewpoints[i].first.z);
 		target = osg::Vec3d(viewpoints[i].second.x,viewpoints[i].second.y,viewpoints[i].second.z);
@@ -311,7 +311,7 @@ std::vector<ViewPoint*> MultiTileMultiViewpointAnalyse(std::string dirTile, TVec
 	return results;
 }
 
-std::vector<ViewPoint*> MultiTilePanoramaAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::string prefix)
+std::vector<ViewPoint*> MultiTilePanoramaAnalyse(std::string dirTile,osg::Camera* cam, std::string prefix)
 {
 	//Panorama viewpoint, basicaly we do the front view, right view, back and left view. We just turn the camera betweeen each analysis
 	osg::Vec3d pos;
@@ -337,29 +337,29 @@ std::vector<ViewPoint*> MultiTilePanoramaAnalyse(std::string dirTile, TVec3d off
 
 	cam->setViewMatrixAsLookAt(pos,target,up);
 	osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
-	results.push_back(MultiTileBasicAnalyse(dirTile,offset,mycam, prefix+"Front_").front());
+	results.push_back(MultiTileBasicAnalyse(dirTile,mycam, prefix+"Front_").front());
 
 	osg::Vec3d targetRight = pos + (dir^up);
 	cam->setViewMatrixAsLookAt(pos,targetRight,up);
 	osg::ref_ptr<osg::Camera> mycamT(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
-	results.push_back(MultiTileBasicAnalyse(dirTile,offset,mycamT, prefix+"Right_").front());
+	results.push_back(MultiTileBasicAnalyse(dirTile,mycamT, prefix+"Right_").front());
 
 	osg::Vec3d targetBack = pos + ((dir^up)^up);
 	cam->setViewMatrixAsLookAt(pos,targetBack,up);
 	osg::ref_ptr<osg::Camera> mycamB(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
-	results.push_back(MultiTileBasicAnalyse(dirTile,offset,mycamB, prefix+"Back_").front());
+	results.push_back(MultiTileBasicAnalyse(dirTile,mycamB, prefix+"Back_").front());
 
 	osg::Vec3d targetLeft = pos + (((dir^up)^up)^up);
 	cam->setViewMatrixAsLookAt(pos,targetLeft,up);
 	osg::ref_ptr<osg::Camera> mycamQ(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
-	results.push_back(MultiTileBasicAnalyse(dirTile,offset,mycamQ, prefix+"Left_").front());
+	results.push_back(MultiTileBasicAnalyse(dirTile,mycamQ, prefix+"Left_").front());
 
 	ExportPanoramaSkyline(results[0],results[1],results[2],results[3],prefix);
 
 	return results;
 }
 
-std::vector<std::vector<ViewPoint*>> MultiTileCascadePanoramaAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
+std::vector<std::vector<ViewPoint*>> MultiTileCascadePanoramaAnalyse(std::string dirTile,osg::Camera* cam, unsigned int count, float zIncrement)
 {
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -379,7 +379,7 @@ std::vector<std::vector<ViewPoint*>> MultiTileCascadePanoramaAnalyse(std::string
 	{
 		osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
 
-		results.push_back(MultiTilePanoramaAnalyse(dirTile,offset,mycam, std::to_string(i)+"_"));
+		results.push_back(MultiTilePanoramaAnalyse(dirTile,mycam, std::to_string(i)+"_"));
 
 		pos.z()+=zIncrement;
 		target.z()+=zIncrement;

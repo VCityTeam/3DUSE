@@ -77,11 +77,10 @@ struct TriangleList
 /**
 *	@brief Build list of triangle from a CityGML building tile
 *	@param tile CityGML tile from which we want the triangle list
-*	@param offset offset Offset of the geometry in 3Duse
 *	@param viewpoint Data about the viewpoint we are rendering
 *	@param objectType The type of cityobject to load
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList* BuildTriangleList(std::string tilefilename, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType);
+TriangleList* BuildTriangleList(std::string tilefilename, ViewPoint* viewpoint, citygml::CityObjectsType objectType);
 
 #endif

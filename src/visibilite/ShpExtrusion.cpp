@@ -110,10 +110,10 @@ LRing OGRLinearRingToLRing(OGRLinearRing* poLR)
 }
 
 
-LRing PutLRingOnTerrain(LRing ring,TVec3d offset)
+LRing PutLRingOnTerrain(LRing ring)
 {
 	//Load all terrain bounding box that are abox the points
-	AABBCollection boxes = LoadAABB("C:/VCityData/Tile/",offset);
+	AABBCollection boxes = LoadAABB("C:/VCityData/Tile/");
 
 	std::vector<AABB> ptAABB;
 	LRing ptResult;
@@ -122,8 +122,8 @@ LRing PutLRingOnTerrain(LRing ring,TVec3d offset)
 	{
 		for(AABB box : boxes.terrain)
 		{
-			TVec3d min = box.min + offset;
-			TVec3d max = box.max + offset;
+			TVec3d min = box.min;
+			TVec3d max = box.max;
 			if(vec.x >= min.x && vec.x <= max.x && vec.y >= min.y && vec.y <= max.y)
 			{
 				ptAABB.push_back(box);
@@ -149,7 +149,7 @@ LRing PutLRingOnTerrain(LRing ring,TVec3d offset)
 		{
 			std::string path = "C:/VCityData/Tile/" + ptAABB[i].name;
 			//Get the triangle list
-			trianglesTemp = BuildTriangleList(path,TVec3d(0.0,0.0,0.0),nullptr,citygml::CityObjectsType::COT_TINRelief);
+			trianglesTemp = BuildTriangleList(path,nullptr,citygml::CityObjectsType::COT_TINRelief);
 			tileTriangles.insert(std::make_pair(ptAABB[i].name,trianglesTemp));
 		}
 
@@ -186,8 +186,6 @@ void ShpExtruction()
 		std::cout << "Shp loaded" << std::endl;
 		std::cout << "Processing..." << std::endl;
 
-		TVec3d offset = vcity::app().getSettings().getDataProfile().m_offset;
-
 
 		OGRLayer *poLayer;
         int nbLayers = poDS->GetLayerCount();
@@ -218,7 +216,7 @@ void ShpExtruction()
 
 					//Emprise au sol
 					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-                    LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()),offset);
+                    LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()));
 
 					double H = 50;
 					double Zmin = ptsSol.front().z;
@@ -237,7 +235,7 @@ void ShpExtruction()
 
 					for(unsigned int i = 0; i < poPG->getNumInteriorRings();i++)
 					{
-						LRing ptsSolTemp = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getInteriorRing(i)),offset);
+						LRing ptsSolTemp = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getInteriorRing(i)));
 						LRing ptsToitTemp = GetLRingWidthHeight(ptsSolTemp,Zmax);
 						ptsSolIntern.push_back(ptsSolTemp);
 						ptsToitIntern.push_back(ptsToitTemp);

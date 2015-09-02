@@ -65,7 +65,7 @@ struct AABBCollection
 *	@param dir Directory where citygml are located
 *	@param offset Offset of the geometry in 3Duse
 */
-void BuildAABB(std::string dir, TVec3d offset);
+void BuildAABB(std::string dir);
 
 /**
 *	@brief Load an aabb set previously build
@@ -73,6 +73,6 @@ void BuildAABB(std::string dir, TVec3d offset);
 *	@param name Name of the set of tile to load
 *	@return List of AABB for the set of tile, <BuildingAABB,TerrainAABB>
 */
-AABBCollection LoadAABB(std::string dir, TVec3d offset);
+AABBCollection LoadAABB(std::string dir);
 
 #endif

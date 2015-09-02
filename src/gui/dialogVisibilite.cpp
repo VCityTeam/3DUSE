@@ -123,6 +123,19 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera()
 	SetCamParam();
 
 	osg::ref_ptr<osg::Camera> cam = new osg::Camera(*mainwindow->m_osgView->m_osgView->getCamera(),osg::CopyOp::DEEP_COPY_ALL);
+	osg::Vec3d pos;
+	osg::Vec3d target;
+	osg::Vec3d up;
+
+	cam->getViewMatrixAsLookAt(pos,target,up);
+
+	TVec3d offset = mainwindow->m_app.getSettings().getDataProfile().m_offset;
+
+	pos = pos + osg::Vec3d(offset.x,offset.y,offset.z);
+	target = target + osg::Vec3d(offset.x,offset.y,offset.z);
+	
+	cam->setViewMatrixAsLookAt(pos,target,up);
+
 
 	float fovx = ui->fovxSB->value();
 	float fovy = ui->fovySB->value();
@@ -156,7 +169,7 @@ void DialogVisibilite::BasicPanorama()
 	{
 		dir+="/";
 		BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
-		MultiTilePanoramaAnalyse(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam);
+		MultiTilePanoramaAnalyse(dir,cam);
 		BelvedereDB::Get().Setup("","");
 	}
 }
@@ -177,7 +190,7 @@ void DialogVisibilite::BasicMultiTile()
 	{
 		dir+="/";
 		BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
-		MultiTileBasicAnalyse(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam);
+		MultiTileBasicAnalyse(dir,cam);
 		BelvedereDB::Get().Setup("","");
 	}
 }
@@ -202,7 +215,7 @@ void DialogVisibilite::BasicMonoTile()
     {
 		std::vector<std::string> building;
 		building.push_back(filepath.toStdString());
-		BasisAnalyse(building,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam);
+		BasisAnalyse(building,cam);
 	}
 }
 
@@ -225,7 +238,7 @@ void DialogVisibilite::CascadePanorama()
 	if(dir != "")
 	{
 		dir+="/";
-		MultiTileCascadePanoramaAnalyse(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam,count,increment);
+		MultiTileCascadePanoramaAnalyse(dir,cam,count,increment);
 	}
 }
 
@@ -247,7 +260,7 @@ void DialogVisibilite::CascadeMultiTile()
 	if(dir != "")
 	{
 		dir+="/";
-		MultiTileCascadeAnalyse(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam,count,increment);
+		MultiTileCascadeAnalyse(dir,cam,count,increment);
 	}
 }
 
@@ -274,7 +287,7 @@ void DialogVisibilite::CascadeMonoTile()
     {
 		std::vector<std::string> building;
 		building.push_back(filepath.toStdString());
-		CascadeAnalyse(building,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam,count,increment);
+		CascadeAnalyse(building,cam,count,increment);
 	}
 }
 
@@ -323,7 +336,7 @@ void DialogVisibilite::ToolAABBReconstruction()
 	if(dir != "")
 	{
 		dir+="/";
-		BuildAABB(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset);
+		BuildAABB(dir);
 	}
 }
 

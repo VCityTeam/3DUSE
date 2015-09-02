@@ -11,7 +11,7 @@ int RandInt(int low, int high)
 	return qrand() % ((high + 1) - low) + low;
 }
 
-TriangleList* BuildTriangleList(std::string tilefilename, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType)
+TriangleList* BuildTriangleList(std::string tilefilename, ViewPoint* viewpoint, citygml::CityObjectsType objectType)
 {
 	std::vector<Triangle*> triangles;
 
@@ -38,9 +38,9 @@ TriangleList* BuildTriangleList(std::string tilefilename, TVec3d offset, ViewPoi
 
 						for(unsigned int i = 0 ; i < ind.size() / 3; i++)//Push all triangle of the polygon in our list
 						{
-							TVec3d a = vert[ind[ i * 3 + 0 ]] - offset;
-							TVec3d b = vert[ind[ i * 3 + 1 ]] - offset;
-							TVec3d c = vert[ind[ i * 3 + 2 ]] - offset;
+							TVec3d a = vert[ind[ i * 3 + 0 ]];
+							TVec3d b = vert[ind[ i * 3 + 1 ]];
+							TVec3d c = vert[ind[ i * 3 + 2 ]];
 
 							Triangle* t = new Triangle(a,b,c);
 							t->subObjectType = object->getType();
@@ -69,9 +69,9 @@ TriangleList* BuildTriangleList(std::string tilefilename, TVec3d offset, ViewPoi
 
 					for(unsigned int i = 0 ; i < ind.size() / 3; i++)//Push all triangle of the polygon in our list
 					{
-						TVec3d a = vert[ind[ i * 3 + 0 ]] - offset;
-						TVec3d b = vert[ind[ i * 3 + 1 ]] - offset;
-						TVec3d c = vert[ind[ i * 3 + 2 ]] - offset;
+						TVec3d a = vert[ind[ i * 3 + 0 ]];
+						TVec3d b = vert[ind[ i * 3 + 1 ]];
+						TVec3d c = vert[ind[ i * 3 + 2 ]];
 
 						Triangle* t = new Triangle(a,b,c);
 						t->objectType = obj->getType();

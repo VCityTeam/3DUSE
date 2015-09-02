@@ -126,7 +126,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
     connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
     connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
-	connect(m_ui->actionShp_Extrusion, SIGNAL(triggered()), this, SLOT(ShpExtrusionSlot()));
 
     connect(m_ui->toolButton, SIGNAL(clicked()), this, SLOT(slotTemporalAnim()));
 
@@ -2226,8 +2225,6 @@ void MainWindow::test4()
 	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
 
 	//ExtrudeAlignementTree();
-
-	BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
 
 	/*LASreadOpener lasreadopener;
 	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");

@@ -16,6 +16,6 @@ void ShpExtruction();
 /**
 *	@brief Put a set of point a the height of the terrain
 */
-LRing PutLRingOnTerrain(LRing ring,TVec3d offset);
+LRing PutLRingOnTerrain(LRing ring);
 
 #endif

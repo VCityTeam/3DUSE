@@ -151,8 +151,6 @@ void ExtrudeAlignementTree()
 		std::cout << "Shp loaded" << std::endl;
 		std::cout << "Processing..." << std::endl;
 
-		TVec3d offset = vcity::app().getSettings().getDataProfile().m_offset;
-
 
 		OGRLayer *poLayer;
         int nbLayers = poDS->GetLayerCount();
@@ -186,7 +184,7 @@ void ExtrudeAlignementTree()
 			}
 		}
 
-		points = PutLRingOnTerrain(points,offset);
+		points = PutLRingOnTerrain(points);
 
 		for(unsigned int i = 0; i < points.size();i++)
 		{
