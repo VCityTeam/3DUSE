@@ -40,6 +40,7 @@ private slots:
 	void CascadeMultiTile();
 	void CascadeMonoTile();
 	void CascadePanorama();
+	void ResetCategory();
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGEDITTILE_HPP

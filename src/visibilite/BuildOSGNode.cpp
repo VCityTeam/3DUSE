@@ -38,15 +38,13 @@ osg::ref_ptr<osg::Node> BuildSkylineOSGNode(std::vector<std::pair<TVec2d,TVec3d>
 	return node;
 }
 
-osg::ref_ptr<osg::Node> BuildViewshedOSGNode(AnalysisResult result, std::string prefix)
+osg::ref_ptr<osg::Node> BuildViewshedOSGNode(ViewPoint* viewpoint, std::string prefix)
 {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	osg::Geometry* geom = new osg::Geometry;
 	osg::Vec3Array* vertices = new osg::Vec3Array;
 	osg::Vec3Array* colors = new osg::Vec3Array;
 	osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
-
-	ViewPoint* viewpoint = result.viewpoint;
 
 	unsigned int cpt = 0;
 

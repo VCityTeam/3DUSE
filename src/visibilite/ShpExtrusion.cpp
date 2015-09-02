@@ -110,10 +110,10 @@ LRing OGRLinearRingToLRing(OGRLinearRing* poLR)
 }
 
 
-LRing PutLRingOnTerrain(LRing ring,osg::Vec3d offset)
+LRing PutLRingOnTerrain(LRing ring,TVec3d offset)
 {
 	//Load all terrain bounding box that are abox the points
-	AABBCollection boxes = LoadAABB("C:/VCityData/Tile/");
+	AABBCollection boxes = LoadAABB("C:/VCityData/Tile/",offset);
 
 	std::vector<AABB> ptAABB;
 	LRing ptResult;
@@ -122,9 +122,9 @@ LRing PutLRingOnTerrain(LRing ring,osg::Vec3d offset)
 	{
 		for(AABB box : boxes.terrain)
 		{
-			osg::Vec3d min = box.min + offset;
-			osg::Vec3d max = box.max + offset;
-			if(vec.x >= min.x() && vec.x <= max.x() && vec.y >= min.y() && vec.y <= max.y())
+			TVec3d min = box.min + offset;
+			TVec3d max = box.max + offset;
+			if(vec.x >= min.x && vec.x <= max.x && vec.y >= min.y && vec.y <= max.y)
 			{
 				ptAABB.push_back(box);
 				ptResult.push_back(vec);
@@ -148,10 +148,8 @@ LRing PutLRingOnTerrain(LRing ring,osg::Vec3d offset)
 		else
 		{
 			std::string path = "C:/VCityData/Tile/" + ptAABB[i].name;
-			vcity::Tile* tile = new vcity::Tile(path);
 			//Get the triangle list
-			trianglesTemp = BuildTriangleList(tile,TVec3d(0.0,0.0,0.0),nullptr,citygml::CityObjectsType::COT_TINRelief);
-			delete tile;
+			trianglesTemp = BuildTriangleList(path,TVec3d(0.0,0.0,0.0),nullptr,citygml::CityObjectsType::COT_TINRelief);
 			tileTriangles.insert(std::make_pair(ptAABB[i].name,trianglesTemp));
 		}
 
@@ -188,8 +186,7 @@ void ShpExtruction()
 		std::cout << "Shp loaded" << std::endl;
 		std::cout << "Processing..." << std::endl;
 
-		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
-		osg::Vec3d offset(offset_.x, offset_.y, offset_.z);
+		TVec3d offset = vcity::app().getSettings().getDataProfile().m_offset;
 
 
 		OGRLayer *poLayer;

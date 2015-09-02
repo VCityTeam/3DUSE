@@ -22,7 +22,7 @@
 *	@param offset 3D Offset used by 3D-Use
 *	@return The analysis results
 */
-std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths, TVec3d offset)
+std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths, TVec3d offset)
 {
 	ViewPoint** result = new ViewPoint*[cams.size()];
 	RayCollection** rays = new RayCollection*[cams.size()];
@@ -61,12 +61,9 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 	//Load each tiles
 	for(unsigned int i = 0; i < paths.size(); i++)
 	{
-		vcity::Tile* tile = new vcity::Tile(paths[i]);
-
 		//Get the triangle list
-		TriangleList* trianglesTemp = BuildTriangleList(tile,offset,result[0],citygml::CityObjectsType::COT_Building);
+		TriangleList* trianglesTemp = BuildTriangleList(paths[i],offset,result[0],citygml::CityObjectsType::COT_Building);
 		triangles.push_back(trianglesTemp);
-		delete tile;
 	}
 
 	//Copy the object to color to have an harmonized color
@@ -77,7 +74,7 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 	for(unsigned int i = 0; i < triangles.size(); i++)
 		RayTracing(triangles[i],allRays);
 
-	std::vector<AnalysisResult> resReturn;//When results are stored
+	std::vector<ViewPoint*> resReturn;//When results are stored
 
 	for(unsigned int i = 0; i < cams.size(); i++)
 	{
@@ -86,17 +83,9 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 		//Export data
 		ExportData(result[i],std::to_string(i)+"_");
 		ExportImages(result[i],std::to_string(i)+"_");
-		AnalysisResult temp;
-		temp.viewpointPosition = rays[i]->rays.front()->ori;
-		temp.viewpoint = result[i];
-		//Form the skyline
-		for(unsigned int j = 0; j < result[i]->skyline.size(); j++)
-		{
-			Hit h = result[i]->hits[result[i]->skyline[j].first][result[i]->skyline[j].second];
-			temp.skyline.push_back(std::make_pair(TVec2d(result[i]->skyline[j].first,result[i]->skyline[j].second),h.point));
-		}
+		result[i]->position = rays[i]->rays.front()->ori;
 
-		resReturn.push_back(temp);
+		resReturn.push_back(result[i]);
 	}
 
 	//Delete everything not useful
@@ -114,7 +103,7 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 	return resReturn;
 }
 
-std::vector<AnalysisResult> BasisAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam)
+std::vector<ViewPoint*> BasisAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam)
 {
 	QTime time;
 	time.start();
@@ -125,7 +114,7 @@ std::vector<AnalysisResult> BasisAnalyse(std::vector<std::string> paths, TVec3d 
 	osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
 	temp.push_back(mycam);
 
-	std::vector<AnalysisResult> result = DoMonoTileAnalysis(temp,paths,offset);
+	std::vector<ViewPoint*> result = DoMonoTileAnalysis(temp,paths,offset);
 	
 	std::cout << "Total Time : " << time.elapsed()/1000 << " sec" << std::endl;
 
@@ -133,7 +122,7 @@ std::vector<AnalysisResult> BasisAnalyse(std::vector<std::string> paths, TVec3d 
 
 }
 
-std::vector<AnalysisResult> CascadeAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
+std::vector<ViewPoint*> CascadeAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement)
 {
 	//Get the info about the camera and update it
 	osg::Vec3d pos;
@@ -162,12 +151,12 @@ std::vector<AnalysisResult> CascadeAnalyse(std::vector<std::string> paths, TVec3
 	}
 
 
-	std::vector<AnalysisResult> result = DoMonoTileAnalysis(temp,paths,offset);
+	std::vector<ViewPoint*> result = DoMonoTileAnalysis(temp,paths,offset);
 
 	return result;
 }
 
-std::vector<AnalysisResult> MultiViewpointAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
+std::vector<ViewPoint*> MultiViewpointAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
 {
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -194,7 +183,7 @@ std::vector<AnalysisResult> MultiViewpointAnalyse(std::vector<std::string> paths
 		temp.push_back(mycam);
 	}
 
-	std::vector<AnalysisResult> result = DoMonoTileAnalysis(temp,paths,offset);
+	std::vector<ViewPoint*> result = DoMonoTileAnalysis(temp,paths,offset);
 
 	return result;
 }

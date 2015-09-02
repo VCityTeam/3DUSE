@@ -49,7 +49,7 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 	QTime time;
 	time.start();
 
-	unsigned int tCount = std::thread::hardware_concurrency()/2;//Get how many thread we have
+	unsigned int tCount = std::thread::hardware_concurrency() - 1;//Get how many thread we have
 	unsigned int rayPerThread = rays.size() / tCount;
 
 	//List of rays and their frag coord

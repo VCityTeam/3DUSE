@@ -5,6 +5,23 @@
 
 #include "Hit.hpp"
 
+struct Skyline
+{
+public:
+	std::vector<std::pair<unsigned int,unsigned int>> FragCoords;
+	std::vector<TVec3d> Points;
+	TVec3d Position;
+
+	std::vector<double> Radius;
+	double RadiusMin;
+	double RadiusMax;
+	double Average;
+	double StandardDeviation;
+
+	void ComputeData();
+};
+
+
 /**
 *	@brief Information about a viewpoint in the city
 */
@@ -66,7 +83,8 @@ struct ViewPoint
 	float minDistance;///< Minimum distance to a triangle in the scene
 	float maxDistance;///< Maximum distance to a triangle in the scene
 	std::map<std::string,QColor> objectToColor;///< Map a city object id to a color
-	std::vector<std::pair<unsigned int,unsigned int>> skyline;///< Skyline of the viewpoints
+	Skyline skyline;///< Skyline of the viewpoints
+	TVec3d position;
 
 private:
 	/**

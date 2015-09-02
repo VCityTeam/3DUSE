@@ -16,7 +16,7 @@
 *	@param path Path to the file
 *	@return A collection of box
 */
-std::vector<AABB> DoLoadAABB(std::string path)
+std::vector<AABB> DoLoadAABB(std::string path, TVec3d offset)
 {
 	std::vector<AABB> bSet;
 
@@ -49,8 +49,8 @@ std::vector<AABB> DoLoadAABB(std::string path)
 
 		if(minx < maxx && miny < maxy && minz < maxz)
 		{
-			box.min = osg::Vec3d(minx,miny,minz);
-			box.max = osg::Vec3d(maxx,maxy,maxz);
+			box.min = TVec3d(minx,miny,minz) - offset;
+			box.max = TVec3d(maxx,maxy,maxz) - offset;
 			bSet.push_back(box);
 
 		}
@@ -61,7 +61,7 @@ std::vector<AABB> DoLoadAABB(std::string path)
 	return bSet;
 }
 
-AABBCollection LoadAABB(std::string dir)
+AABBCollection LoadAABB(std::string dir, TVec3d offset)
 {
 	bool foundBuild = false;
 	QFileInfo bDat;
@@ -115,16 +115,16 @@ AABBCollection LoadAABB(std::string dir)
 
 
 	if(foundBuild)
-		bSet = DoLoadAABB(dir+"_BATI_AABB.dat");
+		bSet = DoLoadAABB(dir+"_BATI_AABB.dat",offset);
 
 	if(foundTerrain)
-		tSet = DoLoadAABB(dir+"_MNT_AABB.dat");
+		tSet = DoLoadAABB(dir+"_MNT_AABB.dat",offset);
 
 	if(foundWater)
-		wSet = DoLoadAABB(dir+"_WATER_AABB.dat");
+		wSet = DoLoadAABB(dir+"_WATER_AABB.dat",offset);
 
 	if(foundVeget)
-		vSet = DoLoadAABB(dir+"_VEGET_AABB.dat");
+		vSet = DoLoadAABB(dir+"_VEGET_AABB.dat",offset);
 
 	AABBCollection collection;
 	collection.building = bSet;
@@ -157,7 +157,7 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 			{
 				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
 
-				TriangleList* list = BuildTriangleList(tile,offset,nullptr,type);
+				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toAscii().data(),TVec3d(0.0,0.0,0.0),nullptr,type);
 
 				for(Triangle* t : list->triangles)
 				{
@@ -198,12 +198,12 @@ void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec
 	for(std::pair<std::string,std::pair<TVec3d,TVec3d>> p : AABBs)
 	{
 		file << p.first << "\n";
-		file << p.second.first.x << "\n";
-		file << p.second.first.y << "\n";
-		file << p.second.first.z << "\n";
-		file << p.second.second.x << "\n";
-		file << p.second.second.y << "\n";
-		file << p.second.second.z << "\n";
+		file << std::fixed << p.second.first.x << "\n";
+		file << std::fixed << p.second.first.y << "\n";
+		file << std::fixed << p.second.first.z << "\n";
+		file << std::fixed << p.second.second.x << "\n";
+		file << std::fixed << p.second.second.y << "\n";
+		file << std::fixed << p.second.second.z << "\n";
 	}
 
 	fb.close();

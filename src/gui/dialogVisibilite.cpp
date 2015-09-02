@@ -5,6 +5,8 @@
 #include "gui/applicationGui.hpp"
 
 #include "moc/mainWindow.hpp"
+#include "src/visibilite/Visibilite.hpp"
+#include "src/visibilite/data/BelvedereDB.h"
 
 #include <QSettings>
 #include <QFileDialog>
@@ -29,6 +31,17 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 	connect(ui->panoramaCascadeB,SIGNAL(clicked()),this,SLOT(CascadePanorama()));
 	connect(ui->cascadeB,SIGNAL(clicked()),this,SLOT(CascadeMonoTile()));
 	connect(ui->multitileCascadeB,SIGNAL(clicked()),this,SLOT(CascadeMultiTile()));
+	connect(ui->resetCatB,SIGNAL(clicked()),this,SLOT(ResetCategory()));
+
+	QSettings settings("liris", "virtualcity");
+    QString tiledir = settings.value("tiledir").toString();
+	ui->dirLE->setText(tiledir);
+
+	QString caterogy = settings.value("capturecategory").toString();
+	ui->categoryLE->setText(caterogy);
+
+	double deltaDistance = settings.value("capturedeltadistance").toDouble();
+	ui->deltaDistanceSB->setValue(deltaDistance);
 
 	this->mainwindow = mainwindow;
 }
@@ -37,11 +50,14 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 void DialogVisibilite::DirButtonClicked()
 {
 	QString dirpath = QFileDialog::getExistingDirectory(nullptr,"Get Tile Directory");
+	QSettings settings("liris", "virtualcity");
+    settings.setValue("tiledir",dirpath);
 	ui->dirLE->setText(dirpath);
 }
 
 void DialogVisibilite::GetCamParam()
 {
+	TVec3d offset = mainwindow->m_app.getSettings().getDataProfile().m_offset;
 	osg::Camera* cam = mainwindow->m_osgView->m_osgView->getCamera();
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -51,9 +67,9 @@ void DialogVisibilite::GetCamParam()
 	target = target - pos;
 	target.normalize();
 
-	ui->posXSB->setValue(pos.x());
-	ui->posYSB->setValue(pos.y());
-	ui->posZSB->setValue(pos.z());
+	ui->posXSB->setValue(pos.x()+offset.x);
+	ui->posYSB->setValue(pos.y()+offset.y);
+	ui->posZSB->setValue(pos.z()+offset.z);
 	ui->dirXSB->setValue(target.x());
 	ui->dirYSB->setValue(target.y());
 	ui->dirZSB->setValue(target.z());
@@ -62,6 +78,7 @@ void DialogVisibilite::GetCamParam()
 
 void DialogVisibilite::SetCamParam()
 {
+	TVec3d offset = mainwindow->m_app.getSettings().getDataProfile().m_offset;
 	osg::Camera* cam = mainwindow->m_osgView->m_osgView->getCamera();
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -69,7 +86,7 @@ void DialogVisibilite::SetCamParam()
 
 	cam->getViewMatrixAsLookAt(pos,target,up);
 
-	pos = osg::Vec3(ui->posXSB->value(),ui->posYSB->value(),ui->posZSB->value());
+	pos = osg::Vec3(ui->posXSB->value()-offset.x,ui->posYSB->value()-offset.y,ui->posZSB->value()-offset.z);
 	target = pos + osg::Vec3(ui->dirXSB->value(),ui->dirYSB->value(),ui->dirZSB->value());
 	
 
@@ -124,11 +141,19 @@ void DialogVisibilite::BasicPanorama()
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
 	std::string dir = ui->dirLE->text().toStdString();
+
+	QSettings settings("liris", "virtualcity");
+	QString caterogy = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",caterogy);
+	double deltaDistance = ui->deltaDistanceSB->value();
+	settings.setValue("capturedeltadistance",deltaDistance);
 	
 	if(dir != "")
 	{
 		dir+="/";
+		BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
 		MultiTilePanoramaAnalyse(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam);
+		BelvedereDB::Get().Setup("","");
 	}
 }
 
@@ -137,17 +162,31 @@ void DialogVisibilite::BasicMultiTile()
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
 	std::string dir = ui->dirLE->text().toStdString();
-	
+
+	QSettings settings("liris", "virtualcity");
+	QString caterogy = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",caterogy);
+	double deltaDistance = ui->deltaDistanceSB->value();
+	settings.setValue("capturedeltadistance",deltaDistance);
+
 	if(dir != "")
 	{
 		dir+="/";
+		BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
 		MultiTileBasicAnalyse(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam);
+		BelvedereDB::Get().Setup("","");
 	}
 }
 
 void DialogVisibilite::BasicMonoTile()
 {
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
+
+	QSettings settings("liris", "virtualcity");
+	QString caterogy = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",caterogy);
+	double deltaDistance = ui->deltaDistanceSB->value();
+	settings.setValue("capturedeltadistance",deltaDistance);
 
 	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load gml file");
 
@@ -168,6 +207,12 @@ void DialogVisibilite::CascadePanorama()
 {
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
+	QSettings settings("liris", "virtualcity");
+	QString caterogy = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",caterogy);
+	double deltaDistance = ui->deltaDistanceSB->value();
+	settings.setValue("capturedeltadistance",deltaDistance);
+
 	std::string dir = ui->dirLE->text().toStdString();
 
 	int count = ui->cascadeCountSB->value();
@@ -183,6 +228,12 @@ void DialogVisibilite::CascadePanorama()
 void DialogVisibilite::CascadeMultiTile()
 {
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
+
+	QSettings settings("liris", "virtualcity");
+	QString caterogy = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",caterogy);
+	double deltaDistance = ui->deltaDistanceSB->value();
+	settings.setValue("capturedeltadistance",deltaDistance);
 
 	std::string dir = ui->dirLE->text().toStdString();
 
@@ -200,6 +251,12 @@ void DialogVisibilite::CascadeMonoTile()
 {
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
+	QSettings settings("liris", "virtualcity");
+	QString caterogy = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",caterogy);
+	double deltaDistance = ui->deltaDistanceSB->value();
+	settings.setValue("capturedeltadistance",deltaDistance);
+
 	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load gml file");
 
 	QFileInfo file(filepath);
@@ -215,6 +272,14 @@ void DialogVisibilite::CascadeMonoTile()
 		building.push_back(filepath.toStdString());
 		CascadeAnalyse(building,mainwindow->m_app.getSettings().getDataProfile().m_offset,cam,count,increment);
 	}
+}
+
+void DialogVisibilite::ResetCategory()
+{
+	std::string dir = ui->dirLE->text().toStdString();
+	dir+="/";
+	QString caterogy = ui->categoryLE->text(); 
+	BelvedereDB::Get().ResetDB(dir,caterogy.toStdString());
 }
 
 DialogVisibilite::~DialogVisibilite()

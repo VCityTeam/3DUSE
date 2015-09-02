@@ -39,14 +39,11 @@ struct Triangle
 	TVec3d b; ///< Second point of the triangle
 	TVec3d c; ///< Third point of the triangle
 
-	/*citygml::Polygon* polygon; ///< CityGML polygon in which the triangle belong
-	citygml::Geometry* geometry; ///< CityGML geometry in which the polygon belong
-	citygml::CityObject* subObject; ///< Roof or wall in which the geometry belong
-	citygml::CityObject* object; ///< City Object in which the object belong */
-
 	citygml::CityObjectsType objectType;
 	citygml::CityObjectsType subObjectType;
 	std::string objectId;
+	std::string polygonId;
+	std::string tileFile;
 };
 
 /**
@@ -85,6 +82,6 @@ struct TriangleList
 *	@param objectType The type of cityobject to load
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType);
+TriangleList* BuildTriangleList(std::string tilefilename, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType);
 
 #endif

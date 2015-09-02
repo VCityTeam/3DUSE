@@ -47,7 +47,7 @@ void ViewPoint::ComputeSkyline()
 	unsigned int x = 0;
 	unsigned int y = 0;
 
-	skyline.clear();
+	skyline.FragCoords.clear();
 
 	for(unsigned int i = 0; i < width; i++)
 	{
@@ -59,7 +59,7 @@ void ViewPoint::ComputeSkyline()
 				found = true;
 				x = i;
 				y = j;
-				skyline.push_back(std::make_pair(i,j));
+				skyline.FragCoords.push_back(std::make_pair(i,j));
 				break;
 			}
 		}
@@ -92,7 +92,7 @@ void ViewPoint::ComputeSkyline()
 		x = realX;
 		y = realY;
 
-		if(x == skyline.back().first && y == skyline.back().second)//Si on arrive pas a avancer
+		if(x == skyline.FragCoords.back().first && y == skyline.FragCoords.back().second)//Si on arrive pas a avancer
 		{
 			x = x + 1;
 			int posInt = int(pos);
@@ -100,10 +100,10 @@ void ViewPoint::ComputeSkyline()
 			posInt = posInt % 8;
 			pos = Position(posInt);
 		}
-		if(x == skyline.front().first && y == skyline.front().second)//Si on a une boucle de skyline
+		if(x == skyline.FragCoords.front().first && y == skyline.FragCoords.front().second)//Si on a une boucle de skyline
 			break;
 
-		skyline.push_back(std::make_pair(x,y));
+		skyline.FragCoords.push_back(std::make_pair(x,y));
 
 		int posInt = int(pos);
 		posInt += 5;
@@ -115,6 +115,14 @@ void ViewPoint::ComputeSkyline()
 		realX = Clamp(x+c.first,0,width);
 		realY = Clamp(y+c.second,0,height);
 	}
+
+	for(unsigned int j = 0; j < skyline.FragCoords.size(); j++)
+	{
+		Hit h = hits[skyline.FragCoords[j].first][skyline.FragCoords[j].second];
+		skyline.Points.push_back(h.point);
+	}
+
+	skyline.Position = position;
 }
 
 void ViewPoint::Reset()
@@ -122,7 +130,7 @@ void ViewPoint::Reset()
 	minDistance = FLT_MAX;
 	maxDistance = FLT_MIN;
 
-	skyline.clear();
+	skyline.FragCoords.clear();
 
 	for(unsigned int i = 0; i < width; i++)
 	{
@@ -148,4 +156,31 @@ void ViewPoint::ComputeMinMaxDistance()
 			}
 		}
 	}
+}
+
+void Skyline::ComputeData()
+{
+	RadiusMin = DBL_MAX;
+	RadiusMax = -DBL_MAX;
+	Average = 0.0;
+	Radius.clear();
+
+	for(unsigned int i = 0; i < Points.size(); i++)
+	{
+		TVec3d p = Points[i] - Position;
+		double r = sqrt( (p.x*p.x) + (p.y*p.y) );
+		Radius.push_back(r);
+		RadiusMin = std::min(r,RadiusMin);
+		RadiusMax = std::max(r,RadiusMax);
+		Average += r;
+	}
+	Average /= Points.size();
+
+	for(unsigned int i = 0; i < Points.size(); i++)
+	{
+		StandardDeviation += (Radius[i] - Average) * (Radius[i] - Average);
+	}
+
+	StandardDeviation /= Points.size();
+	StandardDeviation = sqrt(StandardDeviation);
 }

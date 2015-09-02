@@ -9,7 +9,6 @@
 
 #include "data/Triangle.hpp"
 #include "data/Hit.hpp"
-#include "data/AnalysisResult.h"
 
 /**
 *	@brief Viewpoint analysis using the multitile algorithm
@@ -19,7 +18,7 @@
 *	@param prefix File prefix when exporting
 *	@return The analysis results
 */
-std::vector<AnalysisResult> MultiTileBasicAnalyse(std::string dirTile, TVec3d offset, osg::Camera* cam, std::string prefix = "");
+std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, TVec3d offset, osg::Camera* cam, std::string prefix = "");
 /**
 *	@brief Vertical cascade viewpoints analysis using the multitile algorithm
 *	@param dirTile Directory where tiles are located
@@ -29,7 +28,7 @@ std::vector<AnalysisResult> MultiTileBasicAnalyse(std::string dirTile, TVec3d of
 *	@param zIncrement Delta height between viewpoint of the cascade
 *	@return The analysis results
 */
-std::vector<AnalysisResult> MultiTileCascadeAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
+std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
 /**
 *	@brief Multiple viewpoints analysis using the multitile algorithm
 *	@param dirTile Directory where tiles are located
@@ -38,7 +37,7 @@ std::vector<AnalysisResult> MultiTileCascadeAnalyse(std::string dirTile, TVec3d 
 *	@param viewpoints Set of viewpoints to analyse
 *	@return The analysis results
 */
-std::vector<AnalysisResult> MultiTileMultiViewpointAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
+std::vector<ViewPoint*> MultiTileMultiViewpointAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
 /**
 *	@brief Viewpoint panorama analysis using the multitile algorithm
 *	@param dirTile Directory where tiles are located
@@ -47,7 +46,7 @@ std::vector<AnalysisResult> MultiTileMultiViewpointAnalyse(std::string dirTile, 
 *	@param prefix File prefix when exporting
 *	@return The analysis results
 */
-std::vector<AnalysisResult> MultiTilePanoramaAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::string prefix = "");
+std::vector<ViewPoint*> MultiTilePanoramaAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, std::string prefix = "");
 /**
 *	@brief Vertical cascade panorama viewpoints analysis using the multitile algorithm
 *	@param dirTile Directory where tiles are located
@@ -57,7 +56,7 @@ std::vector<AnalysisResult> MultiTilePanoramaAnalyse(std::string dirTile, TVec3d
 *	@param zIncrement Delta height between viewpoint of the cascade
 *	@return The analysis results
 */
-std::vector<std::vector<AnalysisResult>> MultiTileCascadePanoramaAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
+std::vector<std::vector<ViewPoint*>> MultiTileCascadePanoramaAnalyse(std::string dirTile, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
 
 /**
 *	@brief Perform a viewpoint analysis on different viewpoint
@@ -67,7 +66,7 @@ std::vector<std::vector<AnalysisResult>> MultiTileCascadePanoramaAnalyse(std::st
 *	@param offset Offset of the geometry in 3Duse
 *	@return The analysis results
 */
-std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths, TVec3d offset);
+std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths, TVec3d offset);
 
 /**
 *	@brief Viewpoint analysis
@@ -76,7 +75,7 @@ std::vector<AnalysisResult> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Cam
 *	@param cam Camera used to capture the viewpoint	
 *	@return The analysis results
 */
-std::vector<AnalysisResult> BasisAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam);
+std::vector<ViewPoint*> BasisAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam);
 
 /**
 *	@brief Vertical cascade viewpoints analysis
@@ -87,7 +86,7 @@ std::vector<AnalysisResult> BasisAnalyse(std::vector<std::string> paths, TVec3d 
 *	@param zIncrement Delta height between viewpoint of the cascade
 *	@return The analysis results
 */
-std::vector<AnalysisResult> CascadeAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
+std::vector<ViewPoint*> CascadeAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, unsigned int count, float zIncrement);
 
 /**
 *	@brief Multiple viewpoints analysis
@@ -97,6 +96,6 @@ std::vector<AnalysisResult> CascadeAnalyse(std::vector<std::string> paths, TVec3
 *	@param viewpoints Set of viewpoints to analyse
 *	@return The analysis results
 */
-std::vector<AnalysisResult> MultiViewpointAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
+std::vector<ViewPoint*> MultiViewpointAnalyse(std::vector<std::string> paths, TVec3d offset,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints);
 
 #endif

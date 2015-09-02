@@ -10,14 +10,12 @@
 
 #include "visibilite/ShpExtrusion.h"
 
-const float Pi = 3.141592654f;
-
 /**
 *	@brief Convert a degree float to radian
 */
 inline float DegToRad(float x)
 {
-	return x / 180 * Pi;
+	return x / 180 * M_PI;
 }
 
 /**
@@ -25,7 +23,70 @@ inline float DegToRad(float x)
 */
 inline float RadToDeg(float x)
 {
-	return x / Pi * 180;
+	return x / M_PI * 180;
+}
+
+citygml::Geometry* BuildCube(std::string name,TVec3d pos, float radius,float height)
+{
+	float offsetPoint = radius / sqrt(2);
+
+	citygml::Geometry* cityGeom = new citygml::Geometry(name+"_Geometry", citygml::GT_Unknown, 2);
+
+	{citygml::LinearRing* ring = new citygml::LinearRing(name+"_ringFutBot",true);
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y-offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y-offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y+offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y+offsetPoint,pos.z));
+	citygml::Polygon* poly = new citygml::Polygon(name+"_polyFutBot");
+	poly->addRing(ring);
+	cityGeom->addPolygon(poly);}
+
+	{citygml::LinearRing* ring = new citygml::LinearRing(name+"_ringFutTop",true);
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y-offsetPoint,pos.z+height));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y-offsetPoint,pos.z+height));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y+offsetPoint,pos.z+height));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y+offsetPoint,pos.z+height));
+	citygml::Polygon* poly = new citygml::Polygon(name+"_polyFutTop");
+	poly->addRing(ring);
+	cityGeom->addPolygon(poly);}
+
+	{citygml::LinearRing* ring = new citygml::LinearRing(name+"_ringFutFront",true);
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y-offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y-offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y-offsetPoint,pos.z+height));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y-offsetPoint,pos.z+height));
+	citygml::Polygon* poly = new citygml::Polygon(name+"_polyFutFront");
+	poly->addRing(ring);
+	cityGeom->addPolygon(poly);}
+
+	{citygml::LinearRing* ring = new citygml::LinearRing(name+"_ringFutBack",true);
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y+offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y+offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y-offsetPoint,pos.z+height));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y-offsetPoint,pos.z+height));
+	citygml::Polygon* poly = new citygml::Polygon(name+"_polyFutBack");
+	poly->addRing(ring);
+	cityGeom->addPolygon(poly);}
+
+	{citygml::LinearRing* ring = new citygml::LinearRing(name+"_ringFutLeft",true);
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y+offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y-offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y-offsetPoint,pos.z+height));
+	ring->addVertex(TVec3d(pos.x-offsetPoint,pos.y+offsetPoint,pos.z+height));
+	citygml::Polygon* poly = new citygml::Polygon(name+"_polyFutLeft");
+	poly->addRing(ring);
+	cityGeom->addPolygon(poly);}
+
+	{citygml::LinearRing* ring = new citygml::LinearRing(name+"_ringFutRight",true);
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y-offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y+offsetPoint,pos.z));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y+offsetPoint,pos.z+height));
+	ring->addVertex(TVec3d(pos.x+offsetPoint,pos.y-offsetPoint,pos.z+height));
+	citygml::Polygon* poly = new citygml::Polygon(name+"_polyFutRight");
+	poly->addRing(ring);
+	cityGeom->addPolygon(poly);}
+
+	return cityGeom;
 }
 
 /**
@@ -33,91 +94,40 @@ inline float RadToDeg(float x)
 *	@param pos 3D position of the cylinder
 *	@param ModelOut CityModel where to put the cylinder
 */
-void GenCylindre(TVec3d pos, citygml::CityModel* ModelOut)
+void GenCylindre(TVec3d pos,OGRFeature* feature, citygml::CityModel* ModelOut)
 {
 	static int cpt = 0;
-	float radius = 6.0;
-	float height = 20.0;
+	float radiusFut = 1.0;
+	float heightFut = 6.0;
+	float heightLeaf = 6.0;
+	float radiusLeaf = 3.0;
 
-	int slice = 4;
-	float anglePerSlice = 360.f / (float(slice));
 
-	std::vector<TVec3d> circle;
+	std::string name = "noid";
+	if(feature->GetFieldIndex("identifian") != -1)
+		name = feature->GetFieldAsString("identifian");// "codefuv"/"gid"
 
-	float currentAngle = 0;
-	for(unsigned int i = 0; i < slice; i++)
-	{
-		float x = radius * cos( DegToRad(currentAngle) );
-		float y = radius * sin( DegToRad(currentAngle) );
-		float z = 0;
+	name += "_tree";
 
-		circle.push_back(TVec3d(x,y,z));
+	if(feature->GetFieldIndex("circonfere") != -1)
+		radiusFut = ((feature->GetFieldAsDouble("circonfere") / M_PI)/100)/2;//On a une ciconference en cm...
 
-		currentAngle += anglePerSlice;
-	}
+	if(feature->GetFieldIndex("hauteurfut") != -1)
+		heightFut = feature->GetFieldAsDouble("hauteurfut");
 
-	std::vector<TVec3d> circleTop;
+	if(feature->GetFieldIndex("hauteurtot") != -1)
+		heightLeaf = feature->GetFieldAsDouble("hauteurtot") - heightFut;
 
-	for(unsigned int i = 0; i < circle.size(); i++)
-	{
-		circleTop.push_back(TVec3d(circle[i].x,circle[i].y,height));
-	}
+	if(feature->GetFieldIndex("rayoncouro") != -1)
+		radiusLeaf = feature->GetFieldAsDouble("rayoncouro");
 
-	std::string name = "test_"+cpt;
-
+	
+	std::cout << name << " " << radiusFut<< " "<< heightFut<< " "<< heightLeaf<< " "<< radiusLeaf<< std::endl;
+	
 	citygml::CityObject* BuildingCO = new citygml::SolitaryVegetationObject(name);
 
-	citygml::CityObject* RoofCO = new citygml::RoofSurface(name+"_Roof");
-	citygml::Geometry* Roof = new citygml::Geometry(name+"_RoofGeometry");
-	citygml::CityObject* WallCO = new citygml::WallSurface(name+"_Wall");
-	citygml::Geometry* Wall = new citygml::Geometry(name+"_WallGeometry");
-
-	{
-		citygml::LinearRing* ring = new citygml::LinearRing(name+"_ring",true);
-
-		for(unsigned int i = 0; i < circle.size(); i++)
-		{
-			ring->addVertex(circle[i]+pos);
-		}
-
-		citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
-		poly->addRing(ring);
-		Roof->addPolygon(poly);
-	}
-
-	{
-		citygml::LinearRing* ring = new citygml::LinearRing(name+"_ring",true);
-
-		for(unsigned int i = 0; i < circleTop.size(); i++)
-		{
-			ring->addVertex(circleTop[i]+pos);
-		}
-
-		citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
-		poly->addRing(ring);
-		Roof->addPolygon(poly);
-	}
-
-	for(unsigned int i = 0; i < circle.size(); i++)
-	{
-		citygml::LinearRing* ring = new citygml::LinearRing(name+"_ring",true);
-
-		ring->addVertex(circle[i]+pos);
-		ring->addVertex(circle[(i+1)%circle.size()]+pos);
-		ring->addVertex(circleTop[(i+1)%circle.size()]+pos);
-		ring->addVertex(circleTop[i]+pos);
-
-		citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
-		poly->addRing(ring);
-		Wall->addPolygon(poly);
-	}
-
-	RoofCO->addGeometry(Roof);
-	ModelOut->addCityObject(RoofCO);
-	BuildingCO->insertNode(RoofCO);
-	WallCO->addGeometry(Wall);
-	ModelOut->addCityObject(WallCO);
-	BuildingCO->insertNode(WallCO);
+	BuildingCO->addGeometry(BuildCube(name,pos,radiusFut,heightFut));
+	BuildingCO->addGeometry(BuildCube(name,TVec3d(pos.x,pos.y,pos.z + heightFut),radiusLeaf,heightLeaf));
 
 	ModelOut->addCityObject(BuildingCO);
 	ModelOut->addCityObjectAsRoot(BuildingCO);
@@ -141,14 +151,14 @@ void ExtrudeAlignementTree()
 		std::cout << "Shp loaded" << std::endl;
 		std::cout << "Processing..." << std::endl;
 
-		TVec3d offset_ = vcity::app().getSettings().getDataProfile().m_offset;
-		osg::Vec3d offset(offset_.x, offset_.y, offset_.z);
+		TVec3d offset = vcity::app().getSettings().getDataProfile().m_offset;
 
 
 		OGRLayer *poLayer;
         int nbLayers = poDS->GetLayerCount();
 
 		LRing points;
+		std::vector<OGRFeature*> pointsFeatures;
 
         if(nbLayers > 0)
         {
@@ -170,6 +180,7 @@ void ExtrudeAlignementTree()
                     OGRPoint* poP = (OGRPoint*) poGeometry;
                     
 					points.push_back(TVec3d(poP->getX(),poP->getY(),0.0));
+					pointsFeatures.push_back(poFeature);
 
 				}
 			}
@@ -179,7 +190,7 @@ void ExtrudeAlignementTree()
 
 		for(unsigned int i = 0; i < points.size();i++)
 		{
-			GenCylindre(points[i],ModelOut);
+			GenCylindre(points[i],pointsFeatures[i],ModelOut);
 		}
 
 

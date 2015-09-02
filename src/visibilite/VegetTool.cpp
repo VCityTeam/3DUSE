@@ -4,12 +4,6 @@
 #include "src/processes/ExportToShape.hpp"
 #include "lasreader.hpp"
 
-#include <pcl/point_types.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/features/normal_3d.h>
-#include <pcl/surface/gp3.h>
-
 #include "citygml.hpp"
 #include "export/exportCityGML.hpp"
 
@@ -42,7 +36,7 @@ void CutShape(TVec2d min, TVec2d max, std::string outputFile)
 
 			unsigned int cpt = 0;
 
-			while( (poFeature = poLayer->GetNextFeature()) != NULL )
+			while( (poFeature = poLayer->GetNextFeature()) != NULL )//Pour chaque polygon on va regarder si celui ci est au moins en partie dans la bounding box
 			{
 				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 
@@ -112,6 +106,7 @@ void ProcessLasShpVeget()
 			std::cout << "Las loaded" << std::endl;
 
 			std::vector<OGRPolygon*> vegetPoly;//Where we are going to store all polygon
+			std::map<OGRPolygon*, std::string> polyid;
 
 			//We are going to read the shp and store all polygon to a vector
 			//=======<ShpReading>========
@@ -130,6 +125,10 @@ void ProcessLasShpVeget()
 
 				while( (poFeature = poLayer->GetNextFeature()) != NULL )
 				{
+					std::string name="noid";
+					if(poFeature->GetFieldIndex("gid") != -1)
+						name = poFeature->GetFieldAsString("gid");
+
 					OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 
 					if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
@@ -137,6 +136,7 @@ void ProcessLasShpVeget()
 						//Emprise au sol
 						OGRPolygon* poPG = (OGRPolygon*) poGeometry;
 						vegetPoly.push_back(poPG);
+						polyid.insert(std::make_pair(poPG,name));
 					}
 				}
 			}
@@ -170,8 +170,6 @@ void ProcessLasShpVeget()
 			std::cout << "Done." << std::endl;
 			std::cout << "Exporting." << std::endl;
 
-			ProcessCL(points,fileBis.baseName().toStdString());
-
 			std::filebuf fb;
 			fb.open("SkylineOutput/"+fileBis.baseName().toStdString()+".dat",std::ios::out);
 
@@ -182,6 +180,7 @@ void ProcessLasShpVeget()
 			for(auto it = points.begin(); it != points.end(); it++)
 			{
 				file << it->second.size() << "\n";
+				file << polyid[it->first] << "\n";
 				for(OGRPoint p : it->second)
 				{
 					file << std::fixed << p.getX() << "\n";
@@ -199,100 +198,192 @@ void ProcessLasShpVeget()
 	}
 }
 
-citygml::CityObject* VegToCityObject(std::vector<OGRPoint> veg, std::string outputFile)
+unsigned int ClampIt(unsigned int x,unsigned int a,unsigned int b)
 {
-	static int cpt = 0;
-	std::string name = "veget_"+std::to_string(cpt);
-
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-	
-	for(unsigned int i = 0; i < veg.size(); i++)
-	{
-		cloud->push_back(pcl::PointXYZ(veg[i].getX(),veg[i].getY(),veg[i].getZ()));
-	}
-
-	//* the data should be available in cloud
-
-	// Normal estimation*
-	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> n;
-	pcl::PointCloud<pcl::Normal>::Ptr normals (new pcl::PointCloud<pcl::Normal>);
-	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-	tree->setInputCloud (cloud);
-	n.setInputCloud (cloud);
-	n.setSearchMethod (tree);
-	n.setKSearch (20);
-	n.compute (*normals);
-	//* normals should not contain the point normals + surface curvatures
-
-	// Concatenate the XYZ and normal fields*
-	pcl::PointCloud<pcl::PointNormal>::Ptr cloud_with_normals (new pcl::PointCloud<pcl::PointNormal>);
-	pcl::concatenateFields (*cloud, *normals, *cloud_with_normals);
-	//* cloud_with_normals = cloud + normals
-
-	// Create search tree*
-	pcl::search::KdTree<pcl::PointNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointNormal>);
-	tree2->setInputCloud (cloud_with_normals);
-
-	// Initialize objects
-	pcl::GreedyProjectionTriangulation<pcl::PointNormal> gp3;
-	pcl::PolygonMesh triangles;
-
-	// Set the maximum distance between connected points (maximum edge length)
-	gp3.setSearchRadius (0.025);
-
-	// Set typical values for the parameters
-	gp3.setMu (2.5);
-	gp3.setMaximumNearestNeighbors (100);
-	gp3.setMaximumSurfaceAngle(M_PI/4); // 45 degrees
-	gp3.setMinimumAngle(M_PI/18); // 10 degrees
-	gp3.setMaximumAngle(2*M_PI/3); // 120 degrees
-	gp3.setNormalConsistency(false);
-
-	// Get result
-	gp3.setInputCloud (cloud_with_normals);
-	gp3.setSearchMethod (tree2);
-	gp3.reconstruct (triangles);
-
-	// Additional vertex information
-	std::vector<int> parts = gp3.getPartIDs();
-	std::vector<int> states = gp3.getPointStates();
-
-	citygml::CityObject* BuildingCO = new citygml::SolitaryVegetationObject(name);
-	//BuildingCO
-
-	//pcl::PointCloud<pcl::PointXYZ> resultcloud; 
-	//cloud.points[ mesh.polygons[tri_i].vertices[vertex_i] ] 
-
-	pcl::PointCloud<pcl::PointXYZ> cloudResult;
-	pcl::fromPCLPointCloud2(triangles.cloud, cloudResult);
-
-	citygml::Geometry* cityGeom = new citygml::Geometry(name+"_Geometry", citygml::GT_Unknown, 2);
-
-	for(unsigned int i = 0; i < triangles.polygons.size(); i++)
-	{
-		pcl::Vertices polys = triangles.polygons[i];
-		for(unsigned int j = 0; j < polys.vertices.size(); j += 3)
-		{
-			pcl::PointXYZ a = cloudResult[polys.vertices[j]];
-			pcl::PointXYZ b = cloudResult[polys.vertices[j+1]];
-			pcl::PointXYZ c = cloudResult[polys.vertices[j+2]];
-
-			citygml::LinearRing* ring = new citygml::LinearRing(name+std::to_string(i)+std::to_string(j)+"_ring",true);
-			ring->addVertex(TVec3d(a.x,a.y,a.z));
-			ring->addVertex(TVec3d(b.x,b.y,b.z));
-			ring->addVertex(TVec3d(c.x,c.y,c.z));
-			citygml::Polygon* poly = new citygml::Polygon(name+std::to_string(i)+std::to_string(j)+"_poly");
-			poly->addRing(ring);
-			cityGeom->addPolygon(poly);
-		}
-	}
-
-	BuildingCO->addGeometry(cityGeom);
-
-	return BuildingCO;
+	return x < a ? a : (x > b ? b : x);
 }
 
-void ProcessCL(std::map<OGRPolygon*,std::vector<OGRPoint>> vegets, std::string outputFile)
+citygml::CityObject* VegToCityObject(std::pair<std::string,std::vector<TVec3d>> veg, unsigned int cpt)
+{
+	std::string name = veg.first;
+	float factor = 2.0;
+	unsigned int ii = 0;
+	unsigned int jj = 0;
+
+	//Get and store the bounding box of the cloud point
+	double xmin = DBL_MAX;
+	double ymin = DBL_MAX;
+	double xmax = -DBL_MAX;
+	double ymax = -DBL_MAX;
+
+	for(TVec3d p : veg.second)
+	{
+		xmin = std::min(xmin,p.x);
+		ymin = std::min(ymin,p.y);
+		xmax = std::max(xmax,p.x);
+		ymax = std::max(ymax,p.y);
+	}
+
+	float widthtemp = ceil(xmax - xmin);
+	float heighttemp = ceil(ymax - ymin);
+
+	float cellwidthsize = widthtemp/(widthtemp/factor);
+	float cellheightsize = heighttemp/(heighttemp/factor);
+
+	unsigned int cellwidthcount = static_cast<unsigned int>(widthtemp/cellwidthsize);
+	unsigned int cellheightcount = static_cast<unsigned int>(heighttemp/cellheightsize);
+
+	std::vector<std::vector<double>> table(cellwidthcount,std::vector<double>(cellheightcount,0.0));
+	std::vector<std::vector<unsigned int>> tableCount(cellwidthcount,std::vector<unsigned int>(cellheightcount,0));
+
+	if(cellwidthcount > 0.0 && cellheightcount > 0.0)
+	{
+
+		for(TVec3d p : veg.second)
+		{
+			unsigned int xt = ClampIt(static_cast<unsigned int>((p.x - xmin) / cellwidthsize),0,cellwidthcount-1);
+			unsigned int yt = ClampIt(static_cast<unsigned int>((p.y - ymin) / cellheightsize),0,cellheightcount-1);
+
+			table[xt][yt] += p.z;
+			tableCount[xt][yt]++;
+		}
+
+		for(unsigned int i = 0; i < cellwidthcount; i++)
+		{
+			for(unsigned int j = 0; j < cellheightcount; j++)
+			{
+				if(tableCount[i][j] > 0)
+				{
+					table[i][j] = table[i][j] / tableCount[i][j];
+				}
+			}
+		}
+
+
+		citygml::CityObject* BuildingCO = new citygml::SolitaryVegetationObject(name);
+
+		citygml::Geometry* cityGeom = new citygml::Geometry(name+"_Geometry", citygml::GT_Unknown, 2);
+
+		for(unsigned int i = 0; i < cellwidthcount - 1; i++)
+		{
+			for(unsigned int j = 0; j < cellheightcount - 1; j++)
+			{
+				double iReal = i*cellwidthsize;
+				double jReal = j*cellheightsize;
+				double ipReal = (i+1)*cellwidthsize;
+				double jpReal = (j+1)*cellheightsize;
+
+				if(table[i][j] > 0.0 && table[i+1][j] > 0.0 && table[i+1][j+1] > 0.0 && table[i][j+1] > 0.0)
+				{
+					{citygml::LinearRing* ring = new citygml::LinearRing(name+std::to_string(ii++)+std::to_string(jj++)+"_ring",true);
+					ring->addVertex(TVec3d(iReal+xmin,jReal+ymin,table[i][j]));
+					ring->addVertex(TVec3d(ipReal+xmin,jReal+ymin,table[i+1][j]));
+					ring->addVertex(TVec3d(ipReal+xmin,jpReal+ymin,table[i+1][j+1]));
+					ring->addVertex(TVec3d(iReal+xmin,jpReal+ymin,table[i][j+1]));
+					citygml::Polygon* poly = new citygml::Polygon(name+std::to_string(ii++)+std::to_string(jj++)+"_poly");
+					poly->addRing(ring);
+					cityGeom->addPolygon(poly);}
+				}
+				else if(table[i][j] > 0.0 && table[i+1][j] > 0.0 && table[i+1][j+1] > 0.0 && table[i][j+1] == 0.0)
+				{
+					{citygml::LinearRing* ring = new citygml::LinearRing(name+std::to_string(ii++)+std::to_string(jj++)+"_ring",true);
+					ring->addVertex(TVec3d(iReal+xmin,jReal+ymin,table[i][j]));
+					ring->addVertex(TVec3d(ipReal+xmin,jReal+ymin,table[i+1][j]));
+					ring->addVertex(TVec3d(ipReal+xmin,jpReal+ymin,table[i+1][j+1]));
+					citygml::Polygon* poly = new citygml::Polygon(name+std::to_string(ii++)+std::to_string(jj++)+"_poly");
+					poly->addRing(ring);
+					cityGeom->addPolygon(poly);}
+				}
+				else if(table[i][j] > 0.0 && table[i+1][j] > 0.0 && table[i+1][j+1] == 0.0 && table[i][j+1] > 0.0)
+				{
+					{citygml::LinearRing* ring = new citygml::LinearRing(name+std::to_string(ii++)+std::to_string(jj++)+"_ring",true);
+					ring->addVertex(TVec3d(iReal+xmin,jReal+ymin,table[i][j]));
+					ring->addVertex(TVec3d(ipReal+xmin,jReal+ymin,table[i+1][j]));
+					ring->addVertex(TVec3d(iReal+xmin,jpReal+ymin,table[i][j+1]));
+					citygml::Polygon* poly = new citygml::Polygon(name+std::to_string(ii++)+std::to_string(jj++)+"_poly");
+					poly->addRing(ring);
+					cityGeom->addPolygon(poly);}
+				}
+				else if(table[i][j] > 0.0 && table[i+1][j] == 0.0 && table[i+1][j+1] > 0.0 && table[i][j+1] > 0.0)
+				{
+					{citygml::LinearRing* ring = new citygml::LinearRing(name+std::to_string(ii++)+std::to_string(jj++)+"_ring",true);
+					ring->addVertex(TVec3d(iReal+xmin,jReal+ymin,table[i][j]));
+					ring->addVertex(TVec3d(ipReal+xmin,jpReal+ymin,table[i+1][j+1]));
+					ring->addVertex(TVec3d(iReal+xmin,jpReal+ymin,table[i][j+1]));
+					citygml::Polygon* poly = new citygml::Polygon(name+std::to_string(ii++)+std::to_string(jj++)+"_poly");
+					poly->addRing(ring);
+					cityGeom->addPolygon(poly);}
+				}
+				else if(table[i][j] == 0.0 && table[i+1][j] > 0.0 && table[i+1][j+1] > 0.0 && table[i][j+1] > 0.0)
+				{
+					{citygml::LinearRing* ring = new citygml::LinearRing(name+std::to_string(ii++)+std::to_string(jj++)+"_ring",true);
+					ring->addVertex(TVec3d(ipReal+xmin,jReal+ymin,table[i+1][j]));
+					ring->addVertex(TVec3d(ipReal+xmin,jpReal+ymin,table[i+1][j+1]));
+					ring->addVertex(TVec3d(iReal+xmin,jpReal+ymin,table[i][j+1]));
+					citygml::Polygon* poly = new citygml::Polygon(name+std::to_string(ii++)+std::to_string(jj++)+"_poly");
+					poly->addRing(ring);
+					cityGeom->addPolygon(poly);}
+				}
+			}
+		}
+	
+		BuildingCO->addGeometry(cityGeom);
+
+		
+
+		return BuildingCO;
+	}
+	else
+		return nullptr;
+	
+}
+
+void ProcessCL(std::string filename, std::string output)
+{
+	//Load the cloud point from a file
+	std::string path = filename;
+
+	char line[256];
+
+	std::ifstream ifs (path, std::ifstream::in);
+
+	ifs.getline(line,256);
+
+	unsigned int count = atoi(line);
+
+	std::vector<std::pair<std::string,std::vector<TVec3d>>> vegets;
+
+	for(unsigned int i = 0; i < count; i++)
+	{
+		std::vector<TVec3d> veg;
+		ifs.getline(line,256);
+		unsigned int countBis = atoi(line);
+		
+		ifs.getline(line,256);
+		std::string name = std::string(line);
+
+		for(unsigned int j = 0; j < countBis; j++)
+		{
+			double x;
+			double y;
+			double z;
+			
+			ifs.getline(line,256);x = atof(line);
+			ifs.getline(line,256);y = atof(line);
+			ifs.getline(line,256);z = atof(line);
+
+			veg.push_back(TVec3d(x,y,z));
+		}
+
+		vegets.push_back(std::make_pair(name,veg));
+	}
+
+	ifs.close();
+
+	ProcessCL(vegets,output);
+}
+
+void ProcessCL(std::vector<std::pair<std::string,std::vector<TVec3d>>> vegets, std::string output)
 {
 	std::cout << "Trying to process" << std::endl;
 
@@ -300,17 +391,18 @@ void ProcessCL(std::map<OGRPolygon*,std::vector<OGRPoint>> vegets, std::string o
 
 	std::cout << "To process : " << vegets.size() << std::endl;
 
-	unsigned int i = 0;
-
-	for(auto it = vegets.begin(); it != vegets.end(); it++)
+	for(unsigned int i = 0; i < vegets.size(); i++)
 	{
-		std::cout << "Processing : " << i++ << std::endl;
-		citygml::CityObject* BuildingCO = VegToCityObject(it->second,outputFile);
-		ModelOut->addCityObject(BuildingCO);
-		ModelOut->addCityObjectAsRoot(BuildingCO);
+		std::cout << "Processing : " << i << std::endl;
+		citygml::CityObject* BuildingCO = VegToCityObject(vegets[i],i);
+		if(BuildingCO != nullptr)
+		{
+			ModelOut->addCityObject(BuildingCO);
+			ModelOut->addCityObjectAsRoot(BuildingCO);
+		}
 	}
 
-	citygml::ExporterCityGML exporter("./SkylineOutput/"+outputFile+".gml");
+	citygml::ExporterCityGML exporter("./SkylineOutput/"+output+".gml");
 	exporter.exportCityModel(*ModelOut);
 
 	std::cout << "It is done !" << std::endl;

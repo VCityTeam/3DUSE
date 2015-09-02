@@ -11,9 +11,11 @@ int RandInt(int low, int high)
 	return qrand() % ((high + 1) - low) + low;
 }
 
-TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType)
+TriangleList* BuildTriangleList(std::string tilefilename, TVec3d offset, ViewPoint* viewpoint, citygml::CityObjectsType objectType)
 {
 	std::vector<Triangle*> triangles;
+
+	vcity::Tile* tile = new vcity::Tile(tilefilename);
 
 	citygml::CityModel * model = tile->getCityModel();
 
@@ -44,6 +46,8 @@ TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* vie
 							t->subObjectType = object->getType();
 							t->objectType = obj->getType();
 							t->objectId = obj->getId();
+							t->polygonId = PolygonCityGML->getId();
+							t->tileFile = tilefilename;
 
 							triangles.push_back(t);
 						}
@@ -72,12 +76,16 @@ TriangleList* BuildTriangleList(vcity::Tile* tile, TVec3d offset, ViewPoint* vie
 						Triangle* t = new Triangle(a,b,c);
 						t->objectType = obj->getType();
 						t->objectId = obj->getId();
+						t->polygonId = PolygonCityGML->getId();
+						t->tileFile = tilefilename;
 
 						triangles.push_back(t);
 					}
 				}
 		}
 	}
+
+	delete tile;
 
 	return new TriangleList(triangles);
 }

@@ -18,6 +18,22 @@ void CutShape(TVec2d min, TVec2d max, std::string outputFile);
 */
 void ProcessLasShpVeget();
 
-void ProcessCL(std::map<OGRPolygon*,std::vector<OGRPoint>> vegets, std::string outputFile);
+/**
+*	@brief Convert a cloud point to a vegetation city object
+*	@param veg The cloud point
+*	@param cpt Int param caracterising the point cloud
+*/
+citygml::CityObject* VegToCityObject(std::vector<TVec3d> veg, unsigned int cpt);
+
+/**
+*	@brief Process a point cloud from a file name
+*/
+void ProcessCL(std::string filename, std::string output);
+
+/**
+*	@brief Process a point cloud from a file name
+*	@param vegets A set of point clouds
+*/
+void ProcessCL(std::vector<std::pair<std::string,std::vector<TVec3d>>> vegets, std::string output);
 
 #endif

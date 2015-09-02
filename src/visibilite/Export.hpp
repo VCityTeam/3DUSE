@@ -1,7 +1,7 @@
 #ifndef __EXPORT_HPP__
 #define __EXPORT_HPP__
 
-#include "Visibilite.hpp"
+#include "src/visibilite/data/ViewPoint.h"
 
 /**
 *	@brief % of element in a emblematic view, values are in % 
@@ -94,7 +94,7 @@ void ExportImageSkyline(ViewPoint* viewpoint, std::string filePrefix = "");
 *	@param left Left view of the panorama
 *	@param filePrefix Prefix of the text file created
 */
-void ExportPanoramaSkyline(AnalysisResult front, AnalysisResult right, AnalysisResult back, AnalysisResult left, std::string filePrefix = "");
+void ExportPanoramaSkyline(ViewPoint* front, ViewPoint* right, ViewPoint* back, ViewPoint* left, std::string filePrefix = "");
 
 /**
 *	@brief Compute the skyline volume of a cascade panorama

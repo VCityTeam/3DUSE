@@ -8,6 +8,51 @@
 
 ExportParameter ExportParameter::globalParam;
 
+std::map<citygml::CityObjectsType,std::string> BuildToStringMap()
+{
+	std::map<citygml::CityObjectsType,std::string> ToString;
+		ToString.insert(std::make_pair(citygml::COT_GenericCityObject         , "GenericCityObject"));  
+		ToString.insert(std::make_pair(citygml::COT_Building                  , "Building"));  
+		ToString.insert(std::make_pair(citygml::COT_Room                      , "Room"));  
+		ToString.insert(std::make_pair(citygml::COT_BuildingInstallation      , "BuildingInstallation"));  
+		ToString.insert(std::make_pair(citygml::COT_BuildingFurniture         , "BuildingFurniture"));  
+		ToString.insert(std::make_pair(citygml::COT_Door                      , "Door"));  
+		ToString.insert(std::make_pair(citygml::COT_Window                    , "Window"));  
+		ToString.insert(std::make_pair(citygml::COT_CityFurniture             , "CityFurniture"));  
+		ToString.insert(std::make_pair(citygml::COT_Track                     , "Track"));  
+		ToString.insert(std::make_pair(citygml::COT_Road                      , "Road"));  
+		ToString.insert(std::make_pair(citygml::COT_Railway                   , "Railway"));  
+		ToString.insert(std::make_pair(citygml::COT_Square                    , "Square"));  
+		ToString.insert(std::make_pair(citygml::COT_PlantCover                , "PlantCover"));  
+		ToString.insert(std::make_pair(citygml::COT_SolitaryVegetationObject  , "SolidaryVegetationObject"));  
+		ToString.insert(std::make_pair(citygml::COT_WaterBody                 , "WaterBody"));  
+		ToString.insert(std::make_pair(citygml::COT_TINRelief                 , "TINRelief"));  
+		ToString.insert(std::make_pair(citygml::COT_LandUse                   , "LandUse"));  
+		ToString.insert(std::make_pair(citygml::COT_Tunnel					, "Tunnel"));	
+		ToString.insert(std::make_pair(citygml::COT_Bridge					, "Bridge"));	
+		ToString.insert(std::make_pair(citygml::COT_BridgeConstructionElement	, "BridgeConstructionElement"));
+		ToString.insert(std::make_pair(citygml::COT_BridgeInstallation		, "BridgeInstallation"));	
+		ToString.insert(std::make_pair(citygml::COT_BridgePart                , "BridgePart"));  
+		ToString.insert(std::make_pair(citygml::COT_BuildingPart       		, "BuildingPart"));
+		ToString.insert(std::make_pair(citygml::COT_WallSurface               , "WallSurface"));  
+		ToString.insert(std::make_pair(citygml::COT_RoofSurface               , "RoofSurface"));  
+		ToString.insert(std::make_pair(citygml::COT_GroundSurface             , "GroundSurface"));  
+		ToString.insert(std::make_pair(citygml::COT_ClosureSurface            , "ClosureSurface"));  
+		ToString.insert(std::make_pair(citygml::COT_FloorSurface              , "FloorSurface"));  
+		ToString.insert(std::make_pair(citygml::COT_InteriorWallSurface       , "InteriorWallSurface"));  
+		ToString.insert(std::make_pair(citygml::COT_CeilingSurface        	, "CeilingSurface"));
+		ToString.insert(std::make_pair(citygml::COT_All                       , "All"));
+
+		return ToString;
+}
+
+std::string COTToString(citygml::CityObjectsType type)
+{
+	static std::map<citygml::CityObjectsType,std::string> ToString = BuildToStringMap();
+
+	return ToString[type];
+}
+
 void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 {
 	float cpt = 0.0f;
@@ -24,7 +69,7 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 
 	EmblematicView view = ExportParameter::GetGlobalParameter().emblematicView;
 
-	std::map<std::string,float> cptMapBuilding;
+	std::map<std::string,std::pair<Triangle,unsigned int>> cptMap;
 
 	for(unsigned int i = 0; i < viewpoint->width; i++)
 	{
@@ -35,15 +80,18 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 			{
 				cptHit++;
 
+				QString tempStr(viewpoint->hits[i][j].triangle.objectId.c_str());
+					std::string temp = tempStr.toStdString();
+				if(cptMap.find(temp)  == cptMap.end())
+						cptMap.insert(std::make_pair(temp,std::make_pair(viewpoint->hits[i][j].triangle,1)));
+					else
+						cptMap[temp].second++;
+
 				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_Building)
 				{
 					QString tempStr(viewpoint->hits[i][j].triangle.objectId.c_str());
 					std::string temp = tempStr.toStdString();
-					if(cptMapBuilding.find(temp)  == cptMapBuilding.end())
-						cptMapBuilding.insert(std::make_pair(temp,1.f));
-					else
-						cptMapBuilding[temp]++;
-
+					
 					cptAllBuilding++;
 
 					if(viewpoint->hits[i][j].triangle.subObjectType == citygml::COT_RoofSurface)
@@ -99,13 +147,50 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	ofs << "Building Misc;" << (cptBuilding/cpt * 100.f)<< ";" << view.building << ";" << (cptBuilding/cpt * 100.f) - view.building<<  std::endl;
 	ofs << "Remarquable Building;" << (cptRemarquable/cpt * 100.f)<< ";" << view.remarquableBuilding << ";" << (cptRemarquable/cpt * 100.f) - view.remarquableBuilding << std::endl;
 	ofs << std::endl;
-	ofs << "Building % :" << std::endl;
-	for(auto it = cptMapBuilding.begin(); it != cptMapBuilding.end(); it++)
+	ofs << "ObjectId;Count;Global%;InHit%;ObjectType;SubObjectType" << std::endl;
+	for(auto it = cptMap.begin(); it != cptMap.end(); it++)
 	{
-		ofs << it->first << ";" << it->second << ";" << it->second/cpt * 100.f << ";" << it->second/cptHit * 100.f <<  ";" << it->second / cptAllBuilding * 100.f<<  std::endl;
+		if(it->second.first.objectType == citygml::COT_Building)
+			ofs << it->first << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << ";" << COTToString(it->second.first.subObjectType) << std::endl;
+		else if(it->second.first.objectType == citygml::COT_SolitaryVegetationObject)
+		{
+			if(it->second.first.objectId.find("_tree") != std::string::npos)
+			{
+				ofs << it->second.first.objectId.substr(0,it->second.first.objectId.size()-5) << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << ";" << "Alignement Tree" << std::endl;
+			}
+			else
+				ofs << it->first << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << ";" << "Park" << std::endl;
+		}
+		else
+			ofs << it->first << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << std::endl;
 	}
 
 
+	ofs.close();
+
+	
+
+	ofs.open ("./SkylineOutput/"+filePrefix+"skyline.csv", std::ofstream::out);
+	ofs << viewpoint->skyline.Points.size() << std::endl;
+	for(unsigned int i = 0; i < viewpoint->skyline.FragCoords.size(); i++)
+	{
+		TVec3d p = viewpoint->skyline.Points[i];
+		std::pair<unsigned int,unsigned int> frag = viewpoint->skyline.FragCoords[i];
+		Hit h = viewpoint->hits[frag.first][frag.second];
+		if(h.triangle.objectType == citygml::COT_Building)
+			ofs << p.x << ";" << p.y << ";" << p.z << ";" << h.triangle.objectId << ";"  << COTToString(h.triangle.objectType) << ";" << COTToString(h.triangle.subObjectType) << std::endl;
+		else if(h.triangle.objectType == citygml::COT_SolitaryVegetationObject)
+		{
+			if(h.triangle.objectId.find("_tree") != std::string::npos)
+			{
+				ofs << p.x << ";" << p.y << ";" << p.z << ";" << h.triangle.objectId.substr(0,h.triangle.objectId.size()-5) << ";"  << COTToString(h.triangle.objectType) << ";" << "Alignement Tree" << std::endl;
+			}
+			else
+				ofs << p.x << ";" << p.y << ";" << p.z << ";" << h.triangle.objectId << ";"  << COTToString(h.triangle.objectType) << ";" << "Park" << std::endl;
+		}
+		else
+			ofs << p.x << ";" << p.y << ";" << p.z << ";" << h.triangle.objectId << ";"  << COTToString(h.triangle.objectType) << ";" << COTToString(h.triangle.subObjectType) << std::endl;
+	}
 	ofs.close();
 }
 
@@ -301,10 +386,10 @@ void ExportImageSkyline(ViewPoint* viewpoint, std::string filePrefix)
 		}
 	}
 
-	for(unsigned int i = 0; i < viewpoint->skyline.size(); i++)
+	for(unsigned int i = 0; i < viewpoint->skyline.FragCoords.size(); i++)
 	{
-		unsigned int x = viewpoint->skyline[i].first;
-		unsigned int y = viewpoint->skyline[i].second;
+		unsigned int x = viewpoint->skyline.FragCoords[i].first;
+		unsigned int y = viewpoint->skyline.FragCoords[i].second;
 		imageSkyline.setPixel(x,y,qRgba(255,0,0,255));
 	}
 
@@ -327,47 +412,47 @@ void ExportImages(ViewPoint* viewpoint, std::string filePrefix)
 	std::cout << "Image saved !" << std::endl;
 }
 
-void ExportPanoramaSkyline(AnalysisResult front, AnalysisResult right, AnalysisResult back, AnalysisResult left, std::string filePrefix)
+void ExportPanoramaSkyline(ViewPoint* front, ViewPoint* right, ViewPoint* back, ViewPoint* left, std::string filePrefix)
 {
 	std::ofstream ofs;
 	ofs.open ("./SkylineOutput/"+filePrefix+"skyline.txt", std::ofstream::out);
 
-	unsigned int cpt = front.skyline.size()+right.skyline.size()+back.skyline.size()+left.skyline.size();
+	unsigned int cpt = front->skyline.FragCoords.size()+right->skyline.FragCoords.size()+back->skyline.FragCoords.size()+left->skyline.FragCoords.size();
 
 	ofs << cpt << "\n";
 
-	for(unsigned int i = 0; i < front.skyline.size(); i++)
+	for(unsigned int i = 0; i < front->skyline.FragCoords.size(); i++)
 	{
-		ofs << front.skyline[i].first.x << "\n";
-		ofs << front.skyline[i].first.y << "\n";
-		ofs << front.skyline[i].second.x << "\n";
-		ofs << front.skyline[i].second.y << "\n";
-		ofs << front.skyline[i].second.z << "\n";
+		ofs << front->skyline.FragCoords[i].first << "\n";
+		ofs << front->skyline.FragCoords[i].second << "\n";
+		ofs << front->skyline.Points[i].x << "\n";
+		ofs << front->skyline.Points[i].y << "\n";
+		ofs << front->skyline.Points[i].z << "\n";
 	}
 
-	for(unsigned int i = 0; i < right.skyline.size(); i++)
+	for(unsigned int i = 0; i < right->skyline.FragCoords.size(); i++)
 	{
-		ofs << right.skyline[i].first.x << "\n";
-		ofs << right.skyline[i].first.y << "\n";
-		ofs << right.skyline[i].second.x << "\n";
-		ofs << right.skyline[i].second.y << "\n";
-		ofs << right.skyline[i].second.z << "\n";
+		ofs << right->skyline.FragCoords[i].first << "\n";
+		ofs << right->skyline.FragCoords[i].second << "\n";
+		ofs << right->skyline.Points[i].x << "\n";
+		ofs << right->skyline.Points[i].y << "\n";
+		ofs << right->skyline.Points[i].z << "\n";
 	}
-	for(unsigned int i = 0; i < back.skyline.size(); i++)
+	for(unsigned int i = 0; i < back->skyline.FragCoords.size(); i++)
 	{
-		ofs << back.skyline[i].first.x << "\n";
-		ofs << back.skyline[i].first.y << "\n";
-		ofs << back.skyline[i].second.x << "\n";
-		ofs << back.skyline[i].second.y << "\n";
-		ofs << back.skyline[i].second.z << "\n";
+		ofs << back->skyline.FragCoords[i].first << "\n";
+		ofs << back->skyline.FragCoords[i].second << "\n";
+		ofs << back->skyline.Points[i].x << "\n";
+		ofs << back->skyline.Points[i].y << "\n";
+		ofs << back->skyline.Points[i].z << "\n";
 	}
-	for(unsigned int i = 0; i < left.skyline.size(); i++)
+	for(unsigned int i = 0; i < left->skyline.FragCoords.size(); i++)
 	{
-		ofs << left.skyline[i].first.x << "\n";
-		ofs << left.skyline[i].first.y << "\n";
-		ofs << left.skyline[i].second.x << "\n";
-		ofs << left.skyline[i].second.y << "\n";
-		ofs << left.skyline[i].second.z << "\n";
+		ofs << left->skyline.FragCoords[i].first << "\n";
+		ofs << left->skyline.FragCoords[i].second << "\n";
+		ofs << left->skyline.Points[i].x << "\n";
+		ofs << left->skyline.Points[i].y << "\n";
+		ofs << left->skyline.Points[i].z << "\n";
 	}
 
 	ofs.close();

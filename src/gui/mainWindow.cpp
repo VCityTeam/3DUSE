@@ -55,7 +55,6 @@
 #include "src/visibilite/ShpExtrusion.h"
 #include "src/visibilite/AlignementTree.hpp"
 #include "src/visibilite/VegetTool.hpp"
-#include "src/visibilite/ProcessCloudPoint.h"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
@@ -2230,9 +2229,14 @@ void MainWindow::test4()
 
 	//ProcessLasShpVeget();
 
-	//ProcessCL();
+	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
 
-	//BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
+	//ExtrudeAlignementTree();
+
+	BuildAABB("C:/VCityData/Tile/",m_app.getSettings().getDataProfile().m_offset);
 
 	/*LASreadOpener lasreadopener;
 	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");

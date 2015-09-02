@@ -11,8 +11,8 @@
 */
 struct AABB
 {
-	osg::Vec3d min;///< Min point of the box
-	osg::Vec3d max;///< Max point of the box
+	TVec3d min;///< Min point of the box
+	TVec3d max;///< Max point of the box
 	std::string name;///< Name of the box
 
 	bool operator==(AABB const& other)
@@ -73,6 +73,6 @@ void BuildAABB(std::string dir, TVec3d offset);
 *	@param name Name of the set of tile to load
 *	@return List of AABB for the set of tile, <BuildingAABB,TerrainAABB>
 */
-AABBCollection LoadAABB(std::string dir);
+AABBCollection LoadAABB(std::string dir, TVec3d offset);
 
 #endif
