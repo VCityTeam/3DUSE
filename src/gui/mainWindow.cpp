@@ -5,7 +5,6 @@
 #include "moc/dialogLoadBBox.hpp"
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
-#include "moc/dialogShpLoad.hpp"
 
 #include "controllerGui.hpp"
 
@@ -47,14 +46,6 @@
 #include "src/processes/ExportToShape.hpp"
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
-#include "src/Visibilite/Visibilite.hpp"
-#include "src/Visibilite/BuildOSGNode.h"
-#include "src/Visibilite/Export.hpp"
-#include "src/Visibilite/data/AABB.hpp"
-#include "src/processes/FlatRoof.hpp"
-#include "src/visibilite/ShpExtrusion.h"
-#include "src/visibilite/AlignementTree.hpp"
-#include "src/visibilite/VegetTool.hpp"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
@@ -2312,13 +2303,8 @@ void MainWindow::test5()
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-void MainWindow::loadShpBbox()
-{
-	DialogShpLoad dial(this,this);
-	dial.exec();
-}
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::loadShpFile(const QString& filepath, bool useBBox, TVec2d boxMin, TVec2d boxMax)
+void MainWindow::loadShpFile(const QString& filepath)
 {
 	std::cout << "load shp file : " << filepath.toStdString() << std::endl;
     OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
@@ -2359,9 +2345,4 @@ void MainWindow::loadShpFile(const QString& filepath, bool useBBox, TVec2d boxMi
     }
 
 		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::ShpExtrusionSlot()
-{
-	ShpExtruction();
 }

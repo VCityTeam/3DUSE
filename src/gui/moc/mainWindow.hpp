@@ -77,7 +77,7 @@ private:
     void addToMenu(QObject *plugin, const QStringList &texts, QMenu *menu,
                    const char *member, QActionGroup *actionGroup = 0);
 
-	void loadShpFile(const QString& filepath, bool useBBox = false, TVec2d boxMin = TVec2d(DBL_MIN,DBL_MIN), TVec2d boxMax = TVec2d(DBL_MAX,DBL_MAX));
+	void loadShpFile(const QString& filepath);
 	// plugins
 
 public slots:
@@ -106,7 +106,6 @@ public slots:
     void slotDumpScene();
     void slotDumpSelectedNodes();
     void slotCutCityGMLwithShapefile();
-	void loadShpBbox();
 
     void about();
 
@@ -144,8 +143,6 @@ private slots:
 
     void slotTemporalAnim();
     void slotTemporalAnimUpdate();
-
-	void ShpExtrusionSlot();
 
 	// plugins
 	void applyPlugin();

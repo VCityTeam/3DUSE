@@ -7,6 +7,10 @@
 #include "moc/mainWindow.hpp"
 #include "src/visibilite/Visibilite.hpp"
 #include "src/visibilite/data/BelvedereDB.h"
+#include "src/visibilite/FlatRoof.hpp"
+#include "src/visibilite/ShpExtrusion.h"
+#include "src/visibilite/VegetTool.hpp"
+#include "src/visibilite/AlignementTree.hpp"
 
 #include <QSettings>
 #include <QFileDialog>
@@ -280,6 +284,47 @@ void DialogVisibilite::ResetCategory()
 	dir+="/";
 	QString caterogy = ui->categoryLE->text(); 
 	BelvedereDB::Get().ResetDB(dir,caterogy.toStdString());
+}
+
+void DialogVisibilite::ToolAlignementTree()
+{
+	ExtrudeAlignementTree();
+}
+
+void DialogVisibilite::ToolLidarToGML()
+{
+	ProcessCL(ProcessLasShpVeget());
+}
+
+void DialogVisibilite::ToolShpExtrusion()
+{
+	ShpExtruction();
+}
+
+void DialogVisibilite::ToolFlatRoof()
+{
+
+	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load gml file");
+
+	QFileInfo file(filepath);
+
+    QString ext = file.suffix().toLower();
+
+	if(ext == "gml")
+    {
+		DetectionToitsPlats(filepath.toStdString(),2.0,0.98);
+	}
+}
+
+void DialogVisibilite::ToolAABBReconstruction()
+{
+	std::string dir = ui->dirLE->text().toStdString();
+
+	if(dir != "")
+	{
+		dir+="/";
+		BuildAABB(dir,mainwindow->m_app.getSettings().getDataProfile().m_offset);
+	}
 }
 
 DialogVisibilite::~DialogVisibilite()

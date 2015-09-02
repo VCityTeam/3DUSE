@@ -41,6 +41,11 @@ private slots:
 	void CascadeMonoTile();
 	void CascadePanorama();
 	void ResetCategory();
+	void ToolAlignementTree();
+	void ToolLidarToGML();
+	void ToolShpExtrusion();
+	void ToolFlatRoof();
+	void ToolAABBReconstruction();
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGEDITTILE_HPP

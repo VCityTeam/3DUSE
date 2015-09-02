@@ -74,7 +74,7 @@ void CutShape(TVec2d min, TVec2d max, std::string outputFile)
 	std::cout << "Done !" << std::endl;
 }
 
-void ProcessLasShpVeget()
+std::string ProcessLasShpVeget()
 {
 	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load Shp file");
 
@@ -83,6 +83,8 @@ void ProcessLasShpVeget()
 	QString ext = file.suffix().toLower();
 
 	std::cout << "Shp : " << filepath.toStdString() << std::endl;
+
+	std::string ouputfileName = "";
 
 	if(ext == "shp")
 	{
@@ -168,10 +170,11 @@ void ProcessLasShpVeget()
 			}
 
 			std::cout << "Done." << std::endl;
-			std::cout << "Exporting." << std::endl;
+			std::cout << "Exporting Dat File." << std::endl;
 
 			std::filebuf fb;
-			fb.open("SkylineOutput/"+fileBis.baseName().toStdString()+".dat",std::ios::out);
+			ouputfileName = "./SkylineOutput/"+fileBis.baseName().toStdString()+".dat";
+			fb.open(ouputfileName,std::ios::out);
 
 			std::ostream file(&fb);
 
@@ -191,11 +194,13 @@ void ProcessLasShpVeget()
 
 			fb.close();
 
-			std::cout << "Done All." << std::endl;
+			std::cout << "Done Exporting Dat File." << std::endl;
 
 		}
 
 	}
+
+	return ouputfileName;
 }
 
 unsigned int ClampIt(unsigned int x,unsigned int a,unsigned int b)
@@ -338,8 +343,11 @@ citygml::CityObject* VegToCityObject(std::pair<std::string,std::vector<TVec3d>> 
 	
 }
 
-void ProcessCL(std::string filename, std::string output)
+void ProcessCL(std::string filename)
 {
+	QFileInfo fileInfo(filename.c_str());
+	std::string ouputname = fileInfo.baseName().toStdString();
+
 	//Load the cloud point from a file
 	std::string path = filename;
 
@@ -380,7 +388,7 @@ void ProcessCL(std::string filename, std::string output)
 
 	ifs.close();
 
-	ProcessCL(vegets,output);
+	ProcessCL(vegets,ouputname);
 }
 
 void ProcessCL(std::vector<std::pair<std::string,std::vector<TVec3d>>> vegets, std::string output)
