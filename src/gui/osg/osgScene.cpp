@@ -478,21 +478,18 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                 }
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
             } 
-			else if (c && d)
+			else if (c)
 			{
 				QDateTime creationDate = QDateTime::fromString(QString::fromStdString(std::to_string(cDate)),QString("yyyyMMdd"));
-				QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(std::to_string(dDate)),QString("yyyyMMdd"));
-				if (creationDate < date && date <= terminationDate)
+				if (d)
 				{
-                    node->setNodeMask(0xffffffff);
-                }
-                else
-                {
-                     node->setNodeMask(0);
-                }
-
-			}
-
+					QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(std::to_string(dDate)),QString("yyyyMMdd"));
+					if (creationDate < date && date <= terminationDate) node->setNodeMask(0xffffffff);
+					else node->setNodeMask(0);
+				} else {
+					if (creationDate < date ) node->setNodeMask(0xffffffff);
+					else node->setNodeMask(0);                
+				}
             setDateRec(date, child);
         }
     }
