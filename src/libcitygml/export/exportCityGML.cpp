@@ -224,6 +224,19 @@ namespace citygml
 	////////////////////////////////////////////////////////////////////////////////
     xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string& nodeType, xmlNodePtr parent, bool isSurface)
 	{
+		if (obj._isXlink==xLinkState::LINKED)
+		{
+			xmlNodePtr res;
+			if (isSurface) 
+			{
+				xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST "bldg:boundedBy", NULL);
+				res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
+			} 
+			else res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
+			std::string query = "//identifier[text()='"+obj.getAttribute("identifier")+"']";
+			xmlNewProp(res, BAD_CAST "xlink:href", BAD_CAST query.c_str());
+			return res;
+		}
         if(isSurface)
         {
             xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST "bldg:boundedBy", NULL);// Ajouté car présent dans les CityGML de Lyon et Paris
@@ -251,6 +264,7 @@ namespace citygml
 					std::string cName = "core:"+attrName;
 					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
 				}
+				else if (attrName=="identifier") xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST ("gml:"+attrName).c_str(), BAD_CAST attr.second.c_str());
 				else
 				{
 					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
@@ -286,6 +300,7 @@ namespace citygml
 					std::string cName = "core:"+attrName;
 					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
 				}
+				else if (attrName=="identifier") xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST ("gml:"+attrName).c_str(), BAD_CAST attr.second.c_str());
 				else
 				{
                 xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
@@ -347,7 +362,7 @@ namespace citygml
 		xmlNodePtr res = NULL;
 
 		//std::cout << "type : " << obj.getTypeAsString() << std::endl;
-
+		
 		// temporal test
 		if(m_temporalExport)
 		{
@@ -538,7 +553,7 @@ namespace citygml
 				exportGeometryXml(*geom, node);
 			else exportGeometryXml(*geom, parent);
 		}
-
+		if (obj._isXlink!=xLinkState::LINKED)
 		for(const auto& child : obj.getChildren()) //Parcourt les WallSurface, RoofSurface par exemple d'un bâtiment.
 		{
 			if(res) exportCityObjetXml(*child, res);
