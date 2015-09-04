@@ -411,10 +411,10 @@ namespace citygml
 			res = exportCityObjetGenericXml(obj, "bldg:SolitaryVegetationObject", parent);
 			break;
 		case citygml::COT_WaterBody:
-			res = exportCityObjetGenericXml(obj, "bldg:WaterBody", parent);
+			res = exportCityObjetGenericXml(obj, "wtr:WaterBody", parent);
 			break;
 		case citygml::COT_TINRelief:
-			res = exportCityObjetGenericXml(obj, "bldg:TINRelief", parent);
+			res = exportCityObjetGenericXml(obj, "dem:TINRelief", parent);
 			break;
 		case citygml::COT_LandUse:
 			res = exportCityObjetGenericXml(obj, "bldg:LandUse", parent);
