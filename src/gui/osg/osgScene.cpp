@@ -490,6 +490,7 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 					if (creationDate < date ) node->setNodeMask(0xffffffff);
 					else node->setNodeMask(0);                
 				}
+			}
             setDateRec(date, child);
         }
     }

@@ -134,7 +134,17 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
 
     while(uri.getCursor() < uri.getDepth())
     {
-        for(CityObject* child : current->getChildren())
+		if (current->_isXlink==xLinkState::LINKED)
+			for (CityObject* child : current->getXLinkTargets())
+			{
+				if(child->getId() == uri.getCurrentNode())
+				{
+					current = child;
+					res = current;
+					break;
+				}
+			}
+		for(CityObject* child : current->getChildren())
         {
             if(child->getId() == uri.getCurrentNode())
             {
