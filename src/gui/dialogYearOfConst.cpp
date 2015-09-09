@@ -141,7 +141,7 @@ void DialogYearOfConst::editObjectDates(const vcity::URI& uri)
 			{
 				obj->setAttribute("creationDate",creaDate.toString("yyyy-MM-dd").toStdString());
 				int cDate = (creaDate.toString("yyyyMMdd")).toInt();
-				node->getUserValue("creationDate",cDate);
+				node->setUserValue("creationDate",cDate);
 			}
 			break;
 		default:

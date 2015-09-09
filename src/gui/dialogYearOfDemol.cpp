@@ -133,7 +133,7 @@ void DialogYearOfDemol::editObjectDates(const vcity::URI& uri)
 			{
 				obj->setAttribute("terminationDate",destDate.toString("yyyy-MM-dd").toStdString());
 				int tDate = (destDate.toString("yyyyMMdd")).toInt();
-				node->getUserValue("terminationDate",tDate);
+				node->setUserValue("terminationDate",tDate);
 			}
 			break;
 		default:
