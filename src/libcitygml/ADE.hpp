@@ -11,7 +11,7 @@ class ADEHandler
 public:
 	ADEHandler(void){gmlHandler=NULL;}
 	ADEHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
-	~ADEHandler(void);
+	~ADEHandler(void){};
 	void setGMLHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
 	virtual void startElement(std::string,void*){};
 	virtual void endElement(std::string){};
@@ -46,8 +46,6 @@ protected:
 	bool* getAppearanceAssigned(){return &(gmlHandler->_appearanceAssigned);}
 	citygml::GeometryType* getCurrentGeometryType(){return &(gmlHandler->_currentGeometryType);}
 	void** getGeoTransform(){return &(gmlHandler->_geoTransform);}
-
-	//access to temporal members, to be moved from CityGMLHandler to TempHandler class
 	citygml::CityObjectState** getCurrentState(){return &(gmlHandler->m_currentState);}
 	citygml::CityObjectDynState** getCurrentDynState(){return &(gmlHandler->m_currentDynState);}
 	citygml::CityObjectTag** getCurrentTag(){return &(gmlHandler->m_currentTag);}
@@ -109,6 +107,7 @@ template<typename T> ADEHandler* createT() {return new T();};
 struct ADEHandlerFactory
 {
 	typedef std::map<std::string,ADEHandler*(*)()> mapType;
+
 	static ADEHandler* createInstance(std::string const& s) 
 	{
 		mapType::iterator it = getMap()->find(s);
@@ -116,8 +115,15 @@ struct ADEHandlerFactory
 			return 0;
 		return it->second();
     }
+
+	static void getInstances(std::map<std::string,ADEHandler*>& map)
+	{
+		for(mapType::iterator it = getMap()->begin(); it != getMap()->end(); it++) map[it->first] = it->second();
+	}
+
 protected:
 	static mapType* getMap() {if (!ADEmap) {ADEmap = new mapType();} return ADEmap;}
+
 private:
 	static mapType* ADEmap;
 };

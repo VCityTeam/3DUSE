@@ -7,14 +7,16 @@
 
 TempHandler::TempHandler(void):ADEHandler()
 {
+	p=0;
 }
 
 TempHandler::TempHandler(citygml::CityGMLHandler* gHandler):ADEHandler(gHandler)
 {
+	p=0;
 }
 
 //Adding to ADE register (template in ADE.hpp)
-ADERegister<TempHandler> TempHandler::reg("tmp");
+ADERegister<TempHandler> TempHandler::reg("temp");
 
 std::string TempHandler::getAttribute( void* attributes, const std::string& attname, const std::string& defvalue = "" )
 {
@@ -268,12 +270,12 @@ void TempHandler::endElement(std::string name)
 		*currentGeometryType = citygml::GT_Unknown;
 	}
 #endif
-	if (name=="tmp:validFrom")
+	if (name=="temp:validFrom")
 	{
 		citygml::Object** currentObject = getCurrentObject();
 		if ( *currentObject ) (*currentObject)->setAttribute( "validFrom", getBuff()->str(), false );
 	}
-	if (name=="tmp:validTo")
+	if (name=="temp:validTo")
 	{
 		citygml::Object** currentObject = getCurrentObject();
 		if ( *currentObject ) (*currentObject)->setAttribute( "validTo", getBuff()->str(), false );

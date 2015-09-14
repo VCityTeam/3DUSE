@@ -358,6 +358,7 @@ namespace citygml
         CityObjectTag* m_currentTag;
 
 		CityObjectIdentifiersMap _identifiersMap;
+		std::map<std::string,ADEHandler*> _ADEHandlers;
 
 	};
 }

@@ -42,7 +42,8 @@ _currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
 m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr)
 { 
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
-	initNodes(); 
+	initNodes();
+	ADEHandlerFactory::getInstances(_ADEHandlers);
 }
 
 CityGMLHandler::~CityGMLHandler( void ) 
@@ -337,6 +338,7 @@ std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
 		//std::cout<<"Identifier = "<<identifier<<std::endl;
 		return identifier;
 	}
+	else throw "XPathExpressionException";
 	return "";
 }
 
@@ -376,12 +378,13 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         {\
 			pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
-			if (xLinkQuery!="")\
+			if (xLinkQuery!="") try\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
 				_currentCityObject->setAttribute( "identifier", identifier, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
+			catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<xLinkQuery<<"\""<<std::endl;}\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -458,12 +461,13 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         {\
 			pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
-			if (xLinkQuery!="")\
+			if (xLinkQuery!="") try\
 			{\
 				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
 				_currentCityObject->setAttribute( "identifier", identifier, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
+			catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<xLinkQuery<<"\""<<std::endl;}\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -630,7 +634,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			if ( pos != std::string::npos )
 			{
 				std::string nspace = name.substr( 0, pos );
-				ADEHandler* tHandler = ADEHandlerFactory::createInstance(nspace);
+				ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 				if (tHandler)
 				{
 					tHandler->setGMLHandler(this);
@@ -1063,7 +1067,7 @@ void CityGMLHandler::endElement( const std::string& name )
 			if ( pos != std::string::npos )
 			{
 				std::string nspace = name.substr( 0, pos );
-				ADEHandler* tHandler = ADEHandlerFactory::createInstance(nspace);
+				ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 				if (tHandler)
 				{
 					tHandler->setGMLHandler(this);
