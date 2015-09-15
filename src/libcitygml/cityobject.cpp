@@ -102,6 +102,12 @@ std::vector< CityObject* >& CityObject::getChildren( void )
     return _children;
 }
 ////////////////////////////////////////////////////////////////////////////////
+//remove all the children of the CityObject (without deleting them)
+void CityObject::clearChildren()
+{
+	_children.clear();
+}
+////////////////////////////////////////////////////////////////////////////////
 void CityObject::addGeometry(Geometry* geom)
 {
     _geometries.push_back(geom);

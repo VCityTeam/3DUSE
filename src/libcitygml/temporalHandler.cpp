@@ -7,12 +7,20 @@
 
 TempHandler::TempHandler(void):ADEHandler()
 {
-	p=0;
+	_currentTransaction=nullptr;
+	_currentTransition=nullptr;
+	_currentVersion=nullptr;
+	_inFromTags=false;
+	_inToTags=false;
 }
 
 TempHandler::TempHandler(citygml::CityGMLHandler* gHandler):ADEHandler(gHandler)
 {
-	p=0;
+	_currentTransaction=nullptr;
+	_currentTransition=nullptr;
+	_currentVersion=nullptr;
+	_inFromTags=false;
+	_inToTags=false;
 }
 
 //Adding to ADE register (template in ADE.hpp)
@@ -28,6 +36,12 @@ std::string TempHandler::getAttribute( void* attributes, const std::string& attn
 }
 //std::string TempHandler::getGmlIdAttribute( void* attributes ) { return getAttribute( attributes, "gml:id", "" ); }
 
+std::string TempHandler::removeNamespace(std::string name)
+{
+	size_t pos = name.find_first_of( ":" );
+	return name.substr( pos + 1 );
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Parsing routines
@@ -35,6 +49,48 @@ std::string TempHandler::getAttribute( void* attributes, const std::string& attn
 void TempHandler::startElement(std::string name, void* attributes)
 {
 
+	name = removeNamespace(name);
+
+	if (name=="Version")
+	{
+		_currentVersion = new temporal::Version(getGmlIdAttribute( attributes ));
+		_versions.push_back(_currentVersion);
+		if(_inFromTags) _currentTransition->setFrom(_currentVersion);
+		if(_inToTags) _currentTransition->setTo(_currentVersion);
+	}
+	if (name == "VersionMember")
+	{
+		pushCityObject( new citygml::GenericCityObject( getGmlIdAttribute( attributes ) ) );
+		pushObject( *getCurrentCityObject() );
+	}
+	if (name == "VersionTransition")
+	{
+		_currentTransition = new temporal::VersionTransition(getGmlIdAttribute( attributes ));
+		_transitions.push_back(_currentTransition);
+	}
+	if (name=="from")
+	{
+		_inFromTags = true;
+	}
+	if (name=="to")
+	{
+		_inToTags = true;
+	}
+	if (name=="Transaction")
+	{
+		temporal::Transaction* nTransaction = new temporal::Transaction(getGmlIdAttribute( attributes ));
+		_currentTransaction = nTransaction;
+	}
+	if (name == "oldFeature")
+	{
+		pushCityObject( new citygml::GenericCityObject( getGmlIdAttribute( attributes ) ) );
+		pushObject( *getCurrentCityObject() );
+	}
+	if (name == "newFeature")
+	{
+		pushCityObject( new citygml::GenericCityObject( getGmlIdAttribute( attributes ) ) );
+		pushObject( *getCurrentCityObject() );
+	}
 #if 0
 #define MANAGE_OBJECT( _t_ )\
 	if(name.find(#_t_)!=std::string::npos){\
@@ -195,6 +251,105 @@ void TempHandler::startElement(std::string name, void* attributes)
 /******************************************************/
 void TempHandler::endElement(std::string name)
 {
+
+	name = removeNamespace(name);
+
+	if (name=="validFrom")
+	{
+		citygml::Object** currentObject = getCurrentObject();
+		if ( *currentObject ) (*currentObject)->setAttribute( "validFrom", getBuff()->str(), false );
+	}
+	if (name=="validTo")
+	{
+		citygml::Object** currentObject = getCurrentObject();
+		if ( *currentObject ) (*currentObject)->setAttribute( "validTo", getBuff()->str(), false );
+	}
+
+	if (name=="Version")
+	{
+		_currentVersion = nullptr;
+	}
+	if (name == "VersionTransition")
+	{
+		_currentTransition = nullptr;
+	}
+	if (name=="Transaction")
+	{
+		if (_currentTransition)
+		{
+			_currentTransition->addTransaction(_currentTransaction);
+		}
+		_currentTransaction = nullptr;
+	}
+	if (name == "versionMember")
+	{
+		citygml::CityObject* tempCObj = *getCurrentCityObject();
+		citygml::CityObject* child = tempCObj->getChild(0);
+		_currentVersion->addMember(child);
+		tempCObj->clearChildren();
+		popCityObject();
+		popObject();
+		delete tempCObj;
+	}
+	if (name=="tag")
+	{
+		_currentVersion->addTag(getBuff()->str());
+	}
+	if (name=="reason")
+	{
+		_currentTransition->setReason(getBuff()->str());
+	}
+	if (name=="clonePredecessor")
+	{
+		std::string buff = getBuff()->str();
+		_currentTransition->setClone(buff=="true");
+	}
+	if (name=="from")
+	{
+		_inFromTags = false;
+	}
+	if (name=="to")
+	{
+		_inToTags = false;
+	}
+	if (name=="type")
+	{
+		std::string buff = getBuff()->str();
+		if (_currentTransaction)// we are in Transaction
+		{
+			if (buff=="insert") _currentTransaction->setType(temporal::TransactionValue::INSERT);
+			if (buff=="delete") _currentTransaction->setType(temporal::TransactionValue::DEL);
+			if (buff=="replace") _currentTransaction->setType(temporal::TransactionValue::REPLACE);
+		}
+		else // we are in VersionTransition
+		{
+			if (buff=="planned") _currentTransition->setType(temporal::TransitionValue::PLANNED);
+			if (buff=="realized") _currentTransition->setType(temporal::TransitionValue::REALIZED);
+			if (buff=="historical succession") _currentTransition->setType(temporal::TransitionValue::HISTORICAL_SUCCESSION);
+			if (buff=="fork") _currentTransition->setType(temporal::TransitionValue::FORK);
+			if (buff=="merge") _currentTransition->setType(temporal::TransitionValue::MERGE);
+		}
+	}
+	if (name == "newFeature")
+	{
+		citygml::CityObject* tempCObj = *getCurrentCityObject();
+		citygml::CityObject* child = tempCObj->getChild(0);
+		_currentTransaction->setNewFeature(child);
+		tempCObj->clearChildren();
+		popCityObject();
+		popObject();
+		delete tempCObj;
+	}
+	if (name == "oldFeature")
+	{
+		citygml::CityObject* tempCObj = *getCurrentCityObject();
+		citygml::CityObject* child = tempCObj->getChild(0);
+		_currentTransaction->setOldFeature(child);
+		tempCObj->clearChildren();
+		popCityObject();
+		popObject();
+		delete tempCObj;
+	}
 #if 0
 	std::stringstream buffer;
 	buffer << trim( getBuff()->str() );
@@ -270,14 +425,4 @@ void TempHandler::endElement(std::string name)
 		*currentGeometryType = citygml::GT_Unknown;
 	}
 #endif
-	if (name=="temp:validFrom")
-	{
-		citygml::Object** currentObject = getCurrentObject();
-		if ( *currentObject ) (*currentObject)->setAttribute( "validFrom", getBuff()->str(), false );
-	}
-	if (name=="temp:validTo")
-	{
-		citygml::Object** currentObject = getCurrentObject();
-		if ( *currentObject ) (*currentObject)->setAttribute( "validTo", getBuff()->str(), false );
-	}
 }

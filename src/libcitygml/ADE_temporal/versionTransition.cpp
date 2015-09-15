@@ -13,4 +13,34 @@ VersionTransition::~VersionTransition()
 	}
 }
 
+void VersionTransition::setReason(std::string att)
+{
+	_reason = att;
+}
+
+void VersionTransition::setClone(bool att)
+{
+	_clonePredecessor = att;
+}
+
+void VersionTransition::setType(TransitionValue att)
+{
+	_type = att;
+}
+
+void VersionTransition::setFrom(Version* version)
+{
+	_from = version;
+}
+
+void VersionTransition::setTo(Version* version)
+{
+	_to = version;
+}
+
+void VersionTransition::addTransaction(Transaction* transaction)
+{
+	_transactions.push_back(transaction);
+}
+
 } //namespace temporal

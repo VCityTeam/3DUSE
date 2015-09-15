@@ -110,6 +110,9 @@ public:
 
     std::vector< CityObject* >& getChildren( void );
 
+	//remove all the children of the CityObject (without deleting them)
+	void clearChildren();
+
     void addGeometry(Geometry* geom);
 
     void computeEnvelope();

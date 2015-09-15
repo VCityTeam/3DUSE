@@ -2,17 +2,18 @@
 #define _VERSION_TRANSITION_HPP_
 
 #include "transaction.hpp"
+#include "version.hpp"
 
 namespace temporal
 {
 
 enum TransitionValue
 {
-	planned,
-	realized,
-	historical_succession,
-	fork,
-	merge
+	PLANNED,
+	REALIZED,
+	HISTORICAL_SUCCESSION,
+	FORK,
+	MERGE
 };
 
 class VersionTransition : public citygml::Object
@@ -21,14 +22,23 @@ public:
 	VersionTransition (const std::string& id);
 	virtual ~VersionTransition() override;
 
+	void setReason(std::string);
+	void setClone(bool);
+	void setType(TransitionValue);
+	void setFrom(Version*);
+	void setTo(Version*);
+
+	void addTransaction(Transaction*);
+	std::vector<Transaction*>* getTransactions();
+
 private:
 
 	bool _clonePredecessor;
 	std::string _reason;
 	TransitionValue _type;
 
-	citygml::CityObject* _from;
-	citygml::CityObject* _to;
+	Version* _from;
+	Version* _to;
 
 	std::vector<Transaction*> _transactions;
 };

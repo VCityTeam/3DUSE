@@ -16,5 +16,9 @@ const std::vector<citygml::CityObject*>& Version::getVersionMembers()
 	return _versionMembers;
 }
 
+void Version::addMember(citygml::CityObject* object)
+{
+	_versionMembers.push_back(object);
+}
 
 } //namespace temporal

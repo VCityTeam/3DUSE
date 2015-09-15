@@ -8,15 +8,18 @@ namespace temporal
 
 enum TransactionValue
 {
-	insert,
-	del,
-	replace
+	INSERT,
+	DEL,
+	REPLACE
 };
 
-class Transaction
+class Transaction: public citygml::Object
 {
 public:
-	Transaction();
+	Transaction(const std::string& id);
+	void setType(TransactionValue);
+	void setOldFeature(citygml::CityObject*);
+	void setNewFeature(citygml::CityObject*);
 private:
 	TransactionValue _type;
 	citygml::CityObject* _newFeature;

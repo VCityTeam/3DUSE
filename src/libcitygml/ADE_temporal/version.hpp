@@ -19,6 +19,8 @@ public :
 
 	const std::vector<citygml::CityObject*>& getVersionMembers();
 
+	void addMember(citygml::CityObject*);
+
 private :
 	std::vector<std::string> _tags;
 	std::vector<citygml::CityObject*> _versionMembers;
