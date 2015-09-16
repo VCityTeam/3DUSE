@@ -473,7 +473,7 @@ IF(APPLE)
 ENDIF(APPLE)
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${VCITY_GUI_LIB})
+target_link_libraries (${PRJ_NAME} -lpthread ${VCITY_GUI_LIB})
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )

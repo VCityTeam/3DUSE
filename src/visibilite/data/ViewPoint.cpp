@@ -30,7 +30,8 @@ std::pair<int, int> ViewPoint::GetCoord(Position p)
 		return std::make_pair(-1,-1);
 		break;
 	default:
-		throw std::exception("Mega Error, pos not in enum range !");
+		std::cout << "Error : pos not in enum range !" << std::endl;
+		throw std::exception();
 		break;
 	}
 }
