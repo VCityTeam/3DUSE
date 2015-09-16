@@ -24,7 +24,7 @@ std::vector<TVec3d>  GetLRingWidthHeight(LRing poly, double zmax)
 
 	for(unsigned int i = 0; i < poly.size(); i++)
 	{
-		result[i] = TVec3d(poly[i].x,poly[i].y,zmax);
+		result[i] = TVec3d(poly[i].x,poly[i].y,poly[i].z + zmax);
 	}
 
 	return result;
@@ -149,7 +149,7 @@ LRing PutLRingOnTerrain(LRing ring)
 		{
 			std::string path = "C:/VCityData/Tile/" + ptAABB[i].name;
 			//Get the triangle list
-			trianglesTemp = BuildTriangleList(path,nullptr,citygml::CityObjectsType::COT_TINRelief);
+			trianglesTemp = BuildTriangleList(path,citygml::CityObjectsType::COT_TINRelief);
 			tileTriangles.insert(std::make_pair(ptAABB[i].name,trianglesTemp));
 		}
 
@@ -224,7 +224,7 @@ void ShpExtruction()
 						H = poFeature->GetFieldAsDouble("HAUTEUR");
 					if(poFeature->GetFieldIndex("Z_MIN") != -1)
 						Zmin = poFeature->GetFieldAsDouble("Z_MIN");
-					double Zmax = Zmin + H;
+					double Zmax = H;
 					Zmax = Zmax > 5000 ? ptsSol.front().z + 50 : Zmax;
 
 

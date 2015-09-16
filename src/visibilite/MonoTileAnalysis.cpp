@@ -61,13 +61,9 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>
 	for(unsigned int i = 0; i < paths.size(); i++)
 	{
 		//Get the triangle list
-		TriangleList* trianglesTemp = BuildTriangleList(paths[i],result[0],citygml::CityObjectsType::COT_Building);
+		TriangleList* trianglesTemp = BuildTriangleList(paths[i],citygml::CityObjectsType::COT_Building);
 		triangles.push_back(trianglesTemp);
 	}
-
-	//Copy the object to color to have an harmonized color
-	for(unsigned int i = 1; i < cams.size(); i++)
-		result[i]->objectToColor = result[0]->objectToColor;
 
 	//For each tiles perform raytracing on it
 	for(unsigned int i = 0; i < triangles.size(); i++)

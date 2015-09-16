@@ -2,6 +2,7 @@
 
 #include <QImage>
 #include <QColor>
+#include <qsettings.h>
 
 #include "core/application.hpp"
 #include "export/exportCityGML.hpp"
@@ -11,39 +12,39 @@ ExportParameter ExportParameter::globalParam;
 std::map<citygml::CityObjectsType,std::string> BuildToStringMap()
 {
 	std::map<citygml::CityObjectsType,std::string> ToString;
-		ToString.insert(std::make_pair(citygml::COT_GenericCityObject         , "GenericCityObject"));  
-		ToString.insert(std::make_pair(citygml::COT_Building                  , "Building"));  
-		ToString.insert(std::make_pair(citygml::COT_Room                      , "Room"));  
-		ToString.insert(std::make_pair(citygml::COT_BuildingInstallation      , "BuildingInstallation"));  
-		ToString.insert(std::make_pair(citygml::COT_BuildingFurniture         , "BuildingFurniture"));  
-		ToString.insert(std::make_pair(citygml::COT_Door                      , "Door"));  
-		ToString.insert(std::make_pair(citygml::COT_Window                    , "Window"));  
-		ToString.insert(std::make_pair(citygml::COT_CityFurniture             , "CityFurniture"));  
-		ToString.insert(std::make_pair(citygml::COT_Track                     , "Track"));  
-		ToString.insert(std::make_pair(citygml::COT_Road                      , "Road"));  
-		ToString.insert(std::make_pair(citygml::COT_Railway                   , "Railway"));  
-		ToString.insert(std::make_pair(citygml::COT_Square                    , "Square"));  
-		ToString.insert(std::make_pair(citygml::COT_PlantCover                , "PlantCover"));  
-		ToString.insert(std::make_pair(citygml::COT_SolitaryVegetationObject  , "SolidaryVegetationObject"));  
-		ToString.insert(std::make_pair(citygml::COT_WaterBody                 , "WaterBody"));  
-		ToString.insert(std::make_pair(citygml::COT_TINRelief                 , "TINRelief"));  
-		ToString.insert(std::make_pair(citygml::COT_LandUse                   , "LandUse"));  
-		ToString.insert(std::make_pair(citygml::COT_Tunnel					, "Tunnel"));	
-		ToString.insert(std::make_pair(citygml::COT_Bridge					, "Bridge"));	
-		ToString.insert(std::make_pair(citygml::COT_BridgeConstructionElement	, "BridgeConstructionElement"));
-		ToString.insert(std::make_pair(citygml::COT_BridgeInstallation		, "BridgeInstallation"));	
-		ToString.insert(std::make_pair(citygml::COT_BridgePart                , "BridgePart"));  
-		ToString.insert(std::make_pair(citygml::COT_BuildingPart       		, "BuildingPart"));
-		ToString.insert(std::make_pair(citygml::COT_WallSurface               , "WallSurface"));  
-		ToString.insert(std::make_pair(citygml::COT_RoofSurface               , "RoofSurface"));  
-		ToString.insert(std::make_pair(citygml::COT_GroundSurface             , "GroundSurface"));  
-		ToString.insert(std::make_pair(citygml::COT_ClosureSurface            , "ClosureSurface"));  
-		ToString.insert(std::make_pair(citygml::COT_FloorSurface              , "FloorSurface"));  
-		ToString.insert(std::make_pair(citygml::COT_InteriorWallSurface       , "InteriorWallSurface"));  
-		ToString.insert(std::make_pair(citygml::COT_CeilingSurface        	, "CeilingSurface"));
-		ToString.insert(std::make_pair(citygml::COT_All                       , "All"));
+	ToString.insert(std::make_pair(citygml::COT_GenericCityObject         , "GenericCityObject"));  
+	ToString.insert(std::make_pair(citygml::COT_Building                  , "Building"));  
+	ToString.insert(std::make_pair(citygml::COT_Room                      , "Room"));  
+	ToString.insert(std::make_pair(citygml::COT_BuildingInstallation      , "BuildingInstallation"));  
+	ToString.insert(std::make_pair(citygml::COT_BuildingFurniture         , "BuildingFurniture"));  
+	ToString.insert(std::make_pair(citygml::COT_Door                      , "Door"));  
+	ToString.insert(std::make_pair(citygml::COT_Window                    , "Window"));  
+	ToString.insert(std::make_pair(citygml::COT_CityFurniture             , "CityFurniture"));  
+	ToString.insert(std::make_pair(citygml::COT_Track                     , "Track"));  
+	ToString.insert(std::make_pair(citygml::COT_Road                      , "Road"));  
+	ToString.insert(std::make_pair(citygml::COT_Railway                   , "Railway"));  
+	ToString.insert(std::make_pair(citygml::COT_Square                    , "Square"));  
+	ToString.insert(std::make_pair(citygml::COT_PlantCover                , "PlantCover"));  
+	ToString.insert(std::make_pair(citygml::COT_SolitaryVegetationObject  , "SolidaryVegetationObject"));  
+	ToString.insert(std::make_pair(citygml::COT_WaterBody                 , "WaterBody"));  
+	ToString.insert(std::make_pair(citygml::COT_TINRelief                 , "TINRelief"));  
+	ToString.insert(std::make_pair(citygml::COT_LandUse                   , "LandUse"));  
+	ToString.insert(std::make_pair(citygml::COT_Tunnel					, "Tunnel"));	
+	ToString.insert(std::make_pair(citygml::COT_Bridge					, "Bridge"));	
+	ToString.insert(std::make_pair(citygml::COT_BridgeConstructionElement	, "BridgeConstructionElement"));
+	ToString.insert(std::make_pair(citygml::COT_BridgeInstallation		, "BridgeInstallation"));	
+	ToString.insert(std::make_pair(citygml::COT_BridgePart                , "BridgePart"));  
+	ToString.insert(std::make_pair(citygml::COT_BuildingPart       		, "BuildingPart"));
+	ToString.insert(std::make_pair(citygml::COT_WallSurface               , "WallSurface"));  
+	ToString.insert(std::make_pair(citygml::COT_RoofSurface               , "RoofSurface"));  
+	ToString.insert(std::make_pair(citygml::COT_GroundSurface             , "GroundSurface"));  
+	ToString.insert(std::make_pair(citygml::COT_ClosureSurface            , "ClosureSurface"));  
+	ToString.insert(std::make_pair(citygml::COT_FloorSurface              , "FloorSurface"));  
+	ToString.insert(std::make_pair(citygml::COT_InteriorWallSurface       , "InteriorWallSurface"));  
+	ToString.insert(std::make_pair(citygml::COT_CeilingSurface        	, "CeilingSurface"));
+	ToString.insert(std::make_pair(citygml::COT_All                       , "All"));
 
-		return ToString;
+	return ToString;
 }
 
 std::string COTToString(citygml::CityObjectsType type)
@@ -55,6 +56,14 @@ std::string COTToString(citygml::CityObjectsType type)
 
 void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 {
+	struct CityObjectExportData
+	{
+		CityObjectExportData(Triangle t = Triangle(), unsigned int cpt = 0, TVec3d center = TVec3d()) { this->Tri = t; this->Cpt = cpt; this->Center = center; }
+		Triangle Tri;
+		unsigned int Cpt;
+		TVec3d Center;
+	};
+
 	float cpt = 0.0f;
 	float cptMiss = 0.0f;
 	float cptHit = 0.0f;
@@ -67,9 +76,11 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	float cptWater = 0.0f;
 	float cptVegetation = 0.0f;
 
+	std::set<std::string> remarquable = LoadRemarquableBuilding();
+
 	EmblematicView view = ExportParameter::GetGlobalParameter().emblematicView;
 
-	std::map<std::string,std::pair<Triangle,unsigned int>> cptMap;
+	std::map<std::string,CityObjectExportData> cptMap;
 
 	for(unsigned int i = 0; i < viewpoint->width; i++)
 	{
@@ -81,17 +92,19 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 				cptHit++;
 
 				QString tempStr(viewpoint->hits[i][j].triangle.objectId.c_str());
-					std::string temp = tempStr.toStdString();
+				std::string temp = tempStr.toStdString();
 				if(cptMap.find(temp)  == cptMap.end())
-						cptMap.insert(std::make_pair(temp,std::make_pair(viewpoint->hits[i][j].triangle,1)));
-					else
-						cptMap[temp].second++;
+				{
+					cptMap.insert(std::make_pair(temp,CityObjectExportData(viewpoint->hits[i][j].triangle,1,viewpoint->hits[i][j].point)));
+				}
+				else
+				{
+					cptMap[temp].Cpt++;
+					cptMap[temp].Center =  (cptMap[temp].Center + viewpoint->hits[i][j].point)/2;
+				}
 
 				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_Building)
 				{
-					QString tempStr(viewpoint->hits[i][j].triangle.objectId.c_str());
-					std::string temp = tempStr.toStdString();
-					
 					cptAllBuilding++;
 
 					if(viewpoint->hits[i][j].triangle.subObjectType == citygml::COT_RoofSurface)
@@ -100,7 +113,7 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 						cptWall++;
 
 
-					if(tempStr.startsWith("LYON"))//Check to see if this is an important building
+					if(remarquable.find(viewpoint->hits[i][j].triangle.objectId) == remarquable.end())//Check to see if this is an important building
 						cptBuilding++;
 					else
 						cptRemarquable++;
@@ -150,25 +163,25 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	ofs << "ObjectId;Count;Global%;InHit%;ObjectType;SubObjectType" << std::endl;
 	for(auto it = cptMap.begin(); it != cptMap.end(); it++)
 	{
-		if(it->second.first.objectType == citygml::COT_Building)
-			ofs << it->first << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << ";" << COTToString(it->second.first.subObjectType) << std::endl;
-		else if(it->second.first.objectType == citygml::COT_SolitaryVegetationObject)
+		if(it->second.Tri.objectType == citygml::COT_Building)
+			ofs << it->first << ";" << it->second.Cpt << ";" << it->second.Cpt/cpt * 100.f << ";" << it->second.Cpt/cptHit * 100.f  << ";" << COTToString(it->second.Tri.objectType) << ";" << COTToString(it->second.Tri.subObjectType) << std::endl;
+		else if(it->second.Tri.objectType == citygml::COT_SolitaryVegetationObject)
 		{
-			if(it->second.first.objectId.find("_tree") != std::string::npos)
+			if(it->second.Tri.objectId.find("_tree") != std::string::npos)
 			{
-				ofs << it->second.first.objectId.substr(0,it->second.first.objectId.size()-5) << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << ";" << "Alignement Tree" << std::endl;
+				ofs << it->second.Tri.objectId.substr(0,it->second.Tri.objectId.size()-5) << ";" << it->second.Cpt << ";" << it->second.Cpt/cpt * 100.f << ";" << it->second.Cpt/cptHit * 100.f  << ";" << COTToString(it->second.Tri.objectType) << ";" << "Alignement Tree" << std::endl;
 			}
 			else
-				ofs << it->first << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << ";" << "Park" << std::endl;
+				ofs << it->first << ";" << it->second.Cpt << ";" << it->second.Cpt/cpt * 100.f << ";" << it->second.Cpt/cptHit * 100.f  << ";" << COTToString(it->second.Tri.objectType) << ";" << "Park" << std::endl;
 		}
 		else
-			ofs << it->first << ";" << it->second.second << ";" << it->second.second/cpt * 100.f << ";" << it->second.second/cptHit * 100.f  << ";" << COTToString(it->second.first.objectType) << std::endl;
+			ofs << it->first << ";" << it->second.Cpt << ";" << it->second.Cpt/cpt * 100.f << ";" << it->second.Cpt/cptHit * 100.f  << ";" << COTToString(it->second.Tri.objectType) << std::endl;
 	}
 
 
 	ofs.close();
 
-	
+
 
 	ofs.open ("./SkylineOutput/"+filePrefix+"skyline.csv", std::ofstream::out);
 	ofs << viewpoint->skyline.Points.size() << std::endl;
@@ -192,11 +205,247 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 			ofs << p.x << ";" << p.y << ";" << p.z << ";" << h.triangle.objectId << ";"  << COTToString(h.triangle.objectType) << ";" << COTToString(h.triangle.subObjectType) << std::endl;
 	}
 	ofs.close();
+
+	const char * DriverName = "ESRI Shapefile";
+	OGRSFDriver * Driver;
+
+	OGRRegisterAll();
+	Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+	if( Driver == NULL )
+	{
+		printf( "%s driver not available.\n", DriverName );
+		return;
+	}
+
+	remove(std::string("./SkylineOutput/"+filePrefix+"Result.shp").c_str());
+	remove(std::string("./SkylineOutput/"+filePrefix+"CityObjectData.shp").c_str());
+	remove(std::string("./SkylineOutput/"+filePrefix+"SkylinePoints.shp").c_str());
+	remove(std::string("./SkylineOutput/"+filePrefix+"SkylineLine.shp").c_str());
+	remove(std::string("./SkylineOutput/"+filePrefix+"Viewpoint.shp").c_str());
+	OGRDataSource * DS = Driver->CreateDataSource(std::string("./SkylineOutput/"+filePrefix+"Result.shp").c_str(), NULL);
+
+	OGRLayer * LayerViewshed = DS->CreateLayer("Viewshed");
+
+	LayerViewshed->CreateField(new OGRFieldDefn("ObjectId", OGRFieldType::OFTString));
+	LayerViewshed->CreateField(new OGRFieldDefn("ObjectType", OGRFieldType::OFTString));
+	LayerViewshed->CreateField(new OGRFieldDefn("SubObjectT", OGRFieldType::OFTString));
+	LayerViewshed->CreateField(new OGRFieldDefn("X", OGRFieldType::OFTReal));
+	LayerViewshed->CreateField(new OGRFieldDefn("Y", OGRFieldType::OFTReal));
+	LayerViewshed->CreateField(new OGRFieldDefn("Z", OGRFieldType::OFTReal));
+
+
+	for(unsigned int i = 0; i < viewpoint->width; i++)
+	{
+		for(unsigned int j = 0; j < viewpoint->height; j++)
+		{
+			Hit hit = viewpoint->hits[i][j];
+			if(hit.intersect)
+			{
+				OGRFeature * Feature = OGRFeature::CreateFeature(LayerViewshed->GetLayerDefn());
+
+
+				OGRGeometry * Geometry =  new OGRPoint(hit.point.x,hit.point.y,hit.point.z);
+
+				if(hit.triangle.objectType == citygml::COT_SolitaryVegetationObject)
+				{
+					if(hit.triangle.objectId.find("_tree") != std::string::npos)
+					{
+						Feature->SetField("ObjectId",hit.triangle.objectId.substr(0,hit.triangle.objectId.size()-5).c_str());
+						Feature->SetField("ObjectType",COTToString(hit.triangle.objectType).c_str());
+						Feature->SetField("SubObjectT","Alignement Tree");
+					}
+					else
+					{
+						Feature->SetField("ObjectId",hit.triangle.objectId.c_str());
+						Feature->SetField("ObjectType",COTToString(hit.triangle.objectType).c_str());
+						Feature->SetField("SubObjectT","Park");
+					}
+				}
+				else
+				{
+					Feature->SetField("ObjectId",hit.triangle.objectId.c_str());
+					Feature->SetField("ObjectType",COTToString(hit.triangle.objectType).c_str());
+					Feature->SetField("SubObjectT",COTToString(hit.triangle.subObjectType).c_str());
+				}
+
+				Feature->SetField("X",hit.point.x);
+				Feature->SetField("Y",hit.point.y);
+				Feature->SetField("Z",hit.point.z);
+
+				Feature->SetGeometry(Geometry);
+				LayerViewshed->CreateFeature(Feature);
+
+				OGRFeature::DestroyFeature(Feature);
+			}
+		}
+	}
+
+	OGRLayer * LayerCityObjectData = DS->CreateLayer((filePrefix+"CityObjectData").c_str());
+
+	LayerCityObjectData->CreateField(new OGRFieldDefn("ObjectId", OGRFieldType::OFTString));
+	LayerCityObjectData->CreateField(new OGRFieldDefn("ObjectType", OGRFieldType::OFTString));
+	LayerCityObjectData->CreateField(new OGRFieldDefn("SubObjectT", OGRFieldType::OFTString));
+	LayerCityObjectData->CreateField(new OGRFieldDefn("CenterX", OGRFieldType::OFTReal));
+	LayerCityObjectData->CreateField(new OGRFieldDefn("CenterY", OGRFieldType::OFTReal));
+	LayerCityObjectData->CreateField(new OGRFieldDefn("CenterZ", OGRFieldType::OFTReal));
+	LayerCityObjectData->CreateField(new OGRFieldDefn("PercentInV", OGRFieldType::OFTReal));
+
+	for(auto it = cptMap.begin(); it != cptMap.end(); it++)
+	{
+		OGRFeature * Feature = OGRFeature::CreateFeature(LayerCityObjectData->GetLayerDefn());
+
+		OGRGeometry * Geometry =  new OGRPoint(it->second.Center.x,it->second.Center.y,it->second.Center.z);
+
+		if(it->second.Tri.objectType == citygml::COT_SolitaryVegetationObject)
+		{
+			if(it->second.Tri.objectId.find("_tree") != std::string::npos)
+			{
+				Feature->SetField("ObjectId",it->second.Tri.objectId.substr(0,it->second.Tri.objectId.size()-5).c_str());
+				Feature->SetField("ObjectType",COTToString(it->second.Tri.objectType).c_str());
+				Feature->SetField("SubObjectT","Alignement Tree");
+			}
+			else
+			{
+				Feature->SetField("ObjectId",it->second.Tri.objectId.c_str());
+				Feature->SetField("ObjectType",COTToString(it->second.Tri.objectType).c_str());
+				Feature->SetField("SubObjectT","Park");
+			}
+		}
+		else
+		{
+			Feature->SetField("ObjectId",it->second.Tri.objectId.c_str());
+			Feature->SetField("ObjectType",COTToString(it->second.Tri.objectType).c_str());
+			Feature->SetField("SubObjectT",COTToString(it->second.Tri.subObjectType).c_str());
+		}
+
+		Feature->SetField("CenterX",it->second.Center.x);
+		Feature->SetField("CenterY",it->second.Center.y);
+		Feature->SetField("CenterZ",it->second.Center.z);
+		Feature->SetField("PercentInV",(it->second.Cpt/cpt * 100.f));
+
+		Feature->SetGeometry(Geometry);
+		LayerCityObjectData->CreateFeature(Feature);
+
+		OGRFeature::DestroyFeature(Feature);
+	}
+
+	OGRLayer * LayerSkylinePoints = DS->CreateLayer((filePrefix+"SkylinePoints").c_str());
+
+	LayerSkylinePoints->CreateField(new OGRFieldDefn("Order", OGRFieldType::OFTInteger));
+	LayerSkylinePoints->CreateField(new OGRFieldDefn("X", OGRFieldType::OFTReal));
+	LayerSkylinePoints->CreateField(new OGRFieldDefn("Y", OGRFieldType::OFTReal));
+	LayerSkylinePoints->CreateField(new OGRFieldDefn("Z", OGRFieldType::OFTReal));
+	LayerSkylinePoints->CreateField(new OGRFieldDefn("ObjectId", OGRFieldType::OFTString));
+	LayerSkylinePoints->CreateField(new OGRFieldDefn("ObjectType", OGRFieldType::OFTString));
+	LayerSkylinePoints->CreateField(new OGRFieldDefn("SubObjectT", OGRFieldType::OFTString));
+
+	int cptCount = 0;
+	for(TVec3d p : viewpoint->skyline.Points)
+	{
+		OGRGeometry * Geometry =  new OGRPoint(p.x,p.y,p.z);
+
+		OGRFeature * Feature = OGRFeature::CreateFeature(LayerSkylinePoints->GetLayerDefn());
+
+		Feature->SetField("Order",cptCount);
+		Feature->SetField("X",p.x);
+		Feature->SetField("Y",p.y);
+		Feature->SetField("Z",p.z);
+
+		Hit hit = viewpoint->hits[viewpoint->skyline.FragCoords[cptCount].first][viewpoint->skyline.FragCoords[cptCount].second];
+
+		if(hit.triangle.objectType == citygml::COT_SolitaryVegetationObject)
+		{
+			if(hit.triangle.objectId.find("_tree") != std::string::npos)
+			{
+				Feature->SetField("ObjectId",hit.triangle.objectId.substr(0,hit.triangle.objectId.size()-5).c_str());
+				Feature->SetField("ObjectType",COTToString(hit.triangle.objectType).c_str());
+				Feature->SetField("SubObjectT","Alignement Tree");
+			}
+			else
+			{
+				Feature->SetField("ObjectId",hit.triangle.objectId.c_str());
+				Feature->SetField("ObjectType",COTToString(hit.triangle.objectType).c_str());
+				Feature->SetField("SubObjectT","Park");
+			}
+		}
+		else
+		{
+			Feature->SetField("ObjectId",hit.triangle.objectId.c_str());
+			Feature->SetField("ObjectType",COTToString(hit.triangle.objectType).c_str());
+			Feature->SetField("SubObjectT",COTToString(hit.triangle.subObjectType).c_str());
+		}
+
+
+		Feature->SetGeometry(Geometry);
+		LayerSkylinePoints->CreateFeature(Feature);
+
+		cptCount++;
+
+		OGRFeature::DestroyFeature(Feature);
+	}
+
+	OGRLayer * LayerSkylineLine = DS->CreateLayer((filePrefix+"SkylineLine").c_str());
+
+	OGRLineString* skylineLine = new OGRLineString;
+
+	for(TVec3d p : viewpoint->skyline.Points)
+	{
+		skylineLine->addPoint(p.x,p.y,p.z);
+	}
+
+	viewpoint->skyline.ComputeData();
+
+	{
+		LayerSkylineLine->CreateField(new OGRFieldDefn("Id", OGRFieldType::OFTString));
+		LayerSkylineLine->CreateField(new OGRFieldDefn("MinRadius", OGRFieldType::OFTReal));
+		LayerSkylineLine->CreateField(new OGRFieldDefn("MaxRadius", OGRFieldType::OFTReal));
+		LayerSkylineLine->CreateField(new OGRFieldDefn("AverageRad", OGRFieldType::OFTReal));
+		LayerSkylineLine->CreateField(new OGRFieldDefn("StdDevRadi", OGRFieldType::OFTReal));
+
+		OGRFeature * Feature = OGRFeature::CreateFeature(LayerSkylineLine->GetLayerDefn());
+
+		Feature->SetField("Id","Skyline");
+		Feature->SetField("MinRadius",viewpoint->skyline.RadiusMin);
+		Feature->SetField("MaxRadius",viewpoint->skyline.RadiusMax);
+		Feature->SetField("AverageRad",viewpoint->skyline.Average);
+		Feature->SetField("StdDevRadi",viewpoint->skyline.StandardDeviation);
+
+		Feature->SetGeometry(skylineLine);
+		LayerSkylineLine->CreateFeature(Feature);
+
+		OGRFeature::DestroyFeature(Feature);
+	}
+
+	OGRLayer * LayerViewpoint = DS->CreateLayer((filePrefix+"Viewpoint").c_str());
+
+	LayerViewpoint->CreateField(new OGRFieldDefn("Id", OGRFieldType::OFTString));
+	LayerViewpoint->CreateField(new OGRFieldDefn("X", OGRFieldType::OFTReal));
+	LayerViewpoint->CreateField(new OGRFieldDefn("Y", OGRFieldType::OFTReal));
+	LayerViewpoint->CreateField(new OGRFieldDefn("Z", OGRFieldType::OFTReal));
+
+	{
+		OGRGeometry * Geometry =  new OGRPoint(viewpoint->position.x,viewpoint->position.y,viewpoint->position.z);
+
+		OGRFeature * Feature = OGRFeature::CreateFeature(LayerViewpoint->GetLayerDefn());
+
+		Feature->SetField("Id","Viewpoint");
+		Feature->SetField("X",viewpoint->position.x);
+		Feature->SetField("Y",viewpoint->position.y);
+		Feature->SetField("Z",viewpoint->position.z);
+
+
+		Feature->SetGeometry(Geometry);
+		LayerViewpoint->CreateFeature(Feature);
+
+		OGRFeature::DestroyFeature(Feature);
+	}
+
+	OGRDataSource::DestroyDataSource(DS);
 }
 
 TVec3d SkyShadeBlue(TVec3d d, TVec3d light)
 {
-  	// light direction
+	// light direction
 	TVec3d lig = light;
 	float sun = (lig.dot(d)+1.0)/2.0;
 	TVec3d color = TVec3d(0.35,0.45,0.75)*(0.75-0.5*d[2]);
@@ -275,54 +524,13 @@ void ExportImageZBuffer(ViewPoint* viewpoint, std::string filePrefix)
 	imageZBuffer.save(std::string("./SkylineOutput/"+filePrefix+"raytraceZBuffer.png").c_str());
 }
 
-void ExportImageObjectColor(ViewPoint* viewpoint, std::string filePrefix)
-{
-	QImage imageObject(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);//Each city object got a color
-	TVec3d light1 = viewpoint->lightDir;
-	for(unsigned int i = 0; i < viewpoint->width; i++)
-	{
-		for(unsigned int j = 0; j < viewpoint->height; j++)
-		{
-			if(!viewpoint->hits[i][j].intersect)
-			{
-				TVec3d col = SkyShadeBlue(viewpoint->hits[i][j].ray.dir,viewpoint->lightDir);
-				imageObject.setPixel(i,j,qRgba(col.r*255,col.g*255,col.b*255,255));
-			}
-			else 
-			{
-				//Get its normal
-				TVec3d normal = viewpoint->hits[i][j].triangle.GetNormal();
-
-				float sundot = (normal.dot(light1) + 1.0)/2.0;
-				if(sundot < 0.2)
-				{
-					sundot = (normal.dot(-light1) + 1.0)/2.0;
-				}
-
-				if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_TINRelief)
-					imageObject.setPixel(i,j,qRgba(78*sundot,61*sundot, 40*sundot,255));
-				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_WaterBody)
-					imageObject.setPixel(i,j,qRgba(0*sundot,0*sundot, 255*sundot,255));
-				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_SolitaryVegetationObject)
-					imageObject.setPixel(i,j,qRgba(0*sundot,255*sundot,0*sundot,255));
-				else
-				{
-					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle.objectId];
-					imageObject.setPixel(i,j,qRgba(color.red()*sundot,color.green()*sundot,color.blue()*sundot,255));//Set the color for the building
-				}
-			}
-
-		}
-	}
-	//Images needs to be mirrored because of qt's way of storing them
-	imageObject = imageObject.mirrored(false,true);
-	imageObject.save(std::string("./SkylineOutput/"+filePrefix+"raytraceObject.png").c_str());
-}
-
 void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefix)
 {
 	QImage imageBuilding(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);//Important build in color, the rest in white
 	TVec3d light1 = viewpoint->lightDir;
+	
+	std::set<std::string> remarquable = LoadRemarquableBuilding();
+
 	for(unsigned int i = 0; i < viewpoint->width; i++)
 	{
 		for(unsigned int j = 0; j < viewpoint->height; j++)
@@ -351,10 +559,9 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 					imageBuilding.setPixel(i,j,qRgba(0*sundot,255*sundot,0*sundot,255));
 				else
 				{
-					QColor color = viewpoint->objectToColor[viewpoint->hits[i][j].triangle.objectId];
+					QColor color(255,189,50);//viewpoint->objectToColor[viewpoint->hits[i][j].triangle.objectId];
 
-					QString tempStr(viewpoint->hits[i][j].triangle.objectId.c_str());
-					if(tempStr.startsWith("LYON"))//Check to see if this is an important building
+					if(remarquable.find(viewpoint->hits[i][j].triangle.objectId) == remarquable.end())//Check to see if this is an important building
 						imageBuilding.setPixel(i,j,qRgba(205*sundot,183*sundot,158*sundot,255));
 					else
 						imageBuilding.setPixel(i,j,qRgba(color.red()*sundot,color.green()*sundot,color.blue()*sundot,255));
@@ -404,7 +611,6 @@ void ExportImages(ViewPoint* viewpoint, std::string filePrefix)
 
 	ExportImageRoofWall(viewpoint,filePrefix);
 	ExportImageZBuffer(viewpoint,filePrefix);
-	ExportImageObjectColor(viewpoint,filePrefix);
 	ExportImageHighlightRemarquable(viewpoint,filePrefix);
 	ExportImageSkyline(viewpoint,filePrefix);
 
@@ -636,4 +842,22 @@ void ProcessSkylineVolume()
 	}
 
 	std::cout << "Done." << std::endl;
+}
+
+std::set<std::string> LoadRemarquableBuilding()
+{
+	std::set<std::string> result;
+	char line[512];
+
+	QSettings settings("liris", "virtualcity");
+    QString tiledir = settings.value("tiledir").toString();
+
+	std::ifstream ifs(tiledir.toStdString()+"/Remarquable.txt",std::ifstream::in);
+	while(ifs.good())
+	{
+		ifs.getline(line,512);
+		result.insert(std::string(line));
+	}
+
+	return result;
 }

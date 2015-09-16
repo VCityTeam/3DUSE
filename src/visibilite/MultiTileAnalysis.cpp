@@ -136,12 +136,19 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 
 		std::cout << "Temp collection completed" << std::endl;
 
+		if(raysTemp.rays.size() == 0)
+		{
+			std::cout << "Skipping." << std::endl;
+			raysTemp.rays.clear();
+			continue;
+		}
+
 		//Load triangles and perform analysis
 		std::string path = dirTile + tileName;
 
 		//Get the triangle list
 		TriangleList* trianglesTemp;
-		trianglesTemp = BuildTriangleList(path,viewpoint,objectType);
+		trianglesTemp = BuildTriangleList(path,objectType);
 
 		RayTracing(trianglesTemp,raysTemp.rays);
 
@@ -289,23 +296,17 @@ std::vector<ViewPoint*> MultiTileMultiViewpointAnalyse(std::string dirTile,osg::
 	osg::Vec3d up;
 	cam->getViewMatrixAsLookAt(pos,target,up);
 
-	osg::Vec3d dir = target - pos;
-	dir.z() = 0;
-	dir.normalize();
-	target = pos + dir;
 	up = osg::Vec3d(0,0,1);
-	cam->setViewMatrixAsLookAt(pos,target,up);
 
 	std::vector<ViewPoint*> results;
 
 	for(unsigned int i = 0; i < viewpoints.size(); i++)
 	{
-		osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
-		results.push_back(MultiTileBasicAnalyse(dirTile,mycam, std::to_string(i)+"_").front());
-
 		pos = osg::Vec3d(viewpoints[i].first.x,viewpoints[i].first.y,viewpoints[i].first.z);
 		target = osg::Vec3d(viewpoints[i].second.x,viewpoints[i].second.y,viewpoints[i].second.z);
 		cam->setViewMatrixAsLookAt(pos,target,up);
+
+		results.push_back(MultiTileBasicAnalyse(dirTile,cam, std::to_string(i)+"_").front());
 	}
 
 	return results;

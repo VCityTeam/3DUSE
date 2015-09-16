@@ -35,6 +35,7 @@ private slots:
 	void GetCamParam();
 	void SetCamParam();
 	void BasicMultiTile();
+	void BatchMultiTile();
 	void BasicMonoTile();
 	void BasicPanorama();
 	void CascadeMultiTile();
@@ -46,6 +47,8 @@ private slots:
 	void ToolShpExtrusion();
 	void ToolFlatRoof();
 	void ToolAABBReconstruction();
+	void CopyPointToBatch();
+	void GetTopPolygon();
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGEDITTILE_HPP

@@ -63,7 +63,6 @@ struct AABBCollection
 /**
 *	@brief Build bounding box for a set of tile, bounding box are saved on disk, not returned
 *	@param dir Directory where citygml are located
-*	@param offset Offset of the geometry in 3Duse
 */
 void BuildAABB(std::string dir);
 

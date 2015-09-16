@@ -3,8 +3,6 @@
 
 #include "gui/osg/osgScene.hpp"
 
-struct ViewPoint;
-
 /**
 *	@brief A triangle create from a citygml polygon
 */
@@ -23,10 +21,6 @@ struct Triangle
 		this->c = c;
 		objectType = citygml::CityObjectsType::COT_All;
 		subObjectType = citygml::CityObjectsType::COT_All;
-		/*polygon = nullptr;
-		geometry = nullptr;
-		subObject = nullptr;
-		object = nullptr;*/
 	}
 
 	TVec3d GetNormal()
@@ -81,6 +75,6 @@ struct TriangleList
 *	@param objectType The type of cityobject to load
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList* BuildTriangleList(std::string tilefilename, ViewPoint* viewpoint, citygml::CityObjectsType objectType);
+TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType);
 
 #endif

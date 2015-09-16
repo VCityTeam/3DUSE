@@ -15,13 +15,14 @@
 #include <QSettings>
 #include <QFileDialog>
 #include <osg/MatrixTransform>
+#include <queue>
 
 ////////////////////////////////////////////////////////////////////////////////
 DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
-    QDialog(parent),
-    ui(new Ui::DialogVisibilite)
+	QDialog(parent),
+	ui(new Ui::DialogVisibilite)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 
 	ui->dirLE->setEnabled(false);
 	ui->resYSB->setVisible(false);
@@ -36,9 +37,17 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 	connect(ui->cascadeB,SIGNAL(clicked()),this,SLOT(CascadeMonoTile()));
 	connect(ui->multitileCascadeB,SIGNAL(clicked()),this,SLOT(CascadeMultiTile()));
 	connect(ui->resetCatB,SIGNAL(clicked()),this,SLOT(ResetCategory()));
+	connect(ui->addToBatchB,SIGNAL(clicked()),this,SLOT(CopyPointToBatch()));
+	connect(ui->alignementTreeB,SIGNAL(clicked()),this,SLOT(ToolAlignementTree()));
+	connect(ui->lidarToGMLB,SIGNAL(clicked()),this,SLOT(ToolLidarToGML()));
+	connect(ui->flatRoofB,SIGNAL(clicked()),this,SLOT(ToolFlatRoof()));
+	connect(ui->extrudeShpB,SIGNAL(clicked()),this,SLOT(ToolShpExtrusion()));
+	connect(ui->rebuildBoxB,SIGNAL(clicked()),this,SLOT(ToolAABBReconstruction()));
+	connect(ui->exportTopB,SIGNAL(clicked()),this,SLOT(GetTopPolygon()));
+	connect(ui->batchMTB,SIGNAL(clicked()),this,SLOT(BatchMultiTile()));
 
 	QSettings settings("liris", "virtualcity");
-    QString tiledir = settings.value("tiledir").toString();
+	QString tiledir = settings.value("tiledir").toString();
 	ui->dirLE->setText(tiledir);
 
 	QString caterogy = settings.value("capturecategory").toString();
@@ -46,6 +55,14 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 
 	double deltaDistance = settings.value("capturedeltadistance").toDouble();
 	ui->deltaDistanceSB->setValue(deltaDistance);
+
+	QDir outputDir("./SkylineOutput/");
+	if(!outputDir.exists("./SkylineOutput/"))
+		outputDir.mkpath(outputDir.absolutePath());
+
+	QDir extrudDir("./ShpExtruded/");
+	if(!extrudDir.exists("./ShpExtruded/"))
+		extrudDir.mkpath(extrudDir.absolutePath());
 
 	this->mainwindow = mainwindow;
 }
@@ -55,7 +72,7 @@ void DialogVisibilite::DirButtonClicked()
 {
 	QString dirpath = QFileDialog::getExistingDirectory(nullptr,"Get Tile Directory");
 	QSettings settings("liris", "virtualcity");
-    settings.setValue("tiledir",dirpath);
+	settings.setValue("tiledir",dirpath);
 	ui->dirLE->setText(dirpath);
 }
 
@@ -88,14 +105,20 @@ void DialogVisibilite::SetCamParam()
 	osg::Vec3d target;
 	osg::Vec3d up;
 
+
 	cam->getViewMatrixAsLookAt(pos,target,up);
 
 	pos = osg::Vec3(ui->posXSB->value()-offset.x,ui->posYSB->value()-offset.y,ui->posZSB->value()-offset.z);
-	target = pos + osg::Vec3(ui->dirXSB->value(),ui->dirYSB->value(),ui->dirZSB->value());
 	
+	osg::Vec3d dir = osg::Vec3(ui->dirXSB->value(),ui->dirYSB->value(),ui->dirZSB->value());
+
+	osg::Vec3d right = dir ^ osg::Vec3d(0.0,0.0,1.0);
+	up = right ^ dir;
+
+	target = pos + dir;
 
 	cam->setViewMatrixAsLookAt(pos,target,up);
-	
+
 	osg::Matrixd mat = cam->getViewMatrix();
 
 	mainwindow->m_osgView->m_osgView->getCameraManipulator()->setByInverseMatrix(mat);
@@ -133,7 +156,7 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera()
 
 	pos = pos + osg::Vec3d(offset.x,offset.y,offset.z);
 	target = target + osg::Vec3d(offset.x,offset.y,offset.z);
-	
+
 	cam->setViewMatrixAsLookAt(pos,target,up);
 
 
@@ -164,7 +187,7 @@ void DialogVisibilite::BasicPanorama()
 	settings.setValue("capturecategory",caterogy);
 	double deltaDistance = ui->deltaDistanceSB->value();
 	settings.setValue("capturedeltadistance",deltaDistance);
-	
+
 	if(dir != "")
 	{
 		dir+="/";
@@ -209,10 +232,10 @@ void DialogVisibilite::BasicMonoTile()
 
 	QFileInfo file(filepath);
 
-    QString ext = file.suffix().toLower();
+	QString ext = file.suffix().toLower();
 
 	if(ext == "gml")
-    {
+	{
 		std::vector<std::string> building;
 		building.push_back(filepath.toStdString());
 		BasisAnalyse(building,cam);
@@ -234,7 +257,7 @@ void DialogVisibilite::CascadePanorama()
 
 	int count = ui->cascadeCountSB->value();
 	float increment = ui->cascadeIncrementSB->value();
-	
+
 	if(dir != "")
 	{
 		dir+="/";
@@ -256,7 +279,7 @@ void DialogVisibilite::CascadeMultiTile()
 
 	int count = ui->cascadeCountSB->value();
 	float increment = ui->cascadeIncrementSB->value();
-	
+
 	if(dir != "")
 	{
 		dir+="/";
@@ -278,13 +301,13 @@ void DialogVisibilite::CascadeMonoTile()
 
 	QFileInfo file(filepath);
 
-    QString ext = file.suffix().toLower();
+	QString ext = file.suffix().toLower();
 
 	int count = ui->cascadeCountSB->value();
 	float increment = ui->cascadeIncrementSB->value();
 
 	if(ext == "gml")
-    {
+	{
 		std::vector<std::string> building;
 		building.push_back(filepath.toStdString());
 		CascadeAnalyse(building,cam,count,increment);
@@ -321,10 +344,10 @@ void DialogVisibilite::ToolFlatRoof()
 
 	QFileInfo file(filepath);
 
-    QString ext = file.suffix().toLower();
+	QString ext = file.suffix().toLower();
 
 	if(ext == "gml")
-    {
+	{
 		DetectionToitsPlats(filepath.toStdString(),2.0,0.98);
 	}
 }
@@ -340,7 +363,111 @@ void DialogVisibilite::ToolAABBReconstruction()
 	}
 }
 
+void DialogVisibilite::CopyPointToBatch()
+{
+	std::ofstream ofs("./BatchViewpoints.txt",std::ofstream::app);
+	ofs << std::fixed << ui->posXSB->value() << std::endl;
+	ofs << std::fixed << ui->posYSB->value() << std::endl;
+	ofs << std::fixed << ui->posZSB->value() << std::endl;
+	ofs << std::fixed << ui->dirXSB->value() << std::endl;
+	ofs << std::fixed << ui->dirYSB->value() << std::endl;
+	ofs << std::fixed << ui->dirZSB->value() << std::endl;
+	ofs.close();
+
+	std::cout << "Point added to batch." << std::endl;
+}
+
+void DialogVisibilite::BatchMultiTile()
+{
+	if(QFile("./BatchViewpoints.txt").exists())
+	{
+		std::ifstream ifs("./BatchViewpoints.txt",std::ofstream::in);
+
+		std::queue<double> coordTemp;
+
+		char line[512];
+
+		while(ifs.good())
+		{
+			ifs.getline(line,512);
+			coordTemp.push(atof(line));
+		}
+
+		ifs.close();
+
+		std::string dir = ui->dirLE->text().toStdString();
+
+		if(dir != "")
+		{
+			dir+="/";
+
+
+			QSettings settings("liris", "virtualcity");
+			QString caterogy = ui->categoryLE->text(); 
+			settings.setValue("capturecategory",caterogy);
+			double deltaDistance = ui->deltaDistanceSB->value();
+			settings.setValue("capturedeltadistance",deltaDistance);
+
+			BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
+
+			unsigned int cpt = 0;
+
+			while(coordTemp.size() >= 6)
+			{
+				double posx = coordTemp.front(); coordTemp.pop();
+				double posy = coordTemp.front(); coordTemp.pop();
+				double posz = coordTemp.front(); coordTemp.pop();
+				double dirx = coordTemp.front(); coordTemp.pop();
+				double diry = coordTemp.front(); coordTemp.pop();
+				double dirz = coordTemp.front(); coordTemp.pop();
+
+				ui->posXSB->setValue(posx);
+				ui->posYSB->setValue(posy);
+				ui->posZSB->setValue(posz);
+				ui->dirXSB->setValue(dirx);
+				ui->dirYSB->setValue(diry);
+				ui->dirZSB->setValue(dirz);
+
+				osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
+
+				MultiTileBasicAnalyse(dir,cam,std::to_string(cpt)+"_");
+				cpt++;
+			}
+
+			BelvedereDB::Get().Setup("","");
+		}
+
+	}
+}
+
+void DialogVisibilite::GetTopPolygon()
+{
+	std::string caterogy = ui->categoryLE->text().toStdString(); 
+	std::string dir = ui->dirLE->text().toStdString();
+
+	if(dir != "" && caterogy != "")
+	{
+		dir+="/";
+		BelvedereDB::Get().Setup(dir,caterogy);
+		std::map<std::string,std::vector<PolygonData>> top = BelvedereDB::Get().GetTop(ui->exportTopSB->value());
+
+		std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+
+		ofs << "Tile" << ";" << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
+
+		for(auto it = top.begin(); it != top.end(); it++)
+		{
+			ofs << it->first << std::endl;
+			for(PolygonData p : it->second)
+			{
+				ofs << ";" << p.PolygonId << ";" << p.HitCount << ";" << p.CityObjectId << std::endl;
+			}
+		}
+		ofs.close();
+	}
+}
+
 DialogVisibilite::~DialogVisibilite()
 {
-    delete ui;
+	delete ui;
 }

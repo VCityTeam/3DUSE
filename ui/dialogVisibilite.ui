@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>608</width>
+    <width>629</width>
     <height>734</height>
    </rect>
   </property>
@@ -325,13 +325,6 @@
      </property>
     </widget>
    </item>
-   <item row="21" column="3">
-    <widget class="QPushButton" name="multitileBasicB">
-     <property name="text">
-      <string>Basic Multi-Tile Analysis</string>
-     </property>
-    </widget>
-   </item>
    <item row="9" column="2">
     <widget class="QDoubleSpinBox" name="vegetSB">
      <property name="value">
@@ -388,13 +381,6 @@
      </property>
     </widget>
    </item>
-   <item row="25" column="3">
-    <widget class="QPushButton" name="multitileCascadeB">
-     <property name="text">
-      <string>Cascade Multi-Tile Analysis</string>
-     </property>
-    </widget>
-   </item>
    <item row="10" column="2">
     <widget class="QDoubleSpinBox" name="waterSB">
      <property name="value">
@@ -405,24 +391,10 @@
    <item row="0" column="2">
     <widget class="QLineEdit" name="dirLE"/>
    </item>
-   <item row="21" column="2">
-    <widget class="QPushButton" name="basicAnalysisB">
-     <property name="text">
-      <string>Basic Analysis</string>
-     </property>
-    </widget>
-   </item>
    <item row="11" column="2">
     <widget class="QDoubleSpinBox" name="terrainSB">
      <property name="value">
       <double>5.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="25" column="2">
-    <widget class="QPushButton" name="cascadeB">
-     <property name="text">
-      <string>Cascade Analysis</string>
      </property>
     </widget>
    </item>
@@ -506,6 +478,68 @@
     <widget class="QPushButton" name="rebuildBoxB">
      <property name="text">
       <string>Rebuild AABBs</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="0">
+    <widget class="QPushButton" name="basicAnalysisB">
+     <property name="text">
+      <string>Basic Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="2">
+    <widget class="QPushButton" name="multitileBasicB">
+     <property name="text">
+      <string>Basic Multi-Tile Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="3">
+    <widget class="QPushButton" name="batchMTB">
+     <property name="text">
+      <string>Batch Multi-Tile Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="2">
+    <widget class="QPushButton" name="addToBatchB">
+     <property name="text">
+      <string>Add to Batch</string>
+     </property>
+    </widget>
+   </item>
+   <item row="25" column="0">
+    <widget class="QPushButton" name="cascadeB">
+     <property name="text">
+      <string>Cascade Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="25" column="2">
+    <widget class="QPushButton" name="multitileCascadeB">
+     <property name="text">
+      <string>Cascade Multi-Tile Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QPushButton" name="exportTopB">
+     <property name="text">
+      <string>Export Top : </string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="4">
+    <widget class="QSpinBox" name="exportTopSB">
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+     <property name="value">
+      <number>10</number>
      </property>
     </widget>
    </item>

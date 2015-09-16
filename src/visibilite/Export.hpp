@@ -3,6 +3,8 @@
 
 #include "src/visibilite/data/ViewPoint.h"
 
+#include <set>
+
 /**
 *	@brief % of element in a emblematic view, values are in % 
 */	
@@ -66,13 +68,6 @@ void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix = "");
 void ExportImageZBuffer(ViewPoint* viewpoint, std::string filePrefix = "");
 
 /**
-*	@brief Export image reprensenting the objects of the scene with each a color
-*	@param viewpoint Data about the viewpoint we are rendering
-*	@param result Result from the ray tracing algorithm
-*/
-void ExportImageObjectColor(ViewPoint* viewpoint, std::string filePrefix = "");
-
-/**
 *	@brief Export image reprensenting the remarquable building highlighted (the reste is in white
 *	@param viewpoint Data about the viewpoint we are rendering
 *	@param result Result from the ray tracing algorithm
@@ -97,8 +92,10 @@ void ExportImageSkyline(ViewPoint* viewpoint, std::string filePrefix = "");
 void ExportPanoramaSkyline(ViewPoint* front, ViewPoint* right, ViewPoint* back, ViewPoint* left, std::string filePrefix = "");
 
 /**
-*	@brief Compute the skyline volume of a cascade panorama
+*	@brief Compute the skyline volume of a cascade panorama, currently really not good, must be research
 */
 void ProcessSkylineVolume();
+
+std::set<std::string> LoadRemarquableBuilding();
 
 #endif

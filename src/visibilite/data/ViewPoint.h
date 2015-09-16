@@ -82,7 +82,6 @@ struct ViewPoint
 	TVec3d lightDir;///< Direction of the light in the scene
 	float minDistance;///< Minimum distance to a triangle in the scene
 	float maxDistance;///< Maximum distance to a triangle in the scene
-	std::map<std::string,QColor> objectToColor;///< Map a city object id to a color
 	Skyline skyline;///< Skyline of the viewpoints
 	TVec3d position;
 

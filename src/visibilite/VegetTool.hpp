@@ -5,14 +5,6 @@
 #include "src/core/application.hpp"
 
 /**
-*	@brief Cut a Shp file using a bounding box
-*	@param min Bottom left point of the bounding box
-*	@param max Top right point of the bounding box
-*	@param outputFile Name of the resulting shp
-*/
-void CutShape(TVec2d min, TVec2d max, std::string outputFile);
-
-/**
 *	@brief Compute vegatation using a shp and las file
 *	@return outputFile Name of the resulting file (without ext)
 */

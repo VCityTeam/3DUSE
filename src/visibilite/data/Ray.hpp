@@ -26,7 +26,6 @@ struct Ray
 		sign[0] = (inv_dir.x < 0);
 		sign[1] = (inv_dir.y < 0);
 		sign[2] = (inv_dir.z < 0);
-		ignore = false;
 	}
 
 	/**
@@ -63,7 +62,6 @@ struct Ray
 	TVec3d inv_dir;///< inv Direction of the ray
 	int sign[3];
 	RayCollection* collection;///< Collection in which this ray belong
-	bool ignore;///< If this ray must be ignore when doing raytracing
 
 	std::vector<RayBoxHit> boxes;///< List of boxes that this ray go through for the multitile algorithm
 };

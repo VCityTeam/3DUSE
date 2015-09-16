@@ -5,20 +5,13 @@
 
 #include <thread>
 
-typedef std::pair<Ray,std::pair<unsigned int,unsigned int>> RayFragCoord;
-
-inline RayFragCoord GetRayFragCoord(Ray ray,unsigned int i, unsigned int j)
-{
-	return std::make_pair(ray, std::make_pair(i,j));
-}
-
 /**
 *	@brief Data used by a ray tracing thread
 */
 struct RayTracingData
 {
-	TriangleList* triangles; 
-	std::vector<Ray*>* rowToDo;
+	TriangleList* triangles; ///< List of triangles of a 3D Model
+	std::vector<Ray*>* rowToDo; ///< List of ray to use for ray tracing
 };
 
 //Loop through all triangles and check if any rays intersect with triangles

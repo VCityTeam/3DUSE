@@ -1,7 +1,5 @@
 #include "Triangle.hpp"
 
-#include "ViewPoint.h"
-
 /**
 *	@brief A random number between low and high
 */
@@ -11,7 +9,7 @@ int RandInt(int low, int high)
 	return qrand() % ((high + 1) - low) + low;
 }
 
-TriangleList* BuildTriangleList(std::string tilefilename, ViewPoint* viewpoint, citygml::CityObjectsType objectType)
+TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType)
 {
 	std::vector<Triangle*> triangles;
 
@@ -23,11 +21,6 @@ TriangleList* BuildTriangleList(std::string tilefilename, ViewPoint* viewpoint, 
 	{
 		if(obj->getType() == citygml::COT_Building && objectType == citygml::COT_Building) //We only take building or terrain
 		{
-			QColor objectColor = qRgba(RandInt(0,255),RandInt(0,255),RandInt(0,255),255);
-			std::pair<std::string,QColor> pair(obj->getId(),objectColor);
-			if(viewpoint != nullptr)
-				viewpoint->objectToColor.insert(pair);
-
 			for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
 				for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
 					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
@@ -55,10 +48,6 @@ TriangleList* BuildTriangleList(std::string tilefilename, ViewPoint* viewpoint, 
 		}
 		else if((obj->getType() == citygml::COT_SolitaryVegetationObject  && objectType == citygml::COT_SolitaryVegetationObject) || (obj->getType() == citygml::COT_TINRelief  && objectType == citygml::COT_TINRelief) || (obj->getType() == citygml::COT_WaterBody  && objectType == citygml::COT_WaterBody)) //We only take building or terrain
 		{
-			QColor objectColor = qRgba(RandInt(0,255),RandInt(0,255),RandInt(0,255),255);
-			std::pair<std::string,QColor> pair(obj->getId(),objectColor);
-			if(viewpoint != nullptr)
-				viewpoint->objectToColor.insert(pair);
 
 			for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque géométrie
 				for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone

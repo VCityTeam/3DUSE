@@ -47,6 +47,8 @@
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
 
+#include "src/visibilite/data/BelvedereDB.h"
+
 #include <QPluginLoader>
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
@@ -2218,6 +2220,17 @@ void MainWindow::test4()
 	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
 
 	//ProcessLasShpVeget();
+	/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
+	std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
+
+	std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+	
+	ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
+	for(std::pair<std::string,PolygonData> p : top)
+	{
+		ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
+	}
+	ofs.close();*/
 
 	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
 	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");

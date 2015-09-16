@@ -157,7 +157,7 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 			{
 				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
 
-				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toAscii().data(),nullptr,type);
+				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toAscii().data(),type);
 
 				for(Triangle* t : list->triangles)
 				{
