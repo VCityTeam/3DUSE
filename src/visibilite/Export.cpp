@@ -75,6 +75,8 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	float cptTerrain = 0.0f;
 	float cptWater = 0.0f;
 	float cptVegetation = 0.0f;
+	// #NewDataSetExport
+	// float cpt<MyData> = 0.0f;
 
 	std::set<std::string> remarquable = LoadRemarquableBuilding();
 
@@ -130,6 +132,11 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 				{
 					cptVegetation++;
 				}
+				// #NewDataSetExport
+				// else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_<MyDataType>)
+				// {
+				// cpt<MyData>++;
+				// }
 			}
 			else
 				cptMiss++;
@@ -144,6 +151,8 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	ofs << "Hit;"<< cptHit << ";" << cptHit/cpt * 100.f << std::endl;
 	ofs << "Miss;"<<cptMiss << ";" << cptMiss/cpt * 100.f << std::endl;
 	ofs << "Terrain;"<<cptTerrain << ";" << cptTerrain/cpt * 100.f << ";" << cptTerrain/cptHit * 100.f << std::endl;
+	// #NewDataSetExport
+	// ofs << "<MyData>;"<<cpt<MyData> << ";" << cpt<MyData>/cpt * 100.f << ";" << cpt<MyData>/cptHit * 100.f << std::endl;
 	ofs << "Vegetation;"<<cptVegetation << ";" << cptVegetation/cpt * 100.f << ";" << cptVegetation/cptHit * 100.f << std::endl;
 	ofs << "Water;"<<cptWater << ";" << cptWater/cpt * 100.f << ";" << cptWater/cptHit * 100.f << std::endl;
 	ofs << "All Building;"<<cptAllBuilding << ";" << cptAllBuilding/cpt * 100.f << ";" << cptAllBuilding/cptHit * 100.f << std::endl;
@@ -159,6 +168,8 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	ofs << "Water;"<< (cptWater/cpt * 100.f)<< ";" << view.water << ";" << (cptWater/cpt * 100.f) - view.water<< std::endl;
 	ofs << "Building Misc;" << (cptBuilding/cpt * 100.f)<< ";" << view.building << ";" << (cptBuilding/cpt * 100.f) - view.building<<  std::endl;
 	ofs << "Remarquable Building;" << (cptRemarquable/cpt * 100.f)<< ";" << view.remarquableBuilding << ";" << (cptRemarquable/cpt * 100.f) - view.remarquableBuilding << std::endl;
+	// #NewDataSetExport
+	// ofs << "<MyData>;" << (cpt<MyData>/cpt * 100.f)  << ";" << view.<myData> << ";" << (cpt<MyData>/cpt * 100.f) - view.<myData> << std::endl;
 	ofs << std::endl;
 	ofs << "ObjectId;Count;Global%;InHit%;ObjectType;SubObjectType" << std::endl;
 	for(auto it = cptMap.begin(); it != cptMap.end(); it++)
@@ -483,6 +494,9 @@ void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix)
 					imageMurToit.setPixel(i,j,qRgba(0*sundot,0*sundot, 255*sundot,255));
 				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_SolitaryVegetationObject)
 					imageMurToit.setPixel(i,j,qRgba(0*sundot,255*sundot,0*sundot,255));
+				// #NewDataSetExport
+				// else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_<MyDataType>)
+				// imageMurToit.setPixel(i,j,qRgba(<MyColorRed>*sundot,<MyColorGreen>*sundot,<MyColorBlue>*sundot,255));
 				else
 				{
 					if (viewpoint->hits[i][j].triangle.subObjectType == citygml::COT_RoofSurface)//Check if roof or wall
@@ -557,6 +571,9 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 					imageBuilding.setPixel(i,j,qRgba(0*sundot,0*sundot, 255*sundot,255));
 				else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_SolitaryVegetationObject)
 					imageBuilding.setPixel(i,j,qRgba(0*sundot,255*sundot,0*sundot,255));
+				// #NewDataSetExport
+				// else if(viewpoint->hits[i][j].triangle.objectType == citygml::COT_<MyDataType>)
+				// imageBuilding.setPixel(i,j,qRgba(<MyColorRed>*sundot,<MyColorGreen>*sundot,<MyColorBlue>*sundot,255));
 				else
 				{
 					QColor color(255,189,50);//viewpoint->objectToColor[viewpoint->hits[i][j].triangle.objectId];

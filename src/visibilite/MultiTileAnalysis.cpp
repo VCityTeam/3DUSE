@@ -213,6 +213,7 @@ void MergeViewpointTerrainOther(ViewPoint* terrain, ViewPoint* other)
 
 std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* cam, std::string prefix)
 {
+	// In order to add a new data set, uncomment exemple and replace fillers <..> by your data
 	QTime time;
 	time.start();
 
@@ -235,10 +236,15 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* 
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Veget Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;
+	// ViewPoint* result<MyData> = DoMultiTileAnalysis(dirTile,boxes.<myData>,cam,citygml::CityObjectsType::COT_<MyDataType>);
+	// std::cout << "===================================================" << std::endl;
+	// std::cout << "<MyData> Done ! " << std::endl;
+	// std::cout << "===================================================" << std::endl;
 
 	//Merge all viewpoint into one
 	MergeViewpointTerrainOther(resultBis,resultTer);
 	MergeViewpointTerrainOther(resultBis,resultQuad);
+	// MergeViewpoint(result,result<MyData>);
 	MergeViewpoint(result,resultBis);
 
 	//Get and export the results

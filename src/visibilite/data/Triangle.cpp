@@ -46,7 +46,12 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
 						}
 					}
 		}
-		else if((obj->getType() == citygml::COT_SolitaryVegetationObject  && objectType == citygml::COT_SolitaryVegetationObject) || (obj->getType() == citygml::COT_TINRelief  && objectType == citygml::COT_TINRelief) || (obj->getType() == citygml::COT_WaterBody  && objectType == citygml::COT_WaterBody)) //We only take building or terrain
+		// #CityObjectType
+		// We check if the current cityobject is the same type of the wanted type of cityobject given in parameter
+		// Exemple : (obj->getType() == citygml::COT_<MyType> && objectType == citygml::COT_<MyType>
+		else if((obj->getType() == citygml::COT_SolitaryVegetationObject  && objectType == citygml::COT_SolitaryVegetationObject) || 
+			(obj->getType() == citygml::COT_TINRelief  && objectType == citygml::COT_TINRelief) || 
+			(obj->getType() == citygml::COT_WaterBody  && objectType == citygml::COT_WaterBody))
 		{
 
 			for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque géométrie

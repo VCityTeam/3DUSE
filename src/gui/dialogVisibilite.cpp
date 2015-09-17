@@ -128,6 +128,7 @@ void DialogVisibilite::SetCamParam()
 
 void DialogVisibilite::SetupEmblematicViewExportParameter()
 {
+	// In order to add a new data set, uncomment exemple and replace fillers <..> by your data
 	EmblematicView view;
 	view.sky = ui->skySB->value();
 	view.building = ui->buildingSB->value();
@@ -135,6 +136,7 @@ void DialogVisibilite::SetupEmblematicViewExportParameter()
 	view.vegetation = ui->vegetSB->value();
 	view.water = ui->waterSB->value();
 	view.terrain = ui->terrainSB->value();
+	//view.<myData> = ui-><myDataSB>->value();
 	ExportParameter param = ExportParameter::GetGlobalParameter();
 	param.emblematicView = view;
 	ExportParameter::SetGobalParameter(param);

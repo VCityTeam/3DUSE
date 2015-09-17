@@ -58,6 +58,9 @@ struct AABBCollection
 	std::vector<AABB> terrain;///< Bounding box of the terrain layer
 	std::vector<AABB> water;///< Bounding box of the water layer
 	std::vector<AABB> veget;///< Bounding box of the veget layer
+	// #AABBNewDataSet
+	// Uncomment next comment to add a data set (and replace myData by your data)
+	// std::vector<AABB> myData;
 };
 
 /**

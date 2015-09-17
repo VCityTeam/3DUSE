@@ -63,6 +63,7 @@ std::vector<AABB> DoLoadAABB(std::string path)
 
 AABBCollection LoadAABB(std::string dir)
 {
+	// In order to add a new data set, uncomment exemple and replace fillers <..> by your data
 	bool foundBuild = false;
 	QFileInfo bDat;
 	bool foundTerrain = false;
@@ -71,6 +72,8 @@ AABBCollection LoadAABB(std::string dir)
 	QFileInfo wDat;
 	bool foundVeget = false;
 	QFileInfo vDat;
+	// bool found<MyData> = false;
+	// QFileInfo <myData>Dat;
 
 	//Check if our bounding box files do exists
 	QDir dt(dir.c_str());
@@ -100,6 +103,11 @@ AABBCollection LoadAABB(std::string dir)
 					vDat = f.absoluteFilePath();
 					foundVeget = true;
 				}
+				// if(f.fileName() == "_<MyDataSuffix>_AABB.dat")
+				// {
+				// <myData>Dat = f.absoluteFilePath();
+				// found<MyData> = true;
+				// }
 			}
 		}
 	}
@@ -112,6 +120,7 @@ AABBCollection LoadAABB(std::string dir)
 	std::vector<AABB> tSet;
 	std::vector<AABB> wSet;
 	std::vector<AABB> vSet;
+	// std::vector<AABB> <myData>Set;
 
 
 	if(foundBuild)
@@ -126,11 +135,15 @@ AABBCollection LoadAABB(std::string dir)
 	if(foundVeget)
 		vSet = DoLoadAABB(dir+"_VEGET_AABB.dat");
 
+	// if(foundVeget)
+	// <myData>Set = DoLoadAABB(dir+"_<MyDataSuffix>_AABB.dat");
+
 	AABBCollection collection;
 	collection.building = bSet;
 	collection.terrain = tSet;
 	collection.water = wSet;
 	collection.veget = vSet;
+	// collection.<myData> = <myData>Set;
 
 	return collection;
 }
@@ -211,10 +224,12 @@ void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec
 
 void BuildAABB(std::string dir)
 {
+	// In order to add a new data set, uncomment exemple and replace fillers <..> by your data
 	std::vector<QDir> bDirs;
 	std::vector<QDir> tDirs;
 	std::vector<QDir> wDirs;
 	std::vector<QDir> vDirs;
+	// std::vector<QDir> <myData>Dirs;
 
 	QDir dt(dir.c_str());
 	if(dt.exists())
@@ -232,6 +247,8 @@ void BuildAABB(std::string dir)
 					wDirs.push_back(f.absoluteFilePath());
 				if(f.baseName().endsWith("_VEGET"))
 					vDirs.push_back(f.absoluteFilePath());
+				// if(f.baseName().endsWith("_<MyDataSuffix>"))
+				// <myData>Dirs.push_back(f.f.absoluteFilePath());
 			}
 		}
 	}
@@ -245,11 +262,13 @@ void BuildAABB(std::string dir)
 	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs = DoBuildAABB(tDirs,citygml::CityObjectsType::COT_TINRelief);
 	std::map<std::string,std::pair<TVec3d,TVec3d>> wAABBs = DoBuildAABB(wDirs,citygml::CityObjectsType::COT_WaterBody);
 	std::map<std::string,std::pair<TVec3d,TVec3d>> vAABBs = DoBuildAABB(vDirs,citygml::CityObjectsType::COT_SolitaryVegetationObject);
+	// std::map<std::string,std::pair<TVec3d,TVec3d>> <myData>AABBs = DoBuildAABB(<myData>AABBs,citygml::CityObjectsType::COT_<MyDataType>);
 
 	DoSaveAABB(dir+"_BATI_AABB.dat",bAABBs);
 	DoSaveAABB(dir+"_MNT_AABB.dat",tAABBs);
 	DoSaveAABB(dir+"_WATER_AABB.dat",wAABBs);
 	DoSaveAABB(dir+"_VEGET_AABB.dat",vAABBs);
+	// DoSaveAABB(dir+"_<MyDataSuffix>_AABB.dat",<myData>AABBs);
 
 	std::cout << "Done." << std::endl;
 }

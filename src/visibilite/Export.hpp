@@ -17,6 +17,8 @@ public:
 	float vegetation;
 	float water;
 	float terrain;
+	// In order to add a new data set, uncomment exemple and replace fillers <..> by your data
+	// float <myData>;
 };
 
 class ExportParameter
