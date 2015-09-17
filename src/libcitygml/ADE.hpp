@@ -15,6 +15,7 @@ public:
 	void setGMLHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
 	virtual void startElement(std::string,void*){};
 	virtual void endElement(std::string){};
+	virtual void endDocument(){};
 protected:
 	citygml::CityGMLHandler* gmlHandler;
 	//access to gmlHandler members

@@ -33,9 +33,19 @@ void VersionTransition::setFrom(Version* version)
 	_from = version;
 }
 
+Version* VersionTransition::from()
+{
+	return _from;
+}
+
 void VersionTransition::setTo(Version* version)
 {
 	_to = version;
+}
+
+Version* VersionTransition::to()
+{
+	return _to;
 }
 
 void VersionTransition::addTransaction(Transaction* transaction)

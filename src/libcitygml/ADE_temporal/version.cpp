@@ -11,9 +11,14 @@ const std::vector<std::string>& Version::getTags()
 	return _tags;
 }
 
-const std::vector<citygml::CityObject*>& Version::getVersionMembers()
+void Version::addTag( std::string tag)
 {
-	return _versionMembers;
+	_tags.push_back(tag);
+}
+
+std::vector<citygml::CityObject*>* Version::getVersionMembers()
+{
+	return &_versionMembers;
 }
 
 void Version::addMember(citygml::CityObject* object)

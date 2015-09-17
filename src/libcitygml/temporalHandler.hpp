@@ -22,10 +22,12 @@ public:
 	TempHandler(citygml::CityGMLHandler* gmlHandler);
 	void startElement(std::string, void*);
 	void endElement(std::string);
+	void endDocument();
 protected:
 	std::string getAttribute( void*, const std::string&, const std::string&);
 //	std::string getGmlIdAttribute( void* attributes ) { return getAttribute( attributes, "gml:id", "" ); }
 	std::string removeNamespace(std::string );
+	std::string getIDfromQuery(std::string);
 private:
 	//Adding to ADE register (template in ADE.hpp)
 	static ADERegister<TempHandler> reg;

@@ -20,9 +20,12 @@
 #include <string>
 #include <map>
 #include <ostream>
+#include <vector>
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
+////////////////////////////////////////////////////////////////////////////////
+enum xLinkState { NONE, LINKED, UNLINKED, TARGET };
 ////////////////////////////////////////////////////////////////////////////////
 typedef std::map< std::string, std::string > AttributesMap;
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,10 +55,15 @@ public:
 
     void setAttribute( const std::string& name, const std::string& value, bool forceOnExist = true );
 
+	std::vector<Object*>& getXLinkTargets();
+	xLinkState _isXlink;
+
 protected:
     std::string _id;
 
     AttributesMap _attributes;
+
+	std::vector<Object*> _xLinkTargets;
 
     //osg::ref_ptr<osg::Group> m_osgNode;
     //osg::Group* m_osgNode;

@@ -21,7 +21,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::CityObject( const std::string& id, CityObjectsType type )
-	: Object( id ), _type( type ), m_path(""), m_temporalUse(false), _isXlink(xLinkState::NONE)
+	: Object( id ), _type( type ), m_path(""), m_temporalUse(false)
 {}
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::~CityObject()
@@ -141,11 +141,11 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
     while(uri.getCursor() < uri.getDepth())
     {
 		if (current->_isXlink==xLinkState::LINKED)
-			for (CityObject* child : current->getXLinkTargets())
+			for (Object* child : current->getXLinkTargets())
 			{
 				if(child->getId() == uri.getCurrentNode())
 				{
-					current = child;
+					current = (CityObject*) child;
 					res = current;
 					break;
 				}
@@ -165,11 +165,6 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
     uri.resetCursor();
 
     return res;
-}
-////////////////////////////////////////////////////////////////////////////////
-std::vector<CityObject*>& CityObject::getXLinkTargets()
-{
-    return _xLinkTargets;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::addState(CityObjectState* state)

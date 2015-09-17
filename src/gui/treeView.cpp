@@ -283,9 +283,9 @@ void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
     {
         addCityObject(item, *it);
     }
-	for(citygml::CityObjects::iterator it = node->getXLinkTargets().begin();it != node->getXLinkTargets().end(); ++it)
+	for(std::vector<citygml::Object*>::iterator it = node->getXLinkTargets().begin();it != node->getXLinkTargets().end(); ++it)
 	{
-        addCityObject(item, *it);
+        addCityObject(item,(citygml::CityObject*) *it);
     }
     // add temporal elements after
     for(auto* tag : node->getTags())

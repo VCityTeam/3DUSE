@@ -6,7 +6,6 @@
 
 namespace temporal
 {
-
 enum TransitionValue
 {
 	PLANNED,
@@ -26,12 +25,14 @@ public:
 	void setClone(bool);
 	void setType(TransitionValue);
 	void setFrom(Version*);
+	Version* from();
 	void setTo(Version*);
+	Version* to();
 
 	void addTransaction(Transaction*);
 	std::vector<Transaction*>* getTransactions();
 
-private:
+protected:
 
 	bool _clonePredecessor;
 	std::string _reason;

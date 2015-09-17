@@ -331,7 +331,7 @@ std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
 	// query should be under the format "//identifier[text()='XXXXXXXX']"
 	//std::cout<<"XLink query found : "<<query<<std::endl;
 	size_t pos1 = query.find("//identifier[text()='");
-	size_t pos2 = query.find("']",pos1);
+	size_t pos2 = query.find("']/parent::*",pos1);
 	if (pos1!=std::string::npos && pos2!=std::string::npos)
 	{
 		std::string identifier = query.substr(pos1+21,pos2-(pos1+21));
@@ -378,12 +378,11 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         {\
 			pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
-			if (xLinkQuery!="") try\
+			if (xLinkQuery!="")\
 			{\
 				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
-			catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<xLinkQuery<<"\""<<std::endl;}\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -460,12 +459,11 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         {\
 			pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
-			if (xLinkQuery!="") try\
+			if (xLinkQuery!="")\
 			{\
 				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
-			catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<xLinkQuery<<"\""<<std::endl;}\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -1145,23 +1143,26 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 {
 	if(node->_isXlink==xLinkState::UNLINKED)
     {
-		std::string identifier = getXLinkQueryIdentifier(node->getAttribute("xlink"));
-		CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
-		if ( it != _identifiersMap.end() )
-		{
-			for (CityObject* target:(it->second))
+		try {
+			std::string identifier = getXLinkQueryIdentifier(node->getAttribute("xlink"));
+			CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
+			if ( it != _identifiersMap.end() )
 			{
-				target->_parent = node;
-				node->_xLinkTargets.push_back( target );
+				for (CityObject* target:(it->second))
+				{
+					target->_parent = node;
+					node->_xLinkTargets.push_back( target );
+				}
+			}
+			node->_isXlink=xLinkState::LINKED;
+			for(auto* target : node->getXLinkTargets())
+			{
+				CityObject* child = (CityObject*) target;
+				fetchVersionedCityObjectsRec(child);
+				child->_parent=node->_parent;
 			}
 		}
-		node->_isXlink=xLinkState::LINKED;
-		for(auto* target : node->getXLinkTargets())
-		{
-			CityObject* child = (CityObject*) target;
-			fetchVersionedCityObjectsRec(child);
-			child->_parent=node->_parent;
-		}
+		catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<node->getAttribute("xlink")<<"\""<<std::endl;}
     }
 
     for(auto* child : node->getChildren())

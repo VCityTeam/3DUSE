@@ -12,7 +12,6 @@ enum TransactionValue
 	DEL,
 	REPLACE
 };
-
 class Transaction: public citygml::Object
 {
 public:

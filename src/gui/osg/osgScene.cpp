@@ -689,8 +689,9 @@ void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> n
         u.resetCursor();
         buildCityObject(u, node, child, reader, depth+1);
     }
-	for(citygml::CityObject* child : obj->getXLinkTargets())
+	for(citygml::Object* target : obj->getXLinkTargets())
     {
+		citygml::CityObject* child = (citygml::CityObject*) target;
         vcity::URI u = uri;
         u.append(child->getId(), child->getTypeAsString());
         u.resetCursor();
