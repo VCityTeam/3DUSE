@@ -28,12 +28,9 @@ struct RayBoxHit
 {
 	AABB box;///< Box hitted
 	float minDistance;///< Distance between the ray origin and the bounding box
-
-	bool operator<(RayBoxHit const& b)
-	{
-		return this->minDistance < b.minDistance;
-	}
 };
+
+bool operator<(const RayBoxHit& a, const RayBoxHit& b);
 
 /**
 *	Used when ordering a collection of bounding box
@@ -42,12 +39,9 @@ struct BoxOrder
 {
 	std::string box;///< Name of the bounding box
 	unsigned int order;///< Order of the box in the collection
-
-	bool operator<(BoxOrder const& b)
-	{
-		return this->order < b.order;
-	}
 };
+
+bool operator<(const BoxOrder& a, const BoxOrder& b);
 
 /**
 *	Used to store bounding box collection of different layer

@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // setup osgQt view
     m_osgView->setSceneData(m_osgScene);
 
-	dialVisibilite = new DialogVisibilite(this,this);
+	//dialVisibilite = new DialogVisibilite(this,this);
 
     // init gdal
     GDALAllRegister();
@@ -161,7 +161,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionTest_4, SIGNAL(triggered()), this, SLOT(test4()));
     connect(m_ui->actionTest_5, SIGNAL(triggered()), this, SLOT(test5()));
 
-	connect(m_ui->actionVisibilite, SIGNAL(triggered()), dialVisibilite, SLOT(show()));
+	//connect(m_ui->actionVisibilite, SIGNAL(triggered()), dialVisibilite, SLOT(show()));
 
     // filter search
     connect(m_ui->filterButton, SIGNAL(clicked()), m_treeView, SLOT(slotFilter()));
@@ -197,7 +197,7 @@ MainWindow::~MainWindow()
 	delete aboutPluginsAct;
     delete ShapeGeo;
 
-	delete dialVisibilite;
+	//delete dialVisibilite;
     delete m_treeView;
     delete m_osgView;
     delete m_ui;
@@ -231,10 +231,15 @@ MainWindow::~MainWindow()
       {
         QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = loader.instance();
-        if (plugin) {
+        if (plugin)
+		{
           pluginMenu->addSeparator();
           populateMenus(plugin);
           pluginFileNames += fileName;
+
+		  // call plugin's init() method
+		  Generic_PluginInterface* vcity_plugin = qobject_cast<Generic_PluginInterface*>(plugin);
+		  vcity_plugin->init(this);
         }
       }
     }

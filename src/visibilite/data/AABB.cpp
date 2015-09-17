@@ -11,6 +11,16 @@
 
 #include "visibilite/Visibilite.hpp"
 
+bool operator<(const RayBoxHit& a, const RayBoxHit& b)
+{
+	return a.minDistance < b.minDistance;
+}
+
+bool operator<(const BoxOrder& a, const BoxOrder& b)
+{
+	return a.order < b.order;
+}
+
 /**
 *	@brief Load a collection of box from a file
 *	@param path Path to the file

@@ -178,7 +178,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 						indices->push_back(cpt++);
 					}
 
-					for(unsigned int k = 0; k < poPG->getNumInteriorRings(); k++)
+					for(unsigned int k = 0; k < (unsigned int)poPG->getNumInteriorRings(); k++)
 					{
 						OGRLinearRing* poLR = poPG->getInteriorRing(k);
 

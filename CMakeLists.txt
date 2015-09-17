@@ -391,7 +391,8 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_RES_H}
 )
 if (WIN32)
-  SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} src/gui/osgQt/GraphicsWindowQt.cxx )
+  SET( VCITY_GUI_SRC_WIN src/gui/osgQt/GraphicsWindowQt.cxx )
+  SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
 endif(WIN32)
 if (WITH_QT5)
 else(WITH_QT5)
@@ -472,8 +473,13 @@ IF(APPLE)
   SET(VCITY_GUI_ICON resources/vcity.icns)
 ENDIF(APPLE)
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Linux specific code
+    SET(LINUX_FLAGS -lpthread)
+ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} -lpthread ${VCITY_GUI_LIB})
+target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB})
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
@@ -517,7 +523,7 @@ if (BUILD_CityGMLCutQtPlugin)
 
 	add_library(CityGMLCutQtPlugin SHARED src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.cxx
 				${CityGMLCut_Qt_Plugin_HEADER} ${CityGMLCut_Qt_Plugin_SRC}
-				src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx) # if need, add cxx files here before the ')'
+				${VCITY_GUI_SRC_WIN} src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx) # if need, add cxx files here before the ')'
 	target_link_libraries (CityGMLCutQtPlugin ${CityGMLCut_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLCutQtPlugin Core Widgets)
@@ -545,14 +551,13 @@ if (BUILD_CityGMLEmptyQtPlugin)
 
 	add_library(CityGMLEmptyQtPlugin SHARED src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.cxx
 				${CityGMLEmpty_Qt_Plugin_HEADER} ${CityGMLEmpty_Qt_Plugin_SRC}
-				) # if need, add cxx files here before the ')'
+				${VCITY_GUI_SRC_WIN}) # if need, add cxx files here before the ')'
 	target_link_libraries (CityGMLEmptyQtPlugin ${CityGMLEmpty_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets)
 	endif(WITH_QT5)
 endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLEmptyQtPlugin : QtPlugin [END]
-
 
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLVisibiliteQtPlugin "BUILD CityGMLVisibiliteQtPlugin " ON)
@@ -574,8 +579,8 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 
 	add_library(CityGMLVisibiliteQtPlugin SHARED src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/DialogCityGMLVisibilite1.cxx
 				${CityGMLVisibilite_Qt_Plugin_HEADER} ${CityGMLVisibilite_Qt_Plugin_SRC}
-				) # if need, add cxx files here before the ')'
-	target_link_libraries (CityGMLVisibiliteQtPlugin ${CityGMLVisibilite_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+				${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
+	target_link_libraries (CityGMLVisibiliteQtPlugin ${LINUX_FLAGS} ${CityGMLVisibilite_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLVisibiliteQtPlugin Core Widgets)
 	endif(WITH_QT5)
