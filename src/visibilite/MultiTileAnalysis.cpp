@@ -176,7 +176,7 @@ void MergeViewpoint(ViewPoint* a, ViewPoint* b)
 			Hit hita = a->hits[i][j];
 			Hit hitb = b->hits[i][j];
 
-			if(!hita.intersect && hitb.intersect || (hita.intersect && hitb.intersect && hitb.distance < hita.distance))
+			if((!hita.intersect && hitb.intersect) || (hita.intersect && hitb.intersect && hitb.distance < hita.distance))
 			{
 				a->hits[i][j] = hitb;
 			}
@@ -203,7 +203,7 @@ void MergeViewpointTerrainOther(ViewPoint* terrain, ViewPoint* other)
 			Hit hita = terrain->hits[i][j];
 			Hit hitb = other->hits[i][j];
 
-			if(!hita.intersect && hitb.intersect || (hita.intersect && hitb.intersect && hitb.distance < hita.distance)|| (hita.intersect && hitb.intersect && AreSame(hitb.distance,hita.distance)))
+			if((!hita.intersect && hitb.intersect) || (hita.intersect && hitb.intersect && hitb.distance < hita.distance)|| (hita.intersect && hitb.intersect && AreSame(hitb.distance,hita.distance)))
 			{
 				terrain->hits[i][j] = hitb;
 			}

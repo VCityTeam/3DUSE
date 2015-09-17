@@ -4,23 +4,15 @@
 #include <QMessageBox>
 
 // add your object header here if you call code...
-// ...
+#include "../../gui/moc/dialogVisibilite.hpp"
 
-int CityGMLVisibiliteQtPlugin::your_code_here(unsigned int ui_G_xmin, unsigned int ui_G_ymin, unsigned int ui_G_xmax, unsigned int ui_G_ymax)
+int CityGMLVisibiliteQtPlugin::your_code_here(void)
 {
-	// add your object instantiation here if you call code...
-	// ...
-	
-	fprintf(stdout, "\n[BEGIN] : cityGMLVisibilite\n");
 	// add your code (or call your object) here...
-	// ...
-	int res = 0;
-	fprintf(stdout, "[ END ] : cityGMLVisibilite\n");
+	DialogVisibilite* dialVisibilite = new DialogVisibilite(mw, mw);
+	dialVisibilite->show();
 
-	if (res)
-		QMessageBox(QMessageBox::Information,  "3DUSE", "CityGMLVisibiliteQtPlugin: error, see terminal.").exec();
-	else
-		QMessageBox(QMessageBox::Information,  "3DUSE", "CityGMLVisibiliteQtPlugin: end of process, see terminal.").exec();
+	int res = 0;
 
 	return res;
 }

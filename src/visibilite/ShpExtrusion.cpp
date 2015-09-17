@@ -233,7 +233,7 @@ void ShpExtruction()
 					std::vector<LRing> ptsSolIntern;
 					std::vector<LRing> ptsToitIntern;
 
-					for(unsigned int i = 0; i < poPG->getNumInteriorRings();i++)
+					for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
 					{
 						LRing ptsSolTemp = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getInteriorRing(i)));
 						LRing ptsToitTemp = GetLRingWidthHeight(ptsSolTemp,Zmax);
