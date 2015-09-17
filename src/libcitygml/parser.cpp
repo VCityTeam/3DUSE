@@ -380,8 +380,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
 			if (xLinkQuery!="") try\
 			{\
-				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
-				_currentCityObject->setAttribute( "identifier", identifier, false );\
+				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
 			catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<xLinkQuery<<"\""<<std::endl;}\
@@ -463,8 +462,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
 			if (xLinkQuery!="") try\
 			{\
-				std::string identifier = getXLinkQueryIdentifier(xLinkQuery);\
-				_currentCityObject->setAttribute( "identifier", identifier, false );\
+				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
 			catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<xLinkQuery<<"\""<<std::endl;}\
@@ -634,9 +632,10 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			if ( pos != std::string::npos )
 			{
 				std::string nspace = name.substr( 0, pos );
-				ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
-				if (tHandler)
+				
+				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
+					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					tHandler->setGMLHandler(this);
 					tHandler->startElement(name, attributes);
 				}
@@ -1067,9 +1066,10 @@ void CityGMLHandler::endElement( const std::string& name )
 			if ( pos != std::string::npos )
 			{
 				std::string nspace = name.substr( 0, pos );
-				ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
-				if (tHandler)
+				
+				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
+					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					tHandler->setGMLHandler(this);
 					tHandler->endElement(name);
 				}
@@ -1128,17 +1128,24 @@ void CityGMLHandler::createGeoTransform( std::string srsName )
 
 void CityGMLHandler::endDocument( )
 {
+	for(std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++)
+	{
+		try {it->second->endDocument();}
+		catch (...) {}
+	}
 	for(auto* child : _model->_roots)
     {
         fetchVersionedCityObjectsRec(child);
     }
+	
+
 }
 
 void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 {
 	if(node->_isXlink==xLinkState::UNLINKED)
     {
-		std::string identifier = node->getAttribute("identifier");
+		std::string identifier = getXLinkQueryIdentifier(node->getAttribute("xlink"));
 		CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
 		if ( it != _identifiersMap.end() )
 		{
@@ -1149,8 +1156,9 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 			}
 		}
 		node->_isXlink=xLinkState::LINKED;
-		for(auto* child : node->getXLinkTargets())
+		for(auto* target : node->getXLinkTargets())
 		{
+			CityObject* child = (CityObject*) target;
 			fetchVersionedCityObjectsRec(child);
 			child->_parent=node->_parent;
 		}
