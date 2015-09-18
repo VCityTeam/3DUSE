@@ -64,6 +64,9 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 	if(!extrudDir.exists("./ShpExtruded/"))
 		extrudDir.mkpath(extrudDir.absolutePath());
 
+	ui->projDistanceSB->hide();
+	ui->projDistLabel->hide();
+
 	this->mainwindow = mainwindow;
 }
 ////////////////////////////////////////////////////////////////////////////////
