@@ -1,16 +1,16 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#include "moc/dialogVisibilite.hpp"
+#include "dialogVisibilite.hpp"
 #include "ui_dialogVisibilite.h"
 #include "gui/applicationGui.hpp"
 
-#include "moc/mainWindow.hpp"
-#include "src/visibilite/Visibilite.hpp"
-#include "src/visibilite/data/BelvedereDB.h"
-#include "src/visibilite/FlatRoof.hpp"
-#include "src/visibilite/ShpExtrusion.h"
-#include "src/visibilite/VegetTool.hpp"
-#include "src/visibilite/AlignementTree.hpp"
+#include "../../../gui/moc/mainWindow.hpp"
+#include "../Visibilite.hpp"
+#include "../data/BelvedereDB.h"
+#include "../FlatRoof.hpp"
+#include "../ShpExtrusion.h"
+#include "../VegetTool.hpp"
+#include "../AlignementTree.hpp"
 
 #include <QSettings>
 #include <QFileDialog>

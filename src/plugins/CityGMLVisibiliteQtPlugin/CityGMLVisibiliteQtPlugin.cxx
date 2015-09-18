@@ -4,7 +4,7 @@
 #include <QMessageBox>
 
 // add your object header here if you call code...
-#include "../../gui/moc/dialogVisibilite.hpp"
+#include "Dialogs/dialogVisibilite.hpp"
 
 int CityGMLVisibiliteQtPlugin::your_code_here(void)
 {

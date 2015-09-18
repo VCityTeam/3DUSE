@@ -562,8 +562,13 @@ endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLVisibiliteQtPlugin "BUILD CityGMLVisibiliteQtPlugin " ON)
 if (BUILD_CityGMLVisibiliteQtPlugin)
-	set(CityGMLVisibilite_Qt_Plugin_HEADER src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.h src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/DialogCityGMLVisibilite1.h)
-	set(CityGMLVisibilite_Qt_Plugin_UI src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/DialogCityGMLVisibilite1.ui)
+file(
+  GLOB_RECURSE
+  CityGMLVisibilite_Qt_Plugin_SRC
+  src/plugins/CityGMLVisibiliteQtPlugin/*.cxx
+)
+	set(CityGMLVisibilite_Qt_Plugin_HEADER src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.h src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.hpp)
+	set(CityGMLVisibilite_Qt_Plugin_UI src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.ui)
 	if (WITH_QT5)
 	  set(CMAKE_AUTOMOC OFF) # Instruct CMake to not run moc automatically when needed
 	  ADD_DEFINITIONS("-DWITH_QT5")
@@ -577,7 +582,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 	  set(CityGMLVisibilite_Qt_Plugin_LIB ${CityGMLVisibilite_Qt_Plugin_LIB} ${QT_LIBRARIES})
 	endif(WITH_QT5)
 
-	add_library(CityGMLVisibiliteQtPlugin SHARED src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/DialogCityGMLVisibilite1.cxx
+	add_library(CityGMLVisibiliteQtPlugin SHARED src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
 				${CityGMLVisibilite_Qt_Plugin_HEADER} ${CityGMLVisibilite_Qt_Plugin_SRC}
 				${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
 	target_link_libraries (CityGMLVisibiliteQtPlugin ${LINUX_FLAGS} ${CityGMLVisibilite_Qt_Plugin_LIB} ${VCITY_GUI_LIB})

@@ -4,7 +4,6 @@
 #include "../gui/pluginInterface.h"
 
 #include <QStringList>
-#include "Dialogs/DialogCityGMLVisibilite1.h"
 
 class CityGMLVisibiliteQtPlugin : 
   public QObject,

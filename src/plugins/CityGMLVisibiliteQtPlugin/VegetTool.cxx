@@ -1,4 +1,4 @@
-#include "src/visibilite/VegetTool.hpp"
+#include "VegetTool.hpp"
 
 #include <qfiledialog.h>
 #include "src/processes/ExportToShape.hpp"

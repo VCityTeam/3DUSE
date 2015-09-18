@@ -1,7 +1,7 @@
 #ifndef __EXPORT_HPP__
 #define __EXPORT_HPP__
 
-#include "src/visibilite/data/ViewPoint.h"
+#include "data/ViewPoint.h"
 
 #include <set>
 

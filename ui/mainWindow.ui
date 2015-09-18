@@ -363,7 +363,6 @@
     <addaction name="actionCityGML_cut"/>
     <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="actionChange_Detection"/>
-    <addaction name="actionVisibilite"/>
     <addaction name="separator"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
    </widget>

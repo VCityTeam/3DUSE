@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-#include "visibilite/Visibilite.hpp"
+#include "../Visibilite.hpp"
 
 bool operator<(const RayBoxHit& a, const RayBoxHit& b)
 {

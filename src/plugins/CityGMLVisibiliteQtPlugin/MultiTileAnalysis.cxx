@@ -13,7 +13,7 @@
 #include "data/Hit.hpp"
 #include "Export.hpp"
 #include "RayTracing.h"
-#include "src/visibilite/data/BelvedereDB.h"
+#include "data/BelvedereDB.h"
 
 
 /**

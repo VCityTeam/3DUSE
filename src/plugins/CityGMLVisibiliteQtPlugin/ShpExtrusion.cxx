@@ -1,4 +1,4 @@
-#include "visibilite/ShpExtrusion.h"
+#include "ShpExtrusion.h"
 
 #include <qstring.h>
 #include <qfiledialog.h>
@@ -9,8 +9,8 @@
 
 #include <unordered_map>
 
-#include "visibilite/data/AABB.hpp"
-#include "visibilite/Visibilite.hpp"
+#include "data/AABB.hpp"
+#include "Visibilite.hpp"
 
 std::map<std::string,TriangleList*> tileTriangles;
 

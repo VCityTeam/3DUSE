@@ -1,4 +1,4 @@
-#include "visibilite/AlignementTree.hpp"
+#include "AlignementTree.hpp"
 
 #include <qstring.h>
 #include <qfiledialog.h>
@@ -8,7 +8,7 @@
 #include "gui/osg/osgScene.hpp"
 #include "export/exportCityGML.hpp"
 
-#include "visibilite/ShpExtrusion.h"
+#include "ShpExtrusion.h"
 
 /**
 *	@brief Convert a degree float to radian

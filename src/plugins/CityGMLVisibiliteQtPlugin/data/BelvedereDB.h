@@ -2,8 +2,8 @@
 #define __BELVEDEREDB_HPP__
 
 #include <string>
-#include "src/core/application.hpp"
-#include "src/visibilite/data/ViewPoint.h"
+#include "../../../core/application.hpp"
+#include "ViewPoint.h"
 #include <map>
 #include <iostream>
 
