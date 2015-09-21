@@ -6,6 +6,7 @@
 #include "osg/osgPicking.hpp"
 #include "osg/osgGDAL.hpp"
 #include "osg/osgTools.hpp"
+#include <osg/MatrixTransform>
 #include <osg/ValueObject>
 ////////////////////////////////////////////////////////////////////////////////
 ControllerGui::ControllerGui()
@@ -290,7 +291,9 @@ void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
     // fill osg scene
     uriLayer.resetCursor();
     osg::ref_ptr<osg::Node> osgNode = buildOsgGDAL(poDS);
-    osg::ref_ptr<osg::Group> grp = new osg::Group;
+
+	//We use a MatrixTransform instead of a basic group to be able to move the shp in the scene
+    osg::ref_ptr<osg::Group> grp = new osg::MatrixTransform();
     grp->addChild(osgNode);
     grp->setName(name);
     //grp->getOrCreateStateSet();

@@ -18,11 +18,13 @@
 #include <QMenu>
 #include <QLineEdit>
 #include <osg/PositionAttitudeTransform>
+#include "moc/dialogShpTool.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 TreeView::TreeView(QTreeWidget* tree, MainWindow* widget)
     : m_tree(tree), m_mainWindow(widget)
 {
-
+	dialogShpTool = new DialogShpTool(widget,widget);
+	dialogShpTool->setModal(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
 TreeView::~TreeView()
@@ -51,6 +53,7 @@ TreeView::~TreeView()
     delete m_actionDeSelectAll;
     delete m_actionAddDoc;
 	delete m_actionExportJSON;
+	delete m_actionEditShp;
 	delete m_actionAddYearOfConst;
 	delete m_actionAddYearOfDemol;
 }
@@ -84,6 +87,7 @@ void TreeView::init()
     m_actionDeSelectAll = new QAction("Check none", NULL);
     m_actionAddDoc = new QAction("Add document", NULL);
 	m_actionExportJSON = new QAction("Export JSON", NULL);
+	m_actionEditShp = new QAction("Edit Shp", NULL);
 	//ajout yearOfConstruction/yearOfDemolition
 	m_actionAddYearOfConst = new QAction("Add year of Construction",NULL);
 	m_actionAddYearOfDemol = new QAction("Add year of Demolition",NULL);
@@ -113,6 +117,7 @@ void TreeView::init()
     connect(m_actionDeSelectAll, SIGNAL(triggered()), this, SLOT(slotUnCheckAll()));
     connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
 	connect(m_actionExportJSON, SIGNAL(triggered()), this, SLOT(slotExportJSON()));
+	connect(m_actionEditShp, SIGNAL(triggered()), this, SLOT(slotEditShp()));
 	//ajout yearOfConstruction/yearOfDemolition
 	connect(m_actionAddYearOfConst, SIGNAL(triggered()), this, SLOT(slotAddYearOfConst()));
 	connect(m_actionAddYearOfDemol, SIGNAL(triggered()), this, SLOT(slotAddYearOfDemol()));
@@ -597,6 +602,11 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionEditDynState);
         m_tree->addAction(m_actionAddDoc);
     }
+	else if(item->text(1) == "ShpNode")
+    {
+        //std::cout << "ShpNode" << std::endl;
+        m_tree->addAction(m_actionEditShp);
+    }
 
     if(item->text(1) == "GenericCityObject" || item->text(1) == "Building" ||
        item->text(1) == "Room" || item->text(1) == "BuildingInstallation" ||
@@ -837,6 +847,12 @@ void TreeView::slotExportJSON()
 
 	if (layerLas)
 		layerLas->exportJSON();
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotEditShp()
+{
+	dialogShpTool->Setup(getURI(getCurrentItem()));
+	dialogShpTool->show();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddYearOfConst()

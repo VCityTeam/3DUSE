@@ -6,8 +6,10 @@
 #include <QTreeWidget>
 #include "core/URI.hpp"
 #include "core/application.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 class MainWindow;
+class DialogShpTool;
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The TreeView class, handles everything relative to the Qt treeview
 ///
@@ -101,6 +103,7 @@ private slots:
     void slotUnCheckAll();
     void slotAddDoc();
 	void slotExportJSON();
+	void slotEditShp();
 	//ajout yearOfConstruction/yearOfDemolition
 	void slotAddYearOfConst();
 	void slotAddYearOfDemol();
@@ -118,6 +121,7 @@ private:
 
     QTreeWidget* m_tree;
     MainWindow* m_mainWindow;
+	DialogShpTool* dialogShpTool;
 
     // all registered actions
     QAction* m_actionAddTile;
@@ -144,6 +148,7 @@ private:
     QAction* m_actionDeSelectAll;
     QAction* m_actionAddDoc;
 	QAction* m_actionExportJSON;
+	QAction* m_actionEditShp;
 	//ajout yearOfConstruction/yearOfDemolition
 	QAction* m_actionAddYearOfConst;
 	QAction* m_actionAddYearOfDemol;

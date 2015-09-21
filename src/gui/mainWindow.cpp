@@ -224,10 +224,15 @@ MainWindow::~MainWindow()
       {
         QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
         QObject *plugin = loader.instance();
-        if (plugin) {
+        if (plugin)
+		{
           pluginMenu->addSeparator();
           populateMenus(plugin);
           pluginFileNames += fileName;
+
+		  // call plugin's init() method
+		  Generic_PluginInterface* vcity_plugin = qobject_cast<Generic_PluginInterface*>(plugin);
+		  vcity_plugin->init(this);
         }
       }
     }
@@ -467,45 +472,7 @@ bool MainWindow::loadFile(const QString& filepath)
 	}
     else if(ext == "shp")
     {
-        std::cout << "load shp file : " << filepath.toStdString() << std::endl;
-        OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
-
-		//Pour sauvegarder un shapefile
-		/*const char *pszDriverName = "ESRI Shapefile";
-		OGRSFDriver *poDriver;
-		OGRRegisterAll();
-		poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
-
-		if( poDriver == NULL )
-		{
-			printf( "%s driver not available.\n", pszDriverName );
-			return false;
-		}
-		OGRDataSource *poDS2;
-		remove("Polygon.shp");
-		poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
-		
-		poDS2->CopyLayer(poDS->GetLayer(0), "test");
-		OGRDataSource::DestroyDataSource(poDS2);
-
-		return false;*/
-
-        //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
-		
-        // clean previous shapeGeo
-        delete ShapeGeo;
-		buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
-        if(poDS)
-        {
-            vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
-            appGui().getControllerGui().addShpNode(uriLayer, poDS);
-
-            addRecentFile(filepath);
-
-            //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
-        }
-
-		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
+        loadShpFile(filepath);
     }
     else if(ext == "dxf")
     {
@@ -2227,10 +2194,60 @@ void MainWindow::test3()
 
 	QApplication::restoreOverrideCursor();
 }
+
+#define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
+
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 {
-    buildJson();
+    //buildJson();
+
+	/*std::vector<std::string> building;
+	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
+	
+	std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+
+	int cpt = 0;
+	for(AnalysisResult ar : res)
+	{
+		addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
+		addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
+		cpt++;
+	}*/
+
+	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
+
+	//ProcessLasShpVeget();
+	/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
+	std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
+
+	std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+	
+	ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
+	for(std::pair<std::string,PolygonData> p : top)
+	{
+		ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
+	}
+	ofs.close();*/
+
+	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
+
+	//ExtrudeAlignementTree();
+
+	/*LASreadOpener lasreadopener;
+	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
+	LASreader* lasreader = lasreadopener.open();
+
+	OGRMultiPoint* mp = new OGRMultiPoint;
+
+	while (lasreader->read_point())
+	{
+		OGRPoint* point = new OGRPoint;
+		mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
+	}*/
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
@@ -2293,3 +2310,47 @@ void MainWindow::test5()
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::loadShpFile(const QString& filepath)
+{
+	std::cout << "load shp file : " << filepath.toStdString() << std::endl;
+    OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
+
+	//Pour sauvegarder un shapefile
+	/*const char *pszDriverName = "ESRI Shapefile";
+	OGRSFDriver *poDriver;
+	OGRRegisterAll();
+	poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
+
+	if( poDriver == NULL )
+	{
+		printf( "%s driver not available.\n", pszDriverName );
+		return false;
+	}
+	OGRDataSource *poDS2;
+	remove("Polygon.shp");
+	poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
+		
+	poDS2->CopyLayer(poDS->GetLayer(0), "test");
+	OGRDataSource::DestroyDataSource(poDS2);
+
+	return false;*/
+
+    //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+		
+    // clean previous shapeGeo
+    delete ShapeGeo;
+	buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
+    if(poDS)
+    {
+        vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+        appGui().getControllerGui().addShpNode(uriLayer, poDS);
+
+        addRecentFile(filepath);
+
+        //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
+    }
+
+		//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
+}
