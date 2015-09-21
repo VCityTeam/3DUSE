@@ -778,6 +778,7 @@ void MainWindow::unlockFeatures(const QString& pass)
 	case 2:
 		m_ui->menuDebug->menuAction()->setVisible(true);
 		m_ui->menuTest->menuAction()->setVisible(true);
+		m_ui->menuPlugins->menuAction()->setVisible(true);
 		m_ui->actionExport_osg->setVisible(true);
 		m_ui->actionExport_tiled_osga->setVisible(true);
 		m_ui->actionExport_JSON->setVisible(true);
@@ -799,7 +800,8 @@ void MainWindow::unlockFeatures(const QString& pass)
 		break;
 	case 0:
 		m_ui->menuDebug->menuAction()->setVisible(false);
-		m_ui->menuTest->menuAction()->setVisible(true); //A cacher
+		m_ui->menuTest->menuAction()->setVisible(false); //A cacher
+		m_ui->menuPlugins->menuAction()->setVisible(false); //A cacher
 		m_ui->actionFix_building->setVisible(false);
 		m_ui->actionShadows->setVisible(false);
 		m_ui->actionExport_osg->setVisible(false);

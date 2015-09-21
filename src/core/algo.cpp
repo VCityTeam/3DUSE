@@ -189,20 +189,20 @@ namespace vcity
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>(*Cloud2));
 
 		///The smallest scale to use in the DoN filter.
-		double scale1 = 0.5;
+		double scale1 = 0.2;//0.5
 
 		///The largest scale to use in the DoN filter.
-		double scale2 = 1;
+		double scale2 = 2;//1
 
 		///The minimum DoN magnitude to threshold by
-		double threshold = 0.1;
-		std::cout << "threshold ? " << std::endl;
-		std::cin >> threshold;
-
+		double threshold = 0.25; //0.1
+		//std::cout << "threshold ? " << std::endl;
+		//std::cin >> threshold;
+		
 		///segment scene into clusters with given distance tolerance using euclidean clustering
-		double segradius = 3;
-		std::cout << "segradius ? " << std::endl;
-		std::cin >> segradius;
+		double segradius = 0.2;//3
+		//std::cout << "segradius ? " << std::endl;
+		//std::cin >> segradius;
 
 		// Create a search tree, use KDTreee for non-organized data.
 		pcl::search::Search<pcl::PointXYZ>::Ptr tree;
@@ -303,7 +303,7 @@ namespace vcity
 		pcl::EuclideanClusterExtraction<pcl::PointNormal> ec;
 
 		ec.setClusterTolerance (segradius);
-		ec.setMinClusterSize (50);
+		ec.setMinClusterSize (50);//50
 		ec.setMaxClusterSize (100000);
 		ec.setSearchMethod (segtree);
 		ec.setInputCloud (doncloud);
@@ -856,7 +856,7 @@ namespace vcity
 		pcl::PCDWriter writer;
 
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZRGB>);
-		reader.read<pcl::PointXYZRGB> ("C:/Users/FredLiris/Downloads/1845_5181_NoGround_Trie_1_200.pcd", *cloud);
+		reader.read<pcl::PointXYZRGB> ("C:/Users/FredLiris/Downloads/PCL/1845_5181_NoGround_Trie_1_200.pcd", *cloud);
 
 		pcl::PointCloud<pcl::PointXYZ>::Ptr currcloud (new pcl::PointCloud<pcl::PointXYZ>);
 
