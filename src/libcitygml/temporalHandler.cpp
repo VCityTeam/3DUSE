@@ -52,6 +52,7 @@ std::string TempHandler::getIDfromQuery(std::string query)
 	{
 		return query.substr(pos1+9,pos2-(pos1+9));
 	}
+	return "";
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,12 +119,16 @@ void TempHandler::endElement(std::string name)
 	if (name=="validFrom")
 	{
 		citygml::Object** currentObject = getCurrentObject();
-		if ( *currentObject ) (*currentObject)->setAttribute( "validFrom", getBuff()->str(), false );
+		std::stringstream buffer;
+		buffer << trim(getBuff()->str());
+		if ( *currentObject ) (*currentObject)->setAttribute( "validFrom", buffer.str(), false );
 	}
 	if (name=="validTo")
 	{
 		citygml::Object** currentObject = getCurrentObject();
-		if ( *currentObject ) (*currentObject)->setAttribute( "validTo", getBuff()->str(), false );
+		std::stringstream buffer;
+		buffer << trim(getBuff()->str());
+		if ( *currentObject ) (*currentObject)->setAttribute( "validTo", buffer.str(), false );
 	}
 
 	if (name=="Version")
