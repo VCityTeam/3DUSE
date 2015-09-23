@@ -233,7 +233,7 @@ namespace citygml
 				res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
 			} 
 			else res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
-			std::string query = "//identifier[text()='"+obj.getAttribute("identifier")+"']";
+			std::string query = obj.getAttribute("xlink");
 			xmlNewProp(res, BAD_CAST "xlink:href", BAD_CAST query.c_str());
 			return res;
 		}

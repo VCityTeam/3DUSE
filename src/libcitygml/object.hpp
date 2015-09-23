@@ -56,6 +56,7 @@ public:
     void setAttribute( const std::string& name, const std::string& value, bool forceOnExist = true );
 
 	std::vector<Object*>& getXLinkTargets();
+	void addXLinkTarget(Object*);
 	xLinkState _isXlink;
 
 protected:

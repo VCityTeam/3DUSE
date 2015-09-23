@@ -13,6 +13,7 @@
 #include "moc/dialogDoc.hpp"
 #include "moc/dialogYearOfConst.hpp"
 #include "moc/dialogYearOfDemol.hpp"
+#include "moc/dialogLink.hpp"
 #include "core/application.hpp"
 #include <iostream>
 #include <QMenu>
@@ -56,6 +57,7 @@ TreeView::~TreeView()
 	delete m_actionEditShp;
 	delete m_actionAddYearOfConst;
 	delete m_actionAddYearOfDemol;
+	delete m_actionAddLink;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -91,6 +93,7 @@ void TreeView::init()
 	//ajout yearOfConstruction/yearOfDemolition
 	m_actionAddYearOfConst = new QAction("Add year of Construction",NULL);
 	m_actionAddYearOfDemol = new QAction("Add year of Demolition",NULL);
+	m_actionAddLink = new QAction("Add link to a new object", NULL);
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -121,6 +124,7 @@ void TreeView::init()
 	//ajout yearOfConstruction/yearOfDemolition
 	connect(m_actionAddYearOfConst, SIGNAL(triggered()), this, SLOT(slotAddYearOfConst()));
 	connect(m_actionAddYearOfDemol, SIGNAL(triggered()), this, SLOT(slotAddYearOfDemol()));
+	connect(m_actionAddLink, SIGNAL(triggered()), this, SLOT(slotAddLink()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
@@ -630,6 +634,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionAddDoc);
 		m_tree->addAction(m_actionAddYearOfConst);
 		m_tree->addAction(m_actionAddYearOfDemol);
+		m_tree->addAction(m_actionAddLink);
     }
 
     // actions on all types
@@ -867,6 +872,12 @@ void TreeView::slotAddYearOfDemol()
 	diag.editDates(getURI(getCurrentItem()));
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotAddLink()
+{
+	DialogLink diag;
+	diag.addLink(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::resetActions()
 {
     m_tree->removeAction(m_actionAddTile);
@@ -893,5 +904,6 @@ void TreeView::resetActions()
 	m_tree->removeAction(m_actionExportJSON);
 	m_tree->removeAction(m_actionAddYearOfConst);
 	m_tree->removeAction(m_actionAddYearOfDemol);
+	m_tree->removeAction(m_actionAddLink);
 }
 ////////////////////////////////////////////////////////////////////////////////

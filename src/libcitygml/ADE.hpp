@@ -94,7 +94,6 @@ private:
 	static mapType* ADEmap;
 };
 
-
 //template for registring each ADE handler in the ADEHandlerFactory map
 template<typename T> struct ADERegister:ADEHandlerFactory
 {
