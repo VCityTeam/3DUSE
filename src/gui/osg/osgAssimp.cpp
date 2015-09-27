@@ -84,6 +84,9 @@ osg::Texture::WrapMode getWrapMode( aiTextureMapMode mode )
 		case aiTextureMapMode_Clamp: return osg::Texture::CLAMP;
 		case aiTextureMapMode_Decal: return osg::Texture::CLAMP_TO_BORDER;
 		case aiTextureMapMode_Mirror: return osg::Texture::MIRROR;
+
+        // MT because of MAC OS X warnings
+        case _aiTextureMapMode_Force32Bit: break;
     }
     return osg::Texture::CLAMP;
 }
@@ -97,6 +100,9 @@ osg::TexEnv::Mode getEnvMode( aiTextureOp mode )
 		case aiTextureOp_Subtract: return osg::TexEnv::DECAL;
 		case aiTextureOp_SmoothAdd: case aiTextureOp_SignedAdd:
 			return osg::TexEnv::ADD;
+
+        // MT because of MAC OS X warnings
+        case aiTextureOp_Divide: case _aiTextureMapMode_Force32Bit: break;
     }
     return osg::TexEnv::REPLACE;
 }
