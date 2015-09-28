@@ -197,7 +197,7 @@ public:
     virtual ~CityObjectDynState() override;
 
     /// Get State name
-    virtual std::string getStringId() const;
+    virtual std::string getStringId() const override;
 
     /// Add a datasource
     void addDataSource(DataSource* dsrc);

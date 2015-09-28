@@ -399,6 +399,10 @@ else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
 endif(WITH_QT5)
 
+if (APPLE)
+  set_source_files_properties(src/libcitygml/tesselator.cpp PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations") # for warnings: 'glu*' is deprecated...
+endif (APPLE)
+
 SET( VCITY_GUI_LIB
   ${ASSIMP_LIBRARY}
   ${OSG_LIBRARIES}
@@ -503,13 +507,19 @@ SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DE
 ################
 # 3DUSE plugins
 ################
+
+if (WITH_QT5) # For the plugins, instruct CMake to not run moc automatically when needed
+ set(CMAKE_AUTOMOC OFF)
+ QT5_WRAP_CPP(VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC})
+ SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
+endif(WITH_QT5)
+
 # --> CityGMLCutQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLCutQtPlugin "BUILD CityGMLCutQtPlugin " ON)
 if (BUILD_CityGMLCutQtPlugin)
 	set(CityGMLCut_Qt_Plugin_HEADER src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.h src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.h)
 	set(CityGMLCut_Qt_Plugin_UI src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui)
 	if (WITH_QT5)
-	  set(CMAKE_AUTOMOC OFF) # Instruct CMake to not run moc automatically when needed
 	  ADD_DEFINITIONS("-DWITH_QT5")
 	  QT5_WRAP_CPP(CityGMLCut_Qt_Plugin_MOC_CPP ${CityGMLCut_Qt_Plugin_HEADER})
 	  QT5_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
@@ -526,7 +536,7 @@ if (BUILD_CityGMLCutQtPlugin)
 				${VCITY_GUI_SRC_WIN} src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx) # if need, add cxx files here before the ')'
 	target_link_libraries (CityGMLCutQtPlugin ${CityGMLCut_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
 	if (WITH_QT5)
-	  QT5_USE_MODULES(CityGMLCutQtPlugin Core Widgets)
+	  QT5_USE_MODULES(CityGMLCutQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)
 endif (BUILD_CityGMLCutQtPlugin)
 # --> CityGMLCutQtPlugin : QtPlugin [END]
@@ -537,7 +547,6 @@ if (BUILD_CityGMLEmptyQtPlugin)
 	set(CityGMLEmpty_Qt_Plugin_HEADER src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.h src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.h)
 	set(CityGMLEmpty_Qt_Plugin_UI src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.ui)
 	if (WITH_QT5)
-	  set(CMAKE_AUTOMOC OFF) # Instruct CMake to not run moc automatically when needed
 	  ADD_DEFINITIONS("-DWITH_QT5")
 	  QT5_WRAP_CPP(CityGMLEmpty_Qt_Plugin_MOC_CPP ${CityGMLEmpty_Qt_Plugin_HEADER})
 	  QT5_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
@@ -554,7 +563,7 @@ if (BUILD_CityGMLEmptyQtPlugin)
 				${VCITY_GUI_SRC_WIN}) # if need, add cxx files here before the ')'
 	target_link_libraries (CityGMLEmptyQtPlugin ${CityGMLEmpty_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
 	if (WITH_QT5)
-	  QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets)
+	  QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)
 endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLEmptyQtPlugin : QtPlugin [END]
@@ -562,15 +571,14 @@ endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLVisibiliteQtPlugin "BUILD CityGMLVisibiliteQtPlugin " ON)
 if (BUILD_CityGMLVisibiliteQtPlugin)
-file(
-  GLOB_RECURSE
-  CityGMLVisibilite_Qt_Plugin_SRC
-  src/plugins/CityGMLVisibiliteQtPlugin/*.cxx
-)
+  file(
+    GLOB_RECURSE
+    CityGMLVisibilite_Qt_Plugin_SRC
+    src/plugins/CityGMLVisibiliteQtPlugin/*.cxx
+  )
 	set(CityGMLVisibilite_Qt_Plugin_HEADER src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.h src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.hpp)
 	set(CityGMLVisibilite_Qt_Plugin_UI src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.ui)
 	if (WITH_QT5)
-	  set(CMAKE_AUTOMOC OFF) # Instruct CMake to not run moc automatically when needed
 	  ADD_DEFINITIONS("-DWITH_QT5")
 	  QT5_WRAP_CPP(CityGMLVisibilite_Qt_Plugin_MOC_CPP ${CityGMLVisibilite_Qt_Plugin_HEADER})
 	  QT5_WRAP_UI(CityGMLVisibilite_Qt_Plugin_UI_CPP ${CityGMLVisibilite_Qt_Plugin_UI})
@@ -587,7 +595,7 @@ file(
 				${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
 	target_link_libraries (CityGMLVisibiliteQtPlugin ${LINUX_FLAGS} ${CityGMLVisibilite_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
 	if (WITH_QT5)
-	  QT5_USE_MODULES(CityGMLVisibiliteQtPlugin Core Widgets)
+	  QT5_USE_MODULES(CityGMLVisibiliteQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [END]
