@@ -781,6 +781,16 @@
     <string>LOD1</string>
    </property>
   </action>
+  <action name="actionShp_Extrusion">
+   <property name="text">
+    <string>Shp Extrusion</string>
+   </property>
+  </action>
+  <action name="actionVisibilite">
+   <property name="text">
+    <string>Visibilite...</string>
+   </property>
+  </action>
   <action name="actionSplit_CityGML_Buildings">
    <property name="text">
     <string>Split CityGML Buildings</string>

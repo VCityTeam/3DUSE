@@ -3,7 +3,7 @@ project(laslib)
 cmake_minimum_required(VERSION 2.8)
 
 if (NOT WIN32)
-    set(CMAKE_CXX_FLAGS "-Wno-unused-result -DUNORDERED -fno-strict-aliasing")
+    set(CMAKE_CXX_FLAGS "-Wno-unused-result -DUNORDERED -fno-strict-aliasing -fPIC")
 else()
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
 endif()

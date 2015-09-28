@@ -10,7 +10,7 @@ namespace vcity
 class Algo
 {
 public:
-	Algo();
+	/*Algo();
     ~Algo();
 
 	void ConvertLasToPCD();
@@ -19,7 +19,7 @@ public:
 	void RemoveGroundWithTIN();
 	void PrepareTIN();
 	void CompareBuildings();
-	void ConstructRoofs();
+	void ConstructRoofs();*/
 
 private:
 };

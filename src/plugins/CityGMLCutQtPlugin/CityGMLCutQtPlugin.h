@@ -29,8 +29,8 @@ class CityGMLCutQtPlugin :
 		dial1.setVerbose(false);
 		if (dial1.exec() == QDialog::Accepted)
 		{
-			QString IN, OUT;
-			dial1.getGMLFiles(IN,OUT);
+			QString in, out;
+			dial1.getGMLFiles(in, out);
 
 			unsigned int xmin,ymin,xmax,ymax;
 			dial1.getBoundingBox(xmin,ymin,xmax,ymax);
@@ -38,7 +38,7 @@ class CityGMLCutQtPlugin :
 			bool verbose;
 			verbose = dial1.getVerbose();
 
-			cmdline(IN, OUT, xmin, ymin, xmax ,ymax, verbose);
+			cmdline(in, out, xmin, ymin, xmax ,ymax, verbose);
 
 			return true;
 		}

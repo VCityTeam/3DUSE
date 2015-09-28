@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DialogVisibilite</class>
+ <widget class="QDialog" name="DialogVisibilite">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>520</width>
+    <height>674</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Visibilite</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="27" column="2">
+    <widget class="QPushButton" name="alignementTreeB">
+     <property name="text">
+      <string>Alignement Tree Generation</string>
+     </property>
+    </widget>
+   </item>
+   <item row="27" column="0" colspan="2">
+    <widget class="QLabel" name="label_19">
+     <property name="text">
+      <string>Vegatation Tools :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="26" column="0" colspan="5">
+    <widget class="Line" name="line_6">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QPushButton" name="resetCatB">
+     <property name="text">
+      <string>Reset</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="3">
+    <widget class="QSpinBox" name="resYSB">
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>32000</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>256</number>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="3">
+    <widget class="QDoubleSpinBox" name="fovySB">
+     <property name="minimum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>179.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>45.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="3">
+    <widget class="QPushButton" name="getParamB">
+     <property name="text">
+      <string>Get Parameter</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="2">
+    <widget class="QDoubleSpinBox" name="fovxSB">
+     <property name="minimum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>179.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>45.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Position</string>
+     </property>
+    </widget>
+   </item>
+   <item row="24" column="0">
+    <widget class="QLabel" name="label_10">
+     <property name="text">
+      <string>Cascade increment</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0">
+    <widget class="QLabel" name="label_15">
+     <property name="text">
+      <string>Terrain %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="2">
+    <widget class="QDoubleSpinBox" name="projDistanceSB">
+     <property name="minimum">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="label_14">
+     <property name="text">
+      <string>Water %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Resolution</string>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="3">
+    <widget class="QDoubleSpinBox" name="dirYSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="4">
+    <widget class="QDoubleSpinBox" name="posZSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_13">
+     <property name="text">
+      <string>Vegetation %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="22" column="0" colspan="5">
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="23" column="2">
+    <widget class="QSpinBox" name="cascadeCountSB">
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>1000</number>
+     </property>
+     <property name="value">
+      <number>4</number>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="2">
+    <widget class="QDoubleSpinBox" name="dirXSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Tile Directory</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="2">
+    <widget class="QDoubleSpinBox" name="posXSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="23" column="0">
+    <widget class="QLabel" name="label_9">
+     <property name="text">
+      <string>Cascade count</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="3">
+    <widget class="QDoubleSpinBox" name="posYSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="13" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Camera Settings</string>
+     </property>
+    </widget>
+   </item>
+   <item row="24" column="2">
+    <widget class="QDoubleSpinBox" name="cascadeIncrementSB">
+     <property name="minimum">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>150.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Direction</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="4">
+    <widget class="QPushButton" name="applyParamB">
+     <property name="text">
+      <string>Apply Parameter</string>
+     </property>
+    </widget>
+   </item>
+   <item row="18" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Field of view</string>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="2">
+    <widget class="QSpinBox" name="resXSB">
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>32000</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>256</number>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="4">
+    <widget class="QDoubleSpinBox" name="dirZSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>Emblematic View</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="label_11">
+     <property name="text">
+      <string>Building %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="5">
+    <widget class="Line" name="line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="2">
+    <widget class="QDoubleSpinBox" name="buildingSB">
+     <property name="value">
+      <double>35.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="2">
+    <widget class="QDoubleSpinBox" name="vegetSB">
+     <property name="value">
+      <double>15.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="4">
+    <widget class="QPushButton" name="panoramaB">
+     <property name="text">
+      <string>Basic Panorama</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0">
+    <widget class="QLabel" name="label_12">
+     <property name="text">
+      <string>Remarquable building %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0" colspan="5">
+    <widget class="Line" name="line_4">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="20" column="0" colspan="5">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="25" column="4">
+    <widget class="QPushButton" name="panoramaCascadeB">
+     <property name="text">
+      <string>Cascade Panorama</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="2">
+    <widget class="QDoubleSpinBox" name="remarquableSB">
+     <property name="value">
+      <double>10.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="19" column="0">
+    <widget class="QLabel" name="projDistLabel">
+     <property name="text">
+      <string>Projection distance</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="2">
+    <widget class="QDoubleSpinBox" name="waterSB">
+     <property name="value">
+      <double>10.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLineEdit" name="dirLE"/>
+   </item>
+   <item row="11" column="2">
+    <widget class="QDoubleSpinBox" name="terrainSB">
+     <property name="value">
+      <double>5.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="dirB">
+     <property name="text">
+      <string>Search for directory</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_16">
+     <property name="text">
+      <string>Sky %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="2">
+    <widget class="QDoubleSpinBox" name="skySB">
+     <property name="value">
+      <double>25.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_17">
+     <property name="text">
+      <string>Capture Category</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QLineEdit" name="categoryLE"/>
+   </item>
+   <item row="1" column="0" colspan="5">
+    <widget class="Line" name="line_5">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_18">
+     <property name="text">
+      <string>Delta Distance</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QDoubleSpinBox" name="deltaDistanceSB"/>
+   </item>
+   <item row="27" column="3">
+    <widget class="QPushButton" name="lidarToGMLB">
+     <property name="text">
+      <string>Lidar to CityGML</string>
+     </property>
+    </widget>
+   </item>
+   <item row="28" column="0">
+    <widget class="QLabel" name="label_20">
+     <property name="text">
+      <string>Other :</string>
+     </property>
+    </widget>
+   </item>
+   <item row="28" column="2">
+    <widget class="QPushButton" name="extrudeShpB">
+     <property name="text">
+      <string>Extrude Shp</string>
+     </property>
+    </widget>
+   </item>
+   <item row="28" column="3">
+    <widget class="QPushButton" name="flatRoofB">
+     <property name="text">
+      <string>Flat Roof Detection</string>
+     </property>
+    </widget>
+   </item>
+   <item row="28" column="4">
+    <widget class="QPushButton" name="rebuildBoxB">
+     <property name="text">
+      <string>Rebuild AABBs</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="0">
+    <widget class="QPushButton" name="basicAnalysisB">
+     <property name="text">
+      <string>Basic Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="2">
+    <widget class="QPushButton" name="multitileBasicB">
+     <property name="text">
+      <string>Basic Multi-Tile Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="21" column="3">
+    <widget class="QPushButton" name="batchMTB">
+     <property name="text">
+      <string>Batch Multi-Tile Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="16" column="2">
+    <widget class="QPushButton" name="addToBatchB">
+     <property name="text">
+      <string>Add to Batch</string>
+     </property>
+    </widget>
+   </item>
+   <item row="25" column="0">
+    <widget class="QPushButton" name="cascadeB">
+     <property name="text">
+      <string>Cascade Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="25" column="2">
+    <widget class="QPushButton" name="multitileCascadeB">
+     <property name="text">
+      <string>Cascade Multi-Tile Analysis</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QPushButton" name="exportTopB">
+     <property name="text">
+      <string>Export Top : </string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="4">
+    <widget class="QSpinBox" name="exportTopSB">
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>999999999</number>
+     </property>
+     <property name="value">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

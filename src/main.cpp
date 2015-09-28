@@ -2,7 +2,6 @@
 #include "gui/moc/mainWindow.hpp"
 #include <QApplication>
 
-#include <geos/geom/Geometry.h>
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
