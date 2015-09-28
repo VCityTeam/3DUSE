@@ -36,7 +36,6 @@ std::string TempHandler::getAttribute( void* attributes, const std::string& attn
 		if ( (const char*)( attrs[i] ) == attname ) return (const char*)( attrs[ i + 1 ] );
 	return defvalue;
 }
-//std::string TempHandler::getGmlIdAttribute( void* attributes ) { return getAttribute( attributes, "gml:id", "" ); }
 
 std::string TempHandler::removeNamespace(std::string name)
 {

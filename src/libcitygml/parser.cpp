@@ -22,7 +22,7 @@
 #include "parser.hpp"
 #include "transform.hpp"
 #include "utils.hpp"
-#include "ADE.hpp"
+#include "ADE/ADE.hpp"
 
 #ifndef MSVC
 	#include <typeinfo>

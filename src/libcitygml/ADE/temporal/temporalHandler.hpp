@@ -1,10 +1,10 @@
 #ifndef _TEMPORALHANDLER_HPP_
 #define _TEMPORALHANDLER_HPP_
 
-#include "ADE.hpp"
-#include "ADE_temporal\version.hpp"
-#include "ADE_temporal\versionTransition.hpp"
-#include "ADE_temporal\transaction.hpp"
+#include "../ADE.hpp"
+#include "version.hpp"
+#include "versionTransition.hpp"
+#include "transaction.hpp"
 
 class TempHandler : public ADEHandler
 {
@@ -25,7 +25,6 @@ public:
 	void endDocument();
 protected:
 	std::string getAttribute( void*, const std::string&, const std::string&);
-//	std::string getGmlIdAttribute( void* attributes ) { return getAttribute( attributes, "gml:id", "" ); }
 	std::string removeNamespace(std::string );
 	std::string getIDfromQuery(std::string);
 private:

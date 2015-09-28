@@ -144,5 +144,5 @@ void DialogLink::addLink(const vcity::URI& uri)
 		uri.resetCursor();
 		appGui().getTreeView()->addCityObject(appGui().getTreeView()->getNode(uri),link);
 	}
-
+	appGui().getMainWindow()->m_osgView->setActive(true);
 }
