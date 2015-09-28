@@ -178,9 +178,9 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 
 			if(f.absoluteFilePath().endsWith(".gml"))
 			{
-				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toAscii().data());
+				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toLatin1().data()); // MT: no more toAscii with qt5
 
-				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toAscii().data(),type);
+				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toLatin1().data(),type); // MT: no more toAscii with qt5
 
 				for(Triangle* t : list->triangles) //Pour éliminer les points anormaux (qui ont des coordonnées z absurdes), on fait un petit filtre en vérifiant ces valeurs de z.
 				{
@@ -192,8 +192,8 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 					max.x = std::max(t->c.x,max.x);max.y = std::max(t->c.y,max.y);if(t->c.z < 1000) max.z = std::max(t->c.z,max.z);
 				}
 
-				AABBs.insert(std::make_pair((bDir.dirName()+"/"+f.fileName()).toAscii().data(),std::make_pair(min,max)));
-				std::cout << (bDir.dirName()+"/"+f.fileName()).toAscii().data() << std::endl;
+				AABBs.insert(std::make_pair((bDir.dirName()+"/"+f.fileName()).toLatin1().data(),std::make_pair(min,max))); // MT: no more toAscii with qt5
+				std::cout << (bDir.dirName()+"/"+f.fileName()).toLatin1().data() << std::endl; // MT: no more toAscii with qt5
 				
 				delete list;
 				delete tile;
@@ -246,7 +246,7 @@ void BuildAABB(std::string dir)
 	{
 		for(QFileInfo f : dt.entryInfoList())
 		{
-			std::cout << f.baseName().toAscii().data() << std::endl;
+			std::cout << f.baseName().toLatin1().data() << std::endl; // MT: no more toAscii with qt5
 			if(f.isDir())
 			{
 				if(f.baseName().endsWith("_BATI"))

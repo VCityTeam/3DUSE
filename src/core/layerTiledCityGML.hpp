@@ -52,12 +52,12 @@ public:
     citygml::CityObject* getCityObjectNode(const URI& uri);
 
     /// Get layer type as string
-	const std::string getType() const;
+	const std::string getType() const override;
 
     /// Get Layer URI
-	URI getURI() const;
+	URI getURI() const override;
 
-    void dump();
+    void dump() override;
 
 private:
     std::vector<Tile*> m_tiles;     ///< Tiles

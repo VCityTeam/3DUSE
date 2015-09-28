@@ -23,12 +23,12 @@ public:
     virtual ~LayerShp() override;
 
     /// Get layer type as string
-	const std::string getType() const;
+	const std::string getType() const override;
 
     /// Get Layer URI
-	URI getURI() const;
+	URI getURI() const override;
 
-    void dump();
+    void dump() override;
 
 public:
     OGRDataSource* m_shp;
