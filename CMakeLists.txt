@@ -399,9 +399,9 @@ else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
 endif(WITH_QT5)
 
-#if (APPLE)
+if (APPLE)
   set_source_files_properties(src/libcitygml/tesselator.cpp PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations") # for warnings: 'glu*' is deprecated...
-#endif (APPLE)
+endif (APPLE)
 
 SET( VCITY_GUI_LIB
   ${ASSIMP_LIBRARY}
