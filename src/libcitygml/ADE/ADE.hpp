@@ -39,7 +39,7 @@ protected:
 	std::string* getAttributeName(){return &(gmlHandler->_attributeName);}
 	int* getCurrentLOD(){return &(gmlHandler->_currentLOD);}
 	bool* getFilterNodeType(){return &(gmlHandler->_filterNodeType);}
-	(unsigned int)* getFilterDepth(){return &(gmlHandler->_filterDepth);}
+	unsigned int* getFilterDepth(){return &(gmlHandler->_filterDepth);} // MT (MAC OS X problem...)
 	std::vector<TVec3d>* getPoints(){return &(gmlHandler->_points);}
 	int* getSrsDimension(){return &(gmlHandler->_srsDimension);}
 	char* getOrientation(){return &(gmlHandler->_orientation);}

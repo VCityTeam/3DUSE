@@ -299,7 +299,7 @@ namespace citygml
 
 		void fetchVersionedCityObjectsRec(CityObject*);
 
-	protected:
+	public: // MT (MAC OS X problem...)
 
 		static std::map< std::string, CityGMLNodeType > s_cityGMLNodeTypeMap;
 		static std::vector< std::string > s_knownNamespace;
@@ -356,6 +356,8 @@ namespace citygml
         CityObjectState* m_currentState;
         CityObjectDynState* m_currentDynState;
         CityObjectTag* m_currentTag;
+
+    protected: // MT
 
 		CityObjectIdentifiersMap _identifiersMap;
 		std::map<std::string,ADEHandler*> _ADEHandlers;

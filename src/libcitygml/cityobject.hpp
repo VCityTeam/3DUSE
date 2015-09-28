@@ -168,7 +168,6 @@ public:
 
 protected:
     CityObjectsType _type;
-    CityObject* _parent;
 
     Envelope _envelope;
     TVec3d _centroid;
@@ -180,6 +179,8 @@ protected:
     std::vector<CityObjectTag*> m_tags;
 
 public:
+    CityObject* _parent; // MT (MAC OS X problem...)
+    
     std::string m_path;
     bool m_temporalUse;
 };
