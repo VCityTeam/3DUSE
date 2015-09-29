@@ -1,5 +1,5 @@
-#include "moc/DialogYearOfConst.hpp"
-#include "ui_DialogYearOfConst.h"
+#include "moc/dialogYearOfConst.hpp"
+#include "ui_dialogYearOfConst.h"
 #include "gui/applicationGui.hpp"
 
 DialogYearOfConst::DialogYearOfConst(QWidget *parent) :

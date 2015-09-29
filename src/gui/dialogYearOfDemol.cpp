@@ -1,4 +1,4 @@
-#include "moc/DialogYearOfDemol.hpp"
+#include "moc/dialogYearOfDemol.hpp"
 #include "ui_dialogYearOfDemol.h"
 #include "gui/applicationGui.hpp"
 
