@@ -51,6 +51,7 @@ std::string TempHandler::getIDfromQuery(std::string query)
 	{
 		return query.substr(pos1+9,pos2-(pos1+9));
 	}
+	throw "XLinkExpressionException";
 	return "";
 }
 
@@ -223,19 +224,23 @@ void TempHandler::endDocument()
 	{
 		if(transition->from()->_isXlink == citygml::xLinkState::UNLINKED)
 		{
-			std::string id = getIDfromQuery(transition->from()->getAttribute("xlink"));
-			for ( temporal::Version* version : _versions)
-			{
-				if(id==version->getId()) transition->setFrom(version);
-			}
+			try {
+				std::string id = getIDfromQuery(transition->from()->getAttribute("xlink"));
+				for ( temporal::Version* version : _versions)
+				{
+					if(id==version->getId()) transition->setFrom(version);
+				}
+			} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->from()->getAttribute("xlink")<<"\""<<std::endl;}
 		}
 		if(transition->to()->_isXlink == citygml::xLinkState::UNLINKED)
 		{
-			std::string id = getIDfromQuery(transition->to()->getAttribute("xlink"));
-			for ( temporal::Version* version : _versions)
-			{
-				if(id==version->getId()) transition->setTo(version);
-			}
+			try {
+				std::string id = getIDfromQuery(transition->to()->getAttribute("xlink"));
+				for ( temporal::Version* version : _versions)
+				{
+					if(id==version->getId()) transition->setTo(version);
+				}
+			} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->to()->getAttribute("xlink")<<"\""<<std::endl;}
 		}
 		//std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
 		//std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
@@ -250,10 +255,12 @@ void TempHandler::endDocument()
 		{
 			if ((*it)->_isXlink==citygml::xLinkState::UNLINKED)
 			{
+				try {
 				std::string id = getIDfromQuery((*it)->getAttribute("xlink"));
 				citygml::CityObject* target = (*getModel())->getNodeById(id);
 				(*it)=target;
-			}
+				} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<(*it)->getAttribute("xlink")<<"\""<<std::endl;}
+			} 
 		}
 		//for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
 		//{

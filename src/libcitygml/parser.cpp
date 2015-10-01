@@ -328,17 +328,17 @@ std::string CityGMLHandler::getNodeName( const std::string& name )
 
 std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
 {
-	// query should be under the format "//identifier[text()='XXXXXXXX']"
+	// query should be under the format "//identifier[text()='XXXXXXXX']/.."
 	//std::cout<<"XLink query found : "<<query<<std::endl;
 	size_t pos1 = query.find("//identifier[text()='");
-	size_t pos2 = query.find("']/parent::*",pos1);
+	size_t pos2 = query.find("']/",pos1);
 	if (pos1!=std::string::npos && pos2!=std::string::npos)
 	{
 		std::string identifier = query.substr(pos1+21,pos2-(pos1+21));
 		//std::cout<<"Identifier = "<<identifier<<std::endl;
 		return identifier;
 	}
-	else throw "XPathExpressionException";
+	else throw "XLinkExpressionException";
 	return "";
 }
 
