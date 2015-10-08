@@ -50,6 +50,10 @@ CityGMLHandler::~CityGMLHandler( void )
 {
     for ( std::set<Geometry*>::iterator it = _geometries.begin(); it != _geometries.end(); it++ )
         delete *it;
+	for(std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin();it!=_ADEHandlers.end();it++)
+	{
+		delete it->second;
+	}
 }
 
 void CityGMLHandler::initNodes( void ) 
@@ -635,7 +639,8 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					tHandler->setGMLHandler(this);
-					tHandler->startElement(name, attributes);
+					try{tHandler->startElement(name, attributes);}
+					catch (...) {}
 				}
 			}
 		}
@@ -1069,7 +1074,8 @@ void CityGMLHandler::endElement( const std::string& name )
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					tHandler->setGMLHandler(this);
-					tHandler->endElement(name);
+					try{tHandler->endElement(name);}
+					catch (...) {}
 				}
 			}
 		}

@@ -24,7 +24,6 @@ public:
 	void endElement(std::string);
 	void endDocument();
 protected:
-	std::string getAttribute( void*, const std::string&, const std::string&);
 	std::string removeNamespace(std::string );
 	std::string getIDfromQuery(std::string);
 private:

@@ -28,14 +28,6 @@ TempHandler::TempHandler(citygml::CityGMLHandler* gHandler):ADEHandler(gHandler)
 //Adding to ADE register (template in ADE.hpp)
 ADERegister<TempHandler> TempHandler::reg("temp");
 
-std::string TempHandler::getAttribute( void* attributes, const std::string& attname, const std::string& defvalue = "" )
-{
-	const xmlChar **attrs = (const xmlChar**)attributes;
-	if ( !attrs ) return defvalue;
-	for ( int i = 0; attrs[i] != 0; i += 2 ) 
-		if ( (const char*)( attrs[i] ) == attname ) return (const char*)( attrs[ i + 1 ] );
-	return defvalue;
-}
 
 std::string TempHandler::removeNamespace(std::string name)
 {
@@ -67,10 +59,10 @@ void TempHandler::startElement(std::string name, void* attributes)
 	if (name=="Version")
 	{
 		_currentVersion = new temporal::Version(getGmlIdAttribute( attributes ));
-		if (getAttribute(attributes,"xlink:href") != "")
+		if (getAttribute(attributes,"xlink:href","") != "")
 		{
 			_currentVersion->_isXlink = citygml::xLinkState::UNLINKED;
-			_currentVersion->setAttribute( "xlink", getAttribute(attributes,"xlink:href"), false );
+			_currentVersion->setAttribute( "xlink", getAttribute(attributes,"xlink:href",""), false );
 		}
 		else _versions.push_back(_currentVersion);
 		if(_inFromTags) _currentTransition->setFrom(_currentVersion);
