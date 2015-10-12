@@ -23,6 +23,8 @@
 #include "appearancemanager.hpp"
 #include "vecs.hpp"
 #include "core/URI.hpp"
+#include "ADE/temporal/version.hpp"
+#include "ADE/temporal/versionTransition.hpp"
 #include <vector>
 #include <map>
 #include <ostream>
@@ -90,6 +92,10 @@ public:
 
     std::string m_basePath;
 
+	void setVersions(std::vector<temporal::Version*>,std::vector<temporal::VersionTransition*>);
+	std::vector<temporal::Version*> getVersions();
+	std::vector<temporal::VersionTransition*> getTransitions();
+
 protected:
     Envelope _envelope;
 
@@ -102,6 +108,9 @@ protected:
     std::string _srsName;
 
     TVec3d _translation;
+
+	std::vector<temporal::Version*> _versions;
+	std::vector<temporal::VersionTransition*> _versionTransitions;
 };
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream&, const citygml::CityModel & );

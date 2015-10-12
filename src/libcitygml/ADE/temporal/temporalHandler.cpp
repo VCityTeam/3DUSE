@@ -28,6 +28,14 @@ TempHandler::TempHandler(citygml::CityGMLHandler* gHandler):ADEHandler(gHandler)
 //Adding to ADE register (template in ADE.hpp)
 ADERegister<TempHandler> TempHandler::reg("temp");
 
+std::string TempHandler::getAttribute( void* attributes, const std::string& attname, const std::string& defvalue = "" )
+{
+	const xmlChar **attrs = (const xmlChar**)attributes;
+	if ( !attrs ) return defvalue;
+	for ( int i = 0; attrs[i] != 0; i += 2 ) 
+		if ( (const char*)( attrs[i] ) == attname ) return (const char*)( attrs[ i + 1 ] );
+	return defvalue;
+}
 
 std::string TempHandler::removeNamespace(std::string name)
 {
@@ -234,14 +242,14 @@ void TempHandler::endDocument()
 				}
 			} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->to()->getAttribute("xlink")<<"\""<<std::endl;}
 		}
-		//std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-		//std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-		//std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
 	}
-	//std::cout<<std::endl;
+	std::cout<<std::endl;
 	for ( temporal::Version* version : _versions)
 	{
-		//std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
 		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
 		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
 		{
@@ -254,9 +262,11 @@ void TempHandler::endDocument()
 				} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<(*it)->getAttribute("xlink")<<"\""<<std::endl;}
 			} 
 		}
-		//for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-		//{
-		//	std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-		//}
+		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		{
+			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+		}
 	}
+	citygml::CityModel** model = getModel();
+	(*model)->setVersions(_versions,_transitions);
 }
