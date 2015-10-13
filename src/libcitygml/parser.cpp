@@ -44,6 +44,7 @@ m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr)
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
 	initNodes();
 	ADEHandlerFactory::getInstances(_ADEHandlers);
+	for (std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++) it->second->setGMLHandler(this); 
 }
 
 CityGMLHandler::~CityGMLHandler( void ) 
@@ -638,7 +639,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
-					tHandler->setGMLHandler(this);
+					//tHandler->setGMLHandler(this);
 					try{tHandler->startElement(name, attributes);}
 					catch (...) {}
 				}
@@ -1073,7 +1074,7 @@ void CityGMLHandler::endElement( const std::string& name )
 				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
-					tHandler->setGMLHandler(this);
+					//tHandler->setGMLHandler(this);
 					try{tHandler->endElement(name);}
 					catch (...) {}
 				}

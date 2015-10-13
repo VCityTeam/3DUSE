@@ -49,6 +49,8 @@ CityModel::~CityModel( void )
     {
         delete obj;
     }
+	for(temporal::Version* version : _versions) delete version;
+	for(temporal::VersionTransition* trans : _versionTransitions) delete trans;
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Return the envelope (ie. the bounding box) of the model
@@ -216,8 +218,8 @@ std::ostream& operator<<( std::ostream& out, const CityModel& model )
 ////////////////////////////////////////////////////////////////////////////////
 void CityModel::setVersions(std::vector<temporal::Version*> versionsList,std::vector<temporal::VersionTransition*> transitionsList)
 {
-	_versions = versionsList;
-	_versionTransitions = transitionsList;
+	if (&versionsList!=nullptr) _versions = versionsList;
+	if (&transitionsList!=nullptr)_versionTransitions = transitionsList;
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::vector<temporal::Version*> CityModel::getVersions()
