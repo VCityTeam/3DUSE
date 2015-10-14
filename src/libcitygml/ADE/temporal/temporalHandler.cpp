@@ -159,16 +159,29 @@ void TempHandler::endElement(std::string name)
 	}
 	if (name=="tag")
 	{
-		_currentVersion->addTag(getBuff()->str());
+		std::string tagWorkspace = "WORKSPACE=";
+		std::stringstream rawBuffer;
+		rawBuffer << trim(getBuff()->str());
+		std::string buffer = rawBuffer.str();
+		if (buffer.find(tagWorkspace)==0){
+			std::string wName = buffer.substr(tagWorkspace.length());
+			_workspaces[wName].versions.push_back(_currentVersion);
+			_workspaces[wName].name=wName;
+		}
+		_currentVersion->addTag(buffer);
 	}
 	if (name=="reason")
 	{
-		_currentTransition->setReason(getBuff()->str());
+		std::stringstream rawBuff ;
+		rawBuff << trim(getBuff()->str());
+		_currentTransition->setReason(rawBuff.str());
 	}
 	if (name=="clonePredecessor")
 	{
-		std::string buff = getBuff()->str();
-		_currentTransition->setClone(buff=="true");
+		std::stringstream rawBuff ;
+		rawBuff << trim(getBuff()->str());
+		std::string buffer = rawBuff.str();
+		_currentTransition->setClone(buffer=="true");
 	}
 	if (name=="from")
 	{
@@ -180,7 +193,9 @@ void TempHandler::endElement(std::string name)
 	}
 	if (name=="type")
 	{
-		std::string buff = getBuff()->str();
+		std::stringstream rawBuff ;
+		rawBuff << trim(getBuff()->str());
+		std::string buff = rawBuff.str();
 		if (_currentTransaction)// we are in Transaction
 		{
 			if (buff=="insert") _currentTransaction->setType(temporal::TransactionValue::INSERT);
@@ -242,14 +257,14 @@ void TempHandler::endDocument()
 				}
 			} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->to()->getAttribute("xlink")<<"\""<<std::endl;}
 		}
-		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+		//std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+		//std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+		//std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
 	}
-	std::cout<<std::endl;
+	//std::cout<<std::endl;
 	for ( temporal::Version* version : _versions)
 	{
-		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+		//std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
 		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
 		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
 		{
@@ -262,11 +277,19 @@ void TempHandler::endDocument()
 				} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<(*it)->getAttribute("xlink")<<"\""<<std::endl;}
 			} 
 		}
-		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-		{
-			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+		//for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		//{
+		//	std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+		//}
+	}
+	std::cout<<"Workspaces:"<<std::endl;
+	for(std::map<std::string,temporal::Workspace>::iterator it = _workspaces.begin();it!=_workspaces.end();it++){
+		std::cout<<it->second.name<<std::endl;
+		for(temporal::Version* v : it->second.versions){
+			std::cout<<"    - "<<v->getId()<<std::endl;
 		}
 	}
+
 	citygml::CityModel** model = getModel();
 	(*model)->setVersions(_versions,_transitions);
 }

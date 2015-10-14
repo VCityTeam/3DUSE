@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:core="http://www.opengis.net/citygml/2.0" xmlns:gml="http://www.opengis.net/gml" xmlns:temp="Temporal" elementFormDefault="qualified" targetNamespace="Temporal" version="1.0">
+  <import namespace="http://www.opengis.net/citygml/2.0" schemaLocation="http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd"/>
+  <import namespace="http://www.opengis.net/gml" schemaLocation="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"/>
+  <!--XML Schema document created by ShapeChange - http://shapechange.net/-->
+  
+  <element name="validFrom" substitutionGroup="core:_GenericApplicationPropertyOfCityObject" type="date"/>
+  
+  <element name="validTo" substitutionGroup="core:_GenericApplicationPropertyOfCityObject" type="date"/>
+  
+  <element name="Transaction" substitutionGroup="gml:_Object" type="temp:TransactionType"/>
+  
+  <complexType name="TransactionType">
+    <sequence>
+      <element name="type" type="temp:TransactionValueType"/>
+      <element minOccurs="0" name="oldFeature">
+        <complexType>
+          <sequence minOccurs="0">
+            <element ref="core:_CityObject"/>
+          </sequence>
+          <attributeGroup ref="gml:AssociationAttributeGroup"/>
+        </complexType>
+      </element>
+      <element minOccurs="0" name="newFeature">
+        <complexType>
+          <sequence minOccurs="0">
+            <element ref="core:_CityObject"/>
+          </sequence>
+          <attributeGroup ref="gml:AssociationAttributeGroup"/>
+        </complexType>
+      </element>
+    </sequence>
+  </complexType>
+
+  <complexType name="TransactionPropertyType">
+    <sequence>
+      <element ref="temp:Transaction"/>
+    </sequence>
+  </complexType>
+
+  <simpleType name="TransactionValueType">
+    <restriction base="string">
+      <enumeration value="insert"/>
+      <enumeration value="delete"/>
+      <enumeration value="replace"/>
+    </restriction>
+  </simpleType>
+
+  <simpleType name="TransitionValueType">
+    <restriction base="string">
+      <enumeration value="planned"/>
+      <enumeration value="realized"/>
+      <enumeration value="historical succession"/>
+      <enumeration value="fork"/>
+      <enumeration value="merge"/>
+    </restriction>
+  </simpleType>
+
+  <element name="Version" substitutionGroup="gml:_Feature" type="temp:VersionType"/>
+
+  <complexType name="VersionType">
+    <complexContent>
+      <extension base="gml:AbstractFeatureType">
+        <sequence>
+          <element maxOccurs="unbounded" minOccurs="0" name="tag" type="string"/>
+          <element maxOccurs="unbounded" minOccurs="0" name="versionMember">
+            <complexType>
+              <sequence minOccurs="0">
+                <element ref="core:_CityObject"/>
+              </sequence>
+              <attributeGroup ref="gml:AssociationAttributeGroup"/>
+            </complexType>
+          </element>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="VersionPropertyType">
+    <sequence minOccurs="0">
+      <element ref="temp:Version"/>
+    </sequence>
+    <attributeGroup ref="gml:AssociationAttributeGroup"/>
+  </complexType>
+
+  <element name="VersionTransition" substitutionGroup="gml:_Feature" type="temp:VersionTransitionType"/>
+
+  <complexType name="VersionTransitionType">
+    <complexContent>
+      <extension base="gml:AbstractFeatureType">
+        <sequence>
+          <element minOccurs="0" name="reason" type="string"/>
+          <element name="clonePredecessor" type="boolean"/>
+          <element minOccurs="0" name="type" type="temp:TransitionValueType"/>
+          <element minOccurs="0" name="from">
+            <complexType>
+              <sequence>
+                <element ref="temp:Version"/>
+              </sequence>
+            </complexType>
+          </element>
+          <element minOccurs="0" name="to">
+            <complexType>
+              <sequence>
+                <element ref="temp:Version"/>
+              </sequence>
+            </complexType>
+          </element>
+          <element maxOccurs="unbounded" minOccurs="0" name="transaction" type="temp:TransactionPropertyType"/>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="VersionTransitionPropertyType">
+    <sequence minOccurs="0">
+      <element ref="temp:VersionTransition"/>
+    </sequence>
+    <attributeGroup ref="gml:AssociationAttributeGroup"/>
+  </complexType>
+  
+</schema>

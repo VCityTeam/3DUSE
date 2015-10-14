@@ -5,6 +5,7 @@
 #include "version.hpp"
 #include "versionTransition.hpp"
 #include "transaction.hpp"
+#include "workspace.hpp"
 
 class TempHandler : public ADEHandler
 {
@@ -16,6 +17,7 @@ protected :
 	bool _inToTags;
 	std::vector<temporal::Version*> _versions;
 	std::vector<temporal::VersionTransition*> _transitions;
+	std::map<std::string,temporal::Workspace> _workspaces;
 
 public:
 	TempHandler(void);
