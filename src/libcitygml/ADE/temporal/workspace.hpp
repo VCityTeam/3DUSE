@@ -1,7 +1,7 @@
 #ifndef _WORKSPACE_HPP_
 #define _WORKSPACE_HPP_
 
-#include "Version.hpp"
+#include "version.hpp"
 
 namespace temporal {
 class Workspace {
