@@ -90,9 +90,10 @@ void TreeView::init()
     m_actionAddDoc = new QAction("Add document", NULL);
 	m_actionExportJSON = new QAction("Export JSON", NULL);
 	m_actionEditShp = new QAction("Edit Shp", NULL);
-	//ajout yearOfConstruction/yearOfDemolition
-	m_actionAddYearOfConst = new QAction("Add year of Construction",NULL);
-	m_actionAddYearOfDemol = new QAction("Add year of Demolition",NULL);
+	//ajout yearOfConstruction/yearOfDemolition/creationDate/terminationDate
+	m_actionAddYearOfConst = new QAction("Add creationDate",NULL);
+	m_actionAddYearOfDemol = new QAction("Add terminationDate",NULL);
+	//add xLink
 	m_actionAddLink = new QAction("Add link to a new object", NULL);
 
     // connect right click menu actions
@@ -634,7 +635,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionAddDoc);
 		m_tree->addAction(m_actionAddYearOfConst);
 		m_tree->addAction(m_actionAddYearOfDemol);
-		m_tree->addAction(m_actionAddLink);
+		//m_tree->addAction(m_actionAddLink);
     }
 
     // actions on all types

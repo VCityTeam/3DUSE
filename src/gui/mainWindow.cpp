@@ -2271,6 +2271,15 @@ void MainWindow::test4()
 		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
 	}
 	std::cout<<std::endl;
+
+	std::cout<<"Workspaces:"<<std::endl;
+	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+		std::cout<<it->second.name<<std::endl;
+		for(temporal::Version* v : it->second.versions){
+			std::cout<<"    - "<<v->getId()<<std::endl;
+		}
+	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

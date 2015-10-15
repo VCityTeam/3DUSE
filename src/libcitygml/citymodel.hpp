@@ -25,6 +25,7 @@
 #include "core/URI.hpp"
 #include "ADE/temporal/version.hpp"
 #include "ADE/temporal/versionTransition.hpp"
+#include "ADE/temporal/workspace.hpp"
 #include <vector>
 #include <map>
 #include <ostream>
@@ -95,6 +96,9 @@ public:
 	void setVersions(std::vector<temporal::Version*>,std::vector<temporal::VersionTransition*>);
 	std::vector<temporal::Version*> getVersions();
 	std::vector<temporal::VersionTransition*> getTransitions();
+	
+	void setWorkspaces(std::map<std::string,temporal::Workspace>);
+	std::map<std::string,temporal::Workspace> getWorkspaces();
 
 protected:
     Envelope _envelope;
@@ -111,6 +115,7 @@ protected:
 
 	std::vector<temporal::Version*> _versions;
 	std::vector<temporal::VersionTransition*> _versionTransitions;
+	std::map<std::string,temporal::Workspace> _workspaces;
 };
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream&, const citygml::CityModel & );

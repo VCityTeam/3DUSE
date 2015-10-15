@@ -282,14 +282,8 @@ void TempHandler::endDocument()
 		//	std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
 		//}
 	}
-	std::cout<<"Workspaces:"<<std::endl;
-	for(std::map<std::string,temporal::Workspace>::iterator it = _workspaces.begin();it!=_workspaces.end();it++){
-		std::cout<<it->second.name<<std::endl;
-		for(temporal::Version* v : it->second.versions){
-			std::cout<<"    - "<<v->getId()<<std::endl;
-		}
-	}
 
 	citygml::CityModel** model = getModel();
 	(*model)->setVersions(_versions,_transitions);
+	(*model)->setWorkspaces(_workspaces);
 }
