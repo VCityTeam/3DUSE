@@ -55,7 +55,7 @@ std::queue<RayBoxHit> Setup(std::vector<AABB> boxes,RayCollection* rays)
 			int current = boxToMaxOrder[ray->boxes[j].box.name];
 			boxToMaxOrder[ray->boxes[j].box.name] = std::max(j,current);
 
-			if(boxToRayBoxHit.find(ray->boxes[j].box.name) != boxToRayBoxHit.end())/// MultiResolution
+			if(boxToRayBoxHit.find(ray->boxes[j].box.name) != boxToRayBoxHit.end())//= Si ray->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution 
 			{
 				boxToRayBoxHit[ray->boxes[j].box.name] = std::min(ray->boxes[j],boxToRayBoxHit[ray->boxes[j].box.name]);
 			}	
@@ -64,8 +64,6 @@ std::queue<RayBoxHit> Setup(std::vector<AABB> boxes,RayCollection* rays)
 				boxToRayBoxHit.insert(std::make_pair(ray->boxes[j].box.name,ray->boxes[j]));
 			}
 		}
-
-		ray->boxes.clear();
 	}
 
 	//Sort the boxis depending on their max order
@@ -147,11 +145,11 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 		//We get only the rays that intersect the box
 		for(unsigned int i = 0; i < rays->rays.size(); i++)
 		{
-			Ray* ray = rays->rays[i];
-			bool inter = viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].intersect;
+			Ray* ray = rays->rays[i];//Get the ray
+			bool inter = viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].intersect;//Check the viewpoint to see if at the ray coordinates we have intersect something in a previous iteration
 			bool found = false;
 
-			for(RayBoxHit& rbh : ray->boxes)
+			for(RayBoxHit& rbh : ray->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
 				found = found || rbh.box.name == tileName;
 
 			if(found && !inter)

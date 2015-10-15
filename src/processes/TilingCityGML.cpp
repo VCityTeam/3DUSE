@@ -206,8 +206,11 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 								}
 							}
 						}
+						delete OgrPoly;
 						// TODO : Re-trianguler les polygones du TIN découpés.
 					}
+					else
+						delete OgrRing;
 				}
 			}
 
@@ -270,7 +273,6 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 										{
 											if(((OGRPolygon*)CutPoly)->get_Area() < Precision_Vect) //Pour éliminer les polygons plats
 											{
-												delete OgrPoly;
 												delete CutPoly;
 												continue;
 											}
@@ -351,7 +353,10 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 										}
 									}
 								}
+								delete OgrPoly;
 							}
+							else
+								delete OgrRing;
 						}
 					}
 				}
@@ -532,7 +537,9 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 														TexUVWall.push_back(CalculUV(&PointsWall, &TexUV, TVec3d(InterLine->getX(1), InterLine->getY(1), InterLine->getZ(1))));
 													}
 												}
+												delete InterLine;
 											}
+											delete Line;
 										}
 										delete WallPoint1;
 										delete WallPoint2;
@@ -722,4 +729,14 @@ void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<
 	}
 }
 
+/**
+* @brief Ouvre un fichier .dat contenant les coordonnées de BoundingBox
+* @param Dir : Chemin du fichier .dat 
+*/
+citygml::CityModel* CreateBoundingBox(std::string dir)
+{
+	QDir dt(dir.c_str());
+
+	return nullptr;
+}
 ////////////////////////////////////////////////////////////////////////////////

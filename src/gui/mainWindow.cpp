@@ -1394,7 +1394,8 @@ void MainWindow::generateLOD0()
 		return;
 	}
 
-	OGRGeometry* LOD0 = new OGRMultiPolygon;
+	//OGRGeometry* LOD0 = new OGRMultiPolygon;
+	OGRGeometryCollection* LOD0 = new OGRGeometryCollection;
 
 	std::string Folder = w.selectedFiles().at(0).toStdString();
 
@@ -1415,10 +1416,12 @@ void MainWindow::generateLOD0()
 				double * heightmin = new double;
 				generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
-				SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
+				//SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
 				//OGRGeometry* tmp = LOD0;
 				//LOD0 = tmp->Union(Enveloppe);
 				//delete tmp;
+
+				LOD0->addGeometry(Enveloppe);
 
 				citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 				citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
@@ -1435,10 +1438,13 @@ void MainWindow::generateLOD0()
 	}
 	else//Sinon, on genere les LOD0 de tous les bâtiments de la scène
 	{
+		int cpt = 0;
 		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
 		{
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 			{
+				std::cout << "Avancement : " << cpt << " / " << tile->getCityModel()->getCityObjectsRoots().size() << std::endl;
+
 				vcity::URI uri;
 				uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
 				uri.append(tile->getName(), "Tile");
@@ -1451,28 +1457,31 @@ void MainWindow::generateLOD0()
 					OGRMultiPolygon * Enveloppe = new OGRMultiPolygon;
 					double * heightmax = new double;
 					double * heightmin = new double;
-
 					generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
 
-					//SaveGeometrytoShape(Folder + "/" + obj->getId()+"_Footprint.shp", Enveloppe);
-					OGRGeometry* tmp = LOD0;
-					LOD0 = tmp->Union(Enveloppe);
-					delete tmp;
+					if(!Enveloppe->IsEmpty())
+					{
+						//OGRGeometry* tmp = LOD0;
+						//LOD0 = tmp->Union(Enveloppe);
+						//delete tmp;
 
-					/* citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
+						LOD0->addGeometry(Enveloppe);
 
-					citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
-					obj2->addGeometry(geom);
-					obj->insertNode(obj2);
+						/* citygml::Geometry* geom = ConvertLOD0ToCityGML(obj->getId(), Enveloppe, heightmin);
 
-					appGui().getControllerGui().update(uri);*/
+						citygml::CityObject* obj2 = new citygml::GroundSurface("Footprint");
+						obj2->addGeometry(geom);
+						obj->insertNode(obj2);
 
-					delete Enveloppe;
-					delete heightmax;
-					delete heightmin;
+						appGui().getControllerGui().update(uri);*/
 
-					//std::cout<< "LOD0 genere sur "<< obj->getId() << std::endl;
+						delete Enveloppe;
+						delete heightmax;
+						delete heightmin;
+					}
 				}
+
+				++cpt;
 			}
 		}
 	}
@@ -1539,8 +1548,6 @@ void MainWindow::generateLOD1OnFile()
 					double * heightmax = new double;
 					double * heightmin = new double;
 					generateLOD0fromLOD2(obj, &Enveloppe, heightmax, heightmin);
-
-
 
 					citygml::CityObject* LOD1 = ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
@@ -2081,7 +2088,6 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 
 				std::cout << "Tuile : " << x/TileX << "_" << y/TileY << std::endl;
 				citygml::CityModel* Tuile = TileCityGML(Tile, &TexturesList, TVec2d(x, y), TVec2d(x + TileX, y + TileY), CityGMLPath.toStdString().substr(0, CityGMLPath.toStdString().find_last_of("/")));
-				Tuile->computeEnvelope();
 
 				std::string FileName = OutputPath + "/" + std::to_string((int)(x / TileX)) + "_" + std::to_string((int)(y / TileY))  + ".gml";
 
@@ -2089,6 +2095,7 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 				if(fp == nullptr) //Le fichier correspondant à la tuile courante n'existe pas, on peut donc le créer
 				{
 					citygml::ExporterCityGML exporter(FileName);
+					Tuile->computeEnvelope();
 					exporter.exportCityModelWithListTextures(*Tuile, &TexturesList);
 				}
 				else // Cette tuile existe déjà, il faut donc la fusionner avec la nouvelle découpe
@@ -2098,6 +2105,7 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 					vcity::Tile* OldTile = new vcity::Tile(FileName);
 					MergingTile(OldTile, Tuile, &TexturesList);
 
+					Tuile->computeEnvelope();
 					citygml::ExporterCityGML exporter(FileName);
 					exporter.exportCityModelWithListTextures(*Tuile, &TexturesList);
 				}
@@ -2106,9 +2114,8 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 					delete Tex;
 			}
 		}
-		
 		delete Tile;
-		
+
 		++cpt;
 		std::cout << cpt << " fichier(s) traite(s)." << std::endl;
 	}

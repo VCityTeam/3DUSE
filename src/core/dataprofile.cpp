@@ -67,8 +67,8 @@ DataProfile createDataProfileParis()
 DataProfile createDataProfileLyon()
 {
     DataProfile dp;
-    dp.m_offset.x = 1833000.0;//1837500.0;//1840000.0;
-    dp.m_offset.y = 5166000.0;//5169000.0;//5172500.0;
+    dp.m_offset.x = 1837500.0;//1833000.0;//1837500.0;//1840000.0;
+    dp.m_offset.y = 5169000.0;//5166000.0;//5169000.0;//5172500.0;
 
     dp.m_bboxLowerBound.x = 1833000.0;//1837500.0;//1840000.0;
     dp.m_bboxLowerBound.y = 5166000.0;//5169000.0;//5172500.0;

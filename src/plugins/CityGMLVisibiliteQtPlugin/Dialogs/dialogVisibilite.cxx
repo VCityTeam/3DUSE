@@ -64,8 +64,8 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 	if(!extrudDir.exists("./ShpExtruded/"))
 		extrudDir.mkpath(extrudDir.absolutePath());
 
-	ui->projDistanceSB->hide();
-	ui->projDistLabel->hide();
+	ui->projDistanceSB->hide();///////
+	ui->projDistLabel->hide();///////
 
 	this->mainwindow = mainwindow;
 }
@@ -176,7 +176,7 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la ca
 
 	float znear = ui->projDistanceSB->value();
 
-	cam->setProjectionMatrixAsPerspective(fovx,width/height,znear,2000.0);
+	cam->setProjectionMatrixAsPerspective(fovx, width/height, znear, 2000000.0);
 
 	cam->setViewport(new osg::Viewport(cam->getViewport()->x(),cam->getViewport()->y(),width,height));
 
@@ -331,7 +331,13 @@ void DialogVisibilite::ResetCategory()
 
 void DialogVisibilite::ToolAlignementTree()
 {
-	ExtrudeAlignementTree();
+	std::string dir = ui->dirLE->text().toStdString();
+	
+	if(dir != "")
+	{
+		dir+="/";
+		ExtrudeAlignementTree(dir);
+	}
 }
 
 void DialogVisibilite::ToolLidarToGML()
@@ -341,7 +347,13 @@ void DialogVisibilite::ToolLidarToGML()
 
 void DialogVisibilite::ToolShpExtrusion()
 {
-	ShpExtruction();
+	std::string dir = ui->dirLE->text().toStdString();
+	
+	if(dir != "")
+	{
+		dir+="/";
+		ShpExtruction(dir);
+	}
 }
 
 void DialogVisibilite::ToolFlatRoof()

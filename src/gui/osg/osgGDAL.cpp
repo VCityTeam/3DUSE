@@ -159,20 +159,20 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 						for(int i=0; i<poLR->getNumPoints()-1; ++i)
 						{
 							poLR->getPoint(i, &p);
-							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 							vertices->push_back(v);
 							poLR->getPoint(i+1, &p);
-							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 							vertices->push_back(v);
 							indices->push_back(cpt++);
 							indices->push_back(cpt++);
 						}
 
 						poLR->getPoint(poLR->getNumPoints()-1, &p);
-						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 						vertices->push_back(v);
 						poLR->getPoint(0, &p);
-						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 						vertices->push_back(v);
 						indices->push_back(cpt++);
 						indices->push_back(cpt++);
@@ -187,20 +187,20 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 						for(int i=0; i<poLR->getNumPoints()-1; ++i)
 						{
 							poLR->getPoint(i, &p);
-							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 							vertices->push_back(v);
 							poLR->getPoint(i+1, &p);
-							v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+							v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 							vertices->push_back(v);
 							indices->push_back(cpt++);
 							indices->push_back(cpt++);
 						}
 
 						poLR->getPoint(poLR->getNumPoints()-1, &p);
-						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 						vertices->push_back(v);
 						poLR->getPoint(0, &p);
-						v = osg::Vec3d(p.getX(), p.getY(), 0) - offset;
+						v = osg::Vec3d(p.getX(), p.getY(), p.getZ()) - offset;
 						vertices->push_back(v);
 						indices->push_back(cpt++);
 						indices->push_back(cpt++);
@@ -225,7 +225,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 
                     OGRPoint* poP = (OGRPoint*) poGeometry;
                     
-					osg::Vec3d point(poP->getX(),poP->getY(),0.0);
+					osg::Vec3d point(poP->getX(),poP->getY(),poP->getZ());
 					vertices->push_back(point - offset);
                     indices->push_back(0);
 

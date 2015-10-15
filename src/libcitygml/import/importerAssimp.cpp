@@ -97,7 +97,7 @@ namespace citygml
 	void ImporterAssimp::assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent)
 	{
 		static int id = 0;
-
+		
 		std::string Name = std::to_string(id) + "_Building"/* + std::string(aiNode->mName.C_Str())*/;
 
 		citygml::CityObject* BuildingCO = new citygml::Building(Name);
@@ -124,7 +124,7 @@ namespace citygml
 				}
 				poly->addRing(ring);
 				TVec3d Normale = ring->computeNormal();
-				if(Normale.z == 0)
+				if(abs(Normale.z) <= 0.2)
 					WallGeom->addPolygon(poly);
 				else
 					RoofGeom->addPolygon(poly);
@@ -163,17 +163,20 @@ namespace citygml
 			}*/
 		}
 		
-		RoofCO->addGeometry(RoofGeom);
-		m_model->addCityObject(RoofCO);
-		BuildingCO->insertNode(RoofCO);
-		WallCO->addGeometry(WallGeom);
-		m_model->addCityObject(WallCO);
-		BuildingCO->insertNode(WallCO);
+		if(RoofGeom->getPolygons().size() != 0 || WallGeom->getPolygons().size() != 0)
+		{
+			RoofCO->addGeometry(RoofGeom);
+			m_model->addCityObject(RoofCO);
+			BuildingCO->insertNode(RoofCO);
+			WallCO->addGeometry(WallGeom);
+			m_model->addCityObject(WallCO);
+			BuildingCO->insertNode(WallCO);
 
-		m_model->addCityObject(BuildingCO);
-		m_model->addCityObjectAsRoot(BuildingCO);
+			m_model->addCityObject(BuildingCO);
+			m_model->addCityObjectAsRoot(BuildingCO);
 
-		++id;
+			++id;
+		}
 
 		for(unsigned int i=0; i<aiNode->mNumChildren; ++i)
 		{
