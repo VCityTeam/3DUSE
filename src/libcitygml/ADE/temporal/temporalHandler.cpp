@@ -156,6 +156,12 @@ void TempHandler::endElement(std::string name)
 		popCityObject();
 		popObject();
 		delete tempCObj;
+		//if the cityobject is not a xLink, then it should not appear anywhere else in the document, so it should be added as root
+		if(child->_isXlink==citygml::xLinkState::NONE)
+		{
+			citygml::CityModel** model = getModel();
+			(*model)->addCityObjectAsRoot(child);
+		}
 	}
 	if (name=="tag")
 	{
