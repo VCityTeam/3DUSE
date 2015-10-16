@@ -798,8 +798,8 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    //unlockFeatures("pass2");
-    unlockFeatures("");
+    unlockFeatures("pass2");
+    //unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
 
@@ -911,12 +911,12 @@ void MainWindow::optionShowAdvancedTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-    // date is starting at year 1900 and ending at 2100
+    // date is starting at year 1800 and ending at 2100
     // this is controlled in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     if(value == -1) value = m_ui->horizontalSlider->value();
-    QDate date(1900, 1, 1);
+    QDate date(1800, 1, 1);
     date = date.addDays(value);
     //m_ui->buttonBrowserTemporal->setText(date.toString());
     m_ui->dateTimeEdit->setDate(date);
@@ -929,15 +929,15 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-    // date is starting at year 1900 and ending at 2100
+    // date is starting at year 1800 and ending at 2100
     // this is controlled in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 73049 -> number of days in 200 years
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     m_useTemporal = !m_useTemporal;
 
     if(m_useTemporal)
     {
-        QDate date(1900, 1, 1);
+        QDate date(1800, 1, 1);
         date = date.addDays(m_ui->horizontalSlider->value());
         QDateTime datetime(date);
         m_osgScene->setDate(datetime);
@@ -2248,6 +2248,38 @@ void MainWindow::test4()
 		OGRPoint* point = new OGRPoint;
 		mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
+	
+	std::cout<<std::endl;
+	vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+	citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+	std::vector<temporal::Version*> versions = model->getVersions();
+	for (temporal::Version* version : versions)
+	{
+		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		{
+			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+		}
+	}
+	std::cout<<std::endl;
+	std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+	for (temporal::VersionTransition* transition : transitions)
+	{
+		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+	}
+	std::cout<<std::endl;
+
+	std::cout<<"Workspaces:"<<std::endl;
+	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+		std::cout<<it->second.name<<std::endl;
+		for(temporal::Version* v : it->second.versions){
+			std::cout<<"    - "<<v->getId()<<std::endl;
+		}
+	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

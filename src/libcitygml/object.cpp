@@ -21,7 +21,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 Object::Object(const std::string& id)
-    : _id( id )
+    : _id( id ), _isXlink(xLinkState::NONE)
 {
     if( _id == "" )
     {
@@ -66,6 +66,16 @@ void Object::setAttribute( const std::string& name, const std::string& value, bo
 std::ostream& operator<<( std::ostream& os, const Object& o )
 {
     return os << o.getId();
+}
+////////////////////////////////////////////////////////////////////////////////
+std::vector<Object*>& Object::getXLinkTargets()
+{
+    return _xLinkTargets;
+}
+////////////////////////////////////////////////////////////////////////////////
+void Object::addXLinkTarget(Object* target)
+{
+	_xLinkTargets.push_back(target);
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

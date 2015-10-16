@@ -104,6 +104,10 @@ private slots:
     void slotAddDoc();
 	void slotExportJSON();
 	void slotEditShp();
+	//ajout yearOfConstruction/yearOfDemolition
+	void slotAddYearOfConst();
+	void slotAddYearOfDemol();
+	void slotAddLink();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
@@ -146,6 +150,10 @@ private:
     QAction* m_actionAddDoc;
 	QAction* m_actionExportJSON;
 	QAction* m_actionEditShp;
+	//ajout yearOfConstruction/yearOfDemolition
+	QAction* m_actionAddYearOfConst;
+	QAction* m_actionAddYearOfDemol;
+	QAction* m_actionAddLink;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __TREEVIEW_HPP__

@@ -49,6 +49,8 @@ CityModel::~CityModel( void )
     {
         delete obj;
     }
+	for(temporal::Version* version : _versions) delete version;
+	for(temporal::VersionTransition* trans : _versionTransitions) delete trans;
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Return the envelope (ie. the bounding box) of the model
@@ -212,6 +214,32 @@ std::ostream& operator<<( std::ostream& out, const CityModel& model )
     out << model.size() << " city objects." << std::endl;
 
     return out;
+}
+////////////////////////////////////////////////////////////////////////////////
+void CityModel::setVersions(std::vector<temporal::Version*> versionsList,std::vector<temporal::VersionTransition*> transitionsList)
+{
+	_versions = versionsList;
+	_versionTransitions = transitionsList;
+}
+////////////////////////////////////////////////////////////////////////////////
+std::vector<temporal::Version*> CityModel::getVersions()
+{
+	return _versions;
+}
+////////////////////////////////////////////////////////////////////////////////
+std::vector<temporal::VersionTransition*> CityModel::getTransitions()
+{
+	return _versionTransitions;
+}
+////////////////////////////////////////////////////////////////////////////////
+void CityModel::setWorkspaces(std::map<std::string,temporal::Workspace> wrkspslist)
+{
+	_workspaces=wrkspslist; 
+}
+////////////////////////////////////////////////////////////////////////////////
+std::map<std::string,temporal::Workspace> CityModel::getWorkspaces()
+{
+	return _workspaces;
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

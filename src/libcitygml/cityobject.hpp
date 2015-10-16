@@ -23,6 +23,9 @@
 #include "core/URI.hpp"
 #include <ostream>
 ////////////////////////////////////////////////////////////////////////////////
+//forward declaration
+class ADEHandler;
+////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,10 +65,12 @@ enum CityObjectsType {
     COT_All                         = 0xFFFFFFFF
 };
 typedef unsigned int CityObjectsTypeMask;
+
 ////////////////////////////////////////////////////////////////////////////////
 class CityObject : public Object
 {
     friend class CityGMLHandler;
+	friend class ADEHandler;
     friend class CityModel;
     friend std::ostream& operator<<( std::ostream&, const CityObject & );
 public:
@@ -103,6 +108,9 @@ public:
     const std::vector< CityObject* >& getChildren( void ) const;
 
     std::vector< CityObject* >& getChildren( void );
+
+	//remove all the children of the CityObject (without deleting them)
+	void clearChildren();
 
     void addGeometry(Geometry* geom);
 
@@ -160,7 +168,6 @@ public:
 
 protected:
     CityObjectsType _type;
-    CityObject* _parent;
 
     Envelope _envelope;
     TVec3d _centroid;
@@ -172,6 +179,8 @@ protected:
     std::vector<CityObjectTag*> m_tags;
 
 public:
+    CityObject* _parent; // MT (MAC OS X problem...)
+    
     std::string m_path;
     bool m_temporalUse;
 };
