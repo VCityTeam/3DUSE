@@ -218,8 +218,8 @@ std::ostream& operator<<( std::ostream& out, const CityModel& model )
 ////////////////////////////////////////////////////////////////////////////////
 void CityModel::setVersions(std::vector<temporal::Version*> versionsList,std::vector<temporal::VersionTransition*> transitionsList)
 {
-	if (&versionsList!=nullptr) _versions = versionsList;
-	if (&transitionsList!=nullptr)_versionTransitions = transitionsList;
+	_versions = versionsList;
+	_versionTransitions = transitionsList;
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::vector<temporal::Version*> CityModel::getVersions()
