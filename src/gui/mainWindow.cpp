@@ -779,9 +779,9 @@ void MainWindow::unlockFeatures(const QString& pass)
 		m_ui->actionHelp->setVisible(false);
 		m_ui->tab_16->setVisible(false);
 		m_ui->tabWidget->removeTab(1);
-		m_ui->widgetTemporal->setVisible(false);
-		m_ui->hsplitter_bottom->setVisible(false);
-		m_ui->actionShow_temporal_tools->setVisible(false);
+		m_ui->widgetTemporal->setVisible(true);//A cacher
+		m_ui->hsplitter_bottom->setVisible(true);//A cacher
+		m_ui->actionShow_temporal_tools->setVisible(true); //A cacher
 		m_ui->actionCityGML_cut->setVisible(false);
 		m_ui->actionLOD0->setVisible(false);
 		m_ui->actionLOD2->setVisible(false);
@@ -923,7 +923,7 @@ void MainWindow::updateTemporalParams(int value)
 	// QAbractSlider::maximum = 73049 -> number of days in 200 years
 
 	if(value == -1) value = m_ui->horizontalSlider->value();
-	QDate date(1900, 1, 1);
+	QDate date(1900, 1, 1);//1900
 	date = date.addDays(value);
 	//m_ui->buttonBrowserTemporal->setText(date.toString());
 	m_ui->dateTimeEdit->setDate(date);
@@ -944,7 +944,7 @@ void MainWindow::toggleUseTemporal()
 
 	if(m_useTemporal)
 	{
-		QDate date(1900, 1, 1);
+		QDate date(1900, 1, 1); //1900
 		date = date.addDays(m_ui->horizontalSlider->value());
 		QDateTime datetime(date);
 		m_osgScene->setDate(datetime);
@@ -1820,12 +1820,17 @@ void MainWindow::slotSplitCityGMLBuildings()
 	std::vector<TextureCityGML*> ListTextures;
 
 	citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML, &ListTextures);
-	ModelOut->computeEnvelope();
 
+	delete BatiLOD2CityGML;
+
+	ModelOut->computeEnvelope();
 	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_SplitBuildings.gml");
 	//exporter.exportCityModel(*ModelOut);
+	
 	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
 
+	delete ModelOut;
+	
 	for(TextureCityGML* Tex:ListTextures)
 		delete Tex;
 
@@ -1926,8 +1931,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile, &ListTextures);
 
 	delete BatiShapeFile;
-	delete BatiLOD2CityGML;
-
+	
 	ModelOut->computeEnvelope();
 
 	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml");
@@ -1938,12 +1942,13 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	for(TextureCityGML* Tex:ListTextures)
 		delete Tex;
 
-	delete ModelOut;
+	delete BatiLOD2CityGML;
+	//delete ModelOut; //On ne peut pas delete BatiLOD2CityGML et ModelOut car on a récupéré des bâtiments tels quels du premier pour les mettre dans le second (ceux qui n'ont pas d'équivalents dans le Shapefile). Du coup ce n'est pas propre (fuite mémoire) mais il n'y a a pas de clone() sur les Cityobject...
 	//////////
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 
-	//std::cout << Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml a ete cree." << std::endl;
+	std::cout << Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml a ete cree." << std::endl;
 
 	QApplication::restoreOverrideCursor();
 }
@@ -2162,7 +2167,7 @@ void MainWindow::slotTemporalAnim()
 	m_temporalAnim = !m_temporalAnim;
 	if(m_temporalAnim)
 	{
-		m_timer.start(500); // anim each 500ms
+		m_timer.start(1000); // anim each 500ms
 		m_ui->toolButton->setIcon(QIcon::fromTheme("media-playback-pause"));
 		m_ui->toolButton->setToolTip("Pause temporal animation");
 	}
