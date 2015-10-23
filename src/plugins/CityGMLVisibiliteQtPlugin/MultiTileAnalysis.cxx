@@ -44,7 +44,7 @@ std::queue<RayBoxHit> Setup(std::vector<AABB> boxes,RayCollection* rays)
 				RayBoxHit hTemp;
 				hTemp.box = boxes[j];
 				hTemp.minDistance = hit0;
-				ray->boxes.push_back(hTemp);
+				ray->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
 			}
 		}
 

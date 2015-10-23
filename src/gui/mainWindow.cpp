@@ -48,6 +48,7 @@
 #include "src/processes/ChangeDetection.hpp"
 #include "src/processes/LinkCityGMLShape.hpp"
 #include "src/processes/TilingCityGML.hpp"
+#include "src/processes/EnhanceMNT.hpp"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
@@ -155,6 +156,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
 	connect(m_ui->actionTiling_CityGML, SIGNAL(triggered()), this, SLOT(slotTilingCityGML()));
+	connect(m_ui->actionCreate_Roads_on_MNT, SIGNAL(triggered()), this, SLOT(slotCreateRoadOnMNT()));
 
 	connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
 	connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
@@ -1826,11 +1828,11 @@ void MainWindow::slotSplitCityGMLBuildings()
 	ModelOut->computeEnvelope();
 	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_SplitBuildings.gml");
 	//exporter.exportCityModel(*ModelOut);
-	
+
 	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
 
 	delete ModelOut;
-	
+
 	for(TextureCityGML* Tex:ListTextures)
 		delete Tex;
 
@@ -1931,7 +1933,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	citygml::CityModel* ModelOut = CutCityGMLwithShapefile(BatiLOD2CityGML, BatiShapeFile, &ListTextures);
 
 	delete BatiShapeFile;
-	
+
 	ModelOut->computeEnvelope();
 
 	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_CutBuildings.gml");
@@ -2200,6 +2202,83 @@ void MainWindow::slotTilingCityGML()
 	diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotCreateRoadOnMNT()
+{
+	QSettings settings("liris", "virtualcity");
+	QString lastdir = settings.value("lastdir").toString();
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QFileInfo file1(filename1);
+	QString filepath1 = file1.absoluteFilePath();
+	QString ext1 = file1.suffix().toLower();
+	if(ext1 != "citygml" && ext1 != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+	settings.setValue("lastdir", file1.dir().absolutePath());
+
+	lastdir = settings.value("lastdir").toString();
+	QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile contenant le réseau routier.", lastdir);
+	QFileInfo file2(filename2);
+	QString filepath2 = file2.absoluteFilePath();
+	QString ext2 = file2.suffix().toLower();
+	if(ext2 != "shp")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un Shapefile." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+	settings.setValue("lastdir", file2.dir().absolutePath());
+
+
+	QFileDialog w;
+	w.setWindowTitle("Selectionner le dossier de sortie");
+	w.setFileMode(QFileDialog::Directory);
+
+	if(w.exec() == 0)
+	{
+		std::cout << "Annulation : Dossier non valide." << std::endl;
+		return;
+	}
+
+	std::string Folder = w.selectedFiles().at(0).toStdString();
+
+	vcity::Tile* MNT = new vcity::Tile(filepath1.toStdString());
+
+	OGRDataSource* Roads = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), FALSE);
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+	//////////////////
+	//vcity::Tile* MNT = new vcity::Tile("D:/Donnees/Data/Lyon01/LYON01_MNT.gml");
+
+	//OGRDataSource* Roads = OGRSFDriverRegistrar::Open("D:/Donnees/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+	//////////////////
+
+	QTime time;
+	time.start();
+
+	std::vector<TextureCityGML*> ListTextures;
+	citygml::CityModel* ModelOut = CreateRoadsOnMNT(MNT, Roads, &ListTextures);
+
+	ModelOut->computeEnvelope();
+
+	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_MNT_type.gml");
+	//citygml::ExporterCityGML exporter("MNT_type.gml");
+
+	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
+
+	int millisecondes = time.elapsed();
+	std::cout << "Traitement termine, fichier MNT type cree. Execution time : " << millisecondes/1000.0 <<std::endl;
+
+	QApplication::restoreOverrideCursor();
+
+	delete MNT;
+	delete Roads;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 /*void buildJson()//Paris
 {
 QString dataPath("/mnt/docs/data/dd_backup/GIS_Data/Donnees_IGN");
@@ -2300,7 +2379,6 @@ delete citygmlmodel;
 }
 std::cout << std::endl;
 }*/
-
 /*void buildJson()//Villeurbanne
 {
 //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!

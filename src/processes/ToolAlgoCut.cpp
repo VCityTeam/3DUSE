@@ -10,7 +10,7 @@ citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name
 	citygml::Polygon * Poly = new citygml::Polygon(Name + "_Poly");
 	citygml::LinearRing * Ring = new citygml::LinearRing(Name + "_Ring", true);
 
-	const OGRLinearRing * ExtRing = OGRPoly->getExteriorRing();
+	OGRLinearRing * ExtRing = OGRPoly->getExteriorRing();
 
 	for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
 	{
@@ -23,7 +23,29 @@ citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name
 
 		Ring->addVertex(TVec3d(x, y, z));
 	}
+
 	Poly->addRing(Ring);
+
+	for(int i = 0; i < OGRPoly->getNumInteriorRings(); ++i)
+	{
+		citygml::LinearRing * IntRingGML = new citygml::LinearRing(Name + "_IntRing_" + std::to_string(i), false);
+
+		OGRLinearRing * IntRing = OGRPoly->getInteriorRing(i);
+
+		for(int j = 0; j < IntRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
+		{
+			OGRPoint * point = new OGRPoint;
+			IntRing->getPoint(j, point);
+			double x = point->getX();
+			double y = point->getY();
+			double z = point->getZ();
+			delete point;
+
+			IntRingGML->addVertex(TVec3d(x, y, z));
+		}
+
+		Poly->addRing(IntRingGML);
+	}
 
 	return Poly;
 }
@@ -308,37 +330,37 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 		ResPoly->addRingDirectly(ResExtRing);
 
-		/*for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
+		for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
 		{
-		std::cout << "INTERIOR RING" << std::endl;
+			//std::cout << "INTERIOR RING" << std::endl;
 
-		OGRLinearRing* InterIntRing = PolyInter->getInteriorRing(r);
-		OGRLinearRing* ResIntRing = new OGRLinearRing;
+			OGRLinearRing* InterIntRing = PolyInter->getInteriorRing(r);
+			OGRLinearRing* ResIntRing = new OGRLinearRing;
 
-		for(int i = 0; i < InterIntRing->getNumPoints(); ++i)
-		{
-		OGRPoint* P = new OGRPoint;
-		InterIntRing->getPoint(i, P);
+			for(int i = 0; i < InterIntRing->getNumPoints(); ++i)
+			{
+				OGRPoint* P = new OGRPoint;
+				InterIntRing->getPoint(i, P);
 
-		TVec3d M;
-		M.x = P->getX();
-		M.y = P->getY();
+				TVec3d M;
+				M.x = P->getX();
+				M.y = P->getY();
 
-		double s, t;
+				double s, t;
 
-		t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
-		s = (M.x - A.x - t * AC.x) / AB.x;
+				t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
+				s = (M.x - A.x - t * AC.x) / AB.x;
 
-		M.z = A.z + s * AB.z + t * AC.z;
+				M.z = A.z + s * AB.z + t * AC.z;
 
-		ResIntRing->addPoint(M.x, M.y, M.z);
+				ResIntRing->addPoint(M.x, M.y, M.z);
 
-		uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y));
+				uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y));
 
-		delete P;
+				delete P;
+			}
+			ResPoly->addRingDirectly(ResIntRing);
 		}
-		ResPoly->addRingDirectly(ResIntRing);
-		}*/
 
 		TexUVout->push_back(uvPolyInter);
 
@@ -390,37 +412,37 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 					ResPoly->addRingDirectly(ResExtRing);
 
-					/*for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
+					for(int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
 					{
-					std::cout << "INTERIOR RING2" << std::endl;
+						//std::cout << "INTERIOR RING2" << std::endl;
 
-					OGRLinearRing* InterIntRing = PolyInter->getInteriorRing(r);
-					OGRLinearRing* ResIntRing = new OGRLinearRing;
+						OGRLinearRing* InterIntRing = PolyInter->getInteriorRing(r);
+						OGRLinearRing* ResIntRing = new OGRLinearRing;
 
-					for(int i = 0; i < InterIntRing->getNumPoints(); ++i)
-					{
-					OGRPoint* P = new OGRPoint;
-					InterIntRing->getPoint(i, P);
+						for(int i = 0; i < InterIntRing->getNumPoints(); ++i)
+						{
+							OGRPoint* P = new OGRPoint;
+							InterIntRing->getPoint(i, P);
 
-					TVec3d M;
-					M.x = P->getX();
-					M.y = P->getY();
+							TVec3d M;
+							M.x = P->getX();
+							M.y = P->getY();
 
-					double s, t;
+							double s, t;
 
-					t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
-					s = (M.x - A.x - t * AC.x) / AB.x;
+							t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
+							s = (M.x - A.x - t * AC.x) / AB.x;
 
-					M.z = A.z + s * AB.z + t * AC.z;
+							M.z = A.z + s * AB.z + t * AC.z;
 
-					ResIntRing->addPoint(M.x, M.y, M.z);
+							ResIntRing->addPoint(M.x, M.y, M.z);
 
-					uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
+							uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
 
-					delete P;
+							delete P;
+						}
+						ResPoly->addRingDirectly(ResIntRing);
 					}
-					ResPoly->addRingDirectly(ResIntRing);
-					}*/
 					ResMultiPoly->addGeometryDirectly(ResPoly);
 
 					TexUVout->push_back(uvPolyInter);

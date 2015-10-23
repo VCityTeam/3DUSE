@@ -113,7 +113,6 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 						if(OgrPoly->IsValid() && OgrPoly->Intersects(PolyTile))
 						{
 							bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
-							//HasTexture = false; //////////////////////////
 
 							std::string Url;
 							citygml::Texture::WrapMode WrapMode;

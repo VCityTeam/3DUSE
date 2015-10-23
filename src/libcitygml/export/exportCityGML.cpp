@@ -393,13 +393,13 @@ namespace citygml
 			res = exportCityObjetGenericXml(obj, "bldg:CityFurniture", parent);
 			break;
 		case citygml::COT_Track:
-			res = exportCityObjetGenericXml(obj, "bldg:Track", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Track", parent);
 			break;
 		case citygml::COT_Road:
-			res = exportCityObjetGenericXml(obj, "bldg:Road", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Road", parent);
 			break;
 		case citygml::COT_Railway:
-			res = exportCityObjetGenericXml(obj, "bldg:Railway", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Railway", parent);
 			break;
 		case citygml::COT_Square:
 			res = exportCityObjetGenericXml(obj, "bldg:Square", parent);
@@ -420,19 +420,19 @@ namespace citygml
 			res = exportCityObjetGenericXml(obj, "bldg:LandUse", parent);
 			break;
 		case citygml::COT_Tunnel:
-			res = exportCityObjetGenericXml(obj, "bldg:Tunnel", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Tunnel", parent);
 			break;
 		case citygml::COT_Bridge:
-			res = exportCityObjetGenericXml(obj, "bldg:Bridge", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Bridge", parent);
 			break;
 		case citygml::COT_BridgeConstructionElement:
-			res = exportCityObjetGenericXml(obj, "bldg:BridgeConstructionElement", parent);
+			res = exportCityObjetGenericXml(obj, "tran:BridgeConstructionElement", parent);
 			break;
 		case citygml::COT_BridgeInstallation:
-			res = exportCityObjetGenericXml(obj, "bldg:BridgeInstallation", parent);
+			res = exportCityObjetGenericXml(obj, "tran:BridgeInstallation", parent);
 			break;
 		case citygml::COT_BridgePart:
-			res = exportCityObjetGenericXml(obj, "bldg:BridgePart", parent);
+			res = exportCityObjetGenericXml(obj, "tran:BridgePart", parent);
 			break;
 		case citygml::COT_BuildingPart:
 			res = exportCityObjetGenericXml(obj, "bldg:BuildingPart", parent);
