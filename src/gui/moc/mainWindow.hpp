@@ -106,7 +106,9 @@ public slots:
     void slotCutCityGMLwithShapefile();
     void slotSplitCityGMLBuildings();
     void slotTilingCityGML();
+	void slotCutMNTwithShapefile();
 	void slotCreateRoadOnMNT();
+	void slotCreateVegetationOnMNT();
     void TilingCityGML(QString CityGMLPath, std::string OutputPath, int TileX, int TileY);
 
     void about();

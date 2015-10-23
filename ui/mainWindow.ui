@@ -367,9 +367,11 @@
     <addaction name="separator"/>
     <addaction name="actionSplit_CityGML_Buildings"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
-    <addaction name="separator"/>
     <addaction name="actionTiling_CityGML"/>
+    <addaction name="actionCut_MNT_with_Shapefile"/>
+    <addaction name="separator"/>
     <addaction name="actionCreate_Roads_on_MNT"/>
+    <addaction name="actionCreate_Vegetation_on_MNT"/>
    </widget>
    <widget class="QMenu" name="menuDebug">
     <property name="title">
@@ -810,6 +812,16 @@
   <action name="actionCreate_Roads_on_MNT">
    <property name="text">
     <string>Create Roads on MNT</string>
+   </property>
+  </action>
+  <action name="actionCreate_Vegetation_on_MNT">
+   <property name="text">
+    <string>Create Vegetation on MNT</string>
+   </property>
+  </action>
+  <action name="actionCut_MNT_with_Shapefile">
+   <property name="text">
+    <string>Cut MNT with Shapefile</string>
    </property>
   </action>
  </widget>

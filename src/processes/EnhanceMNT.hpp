@@ -10,6 +10,7 @@
 #include "export/exportCityGML.hpp"
 #include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std::vector<TextureCityGML*>* TexturesList);
+void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel* MNT_roads, std::vector<TextureCityGML*>* TexturesList_roads, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground);
+void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel* MNT_vegetation, std::vector<TextureCityGML*>* TexturesList_vegetation, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __ENHANCEMNT_HPP__

@@ -4774,3 +4774,164 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<Tex
 
 	return ModelOut;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+/**
+* @brief Ouvre un fichier CityGML de MNT, un Shapefile contenant un ou plusieurs polygones et ne conserve que le MNT se trouvant à l'intérieur. Les polygones du MNT ne sont pas découpés, on n'aura donc pas forme exacte du Shapefile en sortie.
+* @param Tile : Contient les données du CityGML ouvert
+* @param Shapefile : Contient le ou les polygones définissant la zone de MNT à conserver
+* @param TexturesList : Contient la liste des textures liées aux polygones du CityModel de sortie
+*/
+citygml::CityModel* CutMNTwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML*>* TexturesList)
+{
+	OGRLayer* Layer = ShapeFile->GetLayer(0);
+
+	OGRMultiPolygon* Polygons = new OGRMultiPolygon;
+
+	OGRFeature *Feature;
+	Layer->ResetReading();
+
+	while((Feature = Layer->GetNextFeature()) != NULL)
+	{
+		OGRGeometry* Geometry = Feature->GetGeometryRef();
+
+		if(Geometry->getGeometryType() == wkbPolygon || Geometry->getGeometryType() == wkbPolygon25D)
+			Polygons->addGeometry(Geometry);
+		else if(Geometry->getGeometryType() == wkbMultiPolygon || Geometry->getGeometryType() == wkbMultiPolygon25D)
+		{
+			for(int i = 0; i < ((OGRMultiPolygon*)Geometry)->getNumGeometries(); ++i)
+				Polygons->addGeometry(((OGRMultiPolygon*)Geometry)->getGeometryRef(i));
+		}
+	}
+
+	citygml::CityModel* MNT_Out = new citygml::CityModel;
+	citygml::CityModel* Model = Tile->getCityModel();
+
+	int cpt1 = -1;
+
+	for(citygml::CityObject* obj : Model->getCityObjectsRoots())
+	{
+		++cpt1;
+
+		std::cout << "Avancement : " << cpt1 << " / " << Model->getCityObjectsRoots().size() << std::endl;
+
+		if(obj->getType() == citygml::COT_TINRelief || obj->getType() == citygml::COT_WaterBody)
+		{
+			std::string Name = obj->getId();
+			citygml::CityObject* TIN_CO;
+			if(obj->getType() == citygml::COT_TINRelief)
+				TIN_CO = new citygml::TINRelief(Name);
+			else if(obj->getType() == citygml::COT_WaterBody)
+				TIN_CO = new citygml::WaterBody(Name);
+
+			citygml::Geometry* TIN_Geo = new citygml::Geometry(Name + "_TINGeometry", citygml::GT_Unknown, 2);
+
+			for(citygml::Geometry* Geometry : obj->getGeometries())
+			{
+				for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+				{
+					bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
+
+					std::string Url;
+					citygml::Texture::WrapMode WrapMode;
+					std::vector<std::vector<TVec2f>> TexUVout;
+					if(HasTexture)
+					{
+						Url = PolygonCityGML->getTexture()->getUrl();
+						WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+					}
+
+					std::vector<TVec2f> TexUV = PolygonCityGML->getTexCoords();
+
+					OGRLinearRing * OgrRing = new OGRLinearRing;
+					for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+						OgrRing->addPoint(Point.x, Point.y, Point.z);
+
+					if(PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
+					{
+						/*double A, B, C ,D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
+						double offset_x;
+						double offset_y;
+
+						std::string path = PathFolder + "/" + PolygonCityGML->getTexture()->getUrl().substr(0, PolygonCityGML->getTexture()->getUrl().find_last_of('.'))+".jgw";
+						std::cout << path << std::endl;
+						std::ifstream fichier(path, std::ios::in);
+
+						if(fichier)
+						{
+						fichier >> A >> B >> C >> D >> offset_x >> offset_y;
+						fichier.close();
+						}
+						std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;*/
+
+
+						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D négatif (données de LYON)
+						int i = 0;
+						for(TVec2f UV:TexUV)
+						{
+							UV.x = UV.x/4095; 
+							UV.y = 1 + UV.y/4095;//Car D est négatif
+							TexUV.at(i) = UV;
+							++i;
+						}
+					}
+
+					OgrRing->closeRings();
+					if(OgrRing->getNumPoints() > 3)
+					{
+						OGRPolygon * OgrPoly = new OGRPolygon;
+						OgrPoly->addRingDirectly(OgrRing);
+						if(!OgrPoly->IsValid())
+							continue;
+						if(OgrPoly->Intersects(Polygons))
+						{
+							TIN_Geo->addPolygon(PolygonCityGML);
+							if(HasTexture)
+							{
+								TexturePolygonCityGML Poly;
+
+								Poly.Id = PolygonCityGML->getId();
+								Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
+								Poly.TexUV = TexUV;
+
+								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+								for(TextureCityGML* Tex: *TexturesList)
+								{
+									if(Tex->Url == Url)
+									{
+										URLTest = true;
+										Tex->ListPolygons.push_back(Poly);
+										break;
+									}
+								}
+								if(!URLTest)
+								{
+									TextureCityGML* Texture = new TextureCityGML;
+									Texture->Wrap = WrapMode;
+									Texture->Url = Url;
+									Texture->ListPolygons.push_back(Poly);
+									TexturesList->push_back(Texture);
+								}
+							}
+						}
+						delete OgrPoly;
+					}
+					else
+						delete OgrRing;
+				}
+			}
+			if(TIN_Geo->getPolygons().size() > 0)
+			{
+				TIN_CO->addGeometry(TIN_Geo);
+				MNT_Out->addCityObject(TIN_CO);
+				MNT_Out->addCityObjectAsRoot(TIN_CO);
+			}
+		}
+	}
+
+	++cpt1;
+
+	std::cout << "Avancement : " << cpt1 << " / " << Model->getCityObjectsRoots().size() << std::endl;
+
+	return MNT_Out;
+}

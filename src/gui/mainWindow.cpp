@@ -156,7 +156,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
 	connect(m_ui->actionTiling_CityGML, SIGNAL(triggered()), this, SLOT(slotTilingCityGML()));
+	connect(m_ui->actionCut_MNT_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutMNTwithShapefile()));
 	connect(m_ui->actionCreate_Roads_on_MNT, SIGNAL(triggered()), this, SLOT(slotCreateRoadOnMNT()));
+	connect(m_ui->actionCreate_Vegetation_on_MNT, SIGNAL(triggered()), this, SLOT(slotCreateVegetationOnMNT()));
 
 	connect(m_ui->actionTest_1, SIGNAL(triggered()), this, SLOT(test1()));
 	connect(m_ui->actionTest_2, SIGNAL(triggered()), this, SLOT(test2()));
@@ -2190,8 +2192,6 @@ void MainWindow::slotTemporalAnimUpdate()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::about()
 {
-	// TODO : add Liris image and text
-	//QMessageBox::about(this, "VCity", "VCity is an environment editor");
 	DialogAbout diag;
 	diag.exec();
 }
@@ -2200,6 +2200,75 @@ void MainWindow::slotTilingCityGML()
 {
 	DialogTilingCityGML diag;
 	diag.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotCutMNTwithShapefile()
+{
+	QSettings settings("liris", "virtualcity");
+	QString lastdir = settings.value("lastdir").toString();
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QFileInfo file1(filename1);
+	QString filepath1 = file1.absoluteFilePath();
+	QString ext1 = file1.suffix().toLower();
+	if(ext1 != "citygml" && ext1 != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+	settings.setValue("lastdir", file1.dir().absolutePath());
+
+	lastdir = settings.value("lastdir").toString();
+	QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile contenant les polygones de découpe.", lastdir);
+	QFileInfo file2(filename2);
+	QString filepath2 = file2.absoluteFilePath();
+	QString ext2 = file2.suffix().toLower();
+	if(ext2 != "shp")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un Shapefile." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+	settings.setValue("lastdir", file2.dir().absolutePath());
+
+
+	QFileDialog w;
+	w.setWindowTitle("Selectionner le dossier de sortie");
+	w.setFileMode(QFileDialog::Directory);
+
+	if(w.exec() == 0)
+	{
+		std::cout << "Annulation : Dossier non valide." << std::endl;
+		return;
+	}
+
+	std::string Folder = w.selectedFiles().at(0).toStdString();
+
+	vcity::Tile* MNT = new vcity::Tile(filepath1.toStdString());
+
+	OGRDataSource* CutPolygons = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), FALSE);
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+	QTime time;
+	time.start();
+
+	std::vector<TextureCityGML*> ListTextures;
+	citygml::CityModel* ModelOut = CutMNTwithShapefile(MNT, CutPolygons, &ListTextures);
+
+	ModelOut->computeEnvelope();
+
+	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_" + file2.baseName().toStdString() + ".gml");
+
+	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
+
+	int millisecondes = time.elapsed();
+	std::cout << "Traitement termine, fichier MNT decoupe cree. Execution time : " << millisecondes/1000.0 <<std::endl;
+
+	QApplication::restoreOverrideCursor();
+
+	delete MNT;
+	delete CutPolygons;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCreateRoadOnMNT()
@@ -2276,6 +2345,83 @@ void MainWindow::slotCreateRoadOnMNT()
 
 	delete MNT;
 	delete Roads;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotCreateVegetationOnMNT()
+{
+	QSettings settings("liris", "virtualcity");
+	QString lastdir = settings.value("lastdir").toString();
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QFileInfo file1(filename1);
+	QString filepath1 = file1.absoluteFilePath();
+	QString ext1 = file1.suffix().toLower();
+	if(ext1 != "citygml" && ext1 != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+	settings.setValue("lastdir", file1.dir().absolutePath());
+
+	lastdir = settings.value("lastdir").toString();
+	QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile contenant les polygones de vegetation.", lastdir);
+	QFileInfo file2(filename2);
+	QString filepath2 = file2.absoluteFilePath();
+	QString ext2 = file2.suffix().toLower();
+	if(ext2 != "shp")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un Shapefile." << std::endl;
+		QApplication::restoreOverrideCursor();
+		return;
+	}
+	settings.setValue("lastdir", file2.dir().absolutePath());
+
+
+	QFileDialog w;
+	w.setWindowTitle("Selectionner le dossier de sortie");
+	w.setFileMode(QFileDialog::Directory);
+
+	if(w.exec() == 0)
+	{
+		std::cout << "Annulation : Dossier non valide." << std::endl;
+		return;
+	}
+
+	std::string Folder = w.selectedFiles().at(0).toStdString();
+
+	vcity::Tile* MNT = new vcity::Tile(filepath1.toStdString());
+
+	OGRDataSource* Vegetation = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), FALSE);
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+	//////////////////
+	//vcity::Tile* MNT = new vcity::Tile("D:/Donnees/Data/Lyon01/LYON01_MNT.gml");
+
+	//OGRDataSource* Roads = OGRSFDriverRegistrar::Open("D:/Donnees/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+	//////////////////
+
+	QTime time;
+	time.start();
+
+	std::vector<TextureCityGML*> ListTextures;
+	citygml::CityModel* ModelOut = CreateVegetationOnMNT(MNT, Vegetation, &ListTextures);
+
+	ModelOut->computeEnvelope();
+
+	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_MNT_type.gml");
+	//citygml::ExporterCityGML exporter("MNT_type.gml");
+
+	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
+
+	int millisecondes = time.elapsed();
+	std::cout << "Traitement termine, fichier MNT type cree. Execution time : " << millisecondes/1000.0 <<std::endl;
+
+	QApplication::restoreOverrideCursor();
+
+	delete MNT;
+	delete Vegetation;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

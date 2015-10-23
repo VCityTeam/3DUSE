@@ -14,5 +14,6 @@ void DecoupeCityGML(std::string Folder, geos::geom::Geometry * ShapeGeo, std::ve
 
 citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList);
 citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML*>* TexturesList);
+citygml::CityModel* CutMNTwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML*>* TexturesList);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LINKCITYGMLSHAPE_HPP__
