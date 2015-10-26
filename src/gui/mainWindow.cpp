@@ -2319,27 +2319,29 @@ void MainWindow::slotCreateRoadOnMNT()
 
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
-	//////////////////
-	//vcity::Tile* MNT = new vcity::Tile("D:/Donnees/Data/Lyon01/LYON01_MNT.gml");
-
-	//OGRDataSource* Roads = OGRSFDriverRegistrar::Open("D:/Donnees/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-	//////////////////
-
 	QTime time;
 	time.start();
 
-	std::vector<TextureCityGML*> ListTextures;
-	citygml::CityModel* ModelOut = CreateRoadsOnMNT(MNT, Roads, &ListTextures);
+	std::vector<TextureCityGML*> ListTextures_Roads;
+	std::vector<TextureCityGML*> ListTextures_Ground;
+	citygml::CityModel* MNT_roads = new citygml::CityModel;
+	citygml::CityModel* MNT_grounds = new citygml::CityModel;
 
-	ModelOut->computeEnvelope();
+	CreateRoadsOnMNT(MNT, Roads, MNT_roads, &ListTextures_Roads, MNT_grounds, &ListTextures_Ground);
 
-	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_MNT_type.gml");
-	//citygml::ExporterCityGML exporter("MNT_type.gml");
+	MNT_roads->computeEnvelope();
+	MNT_grounds->computeEnvelope();
 
-	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
+	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_MNT_Roads.gml");
+
+	exporter.exportCityModelWithListTextures(*MNT_roads, &ListTextures_Roads);
+
+	citygml::ExporterCityGML exporter2(Folder + "/" + file1.baseName().toStdString()  + "_MNT_Ground.gml");
+
+	exporter2.exportCityModelWithListTextures(*MNT_grounds, &ListTextures_Ground);
 
 	int millisecondes = time.elapsed();
-	std::cout << "Traitement termine, fichier MNT type cree. Execution time : " << millisecondes/1000.0 <<std::endl;
+	std::cout << "Traitement termine, fichier MNT road cree. Execution time : " << millisecondes/1000.0 <<std::endl;
 
 	QApplication::restoreOverrideCursor();
 
@@ -2405,18 +2407,26 @@ void MainWindow::slotCreateVegetationOnMNT()
 	QTime time;
 	time.start();
 
-	std::vector<TextureCityGML*> ListTextures;
-	citygml::CityModel* ModelOut = CreateVegetationOnMNT(MNT, Vegetation, &ListTextures);
+	std::vector<TextureCityGML*> ListTextures_Vegetation;
+	std::vector<TextureCityGML*> ListTextures_Ground;
+	citygml::CityModel* MNT_vegetation = new citygml::CityModel;
+	citygml::CityModel* MNT_grounds = new citygml::CityModel;
 
-	ModelOut->computeEnvelope();
+	CreateVegetationOnMNT(MNT, Vegetation, MNT_vegetation, &ListTextures_Vegetation, MNT_grounds, &ListTextures_Ground);
 
-	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_MNT_type.gml");
-	//citygml::ExporterCityGML exporter("MNT_type.gml");
+	MNT_vegetation->computeEnvelope();
+	MNT_grounds->computeEnvelope();
 
-	exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
+	citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_MNT_Vegetation.gml");
+
+	exporter.exportCityModelWithListTextures(*MNT_vegetation, &ListTextures_Vegetation);
+
+	citygml::ExporterCityGML exporter2(Folder + "/" + file1.baseName().toStdString()  + "_MNT_Ground.gml");
+
+	exporter2.exportCityModelWithListTextures(*MNT_grounds, &ListTextures_Ground);
 
 	int millisecondes = time.elapsed();
-	std::cout << "Traitement termine, fichier MNT type cree. Execution time : " << millisecondes/1000.0 <<std::endl;
+	std::cout << "Traitement termine, fichier MNT vegetation cree. Execution time : " << millisecondes/1000.0 <<std::endl;
 
 	QApplication::restoreOverrideCursor();
 

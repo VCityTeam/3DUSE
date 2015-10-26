@@ -69,17 +69,19 @@ OGRGeometry* BuildRoads(OGRLayer* Layer)
 ////////////////////////////////////////////////////////////////////////////////
 /**
 * @brief A partir d'un MNT Citygml et d'une shapefile de routes linéaires, crée un MNT typé avec des polygones TIN et de routes.
-* @param MNT Contient les données du fichier CityGML MNT
-* @param Roads Contient les routes du shapefile
-* @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie
+* @param MNT : Contient les données du fichier CityGML MNT
+* @param Roads : Contient les routes du shapefile
+* @param MNT_roads : Contiendra le CityModel de sortie avec les routes
+* @param TexturesList_roads : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_roads
+* @param MNT_ground : Contiendra le CityModel de sortie avec les autres polygones du terrain
+* @param TexturesList_ground : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_ground
 */
-citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std::vector<TextureCityGML*>* TexturesList)
+void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel* MNT_roads, std::vector<TextureCityGML*>* TexturesList_roads, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground)
 {
 	OGRLayer* Layer = Roads->GetLayer(0);
 
 	OGRGeometry* ListRoads = BuildRoads(Layer);
 
-	citygml::CityModel* MNT_Type = new citygml::CityModel;
 	citygml::CityModel* Model = MNT->getCityModel();
 
 	citygml::CityObject* Roads_CO = new citygml::Road("Road");
@@ -199,7 +201,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 										Poly.TexUV = TexUVout.at(0);
 
 										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-										for(TextureCityGML* Tex: *TexturesList)
+										for(TextureCityGML* Tex: *TexturesList_roads)
 										{
 											if(Tex->Url == Url)
 											{
@@ -214,7 +216,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 											Texture->Wrap = WrapMode;
 											Texture->Url = Url;
 											Texture->ListPolygons.push_back(Poly);
-											TexturesList->push_back(Texture);
+											TexturesList_roads->push_back(Texture);
 										}
 									}
 									++cptPolyTIN;
@@ -250,7 +252,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 												Poly.TexUV = TexUVout.at(0);
 
 												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-												for(TextureCityGML* Tex: *TexturesList)
+												for(TextureCityGML* Tex: *TexturesList_roads)
 												{
 													if(Tex->Url == Url)
 													{
@@ -265,7 +267,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 													Texture->Wrap = WrapMode;
 													Texture->Url = Url;
 													Texture->ListPolygons.push_back(Poly);
-													TexturesList->push_back(Texture);
+													TexturesList_roads->push_back(Texture);
 												}
 											}
 											++cptPolyTIN;
@@ -290,7 +292,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 													Poly.TexUV = TexUVout.at(0);
 
 													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-													for(TextureCityGML* Tex: *TexturesList)
+													for(TextureCityGML* Tex: *TexturesList_roads)
 													{
 														if(Tex->Url == Url)
 														{
@@ -305,7 +307,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 														Texture->Wrap = WrapMode;
 														Texture->Url = Url;
 														Texture->ListPolygons.push_back(Poly);
-														TexturesList->push_back(Texture);
+														TexturesList_roads->push_back(Texture);
 													}
 												}
 												++cptPolyTIN;
@@ -342,7 +344,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 										Poly.TexUV = TexUVout.at(0);
 
 										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-										for(TextureCityGML* Tex: *TexturesList)
+										for(TextureCityGML* Tex: *TexturesList_ground)
 										{
 											if(Tex->Url == Url)
 											{
@@ -357,7 +359,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 											Texture->Wrap = WrapMode;
 											Texture->Url = Url;
 											Texture->ListPolygons.push_back(Poly);
-											TexturesList->push_back(Texture);
+											TexturesList_ground->push_back(Texture);
 										}
 									}
 									++cptPolyTIN;
@@ -393,7 +395,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 												Poly.TexUV = TexUVout.at(0);
 
 												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-												for(TextureCityGML* Tex: *TexturesList)
+												for(TextureCityGML* Tex: *TexturesList_ground)
 												{
 													if(Tex->Url == Url)
 													{
@@ -408,7 +410,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 													Texture->Wrap = WrapMode;
 													Texture->Url = Url;
 													Texture->ListPolygons.push_back(Poly);
-													TexturesList->push_back(Texture);
+													TexturesList_ground->push_back(Texture);
 												}
 											}
 											++cptPolyTIN;
@@ -433,7 +435,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 													Poly.TexUV = TexUVout.at(0);
 
 													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-													for(TextureCityGML* Tex: *TexturesList)
+													for(TextureCityGML* Tex: *TexturesList_ground)
 													{
 														if(Tex->Url == Url)
 														{
@@ -448,7 +450,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 														Texture->Wrap = WrapMode;
 														Texture->Url = Url;
 														Texture->ListPolygons.push_back(Poly);
-														TexturesList->push_back(Texture);
+														TexturesList_ground->push_back(Texture);
 													}
 												}
 												++cptPolyTIN;
@@ -494,7 +496,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 								Poly.TexUV = TexUV;
 
 								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-								for(TextureCityGML* Tex: *TexturesList)
+								for(TextureCityGML* Tex: *TexturesList_ground)
 								{
 									if(Tex->Url == Url)
 									{
@@ -509,7 +511,7 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 									Texture->Wrap = WrapMode;
 									Texture->Url = Url;
 									Texture->ListPolygons.push_back(Poly);
-									TexturesList->push_back(Texture);
+									TexturesList_ground->push_back(Texture);
 								}
 							}
 						}
@@ -523,8 +525,8 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 			if(TIN_Geo->getPolygons().size() > 0)
 			{
 				TIN_CO->addGeometry(TIN_Geo);
-				MNT_Type->addCityObject(TIN_CO);
-				MNT_Type->addCityObjectAsRoot(TIN_CO);
+				MNT_ground->addCityObject(TIN_CO);
+				MNT_ground->addCityObjectAsRoot(TIN_CO);
 			}
 		}
 	}
@@ -536,31 +538,53 @@ citygml::CityModel* CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std
 	if(Roads_Geo->getPolygons().size() > 0)
 	{
 		Roads_CO->addGeometry(Roads_Geo);
-		MNT_Type->addCityObject(Roads_CO);
-		MNT_Type->addCityObjectAsRoot(Roads_CO);
+		MNT_roads->addCityObject(Roads_CO);
+		MNT_roads->addCityObjectAsRoot(Roads_CO);
 	}
 
-	return MNT_Type;
+	delete ListRoads;
 }
 
 
 /**
 * @brief A partir d'un MNT Citygml et d'une shapefile d'espaces boisés, crée un MNT typé avec des polygones TIN et de vegetation.
-* @param MNT Contient les données du fichier CityGML MNT
-* @param Roads Contient les routes du shapefile
-* @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie
+* @param MNT : Contient les données du fichier CityGML MNT
+* @param Vegetation : Contient les polygones des zones de végétation
+* @param MNT_vegetation : Contiendra le CityModel de sortie avec la végétation
+* @param TexturesList_vegetation : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_vegetation
+* @param MNT_ground : Contiendra le CityModel de sortie avec les autres polygones du terrain
+* @param TexturesList_ground : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_ground
 */
-citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, std::vector<TextureCityGML*>* TexturesList)
+void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml::CityModel* MNT_vegetation, std::vector<TextureCityGML*>* TexturesList_vegetation, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground)
 {
-	OGRLayer* Layer = Roads->GetLayer(0);
+	OGRLayer* Layer = Vegetation->GetLayer(0);
 
-	OGRGeometry* ListRoads = BuildRoads(Layer);
+	OGRGeometry* VegetationPolygons;
+	OGRMultiPolygon* MP = new OGRMultiPolygon;
 
-	citygml::CityModel* MNT_Type = new citygml::CityModel;
+	OGRFeature *Feature;
+	Layer->ResetReading();
+
+	while((Feature = Layer->GetNextFeature()) != NULL)
+	{
+		OGRGeometry* Geometry = Feature->GetGeometryRef();
+
+		if(Geometry->getGeometryType() == wkbPolygon || Geometry->getGeometryType() == wkbPolygon25D)
+			MP->addGeometry(Geometry);
+		else if(Geometry->getGeometryType() == wkbMultiPolygon || Geometry->getGeometryType() == wkbMultiPolygon25D)
+		{
+			for(int i = 0; i < ((OGRMultiPolygon*)Geometry)->getNumGeometries(); ++i)
+				MP->addGeometry(((OGRMultiPolygon*)Geometry)->getGeometryRef(i));
+		}
+	}
+
+	VegetationPolygons = MP->UnionCascaded();
+	delete MP;
+	
 	citygml::CityModel* Model = MNT->getCityModel();
 
-	citygml::CityObject* Roads_CO = new citygml::Road("Road");
-	citygml::Geometry* Roads_Geo = new citygml::Geometry("RoadGeometry", citygml::GT_Unknown, 2);
+	citygml::CityObject* Vegetation_CO = new citygml::PlantCover("Vegetation");
+	citygml::Geometry* Vegetation_Geo = new citygml::Geometry("VegetationGeometry", citygml::GT_Unknown, 2);
 
 	int cpt1 = -1;
 
@@ -640,10 +664,10 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 						OgrPoly->addRingDirectly(OgrRing);
 						if(!OgrPoly->IsValid())
 							continue;
-						if(OgrPoly->Intersects(ListRoads))
+						if(OgrPoly->Intersects(VegetationPolygons))
 						{
-							OGRGeometry* Intersection = OgrPoly->Intersection(ListRoads);
-							OGRGeometry* Difference = OgrPoly->Difference(ListRoads);
+							OGRGeometry* Intersection = OgrPoly->Intersection(VegetationPolygons);
+							OGRGeometry* Difference = OgrPoly->Difference(VegetationPolygons);
 
 							//OGRGeometry* Inter;
 							//OGRGeometry* Diff;
@@ -665,7 +689,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 									//A2 += ((OGRPolygon*)CutPoly)->get_Area();
 
 									citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "_" + std::to_string(cptPolyTIN));
-									Roads_Geo->addPolygon(GMLPoly);
+									Vegetation_Geo->addPolygon(GMLPoly);
 
 									if(HasTexture)
 									{
@@ -676,7 +700,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 										Poly.TexUV = TexUVout.at(0);
 
 										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-										for(TextureCityGML* Tex: *TexturesList)
+										for(TextureCityGML* Tex: *TexturesList_vegetation)
 										{
 											if(Tex->Url == Url)
 											{
@@ -691,7 +715,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 											Texture->Wrap = WrapMode;
 											Texture->Url = Url;
 											Texture->ListPolygons.push_back(Poly);
-											TexturesList->push_back(Texture);
+											TexturesList_vegetation->push_back(Texture);
 										}
 									}
 									++cptPolyTIN;
@@ -716,7 +740,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 											//A2 += ((OGRPolygon*)CutPoly)->get_Area();
 
 											citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly, Name + "_" + std::to_string(cptPolyTIN));
-											Roads_Geo->addPolygon(GMLPoly);
+											Vegetation_Geo->addPolygon(GMLPoly);
 
 											if(HasTexture)
 											{
@@ -727,7 +751,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 												Poly.TexUV = TexUVout.at(0);
 
 												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-												for(TextureCityGML* Tex: *TexturesList)
+												for(TextureCityGML* Tex: *TexturesList_vegetation)
 												{
 													if(Tex->Url == Url)
 													{
@@ -742,7 +766,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 													Texture->Wrap = WrapMode;
 													Texture->Url = Url;
 													Texture->ListPolygons.push_back(Poly);
-													TexturesList->push_back(Texture);
+													TexturesList_vegetation->push_back(Texture);
 												}
 											}
 											++cptPolyTIN;
@@ -756,7 +780,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 												//A2 = ((OGRPolygon*)(OGRPolygon*)CutPoly_MP->getGeometryRef(j))->get_Area();
 
 												citygml::Polygon* GMLPoly = ConvertOGRPolytoGMLPoly((OGRPolygon*)CutPoly_MP->getGeometryRef(j), Name + "_" + std::to_string(cptPolyTIN));
-												Roads_Geo->addPolygon(GMLPoly);
+												Vegetation_Geo->addPolygon(GMLPoly);
 
 												if(HasTexture)
 												{
@@ -767,7 +791,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 													Poly.TexUV = TexUVout.at(0);
 
 													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-													for(TextureCityGML* Tex: *TexturesList)
+													for(TextureCityGML* Tex: *TexturesList_vegetation)
 													{
 														if(Tex->Url == Url)
 														{
@@ -782,7 +806,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 														Texture->Wrap = WrapMode;
 														Texture->Url = Url;
 														Texture->ListPolygons.push_back(Poly);
-														TexturesList->push_back(Texture);
+														TexturesList_vegetation->push_back(Texture);
 													}
 												}
 												++cptPolyTIN;
@@ -819,7 +843,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 										Poly.TexUV = TexUVout.at(0);
 
 										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-										for(TextureCityGML* Tex: *TexturesList)
+										for(TextureCityGML* Tex: *TexturesList_ground)
 										{
 											if(Tex->Url == Url)
 											{
@@ -834,7 +858,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 											Texture->Wrap = WrapMode;
 											Texture->Url = Url;
 											Texture->ListPolygons.push_back(Poly);
-											TexturesList->push_back(Texture);
+											TexturesList_ground->push_back(Texture);
 										}
 									}
 									++cptPolyTIN;
@@ -870,7 +894,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 												Poly.TexUV = TexUVout.at(0);
 
 												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-												for(TextureCityGML* Tex: *TexturesList)
+												for(TextureCityGML* Tex: *TexturesList_ground)
 												{
 													if(Tex->Url == Url)
 													{
@@ -885,7 +909,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 													Texture->Wrap = WrapMode;
 													Texture->Url = Url;
 													Texture->ListPolygons.push_back(Poly);
-													TexturesList->push_back(Texture);
+													TexturesList_ground->push_back(Texture);
 												}
 											}
 											++cptPolyTIN;
@@ -910,7 +934,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 													Poly.TexUV = TexUVout.at(0);
 
 													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-													for(TextureCityGML* Tex: *TexturesList)
+													for(TextureCityGML* Tex: *TexturesList_ground)
 													{
 														if(Tex->Url == Url)
 														{
@@ -925,7 +949,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 														Texture->Wrap = WrapMode;
 														Texture->Url = Url;
 														Texture->ListPolygons.push_back(Poly);
-														TexturesList->push_back(Texture);
+														TexturesList_ground->push_back(Texture);
 													}
 												}
 												++cptPolyTIN;
@@ -971,7 +995,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 								Poly.TexUV = TexUV;
 
 								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-								for(TextureCityGML* Tex: *TexturesList)
+								for(TextureCityGML* Tex: *TexturesList_ground)
 								{
 									if(Tex->Url == Url)
 									{
@@ -986,7 +1010,7 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 									Texture->Wrap = WrapMode;
 									Texture->Url = Url;
 									Texture->ListPolygons.push_back(Poly);
-									TexturesList->push_back(Texture);
+									TexturesList_ground->push_back(Texture);
 								}
 							}
 						}
@@ -1000,8 +1024,8 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 			if(TIN_Geo->getPolygons().size() > 0)
 			{
 				TIN_CO->addGeometry(TIN_Geo);
-				MNT_Type->addCityObject(TIN_CO);
-				MNT_Type->addCityObjectAsRoot(TIN_CO);
+				MNT_ground->addCityObject(TIN_CO);
+				MNT_ground->addCityObjectAsRoot(TIN_CO);
 			}
 		}
 	}
@@ -1010,12 +1034,12 @@ citygml::CityModel* CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Roads
 
 	std::cout << "Avancement : " << cpt1 << " / " << Model->getCityObjectsRoots().size() << std::endl;
 
-	if(Roads_Geo->getPolygons().size() > 0)
+	if(Vegetation_Geo->getPolygons().size() > 0)
 	{
-		Roads_CO->addGeometry(Roads_Geo);
-		MNT_Type->addCityObject(Roads_CO);
-		MNT_Type->addCityObjectAsRoot(Roads_CO);
+		Vegetation_CO->addGeometry(Vegetation_Geo);
+		MNT_vegetation->addCityObject(Vegetation_CO);
+		MNT_vegetation->addCityObjectAsRoot(Vegetation_CO);
 	}
 
-	return MNT_Type;
+	delete VegetationPolygons;
 }
