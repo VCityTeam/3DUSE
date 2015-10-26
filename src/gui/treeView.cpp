@@ -11,6 +11,9 @@
 #include "moc/dialogState.hpp"
 #include "moc/dialogTag.hpp"
 #include "moc/dialogDoc.hpp"
+#include "moc/dialogYearOfConst.hpp"
+#include "moc/dialogYearOfDemol.hpp"
+#include "moc/dialogLink.hpp"
 #include "core/application.hpp"
 #include <iostream>
 #include <QMenu>
@@ -52,6 +55,9 @@ TreeView::~TreeView()
     delete m_actionAddDoc;
 	delete m_actionExportJSON;
 	delete m_actionEditShp;
+	delete m_actionAddYearOfConst;
+	delete m_actionAddYearOfDemol;
+	delete m_actionAddLink;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::init()
@@ -84,6 +90,11 @@ void TreeView::init()
     m_actionAddDoc = new QAction("Add document", NULL);
 	m_actionExportJSON = new QAction("Export JSON", NULL);
 	m_actionEditShp = new QAction("Edit Shp", NULL);
+	//ajout yearOfConstruction/yearOfDemolition/creationDate/terminationDate
+	m_actionAddYearOfConst = new QAction("Add creationDate",NULL);
+	m_actionAddYearOfDemol = new QAction("Add terminationDate",NULL);
+	//add xLink
+	m_actionAddLink = new QAction("Add link to a new object", NULL);
 
     // connect right click menu actions
     connect(m_actionAddTile, SIGNAL(triggered()), this, SLOT(slotAddTile()));
@@ -111,6 +122,10 @@ void TreeView::init()
     connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
 	connect(m_actionExportJSON, SIGNAL(triggered()), this, SLOT(slotExportJSON()));
 	connect(m_actionEditShp, SIGNAL(triggered()), this, SLOT(slotEditShp()));
+	//ajout yearOfConstruction/yearOfDemolition
+	connect(m_actionAddYearOfConst, SIGNAL(triggered()), this, SLOT(slotAddYearOfConst()));
+	connect(m_actionAddYearOfDemol, SIGNAL(triggered()), this, SLOT(slotAddYearOfDemol()));
+	connect(m_actionAddLink, SIGNAL(triggered()), this, SLOT(slotAddLink()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
@@ -268,7 +283,8 @@ void TreeView::deleteLayer(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 {
-    QTreeWidgetItem* item = createItemGeneric(node->getId().c_str(), node->getTypeAsString().c_str());
+	std::string type = (node->_isXlink==citygml::xLinkState::LINKED) ? "xLink:"+node->getTypeAsString() : node->getTypeAsString();
+    QTreeWidgetItem* item = createItemGeneric(node->getId().c_str(), type.c_str());
     parent->addChild(item);
 
     citygml::CityObjects& cityObjects = node->getChildren();
@@ -277,7 +293,10 @@ void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
     {
         addCityObject(item, *it);
     }
-
+	for(std::vector<citygml::Object*>::iterator it = node->getXLinkTargets().begin();it != node->getXLinkTargets().end(); ++it)
+	{
+        addCityObject(item,(citygml::CityObject*) *it);
+    }
     // add temporal elements after
     for(auto* tag : node->getTags())
     {
@@ -551,6 +570,8 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionDeleteTile);
         m_tree->addAction(m_actionEditTile);
         m_tree->addAction(m_actionAddBuilding);
+		m_tree->addAction(m_actionAddYearOfConst);
+		m_tree->addAction(m_actionAddYearOfDemol);
     }
 	else if(item->text(1) == "AssimpNode")
     {
@@ -612,6 +633,9 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionAddState);
         m_tree->addAction(m_actionAddDynState);
         m_tree->addAction(m_actionAddDoc);
+		m_tree->addAction(m_actionAddYearOfConst);
+		m_tree->addAction(m_actionAddYearOfDemol);
+		//m_tree->addAction(m_actionAddLink);
     }
 
     // actions on all types
@@ -837,6 +861,24 @@ void TreeView::slotEditShp()
 	dialogShpTool->show();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotAddYearOfConst()
+{
+	DialogYearOfConst diag;
+	diag.editDates(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotAddYearOfDemol()
+{
+	DialogYearOfDemol diag;
+	diag.editDates(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::slotAddLink()
+{
+	DialogLink diag;
+	diag.addLink(getURI(getCurrentItem()));
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::resetActions()
 {
     m_tree->removeAction(m_actionAddTile);
@@ -861,5 +903,8 @@ void TreeView::resetActions()
     m_tree->removeAction(m_actionDeSelectAll);
     m_tree->removeAction(m_actionAddDoc);
 	m_tree->removeAction(m_actionExportJSON);
+	m_tree->removeAction(m_actionAddYearOfConst);
+	m_tree->removeAction(m_actionAddYearOfDemol);
+	m_tree->removeAction(m_actionAddLink);
 }
 ////////////////////////////////////////////////////////////////////////////////

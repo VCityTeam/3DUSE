@@ -21,7 +21,7 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::CityObject( const std::string& id, CityObjectsType type )
-    : Object( id ), _type( type ), m_path(""), m_temporalUse(false)
+	: Object( id ), _type( type ), m_path(""), m_temporalUse(false)
 {}
 ////////////////////////////////////////////////////////////////////////////////
 CityObject::~CityObject()
@@ -30,7 +30,7 @@ CityObject::~CityObject()
         delete geom;
 
     for(CityObject* obj : _children)
-        delete obj;
+		delete obj;
 
     for(CityObjectState* state : m_states)
         delete state;
@@ -102,6 +102,12 @@ std::vector< CityObject* >& CityObject::getChildren( void )
     return _children;
 }
 ////////////////////////////////////////////////////////////////////////////////
+//remove all the children of the CityObject (without deleting them)
+void CityObject::clearChildren()
+{
+	_children.clear();
+}
+////////////////////////////////////////////////////////////////////////////////
 void CityObject::addGeometry(Geometry* geom)
 {
     _geometries.push_back(geom);
@@ -134,7 +140,17 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
 
     while(uri.getCursor() < uri.getDepth())
     {
-        for(CityObject* child : current->getChildren())
+		if (current->_isXlink==xLinkState::LINKED)
+			for (Object* child : current->getXLinkTargets())
+			{
+				if(child->getId() == uri.getCurrentNode())
+				{
+					current = (CityObject*) child;
+					res = current;
+					break;
+				}
+			}
+		for(CityObject* child : current->getChildren())
         {
             if(child->getId() == uri.getCurrentNode())
             {

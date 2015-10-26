@@ -31,8 +31,13 @@
 #include <fstream>
 #include <set>
 
+//forward declaration
+class ADEHandler;
+
 namespace citygml
 {	
+	typedef std::map< std::string, CityObjects > CityObjectIdentifiersMap;
+
 	#define NODETYPE(_t_) CG_ ## _t_
 
 	// CityGML node types
@@ -87,6 +92,8 @@ namespace citygml
 		NODETYPE( lod2Geometry ),
 		NODETYPE( lod3Geometry ),
 		NODETYPE( lod4Geometry ),
+
+		NODETYPE( identifier ),
 
 		// bldg
 		NODETYPE( Building ),
@@ -189,10 +196,11 @@ namespace citygml
 		NODETYPE( ambientIntensity ),
 		NODETYPE( isFront )
 	};
-	
+
 	// CityGML SAX parsing handler
 	class CityGMLHandler
 	{
+	friend class ADEHandler;
 	public:
 
 		CityGMLHandler( const ParserParams& params );
@@ -201,7 +209,7 @@ namespace citygml
 
 		virtual void startDocument( void ) {}
 
-		virtual void endDocument( void ) {}
+		virtual void endDocument( void );
 
 		virtual void startElement( const std::string&, void* );
 
@@ -287,7 +295,11 @@ namespace citygml
 
 		static CityGMLNodeType getNodeTypeFromName( const std::string& );
 
-	protected:
+		static std::string getXLinkQueryIdentifier( const std::string& );
+
+		void fetchVersionedCityObjectsRec(CityObject*);
+
+	public: // MT (MAC OS X problem...)
 
 		static std::map< std::string, CityGMLNodeType > s_cityGMLNodeTypeMap;
 		static std::vector< std::string > s_knownNamespace;
@@ -344,6 +356,11 @@ namespace citygml
         CityObjectState* m_currentState;
         CityObjectDynState* m_currentDynState;
         CityObjectTag* m_currentTag;
+
+    protected: // MT
+
+		CityObjectIdentifiersMap _identifiersMap;
+		std::map<std::string,ADEHandler*> _ADEHandlers;
 
 	};
 }

@@ -461,6 +461,11 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
             //std::cout << node->getName() << " : " << a <<  " : yearOfConstruction : " << yearOfConstruction << std::endl;
             //std::cout << node->getName() << " : " << b << " : yearOfDemolition : " << yearOfDemolition << std::endl;
 
+			int cDate;
+			int dDate;
+			bool c = node->getUserValue("creationDate", cDate);
+            bool d = node->getUserValue("terminationDate", dDate);
+
             if(a && b)
             {
                 if((yearOfConstruction < year && year <= yearOfDemolition))
@@ -472,8 +477,20 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
                      node->setNodeMask(0);
                 }
                 //node->setNodeMask(0xffffffff - node->getNodeMask());
-            }
-
+            } 
+			else if (c)
+			{
+				QDateTime creationDate = QDateTime::fromString(QString::fromStdString(std::to_string(cDate)),QString("yyyyMMdd"));
+				if (d)
+				{
+					QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(std::to_string(dDate)),QString("yyyyMMdd"));
+					if (creationDate < date && date <= terminationDate) node->setNodeMask(0xffffffff);
+					else node->setNodeMask(0);
+				} else {
+					if (creationDate < date ) node->setNodeMask(0xffffffff);
+					else node->setNodeMask(0);                
+				}
+			}
             setDateRec(date, child);
         }
     }
@@ -667,6 +684,14 @@ void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> n
 
     for(citygml::CityObject* child : obj->getChildren())
     {
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildCityObject(u, node, child, reader, depth+1);
+    }
+	for(citygml::Object* target : obj->getXLinkTargets())
+    {
+		citygml::CityObject* child = (citygml::CityObject*) target;
         vcity::URI u = uri;
         u.append(child->getId(), child->getTypeAsString());
         u.resetCursor();

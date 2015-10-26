@@ -22,6 +22,7 @@
 #include "parser.hpp"
 #include "transform.hpp"
 #include "utils.hpp"
+#include "ADE/ADE.hpp"
 
 #ifndef MSVC
 	#include <typeinfo>
@@ -41,13 +42,19 @@ _currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
 m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr)
 { 
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
-	initNodes(); 
+	initNodes();
+	ADEHandlerFactory::getInstances(_ADEHandlers);
+	for (std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++) it->second->setGMLHandler(this); 
 }
 
 CityGMLHandler::~CityGMLHandler( void ) 
 {
     for ( std::set<Geometry*>::iterator it = _geometries.begin(); it != _geometries.end(); it++ )
         delete *it;
+	for(std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin();it!=_ADEHandlers.end();it++)
+	{
+		delete it->second;
+	}
 }
 
 void CityGMLHandler::initNodes( void ) 
@@ -103,6 +110,8 @@ void CityGMLHandler::initNodes( void )
 	INSERTNODETYPE( lod2Geometry );
 	INSERTNODETYPE( lod3Geometry );
 	INSERTNODETYPE( lod4Geometry );
+
+	INSERTNODETYPE ( identifier );
 
 	// bldg
 	INSERTNODETYPE( Building );
@@ -322,6 +331,22 @@ std::string CityGMLHandler::getNodeName( const std::string& name )
 	return name;
 }
 
+std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
+{
+	// query should be under the format "//identifier[text()='XXXXXXXX']/.."
+	//std::cout<<"XLink query found : "<<query<<std::endl;
+	size_t pos1 = query.find("//identifier[text()='");
+	size_t pos2 = query.find("']/",pos1);
+	if (pos1!=std::string::npos && pos2!=std::string::npos)
+	{
+		std::string identifier = query.substr(pos1+21,pos2-(pos1+21));
+		//std::cout<<"Identifier = "<<identifier<<std::endl;
+		return identifier;
+	}
+	else throw "XLinkExpressionException";
+	return "";
+}
+
 void CityGMLHandler::startElement( const std::string& name, void* attributes ) 
 {
 	std::string localname = getNodeName( name );
@@ -356,7 +381,13 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 	case CG_ ## _t_ :\
         if ( _objectsMask & COT_ ## _t_ )\
         {\
-            pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
+			pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
+			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
+			if (xLinkQuery!="")\
+			{\
+				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
+				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
+			}\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -431,7 +462,13 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
         _currentGeometryType = GT_ ## _t_;\
         if ( _objectsMask & COT_ ## _t_ ## Surface )\
         {\
-            pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
+			pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
+			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
+			if (xLinkQuery!="")\
+			{\
+				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
+				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
+			}\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
             \
             if(_params.temporalImport)\
@@ -592,6 +629,24 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		_attributeName = getAttribute( attributes, "name", "" );
 		break;
 
+	case NODETYPE( Unknown ):
+		{
+			size_t pos = name.find_first_of( ":" );
+			if ( pos != std::string::npos )
+			{
+				std::string nspace = name.substr( 0, pos );
+				
+				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
+				{
+					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
+					//tHandler->setGMLHandler(this);
+					try{tHandler->startElement(name, attributes);}
+					catch (...) {}
+				}
+			}
+		}
+		break;
+
 	default:
         //std::cout << localname << std::endl;
 		break;
@@ -608,11 +663,11 @@ void CityGMLHandler::endElement( const std::string& name )
 
 	if ( NODETYPE_FILTER() ) { clearBuffer(); return; }
 
-	if ( nodeType == NODETYPE( Unknown ) ) // unknown node ? skip now to avoid the buffer triming pass
+	/*if ( nodeType == NODETYPE( Unknown ) ) // unknown node ? skip now to avoid the buffer triming pass
 	{
 		clearBuffer();
 		return; 
-	}
+	}*/
 
 	// Trim the char buffer  
 	std::stringstream buffer;
@@ -688,11 +743,16 @@ void CityGMLHandler::endElement( const std::string& name )
                 m_currentState = nullptr;
                 m_currentDynState = nullptr;
             }
-            else
+			/*else if (_currentCityObject->_isXlink==xLinkState::TARGET)
+			{
+				//do nothing
+			}*/
+			else
             {
                 _model->addCityObject( _currentCityObject );
                 if ( _cityObjectStack.size() == 1 ) _model->addCityObjectAsRoot( _currentCityObject );
             }
+			
 		}
 		else delete _currentCityObject; 
 		popCityObject();
@@ -800,6 +860,22 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( creationDate ):
 	case NODETYPE( terminationDate ):
 		if ( _currentObject ) _currentObject->setAttribute( localname, buffer.str(), false );
+		break;
+
+	case NODETYPE( identifier ):
+		{
+			std::string identifier = buffer.str();
+			_currentCityObject->_isXlink=xLinkState::TARGET;
+			if ( _currentCityObject ) _currentCityObject->setAttribute( localname, identifier, false );
+			CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
+			if ( it == _identifiersMap.end() )
+			{
+				CityObjects v;
+				v.push_back( _currentCityObject );
+				_identifiersMap[ identifier ] = v;
+			}
+			else it->second.push_back( _currentCityObject );
+		}
 		break;
 
     case NODETYPE( value ):
@@ -988,10 +1064,26 @@ void CityGMLHandler::endElement( const std::string& name )
 			parseValue( buffer, geoRefTexture->_preferWorldFile );
 		}
 		break;
+	case NODETYPE( Unknown ):
+		{
+			size_t pos = name.find_first_of( ":" );
+			if ( pos != std::string::npos )
+			{
+				std::string nspace = name.substr( 0, pos );
+				
+				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
+				{
+					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
+					//tHandler->setGMLHandler(this);
+					try{tHandler->endElement(name);}
+					catch (...) {}
+				}
+			}
+		}
+		break;
 	default:
 		break;
 	};
-
 	clearBuffer();
 }
 
@@ -1037,4 +1129,52 @@ void CityGMLHandler::createGeoTransform( std::string srsName )
 	
 	delete (GeoTransform*)_geoTransform;
 	_geoTransform = new GeoTransform( proj4Name, _params.destSRS );
+}
+
+void CityGMLHandler::endDocument( )
+{
+	for(std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++)
+	{
+		try {it->second->endDocument();}
+		catch (...) {}
+	}
+	for(auto* child : _model->_roots)
+    {
+        fetchVersionedCityObjectsRec(child);
+    }
+	
+
+}
+
+void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
+{
+	if(node->_isXlink==xLinkState::UNLINKED)
+    {
+		try {
+			std::string identifier = getXLinkQueryIdentifier(node->getAttribute("xlink"));
+			CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
+			if ( it != _identifiersMap.end() )
+			{
+				for (CityObject* target:(it->second))
+				{
+					target->_parent = node;
+					node->_xLinkTargets.push_back( target );
+				}
+			}
+			node->_isXlink=xLinkState::LINKED;
+			for(auto* target : node->getXLinkTargets())
+			{
+				CityObject* child = (CityObject*) target;
+				fetchVersionedCityObjectsRec(child);
+				child->_parent=node->_parent;
+			}
+		}
+		catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<node->getAttribute("xlink")<<"\""<<std::endl;}
+    }
+
+    for(auto* child : node->getChildren())
+    {
+        fetchVersionedCityObjectsRec(child);
+		if (node->_isXlink==xLinkState::LINKED) child->_parent=node->_parent;
+    }
 }

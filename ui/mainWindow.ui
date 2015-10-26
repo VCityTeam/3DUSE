@@ -116,7 +116,7 @@
              <string>Time slider</string>
             </property>
             <property name="maximum">
-             <number>73049</number>
+             <number>109574</number>
             </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
