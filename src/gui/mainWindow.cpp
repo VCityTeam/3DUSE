@@ -1517,6 +1517,8 @@ void MainWindow::generateLOD1OnFile()
 
 	std::string Folder = w.selectedFiles().at(0).toStdString();
 
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
 	for(int i = 0; i < filenames.count(); ++i)
 	{
 		QFileInfo file(filenames[i]);
@@ -1533,15 +1535,14 @@ void MainWindow::generateLOD1OnFile()
 		QString ext = file2.suffix().toLower();
 		if(ext == "citygml" || ext == "gml")
 		{
-			QApplication::setOverrideCursor(Qt::WaitCursor);
+			citygml::CityModel* ModelOut = new citygml::CityModel;
+
 			std::cout << "load citygml file : " << filepath.toStdString() << std::endl;
 			vcity::Tile* tile = new vcity::Tile(filepath.toStdString());
 
 			//Generate LOD1 on tile and save in CityGML File
 
 			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString() +"_LOD1.gml");
-			exporter.initExport();
-			citygml::Envelope Envelope;
 
 			for(citygml::CityObject * obj : tile->getCityModel()->getCityObjectsRoots())
 			{
@@ -1555,22 +1556,25 @@ void MainWindow::generateLOD1OnFile()
 
 					citygml::CityObject* LOD1 = ConvertLOD1ToCityGML(obj->getId(), Enveloppe, heightmax, heightmin);
 
-					exporter.appendCityObject(*LOD1);
-					LOD1->computeEnvelope();
-					Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+					ModelOut->addCityObject(LOD1);
+					ModelOut->addCityObjectAsRoot(LOD1);
 
 					delete Enveloppe;
 					delete heightmax;
 					delete heightmin;
 				}
 			}
-			exporter.addEnvelope(Envelope);
-			exporter.endExport();
+
+			delete tile;
+			ModelOut->computeEnvelope(),
+			exporter.exportCityModel(*ModelOut);
+
+			delete ModelOut;
 			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree dans " << Folder << std::endl;
-			QApplication::restoreOverrideCursor();
 		}
 	}
-
+	
+	QApplication::restoreOverrideCursor();
 	m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 
 	//Generate LOD1 on files and export LOD1+LOD2 in Folder
@@ -1787,7 +1791,7 @@ void MainWindow::slotSplitCityGMLBuildings()
 {
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
-	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
 	QFileInfo file1(filename1);
 	QString filepath1 = file1.absoluteFilePath();
 	QString ext1 = file1.suffix().toLower();
@@ -1868,7 +1872,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
-	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
 	QFileInfo file1(filename1);
 	QString filepath1 = file1.absoluteFilePath();
 	QString ext1 = file1.suffix().toLower();
@@ -2080,6 +2084,8 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 		TVec3d Lower = Tile->getEnvelope().getLowerBound();
 		TVec3d Upper = Tile->getEnvelope().getUpperBound();
 
+		std::cout << "Fichier " << Path.toStdString() << std::endl;
+
 		TVec2d MinTile((int)(Lower.x / TileX) * TileX, (int)(Lower.y / TileY) * TileY);
 		TVec2d MaxTile((int)(Upper.x / TileX) * TileX, (int)(Upper.y / TileY) * TileY);
 
@@ -2110,7 +2116,7 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 				else // Cette tuile existe déjà, il faut donc la fusionner avec la nouvelle découpe
 				{
 					fclose(fp);
-					std::cout << "Le fichier existe deja" << std::endl;
+					//std::cout << "Le fichier existe deja" << std::endl;
 					vcity::Tile* OldTile = new vcity::Tile(FileName);
 					MergingTile(OldTile, Tuile, &TexturesList);
 
@@ -2206,7 +2212,7 @@ void MainWindow::slotCutMNTwithShapefile()
 {
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
-	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
 	QFileInfo file1(filename1);
 	QString filepath1 = file1.absoluteFilePath();
 	QString ext1 = file1.suffix().toLower();
@@ -2219,7 +2225,7 @@ void MainWindow::slotCutMNTwithShapefile()
 	settings.setValue("lastdir", file1.dir().absolutePath());
 
 	lastdir = settings.value("lastdir").toString();
-	QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile contenant les polygones de découpe.", lastdir);
+	QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile contenant les polygones de decoupe.", lastdir);
 	QFileInfo file2(filename2);
 	QString filepath2 = file2.absoluteFilePath();
 	QString ext2 = file2.suffix().toLower();
@@ -2275,7 +2281,7 @@ void MainWindow::slotCreateRoadOnMNT()
 {
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
-	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
 	QFileInfo file1(filename1);
 	QString filepath1 = file1.absoluteFilePath();
 	QString ext1 = file1.suffix().toLower();
@@ -2288,7 +2294,7 @@ void MainWindow::slotCreateRoadOnMNT()
 	settings.setValue("lastdir", file1.dir().absolutePath());
 
 	lastdir = settings.value("lastdir").toString();
-	QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile contenant le réseau routier.", lastdir);
+	QString filename2 = QFileDialog::getOpenFileName(this, "Selectionner le fichier Shapefile contenant le reseau routier.", lastdir);
 	QFileInfo file2(filename2);
 	QString filepath2 = file2.absoluteFilePath();
 	QString ext2 = file2.suffix().toLower();
@@ -2354,7 +2360,7 @@ void MainWindow::slotCreateVegetationOnMNT()
 {
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
-	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML à traiter.", lastdir);
+	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
 	QFileInfo file1(filename1);
 	QString filepath1 = file1.absoluteFilePath();
 	QString ext1 = file1.suffix().toLower();

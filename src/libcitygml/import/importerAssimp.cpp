@@ -124,7 +124,7 @@ namespace citygml
 				}
 				poly->addRing(ring);
 				TVec3d Normale = ring->computeNormal();
-				if(abs(Normale.z) <= 0.2)
+				if(std::abs(Normale.z) <= 0.2)
 					WallGeom->addPolygon(poly);
 				else
 					RoofGeom->addPolygon(poly);

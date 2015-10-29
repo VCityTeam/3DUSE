@@ -1854,7 +1854,7 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 */
 OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
 {
-	if(Lines->getGeometryType() != wkbPolygon && Lines->getGeometryType() != wkbPolygon25D || Points->getGeometryType() != wkbPolygon && Points->getGeometryType() != wkbPolygon25D)
+	if((Lines->getGeometryType() != wkbPolygon && Lines->getGeometryType() != wkbPolygon25D) || (Points->getGeometryType() != wkbPolygon && Points->getGeometryType() != wkbPolygon25D))
 	{
 		OGRGeometryCollection* GC_Points = dynamic_cast<OGRGeometryCollection*>(Points);
 		OGRGeometryCollection* GC_Lines = dynamic_cast<OGRGeometryCollection*>(Lines);
@@ -3770,7 +3770,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 				double P = ((OGRPolygon*)PolyToit)->getExteriorRing()->get_Length();
 				double Kg = P / (2*sqrt(M_PI * A)); //Indice de compacité de Gravelius (1914) d'un Polygone : Kg = P / (2*sqrt(pi*A)), P = périmètre, A = aire. Kg = 1 : cercle.
 
-				if(Kg > 2.0 || Kg > 1.3 && A < 5 || A < 1)
+				if(Kg > 2.0 || (Kg > 1.3 && A < 5) || A < 1)
 				{
 					PolygonsDiscontinus->addGeometry(PolyToit);
 
@@ -3794,7 +3794,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 							double P = ((OGRPolygon*)(GC_PolyToit->getGeometryRef(k)))->getExteriorRing()->get_Length();
 							double Kg = P / (2*sqrt(M_PI * A)); //Indice de compacité de Gravelius (1914) d'un Polygone : Kg = P / (2*sqrt(pi*A)), P = périmètre, A = aire. Kg = 1 : cercle.
 
-							if(Kg > 2.0 || Kg > 1.3 && A < 5 || A < 1)
+							if(Kg > 2.0 || (Kg > 1.3 && A < 5) || A < 1)
 							{
 								PolygonsDiscontinus->addGeometry(GC_PolyToit->getGeometryRef(k));
 
@@ -4126,7 +4126,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
 		//Maintenant que l'on a les SplitPolygons, il faut les associer aux footprints correspondants.
 
-		if(SplitPolygon != nullptr)
+		if(ListSplitPolygons != nullptr)
 		{
 			for(int j = 0; j < ListSplitPolygons->getNumGeometries(); ++j)
 			{
