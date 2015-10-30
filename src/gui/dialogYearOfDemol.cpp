@@ -1,6 +1,7 @@
 #include "moc/dialogYearOfDemol.hpp"
 #include "ui_dialogYearOfDemol.h"
 #include "gui/applicationGui.hpp"
+#include "osg/ValueObject"
 
 DialogYearOfDemol::DialogYearOfDemol(QWidget *parent) :
     QDialog(parent),
