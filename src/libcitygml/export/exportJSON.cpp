@@ -329,7 +329,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                         /*if(poly->getTexture())
                         {
                             if(!texture.empty() && texture != poly->getTexture()->getUrl())
-                                std::cout << "Multiple textures !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                                std::cout << "Multiple textures !" << std::endl;
                             texture = poly->getTexture()->getUrl();
                         }*/
 
@@ -340,8 +340,8 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                                 //compute tex coords
                                 TVec2f tc;
 
-                                tc.x = (vertex.x-offset_x)/409.6; // ATTENTION : fonctionne uniquement pour textures 4096x4096 avec ratio de 0.1 (c'est le cas sur Lyon)
-                                tc.y = (vertex.y-offset_y)/409.6;
+                                tc.x = (vertex.x-offset_x)/409.5; // ATTENTION : fonctionne uniquement pour textures 4096x4096 avec ratio de 0.1 (c'est le cas sur Lyon)
+                                tc.y = (vertex.y-offset_y)/409.5;
 
                                 tc.y = 1 + tc.y; //Car D est négatif
 

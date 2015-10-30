@@ -49,8 +49,6 @@ std::string ProcessLasShpVeget()
 			int nbLayers = poDS->GetLayerCount();
 			if(nbLayers > 0)
 			{
-				OGRMultiPolygon* vegetOuput = new OGRMultiPolygon;
-
 				poLayer = poDS->GetLayer(0);
 
 				OGRFeature *poFeature;
@@ -80,8 +78,7 @@ std::string ProcessLasShpVeget()
 			std::cout << "Veget Poly Vector Done." << std::endl;
 			std::cout << "Processing LAS." << std::endl;
 
-			std::map<OGRPolygon*,std::vector<OGRPoint>> points;
-			OGRMultiPoint* mp = new OGRMultiPoint;
+			std::map<OGRPolygon*,std::vector<OGRPoint>> points;//Polygon with it points from lidar.
 
 			//For every point
 			while (lasreader->read_point())
@@ -92,7 +89,6 @@ std::string ProcessLasShpVeget()
 				{
 					if(vegetPoly[i]->Contains(ptemp))//Checking if the point is in the poly
 					{
-						mp->addGeometry(ptemp);
 						points[vegetPoly[i]].push_back(*ptemp);
 						found = true;
 						break;
@@ -144,7 +140,7 @@ unsigned int ClampIt(unsigned int x,unsigned int a,unsigned int b)
 citygml::CityObject* VegToCityObject(std::pair<std::string,std::vector<TVec3d>> veg, unsigned int cpt)
 {
 	std::string name = veg.first;
-	float factor = 2.0;
+	float cellSize = 2.0;//in meter
 	unsigned int ii = 0;
 	unsigned int jj = 0;
 
@@ -162,25 +158,24 @@ citygml::CityObject* VegToCityObject(std::pair<std::string,std::vector<TVec3d>> 
 		ymax = std::max(ymax,p.y);
 	}
 
+	//Float dimension of box
 	float widthtemp = ceil(xmax - xmin);
 	float heighttemp = ceil(ymax - ymin);
 
-	float cellwidthsize = widthtemp/(widthtemp/factor);
-	float cellheightsize = heighttemp/(heighttemp/factor);
+	//How many cell we have
+	unsigned int cellwidthcount = static_cast<unsigned int>(widthtemp/cellSize);
+	unsigned int cellheightcount = static_cast<unsigned int>(heighttemp/cellSize);
 
-	unsigned int cellwidthcount = static_cast<unsigned int>(widthtemp/cellwidthsize);
-	unsigned int cellheightcount = static_cast<unsigned int>(heighttemp/cellheightsize);
-
-	std::vector<std::vector<double>> table(cellwidthcount,std::vector<double>(cellheightcount,0.0));
-	std::vector<std::vector<unsigned int>> tableCount(cellwidthcount,std::vector<unsigned int>(cellheightcount,0));
+	std::vector<std::vector<double>> table(cellwidthcount,std::vector<double>(cellheightcount,0.0));//Where heights are stored
+	std::vector<std::vector<unsigned int>> tableCount(cellwidthcount,std::vector<unsigned int>(cellheightcount,0));//Where how many heights we have stored in table
 
 	if(cellwidthcount > 0.0 && cellheightcount > 0.0)
 	{
 
 		for(TVec3d p : veg.second)
 		{
-			unsigned int xt = ClampIt(static_cast<unsigned int>((p.x - xmin) / cellwidthsize),0,cellwidthcount-1);
-			unsigned int yt = ClampIt(static_cast<unsigned int>((p.y - ymin) / cellheightsize),0,cellheightcount-1);
+			unsigned int xt = ClampIt(static_cast<unsigned int>((p.x - xmin) / cellSize),0,cellwidthcount-1);
+			unsigned int yt = ClampIt(static_cast<unsigned int>((p.y - ymin) / cellSize),0,cellheightcount-1);
 
 			table[xt][yt] += p.z;
 			tableCount[xt][yt]++;
@@ -206,10 +201,10 @@ citygml::CityObject* VegToCityObject(std::pair<std::string,std::vector<TVec3d>> 
 		{
 			for(unsigned int j = 0; j < cellheightcount - 1; j++)
 			{
-				double iReal = i*cellwidthsize;
-				double jReal = j*cellheightsize;
-				double ipReal = (i+1)*cellwidthsize;
-				double jpReal = (j+1)*cellheightsize;
+				double iReal = i*cellSize;
+				double jReal = j*cellSize;
+				double ipReal = (i+1)*cellSize;
+				double jpReal = (j+1)*cellSize;
 
 				if(table[i][j] > 0.0 && table[i+1][j] > 0.0 && table[i+1][j+1] > 0.0 && table[i][j+1] > 0.0)
 				{

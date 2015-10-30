@@ -1,7 +1,7 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014, 2015
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef __LINKCITYGMLSHAPE_HPP__
-#define __LINKCITYGMLSHAPE_HPP__
+#ifndef __TILINGCITYGML_HPP__
+#define __TILINGCITYGML_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "src/core/URI.hpp"
 #include "libcitygml/citygml.hpp"
@@ -10,10 +10,9 @@
 #include "export/exportCityGML.hpp"
 #include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
-void DecoupeCityGML(std::string Folder, geos::geom::Geometry * ShapeGeo, std::vector<BatimentShape> BatimentsInfo);
+citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList, TVec2d MinTile, TVec2d MaxTile, std::string PathFolder);
+void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<TextureCityGML*>* TexturesList);
 
-citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList);
-citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML*>* TexturesList);
-citygml::CityModel* CutMNTwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML*>* TexturesList);
+citygml::CityModel* CreateBoundingBox(std::string dir);
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LINKCITYGMLSHAPE_HPP__

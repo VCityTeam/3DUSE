@@ -70,18 +70,19 @@ void GetFootprint(citygml::CityObject* obj, OGRMultiPolygon * FootPrint, double 
 */
 OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
 {
-    //std::cout << "Mise en place de l'union des polygons" << std::endl;
+	if(MP->IsEmpty())
+		return nullptr;
 
     OGRGeometry* ResUnion = new OGRMultiPolygon;
 
     ResUnion = MP->UnionCascaded();
 
     //On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
-    if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de geometry : plusieurs bâitments
+    if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de polygons : plusieurs bâitments
     {
         OGRMultiPolygon * GeoCollection = (OGRMultiPolygon*)(ResUnion);
 
-		//return GeoCollection;		//////////// Ignore le retrait des interior ring plats
+		return GeoCollection;		//////////// Ignore le retrait des interior ring plats
 
         OGRMultiPolygon * MultiPolygonRes = new OGRMultiPolygon;
 
@@ -253,6 +254,7 @@ void generateLOD0fromLOD2(citygml::CityObject* obj, OGRMultiPolygon ** Enveloppe
     OGRMultiPolygon * Footprint = new OGRMultiPolygon;
     GetFootprint(obj, Footprint, heightmax, heightmin);
 
-    *Enveloppe = GetEnveloppe(Footprint);
+	if(!Footprint->IsEmpty())
+		*Enveloppe = GetEnveloppe(Footprint);
 }
 ////////////////////////////////////////////////////////////////////////////////

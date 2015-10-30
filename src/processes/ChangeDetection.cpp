@@ -480,6 +480,8 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 					else if(Inter->getGeometryType() == wkbMultiPolygon || Inter->getGeometryType() == wkbMultiPolygon25D)
 						InterMP = (OGRMultiPolygon*) Inter;
 
+					////// TODO : CES POLYGONES SONT A TRIANGULER POUR AVOIR UNE DISTANCE DE HAUSDORFF VIABLE !!!! //////
+
 					OGRMultiPolygon* InterOnPoly1 = ProjectPolyOn3DPlane(InterMP, Poly1);
 					OGRMultiPolygon* InterOnPoly2 = ProjectPolyOn3DPlane(InterMP, Poly2);
 

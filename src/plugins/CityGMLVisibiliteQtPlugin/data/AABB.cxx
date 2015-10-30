@@ -182,7 +182,7 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 
 				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toLatin1().data(),type); // MT: no more toAscii with qt5
 
-				for(Triangle* t : list->triangles)
+				for(Triangle* t : list->triangles) //Pour éliminer les points anormaux (qui ont des coordonnées z absurdes), on fait un petit filtre en vérifiant ces valeurs de z.
 				{
 					min.x = std::min(t->a.x,min.x);min.y = std::min(t->a.y,min.y);if(t->a.z > -500) min.z = std::min(t->a.z,min.z);
 					min.x = std::min(t->b.x,min.x);min.y = std::min(t->b.y,min.y);if(t->b.z > -500) min.z = std::min(t->b.z,min.z);
@@ -221,7 +221,7 @@ void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec
 	for(std::pair<std::string,std::pair<TVec3d,TVec3d>> p : AABBs)
 	{
 		file << p.first << "\n";
-		file << std::fixed << p.second.first.x << "\n";
+		file << std::fixed << p.second.first.x << "\n"; //std::fixed -> important pour conserver tous les chiffres significatifs (ne pas avoir de 1e19)
 		file << std::fixed << p.second.first.y << "\n";
 		file << std::fixed << p.second.first.z << "\n";
 		file << std::fixed << p.second.second.x << "\n";
@@ -268,7 +268,7 @@ void BuildAABB(std::string dir)
 	}
 
 
-	std::map<std::string,std::pair<TVec3d,TVec3d>> bAABBs = DoBuildAABB(bDirs,citygml::CityObjectsType::COT_Building);
+	std::map<std::string,std::pair<TVec3d,TVec3d>> bAABBs = DoBuildAABB(bDirs,citygml::CityObjectsType::COT_Building); //Pour chaque tuile "string", bounding box : min-max
 	std::map<std::string,std::pair<TVec3d,TVec3d>> tAABBs = DoBuildAABB(tDirs,citygml::CityObjectsType::COT_TINRelief);
 	std::map<std::string,std::pair<TVec3d,TVec3d>> wAABBs = DoBuildAABB(wDirs,citygml::CityObjectsType::COT_WaterBody);
 	std::map<std::string,std::pair<TVec3d,TVec3d>> vAABBs = DoBuildAABB(vDirs,citygml::CityObjectsType::COT_SolitaryVegetationObject);

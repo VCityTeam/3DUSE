@@ -50,8 +50,8 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 	QString tiledir = settings.value("tiledir").toString();
 	ui->dirLE->setText(tiledir);
 
-	QString caterogy = settings.value("capturecategory").toString();
-	ui->categoryLE->setText(caterogy);
+	QString category = settings.value("capturecategory").toString();
+	ui->categoryLE->setText(category);
 
 	double deltaDistance = settings.value("capturedeltadistance").toDouble();
 	ui->deltaDistanceSB->setValue(deltaDistance);
@@ -64,8 +64,8 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 	if(!extrudDir.exists("./ShpExtruded/"))
 		extrudDir.mkpath(extrudDir.absolutePath());
 
-	ui->projDistanceSB->hide();
-	ui->projDistLabel->hide();
+	ui->projDistanceSB->hide();///////
+	ui->projDistLabel->hide();///////
 
 	this->mainwindow = mainwindow;
 }
@@ -115,6 +115,8 @@ void DialogVisibilite::SetCamParam()
 	
 	osg::Vec3d dir = osg::Vec3(ui->dirXSB->value(),ui->dirYSB->value(),ui->dirZSB->value());
 
+	dir.normalize();
+
 	osg::Vec3d right = dir ^ osg::Vec3d(0.0,0.0,1.0);
 	up = right ^ dir;
 
@@ -145,7 +147,7 @@ void DialogVisibilite::SetupEmblematicViewExportParameter()
 	ExportParameter::SetGobalParameter(param);
 }
 
-osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera()
+osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la caméra selon les données entrées par l'utilisateur.
 {
 	SetupEmblematicViewExportParameter();
 	SetCamParam();
@@ -174,7 +176,7 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera()
 
 	float znear = ui->projDistanceSB->value();
 
-	cam->setProjectionMatrixAsPerspective(fovx,width/height,znear,2000.0);
+	cam->setProjectionMatrixAsPerspective(fovx, width/height, znear, 2000000.0);
 
 	cam->setViewport(new osg::Viewport(cam->getViewport()->x(),cam->getViewport()->y(),width,height));
 
@@ -188,15 +190,15 @@ void DialogVisibilite::BasicPanorama()
 	std::string dir = ui->dirLE->text().toStdString();
 
 	QSettings settings("liris", "virtualcity");
-	QString caterogy = ui->categoryLE->text(); 
-	settings.setValue("capturecategory",caterogy);
+	QString category = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",category);
 	double deltaDistance = ui->deltaDistanceSB->value();
 	settings.setValue("capturedeltadistance",deltaDistance);
 
 	if(dir != "")
 	{
 		dir+="/";
-		BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
+		BelvedereDB::Get().Setup(dir,category.toStdString(),deltaDistance);
 		MultiTilePanoramaAnalyse(dir,cam);
 		BelvedereDB::Get().Setup("","");
 	}
@@ -209,17 +211,17 @@ void DialogVisibilite::BasicMultiTile()
 	std::string dir = ui->dirLE->text().toStdString();
 
 	QSettings settings("liris", "virtualcity");
-	QString caterogy = ui->categoryLE->text(); 
-	settings.setValue("capturecategory",caterogy);
+	QString category = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",category);
 	double deltaDistance = ui->deltaDistanceSB->value();
 	settings.setValue("capturedeltadistance",deltaDistance);
 
 	if(dir != "")
 	{
 		dir+="/";
-		BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
+		BelvedereDB::Get().Setup(dir,category.toStdString(),deltaDistance);
 		MultiTileBasicAnalyse(dir,cam);
-		BelvedereDB::Get().Setup("","");
+		BelvedereDB::Get().Setup("",""); //Pour reset le setup du BelvedereDB
 	}
 }
 
@@ -228,8 +230,8 @@ void DialogVisibilite::BasicMonoTile()
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
 	QSettings settings("liris", "virtualcity");
-	QString caterogy = ui->categoryLE->text(); 
-	settings.setValue("capturecategory",caterogy);
+	QString category = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",category);
 	double deltaDistance = ui->deltaDistanceSB->value();
 	settings.setValue("capturedeltadistance",deltaDistance);
 
@@ -253,8 +255,8 @@ void DialogVisibilite::CascadePanorama()
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
 	QSettings settings("liris", "virtualcity");
-	QString caterogy = ui->categoryLE->text(); 
-	settings.setValue("capturecategory",caterogy);
+	QString category = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",category);
 	double deltaDistance = ui->deltaDistanceSB->value();
 	settings.setValue("capturedeltadistance",deltaDistance);
 
@@ -275,8 +277,8 @@ void DialogVisibilite::CascadeMultiTile()
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
 	QSettings settings("liris", "virtualcity");
-	QString caterogy = ui->categoryLE->text(); 
-	settings.setValue("capturecategory",caterogy);
+	QString category = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",category);
 	double deltaDistance = ui->deltaDistanceSB->value();
 	settings.setValue("capturedeltadistance",deltaDistance);
 
@@ -297,8 +299,8 @@ void DialogVisibilite::CascadeMonoTile()
 	osg::ref_ptr<osg::Camera> cam = SetupRenderingCamera();
 
 	QSettings settings("liris", "virtualcity");
-	QString caterogy = ui->categoryLE->text(); 
-	settings.setValue("capturecategory",caterogy);
+	QString category = ui->categoryLE->text(); 
+	settings.setValue("capturecategory",category);
 	double deltaDistance = ui->deltaDistanceSB->value();
 	settings.setValue("capturedeltadistance",deltaDistance);
 
@@ -323,13 +325,19 @@ void DialogVisibilite::ResetCategory()
 {
 	std::string dir = ui->dirLE->text().toStdString();
 	dir+="/";
-	QString caterogy = ui->categoryLE->text(); 
-	BelvedereDB::Get().ResetDB(dir,caterogy.toStdString());
+	QString category = ui->categoryLE->text(); 
+	BelvedereDB::Get().ResetDB(dir,category.toStdString());
 }
 
 void DialogVisibilite::ToolAlignementTree()
 {
-	ExtrudeAlignementTree();
+	std::string dir = ui->dirLE->text().toStdString();
+	
+	if(dir != "")
+	{
+		dir+="/";
+		ExtrudeAlignementTree(dir);
+	}
 }
 
 void DialogVisibilite::ToolLidarToGML()
@@ -339,7 +347,13 @@ void DialogVisibilite::ToolLidarToGML()
 
 void DialogVisibilite::ToolShpExtrusion()
 {
-	ShpExtruction();
+	std::string dir = ui->dirLE->text().toStdString();
+	
+	if(dir != "")
+	{
+		dir+="/";
+		ShpExtruction(dir);
+	}
 }
 
 void DialogVisibilite::ToolFlatRoof()
@@ -408,12 +422,12 @@ void DialogVisibilite::BatchMultiTile()
 
 
 			QSettings settings("liris", "virtualcity");
-			QString caterogy = ui->categoryLE->text(); 
-			settings.setValue("capturecategory",caterogy);
+			QString category = ui->categoryLE->text(); 
+			settings.setValue("capturecategory",category);
 			double deltaDistance = ui->deltaDistanceSB->value();
 			settings.setValue("capturedeltadistance",deltaDistance);
 
-			BelvedereDB::Get().Setup(dir,caterogy.toStdString(),deltaDistance);
+			BelvedereDB::Get().Setup(dir,category.toStdString(),deltaDistance);
 
 			unsigned int cpt = 0;
 
@@ -447,13 +461,13 @@ void DialogVisibilite::BatchMultiTile()
 
 void DialogVisibilite::GetTopPolygon()
 {
-	std::string caterogy = ui->categoryLE->text().toStdString(); 
+	std::string category = ui->categoryLE->text().toStdString(); 
 	std::string dir = ui->dirLE->text().toStdString();
 
-	if(dir != "" && caterogy != "")
+	if(dir != "" && category != "")
 	{
 		dir+="/";
-		BelvedereDB::Get().Setup(dir,caterogy);
+		BelvedereDB::Get().Setup(dir,category);
 		std::map<std::string,std::vector<PolygonData>> top = BelvedereDB::Get().GetTop(ui->exportTopSB->value());
 
 		std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);

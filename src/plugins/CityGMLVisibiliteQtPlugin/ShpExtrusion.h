@@ -11,11 +11,11 @@ typedef std::vector<TVec3d> LRing;
 /**
 *	@brief Extrude a chosen Shp file
 */
-void ShpExtruction();
+void ShpExtruction(std::string dir);
 
 /**
 *	@brief Put a set of point a the height of the terrain
 */
-LRing PutLRingOnTerrain(LRing ring);
+LRing PutLRingOnTerrain(LRing ring, std::string dir);
 
 #endif

@@ -83,11 +83,35 @@ namespace citygml
 		endExport();
 	}
 	////////////////////////////////////////////////////////////////////////////////
+	void ExporterCityGML::exportCityModelWithListTextures(const CityModel& model, std::vector<TextureCityGML*>* ListTextures)
+	{
+		initExport(false);
+
+		m_root_node = exportCityModelXml(model);
+
+		if(ListTextures->size() > 0)
+			exportListTextures(m_root_node, ListTextures);
+
+		endExport();
+	}
+	////////////////////////////////////////////////////////////////////////////////
 	void ExporterCityGML::exportCityObject(const std::vector<const CityObject*>& models)
 	{
 		initExport(false);
 
 		m_root_node = exportCityObjectModelXml(models);
+
+		endExport();
+	}
+	////////////////////////////////////////////////////////////////////////////////
+	void ExporterCityGML::exportCityObjectWithListTextures(const std::vector<const CityObject*>& models, std::vector<TextureCityGML*>* ListTextures)
+	{
+		initExport(false);
+
+		m_root_node = exportCityObjectModelXml(models);
+
+		if(ListTextures->size() > 0)
+			exportListTextures(m_root_node, ListTextures);
 
 		endExport();
 	}
@@ -179,7 +203,7 @@ namespace citygml
 
 		for(const citygml::Polygon* poly : geom.getPolygons())
 		{
-			exportPolygonAppearanceXml(*poly, m_currentAppearence);
+			//exportPolygonAppearanceXml(*poly, m_currentAppearence); ///////// EXPORT TEXTURE VERSION MAXIME -> Un appel du fichier image par Polygon. Commenté car texture gérée par exportCityModelWithListTextures.
 			exportPolygonXml(*poly, parent);//node3
 		}
 
@@ -412,13 +436,13 @@ namespace citygml
 			res = exportCityObjetGenericXml(obj, "bldg:CityFurniture", parent);
 			break;
 		case citygml::COT_Track:
-			res = exportCityObjetGenericXml(obj, "bldg:Track", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Track", parent);
 			break;
 		case citygml::COT_Road:
-			res = exportCityObjetGenericXml(obj, "bldg:Road", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Road", parent);
 			break;
 		case citygml::COT_Railway:
-			res = exportCityObjetGenericXml(obj, "bldg:Railway", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Railway", parent);
 			break;
 		case citygml::COT_Square:
 			res = exportCityObjetGenericXml(obj, "bldg:Square", parent);
@@ -430,28 +454,28 @@ namespace citygml
 			res = exportCityObjetGenericXml(obj, "bldg:SolitaryVegetationObject", parent);
 			break;
 		case citygml::COT_WaterBody:
-			res = exportCityObjetGenericXml(obj, "bldg:WaterBody", parent);
+			res = exportCityObjetGenericXml(obj, "wtr:WaterBody", parent);
 			break;
 		case citygml::COT_TINRelief:
-			res = exportCityObjetGenericXml(obj, "bldg:TINRelief", parent);
+			res = exportCityObjetGenericXml(obj, "dem:TINRelief", parent);
 			break;
 		case citygml::COT_LandUse:
 			res = exportCityObjetGenericXml(obj, "bldg:LandUse", parent);
 			break;
 		case citygml::COT_Tunnel:
-			res = exportCityObjetGenericXml(obj, "bldg:Tunnel", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Tunnel", parent);
 			break;
 		case citygml::COT_Bridge:
-			res = exportCityObjetGenericXml(obj, "bldg:Bridge", parent);
+			res = exportCityObjetGenericXml(obj, "tran:Bridge", parent);
 			break;
 		case citygml::COT_BridgeConstructionElement:
-			res = exportCityObjetGenericXml(obj, "bldg:BridgeConstructionElement", parent);
+			res = exportCityObjetGenericXml(obj, "tran:BridgeConstructionElement", parent);
 			break;
 		case citygml::COT_BridgeInstallation:
-			res = exportCityObjetGenericXml(obj, "bldg:BridgeInstallation", parent);
+			res = exportCityObjetGenericXml(obj, "tran:BridgeInstallation", parent);
 			break;
 		case citygml::COT_BridgePart:
-			res = exportCityObjetGenericXml(obj, "bldg:BridgePart", parent);
+			res = exportCityObjetGenericXml(obj, "tran:BridgePart", parent);
 			break;
 		case citygml::COT_BuildingPart:
 			res = exportCityObjetGenericXml(obj, "bldg:BuildingPart", parent);
@@ -648,6 +672,36 @@ namespace citygml
 			//xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
 			xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "cityObjectMember", NULL);
 			exportCityObjetXml(*obj, node, true);
+		}
+
+		return root;
+	}
+	////////////////////////////////////////////////////////////////////////////////
+	xmlNodePtr ExporterCityGML::exportListTextures(xmlNodePtr root, std::vector<TextureCityGML*>* ListTextures)
+	{
+		xmlNodePtr AppMember = xmlNewChild(root, NULL, BAD_CAST "app:appearanceMember", NULL);
+		xmlNodePtr App = xmlNewChild(AppMember, NULL, BAD_CAST "app:Appearance", NULL);
+		for(TextureCityGML* Tex : *ListTextures)
+		{
+			xmlNewChild(App, NULL, BAD_CAST "app:theme", BAD_CAST "texturation");
+			xmlNodePtr srf = xmlNewChild(App, NULL, BAD_CAST "app:surfaceDataMember", NULL);
+			xmlNodePtr tex = xmlNewChild(srf, NULL, BAD_CAST "app:ParameterizedTexture", NULL);
+			xmlNewChild(tex, NULL, BAD_CAST "app:imageURI", BAD_CAST Tex->Url.c_str());
+			xmlNewChild(tex, NULL, BAD_CAST "app:wrapMode", BAD_CAST getWrapMode(Tex->Wrap).c_str());
+			for(TexturePolygonCityGML Poly : Tex->ListPolygons)
+			{
+				xmlNodePtr target = xmlNewChild(tex, NULL, BAD_CAST "app:target", NULL);
+				xmlNewProp(target, BAD_CAST "uri", BAD_CAST ("#" + Poly.Id).c_str());
+				xmlNodePtr tcl = xmlNewChild(target, NULL, BAD_CAST "app:TexCoordList", NULL);
+				std::string buf = "";
+				for(const TVec2f& coord : Poly.TexUV)
+				{
+					buf += std::to_string(coord.x) + ' ' + std::to_string(coord.y) + ' ';
+				}
+				xmlNodePtr tc = xmlNewChild(tcl, NULL, BAD_CAST "app:textureCoordinates", BAD_CAST buf.c_str());
+				buf = "#"+Poly.IdRing;
+				xmlNewProp(tc, BAD_CAST "ring", BAD_CAST buf.c_str());
+			}
 		}
 
 		return root;

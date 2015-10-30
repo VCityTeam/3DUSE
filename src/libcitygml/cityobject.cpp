@@ -280,9 +280,33 @@ void CityObject::finish( AppearanceManager& appearanceManager, const ParserParam
     }
 }*/
 ////////////////////////////////////////////////////////////////////////////////
+bool CityObject::IsEmpty()
+{
+	_isEmpty = true;
+
+	for(Geometry* geom : _geometries)
+    {
+        if(geom->getPolygons().size() > 0)
+		{
+			_isEmpty = false;
+			return _isEmpty;
+		}
+    }
+
+	for(CityObject* obj : _children)
+	{
+		_isEmpty = obj->IsEmpty();
+		if(!_isEmpty)
+			return _isEmpty;
+	}
+
+	return _isEmpty;
+}
+////////////////////////////////////////////////////////////////////////////////
 void CityObject::computeEnvelope()
 {
     // compute envelope
+	
     for(Geometry* geom : _geometries) // geometry
     {
         for(Polygon* poly : geom->getPolygons())

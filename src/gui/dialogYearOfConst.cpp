@@ -1,6 +1,7 @@
 #include "moc/dialogYearOfConst.hpp"
 #include "ui_dialogYearOfConst.h"
 #include "gui/applicationGui.hpp"
+#include "osg/ValueObject"
 
 DialogYearOfConst::DialogYearOfConst(QWidget *parent) :
     QDialog(parent),

@@ -8,7 +8,10 @@
 #include "gui/osg/osgScene.hpp"
 #include "export/exportCityGML.hpp"
 
-#include "ShpExtrusion.h"
+#include "data/Hit.hpp"
+
+//#include "ShpExtrusion.h"
+typedef std::vector<TVec3d> LRing;
 
 /**
 *	@brief Convert a degree float to radian
@@ -121,9 +124,9 @@ void GenCylindre(TVec3d pos,OGRFeature* feature, citygml::CityModel* ModelOut)
 	if(feature->GetFieldIndex("rayoncouro") != -1)
 		radiusLeaf = feature->GetFieldAsDouble("rayoncouro");
 
-	
+
 	std::cout << name << " " << radiusFut<< " "<< heightFut<< " "<< heightLeaf<< " "<< radiusLeaf<< std::endl;
-	
+
 	citygml::CityObject* BuildingCO = new citygml::SolitaryVegetationObject(name);
 
 	BuildingCO->addGeometry(BuildCube(name,pos,radiusFut,heightFut));
@@ -135,71 +138,122 @@ void GenCylindre(TVec3d pos,OGRFeature* feature, citygml::CityModel* ModelOut)
 	cpt++;
 }
 
-void ExtrudeAlignementTree()
+/**
+*	@brief Put a set of point a the height of the terrain according to the tiled files of this terrain
+*/
+void PutLRingOnTiledTerrain(LRing ring, std::vector<OGRFeature*> pointsFeatures, std::string dir)
+{
+	//Load all terrain bounding box that are above the points
+	AABBCollection boxes = LoadAABB(dir);
+
+	std::cout << "Creation des arbres d'alignement sur les " << boxes.terrain.size() << " tuiles du terrain." << std::endl;
+
+	for(AABB box : boxes.terrain)
+	{
+		TVec3d min = box.min;
+		TVec3d max = box.max;
+
+		std::string path = dir + box.name;
+		TriangleList* TrianglesTile = BuildTriangleList(path, citygml::CityObjectsType::COT_TINRelief);
+
+		LRing PtsBox; //Contiendra les points de la box courante
+		std::vector<OGRFeature*> PtsBoxFeatures; //Contiendra les données sémantiques de ces points
+
+		for(int i = 0; i < ring.size(); ++i)
+		{
+			TVec3d vec = ring.at(i);
+			if(vec.x >= min.x && vec.x <= max.x && vec.y >= min.y && vec.y <= max.y) //Le point vec est dans la box courante
+			{
+				Ray ray(vec,TVec3d(0.0,0.0,1.0));
+
+				for(unsigned int j = 0; j < TrianglesTile->triangles.size(); j++)
+				{
+					Hit hit;
+					if(ray.Intersect(TrianglesTile->triangles[j], &hit))//Check if the ray hit the triangle 
+					{
+						vec.z = hit.point.z;
+						PtsBox.push_back(vec);
+						PtsBoxFeatures.push_back(pointsFeatures.at(i));
+						break;
+					}
+				}
+
+				LRing::iterator it = ring.begin() + i; //Pour ne plus avoir à tester ce point dans les prochaines box
+				ring.erase(it);
+				std::vector<OGRFeature*>::iterator it2 = pointsFeatures.begin() + i;
+				pointsFeatures.erase(it2);
+				i--;
+			}
+		}
+
+		if(PtsBox.size() == 0)
+			continue;
+
+		citygml::CityModel* ModelOut = new citygml::CityModel;
+
+		for(unsigned int i = 0; i < PtsBox.size();i++)
+		{
+			GenCylindre(PtsBox[i], PtsBoxFeatures[i], ModelOut);
+		}
+
+		std::cout << "Exporting citygml for box " << box.name << std::endl;
+		ModelOut->computeEnvelope();
+
+		QDir dirArbres;
+		dirArbres.mkdir("./Arbres/");
+
+		citygml::ExporterCityGML exporter("./Arbres/" + box.name.substr(box.name.find_last_of("/"), box.name.length()));
+		exporter.exportCityModel(*ModelOut);
+		std::cout << "Done exporting box " << box.name << std::endl;
+	}
+
+	std::cout << std::endl << "FIN : Tous les arbres des tuiles correspondantes ont ete generes." << std::endl;
+}
+
+void ExtrudeAlignementTree(std::string dir)
 {
 	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
 
 	QFileInfo file(filepath);
 
-    QString ext = file.suffix().toLower();
+	QString ext = file.suffix().toLower();
 
 	if(ext == "shp")
-    {
-		citygml::CityModel* ModelOut = new citygml::CityModel;
-
+	{
 		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/);
 		std::cout << "Shp loaded" << std::endl;
 		std::cout << "Processing..." << std::endl;
 
-
 		OGRLayer *poLayer;
-        int nbLayers = poDS->GetLayerCount();
 
-		LRing points;
-		std::vector<OGRFeature*> pointsFeatures;
+		if(poDS->GetLayerCount() == 0)
+		{
+			std::cout << "Erreur, fichier Shapefile vide." << std::endl;
+			return;
+		}
 
-        if(nbLayers > 0)
-        {
-			poLayer = poDS->GetLayer(0);
+		LRing points; //Contiendra tous les points représentant les positions des arbres d'alignement
+		std::vector<OGRFeature*> pointsFeatures; //Contiendra les informartions sémantiques liées à ces points
 
-			OGRFeature *poFeature;
-            poLayer->ResetReading();
+		poLayer = poDS->GetLayer(0);
 
-			unsigned int cpt = 0;
+		OGRFeature *poFeature;
 
-			while( (poFeature = poLayer->GetNextFeature()) != NULL )
-            {
-				std::string name = "test_"+std::to_string(cpt++);
+		poLayer->ResetReading();
 
-				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+		while( (poFeature = poLayer->GetNextFeature()) != NULL )
+		{
+			OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 
-				if(poGeometry != NULL && poGeometry->getGeometryType() == wkbPoint)
-				{
-                    OGRPoint* poP = (OGRPoint*) poGeometry;
-                    
-					points.push_back(TVec3d(poP->getX(),poP->getY(),0.0));
-					pointsFeatures.push_back(poFeature);
+			if(poGeometry != NULL && poGeometry->getGeometryType() == wkbPoint)
+			{
+				OGRPoint* poP = (OGRPoint*) poGeometry;
 
-				}
+				points.push_back(TVec3d(poP->getX(), poP->getY(), 0.0));
+				pointsFeatures.push_back(poFeature);
 			}
 		}
 
-		points = PutLRingOnTerrain(points);
-
-		for(unsigned int i = 0; i < points.size();i++)
-		{
-			GenCylindre(points[i],pointsFeatures[i],ModelOut);
-		}
-
-
-		std::cout << "Exporting citygml" << std::endl;
-		ModelOut->computeEnvelope();
-
-		QDir dir;
-		dir.mkdir("./ShpExtruded/");
-
-		citygml::ExporterCityGML exporter("./ShpExtruded/"+file.baseName().toStdString()+".gml");
-		exporter.exportCityModel(*ModelOut);
-		std::cout << "Done exporting" << std::endl;
+		PutLRingOnTiledTerrain(points, pointsFeatures, dir);
 	}
 }

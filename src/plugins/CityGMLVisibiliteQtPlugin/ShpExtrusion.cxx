@@ -110,10 +110,10 @@ LRing OGRLinearRingToLRing(OGRLinearRing* poLR)
 }
 
 
-LRing PutLRingOnTerrain(LRing ring)
+LRing PutLRingOnTerrain(LRing ring, std::string dir)
 {
 	//Load all terrain bounding box that are abox the points
-	AABBCollection boxes = LoadAABB("C:/VCityData/Tile/");
+	AABBCollection boxes = LoadAABB(dir);
 
 	std::vector<AABB> ptAABB;
 	LRing ptResult;
@@ -135,7 +135,9 @@ LRing PutLRingOnTerrain(LRing ring)
 
 	if(ptResult.size() != ring.size())
 	{
-		std::cout << "Error some point are out of range of tiles" << std::endl;
+		//std::cout << "Error some point are out of range of tiles" << std::endl;
+		ptResult.clear();
+		return ptResult;
 	}
 
 	for(unsigned int i = 0; i < ptResult.size(); i++)
@@ -147,22 +149,29 @@ LRing PutLRingOnTerrain(LRing ring)
 		}
 		else
 		{
-			std::string path = "C:/VCityData/Tile/" + ptAABB[i].name;
+			std::string path = dir + ptAABB[i].name;
 			//Get the triangle list
 			trianglesTemp = BuildTriangleList(path,citygml::CityObjectsType::COT_TINRelief);
 			tileTriangles.insert(std::make_pair(ptAABB[i].name,trianglesTemp));
 		}
 
-		Ray ray(ring[i],TVec3d(0.0,0.0,1.0));
+		Ray ray(ptResult[i],TVec3d(0.0,0.0,1.0));
+		bool Intesect = false;
 
 		for(unsigned int j = 0; j < trianglesTemp->triangles.size(); j++)
 		{
 			Hit hit;
-			if(ray.Intersect(trianglesTemp->triangles[j],&hit))//Check if the ray hit the triangle and
+			if(ray.Intersect(trianglesTemp->triangles[j], &hit)) //Check if the ray hit the triangle
 			{
 				ptResult[i].z = hit.point.z;
+				Intesect = true;
 				break;
 			}
+		}
+		if(!Intesect) //Si un point ne peut pas se projeter sur le terrain, alors on enlève tout le bâtiment pour ne pas avoir de modèles diformes.
+		{
+			ptResult.clear();
+			return ptResult;
 		}
 	}
 
@@ -170,7 +179,7 @@ LRing PutLRingOnTerrain(LRing ring)
 }
 
 
-void ShpExtruction()
+void ShpExtruction(std::string dir)
 {
 	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
 
@@ -191,7 +200,6 @@ void ShpExtruction()
         int nbLayers = poDS->GetLayerCount();
         if(nbLayers > 0)
         {
-
 			poLayer = poDS->GetLayer(0);
 
 			OGRFeature *poFeature;
@@ -216,27 +224,33 @@ void ShpExtruction()
 
 					//Emprise au sol
 					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-                    LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()));
 
-					double H = 50;
+                    LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()), dir);
+
+					if(ptsSol.size() == 0) //La génération a posé problème, probablement parce que cette emprise au sol n'est pas complètement sur le terrain
+						continue;
+
+					double H = 20;
 					double Zmin = ptsSol.front().z;
 					if(poFeature->GetFieldIndex("HAUTEUR") != -1)
 						H = poFeature->GetFieldAsDouble("HAUTEUR");
 					if(poFeature->GetFieldIndex("Z_MIN") != -1)
 						Zmin = poFeature->GetFieldAsDouble("Z_MIN");
 					double Zmax = H;
-					Zmax = Zmax > 5000 ? ptsSol.front().z + 50 : Zmax;
+					Zmax = Zmax > 5000 ? ptsSol.front().z + 20 : Zmax;
 
 
-					LRing ptsToit = GetLRingWidthHeight(ptsSol,Zmax);
+					LRing ptsToit = GetLRingWidthHeight(ptsSol, Zmax);
 
 					std::vector<LRing> ptsSolIntern;
 					std::vector<LRing> ptsToitIntern;
 
 					for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
 					{
-						LRing ptsSolTemp = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getInteriorRing(i)));
-						LRing ptsToitTemp = GetLRingWidthHeight(ptsSolTemp,Zmax);
+						LRing ptsSolTemp = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getInteriorRing(i)), dir);
+						if(ptsSolTemp.size() == 0)
+							continue;
+						LRing ptsToitTemp = GetLRingWidthHeight(ptsSolTemp, Zmax);
 						ptsSolIntern.push_back(ptsSolTemp);
 						ptsToitIntern.push_back(ptsToitTemp);
 					}
@@ -245,7 +259,7 @@ void ShpExtruction()
 					Roof->addPolygon(BuildPolygon(ptsToit,ptsToitIntern,name));
 
 					std::vector<std::vector<TVec3d>> walls = GetWall(ptsSol, ptsToit);
-
+					
 					for(unsigned int i = 0; i < walls.size(); i++)
 					{
 						Wall->addPolygon(BuildPolygon(walls[i],std::vector<std::vector<TVec3d>>(),name));

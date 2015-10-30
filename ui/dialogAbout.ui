@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>3D-Use</string>
+      <string>3D-Use version 0.2.5</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

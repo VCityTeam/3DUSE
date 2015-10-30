@@ -7,6 +7,17 @@
 #include <libxml/tree.h>
 #include "citymodel.hpp"
 ////////////////////////////////////////////////////////////////////////////////
+struct TexturePolygonCityGML {
+	std::vector<TVec2f> TexUV;
+	std::string Id;
+	std::string IdRing;
+};
+struct TextureCityGML {
+	std::string Url;
+	citygml::Texture::WrapMode Wrap;
+	std::vector<TexturePolygonCityGML> ListPolygons;
+};
+////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,19 +70,31 @@ public:
     /// \param model Model
     void exportCityModel(const CityModel& model);
 
+	/// \brief exportCityModel Export a complete CityModel, with textures stored in ListTextures
+    /// \param model Model
+	/// \param ListTextures Textures List
+    void exportCityModelWithListTextures(const CityModel& model, std::vector<TextureCityGML*>* ListTextures);
+
     /// \brief exportCityObject Export an array of CityObjects
     /// \param objs CityObjects
     void exportCityObject(const std::vector<const CityObject*>& objs);
+
+	/// \brief exportCityObject Export an array of CityObjects, with textures stored in ListTextures
+    /// \param objs CityObjects
+	/// \param ListTextures Textures List
+	void exportCityObjectWithListTextures(const std::vector<const CityObject*>& models, std::vector<TextureCityGML*>* ListTextures);
 
     /// Append an array of CityObjects (incremental export)
     void appendCityObject(const std::vector<const CityObject*>& objs);
 
     /// Append a CityObject (incremental export)
     void appendCityObject(const CityObject& obj);
+	
 
 private:
     xmlNodePtr exportCityObjectModelXml(const std::vector<const CityObject*>& objs);
     xmlNodePtr exportCityModelXml(const citygml::CityModel& model);
+    xmlNodePtr exportListTextures(xmlNodePtr root, std::vector<TextureCityGML*>* ListTextures);
     xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent);
     xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent);
     xmlNodePtr exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent);
