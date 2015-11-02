@@ -30,6 +30,16 @@ class MyUserDataContainer : public osg::DefaultUserDataContainer
             OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<") const"<<std::endl;
             return osg::DefaultUserDataContainer::getUserObject(i);
         }
+        
+        virtual DescriptionList& getDescriptions() // MT : for Clang Linux, strange...
+	{
+	    return getDescriptions();
+	};
+	
+	virtual const DescriptionList& getDescriptions() const // MT : for Clang Linux, strange...
+	{
+	    return getDescriptions();
+	};
 
 
     protected:
