@@ -22,12 +22,25 @@ struct AABB
 };
 
 /**
+*	@brief Pour une box, contient un certain nombre d'informations liés aux rayons que l'on aura tenté d'intersecter avec celle ci.
+*/
+struct BoxwithRays
+{
+	AABB box; //  Box concernée
+	std::vector<int> IndicesRays; //Contient les indices des rayons qui ont intersecté cette box
+	float minDistance; //Distance minimale entre la box et la caméra
+};
+
+bool operator<(const BoxwithRays& a, const BoxwithRays& b);
+
+/**
 *	@brief A hit between a ray and a bounding box
 */
 struct RayBoxHit
 {
 	AABB box;///< Box hitted
 	float minDistance;///< Distance between the ray origin and the bounding box
+	std::vector<unsigned int> ListRays; //Contient la liste des rayons intersectant cette box.
 };
 
 bool operator<(const RayBoxHit& a, const RayBoxHit& b);

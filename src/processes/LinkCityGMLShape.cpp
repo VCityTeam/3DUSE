@@ -4544,7 +4544,7 @@ OGRMultiPolygon* GetBuildingsFootprintsFromCityModel(citygml::CityModel* model, 
 								OgrPoly->addRingDirectly(OgrRing);
 								if(OgrPoly->IsValid())
 								{
-									Building->addGeometry(OgrPoly);
+									Building->addGeometryDirectly(OgrPoly);
 								}
 							}
 							else
@@ -4616,36 +4616,82 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<Tex
 	citygml::CityModel* model = Tile->getCityModel();
 	citygml::CityModel* ModelOut = new citygml::CityModel;
 
-	std::vector<std::string> Names;
+	int cpt = 0;
 
-	OGRMultiPolygon * BuildingsFootprints = GetBuildingsFootprintsFromCityModel(model, &Names); //Permet de définir l'existence des bâtiments recherchés, il faut maintenant leur assigner des CityObject complets (Wall + Roof + ...)
-
-	//Maintenant qu'on a la liste des bâtiments désirés, il va falloir assigner à chacun les Wall et Roof qui correspondent en reparcourant
-	// tous les bâtiments et en regardant quels sont les polygons se situant au même niveau que les emprises au sol sauvegardées dans BuildingsFootprints
-
-	for(int i = 0; i < BuildingsFootprints->getNumGeometries(); ++i)
+	for(citygml::CityObject* obj : model->getCityObjectsRoots())
 	{
-		OGRGeometry * Building = BuildingsFootprints->getGeometryRef(i); //Batiment de référence que l'on cherche à remplir d'objets CityGML
-
-		std::string Name = Names.at(i);
-		citygml::CityObject* BuildingCO = new citygml::Building(Name);
-		citygml::CityObject* RoofCO = new citygml::RoofSurface(Name+"_Roof");
-		citygml::Geometry* Roof = new citygml::Geometry(Name+"_RoofGeometry", citygml::GT_Roof, 2);
-		citygml::CityObject* WallCO = new citygml::WallSurface(Name+"_Wall");
-		citygml::Geometry* Wall = new citygml::Geometry(Name+"_WallGeometry", citygml::GT_Wall, 2);
-
-		for(citygml::CityObject* obj : model->getCityObjectsRoots())
+		if(obj->getType() == citygml::COT_Building)
 		{
-			if(obj->getType() == citygml::COT_Building)
+			OGRMultiPolygon* Building = new OGRMultiPolygon;//Version OGR du bâtiment qui va être remplie
+
+			for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
 			{
-				for(citygml::CityObject* object : obj->getChildren())
+				if(object->getType() == citygml::COT_RoofSurface)
 				{
-					if(object->getType() == citygml::COT_RoofSurface)
+					for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
 					{
-						for(citygml::Geometry* Geometry : object->getGeometries())
+						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
 						{
-							for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+							OGRLinearRing * OgrRing = new OGRLinearRing;
+
+							for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+								OgrRing->addPoint(Point.x, Point.y, Point.z);
+
+							OgrRing->closeRings();
+
+							if(OgrRing->getNumPoints() > 3)
 							{
+								OGRPolygon * OgrPoly = new OGRPolygon;
+								OgrPoly->addRingDirectly(OgrRing);
+								if(OgrPoly->IsValid())
+								{
+									Building->addGeometryDirectly(OgrPoly);
+								}
+							}
+							else
+								delete OgrRing;
+						}
+					}
+				}
+			}
+
+			if(Building->IsEmpty())
+			{
+				cpt++;
+				std::cout << "Avancement : " << cpt << " / " << model->getCityObjectsRoots().size() << ".\r" << std::flush;
+				continue;
+			}
+
+			OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
+
+			delete Building;
+
+			std::vector<citygml::Geometry*> ListRoofs;
+			std::vector<citygml::Geometry*> ListWalls;
+
+			std::string NameBuilding = obj->getId();
+
+			for(int i = 0; i < Enveloppe->getNumGeometries(); ++i)
+			{
+				std::string Name = NameBuilding + "_" + std::to_string(i);
+				citygml::Geometry* Roof = new citygml::Geometry(Name+"_RoofGeometry", citygml::GT_Roof, 2);
+				citygml::Geometry* Wall = new citygml::Geometry(Name+"_WallGeometry", citygml::GT_Wall, 2);
+				ListRoofs.push_back(Roof);
+				ListWalls.push_back(Wall);
+			}
+
+			for(citygml::CityObject* object : obj->getChildren())
+			{
+				if(object->getType() == citygml::COT_RoofSurface)
+				{
+					for(citygml::Geometry* Geometry : object->getGeometries())
+					{
+						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+						{
+							for(int i = 0; i < Enveloppe->getNumGeometries(); ++i)
+							{
+								OGRGeometry * Building = Enveloppe->getGeometryRef(i); //Batiment de référence que l'on cherche à remplir d'objets CityGML
+
 								bool PolyIsInBati = true;
 
 								for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
@@ -4655,12 +4701,14 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<Tex
 									if(!P->Intersects(Building)) //Si un point ne se retrouve pas dans Building, alors le polygon correspondant ne doit pas lui être associé.
 									{
 										PolyIsInBati = false;
+										delete P;
 										break;
 									}
+									delete P;
 								}
 								if(PolyIsInBati)
 								{
-									Roof->addPolygon(PolygonCityGML);
+									ListRoofs.at(i)->addPolygon(PolygonCityGML->Clone());
 
 									if(PolygonCityGML->getTexture() == nullptr)
 										continue;
@@ -4693,16 +4741,21 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<Tex
 										Texture->ListPolygons.push_back(Poly);
 										TexturesList->push_back(Texture);
 									}
+									break;
 								}
 							}
 						}
 					}
-					else if(object->getType() == citygml::COT_WallSurface)
+				}
+				else if(object->getType() == citygml::COT_WallSurface)
+				{
+					for(citygml::Geometry* Geometry : object->getGeometries())
 					{
-						for(citygml::Geometry* Geometry : object->getGeometries())
+						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 						{
-							for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+							for(int i = 0; i < Enveloppe->getNumGeometries(); ++i)
 							{
+								OGRGeometry * Building = Enveloppe->getGeometryRef(i); //Batiment de référence que l'on cherche à remplir d'objets CityGML
 								bool PolyIsInBati = true;
 								for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 								{
@@ -4718,7 +4771,7 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<Tex
 								}
 								if(PolyIsInBati) //Si tous les points du polygone sont dans Building, il faut l'ajouter à celui ci
 								{
-									Wall->addPolygon(PolygonCityGML);
+									ListWalls.at(i)->addPolygon(PolygonCityGML->Clone());
 
 									if(PolygonCityGML->getTexture() == nullptr)
 										continue;
@@ -4751,26 +4804,196 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<Tex
 										Texture->ListPolygons.push_back(Poly);
 										TexturesList->push_back(Texture);
 									}
+									break;
 								}
 							}
 						}
 					}
 				}
 			}
+
+			for(int i = 0; i < Enveloppe->getNumGeometries(); ++i)
+			{
+				std::string Name = NameBuilding + "_" + std::to_string(i);
+				citygml::CityObject* BuildingCO = new citygml::Building(Name);
+				citygml::CityObject* RoofCO = new citygml::RoofSurface(Name+"_Roof");
+				citygml::CityObject* WallCO = new citygml::WallSurface(Name+"_Wall");
+
+				RoofCO->addGeometry(ListRoofs.at(i));
+				ModelOut->addCityObject(RoofCO);
+				BuildingCO->insertNode(RoofCO);
+				WallCO->addGeometry(ListWalls.at(i));
+				ModelOut->addCityObject(WallCO);
+				BuildingCO->insertNode(WallCO);
+
+				ModelOut->addCityObject(BuildingCO);
+				ModelOut->addCityObjectAsRoot(BuildingCO);
+			}
+
+			delete Enveloppe;
 		}
-		RoofCO->addGeometry(Roof);
-		ModelOut->addCityObject(RoofCO);
-		BuildingCO->insertNode(RoofCO);
-		WallCO->addGeometry(Wall);
-		ModelOut->addCityObject(WallCO);
-		BuildingCO->insertNode(WallCO);
 
-		ModelOut->addCityObject(BuildingCO);
-		ModelOut->addCityObjectAsRoot(BuildingCO);
-
-		std::cout << "Generation des batiments : " << i+1 << "/" << BuildingsFootprints->getNumGeometries() << " batiments crees.\r" << std::flush;
+		++cpt;
+		std::cout << "Avancement : " << cpt << " / " << model->getCityObjectsRoots().size() << ".\r" << std::flush;
 	}
 	std::cout << std::endl;
+	return ModelOut;
+
+	/*std::vector<std::string> Names;
+
+	OGRMultiPolygon * BuildingsFootprints = GetBuildingsFootprintsFromCityModel(model, &Names); //Permet de définir l'existence des bâtiments recherchés, il faut maintenant leur assigner des CityObject complets (Wall + Roof + ...)
+
+	//Maintenant qu'on a la liste des bâtiments désirés, il va falloir assigner à chacun les Wall et Roof qui correspondent en reparcourant
+	// tous les bâtiments et en regardant quels sont les polygons se situant au même niveau que les emprises au sol sauvegardées dans BuildingsFootprints
+
+	for(int i = 0; i < BuildingsFootprints->getNumGeometries(); ++i)
+	{
+	OGRGeometry * Building = BuildingsFootprints->getGeometryRef(i); //Batiment de référence que l'on cherche à remplir d'objets CityGML
+
+	std::string Name = Names.at(i);
+	citygml::CityObject* BuildingCO = new citygml::Building(Name);
+	citygml::CityObject* RoofCO = new citygml::RoofSurface(Name+"_Roof");
+	citygml::Geometry* Roof = new citygml::Geometry(Name+"_RoofGeometry", citygml::GT_Roof, 2);
+	citygml::CityObject* WallCO = new citygml::WallSurface(Name+"_Wall");
+	citygml::Geometry* Wall = new citygml::Geometry(Name+"_WallGeometry", citygml::GT_Wall, 2);
+
+	for(citygml::CityObject* obj : model->getCityObjectsRoots())
+	{
+	if(obj->getType() == citygml::COT_Building)
+	{
+	for(citygml::CityObject* object : obj->getChildren())
+	{
+	if(object->getType() == citygml::COT_RoofSurface)
+	{
+	for(citygml::Geometry* Geometry : object->getGeometries())
+	{
+	for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+	{
+	bool PolyIsInBati = true;
+
+	for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+	{
+	OGRPoint* P = new OGRPoint(Point.x, Point.y);
+
+	if(!P->Intersects(Building)) //Si un point ne se retrouve pas dans Building, alors le polygon correspondant ne doit pas lui être associé.
+	{
+	PolyIsInBati = false;
+	break;
+	}
+	}
+	if(PolyIsInBati)
+	{
+	Roof->addPolygon(PolygonCityGML);
+
+	if(PolygonCityGML->getTexture() == nullptr)
+	continue;
+
+	//Remplissage de ListTextures
+	std::string Url = PolygonCityGML->getTexture()->getUrl();
+	citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+	TexturePolygonCityGML Poly;
+
+	Poly.Id = PolygonCityGML->getId();
+	Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+	Poly.TexUV = PolygonCityGML->getTexCoords();
+
+	bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+	for(TextureCityGML* Tex: *TexturesList)
+	{
+	if(Tex->Url == Url)
+	{
+	URLTest = true;
+	Tex->ListPolygons.push_back(Poly);
+	break;
+	}
+	}
+	if(!URLTest)
+	{
+	TextureCityGML* Texture = new TextureCityGML;
+	Texture->Wrap = WrapMode;
+	Texture->Url = Url;
+	Texture->ListPolygons.push_back(Poly);
+	TexturesList->push_back(Texture);
+	}
+	}
+	}
+	}
+	}
+	else if(object->getType() == citygml::COT_WallSurface)
+	{
+	for(citygml::Geometry* Geometry : object->getGeometries())
+	{
+	for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+	{
+	bool PolyIsInBati = true;
+	for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+	{
+	OGRPoint* P = new OGRPoint(Point.x, Point.y);
+	if(P->Distance(Building)> Precision_Vect) //Si un point ne se retrouve pas dans Building, alors le polygon correspondant ne doit pas lui être associé. Distance au lieu de intersection à cause des imprécisions 
+	//entre certains points de Wall par rapport à l'emprise au sol définie par les Roof
+	{
+	PolyIsInBati = false;
+	delete P;
+	break;
+	}
+	delete P;
+	}
+	if(PolyIsInBati) //Si tous les points du polygone sont dans Building, il faut l'ajouter à celui ci
+	{
+	Wall->addPolygon(PolygonCityGML);
+
+	if(PolygonCityGML->getTexture() == nullptr)
+	continue;
+
+	//Remplissage de ListTextures
+	std::string Url = PolygonCityGML->getTexture()->getUrl();
+	citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+	TexturePolygonCityGML Poly;
+
+	Poly.Id = PolygonCityGML->getId();
+	Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+	Poly.TexUV = PolygonCityGML->getTexCoords();
+
+	bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+	for(TextureCityGML* Tex: *TexturesList)
+	{
+	if(Tex->Url == Url)
+	{
+	URLTest = true;
+	Tex->ListPolygons.push_back(Poly);
+	break;
+	}
+	}
+	if(!URLTest)
+	{
+	TextureCityGML* Texture = new TextureCityGML;
+	Texture->Wrap = WrapMode;
+	Texture->Url = Url;
+	Texture->ListPolygons.push_back(Poly);
+	TexturesList->push_back(Texture);
+	}
+	}
+	}
+	}
+	}
+	}
+	}
+	}
+	RoofCO->addGeometry(Roof);
+	ModelOut->addCityObject(RoofCO);
+	BuildingCO->insertNode(RoofCO);
+	WallCO->addGeometry(Wall);
+	ModelOut->addCityObject(WallCO);
+	BuildingCO->insertNode(WallCO);
+
+	ModelOut->addCityObject(BuildingCO);
+	ModelOut->addCityObjectAsRoot(BuildingCO);
+
+	std::cout << "Generation des batiments : " << i+1 << "/" << BuildingsFootprints->getNumGeometries() << " batiments crees.\r" << std::flush;
+	}
+	std::cout << std::endl;*/
 
 	return ModelOut;
 }

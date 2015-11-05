@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>520</width>
+    <width>522</width>
     <height>674</height>
    </rect>
   </property>
@@ -14,6 +14,26 @@
    <string>Visibilite</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="19" column="2">
+    <widget class="QDoubleSpinBox" name="projDistanceSB">
+     <property name="minimum">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_13">
+     <property name="text">
+      <string>Vegetation %</string>
+     </property>
+    </widget>
+   </item>
    <item row="27" column="2">
     <widget class="QPushButton" name="alignementTreeB">
      <property name="text">
@@ -67,7 +87,47 @@
       <double>179.000000000000000</double>
      </property>
      <property name="value">
-      <double>45.000000000000000</double>
+      <double>40.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Resolution</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="label_14">
+     <property name="text">
+      <string>Water %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="4">
+    <widget class="QDoubleSpinBox" name="posZSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="3">
+    <widget class="QDoubleSpinBox" name="dirYSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -87,7 +147,7 @@
       <double>179.000000000000000</double>
      </property>
      <property name="value">
-      <double>45.000000000000000</double>
+      <double>60.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -109,60 +169,6 @@
     <widget class="QLabel" name="label_15">
      <property name="text">
       <string>Terrain %</string>
-     </property>
-    </widget>
-   </item>
-   <item row="19" column="2">
-    <widget class="QDoubleSpinBox" name="projDistanceSB">
-     <property name="minimum">
-      <double>0.100000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>100000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="0">
-    <widget class="QLabel" name="label_14">
-     <property name="text">
-      <string>Water %</string>
-     </property>
-    </widget>
-   </item>
-   <item row="17" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Resolution</string>
-     </property>
-    </widget>
-   </item>
-   <item row="15" column="3">
-    <widget class="QDoubleSpinBox" name="dirYSB">
-     <property name="minimum">
-      <double>-999999999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>999999999.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="4">
-    <widget class="QDoubleSpinBox" name="posZSB">
-     <property name="minimum">
-      <double>-999999999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>999999999.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_13">
-     <property name="text">
-      <string>Vegetation %</string>
      </property>
     </widget>
    </item>
@@ -194,22 +200,15 @@
      <property name="maximum">
       <double>999999999.000000000000000</double>
      </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
     </widget>
    </item>
    <item row="0" column="0">
     <widget class="QLabel" name="label_7">
      <property name="text">
       <string>Tile Directory</string>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="2">
-    <widget class="QDoubleSpinBox" name="posXSB">
-     <property name="minimum">
-      <double>-999999999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>999999999.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -227,6 +226,9 @@
      </property>
      <property name="maximum">
       <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -283,7 +285,7 @@
       <number>10</number>
      </property>
      <property name="value">
-      <number>256</number>
+      <number>1000</number>
      </property>
     </widget>
    </item>
@@ -294,6 +296,9 @@
      </property>
      <property name="maximum">
       <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -540,6 +545,19 @@
      </property>
      <property name="value">
       <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="2">
+    <widget class="QDoubleSpinBox" name="posXSB">
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>

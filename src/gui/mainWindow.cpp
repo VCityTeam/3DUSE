@@ -150,7 +150,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
-	connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
@@ -756,7 +755,6 @@ void MainWindow::unlockFeatures(const QString& pass)
 		m_ui->actionLoad_bbox->setVisible(true);
 		m_ui->actionShow_advanced_tools->setVisible(true);
 		m_ui->actionHelp->setVisible(true);
-		m_ui->actionCityGML_cut->setVisible(true);
 		m_ui->actionLOD0->setVisible(true);
 		m_ui->actionLOD2->setVisible(true);
 		m_ui->actionLOD3->setVisible(true);
@@ -771,8 +769,8 @@ void MainWindow::unlockFeatures(const QString& pass)
 		break;
 	case 0:
 		m_ui->menuDebug->menuAction()->setVisible(false);
-		m_ui->menuTest->menuAction()->setVisible(true); //A cacher
-		m_ui->menuPlugins->menuAction()->setVisible(true); //A cacher
+		m_ui->menuTest->menuAction()->setVisible(false); //A cacher
+		m_ui->menuPlugins->menuAction()->setVisible(false); //A cacher
 		m_ui->actionFix_building->setVisible(false);
 		m_ui->actionShadows->setVisible(false);
 		m_ui->actionExport_osg->setVisible(false);
@@ -783,13 +781,12 @@ void MainWindow::unlockFeatures(const QString& pass)
 		m_ui->actionHelp->setVisible(false);
 		m_ui->tab_16->setVisible(false);
 		m_ui->tabWidget->removeTab(1);
-		m_ui->widgetTemporal->setVisible(true);//A cacher
-		m_ui->hsplitter_bottom->setVisible(true);//A cacher
-		m_ui->actionShow_temporal_tools->setVisible(true); //A cacher
-		m_ui->actionCityGML_cut->setVisible(false);
+		m_ui->widgetTemporal->setVisible(false); //A cacher
+		m_ui->hsplitter_bottom->setVisible(false); //A cacher
+		m_ui->actionShow_temporal_tools->setVisible(false); //A cacher
 		m_ui->actionLOD0->setVisible(false);
 		m_ui->actionLOD2->setVisible(false);
-		m_ui->actionLOD3->setVisible(false);
+		m_ui->actionLOD3->setVisible(false );
 		m_ui->actionLOD4->setVisible(false);
 		m_ui->actionAll_LODs->setVisible(false);
 		break;
@@ -807,12 +804,12 @@ QLineEdit* MainWindow::getFilter()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::reset()
 {
-    // reset text box
-    m_ui->textBrowser->clear();
-    unlockFeatures("pass2");
-    //unlockFeatures("");
-    m_ui->mainToolBar->hide();
-    //m_ui->statusBar->hide();
+	// reset text box
+	m_ui->textBrowser->clear();
+	unlockFeatures("pass2");
+	//unlockFeatures("");
+	m_ui->mainToolBar->hide();
+	//m_ui->statusBar->hide();
 
 	// TODO : need to be adjusted manually if we had other dataprofiles, should do something better
 
@@ -922,15 +919,15 @@ void MainWindow::optionShowAdvancedTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-    // date is starting at year 1800 and ending at 2100
-    // this is controlled in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 109574 -> number of days in 300 years
+	// date is starting at year 1800 and ending at 2100
+	// this is controlled in mainWindow.ui, in the temporal slider params
+	// QAbractSlider::maximum = 109574 -> number of days in 300 years
 
-    if(value == -1) value = m_ui->horizontalSlider->value();
-    QDate date(1800, 1, 1);
-    date = date.addDays(value);
-    //m_ui->buttonBrowserTemporal->setText(date.toString());
-    m_ui->dateTimeEdit->setDate(date);
+	if(value == -1) value = m_ui->horizontalSlider->value();
+	QDate date(1800, 1, 1);
+	date = date.addDays(value);
+	//m_ui->buttonBrowserTemporal->setText(date.toString());
+	m_ui->dateTimeEdit->setDate(date);
 
 	//std::cout << "set year : " << date.year() << std::endl;
 
@@ -940,27 +937,27 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-    // date is starting at year 1800 and ending at 2100
-    // this is controlled in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 109574 -> number of days in 300 years
+	// date is starting at year 1800 and ending at 2100
+	// this is controlled in mainWindow.ui, in the temporal slider params
+	// QAbractSlider::maximum = 109574 -> number of days in 300 years
 
 	m_useTemporal = !m_useTemporal;
 
-    if(m_useTemporal)
-    {
-        QDate date(1800, 1, 1);
-        date = date.addDays(m_ui->horizontalSlider->value());
-        QDateTime datetime(date);
-        m_osgScene->setDate(datetime);
-    }
-    else
-    {
-        // -4000 is used as a special value to disable time
-        QDate date(-4000, 1, 1);
-        QDateTime datetime(date);
-        m_osgScene->setDate(datetime); // reset
-        m_timer.stop();
-    }
+	if(m_useTemporal)
+	{
+		QDate date(1800, 1, 1);
+		date = date.addDays(m_ui->horizontalSlider->value());
+		QDateTime datetime(date);
+		m_osgScene->setDate(datetime);
+	}
+	else
+	{
+		// -4000 is used as a special value to disable time
+		QDate date(-4000, 1, 1);
+		QDateTime datetime(date);
+		m_osgScene->setDate(datetime); // reset
+		m_timer.stop();
+	}
 
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
@@ -1567,13 +1564,13 @@ void MainWindow::generateLOD1OnFile()
 
 			delete tile;
 			ModelOut->computeEnvelope(),
-			exporter.exportCityModel(*ModelOut);
+				exporter.exportCityModel(*ModelOut);
 
 			delete ModelOut;
 			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree dans " << Folder << std::endl;
 		}
 	}
-	
+
 	QApplication::restoreOverrideCursor();
 	m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 
@@ -1783,13 +1780,81 @@ void MainWindow::slotFixBuilding()
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotCityGML_cut()
-{
-}
-////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotSplitCityGMLBuildings()
 {
+	m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
+
+	std::cout<<"Load Scene"<<std::endl;
+
 	QSettings settings("liris", "virtualcity");
+	QString lastdir = settings.value("lastdir").toString();
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
+
+	QFileDialog w;
+	w.setWindowTitle("Selectionner le dossier de sortie");
+	w.setFileMode(QFileDialog::Directory);
+
+	if(w.exec() == 0)
+	{
+		std::cout << "Annulation : Dossier non valide." << std::endl;
+		return;
+	}
+
+	std::string Folder = w.selectedFiles().at(0).toStdString();
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+
+	QTime time;
+	time.start();
+
+	for(int i = 0; i < filenames.count(); ++i)
+	{
+		QFileInfo file(filenames[i]);
+		QString filepath = file.absoluteFilePath();
+		QFileInfo file2(filepath);
+
+		if(!file2.exists())
+		{
+			std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
+			continue;
+		}
+		settings.setValue("lastdir", file.dir().absolutePath());
+
+		QString ext = file2.suffix().toLower();
+		if(ext == "citygml" || ext == "gml")
+		{
+			std::cout << "Debut du traitement sur : " << file.baseName().toStdString() << std::endl;
+			vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath.toStdString());
+
+			std::vector<TextureCityGML*> ListTextures;
+
+			citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML, &ListTextures);
+
+			delete BatiLOD2CityGML;
+
+			ModelOut->computeEnvelope();
+			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString()  + "_SplitBuildings.gml");
+
+			exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
+
+			std::cout << Folder + "/" + file.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;
+
+			delete ModelOut;
+
+			for(TextureCityGML* Tex:ListTextures)
+				delete Tex;
+		}
+	}
+
+	int millisecondes = time.elapsed();
+	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+
+	QApplication::restoreOverrideCursor();
+	m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
+
+
+	/*QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
 	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
 	QFileInfo file1(filename1);
@@ -1797,9 +1862,9 @@ void MainWindow::slotSplitCityGMLBuildings()
 	QString ext1 = file1.suffix().toLower();
 	if(ext1 != "citygml" && ext1 != "gml")
 	{
-		std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
-		QApplication::restoreOverrideCursor();
-		return;
+	std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
+	QApplication::restoreOverrideCursor();
+	return;
 	}
 	settings.setValue("lastdir", file1.dir().absolutePath());
 
@@ -1810,8 +1875,8 @@ void MainWindow::slotSplitCityGMLBuildings()
 
 	if(w.exec() == 0)
 	{
-		std::cout << "Annulation : Dossier non valide." << std::endl;
-		return;
+	std::cout << "Annulation : Dossier non valide." << std::endl;
+	return;
 	}
 
 	std::string Folder = w.selectedFiles().at(0).toStdString();
@@ -1840,12 +1905,12 @@ void MainWindow::slotSplitCityGMLBuildings()
 	delete ModelOut;
 
 	for(TextureCityGML* Tex:ListTextures)
-		delete Tex;
+	delete Tex;
 
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 
-	std::cout << Folder + "/" + file1.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;
+	std::cout << Folder + "/" + file1.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;*/
 
 	return;
 }
@@ -1951,7 +2016,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 		delete Tex;
 
 	delete BatiLOD2CityGML;
-	//delete ModelOut; //On ne peut pas delete BatiLOD2CityGML et ModelOut car on a récupéré des bâtiments tels quels du premier pour les mettre dans le second (ceux qui n'ont pas d'équivalents dans le Shapefile). Du coup ce n'est pas propre (fuite mémoire) mais il n'y a a pas de clone() sur les Cityobject...
+	//delete ModelOut; // !!!!!!!!!!!! On ne peut pas delete BatiLOD2CityGML et ModelOut car on a récupéré des bâtiments tels quels du premier pour les mettre dans le second (ceux qui n'ont pas d'équivalents dans le Shapefile). Du coup ce n'est pas propre (fuite mémoire) mais il n'y a a pas de clone() sur les Cityobject...
 	//////////
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
@@ -2154,7 +2219,11 @@ void MainWindow::slotRenderLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotRenderLOD1()
 {
+	//QTime time;
+	//time.start();
 	appGui().getOsgScene()->forceLOD(1);
+	//int millisecondes = time.elapsed();
+	//std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotRenderLOD2()
@@ -2894,7 +2963,7 @@ void MainWindow::test4()
 	OGRPoint* point = new OGRPoint;
 	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
-	
+
 	std::cout<<std::endl;
 	vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
 	citygml::CityModel* model = layer->getTiles()[0]->getCityModel();

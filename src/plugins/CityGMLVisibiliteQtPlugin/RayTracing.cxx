@@ -25,7 +25,7 @@ void RayLoop(RayTracingData data)
 			Triangle* tri = data.triangles->triangles.at(l);
 
 			Hit hit;
-			if(ray->Intersect(tri,&hit))//Check if the ray hit the triangle and
+			if(ray->Intersect(tri, &hit))//Check if the ray hit the triangle and
 			{
 				if(!ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].intersect || ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].distance > hit.distance)//Check if it is closer than the previous one
 				{
@@ -33,7 +33,6 @@ void RayLoop(RayTracingData data)
 				}
 			}
 		}
-
 	}
 }
 

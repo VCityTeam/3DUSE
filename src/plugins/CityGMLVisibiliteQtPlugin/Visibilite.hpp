@@ -17,7 +17,7 @@
 *	@param prefix File prefix when exporting
 *	@return The analysis results
 */
-std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* cam, std::string prefix = "");
+std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* cam, std::string prefix = "", double DistLod1 = 0);
 /**
 *	@brief Vertical cascade viewpoints analysis using the multitile algorithm
 *	@param dirTile Directory where tiles are located

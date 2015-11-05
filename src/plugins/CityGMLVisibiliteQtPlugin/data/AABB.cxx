@@ -11,6 +11,11 @@
 
 #include "../Visibilite.hpp"
 
+bool operator<(const BoxwithRays& a, const BoxwithRays& b)
+{
+	return a.minDistance < b.minDistance;
+}
+
 bool operator<(const RayBoxHit& a, const RayBoxHit& b)
 {
 	return a.minDistance < b.minDistance;
