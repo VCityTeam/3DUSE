@@ -36,6 +36,8 @@ namespace citygml
 			xmlNewProp(m_root_node, BAD_CAST "xmlns:bldg", BAD_CAST "http://www.opengis.net/citygml/building/1.0");
 			xmlNewProp(m_root_node, BAD_CAST "xmlns:core", BAD_CAST "http://www.opengis.net/citygml/base/1.0");
 			xmlNewProp(m_root_node, BAD_CAST "xmlns:dem", BAD_CAST "http://www.opengis.net/citygml/relief/1.0");
+			xmlNewProp(m_root_node, BAD_CAST "xmlns:tran", BAD_CAST "http://schemas.opengis.net/citygml/transportation/1.0");
+			xmlNewProp(m_root_node, BAD_CAST "xmlns:wtr", BAD_CAST "http://www.opengis.net/citygml/waterbody/1.0");
 			xmlNewProp(m_root_node, BAD_CAST "xmlns:gen", BAD_CAST "http://www.opengis.net/citygml/generics/1.0");
 			xmlNewProp(m_root_node, BAD_CAST "xmlns:gml", BAD_CAST "http://www.opengis.net/gml");
 			xmlNewProp(m_root_node, BAD_CAST "xmlns:tex", BAD_CAST "http://www.opengis.net/citygml/textures/1.0");
@@ -410,6 +412,8 @@ namespace citygml
 
 		}
 
+		std::string type = "bldg:";
+
 		switch(obj.getType())
 		{
 		case citygml::COT_GenericCityObject:
@@ -437,12 +441,15 @@ namespace citygml
 			break;
 		case citygml::COT_Track:
 			res = exportCityObjetGenericXml(obj, "tran:Track", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_Road:
 			res = exportCityObjetGenericXml(obj, "tran:Road", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_Railway:
 			res = exportCityObjetGenericXml(obj, "tran:Railway", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_Square:
 			res = exportCityObjetGenericXml(obj, "bldg:Square", parent);
@@ -455,27 +462,34 @@ namespace citygml
 			break;
 		case citygml::COT_WaterBody:
 			res = exportCityObjetGenericXml(obj, "wtr:WaterBody", parent);
+			type = "wtr:";
 			break;
 		case citygml::COT_TINRelief:
 			res = exportCityObjetGenericXml(obj, "dem:TINRelief", parent);
+			type = "dem:";
 			break;
 		case citygml::COT_LandUse:
 			res = exportCityObjetGenericXml(obj, "bldg:LandUse", parent);
 			break;
 		case citygml::COT_Tunnel:
 			res = exportCityObjetGenericXml(obj, "tran:Tunnel", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_Bridge:
 			res = exportCityObjetGenericXml(obj, "tran:Bridge", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_BridgeConstructionElement:
 			res = exportCityObjetGenericXml(obj, "tran:BridgeConstructionElement", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_BridgeInstallation:
 			res = exportCityObjetGenericXml(obj, "tran:BridgeInstallation", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_BridgePart:
 			res = exportCityObjetGenericXml(obj, "tran:BridgePart", parent);
+			type = "tran:";
 			break;
 		case citygml::COT_BuildingPart:
 			res = exportCityObjetGenericXml(obj, "bldg:BuildingPart", parent);
@@ -509,7 +523,7 @@ namespace citygml
 		{   
 			for(CityObjectState* state : obj.getStates())
 			{
-				xmlNodePtr r = exportCityObjetStateXml(*state, std::string("bldg:")+state->getParent()->getTypeAsString(), parent);
+				xmlNodePtr r = exportCityObjetStateXml(*state, type + state->getParent()->getTypeAsString(), parent);
 
 				// build apperance node for current node
 				if(rootLevel)
@@ -532,7 +546,7 @@ namespace citygml
 			}
 			for(CityObjectTag* tag : obj.getTags())
 			{
-				xmlNodePtr r = exportCityObjetTagXml(*tag, std::string("bldg:")+tag->getParent()->getTypeAsString(), parent);
+				xmlNodePtr r = exportCityObjetTagXml(*tag, type + tag->getParent()->getTypeAsString(), parent);
 
 				// build apperance node for current node
 				if(rootLevel)
@@ -564,7 +578,7 @@ namespace citygml
 		xmlNodePtr node;
 		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
 		{
-			xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"MultiSurface").c_str(), NULL);
+			xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (type + std::string("lod") + std::to_string(obj.getGeometry(0)->getLOD()) + "MultiSurface").c_str(), NULL);
 			node = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
 			xmlNewProp(node, BAD_CAST "srsDimension", BAD_CAST "3");
 		}
@@ -655,6 +669,8 @@ namespace citygml
 		xmlNewProp(root, BAD_CAST "xmlns:bldg", BAD_CAST "http://www.opengis.net/citygml/building/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:core", BAD_CAST "http://www.opengis.net/citygml/base/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:dem", BAD_CAST "http://www.opengis.net/citygml/relief/1.0");
+		xmlNewProp(root, BAD_CAST "xmlns:wtr", BAD_CAST "http://www.opengis.net/citygml/waterbody/1.0");
+		xmlNewProp(root, BAD_CAST "xmlns:tran", BAD_CAST "http://schemas.opengis.net/citygml/transportation/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:gen", BAD_CAST "http://www.opengis.net/citygml/generics/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:gml", BAD_CAST "http://www.opengis.net/gml");
 		xmlNewProp(root, BAD_CAST "xmlns:tex", BAD_CAST "http://www.opengis.net/citygml/textures/1.0");
@@ -717,6 +733,8 @@ namespace citygml
 		xmlNewProp(root, BAD_CAST "xmlns:bldg", BAD_CAST "http://www.opengis.net/citygml/building/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:core", BAD_CAST "http://www.opengis.net/citygml/base/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:dem", BAD_CAST "http://www.opengis.net/citygml/relief/1.0");
+		xmlNewProp(root, BAD_CAST "xmlns:wtr", BAD_CAST "http://www.opengis.net/citygml/waterbody/1.0");
+		xmlNewProp(root, BAD_CAST "xmlns:tran", BAD_CAST "http://schemas.opengis.net/citygml/transportation/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:gen", BAD_CAST "http://www.opengis.net/citygml/generics/1.0");
 		xmlNewProp(root, BAD_CAST "xmlns:gml", BAD_CAST "http://www.opengis.net/gml");
 		xmlNewProp(root, BAD_CAST "xmlns:tex", BAD_CAST "http://www.opengis.net/citygml/textures/1.0");

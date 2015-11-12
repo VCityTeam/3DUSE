@@ -4662,6 +4662,11 @@ citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<Tex
 				continue;
 			}
 
+			/*std::cout << obj->getId() << std::endl;
+			SaveGeometrytoShape("Polygons.shp", Building);
+			int a;
+			std::cin >> a;*/
+
 			OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
 
 			delete Building;

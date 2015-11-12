@@ -440,15 +440,15 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* 
 	result->ComputeSkyline();
 	result->ComputeMinMaxDistance();
 
-	ExportData(result, prefix);
-	ExportImages(result, prefix);
+	ExportData(dirTile, result, prefix);
+	ExportImages(dirTile, result, prefix);
 
-	BelvedereDB::Get().ExportViewpointData(result);  //// A REMETTRE !! ////
+	BelvedereDB::Get().ExportViewpointData(result);
 
 	std::cout << "Total Time : " << time.elapsed()/1000 << " sec" << std::endl;
 
 	std::vector<ViewPoint*> returns;
-	returns.push_back(result);  //// A REMETTRE !! ////
+	returns.push_back(result);
 
 	delete result;
 	delete resultBis;
@@ -458,45 +458,45 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* 
 	return returns;
 }
 
-std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile,osg::Camera* cam, unsigned int count, float zIncrement)
-{
-	for(unsigned int i = 0; i <= 15; i++)
-		MultiTileBasicAnalyse(dirTile, cam, std::to_string(i)+"_", 1000 * i);
-
-	std::vector<ViewPoint*> L;
-
-	return L;
-}
 /*std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile,osg::Camera* cam, unsigned int count, float zIncrement)
 {
-//See monotile cascade analyse
-osg::Vec3d pos;
-osg::Vec3d target;
-osg::Vec3d up;
-cam->getViewMatrixAsLookAt(pos,target,up);
+for(unsigned int i = 0; i <= 13; i++)
+MultiTileBasicAnalyse(dirTile, cam, std::to_string(i)+"_", 1000 * i);
 
-osg::Vec3d dir = target - pos;
-dir.z() = 0;
-dir.normalize();
-target = pos + dir;
-up = osg::Vec3d(0,0,1);
-cam->setViewMatrixAsLookAt(pos,target,up);
+std::vector<ViewPoint*> L;
 
-std::vector<ViewPoint*> results;
-
-for(unsigned int i = 0; i < count; i++)
-{
-osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
-
-results.push_back(MultiTileBasicAnalyse(dirTile,mycam, std::to_string(i)+"_").front());
-
-pos.z()+=zIncrement;
-target.z()+=zIncrement;
-cam->setViewMatrixAsLookAt(pos,target,up);
-}
-
-return results;
+return L;
 }*/
+std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile,osg::Camera* cam, unsigned int count, float zIncrement)
+{
+	//See monotile cascade analyse
+	osg::Vec3d pos;
+	osg::Vec3d target;
+	osg::Vec3d up;
+	cam->getViewMatrixAsLookAt(pos,target,up);
+
+	osg::Vec3d dir = target - pos;
+	dir.z() = 0;
+	dir.normalize();
+	target = pos + dir;
+	up = osg::Vec3d(0,0,1);
+	cam->setViewMatrixAsLookAt(pos,target,up);
+
+	std::vector<ViewPoint*> results;
+
+	for(unsigned int i = 0; i < count; i++)
+	{
+		osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
+
+		results.push_back(MultiTileBasicAnalyse(dirTile,mycam, std::to_string(i)+"_").front());
+
+		pos.z()+=zIncrement;
+		target.z()+=zIncrement;
+		cam->setViewMatrixAsLookAt(pos,target,up);
+	}
+
+	return results;
+}
 
 std::vector<ViewPoint*> MultiTileMultiViewpointAnalyse(std::string dirTile,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
 {
@@ -565,7 +565,7 @@ std::vector<ViewPoint*> MultiTilePanoramaAnalyse(std::string dirTile,osg::Camera
 	osg::ref_ptr<osg::Camera> mycamQ(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
 	results.push_back(MultiTileBasicAnalyse(dirTile,mycamQ, prefix+"Left_").front());
 
-	ExportPanoramaSkyline(results[0],results[1],results[2],results[3],prefix);
+	ExportPanoramaSkyline(dirTile, results[0],results[1],results[2],results[3],prefix);
 
 	return results;
 }

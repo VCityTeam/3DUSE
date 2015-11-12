@@ -56,12 +56,12 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 	double deltaDistance = settings.value("capturedeltadistance").toDouble();
 	ui->deltaDistanceSB->setValue(deltaDistance);
 
-	QDir outputDir("./SkylineOutput/");
-	if(!outputDir.exists("./SkylineOutput/"))
+	QDir outputDir(tiledir+"/SkylineOutput/");
+	if(!outputDir.exists(tiledir+"/SkylineOutput/"))
 		outputDir.mkpath(outputDir.absolutePath());
 
-	QDir extrudDir("./ShpExtruded/");
-	if(!extrudDir.exists("./ShpExtruded/"))
+	QDir extrudDir(tiledir+"/ShpExtruded/");
+	if(!extrudDir.exists(tiledir+"/ShpExtruded/"))
 		extrudDir.mkpath(extrudDir.absolutePath());
 
 	ui->projDistanceSB->hide();///////
@@ -245,7 +245,7 @@ void DialogVisibilite::BasicMonoTile()
 	{
 		std::vector<std::string> building;
 		building.push_back(filepath.toStdString());
-		BasisAnalyse(building,cam);
+		BasisAnalyse(ui->dirLE->text().toStdString(), building,cam);
 	}
 }
 
@@ -317,7 +317,7 @@ void DialogVisibilite::CascadeMonoTile()
 	{
 		std::vector<std::string> building;
 		building.push_back(filepath.toStdString());
-		CascadeAnalyse(building,cam,count,increment);
+		CascadeAnalyse(ui->dirLE->text().toStdString(), building,cam,count,increment);
 	}
 }
 
@@ -342,7 +342,7 @@ void DialogVisibilite::ToolAlignementTree()
 
 void DialogVisibilite::ToolLidarToGML()
 {
-	ProcessCL(ProcessLasShpVeget());
+	ProcessCL(ProcessLasShpVeget(ui->dirLE->text().toStdString()));
 }
 
 void DialogVisibilite::ToolShpExtrusion()
