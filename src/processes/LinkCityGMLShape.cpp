@@ -1189,6 +1189,7 @@ std::vector<OGRPolygon*> GetFootPrintsfromShapeFile(OGRLayer* Layer)
 	std::vector<OGRPolygon *> ListFootPrints;
 	OGRFeature *Feature;
 	int cpt = 0;
+	Layer->ResetReading();
 	while((Feature = Layer->GetNextFeature()) != NULL)
 	{
 		OGRGeometry* Building = Feature->GetGeometryRef();

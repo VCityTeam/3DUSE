@@ -11,6 +11,7 @@
 #include "../ShpExtrusion.h"
 #include "../VegetTool.hpp"
 #include "../AlignementTree.hpp"
+#include "src/processes/ExportToShape.hpp"
 
 #include <QSettings>
 #include <QFileDialog>
@@ -112,7 +113,7 @@ void DialogVisibilite::SetCamParam()
 	cam->getViewMatrixAsLookAt(pos,target,up);
 
 	pos = osg::Vec3(ui->posXSB->value()-offset.x,ui->posYSB->value()-offset.y,ui->posZSB->value()-offset.z);
-	
+
 	osg::Vec3d dir = osg::Vec3(ui->dirXSB->value(),ui->dirYSB->value(),ui->dirZSB->value());
 
 	dir.normalize();
@@ -129,6 +130,45 @@ void DialogVisibilite::SetCamParam()
 	mainwindow->m_osgView->m_osgView->getCameraManipulator()->setByInverseMatrix(mat);
 	cam->getViewMatrixAsLookAt(pos,target,up);
 
+	///////////////// Test
+	//OGRMultiLineString* MLS = new OGRMultiLineString;
+
+	//OGRLineString* LS = new OGRLineString;
+	//LS->addPoint(ui->posXSB->value(), ui->posYSB->value(), ui->posZSB->value());
+	//LS->addPoint(ui->posXSB->value() + 10*dir.x(), ui->posYSB->value() + 10*dir.y(), ui->posZSB->value() + 10*dir.z());
+
+	//MLS->addGeometry(LS);
+
+	osg::Vec3 d = dir; 
+	osg::Vec3 u(-d.x() * d.z(), -d.y() * d.z(), d.x() * d.x() + d.y() * d.y());
+	u.normalize();
+
+	double C = 0.5;
+	double S = 0.866;
+
+	std::cout << "Vecteur : " << d.x() << " " << d.y() << " " << d.z() << std::endl; 
+
+	for(int i = 0; i < 5; ++i)
+	{
+		//delete LS;
+		//LS = new OGRLineString;
+
+		double x = (u.x()*u.x()*(1-C) + C)*d.x() + (u.x()*u.y()*(1-C) - u.z()*S)*d.y() + (u.x()*u.z()*(1-C) + u.y()*S)*d.z();
+		double y = (u.x()*u.y()*(1-C) + u.z()*S)*d.x() + (u.y()*u.y()*(1-C) + C)*d.y() + (u.y()*u.z()*(1-C) - u.x()*S)*d.z();
+		double z = (u.x()*u.z()*(1-C) - u.y()*S)*d.x() + (u.y()*u.z()*(1-C) + u.x()*S)*d.y() + (u.z()*u.z()*(1-C) + C)*d.z();
+
+		d = osg::Vec3(x, y, z);
+
+		d.normalize();
+
+		std::cout << "Rotation " << i + 1 << " : " << d.x() << " " << d.y() << " " << d.z() << std::endl; 
+
+		//LS->addPoint(ui->posXSB->value(), ui->posYSB->value(), ui->posZSB->value());
+		//LS->addPoint(ui->posXSB->value() + 10*d.x(), ui->posYSB->value() + 10*d.y(), ui->posZSB->value() + 10*d.z());
+		//MLS->addGeometry(LS);
+	}
+	//SaveGeometrytoShape("TestRot.shp", MLS);
+	//delete MLS;
 }
 
 void DialogVisibilite::SetupEmblematicViewExportParameter()
@@ -332,7 +372,7 @@ void DialogVisibilite::ResetCategory()
 void DialogVisibilite::ToolAlignementTree()
 {
 	std::string dir = ui->dirLE->text().toStdString();
-	
+
 	if(dir != "")
 	{
 		dir+="/";
@@ -348,7 +388,7 @@ void DialogVisibilite::ToolLidarToGML()
 void DialogVisibilite::ToolShpExtrusion()
 {
 	std::string dir = ui->dirLE->text().toStdString();
-	
+
 	if(dir != "")
 	{
 		dir+="/";

@@ -2720,133 +2720,418 @@ void buildJson()//GrandLyon
 	std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::test1()
+void MainWindow::test1() //Génération de stats pour étude de visibilité
 {
 	QTime time;
 	time.start();
 
-	//vcity::app().getAlgo().ConvertLasToPCD();
-	//vcity::app().getAlgo().ExtractGround();
-	//vcity::app().getAlgo().ExtractBuildings();
-	//vcity::app().getAlgo().RemoveGroundWithTIN();
-	//vcity::app().getAlgo().CompareBuildings();
-	//vcity::app().getAlgo().ConstructRoofs();
+	for(int cam = 1; cam <= 10; ++cam)
+	{
+		QString filepath = QString::fromStdString("D:/Dropbox/ResultatsVisibilite/"+std::to_string(cam)+"_Comparaison.csv");
+
+		QFileInfo file(filepath);
+
+		if(file.exists())
+		{
+			continue;
+		}
+
+		std::ofstream ofs;
+		ofs.open("D:/Dropbox/ResultatsVisibilite/"+std::to_string(cam)+"_Comparaison.csv", std::ofstream::out);
+		std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
+
+		int min = -1;
+		int max = -1;
+
+		for(int i = 0; i <= 20; ++i)
+		{
+			std::string dist = std::to_string(i);
+
+			filepath = QString::fromStdString(Folder+dist) + "_Result.shp";
+
+			QFileInfo file(filepath);
+
+			if(file.exists())
+			{
+				if(min == -1)
+					min = i;
+				max = i;
+			}
+			else if(min != -1)
+				break;
+		}
+
+		std::cout << cam << " : " << min << "   " << max << std::endl;
+
+		filepath = QString::fromStdString(Folder+std::to_string(max)) + "_Result.shp";
+
+		OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+		OGRLayer* Layer = DataSource->GetLayer(0);
+
+		OGRMultiPoint* ListPointsLod2 = new OGRMultiPoint;
+		OGRFeature *Feature;
+		Layer->ResetReading();
+		while((Feature = Layer->GetNextFeature()) != NULL)
+		{
+			OGRGeometry* Point = Feature->GetGeometryRef();
+			if(Point->getGeometryType() == wkbPoint || Point->getGeometryType() == wkbPoint25D)
+				ListPointsLod2->addGeometry(Point);
+		}
+
+		delete DataSource;
+
+		for(int i = min; i < max; ++i)
+		{
+			std::cout << "Avancement LoD1 : " << i << "/" << max << std::endl;
+			int cpt1 = 0; //Points de Lod1 qui sont dans Lod2
+			int cpt2 = 0; //Points de Lod1 qui ne sont pas dans Lod2
+			int cpt3 = 0; //Points de Lod2 qui sont dans Lod1
+			int cpt4 = 0; //Points de Lod2 qui ne sont pas dans Lod1
+
+			std::string dist = std::to_string(i);
+
+			filepath = QString::fromStdString(Folder+dist) + "_Result.shp";
+
+			OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+			OGRLayer* Layer2 = DataSource2->GetLayer(0);
+
+			OGRMultiPoint* ListPoints = new OGRMultiPoint;
+			OGRFeature *Feature2;
+			Layer2->ResetReading();
+			while((Feature2 = Layer2->GetNextFeature()) != NULL)
+			{
+				OGRGeometry* Point = Feature2->GetGeometryRef();
+				if(Point->getGeometryType() == wkbPoint || Point->getGeometryType() == wkbPoint25D)
+				{
+					ListPoints->addGeometry(Point);
+					/*if(Point->Distance(ListPointsLod2) < 1.0)
+					cpt1++;
+					else
+					cpt2++;*/
+				}
+			}
+			delete DataSource2;
+
+			for(int j = 0; j < ListPointsLod2->getNumGeometries(); ++j)
+			{
+				double distance = 1000;
+				std::cout << "Avancement Comparaison Points : " << j << " / " << ListPointsLod2->getNumGeometries() << ".\r" << std::flush;
+				OGRPoint* Point1 = (OGRPoint*)ListPointsLod2->getGeometryRef(j);
+				for(int k = 0; k < ListPoints->getNumGeometries(); ++k)
+				{
+					OGRPoint* Point2 = (OGRPoint*)ListPoints->getGeometryRef(k);
+					float tempdist = sqrt((Point2->getX()-Point1->getX())*(Point2->getX()-Point1->getX()) + (Point2->getY()-Point1->getY())*(Point2->getY()-Point1->getY()) + (Point2->getZ()-Point1->getZ())*(Point2->getZ()-Point1->getZ()));
+					if(tempdist < distance)
+						distance = tempdist;
+				}
+				if(distance < 1.0)
+					cpt3++;
+				else
+					cpt4++;
+			}
+			std::cout << std::endl;
+
+			ofs << "Comparaison LoD1 à partir de " << i << "000m et LoD2 (" << max << "000m)" << std::endl;
+			ofs << "LoD1 : " << ListPoints->getNumGeometries() << " points;LoD2 : " << ListPointsLod2->getNumGeometries() << " points" << std::endl;
+			ofs << "; Nombre de points" << std::endl;
+			//ofs << "Points de Lod1 qui sont dans Lod2 : " << cpt1 << ";" << cpt1/(cpt1 + cpt2) * 100.f << std::endl;
+			//ofs << "Points de Lod1 qui ne sont pas dans Lod2 : " << cpt2 << ";" << cpt2/(cpt1 + cpt2) * 100.f << std::endl;
+			ofs << "Points de Lod2 qui sont dans Lod1 : ;" << cpt3 << std::endl;
+			ofs << "Points de Lod2 qui ne sont pas dans Lod1 : ;" << cpt4 << std::endl << std::endl;
+
+			delete ListPoints;
+		}
+		delete ListPointsLod2;
+		ofs.close();
+	}
 
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-
-	return;
-
-	////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
-	QApplication::setOverrideCursor(Qt::WaitCursor);
-
-	OGRDataSource* Bati = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/batiout.shp", TRUE);
-	OGRDataSource* Terrain = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/terrainout.shp", TRUE);
-
-	OGRLayer *LayerBati = Bati->GetLayer(0);
-	OGRLayer *LayerTerrain = Terrain->GetLayer(0);
-
-	citygml::ExporterCityGML exporter("C:/Users/Game Trap/Downloads/Ilots.gml");
-	exporter.initExport();
-	citygml::Envelope Envelope;
-
-	OGRFeature *FeatureBati;
-	LayerBati->ResetReading();
-
-	int cpt = 0;
-
-	while((FeatureBati = LayerBati->GetNextFeature()) != NULL)
-	{
-		OGRMultiPolygon* GeometryBati = new OGRMultiPolygon;
-		GeometryBati->addGeometry(FeatureBati->GetGeometryRef());
-		double H = 20;
-		double Zmin = 0;
-		if(FeatureBati->GetFieldIndex("HAUTEUR") != -1)
-			H = FeatureBati->GetFieldAsDouble("HAUTEUR");
-		if(FeatureBati->GetFieldIndex("Z_MIN") != -1)
-			Zmin = FeatureBati->GetFieldAsDouble("Z_MIN");
-		double Zmax = Zmin + H;
-
-		Zmax = Zmin;
-		Zmin = Zmax-H;
-
-		citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotBati_" + std::to_string(cpt), GeometryBati, &Zmax, &Zmin);
-		++cpt;
-
-		exporter.appendCityObject(*Ilot);
-		Ilot->computeEnvelope();
-		Envelope.merge(Ilot->getEnvelope());
-
-		delete GeometryBati;
-	}
-
-	OGRFeature *FeatureTerrain;
-	LayerTerrain->ResetReading();
-
-	cpt = 0;
-
-	while((FeatureTerrain = LayerTerrain->GetNextFeature()) != NULL)
-	{
-		OGRMultiPolygon* GeometryTerrain = new OGRMultiPolygon;
-		GeometryTerrain->addGeometry(FeatureTerrain->GetGeometryRef());
-		double H = 1;
-		double Zmin = 0;
-		if(FeatureTerrain->GetFieldIndex("HAUTEUR") != -1)
-			H = FeatureTerrain->GetFieldAsDouble("HAUTEUR");
-		if(FeatureTerrain->GetFieldIndex("Z_MIN") != -1)
-			Zmin = FeatureTerrain->GetFieldAsDouble("Z_MIN");
-		double Zmax = Zmin + H;
-
-		citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotTerrain_" + std::to_string(cpt), GeometryTerrain, &Zmax, &Zmin);
-		++cpt;
-
-		exporter.appendCityObject(*Ilot);
-		Ilot->computeEnvelope();
-		Envelope.merge(Ilot->getEnvelope());
-
-		delete GeometryTerrain;
-	}
-
-	exporter.addEnvelope(Envelope);
-	exporter.endExport();
-
-	QApplication::restoreOverrideCursor();
 }
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::test2()
+/*void MainWindow::test1()
 {
-	//Création d'ilots à partir de Shapefile contenant des routes
-	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-	OGRLayer *LayerRoutes = Routes->GetLayer(0);
-	OGRFeature *FeatureRoutes;
-	LayerRoutes->ResetReading();
+QTime time;
+time.start();
 
-	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-	{
-		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+//vcity::app().getAlgo().ConvertLasToPCD();
+//vcity::app().getAlgo().ExtractGround();
+//vcity::app().getAlgo().ExtractBuildings();
+//vcity::app().getAlgo().RemoveGroundWithTIN();
+//vcity::app().getAlgo().CompareBuildings();
+//vcity::app().getAlgo().ConstructRoofs();
 
-		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-		{
-			ReseauRoutier->addGeometry(Route);
-		}
-	}
+int millisecondes = time.elapsed();
+std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 
-	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+return;
 
-	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
+QApplication::setOverrideCursor(Qt::WaitCursor);
 
-	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-	{
-		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-			ReseauMP->addGeometry(temp);
-	}
+OGRDataSource* Bati = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/batiout.shp", TRUE);
+OGRDataSource* Terrain = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/terrainout.shp", TRUE);
 
-	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+OGRLayer *LayerBati = Bati->GetLayer(0);
+OGRLayer *LayerTerrain = Terrain->GetLayer(0);
 
-	delete ReseauRoutier;
+citygml::ExporterCityGML exporter("C:/Users/Game Trap/Downloads/Ilots.gml");
+exporter.initExport();
+citygml::Envelope Envelope;
+
+OGRFeature *FeatureBati;
+LayerBati->ResetReading();
+
+int cpt = 0;
+
+while((FeatureBati = LayerBati->GetNextFeature()) != NULL)
+{
+OGRMultiPolygon* GeometryBati = new OGRMultiPolygon;
+GeometryBati->addGeometry(FeatureBati->GetGeometryRef());
+double H = 20;
+double Zmin = 0;
+if(FeatureBati->GetFieldIndex("HAUTEUR") != -1)
+H = FeatureBati->GetFieldAsDouble("HAUTEUR");
+if(FeatureBati->GetFieldIndex("Z_MIN") != -1)
+Zmin = FeatureBati->GetFieldAsDouble("Z_MIN");
+double Zmax = Zmin + H;
+
+Zmax = Zmin;
+Zmin = Zmax-H;
+
+citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotBati_" + std::to_string(cpt), GeometryBati, &Zmax, &Zmin);
+++cpt;
+
+exporter.appendCityObject(*Ilot);
+Ilot->computeEnvelope();
+Envelope.merge(Ilot->getEnvelope());
+
+delete GeometryBati;
 }
+
+OGRFeature *FeatureTerrain;
+LayerTerrain->ResetReading();
+
+cpt = 0;
+
+while((FeatureTerrain = LayerTerrain->GetNextFeature()) != NULL)
+{
+OGRMultiPolygon* GeometryTerrain = new OGRMultiPolygon;
+GeometryTerrain->addGeometry(FeatureTerrain->GetGeometryRef());
+double H = 1;
+double Zmin = 0;
+if(FeatureTerrain->GetFieldIndex("HAUTEUR") != -1)
+H = FeatureTerrain->GetFieldAsDouble("HAUTEUR");
+if(FeatureTerrain->GetFieldIndex("Z_MIN") != -1)
+Zmin = FeatureTerrain->GetFieldAsDouble("Z_MIN");
+double Zmax = Zmin + H;
+
+citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotTerrain_" + std::to_string(cpt), GeometryTerrain, &Zmax, &Zmin);
+++cpt;
+
+exporter.appendCityObject(*Ilot);
+Ilot->computeEnvelope();
+Envelope.merge(Ilot->getEnvelope());
+
+delete GeometryTerrain;
+}
+
+exporter.addEnvelope(Envelope);
+exporter.endExport();
+
+QApplication::restoreOverrideCursor();
+}*/
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::test2() //Génération de stats pour étude de visibilité
+{
+	QTime time;
+	time.start();
+
+	for(int cam = 1; cam <= 10; ++cam)
+	{
+		std::ofstream ofs;
+		ofs.open("D:/3DUSE 0.2.5/"+std::to_string(cam)+"_Skyline.csv", std::ofstream::out);
+		std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
+
+		int min = -1;
+		int max = -1;
+
+		QString filepath;
+
+		for(int i = 0; i <= 20; ++i)
+		{
+			std::string dist = std::to_string(i);
+
+			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
+
+			QFileInfo file(filepath);
+
+			if(file.exists())
+			{
+				if(min == -1)
+					min = i;
+				max = i;
+			}
+			else if(min != -1)
+				break;
+		}
+
+		OGRDataSource* DS = OGRSFDriverRegistrar::Open((Folder + std::to_string(max)+ "_Viewpoint.shp").c_str(), FALSE);
+		OGRLayer* L = DS->GetLayer(0);
+		OGRFeature *F;
+		L->ResetReading();
+		F = L->GetNextFeature();
+		OGRPoint* Camera = (OGRPoint*)F->GetGeometryRef()->clone();
+
+		delete DS;
+
+		std::cout << cam << " : " << min << "   " << max << std::endl;
+
+		filepath = QString::fromStdString(Folder+std::to_string(max)) + "_SkylineLine.shp";
+
+		OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+		OGRLayer* Layer = DataSource->GetLayer(0);
+
+		OGRLineString * LineLoD2;
+		OGRFeature *Feature;
+		Layer->ResetReading();
+		Feature = Layer->GetNextFeature();
+		LineLoD2 = (OGRLineString*)Feature->GetGeometryRef()->clone();
+
+		delete DataSource;
+
+		for(int i = min; i < max; ++i)
+		{
+			std::cout << "Avancement : " << i << std::endl;
+
+			std::string dist = std::to_string(i);
+
+			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
+
+			OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+			OGRLayer* Layer2 = DataSource2->GetLayer(0);
+
+			OGRLineString * Line;
+			OGRFeature *Feature2;
+			Layer2->ResetReading();
+			Feature2 = Layer2->GetNextFeature();
+			Line = (OGRLineString*)Feature2->GetGeometryRef()->clone();
+
+			delete DataSource2;
+
+			//std::cout << Line->getNumPoints() << " - " << LineLoD2->getNumPoints() << std::endl;
+
+			std::vector<float> Dist;
+
+			ofs << "LoD2 à une distance de " << max << std::endl;
+			ofs << "Comparaison LoD1 à partir de " << i << "000m et LoD2" << std::endl;
+
+			//OGRMultiLineString* MLS = new OGRMultiLineString;
+
+			for(int k = 0; k < LineLoD2->getNumPoints(); ++k)
+			{
+				OGRPoint* Point1 = new OGRPoint;
+				LineLoD2->getPoint(k, Point1);
+
+				double DistMin = 100000;
+
+				for(int j = 0; j < Line->getNumPoints(); ++j)
+				{
+					OGRPoint* Point2 = new OGRPoint;
+					Line->getPoint(j, Point2);
+
+					TVec2d AB(Point1->getX() - Camera->getX(), Point1->getY() - Camera->getY());
+					TVec2d AC(Point2->getX() - Camera->getX(), Point2->getY() - Camera->getY());
+
+					/*std::cout << Point1->getX() << " " << Point1->getY() << " " << Point1->getZ() << std::endl;
+					std::cout << Point2->getX() << " " << Point2->getY() << " " << Point2->getZ() << std::endl;
+
+					std::cout << Camera->getX() << " " << Camera->getY() << " " << Camera->getZ() << std::endl;
+
+					std::cout << AB << std::endl;
+					std::cout << AC << std::endl;
+
+					std::cout << AB.x * AC.y - AB.y * AC.x << std::endl;
+
+					int a;
+					std::cin >> a;*/
+
+
+					if(AB.x * AC.y - AB.y * AC.x < 0.01)
+					{
+						double Distance = sqrt((Point2->getX()-Point1->getX())*(Point2->getX()-Point1->getX()) + (Point2->getY()-Point1->getY())*(Point2->getY()-Point1->getY()) + (Point2->getZ()-Point1->getZ())*(Point2->getZ()-Point1->getZ()));
+						if(DistMin > Distance)
+							DistMin = Distance;
+					}
+
+					//delete Point1;
+					//delete Point2;
+					//OGRLineString* LS = new OGRLineString;
+					//LS->addPoint(Point1);
+					//LS->addPoint(Point2);
+					//MLS->addGeometryDirectly(LS);
+					delete Point2;
+					
+				}
+				if(DistMin == 100000)
+				{
+					std::cout << k << " Erreur DistMin" << std::endl;
+					DistMin = Point1->Distance(Line);
+					//int a;
+					//std::cin >> a;
+				}
+				ofs << DistMin << ";";
+				Dist.push_back(DistMin);
+
+				delete Point1;
+			}
+
+			ofs << std::endl << std::endl;
+
+			delete Line;
+
+			//SaveGeometrytoShape("MLS.shp", MLS);
+		}
+		delete LineLoD2;
+		ofs.close();
+	}
+
+	int millisecondes = time.elapsed();
+	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+}
+/*void MainWindow::test2()
+{
+//Création d'ilots à partir de Shapefile contenant des routes
+OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+OGRLayer *LayerRoutes = Routes->GetLayer(0);
+OGRFeature *FeatureRoutes;
+LayerRoutes->ResetReading();
+
+OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
+while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
+{
+OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+
+if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
+{
+ReseauRoutier->addGeometry(Route);
+}
+}
+
+OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+
+OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+
+for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
+{
+OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
+if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
+ReseauMP->addGeometry(temp);
+}
+
+SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+
+delete ReseauRoutier;
+}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
