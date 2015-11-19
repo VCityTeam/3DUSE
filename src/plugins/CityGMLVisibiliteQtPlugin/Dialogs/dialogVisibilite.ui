@@ -80,11 +80,14 @@
    </item>
    <item row="18" column="3">
     <widget class="QDoubleSpinBox" name="fovySB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>1.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>179.000000000000000</double>
+      <double>180.000000000000000</double>
      </property>
      <property name="value">
       <double>40.000000000000000</double>
@@ -140,11 +143,14 @@
    </item>
    <item row="18" column="2">
     <widget class="QDoubleSpinBox" name="fovxSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>1.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>179.000000000000000</double>
+      <double>360.000000000000000</double>
      </property>
      <property name="value">
       <double>60.000000000000000</double>

@@ -148,6 +148,8 @@ void DialogVisibilite::SetCamParam()
 
 	std::cout << "Vecteur : " << d.x() << " " << d.y() << " " << d.z() << std::endl; 
 
+	////////////////
+
 	for(int i = 0; i < 5; ++i)
 	{
 		//delete LS;
@@ -209,6 +211,7 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la ca
 
 	float fovx = ui->fovxSB->value();
 	float fovy = ui->fovySB->value();
+
 
 	float width = ui->resXSB->value();
 

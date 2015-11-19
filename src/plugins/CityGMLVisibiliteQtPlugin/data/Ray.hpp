@@ -3,6 +3,7 @@
 
 #include "Triangle.hpp"
 #include "AABB.hpp"
+#include "src/gui/osg/osgGDAL.hpp"
 
 struct Hit;
 struct RayCollection;
@@ -50,7 +51,7 @@ struct Ray
 	*	@param cam Camera used to build the ray
 	*	@return A newly created ray coresponding to the given coord on the cam screen
 	*/
-	static Ray* BuildRd(TVec2d fragCoord,osg::Camera* cam);
+	static Ray* BuildRd(TVec2d fragCoord, osg::Camera* cam, OGRLineString* Line);
 
 	static float DotCross(TVec3d v0, TVec3d v1,
 		TVec3d v2);
