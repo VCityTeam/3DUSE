@@ -215,28 +215,30 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 	double zfar;
 	cam->getProjectionMatrixAsPerspective(fovx,aspect,znear,zfar);
 
+	if(fovx < 0)
+		fovx += 360;
+
 	osg::Viewport* viewport = cam->getViewport();
 
 	float width = viewport->width();
 	float height = viewport->height();
 
 	double fovy = (height/width)*fovx;
-
-	std::cout << fovx << " " << fovy << std::endl;
-
+	
 	osg::Vec3d pos;
 	osg::Vec3d target;
 	osg::Vec3d up;
 	cam->getViewMatrixAsLookAt(pos,target,up);
-	osg::Vec3d right = target ^ up;
+	osg::Vec3d right = target ^ osg::Vec3d(0.0, 0.0, 1.0);
+	up = right ^ target;
 
 	TVec3d rayori(pos.x(), pos.y(), pos.z());
 
-	for(int i = - width/2; i <= width/2; ++i)
+	for(int i = - width/2; i < width/2; ++i)
 	{
 		osg::Vec3d RayX = Rotation(target, up, - i * fovx/width);
 		right = RayX ^ up;
-		for(int j = - height/2; j <= height/2; ++j)
+		for(int j = - height/2; j < height/2; ++j)
 		{
 			osg::Vec3d NewRay = Rotation(RayX, right, j * fovy/height);
 
@@ -257,8 +259,9 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 
 	SaveGeometrytoShape("Rayons.shp", MLS);
 
-	int a;
-	std::cin >> a;
+	//int a;
+	//std::cin >> a;
+	delete MLS;
 
 	return rays;
 }

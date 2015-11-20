@@ -212,7 +212,6 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la ca
 	float fovx = ui->fovxSB->value();
 	float fovy = ui->fovySB->value();
 
-
 	float width = ui->resXSB->value();
 
 	float height = width * fovy/fovx;

@@ -110,6 +110,9 @@
    </item>
    <item row="14" column="4">
     <widget class="QDoubleSpinBox" name="posZSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -123,6 +126,9 @@
    </item>
    <item row="15" column="3">
     <widget class="QDoubleSpinBox" name="dirYSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -200,6 +206,9 @@
    </item>
    <item row="15" column="2">
     <widget class="QDoubleSpinBox" name="dirXSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -227,6 +236,9 @@
    </item>
    <item row="14" column="3">
     <widget class="QDoubleSpinBox" name="posYSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -297,6 +309,9 @@
    </item>
    <item row="15" column="4">
     <widget class="QDoubleSpinBox" name="dirZSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -556,6 +571,9 @@
    </item>
    <item row="14" column="2">
     <widget class="QDoubleSpinBox" name="posXSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>

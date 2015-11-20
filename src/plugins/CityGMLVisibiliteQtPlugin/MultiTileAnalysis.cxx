@@ -278,7 +278,7 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 	//Setup and get the tile's boxes in the right intersection order
 	std::vector<BoxwithRays> tileOrder = Setup(boxes, rays, camPos);
 
-	std::cout << "Setup Completed" << " " << tileOrder.size() << std::endl;
+	std::cout << "Setup Completed" << " " << tileOrder.size() << " tiles" << std::endl;
 
 	for(BoxwithRays currBox : tileOrder)
 	{
@@ -292,7 +292,6 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 		{
 			Ray* ray = rays->rays[i];//Get the ray
 			bool inter = viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].intersect;//Check the viewpoint to see if at the ray coordinates we have intersect something in a previous iteration
-
 			if(!inter)
 			{
 				raysTemp.rays.push_back(ray);
@@ -542,7 +541,8 @@ std::vector<ViewPoint*> MultiTilePanoramaAnalyse(std::string dirTile,osg::Camera
 	double znear;
 	double zfar;
 	cam->getProjectionMatrixAsPerspective(fov,ratio,znear,zfar);
-	cam->setProjectionMatrixAsPerspective(50,ratio,znear,zfar);
+	cam->setProjectionMatrixAsPerspective(90,ratio,znear,zfar);
+	//cam->setProjectionMatrixAsPerspective(50,ratio,znear,zfar);
 
 	std::vector<ViewPoint*> results;
 
