@@ -935,6 +935,7 @@ void MainWindow::updateTemporalParams(int value)
 	//std::cout << "set year : " << date.year() << std::endl;
 
 	QDateTime datetime(date);
+	m_currentDate = datetime;
 	if(m_useTemporal)   m_osgScene->setDate(datetime);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -951,6 +952,7 @@ void MainWindow::toggleUseTemporal()
         QDate date(1800, 1, 1);
         date = date.addDays(m_ui->horizontalSlider->value());
         QDateTime datetime(date);
+		m_currentDate = datetime;
         m_osgScene->setDate(datetime);
     }
     else
@@ -959,6 +961,7 @@ void MainWindow::toggleUseTemporal()
         QDate date(-4000, 1, 1);
         QDateTime datetime(date);
         m_osgScene->setDate(datetime); // reset
+		m_currentDate = datetime;
         m_timer.stop();
     }
 

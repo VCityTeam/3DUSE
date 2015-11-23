@@ -45,6 +45,7 @@ public:
     int m_unlockLevel;      ///< admin mode (to hide dev menus)
 
     QTimer m_timer;         ///< anim timer
+	QDateTime m_currentDate;	///< current date on the temporal slider
 
     void addRecentFile(const QString& filepath);
     void removeRecentFile(const QString& filepath);
