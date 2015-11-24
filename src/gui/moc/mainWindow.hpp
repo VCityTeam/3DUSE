@@ -95,6 +95,7 @@ public slots:
     void clearRecentFiles(bool removeAll = true);
     void updateTemporalParams(int value=-1);
     void toggleUseTemporal();
+	void updateTemporalSlider();
     void exportCityGML();
     void exportOsg();
     void exportOsga();

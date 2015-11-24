@@ -121,6 +121,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	//connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
 	connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
 	connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
+	connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
 	//connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
 	connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
 	connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
@@ -173,6 +174,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
+	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy");
 	m_ui->toolButton->setEnabled(m_useTemporal);
 
 	updateRecentFiles();
@@ -809,8 +811,8 @@ void MainWindow::reset()
 {
     // reset text box
     m_ui->textBrowser->clear();
-    unlockFeatures("pass2");
-    //unlockFeatures("");
+    //unlockFeatures("pass2");
+    unlockFeatures("");
     m_ui->mainToolBar->hide();
     //m_ui->statusBar->hide();
 
@@ -927,7 +929,7 @@ void MainWindow::updateTemporalParams(int value)
     // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     if(value == -1) value = m_ui->horizontalSlider->value();
-    QDate date(1800, 1, 1);
+    QDate date(1800,1,1);
     date = date.addDays(value);
     //m_ui->buttonBrowserTemporal->setText(date.toString());
     m_ui->dateTimeEdit->setDate(date);
@@ -937,6 +939,15 @@ void MainWindow::updateTemporalParams(int value)
 	QDateTime datetime(date);
 	m_currentDate = datetime;
 	if(m_useTemporal)   m_osgScene->setDate(datetime);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::updateTemporalSlider()
+{
+	QDate newdate = m_ui->dateTimeEdit->date();
+	int value = m_ui->horizontalSlider->value();
+	QDate olddate(1800,1,1);
+	olddate = olddate.addDays(value);
+	m_ui->horizontalSlider->setValue(value+olddate.daysTo(newdate));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
@@ -949,11 +960,14 @@ void MainWindow::toggleUseTemporal()
 
     if(m_useTemporal)
     {
-        QDate date(1800, 1, 1);
+        QDate date(1800,1,1);
         date = date.addDays(m_ui->horizontalSlider->value());
         QDateTime datetime(date);
 		m_currentDate = datetime;
         m_osgScene->setDate(datetime);
+		m_ui->dateTimeEdit->setDate(date);
+		m_ui->dateTimeEdit->setMinimumDate(QDate(1800,1,1));
+		m_ui->dateTimeEdit->setMaximumDate(QDate(1800,1,1).addDays(109574));
     }
     else
     {

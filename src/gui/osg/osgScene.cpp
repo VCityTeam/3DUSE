@@ -490,13 +490,20 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 				if (d)
 				{
 					QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(std::to_string(dDate)),QString("yyyyMMdd"));
-					if (creationDate < date && date <= terminationDate) node->setNodeMask(0xffffffff);
-					else node->setNodeMask(0);
+					if (creationDate < date && date <= terminationDate)
+					{
+						node->setNodeMask(0xffffffff);
+					}
+					else 
+					{
+						node->setNodeMask(0);
+					}
 				} else {
 					if (creationDate < date ) node->setNodeMask(0xffffffff);
 					else node->setNodeMask(0);                
 				}
 			}
+			else node->setNodeMask(0xffffffff);
 			for(unsigned int i=0; i<grp->getNumChildren(); ++i)
 			{
 				osg::ref_ptr<osg::Node> child = grp->getChild(i);
@@ -521,7 +528,13 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 	// reset : force draw
 	if(date.date().year() == -4000)
 	{
-		node->setNodeMask(0xffffffff);
+		//node->setNodeMask(0xffffffff);
+		vcity::URI uri = osgTools::getURI(node);
+		QTreeWidgetItem* item = appGui().getTreeView()->getNode(uri);
+		bool unchecked = (item==nullptr)?false:item->checkState(0)== Qt::CheckState::Unchecked;
+		if (unchecked)
+		node->setNodeMask(0);
+		else node->setNodeMask(0xffffffff);
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -622,6 +635,7 @@ void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 						else node->setNodeMask(0);                
 					}
 				}
+				else node->setNodeMask(0xffffffff);
 			}
 			else
 			{
