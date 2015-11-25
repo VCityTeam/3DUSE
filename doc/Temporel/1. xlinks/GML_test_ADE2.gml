@@ -15,7 +15,7 @@
         <bldg:WallSurface gml:id="wall_12"/>
       </bldg:boundedBy>
       <bldg:boundedBy>
-        <bldg:WallSurface xlink:href="//identifier[text()='wall_test']/.."/>
+        <bldg:WallSurface xlink:href="#wall_13"/>
       </bldg:boundedBy>
       <bldg:boundedBy>
         <bldg:WallSurface gml:id="wall_14">

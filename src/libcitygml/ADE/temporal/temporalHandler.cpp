@@ -51,7 +51,10 @@ std::string TempHandler::getIDfromQuery(std::string query)
 	{
 		return query.substr(pos1+9,pos2-(pos1+9));
 	}
-	throw "XLinkExpressionException";
+	if (query.find("#")==0)
+	{
+		return query.substr(1);
+	}
 	return "";
 }
 
@@ -245,23 +248,27 @@ void TempHandler::endDocument()
 	{
 		if(transition->from()->_isXlink == citygml::xLinkState::UNLINKED)
 		{
-			try {
-				std::string id = getIDfromQuery(transition->from()->getAttribute("xlink"));
+			std::string id = getIDfromQuery(transition->from()->getAttribute("xlink"));
+			if(!(id==""))
+			{	
 				for ( temporal::Version* version : _versions)
 				{
 					if(id==version->getId()) transition->setFrom(version);
 				}
-			} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->from()->getAttribute("xlink")<<"\""<<std::endl;}
+			} 
+			else {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->from()->getAttribute("xlink")<<"\""<<std::endl;}
 		}
 		if(transition->to()->_isXlink == citygml::xLinkState::UNLINKED)
 		{
-			try {
-				std::string id = getIDfromQuery(transition->to()->getAttribute("xlink"));
+			std::string id = getIDfromQuery(transition->to()->getAttribute("xlink"));
+			if(!(id==""))
+			{
 				for ( temporal::Version* version : _versions)
 				{
 					if(id==version->getId()) transition->setTo(version);
 				}
-			} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->to()->getAttribute("xlink")<<"\""<<std::endl;}
+			} 
+			else {std::cerr<<"ERROR: XLink expression not supported! : \""<<transition->to()->getAttribute("xlink")<<"\""<<std::endl;}
 		}
 		//std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
 		//std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
@@ -276,11 +283,14 @@ void TempHandler::endDocument()
 		{
 			if ((*it)->_isXlink==citygml::xLinkState::UNLINKED)
 			{
-				try {
-				std::string id = getIDfromQuery((*it)->getAttribute("xlink"));
-				citygml::CityObject* target = (*getModel())->getNodeById(id);
-				(*it)=target;
-				} catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<(*it)->getAttribute("xlink")<<"\""<<std::endl;}
+				std::string query = (*it)->getAttribute("xlink");
+				std::string id = getIDfromQuery(query);
+				if(!(id==""))
+				{
+					citygml::CityObject* target = (*getModel())->getNodeById(id);
+					if (target) (*it)=target;
+				} 
+				else {std::cerr<<"ERROR: XLink expression not supported! : \""<<query<<"\""<<std::endl;}
 			} 
 		}
 		//for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
