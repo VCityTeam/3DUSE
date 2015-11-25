@@ -56,6 +56,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#define TEMPORAL_START_DATE 1800,1,1
+
+////////////////////////////////////////////////////////////////////////////////
+
 geos::geom::Geometry* ShapeGeo = nullptr;
 std::vector<std::pair<double, double>> Hauteurs;
 std::vector<BatimentShape> InfoBatiments;
@@ -175,6 +179,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy");
+	m_ui->dateTimeEdit->setDate(QDate(TEMPORAL_START_DATE));
 	m_ui->toolButton->setEnabled(m_useTemporal);
 
 	updateRecentFiles();
@@ -929,7 +934,7 @@ void MainWindow::updateTemporalParams(int value)
     // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     if(value == -1) value = m_ui->horizontalSlider->value();
-    QDate date(1800,1,1);
+    QDate date(TEMPORAL_START_DATE);
     date = date.addDays(value);
     //m_ui->buttonBrowserTemporal->setText(date.toString());
     m_ui->dateTimeEdit->setDate(date);
@@ -945,7 +950,7 @@ void MainWindow::updateTemporalSlider()
 {
 	QDate newdate = m_ui->dateTimeEdit->date();
 	int value = m_ui->horizontalSlider->value();
-	QDate olddate(1800,1,1);
+	QDate olddate(TEMPORAL_START_DATE);
 	olddate = olddate.addDays(value);
 	m_ui->horizontalSlider->setValue(value+olddate.daysTo(newdate));
 }
@@ -960,14 +965,14 @@ void MainWindow::toggleUseTemporal()
 
     if(m_useTemporal)
     {
-        QDate date(1800,1,1);
+        QDate date(TEMPORAL_START_DATE);
         date = date.addDays(m_ui->horizontalSlider->value());
         QDateTime datetime(date);
 		m_currentDate = datetime;
         m_osgScene->setDate(datetime);
 		m_ui->dateTimeEdit->setDate(date);
-		m_ui->dateTimeEdit->setMinimumDate(QDate(1800,1,1));
-		m_ui->dateTimeEdit->setMaximumDate(QDate(1800,1,1).addDays(109574));
+		m_ui->dateTimeEdit->setMinimumDate(QDate(TEMPORAL_START_DATE));
+		m_ui->dateTimeEdit->setMaximumDate(QDate(TEMPORAL_START_DATE).addDays(109574));
     }
     else
     {
