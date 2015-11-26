@@ -27,6 +27,9 @@ public:
     bool m_loadTextures;                ///< flag to load texture or not (in osg)
     DataProfile m_dataprofile;          ///< data profile
 
+	std::string m_startDate;
+	int m_nbDays;
+
 private:
 };
 ////////////////////////////////////////////////////////////////////////////////

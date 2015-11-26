@@ -20,6 +20,7 @@ DialogSettings::DialogSettings(QWidget *parent) :
 
     connect(ui->comboBoxDataProfile, SIGNAL(activated(int)), this, SLOT(chooseDataProfileSlot(int)));
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(choosePathSlot()));
+	connect(ui->dateTimeEdit, SIGNAL(editingFinished()),this, SLOT(setMinEndDate()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::~DialogSettings()
@@ -42,6 +43,11 @@ void DialogSettings::doSettings()
 
     ui->checkBoxTextures->setChecked(vcity::app().getSettings().m_loadTextures);
 
+	QDate startDate = QDate::fromString(QString::fromStdString(appGui().getSettings().m_startDate),QString("yyyy-MM-dd"));
+	QDate endDate(startDate.addDays(appGui().getSettings().m_nbDays));
+	ui->dateTimeEdit->setDate(startDate);
+	ui->dateTimeEdit_2->setDate(endDate);
+
     if(exec())
     {
         if(m_updateDataProfile)
@@ -57,6 +63,13 @@ void DialogSettings::doSettings()
         vcity::app().getSettings().m_loadTextures = ui->checkBoxTextures->isChecked();
         QSettings settings("liris", "virtualcity");
         settings.setValue("loadtextures", vcity::app().getSettings().m_loadTextures);
+
+		startDate = ui->dateTimeEdit->date();
+		endDate = ui->dateTimeEdit_2->date();
+		vcity::app().getSettings().m_startDate = startDate.toString(QString("yyyy-MM-dd")).toStdString();
+		settings.setValue("startDate",startDate.toString(QString("yyyy-MM-dd")));
+		settings.setValue("nbDays",vcity::app().getSettings().m_nbDays);
+		appGui().getMainWindow()->initTemporalTools();
 
         // admin
         if(!ui->lineEdit_AdminPass->text().isEmpty())
@@ -124,5 +137,13 @@ void DialogSettings::setDataProfileFromUI(vcity::DataProfile& dp)
 
     dp.m_xStep = ui->lineTileSizeX->text().toFloat();
     dp.m_yStep = ui->lineTileSizeY->text().toFloat();
+}
+////////////////////////////////////////////////////////////////////////////////
+void DialogSettings::setMinEndDate()
+{
+	QDate startDate = ui->dateTimeEdit->date();
+	if(startDate>ui->dateTimeEdit_2->date()) ui->dateTimeEdit_2->setDate(startDate);
+	ui->dateTimeEdit_2->setMinimumDate(startDate);
+
 }
 ////////////////////////////////////////////////////////////////////////////////
