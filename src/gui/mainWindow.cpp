@@ -924,15 +924,15 @@ void MainWindow::optionShowAdvancedTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::initTemporalTools()
 {
-	QDate startDate = QDate::fromString(QString::fromStdString(appGui().getSettings().m_startDate),QString("yyyy-MM-dd"));
-	QDate endDate(startDate.addDays(appGui().getSettings().m_nbDays));
+	QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+	QDateTime endDate(startDate.addDays(appGui().getSettings().m_nbDays));
 	
 	m_ui->horizontalSlider->setMaximum(appGui().getSettings().m_nbDays);
 	
 	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy");
-	m_ui->dateTimeEdit->setDate(startDate);
-	m_ui->dateTimeEdit->setMinimumDate(startDate);
-	m_ui->dateTimeEdit->setMaximumDate(endDate);
+	m_ui->dateTimeEdit->setDateTime(startDate);
+	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
+	m_ui->dateTimeEdit->setMaximumDateTime(endDate);
 
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -943,10 +943,10 @@ void MainWindow::updateTemporalParams(int value)
     // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     if(value == -1) value = m_ui->horizontalSlider->value();
-    QDate date = QDate::fromString(QString::fromStdString(appGui().getSettings().m_startDate),QString("yyyy-MM-dd"));
+    QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
     date = date.addDays(value);
     //m_ui->buttonBrowserTemporal->setText(date.toString());
-    m_ui->dateTimeEdit->setDate(date);
+    m_ui->dateTimeEdit->setDateTime(date);
 
 	//std::cout << "set year : " << date.year() << std::endl;
 
@@ -957,9 +957,9 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalSlider()
 {
-	QDate newdate = m_ui->dateTimeEdit->date();
+	QDateTime newdate = m_ui->dateTimeEdit->dateTime();
 	int value = m_ui->horizontalSlider->value();
-	QDate olddate = QDate::fromString(QString::fromStdString(appGui().getSettings().m_startDate),QString("yyyy-MM-dd"));
+	QDateTime olddate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
 	olddate = olddate.addDays(value);
 	m_ui->horizontalSlider->setValue(value+olddate.daysTo(newdate));
 }
@@ -974,13 +974,12 @@ void MainWindow::toggleUseTemporal()
 
     if(m_useTemporal)
     {
-        QDate startDate = QDate::fromString(QString::fromStdString(appGui().getSettings().m_startDate),QString("yyyy-MM-dd"));
-		QDate date(startDate);
+        QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+		QDateTime date(startDate);
         date = date.addDays(m_ui->horizontalSlider->value());
-        QDateTime datetime(date);
-		m_currentDate = datetime;
-        m_osgScene->setDate(datetime);
-		m_ui->dateTimeEdit->setDate(date);
+		m_currentDate = date;
+        m_osgScene->setDate(date);
+		m_ui->dateTimeEdit->setDateTime(date);
     }
     else
     {
