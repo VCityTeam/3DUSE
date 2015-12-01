@@ -109,12 +109,11 @@ void DialogVisibilite::SetCamParam()
 	osg::Vec3d target;
 	osg::Vec3d up;
 
-
 	cam->getViewMatrixAsLookAt(pos,target,up);
 
 	pos = osg::Vec3(ui->posXSB->value()-offset.x,ui->posYSB->value()-offset.y,ui->posZSB->value()-offset.z);
 
-	osg::Vec3d dir = osg::Vec3(ui->dirXSB->value(),ui->dirYSB->value(),ui->dirZSB->value());
+	osg::Vec3d dir = osg::Vec3(ui->dirXSB->value(), ui->dirYSB->value(), ui->dirZSB->value());
 
 	dir.normalize();
 
@@ -135,7 +134,7 @@ void DialogVisibilite::SetCamParam()
 
 	//OGRLineString* LS = new OGRLineString;
 	//LS->addPoint(ui->posXSB->value(), ui->posYSB->value(), ui->posZSB->value());
-	//LS->addPoint(ui->posXSB->value() + 10*dir.x(), ui->posYSB->value() + 10*dir.y(), ui->posZSB->value() + 10*dir.z());
+	//LS->addPoint(ui->posXSB->value() + 1000*dir.x(), ui->posYSB->value() + 1000*dir.y(), ui->posZSB->value() + 1000*dir.z());
 
 	//MLS->addGeometry(LS);
 
@@ -143,8 +142,8 @@ void DialogVisibilite::SetCamParam()
 	osg::Vec3 u(-d.x() * d.z(), -d.y() * d.z(), d.x() * d.x() + d.y() * d.y());
 	u.normalize();
 
-	double C = 0.5;
-	double S = 0.866;
+	double C = 0.5; //Cos de 60°
+	double S = 0.866; //Sin de 60°
 
 	std::cout << "Vecteur : " << d.x() << " " << d.y() << " " << d.z() << std::endl; 
 
@@ -199,14 +198,16 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la ca
 	osg::Vec3d target;
 	osg::Vec3d up;
 
-	cam->getViewMatrixAsLookAt(pos,target,up);
+	cam->getViewMatrixAsLookAt(pos, target, up);
 
 	TVec3d offset = mainwindow->m_app.getSettings().getDataProfile().m_offset;
 
-	pos = pos + osg::Vec3d(offset.x,offset.y,offset.z);
-	target = target + osg::Vec3d(offset.x,offset.y,offset.z);
+	pos = pos + osg::Vec3d(offset.x, offset.y, offset.z);
+	target = target + osg::Vec3d(offset.x, offset.y, offset.z);
 
-	cam->setViewMatrixAsLookAt(pos,target,up);
+	//std::cout << "Target1 : " << target.x() << " " << target.y() << " " << target.z() << std::endl;
+
+	cam->setViewMatrixAsLookAt(pos, target, up);
 
 
 	float fovx = ui->fovxSB->value();
@@ -254,16 +255,16 @@ void DialogVisibilite::BasicMultiTile()
 
 	QSettings settings("liris", "virtualcity");
 	QString category = ui->categoryLE->text(); 
-	settings.setValue("capturecategory",category);
+	settings.setValue("capturecategory", category);
 	double deltaDistance = ui->deltaDistanceSB->value();
-	settings.setValue("capturedeltadistance",deltaDistance);
+	settings.setValue("capturedeltadistance", deltaDistance);
 
 	if(dir != "")
 	{
 		dir+="/";
-		BelvedereDB::Get().Setup(dir,category.toStdString(),deltaDistance);
-		MultiTileBasicAnalyse(dir,cam);
-		BelvedereDB::Get().Setup("",""); //Pour reset le setup du BelvedereDB
+		BelvedereDB::Get().Setup(dir, category.toStdString(),deltaDistance);
+		MultiTileBasicAnalyse(dir, cam);
+		BelvedereDB::Get().Setup("", ""); //Pour reset le setup du BelvedereDB
 	}
 }
 
@@ -426,7 +427,9 @@ void DialogVisibilite::ToolAABBReconstruction()
 
 void DialogVisibilite::CopyPointToBatch()
 {
-	std::ofstream ofs("./BatchViewpoints.txt",std::ofstream::app);
+	std::string dir = ui->dirLE->text().toStdString();
+
+	std::ofstream ofs(dir + "/BatchViewpoints.txt",std::ofstream::app);
 	ofs << std::fixed << ui->posXSB->value() << std::endl;
 	ofs << std::fixed << ui->posYSB->value() << std::endl;
 	ofs << std::fixed << ui->posZSB->value() << std::endl;
@@ -440,9 +443,10 @@ void DialogVisibilite::CopyPointToBatch()
 
 void DialogVisibilite::BatchMultiTile()
 {
-	if(QFile("./BatchViewpoints.txt").exists())
+	std::string dir = ui->dirLE->text().toStdString();
+	if(QFile(QString::fromStdString(dir + "/BatchViewpoints.txt")).exists())
 	{
-		std::ifstream ifs("./BatchViewpoints.txt",std::ofstream::in);
+		std::ifstream ifs(dir + "/BatchViewpoints.txt",std::ofstream::in);
 
 		std::queue<double> coordTemp;
 
@@ -512,7 +516,7 @@ void DialogVisibilite::GetTopPolygon()
 		BelvedereDB::Get().Setup(dir,category);
 		std::map<std::string,std::vector<PolygonData>> top = BelvedereDB::Get().GetTop(ui->exportTopSB->value());
 
-		std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+		std::ofstream ofs(dir + "/SkylineOutput/TopPoly.csv",std::ofstream::out);
 
 		ofs << "Tile" << ";" << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
 

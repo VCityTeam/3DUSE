@@ -2118,8 +2118,8 @@ void MainWindow::slotChangeDetection()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int TileX, int TileY) //BIEN PENSER A METTRE LES DOSSIER DE TEXTURE AVEC LES CITYGML POUR LES MNT AVEC DES TEXTURE WORLD
 {
-	//CityGMLPath = "C:/Users/FredLiris/Downloads/TestTiling/Lyon";
-	//OutputPath = "C:/Users/FredLiris/Downloads/TestTiling";
+	//CityGMLPath = "D:/Donnees/Data/CityGML Grand Lyon/2012_DonneesVisibilite/Test";
+	//OutputPath = "D:/Donnees/Data/CityGML Grand Lyon/2012_DonneesVisibilite/Test2";
 
 	CPLPushErrorHandler( CPLQuietErrorHandler ); //POUR CACHER LES WARNING DE GDAL
 

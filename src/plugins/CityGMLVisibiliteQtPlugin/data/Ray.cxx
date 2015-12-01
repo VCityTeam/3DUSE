@@ -213,7 +213,7 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 	double aspect;
 	double znear;
 	double zfar;
-	cam->getProjectionMatrixAsPerspective(fovx,aspect,znear,zfar);
+	cam->getProjectionMatrixAsPerspective(fovx, aspect, znear, zfar);
 
 	if(fovx < 0)
 		fovx += 360;
@@ -224,11 +224,14 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 	float height = viewport->height();
 
 	double fovy = (height/width)*fovx;
-	
+
 	osg::Vec3d pos;
 	osg::Vec3d target;
 	osg::Vec3d up;
-	cam->getViewMatrixAsLookAt(pos,target,up);
+	cam->getViewMatrixAsLookAt(pos, target, up);
+	
+	target -= pos;
+
 	osg::Vec3d right = target ^ osg::Vec3d(0.0, 0.0, 1.0);
 	up = right ^ target;
 
@@ -238,11 +241,29 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 	{
 		osg::Vec3d RayX = Rotation(target, up, - i * fovx/width);
 		right = RayX ^ up;
-		for(int j = - height/2; j < height/2; ++j)
-		{
-			osg::Vec3d NewRay = Rotation(RayX, right, j * fovy/height);
 
-			TVec3d raydir(NewRay.x(), NewRay.y(), NewRay.z());
+		/////
+
+		TVec3d raydir(RayX.x(), RayX.y(), RayX.z());
+
+		Ray* ray = new Ray(rayori, raydir);
+		TVec2d fragCoord = TVec2d(i + width/2, height/2);
+		ray->fragCoord = fragCoord;
+		ray->collection = rays;
+		rays->rays.push_back(ray);
+
+		OGRLineString* Line = new OGRLineString;
+		Line->addPoint(rayori.x, rayori.y, rayori.z);
+		Line->addPoint(rayori.x + 1000 * raydir.x, rayori.y + 1000 * raydir.y, rayori.z + 1000 * raydir.z);
+		MLS->addGeometry(Line);
+
+		osg::Vec3d RayTemp = RayX;
+		for(int j = 1; j < height/2; ++j)//Pour faire des rotations d'angles positifs (strictement inférieur à height/2 car il nous faut exactement "height" rayons)
+		{
+			RayTemp = Rotation(RayTemp, right, fovy/height);
+			right = RayTemp ^ osg::Vec3d(0.0, 0.0, 1.0);
+
+			TVec3d raydir(RayTemp.x(), RayTemp.y(), RayTemp.z());
 
 			Ray* ray = new Ray(rayori, raydir);
 			TVec2d fragCoord = TVec2d(i + width/2, j + height/2);
@@ -255,9 +276,51 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 			Line->addPoint(rayori.x + 1000 * raydir.x, rayori.y + 1000 * raydir.y, rayori.z + 1000 * raydir.z);
 			MLS->addGeometry(Line);
 		}
+
+		right = RayX ^ up;
+		RayTemp = RayX;
+
+		for(int j = - height/2; j < 0; ++j) //Pour faire des rotations d'angles négatifs
+		{
+			RayTemp = Rotation(RayTemp, right, -fovy/height);
+			right = RayTemp ^ osg::Vec3d(0.0, 0.0, 1.0);
+
+			TVec3d raydir(RayTemp.x(), RayTemp.y(), RayTemp.z());
+
+			Ray* ray = new Ray(rayori, raydir);
+			TVec2d fragCoord = TVec2d(i + width/2, -j - 1);
+			ray->fragCoord = fragCoord;
+			ray->collection = rays;
+			rays->rays.push_back(ray);
+
+			OGRLineString* Line = new OGRLineString;
+			Line->addPoint(rayori.x, rayori.y, rayori.z);
+			Line->addPoint(rayori.x + 1000 * raydir.x, rayori.y + 1000 * raydir.y, rayori.z + 1000 * raydir.z);
+			MLS->addGeometry(Line);
+		}
+
+		/////
+
+		/*for(int j = - height/2; j < height/2; ++j)
+		{
+		osg::Vec3d NewRay = Rotation(RayX, right, j * fovy/height);
+
+		TVec3d raydir(NewRay.x(), NewRay.y(), NewRay.z());
+
+		Ray* ray = new Ray(rayori, raydir);
+		TVec2d fragCoord = TVec2d(i + width/2, j + height/2);
+		ray->fragCoord = fragCoord;
+		ray->collection = rays;
+		rays->rays.push_back(ray);
+
+		OGRLineString* Line = new OGRLineString;
+		Line->addPoint(rayori.x, rayori.y, rayori.z);
+		Line->addPoint(rayori.x + 1000 * raydir.x, rayori.y + 1000 * raydir.y, rayori.z + 1000 * raydir.z);
+		MLS->addGeometry(Line);
+		}*/
 	}
 
-	SaveGeometrytoShape("Rayons.shp", MLS);
+	//SaveGeometrytoShape("Rayons.shp", MLS);
 
 	//int a;
 	//std::cin >> a;
