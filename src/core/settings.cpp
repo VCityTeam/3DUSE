@@ -12,7 +12,9 @@ Settings::Settings()
     QSettings settings("liris", "virtualcity");
     m_loadTextures = settings.value("loadtextures").toBool();
 	m_startDate = settings.value("startDate","2000-01-01T00:00:00").toString().toStdString();
-	m_nbDays = settings.value("nbDays",366).toInt();
+	m_endDate = settings.value("endDate","2001-01-01T00:00:00").toString().toStdString();
+	m_incSize = settings.value("incSize",1).toInt();
+	m_incIsDay = settings.value("incIsDay",true).toBool();
 }
 ////////////////////////////////////////////////////////////////////////////////
 DataProfile& Settings::getDataProfile()

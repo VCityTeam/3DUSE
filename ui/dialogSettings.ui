@@ -60,8 +60,8 @@
         <rect>
          <x>10</x>
          <y>60</y>
-         <width>150</width>
-         <height>104</height>
+         <width>161</width>
+         <height>194</height>
         </rect>
        </property>
        <property name="frameShape">
@@ -76,9 +76,9 @@
          </widget>
         </item>
         <item>
-         <widget class="QDateTimeEdit" name="dateTimeEdit">
+         <widget class="QDateTimeEdit" name="dateTimeEditTempStart">
           <property name="displayFormat">
-           <string>dd/MM/yyyy</string>
+           <string>dd/MM/yyyy hh:mm:ss</string>
           </property>
           <property name="calendarPopup">
            <bool>true</bool>
@@ -93,12 +93,39 @@
          </widget>
         </item>
         <item>
-         <widget class="QDateTimeEdit" name="dateTimeEdit_2">
+         <widget class="QDateTimeEdit" name="dateTimeEditTempEnd">
           <property name="displayFormat">
-           <string>dd/MM/yyyy</string>
+           <string>dd/MM/yyyy hh:mm:ss</string>
           </property>
           <property name="calendarPopup">
            <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_13">
+          <property name="text">
+           <string>Increment</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="comboBoxTempIncr"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>Animation Step</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinBoxTempIncr">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>86400</number>
           </property>
          </widget>
         </item>

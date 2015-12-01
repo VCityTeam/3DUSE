@@ -28,7 +28,9 @@ public:
     DataProfile m_dataprofile;          ///< data profile
 
 	std::string m_startDate;
-	int m_nbDays;
+	std::string m_endDate;
+	int m_incSize;
+	bool m_incIsDay;
 
 private:
 };

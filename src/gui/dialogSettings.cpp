@@ -18,9 +18,12 @@ DialogSettings::DialogSettings(QWidget *parent) :
         ui->tabWidget->removeTab(2); // hide debug tab if not admin
     }
 
+	ui->comboBoxTempIncr->insertItem(0,QString("Days"));
+	ui->comboBoxTempIncr->insertItem(1,QString("Seconds"));
+
     connect(ui->comboBoxDataProfile, SIGNAL(activated(int)), this, SLOT(chooseDataProfileSlot(int)));
     connect(ui->pushButton, SIGNAL(clicked()), this, SLOT(choosePathSlot()));
-	connect(ui->dateTimeEdit, SIGNAL(editingFinished()),this, SLOT(setMinEndDate()));
+	connect(ui->dateTimeEditTempStart, SIGNAL(editingFinished()),this, SLOT(setMinEndDate()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::~DialogSettings()
@@ -44,9 +47,13 @@ void DialogSettings::doSettings()
     ui->checkBoxTextures->setChecked(vcity::app().getSettings().m_loadTextures);
 
 	QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
-	QDateTime endDate(startDate.addDays(appGui().getSettings().m_nbDays));
-	ui->dateTimeEdit->setDateTime(startDate);
-	ui->dateTimeEdit_2->setDateTime(endDate);
+	QDateTime endDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_endDate),Qt::ISODate);
+	ui->dateTimeEditTempStart->setDateTime(startDate);
+	ui->dateTimeEditTempEnd->setDateTime(endDate);
+	int incr = appGui().getSettings().m_incSize;
+	ui->spinBoxTempIncr->setValue(incr);
+	bool incrIsDay = appGui().getSettings().m_incIsDay;
+	ui->comboBoxTempIncr->setCurrentIndex(incrIsDay?0:1);
 
     if(exec())
     {
@@ -64,12 +71,23 @@ void DialogSettings::doSettings()
         QSettings settings("liris", "virtualcity");
         settings.setValue("loadtextures", vcity::app().getSettings().m_loadTextures);
 
-		startDate = ui->dateTimeEdit->dateTime();
-		endDate = ui->dateTimeEdit_2->dateTime();
+		//temporal settings
+		startDate = ui->dateTimeEditTempStart->dateTime();
 		vcity::app().getSettings().m_startDate = startDate.toString(Qt::ISODate).toStdString();
-		vcity::app().getSettings().m_nbDays = startDate.daysTo(endDate);
 		settings.setValue("startDate",startDate.toString(Qt::ISODate));
-		settings.setValue("nbDays",vcity::app().getSettings().m_nbDays);
+
+		endDate = ui->dateTimeEditTempEnd->dateTime();
+		vcity::app().getSettings().m_endDate = endDate.toString(Qt::ISODate).toStdString();
+		settings.setValue("endDate",endDate.toString(Qt::ISODate));
+
+		incr = ui->spinBoxTempIncr->value();
+		vcity::app().getSettings().m_incSize = incr;
+		settings.setValue("incSize",incr);
+
+		incrIsDay = ui->comboBoxTempIncr->currentIndex()==0?true:false;
+		vcity::app().getSettings().m_incIsDay = incrIsDay;
+		settings.setValue("incIsDay",incrIsDay);
+
 		appGui().getMainWindow()->initTemporalTools();
 
         // admin
@@ -142,9 +160,9 @@ void DialogSettings::setDataProfileFromUI(vcity::DataProfile& dp)
 ////////////////////////////////////////////////////////////////////////////////
 void DialogSettings::setMinEndDate()
 {
-	QDateTime startDate = ui->dateTimeEdit->dateTime();
-	if(startDate>ui->dateTimeEdit_2->dateTime()) ui->dateTimeEdit_2->setDateTime(startDate);
-	ui->dateTimeEdit_2->setMinimumDateTime(startDate);
+	QDateTime startDate = ui->dateTimeEditTempStart->dateTime();
+	if(startDate>ui->dateTimeEditTempEnd->dateTime()) ui->dateTimeEditTempEnd->setDateTime(startDate);
+	ui->dateTimeEditTempEnd->setMinimumDateTime(startDate);
 
 }
 ////////////////////////////////////////////////////////////////////////////////
