@@ -21,6 +21,7 @@
 #include <osg/TexMat>
 #include <osg/Depth>
 #include <osg/LightModel>
+#include <osg/ValueObject>
 
 #include <osgText/Font>
 #include <osgText/Text>
@@ -435,22 +436,9 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
         grp->setUserValue("yearOfDemolition", yearOfDemolition);
     }
 	strAttr = object->getAttribute("creationDate");
-	if(!strAttr.empty())
-	{
-		// creationDate and terminationDate are xs:date (yyyy-MM-dd), need to transform them into integers to use setUserValue
-		strAttr.erase(7,1); //yyyy-MM-dd -> yyyy-MMdd
-		strAttr.erase(4,1); //yyyy-MMdd -> yyyyMMdd
-		grp->setUserValue("creationDate", std::stoi(strAttr));
-		//std::cout<<"creationDate: "<<std::stoi(strAttr)<<std::endl;
-	}
+	if(!strAttr.empty()) grp->setUserValue("creationDate", strAttr);
 	strAttr = object->getAttribute("terminationDate");
-	if(!strAttr.empty())
-	{
-		strAttr.erase(7,1);//yyyy-MM-dd -> yyyy-MMdd
-		strAttr.erase(4,1);//yyyy-MMdd -> yyyyMMdd
-		grp->setUserValue("terminationDate", std::stoi(strAttr));
-	}
-	
+	if(!strAttr.empty()) grp->setUserValue("terminationDate", strAttr);	
 
     //std::cout << "build osg geom ok" << std::endl;
     return grp;
