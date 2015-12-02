@@ -42,18 +42,33 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 	time.start();
 
 	unsigned int tCount = std::thread::hardware_concurrency() - 1;//Get how many thread we have
-	unsigned int rayPerThread = rays.size() / tCount;
+	unsigned int rayPerThread = rays.size() / tCount + tCount;
+
+	std::cout << rays.size() << " " << tCount << " " << rayPerThread << std::endl;
+	std::cout << "Thread : " << tCount << std::endl;
+	std::cout << "Ray count : " << rays.size() << std::endl;
 
 	//List of rays and their frag coord
 	std::vector<Ray*>* toDo = new std::vector<Ray*>[tCount];//List of rays for each threads
 
-	for(unsigned int i = 0; i < tCount; i++)
+	int cpt = 0;
+	int NumThread = 0;
+	for(int i = 0; i < rays.size(); ++i)
 	{
-		toDo[i].insert(toDo[i].begin(),rays.begin()+i*rayPerThread,rays.begin()+(i+1)*rayPerThread);
+		toDo[NumThread].push_back(rays.at(i));
+		++cpt;
+
+		if(cpt == rayPerThread)
+		{
+			cpt = 0;
+			++NumThread;
+		}
 	}
 
-	std::cout << "Thread : " << tCount << std::endl;
-	std::cout << "Ray count : " << rays.size() << std::endl;
+	/*for(unsigned int i = 0; i < tCount; i++)
+	{
+		toDo[i].insert(toDo[i].begin(),rays.begin()+i*rayPerThread,rays.begin() + std::min((i+1)*rayPerThread, (unsigned int)rays.size()-1));
+	}*/
 
 	std::vector<std::thread*> threads;//Our thread list
 
