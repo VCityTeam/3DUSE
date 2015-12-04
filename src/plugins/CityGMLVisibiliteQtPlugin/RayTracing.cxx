@@ -44,7 +44,7 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 	unsigned int tCount = std::thread::hardware_concurrency() - 1;//Get how many thread we have
 	unsigned int rayPerThread = rays.size() / tCount + tCount;
 
-	std::cout << rays.size() << " " << tCount << " " << rayPerThread << std::endl;
+	//std::cout << rays.size() << " " << tCount << " " << rayPerThread << std::endl;
 	std::cout << "Thread : " << tCount << std::endl;
 	std::cout << "Ray count : " << rays.size() << std::endl;
 

@@ -457,10 +457,13 @@ void ExportData(std::string dirTile, ViewPoint* viewpoint, std::string filePrefi
 TVec3d SkyShadeBlue(TVec3d d, TVec3d light)
 {
 	// light direction
-	TVec3d lig = light;
+	/*TVec3d lig = light;
 	float sun = (lig.dot(d)+1.0)/2.0;
 	TVec3d color = TVec3d(0.35,0.45,0.75)*(0.75-0.5*d[2]);
-	color = color + TVec3d(0.65,0.6,0.55)*pow( sun, 8.0 );
+	color = color + TVec3d(0.65,0.6,0.55)*pow( sun, 8.0 );*/
+
+	TVec3d color(0.0, 0.0, 0.2);
+
 	return color;
 }
 

@@ -53,8 +53,8 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
 			(obj->getType() == citygml::COT_TINRelief  && objectType == citygml::COT_TINRelief) || 
 			(obj->getType() == citygml::COT_WaterBody  && objectType == citygml::COT_WaterBody))
 		{
-
 			for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque géométrie
+			{
 				for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
 				{
 					//Get triangle list
@@ -76,6 +76,7 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
 						triangles.push_back(t);
 					}
 				}
+			}
 		}
 	}
 

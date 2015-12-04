@@ -62,7 +62,7 @@ std::vector<AABB> DoLoadAABB(std::string path)
 		ifs.getline(line,256);maxy = atof(line);
 		ifs.getline(line,256);maxz = atof(line);
 
-		if(minx < maxx && miny < maxy && minz < maxz)
+		if(minx < maxx && miny < maxy && minz <= maxz)
 		{
 			box.min = TVec3d(minx,miny,minz);
 			box.max = TVec3d(maxx,maxy,maxz);
