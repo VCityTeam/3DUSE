@@ -4,6 +4,7 @@
 #define DIALOGSETTINGS_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include <qdatetime.h>
 #include "core/dataprofile.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
@@ -23,6 +24,7 @@ public:
 private slots:
     void choosePathSlot();
     void chooseDataProfileSlot(int i);
+	void setMinEndDate();
 
 private:
     void setFromDataProfile(const vcity::DataProfile& dp);

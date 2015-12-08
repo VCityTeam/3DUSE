@@ -352,6 +352,8 @@ namespace citygml
 
 		void* _geoTransform;
 
+		bool _useXLink;
+
         // temporal ext
         CityObjectState* m_currentState;
         CityObjectDynState* m_currentDynState;

@@ -3477,37 +3477,37 @@
   <temp:Version gml:id="v0">
     <temp:tag>Version 0</temp:tag>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg1-0']"/>
+      <bldg:Building xlink:href="#bldg_bldg1-0"/>
     </temp:versionMember>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg2-0']"/>
+      <bldg:Building xlink:href="#bldg_bldg2-0"/>
     </temp:versionMember>    
   </temp:Version>
   <temp:Version gml:id="v1a">
     <temp:tag>Version 1a</temp:tag>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg1-1']"/>
+      <bldg:Building xlink:href="#bldg_bldg1-1"/>
     </temp:versionMember>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg2-1']"/>
+      <bldg:Building xlink:href="#bldg_bldg2-1"/>
     </temp:versionMember>    
   </temp:Version> 
   <temp:Version gml:id="v1b">
     <temp:tag>Version 1b</temp:tag>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg1-1b']"/>
+      <bldg:Building xlink:href="#bldg_bldg1-1b"/>
     </temp:versionMember>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg2-1b']"/>
+      <bldg:Building xlink:href="#bldg_bldg2-1b"/>
     </temp:versionMember>    
   </temp:Version>
   <temp:Version gml:id="v2">
     <temp:tag>Version 2</temp:tag>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg1-2']"/>
+      <bldg:Building xlink:href="#bldg_bldg1-2"/>
     </temp:versionMember>
     <temp:versionMember>
-      <bldg:Building xlink:href="//*[@id='bldg_bldg2-2']"/>
+      <bldg:Building xlink:href="#bldg_bldg2-2"/>
     </temp:versionMember>    
   </temp:Version> 
 
@@ -3515,20 +3515,20 @@
     <temp:clonePredecessor>false</temp:clonePredecessor>
     <temp:type>fork</temp:type>
     <temp:from>
-      <temp:Version xlink:href="//*[@id='v0']"/>
+      <temp:Version xlink:href="#v0"/>
     </temp:from>
     <temp:to>
-      <temp:Version xlink:href="//*[@id='v1a']"/>
+      <temp:Version xlink:href="#v1a"/>
     </temp:to>
   </temp:VersionTransition>
 
     <temp:VersionTransition gml:id="vt_1a-1b">
     <temp:clonePredecessor>false</temp:clonePredecessor>
     <temp:from>
-      <temp:Version xlink:href="//*[@id='v1a']"/>
+      <temp:Version xlink:href="#v1a"/>
     </temp:from>
     <temp:to>
-      <temp:Version xlink:href="//*[@id='v1b']"/>
+      <temp:Version xlink:href="#v1b"/>
     </temp:to>
   </temp:VersionTransition>   
 
@@ -3536,10 +3536,10 @@
     <temp:clonePredecessor>false</temp:clonePredecessor>
     <temp:type>fork</temp:type>
     <temp:from>
-      <temp:Version xlink:href="//*[@id='v0']"/>
+      <temp:Version xlink:href="#v0"/>
     </temp:from>
     <temp:to>
-      <temp:Version xlink:href="//*[@id='v2']"/>
+      <temp:Version xlink:href="#v2"/>
     </temp:to>
   </temp:VersionTransition> 
 
