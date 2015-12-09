@@ -993,52 +993,55 @@ void MainWindow::exportCityGML()
 		{
 			uri.resetCursor();
 			std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
-			const citygml::CityObject* object = m_app.getScene().getCityObjectNode(uri); // use getNode
 
-			if(object) objs.push_back(object);
-			for(citygml::CityObject* object : object->getChildren())
+			if(uri.getType() == "Building")
 			{
-				for(citygml::Geometry* Geometry : object->getGeometries())
+				const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
+				if(obj) objs.push_back(obj);
+
+				for(citygml::CityObject* object : obj->getChildren())
 				{
-					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+					for(citygml::Geometry* Geometry : object->getGeometries())
 					{
-						if(PolygonCityGML->getTexture() == nullptr)
+						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 						{
-							continue;
-						}
-
-						//Remplissage de ListTextures
-						std::string Url = PolygonCityGML->getTexture()->getUrl();
-						citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
-
-						TexturePolygonCityGML Poly;
-						Poly.Id = PolygonCityGML->getId();
-						Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
-						Poly.TexUV = PolygonCityGML->getTexCoords();
-
-						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-						for(TextureCityGML* Tex: TexturesList)
-						{
-							if(Tex->Url == Url)
+							if(PolygonCityGML->getTexture() == nullptr)
 							{
-								URLTest = true;
-								Tex->ListPolygons.push_back(Poly);
-								break;
+								continue;
 							}
-						}
-						if(!URLTest)
-						{
-							TextureCityGML* Texture = new TextureCityGML;
-							Texture->Wrap = WrapMode;
-							Texture->Url = Url;
-							Texture->ListPolygons.push_back(Poly);
-							TexturesList.push_back(Texture);
+
+							//Remplissage de ListTextures
+							std::string Url = PolygonCityGML->getTexture()->getUrl();
+							citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+							TexturePolygonCityGML Poly;
+							Poly.Id = PolygonCityGML->getId();
+							Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+							Poly.TexUV = PolygonCityGML->getTexCoords();
+
+							bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+							for(TextureCityGML* Tex: TexturesList)
+							{
+								if(Tex->Url == Url)
+								{
+									URLTest = true;
+									Tex->ListPolygons.push_back(Poly);
+									break;
+								}
+							}
+							if(!URLTest)
+							{
+								TextureCityGML* Texture = new TextureCityGML;
+								Texture->Wrap = WrapMode;
+								Texture->Url = Url;
+								Texture->ListPolygons.push_back(Poly);
+								TexturesList.push_back(Texture);
+							}
 						}
 					}
 				}
 			}
-
-			if(uri.getType() == "Tile")
+			else if(uri.getType() == "Tile")
 			{
 				citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
 				for(const citygml::CityObject* obj : model->getCityObjectsRoots())
@@ -1088,7 +1091,7 @@ void MainWindow::exportCityGML()
 					}
 				}
 			}
-			if(uri.getType() == "LayerCityGML")
+			else if(uri.getType() == "LayerCityGML")
 			{
 				vcity::LayerCityGML* layer = static_cast<vcity::LayerCityGML*>(m_app.getScene().getLayer(uri));
 
@@ -3070,7 +3073,7 @@ void MainWindow::test2() //Génération de stats pour étude de visibilité
 					//LS->addPoint(Point2);
 					//MLS->addGeometryDirectly(LS);
 					delete Point2;
-					
+
 				}
 				if(DistMin == 100000)
 				{
