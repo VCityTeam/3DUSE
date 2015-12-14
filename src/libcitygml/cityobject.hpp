@@ -61,6 +61,7 @@ enum CityObjectsType {
     COT_FloorSurface                = 1 << 27,
     COT_InteriorWallSurface         = 1 << 28,
     COT_CeilingSurface              = 1 << 29,
+	COT_WaterSurface                = 1 << 30,
 
     COT_All                         = 0xFFFFFFFF
 };
@@ -168,6 +169,7 @@ public:
 
 //protected:
     void finish( AppearanceManager&, const ParserParams& );
+
 
 protected:
     CityObjectsType _type;

@@ -140,6 +140,7 @@ namespace citygml
 
 		// wtr
 		NODETYPE( WaterBody ),
+		NODETYPE( WaterSurface ),
 
 		// veg
 		NODETYPE( PlantCover ),

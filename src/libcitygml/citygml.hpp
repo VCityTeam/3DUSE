@@ -98,6 +98,8 @@ LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& pa
 
 	DECLARE_SIMPLE_OBJECT_CLASS( CeilingSurface, MAKE_RGB( 186, 184, 135 ) );
 
+	DECLARE_SIMPLE_OBJECT_CLASS( WaterSurface, MAKE_RGB( 186, 184, 135 ) );
+
     //DECLARE_SIMPLE_OBJECT_CLASS( TrafficArea, MAKE_RGB( 159, 159, 159 ) );
 ////////////////////////////////////////////////////////////////////////////////
 class LandUse : public CityObject

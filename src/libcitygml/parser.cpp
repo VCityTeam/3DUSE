@@ -158,6 +158,7 @@ void CityGMLHandler::initNodes( void )
 
 	// wtr
 	INSERTNODETYPE( WaterBody );
+	INSERTNODETYPE( WaterSurface );
 
 	// veg
 	INSERTNODETYPE( PlantCover );
@@ -457,6 +458,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 #undef MANAGE_OBJECT
 
 		// BoundarySurfaceType
+
 #define MANAGE_SURFACETYPE( _t_ )\
     case CG_ ## _t_ ## Surface :\
         _currentGeometryType = GT_ ## _t_;\
@@ -520,6 +522,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		MANAGE_SURFACETYPE( Floor );
 		MANAGE_SURFACETYPE( InteriorWall );
 		MANAGE_SURFACETYPE( Ceiling );
+		MANAGE_SURFACETYPE( Water );
 #undef MANAGE_SURFACETYPE
 
 		// Geometry management
@@ -733,6 +736,7 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( FloorSurface ):
 	case NODETYPE( InteriorWallSurface ):
 	case NODETYPE( CeilingSurface ):
+	case NODETYPE( WaterSurface ):
 		MODEL_FILTER();
 		if ( _currentCityObject && ( _currentCityObject->size() > 0 || _currentCityObject->getChildCount() > 0 || !_params.pruneEmptyObjects ) ) 
         {	// Prune empty objects
@@ -1070,7 +1074,6 @@ void CityGMLHandler::endElement( const std::string& name )
 			if ( pos != std::string::npos )
 			{
 				std::string nspace = name.substr( 0, pos );
-				
 				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;

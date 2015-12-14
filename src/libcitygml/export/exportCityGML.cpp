@@ -239,6 +239,8 @@ namespace citygml
 		case citygml::GT_Ceiling:
 			return exportGeometryGenericXml(geom, "bldg:Ceiling", parent);
 			break;
+		case citygml::GT_Water:
+			return exportGeometryGenericXml(geom, "bldg:Water", parent);
 		default:
 			break;
 		}
@@ -253,7 +255,8 @@ namespace citygml
 			xmlNodePtr res;
 			if (isSurface) 
 			{
-				xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST "bldg:boundedBy", NULL);
+				std::string ns = nodeType.substr(0,nodeType.find_first_of(":"));
+				xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST (ns+":boundedBy").c_str(), NULL);
 				res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
 			} 
 			else res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
@@ -263,7 +266,8 @@ namespace citygml
 		}
         if(isSurface)
         {
-            xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST "bldg:boundedBy", NULL);// Ajouté car présent dans les CityGML de Lyon et Paris
+			std::string ns = nodeType.substr(0,nodeType.find_first_of(":"));
+			xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST (ns+":boundedBy").c_str(), NULL);// Ajouté car présent dans les CityGML de Lyon et Paris
 
             xmlNodePtr res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
             xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
@@ -501,6 +505,9 @@ namespace citygml
 		case citygml::COT_CeilingSurface:
             res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent, true);
 			break;
+		case citygml::COT_WaterSurface:
+            res = exportCityObjetGenericXml(obj, "wtr:WaterSurface", parent, true);
+			break;
 		default:
 			break;
 		}
@@ -555,6 +562,7 @@ namespace citygml
 			}
 		}
 
+
 		// build apperance node for current node
 		if(rootLevel)
 		{
@@ -564,9 +572,17 @@ namespace citygml
 		xmlNodePtr node;
 		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
 		{
-			xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"MultiSurface").c_str(), NULL);
-			node = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
-			xmlNewProp(node, BAD_CAST "srsDimension", BAD_CAST "3");
+			if (obj.getType() == COT_WaterSurface)
+			{
+				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("wtr:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"Surface").c_str(), NULL);
+				node = xmlNewChild(node1, NULL, BAD_CAST "gml:CompositeSurface", NULL);
+			}
+			else
+			{
+				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"MultiSurface").c_str(), NULL);
+				node = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
+				xmlNewProp(node, BAD_CAST "srsDimension", BAD_CAST "3");
+			}
 		}
 
 		for(const auto& geom : obj.getGeometries())

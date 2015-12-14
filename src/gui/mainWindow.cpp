@@ -1008,6 +1008,247 @@ void MainWindow::toggleUseTemporal()
 	//std::cout << "toggle temporal tool" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::exportCityGML() //	FONCTION CORRIGEE PAR FRED (CAUSAIT BUG A L'EXPORT)
+{
+	m_osgView->setActive(false);
+
+	QString filename = QFileDialog::getSaveFileName();
+
+	citygml::ExporterCityGML exporter(filename.toStdString());
+
+	// check temporal params
+	if(m_useTemporal)
+	{
+		exporter.setTemporalExport(true);
+		exporter.setDate(m_ui->dateTimeEdit->dateTime());
+	}
+
+	// check if something is picked
+	const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
+	if(uris.size() > 0)
+	{
+		//std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
+		std::vector<const citygml::CityObject*> objs;
+		std::vector<TextureCityGML*> TexturesList;
+
+		for(const vcity::URI& uri : uris)
+		{
+			uri.resetCursor();
+			std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
+
+			if(uri.getType() == "Building")
+			{
+				const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
+				if(obj) objs.push_back(obj);
+
+				for(citygml::CityObject* object : obj->getChildren())
+				{
+					for(citygml::Geometry* Geometry : object->getGeometries())
+					{
+						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+						{
+							if(PolygonCityGML->getTexture() == nullptr)
+							{
+								continue;
+							}
+
+							//Remplissage de ListTextures
+							std::string Url = PolygonCityGML->getTexture()->getUrl();
+							citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+							TexturePolygonCityGML Poly;
+							Poly.Id = PolygonCityGML->getId();
+							Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+							Poly.TexUV = PolygonCityGML->getTexCoords();
+
+							bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+							for(TextureCityGML* Tex: TexturesList)
+							{
+								if(Tex->Url == Url)
+								{
+									URLTest = true;
+									Tex->ListPolygons.push_back(Poly);
+									break;
+								}
+							}
+							if(!URLTest)
+							{
+								TextureCityGML* Texture = new TextureCityGML;
+								Texture->Wrap = WrapMode;
+								Texture->Url = Url;
+								Texture->ListPolygons.push_back(Poly);
+								TexturesList.push_back(Texture);
+							}
+						}
+					}
+				}
+			}
+			else if(uri.getType() == "Tile")
+			{
+				citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
+				for(const citygml::CityObject* obj : model->getCityObjectsRoots())
+				{
+					objs.push_back(obj);
+
+					for(citygml::CityObject* object : obj->getChildren())
+					{
+						for(citygml::Geometry* Geometry : object->getGeometries())
+						{
+							for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+							{
+								if(PolygonCityGML->getTexture() == nullptr)
+								{
+									continue;
+								}
+
+								//Remplissage de ListTextures
+								std::string Url = PolygonCityGML->getTexture()->getUrl();
+								citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+								TexturePolygonCityGML Poly;
+								Poly.Id = PolygonCityGML->getId();
+								Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+								Poly.TexUV = PolygonCityGML->getTexCoords();
+
+								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+								for(TextureCityGML* Tex: TexturesList)
+								{
+									if(Tex->Url == Url)
+									{
+										URLTest = true;
+										Tex->ListPolygons.push_back(Poly);
+										break;
+									}
+								}
+								if(!URLTest)
+								{
+									TextureCityGML* Texture = new TextureCityGML;
+									Texture->Wrap = WrapMode;
+									Texture->Url = Url;
+									Texture->ListPolygons.push_back(Poly);
+									TexturesList.push_back(Texture);
+								}
+							}
+						}
+					}
+				}
+			}
+			else if(uri.getType() == "LayerCityGML")
+			{
+				vcity::LayerCityGML* layer = static_cast<vcity::LayerCityGML*>(m_app.getScene().getLayer(uri));
+
+				for(vcity::Tile* tile : layer->getTiles())
+				{
+					for(const citygml::CityObject* obj : tile->getCityModel()->getCityObjectsRoots())
+					{
+						objs.push_back(obj);
+						for(citygml::CityObject* object : obj->getChildren())
+						{
+							for(citygml::Geometry* Geometry : object->getGeometries())
+							{
+								for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+								{
+									if(PolygonCityGML->getTexture() == nullptr)
+										continue;
+
+									//Remplissage de ListTextures
+									std::string Url = PolygonCityGML->getTexture()->getUrl();
+									citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+									TexturePolygonCityGML Poly;
+									Poly.Id = PolygonCityGML->getId();
+									Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+									Poly.TexUV = PolygonCityGML->getTexCoords();
+
+									bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+									for(TextureCityGML* Tex: TexturesList)
+									{
+										if(Tex->Url == Url)
+										{
+											URLTest = true;
+											Tex->ListPolygons.push_back(Poly);
+											break;
+										}
+									}
+									if(!URLTest)
+									{
+										TextureCityGML* Texture = new TextureCityGML;
+										Texture->Wrap = WrapMode;
+										Texture->Url = Url;
+										Texture->ListPolygons.push_back(Poly);
+										TexturesList.push_back(Texture);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			uri.resetCursor();
+		}
+		//exporter.exportCityObject(objs);
+		exporter.exportCityObjectWithListTextures(objs, &TexturesList);
+	}
+	else
+	{
+		std::cout << "Citygml export citymodel" << std::endl;
+		// use first tile
+		vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+		citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+
+		std::vector<TextureCityGML*> TexturesList;
+
+		for(citygml::CityObject* obj : model->getCityObjectsRoots())
+		{
+			for(citygml::CityObject* object : obj->getChildren())
+			{
+				for(citygml::Geometry* Geometry : object->getGeometries())
+				{
+					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+					{
+						if(PolygonCityGML->getTexture() == nullptr)
+							continue;
+
+						//Remplissage de ListTextures
+						std::string Url = PolygonCityGML->getTexture()->getUrl();
+						citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+						TexturePolygonCityGML Poly;
+						Poly.Id = PolygonCityGML->getId();
+						Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+						Poly.TexUV = PolygonCityGML->getTexCoords();
+
+						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+						for(TextureCityGML* Tex: TexturesList)
+						{
+							if(Tex->Url == Url)
+							{
+								URLTest = true;
+								Tex->ListPolygons.push_back(Poly);
+								break;
+							}
+						}
+						if(!URLTest)
+						{
+							TextureCityGML* Texture = new TextureCityGML;
+							Texture->Wrap = WrapMode;
+							Texture->Url = Url;
+							Texture->ListPolygons.push_back(Poly);
+							TexturesList.push_back(Texture);
+						}
+					}
+				}
+			}
+		}
+
+		//exporter.exportCityModel(*model);
+		exporter.exportCityModelWithListTextures(*model, &TexturesList);
+	}
+
+	m_osgView->setActive(true);
+}
+////////////////////////////////////////////////////////////////////////////////
+#if 0
 void MainWindow::exportCityGML()
 {
 	m_osgView->setActive(false);
@@ -1244,6 +1485,7 @@ void MainWindow::exportCityGML()
 
 	m_osgView->setActive(true);
 }
+#endif
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportOsg()
 {
