@@ -117,7 +117,7 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 			pas_y = pas_x;						// pas en y
 		}
 		r = fscanf( fp, "%s", chaine );
-		if( strcmp( chaine, "NODATA_value" ) == 0 )
+		if( strcmp( chaine, "NODATA_value" ) == 0 || strcmp( chaine, "nodata_value" ) == 0 )
 		{
 			r = fscanf( fp, "%d", &NODATA_value );			// NODATA_value
 			printf("NODATA_value: %d\n", NODATA_value);

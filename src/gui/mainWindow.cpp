@@ -23,6 +23,7 @@
 #include "export/exportOBJ.hpp"
 
 #include "import/importerAssimp.hpp"
+#include "import/importerASC.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
@@ -3177,37 +3178,38 @@ void MainWindow::test4()
 	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
 	
-	std::cout<<std::endl;
-	vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-	citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-	std::vector<temporal::Version*> versions = model->getVersions();
-	for (temporal::Version* version : versions)
-	{
-		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-		{
-			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-		}
-	}
-	std::cout<<std::endl;
-	std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-	for (temporal::VersionTransition* transition : transitions)
-	{
-		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-	}
-	std::cout<<std::endl;
+	//std::cout<<std::endl;
+	//vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+	//citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+	//std::vector<temporal::Version*> versions = model->getVersions();
+	//for (temporal::Version* version : versions)
+	//{
+	//	std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+	//	std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+	//	for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+	//	{
+	//		std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+	//	}
+	//}
+	//std::cout<<std::endl;
+	//std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+	//for (temporal::VersionTransition* transition : transitions)
+	//{
+	//	std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+	//	std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+	//	std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+	//}
+	//std::cout<<std::endl;
 
-	std::cout<<"Workspaces:"<<std::endl;
-	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-		std::cout<<it->second.name<<std::endl;
-		for(temporal::Version* v : it->second.versions){
-			std::cout<<"    - "<<v->getId()<<std::endl;
-		}
-	}
+	//std::cout<<"Workspaces:"<<std::endl;
+	//std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+	//for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+	//	std::cout<<it->second.name<<std::endl;
+	//	for(temporal::Version* v : it->second.versions){
+	//		std::cout<<"    - "<<v->getId()<<std::endl;
+	//	}
+	//}
+	slotMNTtoCityGML();
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
@@ -3314,3 +3316,34 @@ void MainWindow::loadShpFile(const QString& filepath)
 
 	//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotMNTtoCityGML()
+{
+	m_osgView->setActive(false);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert MNT to CityGML");
+
+	for(int i = 0; i < filenames.count(); ++i)
+	{
+		citygml::CityModel* model;
+		QFileInfo file(filenames[i]);
+		QString ext = file.suffix().toLower();
+		if (ext=="asc")
+		{
+			MNT mnt;
+			if (mnt.charge(filenames[i].toStdString().c_str(), "ASC"))
+			{
+				citygml::ImporterASC* importer = new citygml::ImporterASC();
+				model = importer->reliefToCityGML(mnt);
+				delete importer;
+			}
+
+		}
+		std::cout<<"Export ..."<<std::endl;
+		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+		exporter.exportCityModel(*model);
+		std::cout<<"Export OK"<<std::endl;
+		delete model;
+	}
+	m_osgView->setActive(true);
+}
+

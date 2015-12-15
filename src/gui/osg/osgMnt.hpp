@@ -28,6 +28,9 @@ public :
 	int  get_dim_y()  { return dim_y; }
 	float get_x_noeud_NO() { return x_noeud_NO; }
 	float get_y_noeud_NO() { return y_noeud_NO; }
+	float get_pas_x() {return pas_x;}
+	float get_pas_y() {return pas_y;}
+	int get_nodata() {return NODATA_value;}
 
 private:
 	char	nom_chantier[500];
