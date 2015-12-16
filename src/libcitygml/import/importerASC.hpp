@@ -14,7 +14,8 @@ public:
 	ImporterASC(void);
 	~ImporterASC(void);
 	
-	CityModel* reliefToCityGML(MNT);
+	CityModel* reliefToCityGML(MNT*);
+	CityModel* waterToCityGML(MNT*);
 };
 
 } //namespace citygml

@@ -3333,10 +3333,9 @@ void MainWindow::slotMNTtoCityGML()
 			if (mnt.charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
 				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				model = importer->reliefToCityGML(mnt);
+				model = importer->waterToCityGML(&mnt);
 				delete importer;
 			}
-
 		}
 		std::cout<<"Export ..."<<std::endl;
 		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());

@@ -119,8 +119,8 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "NODATA_value" ) == 0 || strcmp( chaine, "nodata_value" ) == 0 )
 		{
-			r = fscanf( fp, "%d", &NODATA_value );			// NODATA_value
-			printf("NODATA_value: %d\n", NODATA_value);
+			r = fscanf( fp, "%f", &NODATA_value );			// NODATA_value
+			printf("NODATA_value: %f\n", NODATA_value);
 		}
 		else
 		{
@@ -146,9 +146,11 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 	{
 		for( int x=0; x<dim_x; x++ )
 		{
-			r = fscanf( fp, "%d", &altitudes[offset] );
+			float a = NODATA_value;
+			r = fscanf( fp, "%f", &a );
+			altitudes[offset] = (int) a;
 			normales[offset] = osg::Vec3(0.0, 0.0, 0.0);
-
+			//printf("%d \n", altitudes[offset]);
 			offset++;
 		}
 		printf( "Chargement (%d%%)\r", (int)(y*100.0/dim_y) );

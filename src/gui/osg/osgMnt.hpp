@@ -42,7 +42,7 @@ private:
 	char	unites_z[20];
 	float	precision_z;
 
-	int		NODATA_value;
+	float		NODATA_value;
 
 	int		*altitudes;
 	bool	mnt_charge;
