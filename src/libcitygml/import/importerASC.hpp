@@ -16,6 +16,8 @@ public:
 	
 	CityModel* reliefToCityGML(MNT*);
 	CityModel* waterToCityGML(MNT*);
+protected:
+	Geometry* generateTriangles( MNT* );
 };
 
 } //namespace citygml

@@ -154,6 +154,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
 	connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
+	connect(m_ui->actionASC_To_CityGML_Water, SIGNAL(triggered()), this, SLOT(slotWatertoCityGML()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
@@ -3178,38 +3179,37 @@ void MainWindow::test4()
 	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
 	
-	//std::cout<<std::endl;
-	//vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-	//citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-	//std::vector<temporal::Version*> versions = model->getVersions();
-	//for (temporal::Version* version : versions)
-	//{
-	//	std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-	//	std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-	//	for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-	//	{
-	//		std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-	//	}
-	//}
-	//std::cout<<std::endl;
-	//std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-	//for (temporal::VersionTransition* transition : transitions)
-	//{
-	//	std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-	//	std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-	//	std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-	//}
-	//std::cout<<std::endl;
+	std::cout<<std::endl;
+	vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+	citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+	std::vector<temporal::Version*> versions = model->getVersions();
+	for (temporal::Version* version : versions)
+	{
+		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		{
+			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+		}
+	}
+	std::cout<<std::endl;
+	std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+	for (temporal::VersionTransition* transition : transitions)
+	{
+		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+	}
+	std::cout<<std::endl;
 
-	//std::cout<<"Workspaces:"<<std::endl;
-	//std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-	//for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-	//	std::cout<<it->second.name<<std::endl;
-	//	for(temporal::Version* v : it->second.versions){
-	//		std::cout<<"    - "<<v->getId()<<std::endl;
-	//	}
-	//}
-	slotMNTtoCityGML();
+	std::cout<<"Workspaces:"<<std::endl;
+	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+		std::cout<<it->second.name<<std::endl;
+		for(temporal::Version* v : it->second.versions){
+			std::cout<<"    - "<<v->getId()<<std::endl;
+		}
+	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
@@ -3317,10 +3317,10 @@ void MainWindow::loadShpFile(const QString& filepath)
 	//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotMNTtoCityGML()
+void MainWindow::slotWatertoCityGML()
 {
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert MNT to CityGML");
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC water to CityGML");
 
 	for(int i = 0; i < filenames.count(); ++i)
 	{
@@ -3329,18 +3329,22 @@ void MainWindow::slotMNTtoCityGML()
 		QString ext = file.suffix().toLower();
 		if (ext=="asc")
 		{
+			//lecture du fichier
 			MNT mnt;
 			if (mnt.charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
+				//conversion en structure CityGML
 				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				model = importer->waterToCityGML(&mnt);
+				//model = importer->waterToCityGML(&mnt);
+				model = importer->reliefToCityGML(&mnt); // pour tester le relief
 				delete importer;
 			}
 		}
-		std::cout<<"Export ..."<<std::endl;
+		//export en CityGML
+		std::cout<<"Export ...";
 		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
 		exporter.exportCityModel(*model);
-		std::cout<<"Export OK"<<std::endl;
+		std::cout<<"OK!"<<std::endl;
 		delete model;
 	}
 	m_osgView->setActive(true);

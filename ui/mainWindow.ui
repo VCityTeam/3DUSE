@@ -362,6 +362,7 @@
     <addaction name="actionFix_building"/>
     <addaction name="actionCityGML_cut"/>
     <addaction name="actionOBJ_to_CityGML"/>
+    <addaction name="actionASC_To_CityGML_Water"/>
     <addaction name="separator"/>
     <addaction name="actionChange_Detection"/>
     <addaction name="separator"/>
@@ -822,6 +823,11 @@
   <action name="actionCut_MNT_with_Shapefile">
    <property name="text">
     <string>Cut MNT with Shapefile</string>
+   </property>
+  </action>
+  <action name="actionASC_To_CityGML_Water">
+   <property name="text">
+    <string>Convert ASC to CityGML Water</string>
    </property>
   </action>
  </widget>
