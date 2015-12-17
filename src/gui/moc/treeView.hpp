@@ -64,6 +64,9 @@ public:
 	void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     void addShpNode(const vcity::URI& uriLayer, const std::string& nodeName);
 
+	QTreeWidgetItem* addVersion(QTreeWidgetItem* parent, const std::string& name);
+	QTreeWidgetItem* addWorkspace(QTreeWidgetItem* parent, const std::string& name);
+
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 
     /// \brief selectItem Select item in treeview

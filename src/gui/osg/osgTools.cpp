@@ -3,6 +3,7 @@
 #include "osgTools.hpp"
 #include <osg/Geometry>
 #include <iostream>
+#include <osg/ValueObject>
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
 {
@@ -47,6 +48,8 @@ osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
 ////////////////////////////////////////////////////////////////////////////////
 vcity::URI osgTools::getURI(osg::Node* node)
 {
+	std::string strType;
+
     osg::Node* parent = node;
     vcity::URI uri;// = node->getName();
     uri.append(node->getName());
@@ -55,8 +58,23 @@ vcity::URI osgTools::getURI(osg::Node* node)
     {
         if(parent->getName() == "layers")
             break;
+
+		strType = "";
+		bool bType = parent->getUserValue("type", strType);
+ 		if (bType)
+		{			
+			if (strType=="Workspace")
+			{
+				//std::cout << "---> WORKSPACE " << std::endl;
+			}
+			if (strType=="Version")
+			{
+				//std::cout << "---> VERSION " << std::endl;
+			}
+		}
+
         //URI.insert(0, parent->getName());
-        uri.prepend(parent->getName());
+        uri.prepend(parent->getName(), strType);
     }
 
     return uri;

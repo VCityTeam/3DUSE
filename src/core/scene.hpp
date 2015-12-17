@@ -85,7 +85,7 @@ public:
     /// \brief getCityObjectNode Get a CityGML node
     /// \param uri URI pointing to the CityGML node
     /// \return Ptr to CityGML node or nullptr
-    citygml::CityObject* getCityObjectNode(const URI& uri);
+    citygml::CityObject* getCityObjectNode(const URI& uri, bool inPickingMode=false);
 
     /// \brief deleteNode Delete a CityGML node
     /// \param uri URI pointing to the CityGML node

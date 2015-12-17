@@ -84,7 +84,7 @@ public:
     void addCityObject( CityObject* o );
 
     /// Get node by uri
-	CityObject* getNode(const vcity::URI& uri);
+	CityObject* getNode(const vcity::URI& uri, bool inPickingMode=false);
 
     /// Get node by name
     CityObject* getNodeById(const std::string& id);
@@ -94,10 +94,12 @@ public:
     std::string m_basePath;
 
 	void setVersions(std::vector<temporal::Version*>,std::vector<temporal::VersionTransition*>);
+	const std::vector<temporal::Version*> getVersions() const;
 	std::vector<temporal::Version*> getVersions();
 	std::vector<temporal::VersionTransition*> getTransitions();
 	
 	void setWorkspaces(std::map<std::string,temporal::Workspace>);
+	const std::map<std::string,temporal::Workspace> getWorkspaces() const;
 	std::map<std::string,temporal::Workspace> getWorkspaces();
 
 protected:
