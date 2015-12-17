@@ -172,9 +172,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(slotTemporalAnimUpdate()));
 
+	initTemporalTools();
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
-	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy");
 	m_ui->toolButton->setEnabled(m_useTemporal);
 
 	updateRecentFiles();
@@ -927,17 +927,32 @@ void MainWindow::optionShowAdvancedTools()
 	}*/
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::initTemporalTools()
+{
+	QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+	QDateTime endDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_endDate),Qt::ISODate);
+
+	int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
+	m_ui->horizontalSlider->setMaximum(max);
+	
+	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
+	m_ui->dateTimeEdit->setDateTime(startDate);
+	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
+	m_ui->dateTimeEdit->setMaximumDateTime(endDate);
+
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-    // date is starting at year 1800 and ending at 2100
-    // this is controlled in mainWindow.ui, in the temporal slider params
+    // min and max dates are controlled in the Settings.
+    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
     // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
     if(value == -1) value = m_ui->horizontalSlider->value();
-    QDate date(1800,1,1);
-    date = date.addDays(value);
+    QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+    date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
     //m_ui->buttonBrowserTemporal->setText(date.toString());
-    m_ui->dateTimeEdit->setDate(date);
+    m_ui->dateTimeEdit->setDateTime(date);
 
 	//std::cout << "set year : " << date.year() << std::endl;
 
@@ -948,31 +963,38 @@ void MainWindow::updateTemporalParams(int value)
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalSlider()
 {
-	QDate newdate = m_ui->dateTimeEdit->date();
+	QDateTime newdate = m_ui->dateTimeEdit->dateTime();
 	int value = m_ui->horizontalSlider->value();
-	QDate olddate(1800,1,1);
-	olddate = olddate.addDays(value);
-	m_ui->horizontalSlider->setValue(value+olddate.daysTo(newdate));
+	QDateTime olddate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+	if (appGui().getSettings().m_incIsDay)
+	{
+		olddate = olddate.addDays(value);
+		m_ui->horizontalSlider->setValue(value+olddate.daysTo(newdate));
+	}
+	else
+	{
+		olddate = olddate.addSecs(value);
+		m_ui->horizontalSlider->setValue(value+olddate.secsTo(newdate));
+	}	
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-    // date is starting at year 1800 and ending at 2100
-    // this is controlled in mainWindow.ui, in the temporal slider params
+    // min and max dates are controlled in the Settings.
+    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
     // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
 	m_useTemporal = !m_useTemporal;
 
     if(m_useTemporal)
     {
-        QDate date(1800,1,1);
-        date = date.addDays(m_ui->horizontalSlider->value());
-        QDateTime datetime(date);
-		m_currentDate = datetime;
-        m_osgScene->setDate(datetime);
-		m_ui->dateTimeEdit->setDate(date);
-		m_ui->dateTimeEdit->setMinimumDate(QDate(1800,1,1));
-		m_ui->dateTimeEdit->setMaximumDate(QDate(1800,1,1).addDays(109574));
+		bool isDays = appGui().getSettings().m_incIsDay;
+        QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+		QDateTime date(startDate);
+		date = isDays?date.addDays(m_ui->horizontalSlider->value()):date.addSecs(m_ui->horizontalSlider->value());
+		m_currentDate = date;
+        m_osgScene->setDate(date);
+		m_ui->dateTimeEdit->setDateTime(date);
     }
     else
     {
@@ -2214,7 +2236,8 @@ void MainWindow::slotTemporalAnim()
 void MainWindow::slotTemporalAnimUpdate()
 {
 	// increase by a year
-	m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+365);
+	int incr = appGui().getSettings().m_incSize;
+	m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+incr);
 	//std::cout << m_ui->horizontalSlider->value() << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////

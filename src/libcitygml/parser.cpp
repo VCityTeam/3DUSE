@@ -39,7 +39,7 @@ _currentGeometry( 0 ), _currentPolygon( 0 ), _currentRing( 0 ),
 _currentAppearance( 0 ), _currentLOD( params.minLOD ), 
 _filterNodeType( false ), _filterDepth( 0 ), _exterior( true ),
 _currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
-m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr)
+m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr), _useXLink(false)
 { 
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
 	initNodes();
@@ -343,7 +343,6 @@ std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
 		//std::cout<<"Identifier = "<<identifier<<std::endl;
 		return identifier;
 	}
-	else throw "XLinkExpressionException";
 	return "";
 }
 
@@ -385,6 +384,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
 			if (xLinkQuery!="")\
 			{\
+				_useXLink=true;\
 				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
@@ -466,6 +466,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
 			if (xLinkQuery!="")\
 			{\
+				_useXLink=true;\
 				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
@@ -639,7 +640,6 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
-					//tHandler->setGMLHandler(this);
 					try{tHandler->startElement(name, attributes);}
 					catch (...) {}
 				}
@@ -1074,7 +1074,6 @@ void CityGMLHandler::endElement( const std::string& name )
 				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
-					//tHandler->setGMLHandler(this);
 					try{tHandler->endElement(name);}
 					catch (...) {}
 				}
@@ -1138,20 +1137,22 @@ void CityGMLHandler::endDocument( )
 		try {it->second->endDocument();}
 		catch (...) {}
 	}
-	for(auto* child : _model->_roots)
+	if(_useXLink) 
+		for(auto* child : _model->_roots)
     {
         fetchVersionedCityObjectsRec(child);
     }
-	
-
 }
 
 void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 {
 	if(node->_isXlink==xLinkState::UNLINKED)
     {
-		try {
-			std::string identifier = getXLinkQueryIdentifier(node->getAttribute("xlink"));
+		std::string query = node->getAttribute("xlink");
+		std::string identifier = getXLinkQueryIdentifier(query);
+		//if query contains an identifier
+		if (!(identifier==""))
+		{
 			CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
 			if ( it != _identifiersMap.end() )
 			{
@@ -1169,9 +1170,20 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 				child->_parent=node->_parent;
 			}
 		}
-		catch (...) {std::cerr<<"ERROR: XLink expression not supported! : \""<<node->getAttribute("xlink")<<"\""<<std::endl;}
+		//if the query starts with a "#", what follows the hash is a gml:id
+		else if (query.find("#")==0)
+		{
+			std::string id = query.substr(1);
+			CityObject* target = _model->getNodeById(id);
+			if (target)
+			{
+				node->_xLinkTargets.push_back(target);
+				node->_isXlink=xLinkState::LINKED;
+				fetchVersionedCityObjectsRec(target);
+			}
+		}
+		else {std::cerr<<"ERROR: XLink expression not supported! : \""<<node->getAttribute("xlink")<<"\""<<std::endl;}
     }
-
     for(auto* child : node->getChildren())
     {
         fetchVersionedCityObjectsRec(child);

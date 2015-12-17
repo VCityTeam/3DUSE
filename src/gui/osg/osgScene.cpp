@@ -467,8 +467,8 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 			//std::cout << node->getName() << " : " << a <<  " : yearOfConstruction : " << yearOfConstruction << std::endl;
 			//std::cout << node->getName() << " : " << b << " : yearOfDemolition : " << yearOfDemolition << std::endl;
 
-			int cDate;
-			int dDate;
+			std::string cDate;
+			std::string dDate;
 			bool c = node->getUserValue("creationDate", cDate);
 			bool d = node->getUserValue("terminationDate", dDate);
 
@@ -486,10 +486,10 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 			} 
 			else if (c)
 			{
-				QDateTime creationDate = QDateTime::fromString(QString::fromStdString(std::to_string(cDate)),QString("yyyyMMdd"));
+				QDateTime creationDate = QDateTime::fromString(QString::fromStdString(cDate),Qt::ISODate);
 				if (d)
 				{
-					QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(std::to_string(dDate)),QString("yyyyMMdd"));
+					QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(dDate),Qt::ISODate);
 					if (creationDate < date && date <= terminationDate)
 					{
 						node->setNodeMask(0xffffffff);
