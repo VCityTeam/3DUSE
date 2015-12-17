@@ -184,7 +184,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             osg::Node* nodeOri = node;
 
             vcity::URI uri = osgTools::getURI(node);
-            citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
+            citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri, true);
             //citygml::CityObject* obj = m_scene->findNode(node->getName());
             while(obj && (obj->getTypeAsString() != "Building"))// || obj->getTypeAsString() != "TINRelief" ))
             {
@@ -197,7 +197,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                     break;
 
                 uri = osgTools::getURI(node);
-                obj = appGui().getScene().getCityObjectNode(uri);
+                obj = appGui().getScene().getCityObjectNode(uri, true);
                 //obj = m_scene->findNode(node->getName());
             }
 
@@ -205,7 +205,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
 
             // check we found a building, else keep first found node
             uri = osgTools::getURI(node);
-            obj = appGui().getScene().getCityObjectNode(uri);
+            obj = appGui().getScene().getCityObjectNode(uri, true);
             if(!obj || obj->getTypeAsString() != "Building")
             {
                 node = nodeOri;

@@ -238,9 +238,9 @@ void Tile::replaceNode(const std::string& /*name*/, citygml::CityObject* /*node*
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityObject* Tile::getNode(const URI& uri)
+citygml::CityObject* Tile::getNode(const URI& uri, bool inPickingMode)
 {
-	return m_root->getNode(uri);
+	return m_root->getNode(uri, inPickingMode);
     /*std::string name = uri.getLastNode();
 
     citygml::CityObject* res = nullptr;

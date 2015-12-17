@@ -55,7 +55,7 @@ public:
     /// \brief getNode Get a CityGML node
     /// \param uri URI pointing to the CityGML node
     /// \return Ptr to CityGML node or nullptr
-    citygml::CityObject* getNode(const URI& uri);
+    citygml::CityObject* getNode(const URI& uri, bool inPickingMode=false);
 
     /// Get the path of the CityGML file loaded
     const std::string& getCityGMLfilePath() const;

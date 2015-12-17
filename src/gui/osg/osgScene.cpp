@@ -738,10 +738,24 @@ void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject*
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
+void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth, osg::ref_ptr<osg::Group> nodeVersion, osg::ref_ptr<osg::Group> nodeWorkspace)
 {
     osg::ref_ptr<osg::Group> node = reader.createCityObject(obj);
-    nodeOsg->addChild(node);
+
+	osg::ref_ptr<osg::Group> fatherNode;
+	fatherNode=nodeOsg;
+
+	if (nodeWorkspace)
+	{
+		fatherNode->addChild(nodeWorkspace);
+		fatherNode=nodeWorkspace;
+	}
+	if (nodeVersion)
+	{
+		fatherNode->addChild(nodeVersion);
+		fatherNode=nodeVersion;
+	}
+	fatherNode->addChild(node);
 
     for(citygml::CityObject* child : obj->getChildren())
     {
@@ -777,12 +791,86 @@ osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::URI& uri, const vcity::
     ReaderOsgCityGML readerOsgGml(path);
     readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
+	// VERSIONS & WORKSPACES
+	const citygml::CityModel* citymodel = tile.getCityModel();
+
+	//std::cout<<"Workspaces:"<<std::endl;
+	std::map<std::string,temporal::Workspace> workspaces = citymodel->getWorkspaces();
+	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++)
+	{
+		//std::cout<<it->second.name<<std::endl;
+		osg::ref_ptr<osg::Group> groupWorkspace;
+		groupWorkspace = new osg::Group;
+		groupWorkspace->setName(it->second.name);
+		std::string strType = "Workspace";
+		groupWorkspace->setUserValue("type", strType);
+
+		for(temporal::Version* v : it->second.versions)
+		{
+			//std::cout<<"    - "<<v->getId()<<std::endl;
+			osg::ref_ptr<osg::Group> groupVersion;
+			groupVersion = new osg::Group;
+			groupVersion->setName(v->getId());
+			std::string strType = "Version";
+			groupVersion->setUserValue("type", strType);
+
+			std::vector<citygml::CityObject*>* members = v->getVersionMembers();
+			for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+			{
+				//std::cout<<"        - member: "<<(*it)->getId()<<std::endl;
+				{
+					vcity::URI u = uri;
+					u.append((*it)->getId(), (*it)->getTypeAsString());
+					u.resetCursor();
+					buildCityObject(u, root, (*it), readerOsgGml, 0, groupVersion, groupWorkspace);
+				}
+			}
+
+			groupVersion.release();
+		}
+
+		groupWorkspace.release();
+	}
+
+	//std::cout<<"Versions:"<<std::endl;
+	std::vector<temporal::Version*> versions = citymodel->getVersions();
+	for (temporal::Version* version : versions)
+	{
+		if (!version->_isInWorkspace)
+		{
+			//std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+			osg::ref_ptr<osg::Group> groupVersion;
+			groupVersion = new osg::Group;
+			groupVersion->setName(version->getId());
+			std::string strType = "Version";
+			groupVersion->setUserValue("type", strType);
+			
+			std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+			for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+			{
+				//std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+				{
+					vcity::URI u = uri;
+					u.append((*it)->getId(), (*it)->getTypeAsString());
+					u.resetCursor();
+					buildCityObject(u, root, (*it), readerOsgGml, 0, groupVersion);
+				}
+			}
+
+			groupVersion.release();
+		}
+	}
+	// VERSIONS & WORKSPACES
+
     for(citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
     {
-        vcity::URI u = uri;
-        u.append(child->getId(), child->getTypeAsString());
-        u.resetCursor();
-        buildCityObject(u, root, child, readerOsgGml);
+		if (!(child)->_isInVersion)
+		{
+			vcity::URI u = uri;
+			u.append(child->getId(), child->getTypeAsString());
+			u.resetCursor();
+			buildCityObject(u, root, child, readerOsgGml);
+		}
     }
     return root;
 }

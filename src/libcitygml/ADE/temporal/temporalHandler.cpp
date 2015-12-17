@@ -176,6 +176,7 @@ void TempHandler::endElement(std::string name)
 			std::string wName = buffer.substr(tagWorkspace.length());
 			_workspaces[wName].versions.push_back(_currentVersion);
 			_workspaces[wName].name=wName;
+			_currentVersion->_isInWorkspace=true;
 		}
 		_currentVersion->addTag(buffer);
 	}
@@ -293,10 +294,11 @@ void TempHandler::endDocument()
 				else {std::cerr<<"ERROR: XLink expression not supported! : \""<<query<<"\""<<std::endl;}
 			} 
 		}
-		//for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-		//{
-		//	std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-		//}
+		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		{
+			//std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+			(*it)->_isInVersion=true;
+		}
 	}
 
 	citygml::CityModel** model = getModel();
