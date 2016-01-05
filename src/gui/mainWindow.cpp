@@ -182,7 +182,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_treeView->init();
 
 	// plugins
-	aboutPluginsAct = new QAction(tr("About &Plugins"), this);
+	aboutPluginsAct = new QAction(tr("Plugins information"), this);
 	connect(aboutPluginsAct, SIGNAL(triggered()), this, SLOT(aboutPlugins()));
 
 	pluginMenu = m_ui->menuPlugins;
