@@ -44,7 +44,7 @@ PluginDialog::PluginDialog(const QString &path, const QStringList &fileNames,
                             QIcon::Normal, QIcon::Off);
     featureIcon.addPixmap(style()->standardPixmap(QStyle::SP_FileIcon));
 
-    setWindowTitle(tr("Plugin Information"));
+    setWindowTitle(tr("Plugins information"));
     findPlugins(path, fileNames);
 }
 
