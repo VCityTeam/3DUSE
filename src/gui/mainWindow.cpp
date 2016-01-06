@@ -366,7 +366,7 @@ void MainWindow::openRecentFile()
 bool MainWindow::loadFile(const QString& filepath)
 {
 	// date check
-	if(QDate::currentDate() > QDate(2015, 12, 31))
+	if(QDate::currentDate() > QDate(2016, 12, 31))
 	{
 		QMessageBox(QMessageBox::Critical,  "Error", "Expired").exec();
 		return false;
@@ -3335,8 +3335,8 @@ void MainWindow::slotWatertoCityGML()
 			{
 				//conversion en structure CityGML
 				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				//model = importer->waterToCityGML(&mnt);
-				model = importer->reliefToCityGML(&mnt); // pour tester le relief
+				model = importer->waterToCityGML(&mnt);
+				//model = importer->reliefToCityGML(&mnt); // pour tester le relief
 				delete importer;
 			}
 		}

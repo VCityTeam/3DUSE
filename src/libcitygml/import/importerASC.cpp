@@ -45,7 +45,7 @@ CityModel* ImporterASC::waterToCityGML(MNT* mnt)
 /////////////////////////////////////////////////////////////////////////////////////////
 Geometry* ImporterASC::generateTriangles(MNT* mnt)
 {
-	const int incr = 10;
+	const int incr = 1;
 	Geometry* geom = new Geometry("", GT_Unknown,3);
 	for (int y=0; y<mnt->get_dim_y()-incr;y+=incr)
 	{
@@ -83,8 +83,8 @@ Geometry* ImporterASC::generateTriangles(MNT* mnt)
 				Polygon* t = new Polygon("");
 				LinearRing* lr = new LinearRing("",true);
 				//std::vector<TVec3d> vec = lr->getVertices();
-				lr->getVertices().push_back( v2 );
 				lr->getVertices().push_back( v3 );
+				lr->getVertices().push_back( v2 );
 				lr->getVertices().push_back( v4 );
 				t->addRing( lr );
 				geom->addPolygon( t );
