@@ -88,5 +88,29 @@ DataProfile createDataProfileLyon()
     return dp;
 }
 ////////////////////////////////////////////////////////////////////////////////
+DataProfile createDataProfileSablons()
+{
+    DataProfile dp;
+    dp.m_offset.x = 831000.0;
+    dp.m_offset.y = 6463500.0;
+
+    dp.m_bboxLowerBound.x = 831000.0;
+    dp.m_bboxLowerBound.y = 6463500.0;
+
+    dp.m_bboxUpperBound.x = 846500.0;
+    dp.m_bboxUpperBound.y = 6484000.0;
+
+    dp.m_xStep = 500;
+    dp.m_yStep = 500;
+
+    dp.m_TileIdOriginX = (int)(831000.0/500);
+    dp.m_TileIdOriginY = (int)(6463500.0/500);
+
+    dp.m_id = 3;
+    dp.m_name = "Sablons";
+
+    return dp;
+}
+////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////

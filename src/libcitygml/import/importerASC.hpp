@@ -16,8 +16,9 @@ public:
 	
 	CityModel* reliefToCityGML(MNT*);
 	CityModel* waterToCityGML(MNT*);
+	void cutASC(MNT*, std::string, std::string, int );
 protected:
-	Geometry* generateTriangles( MNT* );
+	Geometry* generateTriangles( MNT*);
 };
 
 } //namespace citygml

@@ -154,7 +154,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
 	connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
-	connect(m_ui->actionASC_To_CityGML_Water, SIGNAL(triggered()), this, SLOT(slotWatertoCityGML()));
+	connect(m_ui->actionASC_To_CityGML, SIGNAL(triggered()), this, SLOT(slotASCtoCityGML()));
+	connect(m_ui->actionASC_cut, SIGNAL(triggered()), this, SLOT(slotCutASC()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
@@ -834,6 +835,10 @@ void MainWindow::reset()
 	else if(dpName == "Lyon")
 	{
 		m_app.getSettings().getDataProfile() = vcity::createDataProfileLyon();
+	}
+	else if(dpName == "Sablons")
+	{
+		m_app.getSettings().getDataProfile() = vcity::createDataProfileSablons();
 	}
 	else
 	{
@@ -3317,10 +3322,10 @@ void MainWindow::loadShpFile(const QString& filepath)
 	//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotWatertoCityGML()
+void MainWindow::slotASCtoCityGML()
 {
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC water to CityGML");
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML");
 
 	for(int i = 0; i < filenames.count(); ++i)
 	{
@@ -3335,8 +3340,7 @@ void MainWindow::slotWatertoCityGML()
 			{
 				//conversion en structure CityGML
 				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				model = importer->waterToCityGML(&mnt);
-				//model = importer->reliefToCityGML(&mnt); // pour tester le relief
+				model = importer->reliefToCityGML(&mnt);
 				delete importer;
 			}
 		}
@@ -3346,6 +3350,31 @@ void MainWindow::slotWatertoCityGML()
 		exporter.exportCityModel(*model);
 		std::cout<<"OK!"<<std::endl;
 		delete model;
+	}
+	m_osgView->setActive(true);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotCutASC()
+{
+	m_osgView->setActive(false);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut ASC");
+
+	for(int i = 0; i < filenames.count(); ++i)
+	{
+		citygml::CityModel* model;
+		QFileInfo file(filenames[i]);
+		QString ext = file.suffix().toLower();
+		if (ext=="asc")
+		{
+			//lecture du fichier
+			MNT mnt;
+			if (mnt.charge(filenames[i].toStdString().c_str(), "ASC"))
+			{
+				citygml::ImporterASC* importer = new citygml::ImporterASC();
+				importer->cutASC(&mnt,file.absolutePath().toStdString(),file.baseName().toStdString(), 500);
+				delete importer;
+			}
+		}
 	}
 	m_osgView->setActive(true);
 }
