@@ -3,7 +3,6 @@
 
 #include "importer.hpp"
 #include "../citygml.hpp"
-#include "../gui/osg/osgMnt.hpp"
 
 namespace citygml
 {
@@ -14,11 +13,28 @@ public:
 	ImporterASC(void);
 	~ImporterASC(void);
 	
-	CityModel* reliefToCityGML(MNT*);
-	CityModel* waterToCityGML(MNT*);
-	void cutASC(MNT*, std::string, std::string, int );
+	CityModel* reliefToCityGML();
+	CityModel* waterToCityGML();
+	bool charge(const char*, const char*);
+	void cutASC(std::string, std::string, int );
+
 protected:
-	Geometry* generateTriangles( MNT*);
+	Geometry* generateTriangles();
+
+	int  get_altitude(const int x, const int y)  { return altitudes[x+y*dim_x]; }
+
+	char	nom_chantier[500];
+	char	unites_xy[20];
+	float	precision_xy;
+	int		dim_x, dim_y;
+	float	x_noeud_NO, y_noeud_NO;
+	float	pas_x, pas_y;
+	char	unites_z[20];
+	float	precision_z;
+
+	float		NODATA_value;
+
+	int		*altitudes;
 };
 
 } //namespace citygml

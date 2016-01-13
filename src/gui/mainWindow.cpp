@@ -3335,12 +3335,11 @@ void MainWindow::slotASCtoCityGML()
 		if (ext=="asc")
 		{
 			//lecture du fichier
-			MNT mnt;
-			if (mnt.charge(filenames[i].toStdString().c_str(), "ASC"))
+			citygml::ImporterASC* importer = new citygml::ImporterASC();
+			if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
 				//conversion en structure CityGML
-				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				model = importer->reliefToCityGML(&mnt);
+				model = importer->reliefToCityGML();
 				delete importer;
 			}
 		}
@@ -3367,13 +3366,13 @@ void MainWindow::slotCutASC()
 		if (ext=="asc")
 		{
 			//lecture du fichier
-			MNT mnt;
-			if (mnt.charge(filenames[i].toStdString().c_str(), "ASC"))
+			citygml::ImporterASC* importer = new citygml::ImporterASC();
+			if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
-				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				importer->cutASC(&mnt,file.absolutePath().toStdString(),file.baseName().toStdString(), 500);
-				delete importer;
+				
+				importer->cutASC(file.absolutePath().toStdString(),file.baseName().toStdString(), 500);
 			}
+			delete importer;
 		}
 	}
 	m_osgView->setActive(true);
