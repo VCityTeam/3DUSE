@@ -41,6 +41,7 @@ enum GeometryType
     GT_InteriorWall,
     GT_Ceiling,
 	GT_Water,
+	GT_WaterGround,
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Geometry class

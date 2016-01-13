@@ -159,6 +159,7 @@ void CityGMLHandler::initNodes( void )
 	// wtr
 	INSERTNODETYPE( WaterBody );
 	INSERTNODETYPE( WaterSurface );
+	INSERTNODETYPE( WaterGroundSurface );
 
 	// veg
 	INSERTNODETYPE( PlantCover );
@@ -177,6 +178,7 @@ void CityGMLHandler::initNodes( void )
 
 	// dem
 	INSERTNODETYPE( lod );
+	INSERTNODETYPE( ReliefFeature );
 	INSERTNODETYPE( TINRelief );
 
 	// sub
@@ -448,6 +450,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		MANAGE_OBJECT( PlantCover );
 		MANAGE_OBJECT( SolitaryVegetationObject );
 		MANAGE_OBJECT( WaterBody );
+		MANAGE_OBJECT( ReliefFeature );
 		MANAGE_OBJECT( TINRelief );
 		MANAGE_OBJECT( LandUse );		
 		MANAGE_OBJECT( Tunnel );
@@ -523,6 +526,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		MANAGE_SURFACETYPE( InteriorWall );
 		MANAGE_SURFACETYPE( Ceiling );
 		MANAGE_SURFACETYPE( Water );
+		MANAGE_SURFACETYPE( WaterGround );
 #undef MANAGE_SURFACETYPE
 
 		// Geometry management
@@ -722,6 +726,7 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( PlantCover ):
 	case NODETYPE( SolitaryVegetationObject ):
 	case NODETYPE( WaterBody ):
+	case NODETYPE( ReliefFeature ):
 	case NODETYPE( TINRelief ):
 	case NODETYPE( LandUse ):
 	case NODETYPE( Tunnel ):
@@ -737,6 +742,7 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( InteriorWallSurface ):
 	case NODETYPE( CeilingSurface ):
 	case NODETYPE( WaterSurface ):
+	case NODETYPE( WaterGroundSurface ):
 		MODEL_FILTER();
 		if ( _currentCityObject && ( _currentCityObject->size() > 0 || _currentCityObject->getChildCount() > 0 || !_params.pruneEmptyObjects ) ) 
         {	// Prune empty objects

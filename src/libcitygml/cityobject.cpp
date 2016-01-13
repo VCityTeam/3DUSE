@@ -403,6 +403,7 @@ std::string getCityObjectsClassName( CityObjectsTypeMask mask )
     GETCITYNAME( PlantCover );
     GETCITYNAME( SolitaryVegetationObject );
     GETCITYNAME( WaterBody );
+	GETCITYNAME( ReliefFeature );
     GETCITYNAME( TINRelief );
     GETCITYNAME( LandUse );
     GETCITYNAME( Tunnel );

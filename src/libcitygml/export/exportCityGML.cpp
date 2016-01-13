@@ -163,16 +163,26 @@ namespace citygml
 		}
 		const TVec3d& v = ring.getVertices().front();
 		ss << std::fixed << v.x << " " << v.y << " " << v.z;
-		xmlNewChild(res, NULL, BAD_CAST "gml:posList", BAD_CAST ss.str().c_str());
+		xmlNodePtr pos = xmlNewChild(res, NULL, BAD_CAST "gml:posList", BAD_CAST ss.str().c_str());
+		
+		xmlNewProp(pos, BAD_CAST "srsDimension", BAD_CAST "3");
 
 		return res;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent)
+	xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent, bool isTerrain)
 	{
-		xmlNodePtr node = xmlNewChild(parent, NULL, BAD_CAST "gml:surfaceMember", NULL);
-		xmlNodePtr res = xmlNewChild(node, NULL, BAD_CAST "gml:Polygon", NULL);
-		xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
+		xmlNodePtr res;
+		if (isTerrain)
+		{
+			res = xmlNewChild(parent, NULL, BAD_CAST ("gml:Triangle"), NULL);
+		}
+		else
+		{
+			xmlNodePtr node = xmlNewChild(parent, NULL, BAD_CAST "gml:surfaceMember", NULL);
+			res = xmlNewChild(node, NULL, BAD_CAST ("gml:Polygon"), NULL);
+			xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
+		}
 
 		const std::vector<citygml::LinearRing*>& lrings = poly.getInteriorRings();
 		std::vector<citygml::LinearRing*>::const_iterator it = lrings.begin();
@@ -191,7 +201,7 @@ namespace citygml
 		return res;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent)
+	xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent, bool isTerrain)
 	{
         //xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL); //Maxime a ajouté un Wall (Roof) après le WallSurface (RoofSurface) alors qu'il n'y est pas dans les CityGML fournis
         //xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
@@ -204,19 +214,19 @@ namespace citygml
 		for(const citygml::Polygon* poly : geom.getPolygons())
 		{
 			//exportPolygonAppearanceXml(*poly, m_currentAppearence); ///////// EXPORT TEXTURE VERSION MAXIME -> Un appel du fichier image par Polygon. Commenté car texture gérée par exportCityModelWithListTextures.
-			exportPolygonXml(*poly, parent);//node3
+			exportPolygonXml(*poly, parent, isTerrain);//node3
 		}
 
         //return res;
         return parent;//node1;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent)
+	xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent, bool isTerrain)
 	{
 		switch(geom.getType())
 		{
 		case citygml::GT_Unknown:
-			return exportGeometryGenericXml(geom, "bldg:Unknown", parent);
+			return exportGeometryGenericXml(geom, "bldg:Unknown", parent, isTerrain);
 			break;
 		case citygml::GT_Roof:
 			return exportGeometryGenericXml(geom, "bldg:Roof", parent);
@@ -240,7 +250,11 @@ namespace citygml
 			return exportGeometryGenericXml(geom, "bldg:Ceiling", parent);
 			break;
 		case citygml::GT_Water:
-			return exportGeometryGenericXml(geom, "bldg:Water", parent);
+			return exportGeometryGenericXml(geom, "wtr:Water", parent);
+			break;
+		case citygml::GT_WaterGround:
+			return exportGeometryGenericXml(geom, "wtr:WaterGround", parent);
+			break;
 		default:
 			break;
 		}
@@ -460,8 +474,17 @@ namespace citygml
 		case citygml::COT_WaterBody:
 			res = exportCityObjetGenericXml(obj, "wtr:WaterBody", parent);
 			break;
+		case citygml::COT_ReliefFeature:
+			{
+				res = exportCityObjetGenericXml(obj, "dem:ReliefFeature", parent);				
+				xmlNodePtr nodelod = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getChild(0)->getGeometry(0)->getLOD()).c_str());
+			}
+			break;
 		case citygml::COT_TINRelief:
-			res = exportCityObjetGenericXml(obj, "dem:TINRelief", parent);
+			{
+				xmlNodePtr node2 = xmlNewChild(parent, NULL, BAD_CAST "dem:reliefComponent", NULL);
+				res = exportCityObjetGenericXml(obj, "dem:TINRelief", node2);
+			}
 			break;
 		case citygml::COT_LandUse:
 			res = exportCityObjetGenericXml(obj, "bldg:LandUse", parent);
@@ -507,6 +530,9 @@ namespace citygml
 			break;
 		case citygml::COT_WaterSurface:
             res = exportCityObjetGenericXml(obj, "wtr:WaterSurface", parent, true);
+			break;
+		case citygml::COT_WaterGroundSurface:
+            res = exportCityObjetGenericXml(obj, "wtr:WaterGroundSurface", parent, true);
 			break;
 		default:
 			break;
@@ -570,12 +596,25 @@ namespace citygml
 		}
 
 		xmlNodePtr node;
+		bool isTerrain = false;
 		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
 		{
+			// JE - Export for Water Surfaces
 			if (obj.getType() == COT_WaterSurface)
 			{
 				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("wtr:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"Surface").c_str(), NULL);
 				node = xmlNewChild(node1, NULL, BAD_CAST "gml:CompositeSurface", NULL);
+			}
+			// JE 13/01/16 - Export for TINRelief
+			else if (obj.getType() == COT_TINRelief)
+			{
+				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getGeometry(0)->getLOD()).c_str());
+				xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "dem:tin", NULL);
+				xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:TriangulatedSurface", NULL);
+				std::string id = obj.getId() + "_POLY";
+				xmlNewProp(node3, BAD_CAST "gml:id", BAD_CAST id.c_str());
+				node = xmlNewChild(node3, NULL, BAD_CAST "gml:trianglePatches", NULL);
+				isTerrain = true;
 			}
 			else
 			{
@@ -590,7 +629,7 @@ namespace citygml
 			//std::cout << "Geometry" << std::endl;
 
 			if(res)
-				exportGeometryXml(*geom, node);
+				exportGeometryXml(*geom, node, isTerrain);
 			else exportGeometryXml(*geom, parent);
 		}
 		if (obj._isXlink!=xLinkState::LINKED)

@@ -141,6 +141,7 @@ namespace citygml
 		// wtr
 		NODETYPE( WaterBody ),
 		NODETYPE( WaterSurface ),
+		NODETYPE( WaterGroundSurface ),
 
 		// veg
 		NODETYPE( PlantCover ),
@@ -159,6 +160,7 @@ namespace citygml
 
 		// dem
 		NODETYPE( lod ),
+		NODETYPE( ReliefFeature ),
 		NODETYPE( TINRelief ),
 
 		// sub

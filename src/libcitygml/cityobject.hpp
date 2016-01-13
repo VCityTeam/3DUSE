@@ -45,6 +45,7 @@ enum CityObjectsType {
     COT_PlantCover,
     COT_SolitaryVegetationObject,
     COT_WaterBody,
+	COT_ReliefFeature,
     COT_TINRelief,
     COT_LandUse,
     COT_Tunnel,
@@ -62,6 +63,7 @@ enum CityObjectsType {
     COT_InteriorWallSurface,
     COT_CeilingSurface,
     COT_WaterSurface,
+	COT_WaterGroundSurface,
 
     COT_All
 };
