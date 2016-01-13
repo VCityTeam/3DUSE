@@ -41,7 +41,7 @@ _filterNodeType( false ), _filterDepth( 0 ), _exterior( true ),
 _currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
 m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr), _useXLink(false)
 { 
-	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
+	//_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask ); // JE 13/01/16 - removeing filtering feature to allow having more than 32 COT
 	initNodes();
 	ADEHandlerFactory::getInstances(_ADEHandlers);
 	for (std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++) it->second->setGMLHandler(this); 
@@ -379,7 +379,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		// City objects management
 #define MANAGE_OBJECT( _t_ )\
 	case CG_ ## _t_ :\
-        if ( _objectsMask & COT_ ## _t_ )\
+        /*if ( _objectsMask & COT_ ## _t_ )*/ /* JE 13/01/16 - removeing filtering feature to allow having more than 32 COT*/\
         {\
 			pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
@@ -424,12 +424,12 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                 }\
             }\
         }\
-        else\
-        {\
-            pushCityObject( nullptr );\
-            _filterNodeType = true;\
-            _filterDepth = getPathDepth();\
-        }\
+        /*else*/\
+        /*{*/\
+            /*pushCityObject( nullptr );*/\
+            /*_filterNodeType = true;*/\
+            /*_filterDepth = getPathDepth();*/\
+        /*}*/\
         break;
 
 		MANAGE_OBJECT( GenericCityObject );
@@ -462,7 +462,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 #define MANAGE_SURFACETYPE( _t_ )\
     case CG_ ## _t_ ## Surface :\
         _currentGeometryType = GT_ ## _t_;\
-        if ( _objectsMask & COT_ ## _t_ ## Surface )\
+        /*if ( _objectsMask & COT_ ## _t_ ## Surface )*/ /* JE 13/01/16 - removeing filtering feature to allow having more than 32 COT*/\
         {\
 			pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
@@ -508,12 +508,12 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                 }\
             }\
         }\
-        else\
-        {\
-            pushCityObject( nullptr );\
-            _filterNodeType = true;\
-            _filterDepth = getPathDepth();\
-        }\
+        /*else*/\
+        /*{*/\
+            /*pushCityObject( nullptr );*/\
+            /*_filterNodeType = true;*/\
+            /*_filterDepth = getPathDepth();*/\
+        /*}*/\
         break;
 		MANAGE_SURFACETYPE( Wall );
 		MANAGE_SURFACETYPE( Roof );
