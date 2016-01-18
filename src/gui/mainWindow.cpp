@@ -6,6 +6,7 @@
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
+#include <iomanip>
 
 #include "controllerGui.hpp"
 
@@ -812,12 +813,12 @@ QLineEdit* MainWindow::getFilter()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::reset()
 {
-    // reset text box
-    m_ui->textBrowser->clear();
-    //unlockFeatures("pass2");
-    unlockFeatures("");
-    m_ui->mainToolBar->hide();
-    //m_ui->statusBar->hide();
+	// reset text box
+	m_ui->textBrowser->clear();
+	//unlockFeatures("pass2");
+	unlockFeatures("");
+	m_ui->mainToolBar->hide();
+	//m_ui->statusBar->hide();
 
 	// TODO : need to be adjusted manually if we had other dataprofiles, should do something better
 
@@ -936,7 +937,7 @@ void MainWindow::initTemporalTools()
 
 	int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
 	m_ui->horizontalSlider->setMaximum(max);
-	
+
 	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
 	m_ui->dateTimeEdit->setDateTime(startDate);
 	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
@@ -946,15 +947,15 @@ void MainWindow::initTemporalTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-    // min and max dates are controlled in the Settings.
-    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 109574 -> number of days in 300 years
+	// min and max dates are controlled in the Settings.
+	// default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+	// QAbractSlider::maximum = 109574 -> number of days in 300 years
 
-    if(value == -1) value = m_ui->horizontalSlider->value();
-    QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
-    date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
-    //m_ui->buttonBrowserTemporal->setText(date.toString());
-    m_ui->dateTimeEdit->setDateTime(date);
+	if(value == -1) value = m_ui->horizontalSlider->value();
+	QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+	date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
+	//m_ui->buttonBrowserTemporal->setText(date.toString());
+	m_ui->dateTimeEdit->setDateTime(date);
 
 	//std::cout << "set year : " << date.year() << std::endl;
 
@@ -982,31 +983,31 @@ void MainWindow::updateTemporalSlider()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-    // min and max dates are controlled in the Settings.
-    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 109574 -> number of days in 300 years
+	// min and max dates are controlled in the Settings.
+	// default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+	// QAbractSlider::maximum = 109574 -> number of days in 300 years
 
 	m_useTemporal = !m_useTemporal;
 
-    if(m_useTemporal)
-    {
+	if(m_useTemporal)
+	{
 		bool isDays = appGui().getSettings().m_incIsDay;
-        QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+		QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
 		QDateTime date(startDate);
 		date = isDays?date.addDays(m_ui->horizontalSlider->value()):date.addSecs(m_ui->horizontalSlider->value());
 		m_currentDate = date;
-        m_osgScene->setDate(date);
+		m_osgScene->setDate(date);
 		m_ui->dateTimeEdit->setDateTime(date);
-    }
-    else
-    {
-        // -4000 is used as a special value to disable time
-        QDate date(-4000, 1, 1);
-        QDateTime datetime(date);
-        m_osgScene->setDate(datetime); // reset
+	}
+	else
+	{
+		// -4000 is used as a special value to disable time
+		QDate date(-4000, 1, 1);
+		QDateTime datetime(date);
+		m_osgScene->setDate(datetime); // reset
 		m_currentDate = datetime;
-        m_timer.stop();
-    }
+		m_timer.stop();
+	}
 
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
@@ -1855,13 +1856,13 @@ void MainWindow::generateLOD1OnFile()
 
 			delete tile;
 			ModelOut->computeEnvelope(),
-			exporter.exportCityModel(*ModelOut);
+				exporter.exportCityModel(*ModelOut);
 
 			delete ModelOut;
 			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree dans " << Folder << std::endl;
 		}
 	}
-	
+
 	QApplication::restoreOverrideCursor();
 	m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 
@@ -3134,86 +3135,247 @@ void MainWindow::test3()
 
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
-{
-	//buildJson();
+{ 
+	m_osgView->setActive(false);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut Shapefile", "","Shapefiles (*.shp)");
 
-	/*std::vector<std::string> building;
-	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
-
-	std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
-
-	int cpt = 0;
-	for(AnalysisResult ar : res)
+	for(int i = 0; i < filenames.count(); ++i)
 	{
-	addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
-	addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
-	cpt++;
-	}*/
 
-	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
+		const char * DriverName = "ESRI Shapefile";
+		OGRSFDriver * Driver;
 
-	//ProcessLasShpVeget();
-	/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
-	std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
-
-	std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
-
-	ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
-	for(std::pair<std::string,PolygonData> p : top)
-	{
-	ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
-	}
-	ofs.close();*/
-
-	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
-
-	//ExtrudeAlignementTree();
-
-	/*LASreadOpener lasreadopener;
-	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
-	LASreader* lasreader = lasreadopener.open();
-
-	OGRMultiPoint* mp = new OGRMultiPoint;
-
-	while (lasreader->read_point())
-	{
-	OGRPoint* point = new OGRPoint;
-	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
-	}*/
-	
-	std::cout<<std::endl;
-	vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-	citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-	std::vector<temporal::Version*> versions = model->getVersions();
-	for (temporal::Version* version : versions)
-	{
-		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		OGRRegisterAll();
+		Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+		if( Driver == NULL )
 		{
-			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+			printf( "%s driver not available.\n", DriverName );
+			return;
 		}
-	}
-	std::cout<<std::endl;
-	std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-	for (temporal::VersionTransition* transition : transitions)
-	{
-		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-	}
-	std::cout<<std::endl;
 
-	std::cout<<"Workspaces:"<<std::endl;
-	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-		std::cout<<it->second.name<<std::endl;
-		for(temporal::Version* v : it->second.versions){
-			std::cout<<"    - "<<v->getId()<<std::endl;
+		//OGRDataSource* poDS = OGRSFDriverRegistrar::Open("C:\\Users\\Jérémy\\Desktop\\FLOOD AR_données\\Alea_total_ts_pas_temps\\Pr_Rhone_T8_20150323\\Pr_ALEA_CLS_HT_S_Rhone_T8_DREAL_RA_MR.shp", FALSE);
+		//OGRDataSource* poDS = OGRSFDriverRegistrar::Open("C:\\Users\\Jérémy\\Desktop\\FLOOD AR_données\\vecteurs_ouvrgaesBDT_batiments_limites_communales\\BDT42_E_\\BATI_INDIFFERENCIE_Z.shp", FALSE);
+		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
+
+		double Xmin = 100000000, Xmax = -100000000, Ymin = 100000000, Ymax = -100000000;
+
+		int nbLayers = poDS->GetLayerCount();
+		if(nbLayers > 0)
+		{
+			OGRLayer *poLayer = poDS->GetLayer(0);
+
+			OGRFeature *poFeature;
+			poLayer->ResetReading();
+
+			while( (poFeature = poLayer->GetNextFeature()) != NULL )
+			{
+				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+				{
+					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+
+					OGRLinearRing* poLR = poPG->getExteriorRing();
+
+					int nbPoints = poLR->getNumPoints();
+
+					for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
+					{
+						OGRPoint p;
+						poLR->getPoint(i, &p);
+
+						if(p.getX() > Xmax)
+							Xmax = p.getX();
+						if(p.getX() < Xmin)
+							Xmin = p.getX();
+						if(p.getY() > Ymax)
+							Ymax = p.getY();
+						if(p.getY() < Ymin)
+							Ymin = p.getY();
+					}
+				}
+			}
+
+			Xmin = 500 * ((int)Xmin/500);
+			Ymin = 500 * ((int)Ymin/500);
+			Xmax = 500 * ((int)Xmax/500);
+			Ymax = 500 * ((int)Ymax/500);
+
+			std::cout << std::setprecision(10) << "Boite englobante creee : " << Xmin << " " << Xmax << " | " << Ymin << " " << Ymax << std::endl;
+
+			std::vector<OGRPolygon*> Tuiles;
+
+			for(int x = (int)Xmin; x <= (int)Xmax; x+=500)
+			{
+				for(int y = (int)Ymin; y <= (int)Ymax; y+=500)
+				{
+					OGRLinearRing* Ring = new OGRLinearRing;
+					Ring->addPoint(x, y);
+					Ring->addPoint(x+500, y);
+					Ring->addPoint(x+500, y+500);
+					Ring->addPoint(x, y+500);
+					Ring->addPoint(x, y);
+
+					OGRPolygon* Poly = new OGRPolygon;
+					Poly->addRingDirectly(Ring);
+
+					Tuiles.push_back(Poly);
+				}
+			}
+			std::cout << "Tuiles crees" << std::endl;
+
+			int cpt = -1;
+			for(int x = (int)Xmin; x <= (int)Xmax; x+=500)
+			{
+				for(int y = (int)Ymin; y <= (int)Ymax; y+=500)
+				{
+					++cpt;
+
+					OGRPolygon* Tuile = Tuiles.at(cpt);
+
+					std::string name = "C:\\Users\\Jérémy\\Desktop\\TestTuilage\\Tuile_" + std::to_string(x) + "_" + std::to_string(y) + ".shp";
+					remove(name.c_str());
+					OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
+
+					OGRLayer * Layer = DS->CreateLayer("Layer1");
+
+					poLayer->ResetReading();
+					while((poFeature = poLayer->GetNextFeature()) != NULL)
+					{
+						OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+						if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+						{
+							OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+
+							if(!poPG->Intersects(Tuile))
+								continue;
+
+							/////////
+
+							//OGRGeometry * Geometry =  poPG->Intersection(Tuile);
+							//if(!Geometry->IsValid() || Geometry->IsEmpty() || Geometry->getGeometryType() != wkbPolygon25D && Geometry->getGeometryType() != wkbPolygon && Geometry->getGeometryType() != wkbMultiPolygon25D && Geometry->getGeometryType() != wkbMultiPolygon)
+							//	continue;
+
+							/////////
+
+							OGRPoint* Centroid = new OGRPoint;
+							poPG->Centroid(Centroid);
+
+							if(!Tuile->Contains(Centroid))
+								continue;
+
+							OGRGeometry* Geometry = poPG;
+
+							/////////
+
+							for(int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la première fois, pour la première poFeature
+							{
+								if(Layer->FindFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef(), 1) == -1)
+									Layer->CreateField(new OGRFieldDefn(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldDefnRef(i)->GetType()));
+							}
+
+							OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+
+							Feature->SetGeometry(Geometry);
+
+							//Ajout des données sémantiques du shapefile
+							for(int i = 0; i < poFeature->GetFieldCount(); ++i)
+								Feature->SetField(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldAsString(i));
+
+							Layer->CreateFeature(Feature);
+
+							OGRFeature::DestroyFeature(Feature);
+						}
+					}
+
+					OGRDataSource::DestroyDataSource(DS);
+
+					delete Tuile;
+				}
+			}
 		}
+		m_osgView->setActive(true);
+
+		//buildJson();
+
+		/*std::vector<std::string> building;
+		building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
+
+		std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+
+		int cpt = 0;
+		for(AnalysisResult ar : res)
+		{
+		addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
+		addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
+		cpt++;
+		}*/
+
+		//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
+
+		//ProcessLasShpVeget();
+		/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
+		std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
+
+		std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+
+		ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
+		for(std::pair<std::string,PolygonData> p : top)
+		{
+		ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
+		}
+		ofs.close();*/
+
+		/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
+		ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
+		ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
+		ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
+
+		//ExtrudeAlignementTree();
+
+		/*LASreadOpener lasreadopener;
+		lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
+		LASreader* lasreader = lasreadopener.open();
+
+		OGRMultiPoint* mp = new OGRMultiPoint;
+
+		while (lasreader->read_point())
+		{
+		OGRPoint* point = new OGRPoint;
+		mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
+		}*/
+
+		//std::cout<<std::endl;
+		//vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+		//citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+		//std::vector<temporal::Version*> versions = model->getVersions();
+		//for (temporal::Version* version : versions)
+		//{
+		//	std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+		//	std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+		//	for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		//	{
+		//		std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+		//	}
+		//}
+		//std::cout<<std::endl;
+		//std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+		//for (temporal::VersionTransition* transition : transitions)
+		//{
+		//	std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+		//	std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+		//	std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+		//}
+		//std::cout<<std::endl;
+
+		//std::cout<<"Workspaces:"<<std::endl;
+		//std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+		//for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+		//	std::cout<<it->second.name<<std::endl;
+		//	for(temporal::Version* v : it->second.versions){
+		//		std::cout<<"    - "<<v->getId()<<std::endl;
+		//	}
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -3325,11 +3487,11 @@ void MainWindow::loadShpFile(const QString& filepath)
 void MainWindow::slotASCtoCityGML()
 {
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML");
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML", "","ASC files (*.asc)");
 
 	for(int i = 0; i < filenames.count(); ++i)
 	{
-		citygml::CityModel* model;
+		citygml::CityModel* model = new citygml::CityModel();
 		QFileInfo file(filenames[i]);
 		QString ext = file.suffix().toLower();
 		if (ext=="asc")
@@ -3356,11 +3518,11 @@ void MainWindow::slotASCtoCityGML()
 void MainWindow::slotCutASC()
 {
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut ASC");
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut ASC", "", "ASC files (*.asc)");
 
 	for(int i = 0; i < filenames.count(); ++i)
 	{
-		citygml::CityModel* model;
+		citygml::CityModel* model = new citygml::CityModel();
 		QFileInfo file(filenames[i]);
 		QString ext = file.suffix().toLower();
 		if (ext=="asc")
@@ -3369,11 +3531,12 @@ void MainWindow::slotCutASC()
 			citygml::ImporterASC* importer = new citygml::ImporterASC();
 			if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
-				
+
 				importer->cutASC(file.absolutePath().toStdString(),file.baseName().toStdString(), 500);
 			}
 			delete importer;
 		}
+		delete model;
 	}
 	m_osgView->setActive(true);
 }
