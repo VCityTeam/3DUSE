@@ -63,13 +63,14 @@ void LayerTiledCityGML::deleteTile(const URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityObject* LayerTiledCityGML::getCityObjectNode(const URI& uri)
+citygml::CityObject* LayerTiledCityGML::getCityObjectNode(const URI& uri, bool inPickingMode)
 {
     Tile* tile = getTile(uri);
     if(tile)
     {
-        return tile->getNode(uri);
+        return tile->getNode(uri, inPickingMode);
     }
+	else std::cout << "tile is NULL in LayerTiledCityGML::getCityObjectNode" << std::endl;
 
     return nullptr;
 }

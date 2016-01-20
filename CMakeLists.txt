@@ -18,8 +18,8 @@ endif (COMMAND cmake_policy)
 set(PRJ_NAME 3DUSE)
 
 SET(PRJ_VERSION_MAJOR 0)
-SET(PRJ_VERSION_MINOR 2)
-SET(PRJ_VERSION_PATCH 5)
+SET(PRJ_VERSION_MINOR 3)
+SET(PRJ_VERSION_PATCH 2)
 SET(PRJ_VERSION "${PRJ_VERSION_MAJOR}.${PRJ_VERSION_MINOR}.${PRJ_VERSION_PATCH}")
 message(STATUS "${PRJ_NAME} ${PRJ_VERSION}")
 
@@ -27,6 +27,14 @@ project( ${PRJ_NAME} )
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy_${PRJ_VERSION}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# set Release as default build target
+if (NOT CMAKE_BUILD_TYPE)
+  set (CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: Debug, Release."
+      FORCE)
+endif ()
+message("Build type : ${CMAKE_BUILD_TYPE}")
 
 #------------------------------------------------------------------------------
 # Specific compiler options
@@ -195,6 +203,7 @@ else(WITH_QT5)
     endif(QT3D_LIBRARIES)
   endif(WITH_QT3D)
 endif(WITH_QT5)
+message("Qt version used : ${QTDIR}")
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)

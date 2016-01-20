@@ -186,7 +186,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_treeView->init();
 
 	// plugins
-	aboutPluginsAct = new QAction(tr("About &Plugins"), this);
+	aboutPluginsAct = new QAction(tr("Plugins information"), this);
 	connect(aboutPluginsAct, SIGNAL(triggered()), this, SLOT(aboutPlugins()));
 
 	pluginMenu = m_ui->menuPlugins;
@@ -665,7 +665,12 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
 	std::stringstream ss;
 	ss << uri.getStringURI() << std::endl;
 
-	citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
+	// not really good here but, no choice...
+	bool bHack=true;
+	if (uri.getType() == "Workspace" || uri.getType() == "Version") bHack=false;
+	// not really good here but, no choice...
+
+	citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri, bHack);
 	if(obj)
 	{
 		ss << "ID : " << obj->getId() << std::endl;

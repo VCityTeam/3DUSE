@@ -281,6 +281,22 @@ void TreeView::deleteLayer(const vcity::URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::addVersion(QTreeWidgetItem* parent, const std::string& name)
+{
+	QTreeWidgetItem* item = createItemGeneric(name.c_str(), "Version");
+	parent->addChild(item);
+
+	return item;
+}
+////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::addWorkspace(QTreeWidgetItem* parent, const std::string& name)
+{
+	QTreeWidgetItem* item = createItemGeneric(name.c_str(), "Workspace");
+	parent->addChild(item);
+
+	return item;
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 {
 	std::string type = (node->_isXlink==citygml::xLinkState::LINKED) ? "xLink:"+node->getTypeAsString() : node->getTypeAsString();
@@ -327,11 +343,54 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
     layer->addChild(item);
 
     citygml::CityModel* citymodel = tile.getCityModel();
+
+	// VERSIONS & WORKSPACES
+	//std::cout<<"Workspaces:"<<std::endl;
+	std::map<std::string,temporal::Workspace> workspaces = citymodel->getWorkspaces();
+	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++)
+	{
+		//std::cout<<it->second.name<<std::endl;
+		QTreeWidgetItem* itemWorkspace = addWorkspace(item, it->second.name);
+
+		for(temporal::Version* v : it->second.versions)
+		{
+			//std::cout<<"    - "<<v->getId()<<std::endl;
+			QTreeWidgetItem* itemVersion = addVersion(itemWorkspace, v->getId());
+
+			std::vector<citygml::CityObject*>* members = v->getVersionMembers();
+			for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+			{
+				//std::cout<<"        - member: "<<(*it)->getId()<<std::endl;
+				addCityObject(itemVersion, *it);
+			}
+		}
+	}
+
+	//std::cout<<"Versions:"<<std::endl;
+	std::vector<temporal::Version*> versions = citymodel->getVersions();
+	for (temporal::Version* version : versions)
+	{
+		if (!version->_isInWorkspace)
+		{
+			//std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+			QTreeWidgetItem* itemVersion = addVersion(item, version->getId());
+			
+			std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+			for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+			{
+				//std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+				addCityObject(itemVersion, *it);
+			}
+		}
+	}
+	// VERSIONS & WORKSPACES
+
     citygml::CityObjects& cityObjects = citymodel->getCityObjectsRoots();
     citygml::CityObjects::iterator it = cityObjects.begin();
     for( ; it != cityObjects.end(); ++it)
     {
-        addCityObject(item, *it);
+		if (!(*it)->_isInVersion)
+			addCityObject(item, *it);
     }
 
     m_tree->expandToDepth(1);
