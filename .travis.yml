@@ -27,6 +27,8 @@ install:
   - cd build
   - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_RULE_MESSAGES=OFF
   - make
+  - pwd
   - cd ..
   - cd ..
-  - export ASSIMP_ROOT_DIR=~/assimp-3.2
+  - pwd
+  - export ASSIMP_ROOT_DIR=~/VCity/assimp-3.2
