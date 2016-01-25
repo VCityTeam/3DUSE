@@ -14,10 +14,12 @@ addons:
     sources:
       - ubuntu-toolchain-r-test # to get gcc-4.8
       - george-edison55-precise-backports # to get cmake 3.x
-      - openrave/release # to get assimp 3.x
+      - dartsim/ppa # to get assimp 3.x
     packages:
       - cmake-data
       - cmake
       - gcc-4.8
       - g++-4.8
       - libassimp-dev
+install:
+  - pwd
