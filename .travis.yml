@@ -14,12 +14,17 @@ addons:
     sources:
       - ubuntu-toolchain-r-test # to get gcc-4.8
       - george-edison55-precise-backports # to get cmake 3.x
-      - dartsim/ppa # to get assimp 3.x
     packages:
       - cmake-data
       - cmake
       - gcc-4.8
       - g++-4.8
-      - libassimp-dev
 install:
-  - pwd
+  - wget https://github.com/assimp/assimp/archive/v3.2.zip
+  - unzip v3.2.zip
+  - cd v3.2
+  - mkdir build
+  - cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc -DCMAKE_RULE_MESSAGES=OFF
+  - make
+  - export ASSIMP_ROOT_DIR=~/v3.2

@@ -36,6 +36,7 @@ ELSE (WIN32)
 		/sw/lib
 		/opt/local/lib
 		${ASSIMP_ROOT_DIR}/lib
+		${ASSIMP_ROOT_DIR}/build
 		DOC "The ASSIMP library")
 ENDIF (WIN32)
 
