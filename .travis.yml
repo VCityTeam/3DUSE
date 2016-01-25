@@ -19,3 +19,4 @@ addons:
       - cmake
       - gcc-4.8
       - g++-4.8
+      - libassimp-dev
