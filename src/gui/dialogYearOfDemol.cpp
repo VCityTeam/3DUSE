@@ -58,8 +58,8 @@ void DialogYearOfDemol::editTileDates(const vcity::URI& uri)
 					break;
 				case 2:
 					{
-						int tDate = (destDate.toString("yyyyMMdd")).toInt();
-						child->getUserValue("terminationDate",tDate);
+						QString tDate = (destDate.toString(Qt::ISODate));
+						child->setUserValue("terminationDate",tDate.toStdString());
 					}
 					break;
 				default:
@@ -77,7 +77,7 @@ void DialogYearOfDemol::editTileDates(const vcity::URI& uri)
 				break;
 			case 2:
 				{
-					o->setAttribute("terminationDate",destDate.toString("yyyy-MM-dd").toStdString());
+					o->setAttribute("terminationDate",destDate.toString(Qt::ISODate).toStdString());
 				}
 				break;
 			default:
@@ -108,9 +108,9 @@ void DialogYearOfDemol::editObjectDates(const vcity::URI& uri)
 	{
 		ui->comboBox->setCurrentIndex(2);
 		ui->dateDemolEdit->setEnabled(true);
-		std::string str_tDate = std::to_string(terminationDate);
-		QDate tDate = QDate::fromString(QString::fromStdString(str_tDate),QString("yyyyMMdd"));
-		ui->dateDemolEdit->setDate(tDate);
+		std::string str_tDate = terminationDate;
+		QDateTime tDate = QDateTime::fromString(QString::fromStdString(str_tDate),Qt::ISODate);
+		ui->dateDemolEdit->setDateTime(tDate);
 	}
 	else
 	{
@@ -122,19 +122,19 @@ void DialogYearOfDemol::editObjectDates(const vcity::URI& uri)
 	int res = exec();
 	if (res)
 	{
-		QDate destDate = ui->dateDemolEdit->date();
+		QDateTime destDate = ui->dateDemolEdit->dateTime();
 		int index = ui->comboBox->currentIndex();
 		switch (index)
 		{
 		case 1:
 			obj->setAttribute("yearOfDemolition",destDate.toString("yyyy").toStdString());
-			node->setUserValue("yearOfDemolition",destDate.year());
+			node->setUserValue("yearOfDemolition",destDate.date().year());
 			break;
 		case 2:
 			{
-				obj->setAttribute("terminationDate",destDate.toString("yyyy-MM-dd").toStdString());
-				int tDate = (destDate.toString("yyyyMMdd")).toInt();
-				node->setUserValue("terminationDate",tDate);
+				obj->setAttribute("terminationDate",destDate.toString(Qt::ISODate).toStdString());
+				QString tDate = (destDate.toString(Qt::ISODate));
+				node->setUserValue("terminationDate",tDate.toStdString());
 			}
 			break;
 		default:
@@ -154,15 +154,15 @@ void DialogYearOfDemol::indexChanged(int currentIndex)
 	case 1:
 		{
 			ui->dateDemolEdit->setEnabled(true);
-			ui->dateDemolEdit->setDate(QDate(yearOfDemolition,1,1));
+			ui->dateDemolEdit->setDateTime(QDateTime(QDate(yearOfDemolition,1,1)));
 		}
 		break;
 	case 2:
 		{
 			ui->dateDemolEdit->setEnabled(true);
-			std::string str_tDate = std::to_string(terminationDate);
-			QDate tDate = QDate::fromString(QString::fromStdString(str_tDate),QString("yyyyMMdd"));
-			ui->dateDemolEdit->setDate(tDate);
+			std::string str_tDate = terminationDate;
+			QDateTime tDate = QDateTime::fromString(QString::fromStdString(str_tDate),Qt::ISODate);
+			ui->dateDemolEdit->setDateTime(tDate);
 		}
 		break;
 	default:

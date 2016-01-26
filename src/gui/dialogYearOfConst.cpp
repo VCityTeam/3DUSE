@@ -45,7 +45,7 @@ void DialogYearOfConst::editTileDates(const vcity::URI& uri)
 		vcity::Tile* tile = vcity::app().getScene().getTile(uri);
 		uri.resetCursor();
 		osg::ref_ptr<osg::Group> grp = appGui().getOsgScene()->getNode(uri)->asGroup();
-		QDate creaDate = ui->dateConstrEdit->date();
+		QDateTime creaDate = ui->dateConstrEdit->dateTime();
 		int index = ui->comboBox->currentIndex();
 		if(grp)
 		{
@@ -56,13 +56,13 @@ void DialogYearOfConst::editTileDates(const vcity::URI& uri)
 				{
 				case 1:
 					//o->setAttribute("yearOfConstruction",creaDate.toString("yyyy").toStdString());
-					child->setUserValue("yearOfConstruction",creaDate.year());
+					child->setUserValue("yearOfConstruction",creaDate.date().year());
 					break;
 				case 2:
 					{
-						//o->setAttribute("creationDate",creaDate.toString("yyyy-MM-dd").toStdString());
-						int cDate = (creaDate.toString("yyyyMMdd")).toInt();
-						child->getUserValue("creationDate",cDate);
+						//o->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+						QString cDate = (creaDate.toString(Qt::ISODate));
+						child->setUserValue("creationDate",cDate.toStdString());
 					}
 					break;
 				default:
@@ -77,13 +77,9 @@ void DialogYearOfConst::editTileDates(const vcity::URI& uri)
 			{
 			case 1:
 				o->setAttribute("yearOfConstruction",creaDate.toString("yyyy").toStdString());
-				//node->setUserValue("yearOfConstruction",creaDate.year());
-				break;
 			case 2:
 				{
-					o->setAttribute("creationDate",creaDate.toString("yyyy-MM-dd").toStdString());
-					int cDate = (creaDate.toString("yyyyMMdd")).toInt();
-					//node->getUserValue("creationDate",cDate);
+					o->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
 				}
 				break;
 			default:
@@ -110,14 +106,14 @@ void DialogYearOfConst::editObjectDates(const vcity::URI& uri)
 	{
 		ui->comboBox->setCurrentIndex(1);
 		ui->dateConstrEdit->setEnabled(true);
-		ui->dateConstrEdit->setDate(QDate(yearOfConstruction,1,1));
+		ui->dateConstrEdit->setDateTime(QDateTime(QDate(yearOfConstruction,1,1)));
 	} 
 	else if (b)
 	{
 		ui->comboBox->setCurrentIndex(2);
 		ui->dateConstrEdit->setEnabled(true);
-		std::string str_cDate = std::to_string(creationDate);
-		QDate cDate = QDate::fromString(QString::fromStdString(str_cDate),QString("yyyyMMdd"));
+		std::string str_cDate = creationDate;
+		QDate cDate = QDate::fromString(QString::fromStdString(str_cDate),Qt::ISODate);
 		ui->dateConstrEdit->setDate(cDate);
 	}
 	else
@@ -140,9 +136,9 @@ void DialogYearOfConst::editObjectDates(const vcity::URI& uri)
 			break;
 		case 2:
 			{
-				obj->setAttribute("creationDate",creaDate.toString("yyyy-MM-dd").toStdString());
-				int cDate = (creaDate.toString("yyyyMMdd")).toInt();
-				node->setUserValue("creationDate",cDate);
+				obj->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+				QString cDate = (creaDate.toString(Qt::ISODate));
+				node->setUserValue("creationDate",cDate.toStdString());
 			}
 			break;
 		default:
@@ -162,15 +158,15 @@ void DialogYearOfConst::indexChanged(int currentIndex)
 	case 1:
 		{
 			ui->dateConstrEdit->setEnabled(true);
-			ui->dateConstrEdit->setDate(QDate(yearOfConstruction,1,1));
+			ui->dateConstrEdit->setDateTime(QDateTime(QDate(yearOfConstruction,1,1)));
 		}
 		break;
 	case 2:
 		{
 			ui->dateConstrEdit->setEnabled(true);
-			std::string str_cDate = std::to_string(creationDate);
-			QDate cDate = QDate::fromString(QString::fromStdString(str_cDate),QString("yyyyMMdd"));
-			ui->dateConstrEdit->setDate(cDate);
+			std::string str_cDate = creationDate;
+			QDateTime cDate = QDateTime::fromString(QString::fromStdString(str_cDate),Qt::ISODate);
+			ui->dateConstrEdit->setDateTime(cDate);
 		}
 		break;
 	default:
