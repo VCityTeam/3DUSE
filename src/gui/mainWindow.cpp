@@ -157,6 +157,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
 	connect(m_ui->actionASC_To_CityGML, SIGNAL(triggered()), this, SLOT(slotASCtoCityGML()));
 	connect(m_ui->actionASC_cut, SIGNAL(triggered()), this, SLOT(slotCutASC()));
+	connect(m_ui->actionShapefile_cut, SIGNAL(triggered()), this, SLOT(slotCutShapeFile()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
@@ -3146,7 +3147,9 @@ void MainWindow::test4()
 
 	for(int i = 0; i < filenames.count(); ++i)
 	{
-
+		QFileInfo file(filenames[i]);
+		citygml::CityModel* model = new citygml::CityModel();
+		citygml::CityObject* waterbody = new citygml::WaterBody("");
 		const char * DriverName = "ESRI Shapefile";
 		OGRSFDriver * Driver;
 
@@ -3157,12 +3160,8 @@ void MainWindow::test4()
 			printf( "%s driver not available.\n", DriverName );
 			return;
 		}
-
-		//OGRDataSource* poDS = OGRSFDriverRegistrar::Open("C:\\Users\\Jérémy\\Desktop\\FLOOD AR_données\\Alea_total_ts_pas_temps\\Pr_Rhone_T8_20150323\\Pr_ALEA_CLS_HT_S_Rhone_T8_DREAL_RA_MR.shp", FALSE);
-		//OGRDataSource* poDS = OGRSFDriverRegistrar::Open("C:\\Users\\Jérémy\\Desktop\\FLOOD AR_données\\vecteurs_ouvrgaesBDT_batiments_limites_communales\\BDT42_E_\\BATI_INDIFFERENCIE_Z.shp", FALSE);
 		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
 
-		double Xmin = 100000000, Xmax = -100000000, Ymin = 100000000, Ymax = -100000000;
 
 		int nbLayers = poDS->GetLayerCount();
 		if(nbLayers > 0)
@@ -3172,216 +3171,162 @@ void MainWindow::test4()
 			OGRFeature *poFeature;
 			poLayer->ResetReading();
 
+			int cpt = 0;
 			while( (poFeature = poLayer->GetNextFeature()) != NULL )
 			{
+				std::string name = "test_"+std::to_string(cpt++);
 				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
 
 				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
 				{
+					citygml::CityObject* watersfc = new citygml::WaterSurface("");
+					citygml::Geometry* geom = new citygml::Geometry("", citygml::GT_Unknown,3);
 					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-
+					std::vector<TVec3d> LRing;
+					//double H;
+					//if(poFeature->GetFieldIndex("ELEVATION") != -1) H = poFeature->GetFieldAsDouble("ELEVATION");
+					OGRPoint p;
+					TVec3d v;
 					OGRLinearRing* poLR = poPG->getExteriorRing();
-
-					int nbPoints = poLR->getNumPoints();
-
-					for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
+					for(int i=0; i<poLR->getNumPoints(); ++i)
 					{
-						OGRPoint p;
 						poLR->getPoint(i, &p);
-
-						if(p.getX() > Xmax)
-							Xmax = p.getX();
-						if(p.getX() < Xmin)
-							Xmin = p.getX();
-						if(p.getY() > Ymax)
-							Ymax = p.getY();
-						if(p.getY() < Ymin)
-							Ymin = p.getY();
+						v = TVec3d(p.getX(), p.getY(), p.getZ());
+						LRing.push_back(v);
 					}
-				}
-			}
+					std::vector<std::vector<TVec3d>> ptsSolIntern;
 
-			Xmin = 500 * ((int)Xmin/500);
-			Ymin = 500 * ((int)Ymin/500);
-			Xmax = 500 * ((int)Xmax/500);
-			Ymax = 500 * ((int)Ymax/500);
-
-			std::cout << std::setprecision(10) << "Boite englobante creee : " << Xmin << " " << Xmax << " | " << Ymin << " " << Ymax << std::endl;
-
-			std::vector<OGRPolygon*> Tuiles;
-
-			for(int x = (int)Xmin; x <= (int)Xmax; x+=500)
-			{
-				for(int y = (int)Ymin; y <= (int)Ymax; y+=500)
-				{
-					OGRLinearRing* Ring = new OGRLinearRing;
-					Ring->addPoint(x, y);
-					Ring->addPoint(x+500, y);
-					Ring->addPoint(x+500, y+500);
-					Ring->addPoint(x, y+500);
-					Ring->addPoint(x, y);
-
-					OGRPolygon* Poly = new OGRPolygon;
-					Poly->addRingDirectly(Ring);
-
-					Tuiles.push_back(Poly);
-				}
-			}
-			std::cout << "Tuiles crees" << std::endl;
-
-			int cpt = -1;
-			for(int x = (int)Xmin; x <= (int)Xmax; x+=500)
-			{
-				for(int y = (int)Ymin; y <= (int)Ymax; y+=500)
-				{
-					++cpt;
-
-					OGRPolygon* Tuile = Tuiles.at(cpt);
-
-					std::string name = "C:\\Users\\Jérémy\\Desktop\\TestTuilage\\Tuile_" + std::to_string(x) + "_" + std::to_string(y) + ".shp";
-					remove(name.c_str());
-					OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
-
-					OGRLayer * Layer = DS->CreateLayer("Layer1");
-
-					poLayer->ResetReading();
-					while((poFeature = poLayer->GetNextFeature()) != NULL)
+					for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
 					{
-						OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-						if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+						std::vector<TVec3d> ptsSolTemp;// = OGRLinearRingToLRing(poPG->getInteriorRing(i));
+						poLR = poPG->getInteriorRing(i);
+						for(int i=0; i<poLR->getNumPoints(); ++i)
 						{
-							OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-
-							if(!poPG->Intersects(Tuile))
-								continue;
-
-							/////////
-
-							//OGRGeometry * Geometry =  poPG->Intersection(Tuile);
-							//if(!Geometry->IsValid() || Geometry->IsEmpty() || Geometry->getGeometryType() != wkbPolygon25D && Geometry->getGeometryType() != wkbPolygon && Geometry->getGeometryType() != wkbMultiPolygon25D && Geometry->getGeometryType() != wkbMultiPolygon)
-							//	continue;
-
-							/////////
-
-							OGRPoint* Centroid = new OGRPoint;
-							poPG->Centroid(Centroid);
-
-							if(!Tuile->Contains(Centroid))
-								continue;
-
-							OGRGeometry* Geometry = poPG;
-
-							/////////
-
-							for(int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la première fois, pour la première poFeature
-							{
-								if(Layer->FindFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef(), 1) == -1)
-									Layer->CreateField(new OGRFieldDefn(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldDefnRef(i)->GetType()));
-							}
-
-							OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
-
-							Feature->SetGeometry(Geometry);
-
-							//Ajout des données sémantiques du shapefile
-							for(int i = 0; i < poFeature->GetFieldCount(); ++i)
-								Feature->SetField(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldAsString(i));
-
-							Layer->CreateFeature(Feature);
-
-							OGRFeature::DestroyFeature(Feature);
+							poLR->getPoint(i, &p);
+							v = TVec3d(p.getX(), p.getY(), p.getZ());
+							ptsSolTemp.push_back(v);
 						}
+						if(ptsSolTemp.size() == 0)
+							continue;
+						ptsSolIntern.push_back(ptsSolTemp);
+
 					}
-
-					OGRDataSource::DestroyDataSource(DS);
-
-					delete Tuile;
+					//build CityGML polygon
+					citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
+					//poly->addRing(LRingToCityRing(LRing,name));
+					citygml::LinearRing* ring1 = new citygml::LinearRing(name+"_ring",true);
+					for(unsigned int j = 0; j < LRing.size(); j++)
+					{
+						ring1->addVertex(LRing[j]);
+					}
+					poly->addRing(ring1);
+					for(std::vector<TVec3d> vec : ptsSolIntern)
+					{
+						//poly->addRing(LRingToCityRing(vec,name,false));
+						citygml::LinearRing* ring2 = new citygml::LinearRing(name+"_ring",false);
+						for(unsigned int j = 0; j < LRing.size(); j++)
+						{
+							ring2->addVertex(LRing[j]);
+						}
+						poly->addRing(ring2);
+					}
+					geom->addPolygon(poly);
+					watersfc->addGeometry(geom);
+					waterbody->getChildren().push_back(watersfc);
+					watersfc->_parent = waterbody;
 				}
-			}
+			}	
 		}
-		m_osgView->setActive(true);
-
-		//buildJson();
-
-		/*std::vector<std::string> building;
-		building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
-
-		std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
-
-		int cpt = 0;
-		for(AnalysisResult ar : res)
-		{
-		addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
-		addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
-		cpt++;
-		}*/
-
-		//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
-
-		//ProcessLasShpVeget();
-		/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
-		std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
-
-		std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
-
-		ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
-		for(std::pair<std::string,PolygonData> p : top)
-		{
-		ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
-		}
-		ofs.close();*/
-
-		/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
-		ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
-		ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
-		ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
-
-		//ExtrudeAlignementTree();
-
-		/*LASreadOpener lasreadopener;
-		lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
-		LASreader* lasreader = lasreadopener.open();
-
-		OGRMultiPoint* mp = new OGRMultiPoint;
-
-		while (lasreader->read_point())
-		{
-		OGRPoint* point = new OGRPoint;
-		mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
-		}*/
-
-		//std::cout<<std::endl;
-		//vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-		//citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-		//std::vector<temporal::Version*> versions = model->getVersions();
-		//for (temporal::Version* version : versions)
-		//{
-		//	std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-		//	std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-		//	for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-		//	{
-		//		std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-		//	}
-		//}
-		//std::cout<<std::endl;
-		//std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-		//for (temporal::VersionTransition* transition : transitions)
-		//{
-		//	std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-		//	std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-		//	std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-		//}
-		//std::cout<<std::endl;
-
-		//std::cout<<"Workspaces:"<<std::endl;
-		//std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-		//for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-		//	std::cout<<it->second.name<<std::endl;
-		//	for(temporal::Version* v : it->second.versions){
-		//		std::cout<<"    - "<<v->getId()<<std::endl;
-		//	}
+		model->addCityObject(waterbody);
+		model->addCityObjectAsRoot(waterbody);
+		model->computeEnvelope();
+		//CityModel created, now to export
+		//export en CityGML
+		std::cout<<"Export ...";
+		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+		exporter.exportCityModel(*model);
+		std::cout<<"OK!"<<std::endl;
+		delete model;
 	}
+	//buildJson();
+
+	/*std::vector<std::string> building;
+	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
+
+	std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+
+	int cpt = 0;
+	for(AnalysisResult ar : res)
+	{
+	addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
+	addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
+	cpt++;
+	}*/
+
+	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
+
+	//ProcessLasShpVeget();
+	/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
+	std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
+
+	std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+
+	ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
+	for(std::pair<std::string,PolygonData> p : top)
+	{
+	ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
+	}
+	ofs.close();*/
+
+	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
+	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
+
+	//ExtrudeAlignementTree();
+
+	/*LASreadOpener lasreadopener;
+	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
+	LASreader* lasreader = lasreadopener.open();
+
+	OGRMultiPoint* mp = new OGRMultiPoint;
+
+	while (lasreader->read_point())
+	{
+	OGRPoint* point = new OGRPoint;
+	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
+	}*/
+
+	//std::cout<<std::endl;
+	//vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+	//citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+	//std::vector<temporal::Version*> versions = model->getVersions();
+	//for (temporal::Version* version : versions)
+	//{
+	//	std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+	//	std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+	//	for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+	//	{
+	//		std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+	//	}
+	//}
+	//std::cout<<std::endl;
+	//std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+	//for (temporal::VersionTransition* transition : transitions)
+	//{
+	//	std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+	//	std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+	//	std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+	//}
+	//std::cout<<std::endl;
+
+	//std::cout<<"Workspaces:"<<std::endl;
+	//std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+	//for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+	//	std::cout<<it->second.name<<std::endl;
+	//	for(temporal::Version* v : it->second.versions){
+	//		std::cout<<"    - "<<v->getId()<<std::endl;
+	//	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
@@ -3544,5 +3489,177 @@ void MainWindow::slotCutASC()
 		delete model;
 	}
 	m_osgView->setActive(true);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotCutShapeFile()
+{
+	const int tilesize = 500;
+	m_osgView->setActive(false);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut Shapefile", "","Shapefiles (*.shp)");
+
+	QMessageBox msgBox;
+	msgBox.setText("Use centroid and don't cut shape features?");
+	msgBox.setStandardButtons( QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel );
+	int ret = msgBox.exec();
+	if (ret == QMessageBox::Cancel) {m_osgView->setActive(true);return;}
+
+	for(int i = 0; i < filenames.count(); ++i)
+	{
+
+		const char * DriverName = "ESRI Shapefile";
+		OGRSFDriver * Driver;
+
+		OGRRegisterAll();
+		Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+		if( Driver == NULL )
+		{
+			printf( "%s driver not available.\n", DriverName );
+			return;
+		}
+		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
+
+		double Xmin = 100000000, Xmax = -100000000, Ymin = 100000000, Ymax = -100000000;
+
+		int nbLayers = poDS->GetLayerCount();
+		if(nbLayers > 0)
+		{
+			OGRLayer *poLayer = poDS->GetLayer(0);
+
+			OGRFeature *poFeature;
+			poLayer->ResetReading();
+
+			while( (poFeature = poLayer->GetNextFeature()) != NULL )
+			{
+				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+				{
+					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+
+					OGRLinearRing* poLR = poPG->getExteriorRing();
+
+					int nbPoints = poLR->getNumPoints();
+
+					for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
+					{
+						OGRPoint p;
+						poLR->getPoint(i, &p);
+
+						if(p.getX() > Xmax)
+							Xmax = p.getX();
+						if(p.getX() < Xmin)
+							Xmin = p.getX();
+						if(p.getY() > Ymax)
+							Ymax = p.getY();
+						if(p.getY() < Ymin)
+							Ymin = p.getY();
+					}
+				}
+			}
+
+			Xmin = tilesize * ((int)Xmin/tilesize);
+			Ymin = tilesize * ((int)Ymin/tilesize);
+			Xmax = tilesize * ((int)Xmax/tilesize);
+			Ymax = tilesize * ((int)Ymax/tilesize);
+
+			std::cout << std::setprecision(10) << "Boite englobante creee : " << Xmin << " " << Xmax << " | " << Ymin << " " << Ymax << std::endl;
+
+			std::vector<OGRPolygon*> Tuiles;
+
+			for(int x = (int)Xmin; x <= (int)Xmax; x+=tilesize)
+			{
+				for(int y = (int)Ymin; y <= (int)Ymax; y+=tilesize)
+				{
+					OGRLinearRing* Ring = new OGRLinearRing;
+					Ring->addPoint(x, y);
+					Ring->addPoint(x+tilesize, y);
+					Ring->addPoint(x+tilesize, y+tilesize);
+					Ring->addPoint(x, y+tilesize);
+					Ring->addPoint(x, y);
+
+					OGRPolygon* Poly = new OGRPolygon;
+					Poly->addRingDirectly(Ring);
+
+					Tuiles.push_back(Poly);
+				}
+			}
+			std::cout <<Tuiles.size()<< " tuiles crees" << std::endl;
+
+			int cpt = -1;
+			for(int x = (int)Xmin; x <= (int)Xmax; x+=tilesize)
+			{
+				for(int y = (int)Ymin; y <= (int)Ymax; y+=tilesize)
+				{
+					++cpt;
+
+					OGRPolygon* Tuile = Tuiles.at(cpt);
+					QFileInfo file(filenames[i]);
+					file.absoluteDir().mkdir(file.baseName());
+					std::string name = file.absoluteDir().absolutePath().toStdString()+"/"+file.baseName().toStdString()+"/Tuile_" + std::to_string((int)x/tilesize) + "_" + std::to_string((int)y/tilesize) + ".shp";
+
+					remove(name.c_str());
+					OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
+
+					OGRLayer * Layer = DS->CreateLayer("Layer1");
+
+					poLayer->ResetReading();
+					while((poFeature = poLayer->GetNextFeature()) != NULL)
+					{
+						OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+						if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+						{
+							OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+
+							if(!poPG->Intersects(Tuile))
+								continue;
+							OGRGeometry * Geometry;
+							if (ret == QMessageBox::No)
+							{
+								Geometry =  poPG->Intersection(Tuile);
+								if(!Geometry->IsValid() || Geometry->IsEmpty() || Geometry->getGeometryType() != wkbPolygon25D && Geometry->getGeometryType() != wkbPolygon && Geometry->getGeometryType() != wkbMultiPolygon25D && Geometry->getGeometryType() != wkbMultiPolygon)
+									continue;
+							}
+							if (ret == QMessageBox::Yes)
+							{
+								OGRPoint* Centroid = new OGRPoint;
+								poPG->Centroid(Centroid);
+
+								if(!Tuile->Contains(Centroid))
+									continue;
+
+								Geometry = poPG;
+							}
+
+							for(int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la première fois, pour la première poFeature
+							{
+								if(Layer->FindFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef(), 1) == -1)
+									Layer->CreateField(new OGRFieldDefn(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldDefnRef(i)->GetType()));
+							}
+
+							OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+
+							Feature->SetGeometry(Geometry);
+
+							//Ajout des données sémantiques du shapefile
+							for(int i = 0; i < poFeature->GetFieldCount(); ++i)
+								Feature->SetField(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldAsString(i));
+
+							Layer->CreateFeature(Feature);
+
+							OGRFeature::DestroyFeature(Feature);
+						}
+					}
+
+					OGRDataSource::DestroyDataSource(DS);
+
+					delete Tuile;
+				}					
+			std::cout<<"\rTiling... ("<<(int)100*(cpt+1)/Tuiles.size()<<"%)"<<std::flush;
+			}
+		}
+		std::cout<<"\rTiling done    "<<std::endl;
+		m_osgView->setActive(true);
+	}
 }
 

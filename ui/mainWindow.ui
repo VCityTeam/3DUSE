@@ -365,6 +365,7 @@
     <addaction name="separator"/>
     <addaction name="actionASC_To_CityGML"/>
     <addaction name="actionASC_cut"/>
+    <addaction name="actionShapefile_cut"/>
     <addaction name="separator"/>
     <addaction name="actionChange_Detection"/>
     <addaction name="separator"/>
@@ -835,6 +836,11 @@
   <action name="actionASC_cut">
    <property name="text">
     <string>ASC cut</string>
+   </property>
+  </action>
+  <action name="actionShapefile_cut">
+   <property name="text">
+    <string>Shapefile cut</string>
    </property>
   </action>
  </widget>
