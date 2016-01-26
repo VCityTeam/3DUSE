@@ -20,7 +20,7 @@ public:
 
 private:
     Ui::DialogYearOfConst *ui;
-	int creationDate;
+	std::string creationDate;
 	int yearOfConstruction;
 	
 	void editTileDates(const vcity::URI& uri);
