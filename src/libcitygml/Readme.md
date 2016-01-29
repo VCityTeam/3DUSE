@@ -1,3 +1,5 @@
+See also the [reflexions on libCityGML next generation](https://github.com/MEPP-team/VCity/wiki/libCityGML_NG).
+
 ## TODO urgently
  libCityGML should be **organized like an independent library component** i.e. lying a the top-level directory of the VCity repository. In particular
  * It should have its own root CMakefile.txt where its dependencies are expressed (and removed from VCity dependencies when not necessary)
@@ -13,7 +15,7 @@
 |[ASSIMP](http://assimp.sourceforge.net/main_doc.html) | [BSD](http://assimp.sourceforge.net/main_license.html)|[OSGPL](http://trac.openscenegraph.org/projects/osg//wiki/Legal) an LGPL variant|
 |[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)||Sub-libraries: osgDB |
 
-**IMPORTANT NOTE: [citymodel.cpp](https://github.com/MEPP-team/VCity/blob/master/src/libcitygml/citymodel.cpp) very suspiciously includes `gui/applicationGui.hpp` which annouces some QT dependency !!!**
+**IMPORTANT NOTE: [citymodel.cpp](https://github.com/MEPP-team/VCity/blob/master/src/libcitygml/citymodel.cpp) very suspiciously includes `gui/applicationGui.hpp` which annouces some unwanted QT dependency !!!**
 
 ## General notes
  * No written use cases for the current development work focused on a scenario extension (blended or "on top" of the temporal extension). 
