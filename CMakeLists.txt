@@ -111,12 +111,12 @@ IF(WIN32)
 	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
 	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
 
-	set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
-	set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
+	#set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
+	#set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
 
-	set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
-	set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
-	set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
+	#set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
+	#set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
+	#set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
 
 	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
 	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
@@ -339,20 +339,20 @@ else(LIBXML2_FOUND)
 endif(LIBXML2_FOUND)
 
 # Find Proj
-find_package(Proj)
-if(PROJ_FOUND)
-  include_directories(${PROJ_INCLUDE_DIR})
-else(PROJ_FOUND)
-  message(FATAL_ERROR "Proj not found.")
-endif(PROJ_FOUND)
+#find_package(Proj)
+#if(PROJ_FOUND)
+#  include_directories(${PROJ_INCLUDE_DIR})
+#else(PROJ_FOUND)
+#  message(FATAL_ERROR "Proj not found.")
+#endif(PROJ_FOUND)
 
 # Find GEOS
-find_package(GEOS)
-if(GEOS_FOUND)
-  include_directories(${GEOS_INCLUDE_DIR})
-else(GEOS_FOUND)
-  message(FATAL_ERROR "GEOS not found.")
-endif(GEOS_FOUND)
+#find_package(GEOS)
+#if(GEOS_FOUND)
+#  include_directories(${GEOS_INCLUDE_DIR})
+#else(GEOS_FOUND)
+#  message(FATAL_ERROR "GEOS not found.")
+#endif(GEOS_FOUND)
 
 # Find LASLIB
 find_package(LASLIB)
@@ -427,8 +427,8 @@ SET( VCITY_GUI_LIB
   ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
-  ${PROJ_LIBRARY}
-  ${GEOS_LIBRARY}
+  #${PROJ_LIBRARY}
+  #${GEOS_LIBRARY}
   ${LASLIB_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
