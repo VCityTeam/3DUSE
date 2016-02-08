@@ -3148,8 +3148,21 @@ void MainWindow::test4()
 	for(int i = 0; i < filenames.count(); ++i)
 	{
 		QFileInfo file(filenames[i]);
+		QDir dir  = file.absoluteDir();
+		if (!dir.exists("citygml"))
+			dir.mkdir("citygml");
 		citygml::CityModel* model = new citygml::CityModel();
 		citygml::CityObject* waterbody = new citygml::WaterBody("");
+		// for temporal data
+		// This is VERY SPECIFIC CODE and will certainly have to be modified/deleted in the future
+		std::string fname = file.baseName().toStdString();
+		size_t pos1 = fname.find_last_of("T");
+		size_t pos2 = fname.find("_",pos1);
+		std::string str_hour = fname.substr(pos1+1,pos2-pos1-1);
+		int hour = atoi(str_hour.c_str());
+		//std::cout<<str_hour<<" : "<<hour<<std::endl;
+		//int a; std::cin>> a;
+		// --
 		const char * DriverName = "ESRI Shapefile";
 		OGRSFDriver * Driver;
 
@@ -3182,9 +3195,8 @@ void MainWindow::test4()
 					citygml::CityObject* watersfc = new citygml::WaterSurface("");
 					citygml::Geometry* geom = new citygml::Geometry("", citygml::GT_Unknown,3);
 					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+
 					std::vector<TVec3d> LRing;
-					//double H;
-					//if(poFeature->GetFieldIndex("ELEVATION") != -1) H = poFeature->GetFieldAsDouble("ELEVATION");
 					OGRPoint p;
 					TVec3d v;
 					OGRLinearRing* poLR = poPG->getExteriorRing();
@@ -3224,9 +3236,9 @@ void MainWindow::test4()
 					{
 						//poly->addRing(LRingToCityRing(vec,name,false));
 						citygml::LinearRing* ring2 = new citygml::LinearRing(name+"_ring",false);
-						for(unsigned int j = 0; j < LRing.size(); j++)
+						for(unsigned int j = 0; j < vec.size(); j++)
 						{
-							ring2->addVertex(LRing[j]);
+							ring2->addVertex(vec[j]);
 						}
 						poly->addRing(ring2);
 					}
@@ -3239,13 +3251,23 @@ void MainWindow::test4()
 		}
 		model->addCityObject(waterbody);
 		model->addCityObjectAsRoot(waterbody);
-		model->computeEnvelope();
-		//CityModel created, now to export
-		//export en CityGML
-		std::cout<<"Export ...";
-		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
-		exporter.exportCityModel(*model);
-		std::cout<<"OK!"<<std::endl;
+		if (waterbody->getChildCount()!=0)
+		{
+			//for temporal data
+			QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
+			termDate = termDate.addSecs(hour*3600);
+			QDateTime creaDate(termDate.addSecs(-8*3600));
+			waterbody->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+			waterbody->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+			//--
+			model->computeEnvelope();
+			//CityModel created, now to export
+			//export en CityGML
+			std::cout<<"Export ...";
+			citygml::ExporterCityGML exporter((file.path()+"/citygml/"+file.baseName()+".gml").toStdString());
+			exporter.exportCityModel(*model);
+			std::cout<<"OK!"<<std::endl;
+		}
 		delete model;
 	}
 	//buildJson();
@@ -3493,7 +3515,7 @@ void MainWindow::slotCutASC()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutShapeFile()
 {
-	const int tilesize = 500;
+	const uint tilesize = 500;
 	m_osgView->setActive(false);
 	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut Shapefile", "","Shapefiles (*.shp)");
 
@@ -3503,8 +3525,13 @@ void MainWindow::slotCutShapeFile()
 	int ret = msgBox.exec();
 	if (ret == QMessageBox::Cancel) {m_osgView->setActive(true);return;}
 
+
 	for(int i = 0; i < filenames.count(); ++i)
-	{
+	{		
+		QFileInfo file(filenames[i]);
+		QDir dir  = file.absoluteDir();
+		if (!dir.exists("tiles"))
+			dir.mkdir("tiles");
 
 		const char * DriverName = "ESRI Shapefile";
 		OGRSFDriver * Driver;
@@ -3594,8 +3621,8 @@ void MainWindow::slotCutShapeFile()
 
 					OGRPolygon* Tuile = Tuiles.at(cpt);
 					QFileInfo file(filenames[i]);
-					file.absoluteDir().mkdir(file.baseName());
-					std::string name = file.absoluteDir().absolutePath().toStdString()+"/"+file.baseName().toStdString()+"/Tuile_" + std::to_string((int)x/tilesize) + "_" + std::to_string((int)y/tilesize) + ".shp";
+					//file.absoluteDir().mkdir(file.baseName());
+					std::string name = file.absoluteDir().absolutePath().toStdString()+"/tiles/"+"Tile_" + std::to_string((int)x/tilesize) + "_" + std::to_string((int)y/tilesize)+"_"+file.baseName().toStdString() + ".shp";
 
 					remove(name.c_str());
 					OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
@@ -3629,6 +3656,7 @@ void MainWindow::slotCutShapeFile()
 									continue;
 
 								Geometry = poPG;
+								delete Centroid;
 							}
 
 							for(int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la première fois, pour la première poFeature
@@ -3650,16 +3678,14 @@ void MainWindow::slotCutShapeFile()
 							OGRFeature::DestroyFeature(Feature);
 						}
 					}
-
 					OGRDataSource::DestroyDataSource(DS);
-
 					delete Tuile;
 				}					
-			std::cout<<"\rTiling... ("<<(int)100*(cpt+1)/Tuiles.size()<<"%)"<<std::flush;
+				std::cout<<"\rTiling... ("<<(int)100*(cpt+1)/Tuiles.size()<<"%)"<<std::flush;
 			}
 		}
-		std::cout<<"\rTiling done    "<<std::endl;
-		m_osgView->setActive(true);
+		std::cout<<"\rTiling done     "<<std::endl;
 	}
+	m_osgView->setActive(true);
 }
 
