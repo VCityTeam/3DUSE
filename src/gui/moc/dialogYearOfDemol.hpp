@@ -20,7 +20,7 @@ public:
 
 private:
     Ui::DialogYearOfDemol *ui;
-	int terminationDate;
+	std::string terminationDate;
 	int yearOfDemolition;
 		
 	void editTileDates(const vcity::URI& uri);
