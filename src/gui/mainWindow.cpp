@@ -30,9 +30,6 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
-#include "core/BatimentShape.hpp"
-#include <geos/geom/GeometryFactory.h>
-
 /*#include "assimp/Importer.hpp"
 #include "assimp/PostProcess.h"
 #include "assimp/Scene.h"*/
@@ -54,11 +51,12 @@
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 
+
+#include <osg/PositionAttitudeTransform>
+
 ////////////////////////////////////////////////////////////////////////////////
 
-geos::geom::Geometry* ShapeGeo = nullptr;
 std::vector<std::pair<double, double>> Hauteurs;
-std::vector<BatimentShape> InfoBatiments;
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
@@ -200,7 +198,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
 	delete aboutPluginsAct;
-	delete ShapeGeo;
 
 	delete m_treeView;
 	delete m_osgView;
@@ -1896,24 +1893,6 @@ void MainWindow::slotSplitCityGMLBuildings()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutCityGMLwithShapefile()
 {
-	////////// Ancienne version utilisant GEOS :
-	/*QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-	w.setFileMode(QFileDialog::Directory);
-
-	if(w.exec() == 0)
-	{
-	std::cout << "Annulation : Dossier non valide." << std::endl;
-	return;
-	}
-
-	std::string Folder = w.selectedFiles().at(0).toStdString();
-
-
-
-	//DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);*/
-	////////// Nouvelle version de découpe : 
-
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
 	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
@@ -2788,102 +2767,241 @@ void MainWindow::test1()
 
 	QApplication::restoreOverrideCursor();
 }
+
+//osg::Geometry* createQuad(float width, float height, float scale, osg::Texture2D *tex)
+//{
+//     osg::Geometry* qGeom = new osg::Geometry();
+
+//     width *= scale;
+//     height *= height;
+
+//     osg::Vec3Array* qVertices = new osg::Vec3Array;
+//     qVertices->push_back( osg::Vec3( -width/2, 0, 0) ); // bottom left
+//     qVertices->push_back( osg::Vec3(width/2, 0, 0) ); // bottom right
+//     qVertices->push_back( osg::Vec3(width/2,0, height) ); // top right
+//     qVertices->push_back( osg::Vec3(-width/2,0, height) ); // top left
+
+//     qGeom->setVertexArray( qVertices );
+
+//     osg::DrawElementsUInt* Quad = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//     Quad->push_back(3);
+//     Quad->push_back(2);
+//     Quad->push_back(1);
+//     Quad->push_back(0);
+//     qGeom->addPrimitiveSet(Quad);
+
+//     osg::Vec2Array* qTexCoords = new osg::Vec2Array;
+//     qTexCoords->push_back(osg::Vec2(0.0f,0.0f) );
+//     qTexCoords->push_back(osg::Vec2(1.0f,0.0f) );
+//     qTexCoords->push_back(osg::Vec2(1.0f,1.0f) );
+//     qTexCoords->push_back(osg::Vec2(0.0f,1.0f) );
+
+//     qGeom->setTexCoordArray(0,qTexCoords);
+
+//     osg::StateSet* qState = new osg::StateSet;
+//     qState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+//     qState->setTextureAttributeAndModes(0, tex, osg::StateAttribute::ON );
+
+//     qGeom->setStateSet(qState);
+
+
+//     return qGeom;
+
+
+
+//}
+
+
 ////////////////////////////////////////////////////////////////////////////////
+/// \brief MainWindow::test2
+///
+///
 void MainWindow::test2()
 {
-	//Création d'ilots à partir de Shapefile contenant des routes
-	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-	OGRLayer *LayerRoutes = Routes->GetLayer(0);
-	OGRFeature *FeatureRoutes;
-	LayerRoutes->ResetReading();
+    std::cout<<"bah"<<std::endl;
 
-	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-	{
-		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
 
-		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-		{
-			ReseauRoutier->addGeometry(Route);
-		}
-	}
+       osg::Group* rootNode = new osg::Group();
 
-	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+       osg::Texture2D *OldLyonTexture = new osg::Texture2D;
+       OldLyonTexture->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/bb_lyon.jpg"));
 
-	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+       osg::StateSet* bbState = new osg::StateSet;
+       bbState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+       bbState->setTextureAttributeAndModes(0, OldLyonTexture, osg::StateAttribute::ON );
 
-	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-	{
-		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-			ReseauMP->addGeometry(temp);
-	}
+       float width = 3000.0f;
+       float height = 1500.0f;
 
-	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+       osg::Geometry* bbQuad = new osg::Geometry;
 
-	delete ReseauRoutier;
+       osg::Vec3Array* bbVerts = new osg::Vec3Array(4);
+       (*bbVerts)[0] = osg::Vec3(-width/2.0f, 0, 0);
+       (*bbVerts)[1] = osg::Vec3( width/2.0f, 0, 0);
+       (*bbVerts)[2] = osg::Vec3( width/2.0f, 0, height);
+       (*bbVerts)[3] = osg::Vec3(-width/2.0f, 0, height);
+
+       bbQuad->setVertexArray(bbVerts);
+
+       osg::Vec2Array* bbTexCoords = new osg::Vec2Array(4);
+       (*bbTexCoords)[0].set(0.0f,0.0f);
+       (*bbTexCoords)[1].set(1.0f,0.0f);
+       (*bbTexCoords)[2].set(1.0f,1.0f);
+       (*bbTexCoords)[3].set(0.0f,1.0f);
+       bbQuad->setTexCoordArray(0,bbTexCoords);
+
+       bbQuad->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+
+       osg::Vec4Array* colorArray = new osg::Vec4Array;
+       colorArray->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) ); // white, fully opaque
+       // Use the index array to associate the first entry in our index array with all
+       // of the vertices.
+       bbQuad->setColorArray( colorArray);
+       bbQuad->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+       bbQuad->setStateSet(bbState);
+
+       osg::Billboard* TestBillBoard = new osg::Billboard();
+       rootNode->addChild(TestBillBoard);
+
+       TestBillBoard->setMode(osg::Billboard::AXIAL_ROT);
+       TestBillBoard->setAxis(osg::Vec3(0.0f,0.0f,1.0f));
+       TestBillBoard->setNormal(osg::Vec3(0.0f,-1.0f,0.0f));
+
+       osg::Drawable* bbDrawable = bbQuad;
+
+       TestBillBoard->addDrawable(bbDrawable , osg::Vec3(0,0,0) /*- m_app.getSettings().getDataProfile().m_offset*/ );
+
+       vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+       appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+    std::cout<<"bah test3"<<std::endl;
 
-	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
-	QSettings settings("liris", "virtualcity");
-	QString lastdir = settings.value("lastdir").toString();
-	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
+    osg::Group* root = new osg::Group();
+    osg::Geode* qGeode = new osg::Geode();
+    osg::Geometry* qGeom = new osg::Geometry();
 
-	QFileInfo file1temp(File1[0]);
-	QString file1path = file1temp.absoluteFilePath();
-	QFileInfo file1(file1path);
+    qGeode->addDrawable(qGeom);
 
-	QString ext = file1.suffix().toLower();
-	if(ext != "citygml" && ext != "gml")
-	{
-		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-		return;
-	}
 
-	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
+         float width = 3500.f;
+         float height = 2000.f;
 
-	QFileInfo file2temp(File2[0]);
-	QString file2path = file2temp.absoluteFilePath();
-	QFileInfo file2(file2path);
+         osg::Vec3Array* qVertices = new osg::Vec3Array;
+         qVertices->push_back( osg::Vec3( -width/2, 0, 0) ); // bottom left
+         qVertices->push_back( osg::Vec3(width/2, 0, 0) ); // bottom right
+         qVertices->push_back( osg::Vec3(width/2,0, height) ); // top right
+         qVertices->push_back( osg::Vec3(-width/2,0, height) ); // top left
 
-	ext = file2.suffix().toLower();
-	if(ext != "citygml" && ext != "gml")
-	{
-		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-		return;
-	}
+         qGeom->setVertexArray( qVertices );
 
-	QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-	w.setFileMode(QFileDialog::Directory);
+         osg::DrawElementsUInt* Quad = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+         Quad->push_back(3);
+         Quad->push_back(2);
+         Quad->push_back(1);
+         Quad->push_back(0);
+         qGeom->addPrimitiveSet(Quad);
 
-	if(w.exec() == 0)
-	{
-		std::cout << "Annulation : Dossier non valide." << std::endl;
-		return;
-	}
-	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
+         osg::Vec2Array* qTexCoords = new osg::Vec2Array;
+         qTexCoords->push_back(osg::Vec2(0.0f,0.0f) );
+         qTexCoords->push_back(osg::Vec2(1.0f,0.0f) );
+         qTexCoords->push_back(osg::Vec2(1.0f,1.0f) );
+         qTexCoords->push_back(osg::Vec2(0.0f,1.0f) );
 
-	QApplication::setOverrideCursor(Qt::WaitCursor);
-	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
-	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
-	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
-	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
+         qGeom->setTexCoordArray(0,qTexCoords);
 
-	citygml::CityModel * City1 = tile1->getCityModel();
-	citygml::CityModel * City2 = tile2->getCityModel();
+//         osg::Texture2D *tex = new osg::Texture2D;
+//         tex->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
 
-	FusionLODs(City1, City2);
+//         osg::StateSet* qState = new osg::StateSet;
+//         qState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+//         qState->setTextureAttributeAndModes(0, tex, osg::StateAttribute::ON );
 
-	citygml::ExporterCityGML exporter(Folder);
+//         qGeom->setStateSet(qState);
 
-	exporter.exportCityModel(*City2);
+         int NB_IMG = 3;
+         std::cout<<"bah    transformtab"<<std::endl;
+         osg::PositionAttitudeTransform* tabTransformed[NB_IMG];
 
-	QApplication::restoreOverrideCursor();
+         std::vector<osg::PositionAttitudeTransform*> vecTransformed;
+
+
+         std::cout<<"bah    positiontab"<<std::endl;
+
+         osg::Vec3 tabPosition[NB_IMG];
+         tabPosition[0]= osg::Vec3(0,0,0);
+         tabPosition[1]= osg::Vec3(5000,5000,0);
+         tabPosition[2]= osg::Vec3(10000,10000,0);
+
+         osg::Texture2D *tex = new osg::Texture2D;
+         //tex->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
+         osg::Image *img = osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg");
+         tex->setImage(img);
+
+         std::cout<<"bah    texturetab"<<std::endl;
+         osg::Texture2D* tabTex[NB_IMG];
+         std::cout<<"bah        texturetab created"<<std::endl;
+         tabTex[0]= new osg::Texture2D;
+         tabTex[0]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon1.jpg"));
+         std::cout<<"bah           texturetab img1"<<std::endl;
+         tabTex[1]= new osg::Texture2D;
+         tabTex[1]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon2.jpg"));
+         std::cout<<"bah           texturetab img2"<<std::endl;
+         tabTex[2]= new osg::Texture2D;
+         tabTex[2]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
+         std::cout<<"bah           texturetab img3"<<std::endl;
+         std::cout<<"bah        texturetab filled"<<std::endl;
+
+         std::cout<<"bah statetab"<<std::endl;
+         osg::StateSet* tabState[NB_IMG];
+
+         float tabAngles[NB_IMG];
+         tabAngles[0]=-25.0;
+         tabAngles[1]=25.0;
+         tabAngles[2]=50.0;
+
+
+
+         for(int i=0; i<NB_IMG; i++)
+         {
+             std::cout<<"bah for"<<std::endl;
+             tabState[i]= new osg::StateSet;
+             tabState[i]->setMode(GL_LIGHTING, osg::StateAttribute::OFF );
+             tabState[i]->setTextureAttributeAndModes(0, tabTex[i], osg::StateAttribute::ON );
+
+//             tabTransformed[i]= new osg::PositionAttitudeTransform;
+//             tabTransformed[i]->setStateSet(tabState[i]);
+//             tabTransformed[i]->setPosition(tabPosition[i]);
+//             tabTransformed[i]->setAttitude(osg::Quat(osg::DegreesToRadians(tabAngles[i]), osg::Vec3(0,0,1) ) );
+//             tabTransformed[i]->setScale(osg::Vec3(0.5,0.5,0.5));
+//             tabTransformed[i]->addChild(qGeode);
+
+             vecTransformed.push_back(new osg::PositionAttitudeTransform);
+             vecTransformed[i]->setStateSet(tabState[i]);
+             vecTransformed[i]->setPosition(tabPosition[i]);
+             vecTransformed[i]->setAttitude(osg::Quat(osg::DegreesToRadians(tabAngles[i]), osg::Vec3(0,0,1) ) );
+             vecTransformed[i]->setScale(osg::Vec3(0.5,0.5,0.5));
+
+             vecTransformed[i]->addChild(qGeode);
+
+         }
+
+         std::cout<<"bah size of tabTransformed before erase : "<< vecTransformed.size() <<std::endl;
+         vecTransformed.erase(vecTransformed.begin()+1);
+         std::cout<<"bah size of tabTransformed after erase : "<< vecTransformed.size() <<std::endl;
+         for(int i=0; i<vecTransformed.size(); i++)
+         {
+            root->addChild(vecTransformed[i]);
+         }
+         std::cout<<"bah endfor"<<std::endl;
+
+
+         vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+         appGui().getOsgScene()->addShpNode(uriLayer, root);
+
 }
 
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
@@ -3062,9 +3180,6 @@ void MainWindow::loadShpFile(const QString& filepath)
 
 	//m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
-	// clean previous shapeGeo
-	delete ShapeGeo;
-	buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
 	if(poDS)
 	{
 		vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
