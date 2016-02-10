@@ -3142,134 +3142,41 @@ void MainWindow::test3()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 { 
+	/* CONVERT ASC WATER TO CITYGML WATER BY SEARCHIG POLYGONS */
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut Shapefile", "","Shapefiles (*.shp)");
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML", "","ASC files (*.asc)");
 
 	for(int i = 0; i < filenames.count(); ++i)
 	{
-		QFileInfo file(filenames[i]);
-		QDir dir  = file.absoluteDir();
-		if (!dir.exists("citygml"))
-			dir.mkdir("citygml");
 		citygml::CityModel* model = new citygml::CityModel();
-		citygml::CityObject* waterbody = new citygml::WaterBody("");
-		// for temporal data
-		// This is VERY SPECIFIC CODE and will certainly have to be modified/deleted in the future
-		std::string fname = file.baseName().toStdString();
-		size_t pos1 = fname.find_last_of("T");
-		size_t pos2 = fname.find("_",pos1);
-		std::string str_hour = fname.substr(pos1+1,pos2-pos1-1);
-		int hour = atoi(str_hour.c_str());
-		//std::cout<<str_hour<<" : "<<hour<<std::endl;
-		//int a; std::cin>> a;
-		// --
-		const char * DriverName = "ESRI Shapefile";
-		OGRSFDriver * Driver;
-
-		OGRRegisterAll();
-		Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-		if( Driver == NULL )
+		QFileInfo file(filenames[i]);
+		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
+		QString ext = file.suffix().toLower();
+		if (ext=="asc")
 		{
-			printf( "%s driver not available.\n", DriverName );
-			return;
-		}
-		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
-
-
-		int nbLayers = poDS->GetLayerCount();
-		if(nbLayers > 0)
-		{
-			OGRLayer *poLayer = poDS->GetLayer(0);
-
-			OGRFeature *poFeature;
-			poLayer->ResetReading();
-
-			int cpt = 0;
-			while( (poFeature = poLayer->GetNextFeature()) != NULL )
+			//lecture du fichier
+			citygml::ImporterASC* importer = new citygml::ImporterASC();
+			if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
-				std::string name = "test_"+std::to_string(cpt++);
-				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-				{
-					citygml::CityObject* watersfc = new citygml::WaterSurface("");
-					citygml::Geometry* geom = new citygml::Geometry("", citygml::GT_Unknown,3);
-					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-
-					std::vector<TVec3d> LRing;
-					OGRPoint p;
-					TVec3d v;
-					OGRLinearRing* poLR = poPG->getExteriorRing();
-					for(int i=0; i<poLR->getNumPoints(); ++i)
-					{
-						poLR->getPoint(i, &p);
-						v = TVec3d(p.getX(), p.getY(), p.getZ());
-						LRing.push_back(v);
-					}
-					std::vector<std::vector<TVec3d>> ptsSolIntern;
-
-					for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
-					{
-						std::vector<TVec3d> ptsSolTemp;// = OGRLinearRingToLRing(poPG->getInteriorRing(i));
-						poLR = poPG->getInteriorRing(i);
-						for(int i=0; i<poLR->getNumPoints(); ++i)
-						{
-							poLR->getPoint(i, &p);
-							v = TVec3d(p.getX(), p.getY(), p.getZ());
-							ptsSolTemp.push_back(v);
-						}
-						if(ptsSolTemp.size() == 0)
-							continue;
-						ptsSolIntern.push_back(ptsSolTemp);
-
-					}
-					//build CityGML polygon
-					citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
-					//poly->addRing(LRingToCityRing(LRing,name));
-					citygml::LinearRing* ring1 = new citygml::LinearRing(name+"_ring",true);
-					for(unsigned int j = 0; j < LRing.size(); j++)
-					{
-						ring1->addVertex(LRing[j]);
-					}
-					poly->addRing(ring1);
-					for(std::vector<TVec3d> vec : ptsSolIntern)
-					{
-						//poly->addRing(LRingToCityRing(vec,name,false));
-						citygml::LinearRing* ring2 = new citygml::LinearRing(name+"_ring",false);
-						for(unsigned int j = 0; j < vec.size(); j++)
-						{
-							ring2->addVertex(vec[j]);
-						}
-						poly->addRing(ring2);
-					}
-					geom->addPolygon(poly);
-					watersfc->addGeometry(geom);
-					waterbody->getChildren().push_back(watersfc);
-					watersfc->_parent = waterbody;
-				}
-			}	
+				//conversion en structure CityGML
+				model = importer->waterToCityGMLPolygons();
+				delete importer;
+			}
 		}
-		model->addCityObject(waterbody);
-		model->addCityObjectAsRoot(waterbody);
-		if (waterbody->getChildCount()!=0)
+		//export en CityGML
+		std::cout<<"Export ...";
+		if (model->size()!=0)
 		{
-			//for temporal data
-			QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
-			termDate = termDate.addSecs(hour*3600);
-			QDateTime creaDate(termDate.addSecs(-8*3600));
-			waterbody->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-			waterbody->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
-			//--
-			model->computeEnvelope();
-			//CityModel created, now to export
-			//export en CityGML
-			std::cout<<"Export ...";
-			citygml::ExporterCityGML exporter((file.path()+"/citygml/"+file.baseName()+".gml").toStdString());
+			citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
 			exporter.exportCityModel(*model);
 			std::cout<<"OK!"<<std::endl;
 		}
+		else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
 		delete model;
 	}
+	std::cout<<"Job done!"<<std::endl;
+	m_osgView->setActive(true);
+
 	//buildJson();
 
 	/*std::vector<std::string> building;
@@ -3487,6 +3394,138 @@ void MainWindow::slotASCtoCityGML()
 	m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotShpWaterToCityGML()
+{
+	m_osgView->setActive(false);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Shp to CityGML", "","Shapefiles (*.shp)");
+
+	for(int i = 0; i < filenames.count(); ++i)
+	{
+		QFileInfo file(filenames[i]);
+		QDir dir  = file.absoluteDir();
+		if (!dir.exists("citygml"))
+			dir.mkdir("citygml");
+		citygml::CityModel* model = new citygml::CityModel();
+		citygml::CityObject* waterbody = new citygml::WaterBody("");
+		// for temporal data
+		// This is VERY SPECIFIC CODE and will certainly have to be modified/deleted in the future
+		std::string fname = file.baseName().toStdString();
+		size_t pos1 = fname.find_last_of("T");
+		size_t pos2 = fname.find("_",pos1);
+		std::string str_hour = fname.substr(pos1+1,pos2-pos1-1);
+		int hour = atoi(str_hour.c_str());
+		//std::cout<<str_hour<<" : "<<hour<<std::endl;
+		//int a; std::cin>> a;
+		// --
+		const char * DriverName = "ESRI Shapefile";
+		OGRSFDriver * Driver;
+
+		OGRRegisterAll();
+		Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+		if( Driver == NULL )
+		{
+			printf( "%s driver not available.\n", DriverName );
+			return;
+		}
+		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
+
+
+		int nbLayers = poDS->GetLayerCount();
+		if(nbLayers > 0)
+		{
+			OGRLayer *poLayer = poDS->GetLayer(0);
+
+			OGRFeature *poFeature;
+			poLayer->ResetReading();
+
+			int cpt = 0;
+			while( (poFeature = poLayer->GetNextFeature()) != NULL )
+			{
+				std::string name = "test_"+std::to_string(cpt++);
+				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+				{
+					citygml::CityObject* watersfc = new citygml::WaterSurface("");
+					citygml::Geometry* geom = new citygml::Geometry("", citygml::GT_Unknown,3);
+					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+
+					std::vector<TVec3d> LRing;
+					OGRPoint p;
+					TVec3d v;
+					OGRLinearRing* poLR = poPG->getExteriorRing();
+					for(int i=0; i<poLR->getNumPoints(); ++i)
+					{
+						poLR->getPoint(i, &p);
+						v = TVec3d(p.getX(), p.getY(), p.getZ());
+						LRing.push_back(v);
+					}
+					std::vector<std::vector<TVec3d>> ptsSolIntern;
+
+					for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
+					{
+						std::vector<TVec3d> ptsSolTemp;// = OGRLinearRingToLRing(poPG->getInteriorRing(i));
+						poLR = poPG->getInteriorRing(i);
+						for(int i=0; i<poLR->getNumPoints(); ++i)
+						{
+							poLR->getPoint(i, &p);
+							v = TVec3d(p.getX(), p.getY(), p.getZ());
+							ptsSolTemp.push_back(v);
+						}
+						if(ptsSolTemp.size() == 0)
+							continue;
+						ptsSolIntern.push_back(ptsSolTemp);
+
+					}
+					//build CityGML polygon
+					citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
+					//poly->addRing(LRingToCityRing(LRing,name));
+					citygml::LinearRing* ring1 = new citygml::LinearRing(name+"_ring",true);
+					for(unsigned int j = 0; j < LRing.size(); j++)
+					{
+						ring1->addVertex(LRing[j]);
+					}
+					poly->addRing(ring1);
+					for(std::vector<TVec3d> vec : ptsSolIntern)
+					{
+						//poly->addRing(LRingToCityRing(vec,name,false));
+						citygml::LinearRing* ring2 = new citygml::LinearRing(name+"_ring",false);
+						for(unsigned int j = 0; j < vec.size(); j++)
+						{
+							ring2->addVertex(vec[j]);
+						}
+						poly->addRing(ring2);
+					}
+					geom->addPolygon(poly);
+					watersfc->addGeometry(geom);
+					waterbody->getChildren().push_back(watersfc);
+					watersfc->_parent = waterbody;
+				}
+			}	
+		}
+		model->addCityObject(waterbody);
+		model->addCityObjectAsRoot(waterbody);
+		if (waterbody->getChildCount()!=0)
+		{
+			//for temporal data
+			QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
+			termDate = termDate.addSecs(hour*3600);
+			QDateTime creaDate(termDate.addSecs(-8*3600));
+			waterbody->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+			waterbody->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+			//--
+			model->computeEnvelope();
+			//CityModel created, now to export
+			//export en CityGML
+			std::cout<<"Export ...";
+			citygml::ExporterCityGML exporter((file.path()+"/citygml/"+file.baseName()+".gml").toStdString());
+			exporter.exportCityModel(*model);
+			std::cout<<"OK!"<<std::endl;
+		}
+		delete model;
+	}
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutASC()
 {
 	m_osgView->setActive(false);
@@ -3688,4 +3727,4 @@ void MainWindow::slotCutShapeFile()
 	}
 	m_osgView->setActive(true);
 }
-
+////////////////////////////////////////////////////////////////////////////////

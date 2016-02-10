@@ -1,4 +1,5 @@
 #include "importerASC.hpp"
+#include "src/processes/ExportToShape.hpp"
 
 #include <osgDB/fstream>
 
@@ -31,7 +32,7 @@ bool ImporterASC::charge(const char* nom_fichier, const char* type_fichier)
 	if( strcmp( type_fichier, "MNT" ) == 0 )
 	{
 		int r;
-		
+
 		r = fscanf( fp, "%s", chaine );				// "MNT"
 		if( strcmp( chaine, "MNT" ) != 0 )
 			return false;
@@ -40,8 +41,8 @@ bool ImporterASC::charge(const char* nom_fichier, const char* type_fichier)
 		r = fscanf( fp, "%s", nom_chantier );			// Nom du chantier
 		r = fscanf( fp, "%s", unites_xy );			// Unité des xy
 		r = fscanf( fp, "%f", &precision_xy );			// Précision de l'unité
-		r = fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
-		r = fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
+		r = fscanf( fp, "%f", &x_noeud_SO );			// x du noeud Nord-Ouest
+		r = fscanf( fp, "%f", &y_noeud_SO );			// y du noeud Nord-Ouest
 		r = fscanf( fp, "%f", &pas_x );				// pas en x
 		r = fscanf( fp, "%f", &pas_y );				// pas en y
 		r = fscanf( fp, "%d", &dim_y );				// nombre de lignes
@@ -49,12 +50,12 @@ bool ImporterASC::charge(const char* nom_fichier, const char* type_fichier)
 		r = fscanf( fp, "%s", unites_z );			// Unité des z
 		r = fscanf( fp, "%f", &precision_z );			// Précision de l'unité
 
-		y_noeud_NO -= 3000000;
+		y_noeud_SO -= 3000000;
 	}
 	else if( strcmp( type_fichier, "ASC" ) == 0 )
 	{
 		int r;
-		
+
 		strcpy( nom_chantier, "empty" );
 
 		r = fscanf( fp, "%s", chaine );
@@ -72,14 +73,14 @@ bool ImporterASC::charge(const char* nom_fichier, const char* type_fichier)
 		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "xllcorner" ) == 0 )
 		{
-			r = fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
-			printf("xllcorner: %f\n", x_noeud_NO);
+			r = fscanf( fp, "%f", &x_noeud_SO );			// x du noeud Nord-Ouest
+			printf("xllcorner: %f\n", x_noeud_SO);
 		}
 		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "yllcorner" ) == 0 )
 		{
-			r = fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
-			printf("yllcorner: %f\n", y_noeud_NO);
+			r = fscanf( fp, "%f", &y_noeud_SO );			// y du noeud Nord-Ouest
+			printf("yllcorner: %f\n", y_noeud_SO);
 		}
 		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "cellsize" ) == 0 )
@@ -106,9 +107,9 @@ bool ImporterASC::charge(const char* nom_fichier, const char* type_fichier)
 		return false;
 	}
 
-	printf( "origine = (%f, %f)\n", x_noeud_NO, y_noeud_NO );
+	printf( "origine = (%f, %f)\n", x_noeud_SO, y_noeud_SO );
 
-	altitudes = new int[dim_x*dim_y];
+	altitudes = new float[dim_x*dim_y];
 
 	// Lecture des altitudes
 	int offset = 0;
@@ -119,7 +120,7 @@ bool ImporterASC::charge(const char* nom_fichier, const char* type_fichier)
 		{
 			float a = NODATA_value;
 			r = fscanf( fp, "%f", &a );
-			altitudes[offset] = (int) a;
+			altitudes[offset] = a;
 			//printf("%d \n", altitudes[offset]);
 			offset++;
 		}
@@ -182,19 +183,19 @@ Geometry* ImporterASC::generateTriangles()
 			//incrx = 25-incrx; //for alternative step
 			bool emptyCell = true;
 			TVec3d v1, v2, v3, v4;
-			v1[0] = (x_noeud_NO)+x*(pas_x);
-			v1[1] = (y_noeud_NO)+(-y)*(pas_y)+(dim_y*pas_y);
+			v1[0] = (x_noeud_SO)+x*(pas_x);
+			v1[1] = (y_noeud_SO)+(-y)*(pas_y)+(dim_y*pas_y);
 			v1[2] = get_altitude(x,y);
-			v2[0] = (x_noeud_NO)+x*(pas_x);
-			v2[1] = (y_noeud_NO)+(-y-incry)*(pas_y)+(dim_y*pas_y);
+			v2[0] = (x_noeud_SO)+x*(pas_x);
+			v2[1] = (y_noeud_SO)+(-y-incry)*(pas_y)+(dim_y*pas_y);
 			v2[2] = get_altitude(x,y+incry);
-			v3[0] = (x_noeud_NO)+(x+incrx)*(pas_x);
-			v3[1] = (y_noeud_NO)+(-y)*(pas_y)+(dim_y*pas_y);
+			v3[0] = (x_noeud_SO)+(x+incrx)*(pas_x);
+			v3[1] = (y_noeud_SO)+(-y)*(pas_y)+(dim_y*pas_y);
 			v3[2] = get_altitude(x+incrx,y);
-			v4[0] = (x_noeud_NO)+(x+incrx)*(pas_x);
-			v4[1] = (y_noeud_NO)+(-y-incry)*(pas_y)+(dim_y*pas_y);
+			v4[0] = (x_noeud_SO)+(x+incrx)*(pas_x);
+			v4[1] = (y_noeud_SO)+(-y-incry)*(pas_y)+(dim_y*pas_y);
 			v4[2] = get_altitude(x+incrx,y+incry);
-			
+
 			if(v1[2]!=(NODATA_value) && v2[2]!=(NODATA_value) && v3[2]!=(NODATA_value) )
 			{
 				Polygon* t = new Polygon("");
@@ -263,8 +264,8 @@ void ImporterASC::cutASC(std::string path, std::string filename, int tileSize)
 	{
 
 		// get bounds of the tile we're in
-		float realX = (x_noeud_NO)+x*(pas_x);
-		float realY = (y_noeud_NO)+(-y)*(pas_y)+(dim_y*pas_y);
+		float realX = (x_noeud_SO)+x*(pas_x);
+		float realY = (y_noeud_SO)+(-y)*(pas_y)+(dim_y*pas_y);
 		float cornerX = realX;
 		float cornerY = realY;
 		int dvX = realX/tileSize;
@@ -284,7 +285,7 @@ void ImporterASC::cutASC(std::string path, std::string filename, int tileSize)
 		{
 			if (iX+1>=dim_x) break;
 			nC++;
-			realX = (x_noeud_NO)+(++iX)*(pas_x);
+			realX = (x_noeud_SO)+(++iX)*(pas_x);
 		}
 		int nR = 1;
 		int iY = y;
@@ -292,7 +293,7 @@ void ImporterASC::cutASC(std::string path, std::string filename, int tileSize)
 		{
 			if (iY<=0) break;
 			nR++;
-			realY = (y_noeud_NO)+(-(--iY))*(pas_y)+(dim_y*pas_y);
+			realY = (y_noeud_SO)+(-(--iY))*(pas_y)+(dim_y*pas_y);
 		}
 
 		std::string fname = path+"/"+filename+"T"+std::to_string(dvX)+"-"+std::to_string(dvY)+".asc";
@@ -332,6 +333,174 @@ void ImporterASC::cutASC(std::string path, std::string filename, int tileSize)
 	}
 	std::cout<<"Done!            "<<std::endl;
 
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+CityModel* ImporterASC::waterToCityGMLPolygons()
+{
+	CityModel* model = new CityModel();
+	CityObject* waterbody = new WaterBody("");
+	//CityObject* watersfc = new WaterSurface("");
+	//Geometry* geom = new Geometry("", GT_Unknown,3);
+
+	treated = new bool[dim_x*dim_y];
+	for (int i =0; i<(dim_x*dim_y);i++) treated[i]=false;
+	for (int y=0; y<dim_y;y++)
+	{
+		for (int x=0; x<dim_x;x++)
+		{
+			if (!treated[x+y*dim_x] && get_altitude(x,y)!=NODATA_value)
+			{
+				CityObject* watersfc = new WaterSurface("");
+				Geometry* geom = new Geometry("", GT_Unknown,3);
+
+				geom_list.clear();
+				
+				OGRMultiPolygon* pOgrMerged = new OGRMultiPolygon;
+				std::deque<std::pair<int, int>> pointsList;
+				pointsList.push_back(std::make_pair(x,y));
+				treated[x+y*dim_x]=true;
+				while (!pointsList.empty())
+				{
+					pOgrMerged->addGeometryDirectly(createPoly(pointsList.front().first,pointsList.front().second));
+					pointsList.pop_front();
+					propagateCategory(&pointsList);
+				}
+				
+				OGRGeometry* pTemp = pOgrMerged->UnionCascaded();
+
+				OGRPolygon* poPG = (OGRPolygon*) pTemp;
+				if(poPG == nullptr)
+				{
+					std::cout << " ERREUR pOgrMerged nest pas un polygone ! " << poPG->getGeometryName() << std::endl;
+					int a;
+					std::cin >> a;
+				}
+				//-------------------------------
+				//get interior and exterior rings
+				std::vector<TVec3d> extRing;
+				OGRPoint p;
+				TVec3d v;
+				OGRLinearRing* poLR = poPG->getExteriorRing();
+				for(int i=0; i<poLR->getNumPoints(); ++i)
+				{
+					poLR->getPoint(i, &p);
+					v = TVec3d(p.getX(), p.getY(), p.getZ());
+					extRing.push_back(v);
+				}
+				std::vector<std::vector<TVec3d>> intRing;
+
+				for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
+				{
+					std::vector<TVec3d> intRingTemp;
+					poLR = poPG->getInteriorRing(i);
+					for(int i=0; i<poLR->getNumPoints(); ++i)
+					{
+						poLR->getPoint(i, &p);
+						v = TVec3d(p.getX(), p.getY(), p.getZ());
+						intRingTemp.push_back(v);
+					}
+					if(intRingTemp.size() == 0)
+						continue;
+					intRing.push_back(intRingTemp);
+
+				}
+				//build CityGML polygon
+				citygml::Polygon* GMLpoly = new citygml::Polygon("");
+				citygml::LinearRing* ring1 = new citygml::LinearRing("",true);
+				for(unsigned int j = 0; j < extRing.size(); j++)
+				{
+					ring1->addVertex(extRing[j]);
+				}
+				GMLpoly->addRing(ring1);
+				for(std::vector<TVec3d> vec : intRing)
+				{
+					citygml::LinearRing* ring2 = new citygml::LinearRing("",false);
+					for(unsigned int j = 0; j < vec.size(); j++)
+					{
+						ring2->addVertex(vec[j]);
+					}
+					GMLpoly->addRing(ring2);
+				}
+				geom->addPolygon(GMLpoly);
+				//---------------------------------------
+				if (geom->size()!=0)
+				{
+					watersfc->addGeometry(geom);
+					waterbody->getChildren().push_back(watersfc);
+					watersfc->_parent = waterbody;
+				}
+				delete pOgrMerged;
+				delete poPG;
+			}
+		}
+		std::cout<<"Traitement ("<<(int)(y*100.0/dim_y)<<"%)\r";
+		fflush(stdout);
+	}
+	std::cout<<"Traitement OK!     "<<std::endl;
+	delete treated;
+
+	//end treatement and create CityModel
+	//if (geom->size()!=0)
+	//{
+	//	watersfc->addGeometry(geom);
+	//	waterbody->getChildren().push_back(watersfc);
+	//	watersfc->_parent = waterbody;
+		model->addCityObject(waterbody);
+		model->addCityObjectAsRoot(waterbody);
+	//}
+
+	model->computeEnvelope();
+	return model;
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+void ImporterASC::propagateCategory(std::deque<std::pair<int,int>>* pointsList)
+{
+	int x = pointsList->front().first;
+	int y = pointsList->front().second;
+	//std::cout<<x<<";"<<y<<" / "<<dim_x<<";"<<dim_y<<std::endl;
+
+	// If some neighbours have same altitude but no category
+	float alt = get_altitude(x,y);
+	if (y>0 && !treated[x+(y-1)*dim_x] && abs(get_altitude(x,y-1)-alt)<0.001)// up
+	{
+		pointsList->push_back(std::make_pair(x,y-1));
+		treated[x+(y-1)*dim_x]=true;
+	} 
+	if (x>0 && !treated[x-1+y*dim_x] && abs(get_altitude(x-1,y)-alt)<0.001)// left
+	{
+		pointsList->push_back(std::make_pair(x-1,y));
+		treated[x-1+y*dim_x]=true;
+	} 
+	if ((y+1)<dim_y && !treated[x+(y+1)*dim_x] && abs(get_altitude(x,y+1)-alt)<0.001)// down
+	{
+		pointsList->push_back(std::make_pair(x,y+1));
+		treated[x+(y+1)*dim_x]=true;
+	} 
+	if ((x+1)<dim_x && !treated[x+1+y*dim_x] && abs(get_altitude(x+1,y)-alt)<0.001)// right
+	{
+		pointsList->push_back(std::make_pair(x+1,y));
+		treated[x+1+y*dim_x]=true;
+	} 
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+OGRPolygon* ImporterASC::createPoly(int x, int y)
+{
+	OGRLinearRing* ring = new OGRLinearRing;
+
+	float xmin = x_noeud_SO+x*pas_x;
+	float ymax = y_noeud_SO+dim_y*pas_y-y*pas_y;
+	float xmax = x_noeud_SO+(x+1)*pas_x;
+	float ymin = y_noeud_SO+dim_y*pas_y-(y+1)*pas_y;
+
+	ring->addPoint(xmin, ymin, floor(get_altitude(x,y)*1000+0.5)/1000);
+	ring->addPoint(xmin, ymax, floor(get_altitude(x,y)*1000+0.5)/1000);
+	ring->addPoint(xmax, ymax, floor(get_altitude(x,y)*1000+0.5)/1000);
+	ring->addPoint(xmax, ymin, floor(get_altitude(x,y)*1000+0.5)/1000);
+	ring->addPoint(xmin, ymin, floor(get_altitude(x,y)*1000+0.5)/1000);
+
+	OGRPolygon* poly = new OGRPolygon();
+	poly->addRingDirectly(ring);
+	return poly;
 }
 /////////////////////////////////////////////////////////////////////////////////////////
 }//namespace citygml
