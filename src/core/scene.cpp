@@ -177,7 +177,7 @@ void Scene::deleteTile(const URI& uri)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-citygml::CityObject* Scene::getCityObjectNode(const URI& uri)
+citygml::CityObject* Scene::getCityObjectNode(const URI& uri, bool inPickingMode)
 {
     if(uri.getDepth() > 2)
     {
@@ -189,7 +189,7 @@ citygml::CityObject* Scene::getCityObjectNode(const URI& uri)
         {
 			LayerCityGML* layer = dynamic_cast<LayerCityGML*>(abstractlayer);
 			if (layer)
-				return layer->getCityObjectNode(uri);
+				return layer->getCityObjectNode(uri, inPickingMode);
 			else std::cout << "layer is NULL in getCityObjectNode" << std::endl;
         }
     }

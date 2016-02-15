@@ -19,7 +19,7 @@ set(PRJ_NAME 3DUSE)
 
 SET(PRJ_VERSION_MAJOR 0)
 SET(PRJ_VERSION_MINOR 3)
-SET(PRJ_VERSION_PATCH 1)
+SET(PRJ_VERSION_PATCH 2)
 SET(PRJ_VERSION "${PRJ_VERSION_MAJOR}.${PRJ_VERSION_MINOR}.${PRJ_VERSION_PATCH}")
 message(STATUS "${PRJ_NAME} ${PRJ_VERSION}")
 
@@ -27,6 +27,14 @@ project( ${PRJ_NAME} )
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy_${PRJ_VERSION}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+# set Release as default build target
+if (NOT CMAKE_BUILD_TYPE)
+  set (CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build, options are: Debug, Release."
+      FORCE)
+endif ()
+message("Build type : ${CMAKE_BUILD_TYPE}")
 
 #------------------------------------------------------------------------------
 # Specific compiler options
@@ -103,12 +111,12 @@ IF(WIN32)
 	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
 	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
 
-	set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
-	set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
+	#set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
+	#set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
 
-	set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
-	set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
-	set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
+	#set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
+	#set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
+	#set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
 
 	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
 	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
@@ -195,6 +203,7 @@ else(WITH_QT5)
     endif(QT3D_LIBRARIES)
   endif(WITH_QT3D)
 endif(WITH_QT5)
+message("Qt version used : ${QTDIR}")
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -330,20 +339,20 @@ else(LIBXML2_FOUND)
 endif(LIBXML2_FOUND)
 
 # Find Proj
-find_package(Proj)
-if(PROJ_FOUND)
-  include_directories(${PROJ_INCLUDE_DIR})
-else(PROJ_FOUND)
-  message(FATAL_ERROR "Proj not found.")
-endif(PROJ_FOUND)
+#find_package(Proj)
+#if(PROJ_FOUND)
+#  include_directories(${PROJ_INCLUDE_DIR})
+#else(PROJ_FOUND)
+#  message(FATAL_ERROR "Proj not found.")
+#endif(PROJ_FOUND)
 
 # Find GEOS
-find_package(GEOS)
-if(GEOS_FOUND)
-  include_directories(${GEOS_INCLUDE_DIR})
-else(GEOS_FOUND)
-  message(FATAL_ERROR "GEOS not found.")
-endif(GEOS_FOUND)
+#find_package(GEOS)
+#if(GEOS_FOUND)
+#  include_directories(${GEOS_INCLUDE_DIR})
+#else(GEOS_FOUND)
+#  message(FATAL_ERROR "GEOS not found.")
+#endif(GEOS_FOUND)
 
 # Find LASLIB
 find_package(LASLIB)
@@ -418,8 +427,8 @@ SET( VCITY_GUI_LIB
   ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
-  ${PROJ_LIBRARY}
-  ${GEOS_LIBRARY}
+  #${PROJ_LIBRARY}
+  #${GEOS_LIBRARY}
   ${LASLIB_LIBRARY}
   ${OPENGL_LIBRARIES}
 )

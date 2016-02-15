@@ -133,7 +133,7 @@ public:
 public:
     /// Build osg node from CityGML data
     osg::ref_ptr<osg::Node> buildTile(const vcity::URI& uri, const vcity::Tile& tile);
-    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0);
+    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0, osg::ref_ptr<osg::Group> nodeVersion=NULL, osg::ref_ptr<osg::Group> nodeWorkspace=NULL);
 
     /// Build osg node from CityGML temporal data
     void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);

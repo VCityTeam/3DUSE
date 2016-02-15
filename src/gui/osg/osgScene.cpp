@@ -380,77 +380,83 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 	osg::ref_ptr<osg::Group> grp = node->asGroup();
 	if(grp)
 	{
-		for(unsigned int i=0; i<grp->getNumChildren(); ++i)
+		// dyntag
+		/*double val;
+		bool hasFlag = node->getUserValue("TAGPTR", val);
+		if(hasFlag)
 		{
-			osg::ref_ptr<osg::Node> child = grp->getChild(i);
-
-			// dyntag
-			/*double val;
-			bool hasFlag = node->getUserValue("TAGPTR", val);
-			if(hasFlag)
-			{
 			citygml::CityObjectTag* tag;
 			memcpy(&tag, &val, sizeof(tag));
 			std::string texturePath = tag->getAttribute("texture", date);
 			if(texturePath != "none")
 			{
-			std::cout << date.toString().toStdString() << " : texture : " << texturePath << std::endl;
+				std::cout << date.toString().toStdString() << " : texture : " << texturePath << std::endl;
 
-			// check cache
-			osg::ref_ptr<osg::Texture2D> texture = nullptr;
-			std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = m_texManager.find(texturePath);
-			if(it!=m_texManager.end())
-			{
-			texture = it->second;
-			}
-			else
-			{
-			if(osg::Image* image = osgDB::readImageFile(texturePath))
-			{
-			//osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
-			//std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
-			texture = new osg::Texture2D;
-			texture->setImage( image );
-			texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-			texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-			texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-			texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-			texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
-
-			m_texManager[texturePath] = texture;
-			}
-			else
-			osg::notify(osg::NOTICE) << "  Warning: Texture " << texturePath << " not found!" << std::endl;
-			}
-
-			setTexture(node, tag, texture);
-			}
-			}*/
-
-			// get attributes in cityobject
-#if 0
-			vcity::URI uri = osgTools::getURI(node);
-			citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
-			if(obj && obj->getType() == citygml::COT_Building)
-			{
-				std::string strAttr = obj->getAttribute("yearOfConstruction");
-				int yearOfConstruction = (strAttr.empty()?-4000:std::stoi(strAttr));
-				strAttr = obj->getAttribute("yearOfDemolition");
-				int yearOfDemolition = (strAttr.empty()?-4000:std::stoi(strAttr));
-
-				//std::cout << obj->getId() << " : " << yearOfConstruction << " / " << yearOfDemolition << std::endl;
-
-				if(((yearOfConstruction == -4000 || yearOfDemolition == -4000) || (yearOfConstruction < year && year <= yearOfDemolition)))
+				// check cache
+				osg::ref_ptr<osg::Texture2D> texture = nullptr;
+				std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = m_texManager.find(texturePath);
+				if(it!=m_texManager.end())
 				{
-					node->setNodeMask(0xffffffff);
+					texture = it->second;
 				}
 				else
 				{
-					node->setNodeMask(0);
-				}
-			}
-#endif
+					if(osg::Image* image = osgDB::readImageFile(texturePath))
+					{
+						//osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
+						//std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
+						texture = new osg::Texture2D;
+						texture->setImage( image );
+						texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+						texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+						texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+						texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+						texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
 
+						m_texManager[texturePath] = texture;
+					}
+					else
+						osg::notify(osg::NOTICE) << "  Warning: Texture " << texturePath << " not found!" << std::endl;
+				}
+
+				setTexture(node, tag, texture);
+			}
+		}*/
+
+		// get attributes in cityobject
+		#if 0
+		vcity::URI uri = osgTools::getURI(node);
+		citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri);
+		if(obj && obj->getType() == citygml::COT_Building)
+		{
+			std::string strAttr = obj->getAttribute("yearOfConstruction");
+			int yearOfConstruction = (strAttr.empty()?-4000:std::stoi(strAttr));
+			strAttr = obj->getAttribute("yearOfDemolition");
+			int yearOfDemolition = (strAttr.empty()?-4000:std::stoi(strAttr));
+
+			//std::cout << obj->getId() << " : " << yearOfConstruction << " / " << yearOfDemolition << std::endl;
+
+			if(((yearOfConstruction == -4000 || yearOfDemolition == -4000) || (yearOfConstruction < year && year <= yearOfDemolition)))
+			{
+				node->setNodeMask(0xffffffff);
+			}
+			else
+			{
+					node->setNodeMask(0);
+			}
+		}
+		#endif
+
+		//hide node if unchecked in treeview
+		vcity::URI uri = osgTools::getURI(node);
+		QTreeWidgetItem* item = appGui().getTreeView()->getNode(uri);
+		bool unchecked = (item==nullptr)?false:item->checkState(0)== Qt::CheckState::Unchecked;
+		if (unchecked)
+		{
+			node->setNodeMask(0);
+		}
+		else
+		{
 			// check attributes from tags
 			int yearOfConstruction;
 			int yearOfDemolition;
@@ -461,8 +467,8 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 			//std::cout << node->getName() << " : " << a <<  " : yearOfConstruction : " << yearOfConstruction << std::endl;
 			//std::cout << node->getName() << " : " << b << " : yearOfDemolition : " << yearOfDemolition << std::endl;
 
-			int cDate;
-			int dDate;
+			std::string cDate;
+			std::string dDate;
 			bool c = node->getUserValue("creationDate", cDate);
 			bool d = node->getUserValue("terminationDate", dDate);
 
@@ -480,38 +486,55 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 			} 
 			else if (c)
 			{
-				QDateTime creationDate = QDateTime::fromString(QString::fromStdString(std::to_string(cDate)),QString("yyyyMMdd"));
+				QDateTime creationDate = QDateTime::fromString(QString::fromStdString(cDate),Qt::ISODate);
 				if (d)
 				{
-					QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(std::to_string(dDate)),QString("yyyyMMdd"));
-					if (creationDate < date && date <= terminationDate) node->setNodeMask(0xffffffff);
-					else node->setNodeMask(0);
+					QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(dDate),Qt::ISODate);
+					if (creationDate < date && date <= terminationDate)
+					{
+						node->setNodeMask(0xffffffff);
+					}
+					else 
+					{
+						node->setNodeMask(0);
+					}
 				} else {
 					if (creationDate < date ) node->setNodeMask(0xffffffff);
 					else node->setNodeMask(0);                
 				}
 			}
-			setDateRec(date, child);
+			else node->setNodeMask(0xffffffff);
+			for(unsigned int i=0; i<grp->getNumChildren(); ++i)
+			{
+				osg::ref_ptr<osg::Node> child = grp->getChild(i);
+				setDateRec(date, child);
+			}
 		}
-	}
 
-	//osg::ref_ptr<osg::Geode> geode = node->asGeode();
-	if(node)
-	{
-		int tagged = 0;
-		bool c = node->getUserValue("TAGGED", tagged);
-		if(c && tagged)
+		//osg::ref_ptr<osg::Geode> geode = node->asGeode();
+		if(node)
 		{
-			node->setNodeMask(0);
-			//node->getParent(0)->setNodeMask(0);
-			//std::cout << "hide TAGGED default geom : " << osgTools::getURI(node).getStringURI() << " / " << typeid(node).name() << " : " << node->getNodeMask() << std::endl;
+			int tagged = 0;
+			bool c = node->getUserValue("TAGGED", tagged);
+			if(c && tagged)
+			{
+				node->setNodeMask(0);
+				//node->getParent(0)->setNodeMask(0);
+				//std::cout << "hide TAGGED default geom : " << osgTools::getURI(node).getStringURI() << " / " << typeid(node).name() << " : " << node->getNodeMask() << std::endl;
+			}
 		}
 	}
 
 	// reset : force draw
 	if(date.date().year() == -4000)
 	{
-		node->setNodeMask(0xffffffff);
+		//node->setNodeMask(0xffffffff);
+		vcity::URI uri = osgTools::getURI(node);
+		QTreeWidgetItem* item = appGui().getTreeView()->getNode(uri);
+		bool unchecked = (item==nullptr)?false:item->checkState(0)== Qt::CheckState::Unchecked;
+		if (unchecked)
+		node->setNodeMask(0);
+		else node->setNodeMask(0xffffffff);
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -586,28 +609,66 @@ void OsgScene::forceLOD(int lod)
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::showNode(osg::ref_ptr<osg::Node> node, bool show)
 {
-	if(node)
-	{
-		//std::cout << node->getName() << std::endl;
-		if(show)
-		{
-			//node->setNodeMask(~0x0);
-			node->setNodeMask(0xffffffff);
-			/*if(node->asGroup())
+    if(node)
+    {
+        //std::cout << node->getName() << std::endl;
+        if(show)
+        {
+			if (appGui().getMainWindow()->m_useTemporal)
 			{
-			node->asGroup()->getChild(0)->setNodeMask(0xffffffff);
-			}*/
-		}
-		else
-		{
-			node->setNodeMask(0x0);
-			/*if(node->asGroup())
+				QDateTime date = appGui().getMainWindow()->m_currentDate;
+				int year = date.date().year();
+				// check attributes from tags
+				int yearOfConstruction;
+				int yearOfDemolition;
+				bool a = node->getUserValue("yearOfConstruction", yearOfConstruction);
+				bool b = node->getUserValue("yearOfDemolition", yearOfDemolition);
+
+				int cDate;
+				int dDate;
+				bool c = node->getUserValue("creationDate", cDate);
+				bool d = node->getUserValue("terminationDate", dDate);
+
+				if(a && b)
+				{
+					if((yearOfConstruction < year && year <= yearOfDemolition)) node->setNodeMask(0xffffffff);
+					else node->setNodeMask(0);
+				} 
+				else if (c)
+				{
+					QDateTime creationDate = QDateTime::fromString(QString::fromStdString(std::to_string(cDate)),QString("yyyyMMdd"));
+					if (d)
+					{
+						QDateTime terminationDate = QDateTime::fromString(QString::fromStdString(std::to_string(dDate)),QString("yyyyMMdd"));
+						if (creationDate < date && date <= terminationDate) node->setNodeMask(0xffffffff);
+						else node->setNodeMask(0);
+					} else {
+						if (creationDate < date ) node->setNodeMask(0xffffffff);
+						else node->setNodeMask(0);                
+					}
+				}
+				else node->setNodeMask(0xffffffff);
+			}
+			else
 			{
-			node->asGroup()->getChild(0)->setNodeMask(0x0);
-			}*/
-			//node->getParent(0)->setNodeMask(0x0);
-		}
-	}
+				//node->setNodeMask(~0x0);
+				node->setNodeMask(0xffffffff);
+				/*if(node->asGroup())
+				{
+					node->asGroup()->getChild(0)->setNodeMask(0xffffffff);
+				}*/
+			}
+        }
+        else
+        {
+            node->setNodeMask(0x0);
+            /*if(node->asGroup())
+            {
+                node->asGroup()->getChild(0)->setNodeMask(0x0);
+            }*/
+            //node->getParent(0)->setNodeMask(0x0);
+        }
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::showNode(const vcity::URI& uri, bool show)
@@ -689,18 +750,32 @@ void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject*
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth)
+void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth, osg::ref_ptr<osg::Group> nodeVersion, osg::ref_ptr<osg::Group> nodeWorkspace)
 {
-	osg::ref_ptr<osg::Group> node = reader.createCityObject(obj);
-	nodeOsg->addChild(node);
+    osg::ref_ptr<osg::Group> node = reader.createCityObject(obj);
 
-	for(citygml::CityObject* child : obj->getChildren())
+	osg::ref_ptr<osg::Group> fatherNode;
+	fatherNode=nodeOsg;
+
+	if (nodeWorkspace)
 	{
-		vcity::URI u = uri;
-		u.append(child->getId(), child->getTypeAsString());
-		u.resetCursor();
-		buildCityObject(u, node, child, reader, depth+1);
+		fatherNode->addChild(nodeWorkspace);
+		fatherNode=nodeWorkspace;
 	}
+	if (nodeVersion)
+	{
+		fatherNode->addChild(nodeVersion);
+		fatherNode=nodeVersion;
+	}
+	fatherNode->addChild(node);
+
+    for(citygml::CityObject* child : obj->getChildren())
+    {
+        vcity::URI u = uri;
+        u.append(child->getId(), child->getTypeAsString());
+        u.resetCursor();
+        buildCityObject(u, node, child, reader, depth+1);
+    }
 	for(citygml::Object* target : obj->getXLinkTargets())
 	{
 		citygml::CityObject* child = (citygml::CityObject*) target;
@@ -728,14 +803,88 @@ osg::ref_ptr<osg::Node> OsgScene::buildTile(const vcity::URI& uri, const vcity::
 	ReaderOsgCityGML readerOsgGml(path);
 	readerOsgGml.m_settings.m_useTextures = vcity::app().getSettings().m_loadTextures;
 
-	for(citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
+	// VERSIONS & WORKSPACES
+	const citygml::CityModel* citymodel = tile.getCityModel();
+
+	//std::cout<<"Workspaces:"<<std::endl;
+	std::map<std::string,temporal::Workspace> workspaces = citymodel->getWorkspaces();
+	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++)
 	{
-		vcity::URI u = uri;
-		u.append(child->getId(), child->getTypeAsString());
-		u.resetCursor();
-		buildCityObject(u, root, child, readerOsgGml);
+		//std::cout<<it->second.name<<std::endl;
+		osg::ref_ptr<osg::Group> groupWorkspace;
+		groupWorkspace = new osg::Group;
+		groupWorkspace->setName(it->second.name);
+		std::string strType = "Workspace";
+		groupWorkspace->setUserValue("type", strType);
+
+		for(temporal::Version* v : it->second.versions)
+		{
+			//std::cout<<"    - "<<v->getId()<<std::endl;
+			osg::ref_ptr<osg::Group> groupVersion;
+			groupVersion = new osg::Group;
+			groupVersion->setName(v->getId());
+			std::string strType = "Version";
+			groupVersion->setUserValue("type", strType);
+
+			std::vector<citygml::CityObject*>* members = v->getVersionMembers();
+			for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+			{
+				//std::cout<<"        - member: "<<(*it)->getId()<<std::endl;
+				{
+					vcity::URI u = uri;
+					u.append((*it)->getId(), (*it)->getTypeAsString());
+					u.resetCursor();
+					buildCityObject(u, root, (*it), readerOsgGml, 0, groupVersion, groupWorkspace);
+				}
+			}
+
+			groupVersion.release();
+		}
+
+		groupWorkspace.release();
 	}
-	return root;
+
+	//std::cout<<"Versions:"<<std::endl;
+	std::vector<temporal::Version*> versions = citymodel->getVersions();
+	for (temporal::Version* version : versions)
+	{
+		if (!version->_isInWorkspace)
+		{
+			//std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+			osg::ref_ptr<osg::Group> groupVersion;
+			groupVersion = new osg::Group;
+			groupVersion->setName(version->getId());
+			std::string strType = "Version";
+			groupVersion->setUserValue("type", strType);
+			
+			std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+			for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+			{
+				//std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+				{
+					vcity::URI u = uri;
+					u.append((*it)->getId(), (*it)->getTypeAsString());
+					u.resetCursor();
+					buildCityObject(u, root, (*it), readerOsgGml, 0, groupVersion);
+				}
+			}
+
+			groupVersion.release();
+		}
+	}
+	// VERSIONS & WORKSPACES
+
+    for(citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
+    {
+		if (!(child)->_isInVersion)
+		{
+			vcity::URI u = uri;
+			u.append(child->getId(), child->getTypeAsString());
+			u.resetCursor();
+			buildCityObject(u, root, child, readerOsgGml);
+		}
+    }
+    return root;
 }
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)

@@ -30,9 +30,6 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
-#include "core/BatimentShape.hpp"
-#include <geos/geom/GeometryFactory.h>
-
 /*#include "assimp/Importer.hpp"
 #include "assimp/PostProcess.h"
 #include "assimp/Scene.h"*/
@@ -56,9 +53,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-geos::geom::Geometry* ShapeGeo = nullptr;
 std::vector<std::pair<double, double>> Hauteurs;
-std::vector<BatimentShape> InfoBatiments;
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
@@ -121,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	//connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
 	connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
 	connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
+	connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
 	//connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
 	connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
 	connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
@@ -170,6 +166,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	connect(&m_timer, SIGNAL(timeout()), this, SLOT(slotTemporalAnimUpdate()));
 
+	initTemporalTools();
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
 	m_ui->toolButton->setEnabled(m_useTemporal);
@@ -179,7 +176,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_treeView->init();
 
 	// plugins
-	aboutPluginsAct = new QAction(tr("About &Plugins"), this);
+	aboutPluginsAct = new QAction(tr("Plugins information"), this);
 	connect(aboutPluginsAct, SIGNAL(triggered()), this, SLOT(aboutPlugins()));
 
 	pluginMenu = m_ui->menuPlugins;
@@ -197,7 +194,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
 	delete aboutPluginsAct;
-	delete ShapeGeo;
 
 	delete m_treeView;
 	delete m_osgView;
@@ -658,7 +654,12 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
 	std::stringstream ss;
 	ss << uri.getStringURI() << std::endl;
 
-	citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
+	// not really good here but, no choice...
+	bool bHack=true;
+	if (uri.getType() == "Workspace" || uri.getType() == "Version") bHack=false;
+	// not really good here but, no choice...
+
+	citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri, bHack);
 	if(obj)
 	{
 		ss << "ID : " << obj->getId() << std::endl;
@@ -917,47 +918,84 @@ void MainWindow::optionShowAdvancedTools()
 	}*/
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::initTemporalTools()
+{
+	QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+	QDateTime endDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_endDate),Qt::ISODate);
+
+	int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
+	m_ui->horizontalSlider->setMaximum(max);
+	
+	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
+	m_ui->dateTimeEdit->setDateTime(startDate);
+	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
+	m_ui->dateTimeEdit->setMaximumDateTime(endDate);
+
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-	// date is starting at year 1800 and ending at 2100
-	// this is controlled in mainWindow.ui, in the temporal slider params
-	// QAbractSlider::maximum = 109574 -> number of days in 300 years
+    // min and max dates are controlled in the Settings.
+    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
-	if(value == -1) value = m_ui->horizontalSlider->value();
-	QDate date(1800, 1, 1);
-	date = date.addDays(value);
-	//m_ui->buttonBrowserTemporal->setText(date.toString());
-	m_ui->dateTimeEdit->setDate(date);
+    if(value == -1) value = m_ui->horizontalSlider->value();
+    QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+    date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
+    //m_ui->buttonBrowserTemporal->setText(date.toString());
+    m_ui->dateTimeEdit->setDateTime(date);
 
 	//std::cout << "set year : " << date.year() << std::endl;
 
 	QDateTime datetime(date);
+	m_currentDate = datetime;
 	if(m_useTemporal)   m_osgScene->setDate(datetime);
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::updateTemporalSlider()
+{
+	QDateTime newdate = m_ui->dateTimeEdit->dateTime();
+	int value = m_ui->horizontalSlider->value();
+	QDateTime olddate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+	if (appGui().getSettings().m_incIsDay)
+	{
+		olddate = olddate.addDays(value);
+		m_ui->horizontalSlider->setValue(value+olddate.daysTo(newdate));
+	}
+	else
+	{
+		olddate = olddate.addSecs(value);
+		m_ui->horizontalSlider->setValue(value+olddate.secsTo(newdate));
+	}	
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-	// date is starting at year 1800 and ending at 2100
-	// this is controlled in mainWindow.ui, in the temporal slider params
-	// QAbractSlider::maximum = 109574 -> number of days in 300 years
+    // min and max dates are controlled in the Settings.
+    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
 	m_useTemporal = !m_useTemporal;
 
-	if(m_useTemporal)
-	{
-		QDate date(1800, 1, 1);
-		date = date.addDays(m_ui->horizontalSlider->value());
-		QDateTime datetime(date);
-		m_osgScene->setDate(datetime);
-	}
-	else
-	{
-		// -4000 is used as a special value to disable time
-		QDate date(-4000, 1, 1);
-		QDateTime datetime(date);
-		m_osgScene->setDate(datetime); // reset
-		m_timer.stop();
-	}
+    if(m_useTemporal)
+    {
+		bool isDays = appGui().getSettings().m_incIsDay;
+        QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+		QDateTime date(startDate);
+		date = isDays?date.addDays(m_ui->horizontalSlider->value()):date.addSecs(m_ui->horizontalSlider->value());
+		m_currentDate = date;
+        m_osgScene->setDate(date);
+		m_ui->dateTimeEdit->setDateTime(date);
+    }
+    else
+    {
+        // -4000 is used as a special value to disable time
+        QDate date(-4000, 1, 1);
+        QDateTime datetime(date);
+        m_osgScene->setDate(datetime); // reset
+		m_currentDate = datetime;
+        m_timer.stop();
+    }
 
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
@@ -1920,24 +1958,6 @@ void MainWindow::slotSplitCityGMLBuildings()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutCityGMLwithShapefile()
 {
-	////////// Ancienne version utilisant GEOS :
-	/*QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-	w.setFileMode(QFileDialog::Directory);
-
-	if(w.exec() == 0)
-	{
-	std::cout << "Annulation : Dossier non valide." << std::endl;
-	return;
-	}
-
-	std::string Folder = w.selectedFiles().at(0).toStdString();
-
-
-
-	//DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);*/
-	////////// Nouvelle version de découpe : 
-
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
 	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
@@ -2264,7 +2284,8 @@ void MainWindow::slotTemporalAnim()
 void MainWindow::slotTemporalAnimUpdate()
 {
 	// increase by a year
-	m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+365);
+	int incr = appGui().getSettings().m_incSize;
+	m_ui->horizontalSlider->setValue(m_ui->horizontalSlider->value()+incr);
 	//std::cout << m_ui->horizontalSlider->value() << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -3374,9 +3395,6 @@ void MainWindow::loadShpFile(const QString& filepath)
 
 	//m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
-	// clean previous shapeGeo
-	delete ShapeGeo;
-	buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
 	if(poDS)
 	{
 		vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();

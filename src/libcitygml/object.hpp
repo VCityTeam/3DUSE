@@ -59,6 +59,9 @@ public:
 	void addXLinkTarget(Object*);
 	xLinkState _isXlink;
 
+	bool _isInVersion;
+	bool _isInWorkspace;
+
 protected:
     std::string _id;
 

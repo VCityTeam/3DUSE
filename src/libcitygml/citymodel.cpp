@@ -165,11 +165,41 @@ CityObject* CityModel::getNodeById(const std::string& id)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-CityObject* CityModel::getNode(const vcity::URI& uri)
+CityObject* CityModel::getNode(const vcity::URI& uri, bool inPickingMode)
 {
+	std::string sNode;	
+
+	if (inPickingMode)
+	{
+		if (uri.getCurrentNodeType() == "Workspace")	
+		{
+			uri.popFront();
+			//std::cout << "---> POP because Workspace" << std::endl;
+		}
+		if (uri.getCurrentNodeType() == "Version")	
+		{
+			uri.popFront();
+			//std::cout << "---> POP because Version" << std::endl;
+		}
+
+		sNode = uri.getCurrentNode();
+
+		//std::cout << "(Picking) uri.getStringURI: " << uri.getStringURI() << std::endl;
+		//std::cout << "(Picking) uri.getLastNode: " << uri.getLastNode() << std::endl;
+		//std::cout << "(Picking) -> uri.getCurrentNode: " << uri.getCurrentNode() << std::endl << std::endl;
+	}
+	else
+	{
+		sNode = uri.getLastNode();
+
+		//std::cout << "uri.getStringURI: " << uri.getStringURI() << std::endl;
+		//std::cout << " -> uri.getLastNode: " << uri.getLastNode() << std::endl;
+		//std::cout << "uri.getCurrentNode: " << uri.getCurrentNode() << std::endl << std::endl;
+	}
+
 	for(CityObject* obj : _roots)
 	{
-		if(uri.getCurrentNode() == obj->getId())
+		if(/*uri.getCurrentNode()*/sNode == obj->getId())
 		{
 			uri.popFront();
 			return obj->getNode(uri);
@@ -242,6 +272,11 @@ void CityModel::setVersions(std::vector<temporal::Version*> versionsList,std::ve
 	_versionTransitions = transitionsList;
 }
 ////////////////////////////////////////////////////////////////////////////////
+const std::vector<temporal::Version*> CityModel::getVersions() const
+{
+	return _versions;
+}
+////////////////////////////////////////////////////////////////////////////////
 std::vector<temporal::Version*> CityModel::getVersions()
 {
 	return _versions;
@@ -255,6 +290,11 @@ std::vector<temporal::VersionTransition*> CityModel::getTransitions()
 void CityModel::setWorkspaces(std::map<std::string,temporal::Workspace> wrkspslist)
 {
 	_workspaces=wrkspslist; 
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::map<std::string,temporal::Workspace> CityModel::getWorkspaces() const
+{
+	return _workspaces;
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::map<std::string,temporal::Workspace> CityModel::getWorkspaces()

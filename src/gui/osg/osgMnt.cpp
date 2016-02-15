@@ -58,65 +58,68 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 
 	if( strcmp( type_fichier, "MNT" ) == 0 )
 	{
-		fscanf( fp, "%s", chaine );					// "MNT"
+		int r;
+		
+		r = fscanf( fp, "%s", chaine );				// "MNT"
 		if( strcmp( chaine, "MNT" ) != 0 )
 			return false;
 
-		fscanf( fp, "%s", chaine );					// Numéro de version
-		fscanf( fp, "%s", nom_chantier );			// Nom du chantier
-		fscanf( fp, "%s", unites_xy );				// Unité des xy
-		fscanf( fp, "%f", &precision_xy );			// Précision de l'unité
-		fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
-		fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
-		fscanf( fp, "%f", &pas_x );					// pas en x
-		fscanf( fp, "%f", &pas_y );					// pas en y
-		fscanf( fp, "%d", &dim_y );					// nombre de lignes
-		fscanf( fp, "%d", &dim_x );					// nombre de colonnes
-		fscanf( fp, "%s", unites_z );				// Unité des z
-		fscanf( fp, "%f", &precision_z );			// Précision de l'unité
-
+		r = fscanf( fp, "%s", chaine );				// Numéro de version
+		r = fscanf( fp, "%s", nom_chantier );			// Nom du chantier
+		r = fscanf( fp, "%s", unites_xy );			// Unité des xy
+		r = fscanf( fp, "%f", &precision_xy );			// Précision de l'unité
+		r = fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
+		r = fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
+		r = fscanf( fp, "%f", &pas_x );				// pas en x
+		r = fscanf( fp, "%f", &pas_y );				// pas en y
+		r = fscanf( fp, "%d", &dim_y );				// nombre de lignes
+		r = fscanf( fp, "%d", &dim_x );				// nombre de colonnes
+		r = fscanf( fp, "%s", unites_z );			// Unité des z
+		r = fscanf( fp, "%f", &precision_z );			// Précision de l'unité
 
 		y_noeud_NO -= 3000000;
 	}
 	else if( strcmp( type_fichier, "ASC" ) == 0 )
 	{
+		int r;
+		
 		strcpy( nom_chantier, "empty" );
 
-		fscanf( fp, "%s", chaine );
+		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "ncols" ) == 0 )
 		{
-			fscanf( fp, "%d", &dim_x );					// nombre de colonnes
+			r = fscanf( fp, "%d", &dim_x );				// nombre de colonnes
 			printf("ncols: %d\n", dim_x);
 		}
-		fscanf( fp, "%s", chaine );
+		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "nrows" ) == 0 )
 		{
-			fscanf( fp, "%d", &dim_y );					// nombre de lignes
+			r = fscanf( fp, "%d", &dim_y );				// nombre de lignes
 			printf("nrows: %d\n", dim_y);
 		}
-		fscanf( fp, "%s", chaine );
+		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "xllcorner" ) == 0 )
 		{
-			fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
+			r = fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
 			printf("xllcorner: %f\n", x_noeud_NO);
 		}
-		fscanf( fp, "%s", chaine );
+		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "yllcorner" ) == 0 )
 		{
-			fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
+			r = fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
 			printf("yllcorner: %f\n", y_noeud_NO);
 		}
-		fscanf( fp, "%s", chaine );
+		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "cellsize" ) == 0 )
 		{
-			fscanf( fp, "%f", &pas_x );					// pas en x
+			r = fscanf( fp, "%f", &pas_x );				// pas en x
 			printf("cellsize: %f\n", pas_x);
-			pas_y = pas_x;								// pas en y
+			pas_y = pas_x;						// pas en y
 		}
-		fscanf( fp, "%s", chaine );
+		r = fscanf( fp, "%s", chaine );
 		if( strcmp( chaine, "NODATA_value" ) == 0 )
 		{
-			fscanf( fp, "%d", &NODATA_value );			// NODATA_value
+			r = fscanf( fp, "%d", &NODATA_value );			// NODATA_value
 			printf("NODATA_value: %d\n", NODATA_value);
 		}
 		else
@@ -138,11 +141,12 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 
 	// Lecture des altitudes
 	int offset = 0;
+	int r;
 	for( int y=0; y<dim_y; y++ )
 	{
 		for( int x=0; x<dim_x; x++ )
 		{
-			fscanf( fp, "%d", &altitudes[offset] );
+			r = fscanf( fp, "%d", &altitudes[offset] );
 			normales[offset] = osg::Vec3(0.0, 0.0, 0.0);
 
 			offset++;

@@ -11,10 +11,6 @@
 #include "core/application.hpp"
 #include <vector>
 
-#include "geos/geom/Polygon.h"
-#include "geos/geom/CoordinateArraySequence.h"
-#include "geos/geom/CoordinateArraySequenceFactory.h"
-
 //#define FILL_POLYGON
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -254,118 +250,5 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
     }
 
     return nullptr;
-}
-
-void buildGeosShape(OGRDataSource* poDS, geos::geom::Geometry ** ShapeGeo, std::vector<std::pair<double, double>> * Hauteurs, std::vector<BatimentShape> * InfoBatiments)
-{
-	if(!poDS)
-    {
-		std::cout << "Erreur chargement fichier .shp \n";
-		return;
-	}
-
-	const geos::geom::GeometryFactory * factory = geos::geom::GeometryFactory::getDefaultInstance();
-    const geos::geom::CoordinateSequenceFactory * coordFactory = geos::geom::CoordinateArraySequenceFactory::instance();
-    std::vector<geos::geom::Geometry*>* Polys = new std::vector<geos::geom::Geometry*>();
-	geos::geom::LinearRing *shell;
-	geos::geom::Polygon* P;
-	
-	OGRLayer *poLayer;
-	//poLayer->FindFieldIndex("a", 1);
-
-    int nbLayers = poDS->GetLayerCount();
-    if(nbLayers > 0)
-    {
-        poLayer = poDS->GetLayer(0);
-		OGRFeature *poFeature;
-        poLayer->ResetReading();
-
-		//Ajouter un attribut
-		//if(poLayer->FindFieldIndex("Horaire", 1) == -1)
-		//	poLayer->CreateField(new OGRFieldDefn("Horaire", OGRFieldType::OFTInteger));
-        while( (poFeature = poLayer->GetNextFeature()) != NULL )
-        {
-            OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-			//poFeature->SetField("Horaire", 55);
-			//std::cout << poFeature->GetFieldAsInteger("Horaire") << std::endl;
-			//int a;
-			//std::cin >> a;
-
-			//std::cout << poGeometry->getGeometryName() << std::endl;
-
-			if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-            {
-                OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-                OGRLinearRing* poLR = poPG->getExteriorRing();
-
-                int nbPoints = poLR->getNumPoints();
-
-				if(nbPoints > 3)
-				{
-					std::size_t size = 0;
-					std::size_t dimension=2;
-					geos::geom::CoordinateSequence* temp = static_cast<geos::geom::CoordinateArraySequence*>(coordFactory->create(size, dimension));
-					/*std::vector<geos::geom::Geometry*> * Holes = new std::vector<geos::geom::Geometry*>;//
-
-					for(int i = 0; i < poPG->getNumInteriorRings(); i++)// //Pour récupérer les holes des polygons
-					{
-						OGRLinearRing* Ring = poPG->getInteriorRing(i);
-
-						for(int j = 0; j < Ring->getNumPoints(); j++)
-						{
-							OGRPoint p;
-							Ring->getPoint(j, &p);
-							temp.add(geos::geom::Coordinate(p.getX(), p.getY()));
-						}
-						if(temp.size() > 3)
-							Holes->push_back((geos::geom::Geometry*)factory->createLinearRing(temp));
-						temp.clear();
-					}*/
-
-					for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
-					{
-						OGRPoint p;
-						poLR->getPoint(i, &p);
-
-                        temp->add(geos::geom::Coordinate(p.getX(), p.getY()));
-					}
-
-					shell=factory->createLinearRing(temp);
-					P = factory->createPolygon(shell, NULL/*Holes*/); //Les bâtiments du cadastre sont récupérés sans les cours intérieures. Mettre Holes à la place de NULL pour les avoir.
-					if(P->isValid()/* && P->getArea() > 10*/)
-					{
-						if(poFeature->GetFieldIndex("ID") != -1)
-							InfoBatiments->push_back(BatimentShape(P, poFeature->GetFieldAsString("ID")));
-						else if(poFeature->GetFieldIndex("OBJECTID") != -1)
-							InfoBatiments->push_back(BatimentShape(P, poFeature->GetFieldAsString("OBJECTID")));
-						else
-							InfoBatiments->push_back(BatimentShape(P, "ID NULL"));
-
-                        Polys->push_back(P);
-						double H = 20;
-						double Zmin = 0;
-						if(poFeature->GetFieldIndex("HAUTEUR") != -1)
-							H = poFeature->GetFieldAsDouble("HAUTEUR");
-						if(poFeature->GetFieldIndex("Z_MIN") != -1)
-							Zmin = poFeature->GetFieldAsDouble("Z_MIN");
-
-						if((H == 0 || Zmin > 1000) && Hauteurs->size()>1)
-						{
-							H = Hauteurs->at(Hauteurs->size() - 1).first;
-							Zmin = Hauteurs->at(Hauteurs->size() - 1).second;
-						}
-
-						std::pair<double, double> PairTemp(H, Zmin);
-						Hauteurs->push_back(PairTemp);
-					}
-				}
-			}
-			OGRFeature::DestroyFeature( poFeature );
-		}
-		geos::geom::MultiPolygon *MP = factory->createMultiPolygon(Polys);
-			
-		*ShapeGeo = MP;
-	}
 }
 ////////////////////////////////////////////////////////////////////////////////
