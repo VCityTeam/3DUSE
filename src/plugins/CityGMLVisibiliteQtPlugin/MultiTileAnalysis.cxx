@@ -135,7 +135,7 @@ std::vector<BoxwithRays> Setup(std::vector<AABB> boxes, RayCollection* rays, TVe
 		{
 			Ray* ray = rays->rays[i];
 
-			float hit0,hit1;
+			float hit0, hit1;
 			if(ray->Intersect(box, &hit0, &hit1))
 			{
 				RayBoxHit hTemp;
@@ -143,7 +143,7 @@ std::vector<BoxwithRays> Setup(std::vector<AABB> boxes, RayCollection* rays, TVe
 				hTemp.minDistance = hit0;
 				ray->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
 
-				BoxInfo.IndicesRays.push_back(i); //On l'indice de ce rayon dans la boite car il l'intersecte
+				BoxInfo.IndicesRays.push_back(i); //On met l'indice de ce rayon dans la boite car il l'intersecte
 			}
 		}
 
@@ -161,8 +161,8 @@ std::string GetTilePrefixFromDistance(float distance, double DistLod1)
 
 	/*if(distance > 5000)
 	result = "LOD0";
-	else*/ if(distance > DistLod1)
-		result = "LOD1";
+	else*/ //if(distance > DistLod1)
+		//result = "LOD1";
 
 	return result;
 }

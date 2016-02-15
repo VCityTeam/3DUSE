@@ -144,7 +144,7 @@ void ExportData(std::string dirTile, ViewPoint* viewpoint, std::string filePrefi
 	}
 
 	std::ofstream ofs;
-	ofs.open (dirTile+"/SkylineOutput/"+filePrefix+"result.csv", std::ofstream::out);
+	ofs.open (dirTile+"SkylineOutput/"+filePrefix+"result.csv", std::ofstream::out);
 
 	ofs << "Param;Count;Global%;InHit%;InBuilding%" << std::endl;
 	ofs << "Pixel;"<<cpt << ";100%" << std::endl;
