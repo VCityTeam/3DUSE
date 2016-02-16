@@ -17,6 +17,7 @@
 #include <QListView>
 #include <QMessageBox>
 #include <QDate>
+#include <QInputDialog>
 
 #include "citygml.hpp"
 #include "export/exportCityGML.hpp"
@@ -3366,32 +3367,50 @@ void MainWindow::loadShpFile(const QString& filepath)
 void MainWindow::slotASCtoCityGML()
 {
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML", "","ASC files (*.asc)");
 
-	for(int i = 0; i < filenames.count(); ++i)
+	QStringList items;
+    items << tr("Terrain") << tr("Water");
+
+    bool ok;
+    QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),
+                                         tr("Type of ASC file:"), items, 0, false, &ok);
+	if (ok && item.isEmpty()) return;
+	else if (ok && !item.isEmpty())
 	{
-		citygml::CityModel* model = new citygml::CityModel();
-		QFileInfo file(filenames[i]);
-		QString ext = file.suffix().toLower();
-		if (ext=="asc")
+		QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML", "","ASC files (*.asc)");
+
+		for(int i = 0; i < filenames.count(); ++i)
 		{
-			//lecture du fichier
-			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
+			citygml::CityModel* model = new citygml::CityModel();
+			QFileInfo file(filenames[i]);
+			std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
+			QString ext = file.suffix().toLower();
+			if (ext=="asc")
 			{
-				//conversion en structure CityGML
-				model = importer->reliefToCityGML();
-				delete importer;
+				//lecture du fichier
+				citygml::ImporterASC* importer = new citygml::ImporterASC();
+				if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
+				{
+					//conversion en structure CityGML
+					if (item=="Terrain") model = importer->reliefToCityGML();
+					else if (item=="Water") model = importer->waterToCityGMLPolygons();
+					delete importer;
+				}
 			}
+			//export en CityGML
+			std::cout<<"Export ...";
+			if (model->size()!=0)
+			{
+				citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+				exporter.exportCityModel(*model);
+				std::cout<<"OK!"<<std::endl;
+			}
+			else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
+			delete model;
 		}
-		//export en CityGML
-		std::cout<<"Export ...";
-		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
-		exporter.exportCityModel(*model);
-		std::cout<<"OK!"<<std::endl;
-		delete model;
+		std::cout<<"Job done!"<<std::endl;
+		m_osgView->setActive(true);
 	}
-	m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotShpWaterToCityGML()
@@ -3409,11 +3428,11 @@ void MainWindow::slotShpWaterToCityGML()
 		citygml::CityObject* waterbody = new citygml::WaterBody("");
 		// for temporal data
 		// This is VERY SPECIFIC CODE and will certainly have to be modified/deleted in the future
-		std::string fname = file.baseName().toStdString();
-		size_t pos1 = fname.find_last_of("T");
-		size_t pos2 = fname.find("_",pos1);
-		std::string str_hour = fname.substr(pos1+1,pos2-pos1-1);
-		int hour = atoi(str_hour.c_str());
+		//std::string fname = file.baseName().toStdString();
+		//size_t pos1 = fname.find_last_of("T");
+		//size_t pos2 = fname.find("_",pos1);
+		//std::string str_hour = fname.substr(pos1+1,pos2-pos1-1);
+		//int hour = atoi(str_hour.c_str());
 		//std::cout<<str_hour<<" : "<<hour<<std::endl;
 		//int a; std::cin>> a;
 		// --
@@ -3507,12 +3526,12 @@ void MainWindow::slotShpWaterToCityGML()
 		model->addCityObjectAsRoot(waterbody);
 		if (waterbody->getChildCount()!=0)
 		{
-			//for temporal data
-			QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
-			termDate = termDate.addSecs(hour*3600);
-			QDateTime creaDate(termDate.addSecs(-8*3600));
-			waterbody->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-			waterbody->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+			//for temporal data - see at the beginning of this function
+			//QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
+			//termDate = termDate.addSecs(hour*3600);
+			//QDateTime creaDate(termDate.addSecs(-8*3600));
+			//waterbody->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+			//waterbody->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
 			//--
 			model->computeEnvelope();
 			//CityModel created, now to export
