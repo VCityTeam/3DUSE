@@ -29,9 +29,10 @@ protected:
 	std::string getAttribute( void*, const std::string&, const std::string&);
 	std::string removeNamespace(std::string );
 	std::string getIDfromQuery(std::string);
-private:
+//private:
+	//  JE 17/02/2016: DISCARDED BECAUSE PROBLEMS WITH RECENT VERSIONS OF UBUNTU:
 	//Adding to ADE register (template in ADE.hpp)
-	static ADERegister<TempHandler> reg;
+	//static ADERegister<TempHandler> reg;
 };
 
 #endif
