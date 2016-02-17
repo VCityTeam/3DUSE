@@ -1,11 +1,5 @@
 See also the [reflexions on libCityGML next generation](https://github.com/MEPP-team/VCity/wiki/libCityGML_NG).
 
-## TODO urgently
- libCityGML should be **organized like an independent library component** i.e. lying a the top-level directory of the VCity repository. In particular
- * It should have its own root CMakefile.txt where its dependencies are expressed (and removed from VCity dependencies when not necessary)
- * the library documentation should be deported in this dectory
- * Then VCity should express its dependency towards libCityGML
-
 ## Dependencies: to be asserted
 
 | Package         |    License    | Included headers / Notes |
