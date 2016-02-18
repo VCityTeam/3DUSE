@@ -49,8 +49,7 @@ install:
 #
 # osx :
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install xerces-c assimp doxygen graphviz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
 #  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph --with-qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
 
