@@ -492,7 +492,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB})
+target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} raytracing)
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
@@ -739,3 +739,5 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 	#--------------------------------------------------------------------------------
 	# Now the installation stuff : end
 	#--------------------------------------------------------------------------------
+
+add_subdirectory(src)
