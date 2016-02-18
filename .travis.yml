@@ -1,21 +1,21 @@
 language: cpp
 
 os:
-#  - linux
-  - osx
+  - linux
+#  - osx
 
 sudo: required # need by trusty
 dist: trusty
 
 compiler:
   - gcc
-  - clang
+#  - clang
 
 cache: apt # this feature is available only for private repositories
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug -DBUILD_CityGMLVisibiliteQtPlugin=ON"
+#  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON"
 
 #-------------------------------------------------------------------
 # matrix details :
@@ -39,7 +39,7 @@ addons:
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
-      - libproj-dev
+#      - libproj-dev
       - doxygen
       - graphviz
 
@@ -50,8 +50,7 @@ install:
 # osx :
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph --with-qt; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph --with-qt; fi
 
 script:
   - cd externals/laslib
