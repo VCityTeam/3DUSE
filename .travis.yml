@@ -1,15 +1,15 @@
 language: cpp
 
 os:
-  - linux
-#  - osx
+#  - linux
+  - osx
 
 sudo: required # need by trusty
 dist: trusty
 
 compiler:
   - gcc
-#  - clang
+  - clang
 
 cache: apt # this feature is available only for private repositories
 
@@ -39,7 +39,6 @@ addons:
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
-#      - libproj-dev
       - doxygen
       - graphviz
 
