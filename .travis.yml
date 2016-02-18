@@ -1,7 +1,7 @@
 language: cpp
 
 os:
-#  - linux
+  - linux
   - osx
 
 sudo: required # need by trusty
@@ -15,7 +15,7 @@ cache: apt # this feature is available only for private repositories
 
 env:
   - BTYPE="-DCMAKE_BUILD_TYPE=Debug -DBUILD_CityGMLVisibiliteQtPlugin=ON"
-#  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON"
 
 #-------------------------------------------------------------------
 # matrix details :
