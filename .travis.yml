@@ -39,6 +39,7 @@ addons:
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
+      - libproj-dev
       - doxygen
       - graphviz
 
