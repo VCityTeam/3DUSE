@@ -30,9 +30,6 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
-#include "core/BatimentShape.hpp"
-#include <geos/geom/GeometryFactory.h>
-
 /*#include "assimp/Importer.hpp"
 #include "assimp/PostProcess.h"
 #include "assimp/Scene.h"*/
@@ -56,9 +53,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-geos::geom::Geometry* ShapeGeo = nullptr;
 std::vector<std::pair<double, double>> Hauteurs;
-std::vector<BatimentShape> InfoBatiments;
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
@@ -200,7 +195,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
 	delete aboutPluginsAct;
-	delete ShapeGeo;
 
 	delete m_treeView;
 	delete m_osgView;
@@ -1896,24 +1890,6 @@ void MainWindow::slotSplitCityGMLBuildings()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCutCityGMLwithShapefile()
 {
-	////////// Ancienne version utilisant GEOS :
-	/*QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-	w.setFileMode(QFileDialog::Directory);
-
-	if(w.exec() == 0)
-	{
-	std::cout << "Annulation : Dossier non valide." << std::endl;
-	return;
-	}
-
-	std::string Folder = w.selectedFiles().at(0).toStdString();
-
-
-
-	//DecoupeCityGML(Folder, ShapeGeo, InfoBatiments);*/
-	////////// Nouvelle version de découpe : 
-
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
 	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
@@ -3062,9 +3038,6 @@ void MainWindow::loadShpFile(const QString& filepath)
 
 	//m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
-	// clean previous shapeGeo
-	delete ShapeGeo;
-	buildGeosShape(poDS, &ShapeGeo, &Hauteurs, &InfoBatiments);
 	if(poDS)
 	{
 		vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();

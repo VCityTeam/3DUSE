@@ -6,12 +6,15 @@ endif(WITH_QT5)
 
 if (COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
-  IF(POLICY CMP0020)
+  if(POLICY CMP0020)
     cmake_policy(SET CMP0020 NEW)
-  ENDIF(POLICY CMP0020)
+  endif(POLICY CMP0020)
   if(POLICY CMP0054)
-	cmake_policy(SET CMP0054 OLD)
+    cmake_policy(SET CMP0054 OLD)
   endif(POLICY CMP0054)
+  if(POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0042.html
+  endif(POLICY CMP0042)
 endif (COMMAND cmake_policy)
 
 # Project configuration
@@ -80,6 +83,12 @@ if(MSVC)
 	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
 endif()
 #------------------------------------------------------------------------------
+# APPLE OS X
+#------------------------------------------------------------------------------
+if(APPLE)
+  set(CMAKE_MACOSX_RPATH ON) # see cmake POLICY CMP0042
+endif(APPLE)
+#------------------------------------------------------------------------------
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -111,12 +120,12 @@ IF(WIN32)
 	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
 	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
 
-	set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
-	set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
+	#set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
+	#set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
 
-	set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
-	set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
-	set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
+	#set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
+	#set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
+	#set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
 
 	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
 	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
@@ -304,14 +313,18 @@ endif(OSGWIDGET_FOUND)
 # Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows)
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
-else(WIN32)
+#elseif(DEFINED ENV{TRAVIS})
+#  if (APPLE)
+#    SET( OSGQT_INCLUDE_DIR "" )
+#  endif (APPLE)
+else()
   find_package(osgQt)
   if(OSGQT_FOUND)
     include_directories(${OSGQT_INCLUDE_DIR})
   else(OSGQT_FOUND)
     message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
   endif(OSGQT_FOUND)
-endif(WIN32)
+endif()
 
 # Find OpenThreads
 find_package(OpenThreads)
@@ -339,20 +352,20 @@ else(LIBXML2_FOUND)
 endif(LIBXML2_FOUND)
 
 # Find Proj
-find_package(Proj)
-if(PROJ_FOUND)
-  include_directories(${PROJ_INCLUDE_DIR})
-else(PROJ_FOUND)
-  message(FATAL_ERROR "Proj not found.")
-endif(PROJ_FOUND)
+#find_package(Proj)
+#if(PROJ_FOUND)
+#  include_directories(${PROJ_INCLUDE_DIR})
+#else(PROJ_FOUND)
+#  message(FATAL_ERROR "Proj not found.")
+#endif(PROJ_FOUND)
 
 # Find GEOS
-find_package(GEOS)
-if(GEOS_FOUND)
-  include_directories(${GEOS_INCLUDE_DIR})
-else(GEOS_FOUND)
-  message(FATAL_ERROR "GEOS not found.")
-endif(GEOS_FOUND)
+#find_package(GEOS)
+#if(GEOS_FOUND)
+#  include_directories(${GEOS_INCLUDE_DIR})
+#else(GEOS_FOUND)
+#  message(FATAL_ERROR "GEOS not found.")
+#endif(GEOS_FOUND)
 
 # Find LASLIB
 find_package(LASLIB)
@@ -403,6 +416,12 @@ if (WIN32)
   SET( VCITY_GUI_SRC_WIN src/gui/osgQt/GraphicsWindowQt.cxx )
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
 endif(WIN32)
+#if(DEFINED ENV{TRAVIS})
+#  if (APPLE)
+#    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/GraphicsWindowQt.cxx )
+#    SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
+#  endif (APPLE)
+#endif()
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
@@ -427,8 +446,8 @@ SET( VCITY_GUI_LIB
   ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
-  ${PROJ_LIBRARY}
-  ${GEOS_LIBRARY}
+  #${PROJ_LIBRARY}
+  #${GEOS_LIBRARY}
   ${LASLIB_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
