@@ -1,0 +1,59 @@
+language: cpp
+
+os:
+  - linux
+  - osx
+
+sudo: required # need by trusty
+dist: trusty
+
+compiler:
+  - gcc
+  - clang
+
+cache: apt # this feature is available only for private repositories
+
+env:
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release"
+
+#-------------------------------------------------------------------
+# matrix details :
+#
+#   - 2x gcc    under Linux trusty 14.04 LTS    (debug and release)
+#   - 2x clang  under Linux trusty 14.04 LTS    (debug and release)
+#
+#   - 2x clang  under OS X with Apple LLVM      (debug and release)
+#-------------------------------------------------------------------
+matrix:
+  fast_finish: true
+  exclude:
+    - os: osx
+      compiler: gcc
+
+addons:
+  apt:
+    packages:
+      - libqt4-dev
+      - libxerces-c-dev
+      - libassimp-dev
+      - libopenscenegraph-dev
+      - libgdal-dev
+      - doxygen
+      - graphviz
+
+install:
+  - cmake --version
+#
+# osx :
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph --with-qt gdal; fi
+
+script:
+  - cd externals/laslib
+  - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
+  - cd .. && cd .. && cd ..
+  - mkdir build && cd build && cmake .. $BTYPE
+  - make
+#  - make test
