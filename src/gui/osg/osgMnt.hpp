@@ -15,7 +15,7 @@ public :
 
 	bool charge( const char* nom_fichier, const char* type_fichier );
 	unsigned int  get_numVertices()  { return dim_x*dim_y; }
-	int  get_altitude(const int x, const int y)  { return altitudes[x+y*dim_x]; }
+	float  get_altitude(const int x, const int y)  { return altitudes[x+y*dim_x]; }
 	osg::Vec3 get_normale(const int n)  { return normales[n]; }
     osg::ref_ptr<osg::Geode> buildAltitudesGrid(float offset_x, float offset_y, float offset_z=/*5*/0.0f, int zfactor=1);
 
@@ -30,7 +30,7 @@ public :
 	float get_y_noeud_NO() { return y_noeud_NO; }
 	float get_pas_x() {return pas_x;}
 	float get_pas_y() {return pas_y;}
-	int get_nodata() {return NODATA_value;}
+	float get_nodata() {return NODATA_value;}
 
 private:
 	char	nom_chantier[500];
@@ -44,7 +44,7 @@ private:
 
 	float		NODATA_value;
 
-	int		*altitudes;
+	float		*altitudes;
 	bool	mnt_charge;
 
 	osg::Vec3	*normales;

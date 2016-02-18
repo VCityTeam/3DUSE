@@ -3157,11 +3157,13 @@ void MainWindow::test4()
 		{
 			//lecture du fichier
 			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
+			MNT* asc = new MNT();
+			if (asc->charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
 				//conversion en structure CityGML
-				model = importer->waterToCityGMLPolygons();
+				model = importer->waterToCityGMLPolygons(asc);
 				delete importer;
+				delete asc;
 			}
 		}
 		//export en CityGML
@@ -3389,12 +3391,14 @@ void MainWindow::slotASCtoCityGML()
 			{
 				//lecture du fichier
 				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
+				MNT* asc = new MNT();
+				if (asc->charge(filenames[i].toStdString().c_str(), "ASC"))
 				{
 					//conversion en structure CityGML
-					if (item=="Terrain") model = importer->reliefToCityGML();
-					else if (item=="Water") model = importer->waterToCityGMLPolygons();
+					if (item=="Terrain") model = importer->reliefToCityGML(asc);
+					else if (item=="Water") model = importer->waterToCityGMLPolygons(asc);
 					delete importer;
+					delete asc;
 				}
 			}
 			//export en CityGML
@@ -3559,12 +3563,13 @@ void MainWindow::slotCutASC()
 		{
 			//lecture du fichier
 			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			if (importer->charge(filenames[i].toStdString().c_str(), "ASC"))
+			MNT* asc = new MNT();
+			if (asc->charge(filenames[i].toStdString().c_str(), "ASC"))
 			{
-
-				importer->cutASC(file.absolutePath().toStdString(),file.baseName().toStdString(), 500);
+				importer->cutASC(asc,file.absolutePath().toStdString(),file.baseName().toStdString(), 500);
 			}
 			delete importer;
+			delete asc;
 		}
 		delete model;
 	}

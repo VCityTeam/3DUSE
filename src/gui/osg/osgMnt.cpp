@@ -136,7 +136,7 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 
 	printf( "origine = (%f, %f)\n", x_noeud_NO, y_noeud_NO );
 
-	altitudes = new int[dim_x*dim_y];
+	altitudes = new float[dim_x*dim_y];
 	normales = new osg::Vec3[dim_x*dim_y];
 
 	// Lecture des altitudes
@@ -148,7 +148,7 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 		{
 			float a = NODATA_value;
 			r = fscanf( fp, "%f", &a );
-			altitudes[offset] = (int) a;
+			altitudes[offset] = a;
 			normales[offset] = osg::Vec3(0.0, 0.0, 0.0);
 			//printf("%d \n", altitudes[offset]);
 			offset++;
