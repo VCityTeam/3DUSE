@@ -49,8 +49,8 @@ install:
 # osx :
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph --with-qt gdal; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph gdal; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph --with-qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
 
 script:
   - cd externals/laslib
