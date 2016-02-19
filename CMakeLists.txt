@@ -9,12 +9,12 @@ if (COMMAND cmake_policy)
   if(POLICY CMP0020)
     cmake_policy(SET CMP0020 NEW)
   endif(POLICY CMP0020)
-  if(POLICY CMP0054)
-    cmake_policy(SET CMP0054 OLD)
-  endif(POLICY CMP0054)
   if(POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0042.html
   endif(POLICY CMP0042)
+  if(POLICY CMP0054)
+    cmake_policy(SET CMP0054 OLD)
+  endif(POLICY CMP0054)
 endif (COMMAND cmake_policy)
 
 # Project configuration
