@@ -2,7 +2,7 @@ language: cpp
 
 os:
   - linux
-  - osx
+#  - osx
 
 sudo: required # need by trusty
 dist: trusty
@@ -49,11 +49,12 @@ install:
 # osx :
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60 brew install open-scene-graph --with-qt; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60 brew install open-scene-graph --with-qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
 
 script:
   - cd externals/laslib
-  - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
+  - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF; make; sudo make install
   - cd .. && cd .. && cd ..
   - mkdir build && cd build && cmake .. $BTYPE
   - make
