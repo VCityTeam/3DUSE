@@ -1,5 +1,4 @@
 #include "Ray.hpp"
-#include "Triangle.hpp"
 #include "Hit.hpp"
 
 

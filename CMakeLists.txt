@@ -387,6 +387,8 @@ endif(WITH_QT5)
 
 INCLUDE_DIRECTORIES( src src/libcitygml )
 
+include_directories(${PROJECT_SOURCE_DIR}/src/filters/raytracing ${PROJECT_SOURCE_DIR}/src/libcitygml/utils)
+
 # General
 file(
   GLOB_RECURSE
@@ -492,7 +494,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} raytracing)
+target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} raytracing libcitygmlutils)
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
