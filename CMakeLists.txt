@@ -6,11 +6,14 @@ endif(WITH_QT5)
 
 if (COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
-  IF(POLICY CMP0020)
+  if(POLICY CMP0020)
     cmake_policy(SET CMP0020 NEW)
-  ENDIF(POLICY CMP0020)
+  endif(POLICY CMP0020)
+  if(POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0042.html
+  endif(POLICY CMP0042)
   if(POLICY CMP0054)
-	cmake_policy(SET CMP0054 OLD)
+    cmake_policy(SET CMP0054 OLD)
   endif(POLICY CMP0054)
 endif (COMMAND cmake_policy)
 
@@ -79,6 +82,12 @@ if(MSVC)
 
 	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
 endif()
+#------------------------------------------------------------------------------
+# APPLE OS X
+#------------------------------------------------------------------------------
+if(APPLE)
+  set(CMAKE_MACOSX_RPATH ON) # see cmake POLICY CMP0042
+endif(APPLE)
 #------------------------------------------------------------------------------
 
 # Find includes in corresponding build directories
@@ -304,14 +313,18 @@ endif(OSGWIDGET_FOUND)
 # Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows)
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
-else(WIN32)
+#elseif(DEFINED ENV{TRAVIS})
+#  if (APPLE)
+#    SET( OSGQT_INCLUDE_DIR "" )
+#  endif (APPLE)
+else()
   find_package(osgQt)
   if(OSGQT_FOUND)
     include_directories(${OSGQT_INCLUDE_DIR})
   else(OSGQT_FOUND)
     message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
   endif(OSGQT_FOUND)
-endif(WIN32)
+endif()
 
 # Find OpenThreads
 find_package(OpenThreads)
@@ -403,6 +416,12 @@ if (WIN32)
   SET( VCITY_GUI_SRC_WIN src/gui/osgQt/GraphicsWindowQt.cxx )
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
 endif(WIN32)
+#if(DEFINED ENV{TRAVIS})
+#  if (APPLE)
+#    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/GraphicsWindowQt.cxx )
+#    SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
+#  endif (APPLE)
+#endif()
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
