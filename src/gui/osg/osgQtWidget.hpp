@@ -5,7 +5,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgQtWidget.hpp"
 #include <osgViewer/CompositeViewer>
-#include <osgQt/GraphicsWindowQt>
+#include "osgQt/GraphicsWindowQt"
+//#include <osgQt/GraphicsWindowQt>
 #include <QWidget>
 #include <QtCore/QTimer>
 #include <QTextBrowser>
