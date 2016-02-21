@@ -1,7 +1,16 @@
 #include "ADE.hpp"
+#include "temporal/temporalHandler.hpp"
 
+//  JE 17/02/2016: DISCARDED BECAUSE PROBLEMS WITH RECENT VERSIONS OF UBUNTU: 
 //instanciate the ADE Handler constructors map
-ADEHandlerFactory::mapType * ADEHandlerFactory::ADEmap = new mapType();
+//ADEHandlerFactory::mapType * ADEHandlerFactory::ADEmap = new mapType();
+
+// JE 17/02/2016: new ADE handler construction method
+// ADD YOUR NEW ADE PARSERS HERE !
+void ADEHandlerFactory::getInstances(std::map<std::string,ADEHandler*>* map)
+{
+	(*map)["temp"]=new TempHandler();
+}
 
 //some gmlHandler methods
 std::string ADEHandler::getGmlIdAttribute( void* attributes ) { return getAttribute( attributes, "gml:id", "" ); }
