@@ -39,7 +39,12 @@
 #else
         #define OSGQT_EXPORT
 #endif*/
-#    define OSGQT_EXPORT   __declspec(dllexport)
+
+#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined( __BCPLUSPLUS__) || defined( __MWERKS__)
+    #define OSGQT_EXPORT   __declspec(dllexport)
+#else
+    #define OSGQT_EXPORT
+#endif
 
 #endif
 
