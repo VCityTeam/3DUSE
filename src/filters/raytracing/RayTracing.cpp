@@ -22,25 +22,26 @@ void RayLoop(RayTracingData data)
     for(unsigned int k = 0; k < data.rowToDo->size(); k++)
     {
         Ray* ray = data.rowToDo->at(k);
+
         for(unsigned int l = 0; l < data.triangles->triangles.size(); l++)
         {
             Triangle* tri = data.triangles->triangles.at(l);
 
-            Hit* hit;
+            Hit* hit = new Hit();
             if(ray->Intersect(tri,hit))//Check if the ray hit the triangle and
             {
                 data.Hits->push_back(hit);
-//                if(!ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].intersect || ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].distance > hit.distance)//Check if it is closer than the previous one
-//                {
-//                    ray->collection->viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)] = hit;
-//                }
+            }
+            else
+            {
+                delete hit;
             }
         }
 
     }
 }
 
-void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
+std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 {
     QTime time;
     time.start();
@@ -56,6 +57,9 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         toDo[i].insert(toDo[i].begin(),rays.begin()+i*rayPerThread,rays.begin()+(i+1)*rayPerThread);
     }
 
+    //List of hits for each thread
+    std::vector<Hit*>* hitsArray = new std::vector<Hit*>[tCount];
+
     std::cout << "Thread : " << tCount << std::endl;
     std::cout << "Ray count : " << rays.size() << std::endl;
 
@@ -66,6 +70,7 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         RayTracingData data;
         data.triangles = triangles;
         data.rowToDo = &toDo[i];
+        data.Hits = &hitsArray[i];
 
         std::thread* t = new std::thread(RayLoop,data);
         threads.push_back(t);
@@ -81,7 +86,34 @@ void RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 
     std::cout << "The joining is completed" << std::endl;
 
+    //Join vector of hits
+    std::vector<Hit*>* hits = new std::vector<Hit*>();
+
+    // preallocate memory
+     std::vector<Hit*>::size_type mem_size = 0;
+
+    for(unsigned int i = 0; i < tCount; i++)
+    {
+        std::cout << "Thread " << i << " returned " << hitsArray[i].size() << " hits." << std::endl;
+        mem_size += hitsArray[i].size();
+    }
+
+    std::cout << "Total Memory Size : " << mem_size << std::endl;
+
+    hits->reserve(mem_size);
+
+    std::cout << "Memory allocated" << std::endl;
+
+    for(unsigned int i = 0; i < tCount; i++)
+    {
+        hits->insert( hits->end(), hitsArray[i].begin(), hitsArray[i].end() );
+    }
+
+    std::cout << "Merging hits done. Size hits : " << hits->size() << std::endl;
+
     delete[] toDo;
 
     std::cout << "Time : " << time.elapsed()/1000 << " sec" << std::endl;
+
+    return hits;
 }

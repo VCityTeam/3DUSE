@@ -54,6 +54,7 @@
 #include "RayTracing.hpp"
 #include "AABB.hpp"
 #include "Triangle.hpp"
+#include "src/core/RayBox.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2986,6 +2987,16 @@ void MainWindow::test4()
     TriangleList* tList = BuildTriangleList("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3664_10355.gml",citygml::CityObjectsType::COT_Building);
 
     std::cout << tList->triangles.size() << std::endl;
+
+    //** RayBox
+
+    RayBox rb = RayBox();
+    float* hitt0;
+    float* hitt1;
+
+    bool inter = rb.Intersect(boxes.building.at(0),hitt0,hitt1);
+
+    std::cout << "Intersection : " << inter << std::endl;
 
 
 

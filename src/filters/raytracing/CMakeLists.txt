@@ -11,5 +11,5 @@ add_library(
 	${source_files}
 )
 
-target_link_libraries(raytracing ${OSG_LIBRARIES} libcitygmlutils)
+target_link_libraries(raytracing ${OSG_LIBRARIES} citygmlutils)
 

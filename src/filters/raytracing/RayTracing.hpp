@@ -9,7 +9,8 @@ struct TriangleList;
 *	@build Perform a raytracing on a set of triangles
 *	@param triangles The list of triangle from the CityGML tile
 *	@param rays List of rays
+*   @return list of hits
 */
-void RayTracing(TriangleList* triangles, std::vector<Ray*> rays);
+std::vector<Hit*> *RayTracing(TriangleList* triangles, std::vector<Ray*> rays);
 
 #endif

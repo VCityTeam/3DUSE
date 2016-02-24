@@ -38,7 +38,16 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
 {
     std::vector<Triangle*> triangles;
 
+    //std::cout << tilefilename + "bah" << std::endl;
+    //std::cout << "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gmlbah" << std::endl;
+
+    //vcity::Tile* tile = new vcity::Tile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml");
+
+    //std::cout << tilefilename.compare("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml") << std::endl;
+
     vcity::Tile* tile = new vcity::Tile(tilefilename);
+
+    //std::cout << "test3" << std::endl;
 
     citygml::CityModel * model = tile->getCityModel();
 

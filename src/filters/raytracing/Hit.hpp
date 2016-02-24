@@ -3,9 +3,10 @@
 
 #include "vecs.hpp"
 #include "Triangle.hpp"
+#include "Ray.hpp"
 
 //struct Triangle;
-struct Ray;
+//struct Ray;
 
 /**
 *	@brief An impact from a ray on a triangle

@@ -1,4 +1,3 @@
-#include "Ray.hpp"
 #include "Hit.hpp"
 
 

@@ -7,6 +7,6 @@ file(
 )
 
 add_library(
-	libcitygmlutils
+	citygmlutils
 	${source_files}
 )

@@ -7,8 +7,8 @@
 #include <qrgb.h>
 #include <QColor>
 
-#include "data/Triangle.hpp"
-#include "data/Hit.hpp"
+#include "Triangle.hpp"
+#include "Hit.hpp"
 
 /**
 *	@brief Viewpoint analysis using the multitile algorithm

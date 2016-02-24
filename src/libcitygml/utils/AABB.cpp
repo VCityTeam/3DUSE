@@ -60,8 +60,15 @@ std::vector<AABB> DoLoadAABB(std::string path)
 	for(unsigned int i = 0; i < count; i++)
 	{
 		AABB box;
-		ifs.getline(line,256);
-		box.name = std::string(line);
+        ifs.getline(line,256);
+
+        box.name = std::string(line);
+
+        //To avoid problems with files from Windows used on UNIX (Windows uses '/r/n' as 'new line' escape sequence and Unix systems use '/n' only).
+        //In order to erase '\r' character if present.
+        if(!box.name.empty() && *box.name.rbegin() == '\r')
+            box.name.erase( box.name.length()-1, 1);
+
 		double minx;
 		double miny;
 		double minz;
@@ -81,7 +88,6 @@ std::vector<AABB> DoLoadAABB(std::string path)
 			box.min = TVec3d(minx,miny,minz);
 			box.max = TVec3d(maxx,maxy,maxz);
 			bSet.push_back(box);
-
 		}
 	}
 

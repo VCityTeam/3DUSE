@@ -12,6 +12,8 @@ Ray::Ray(TVec3d ori,TVec3d dir)
     sign[0] = (inv_dir.x < 0);
     sign[1] = (inv_dir.y < 0);
     sign[2] = (inv_dir.z < 0);
+    fragCoord.x = -1;
+    fragCoord.y = -1;
 }
 
 //Ray triangle intersection, from geometric tools engine
@@ -120,7 +122,7 @@ bool Ray::Intersect(Triangle* triangle, Hit* hit)
 //    return true;
 //}
 
-Ray* Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
+void Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
 {
     double fov;
     double aspect;
@@ -155,10 +157,16 @@ Ray* Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
     TVec3d rayori(ori.x(),ori.y(),ori.z());
     TVec3d raydir(dir.x(),dir.y(),dir.z());
 
-    Ray* ray = new Ray(rayori,raydir);
-    ray->fragCoord = fragCoord;
+    //Ray* ray = new Ray(rayori,raydir);
 
-    return ray;
+    this->ori = rayori;
+    this->dir = raydir;
+    inv_dir = TVec3d(1/this->dir.x, 1/this->dir.y, 1/this->dir.z);
+    sign[0] = (inv_dir.x < 0);
+    sign[1] = (inv_dir.y < 0);
+    sign[2] = (inv_dir.z < 0);
+
+    this->fragCoord = fragCoord;
 }
 
 float Ray::DotCross(TVec3d v0, TVec3d v1,
@@ -179,6 +187,23 @@ RayCollection::RayCollection(std::vector<Ray*> rays)
     this->rays = rays;
 }
 
+RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
+{
+    RayCollection* rays = new RayCollection();
+    for(unsigned int i = 0; i < cam->getViewport()->width(); i++)
+    {
+        for(unsigned int j = 0; j < cam->getViewport()->height(); j++)
+        {
+            Ray* ray = new Ray();
+            ray->BuildRd(TVec2d(i,j),cam);
+            //ray->collection = rays;
+            rays->rays.push_back(ray);
+        }
+    }
+
+    return rays;
+}
+
 //RayCollection::~RayCollection()
 //{
 //    for(unsigned int i = 0; i < rays.size(); i++)
@@ -187,19 +212,3 @@ RayCollection::RayCollection(std::vector<Ray*> rays)
 //        delete rays[i];
 //    }
 //}
-
-RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
-{
-    RayCollection* rays = new RayCollection();
-    for(unsigned int i = 0; i < cam->getViewport()->width(); i++)
-    {
-        for(unsigned int j = 0; j < cam->getViewport()->height(); j++)
-        {
-            Ray* ray = Ray::BuildRd(TVec2d(i,j),cam);
-            ray->collection = rays;
-            rays->rays.push_back(ray);
-        }
-    }
-
-    return rays;
-}
