@@ -25,29 +25,11 @@ TriangleList::TriangleList(std::vector<Triangle*> triangles)
     this->triangles = triangles;
 }
 
-/*/**
-//*	@brief A random number between low and high
-//*/
-//int RandInt(int low, int high)
-//{
-//    // Random number between low and high
-//    return qrand() % ((high + 1) - low) + low;
-//}
-
 TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType)
 {
     std::vector<Triangle*> triangles;
 
-    //std::cout << tilefilename + "bah" << std::endl;
-    //std::cout << "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gmlbah" << std::endl;
-
-    //vcity::Tile* tile = new vcity::Tile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml");
-
-    //std::cout << tilefilename.compare("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml") << std::endl;
-
     vcity::Tile* tile = new vcity::Tile(tilefilename);
-
-    //std::cout << "test3" << std::endl;
 
     citygml::CityModel * model = tile->getCityModel();
 

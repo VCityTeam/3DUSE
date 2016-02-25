@@ -1,8 +1,6 @@
 #include "RayTracing.hpp"
 
 #include "Hit.hpp"
-//#include "Ray.hpp"
-//#include "../include/ViewPoint.hpp"
 
 #include <thread>
 
@@ -13,7 +11,7 @@ struct RayTracingData
 {
     TriangleList* triangles; ///< List of triangles of a 3D Model
     std::vector<Ray*>* rowToDo; ///< List of ray to use for ray tracing
-    std::vector<Hit*>* Hits; ///< List of hits
+    std::vector<Hit*>* Hits; ///< List of hits which store the intersections informations
 };
 
 //Loop through all triangles and check if any rays intersect with triangles
@@ -94,22 +92,16 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 
     for(unsigned int i = 0; i < tCount; i++)
     {
-        std::cout << "Thread " << i << " returned " << hitsArray[i].size() << " hits." << std::endl;
         mem_size += hitsArray[i].size();
     }
 
-    std::cout << "Total Memory Size : " << mem_size << std::endl;
-
     hits->reserve(mem_size);
 
-    std::cout << "Memory allocated" << std::endl;
-
+    //Join hits vectors of each thread into one vector
     for(unsigned int i = 0; i < tCount; i++)
     {
         hits->insert( hits->end(), hitsArray[i].begin(), hitsArray[i].end() );
     }
-
-    std::cout << "Merging hits done. Size hits : " << hits->size() << std::endl;
 
     delete[] toDo;
 

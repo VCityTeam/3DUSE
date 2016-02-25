@@ -6,8 +6,8 @@
 struct TriangleList;
 
 /**
-*	@build Perform a raytracing on a set of triangles
-*	@param triangles The list of triangle from the CityGML tile
+*	@build Perform raytracing algorithm on a set of triangles
+*	@param triangles List of triangle of a CityGML tile
 *	@param rays List of rays
 *   @return list of hits
 */

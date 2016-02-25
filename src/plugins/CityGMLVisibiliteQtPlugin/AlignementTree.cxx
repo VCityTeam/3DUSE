@@ -11,7 +11,6 @@
 #include "Hit.hpp"
 #include "AABB.hpp"
 
-//#include "ShpExtrusion.h"
 typedef std::vector<TVec3d> LRing;
 
 /**

@@ -41,17 +41,6 @@ struct TriangleList
 	*/
     TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>());
 
-//	/**
-//	*	@brief Delete all triangles from the list
-//	*/
-//	~TriangleList()
-//	{
-//		for(unsigned int i = 0; i < triangles.size(); i++)
-//		{
-//			delete triangles[i];
-//		}
-//	}
-
 	std::vector<Triangle*> triangles;///< Triangles of the list
 };
 

@@ -100,28 +100,6 @@ bool Ray::Intersect(Triangle* triangle, Hit* hit)
     return result;
 }
 
-//Ray aabb intersection, from pbrt-v2
-//License : http://www.pbrt.org/LICENSE.txt
-//bool Ray::Intersect(AABB box, float *hitt0, float *hitt1)
-//{
-//    float t0 = 0, t1 = FLT_MAX;
-//    for (int i = 0; i < 3; ++i) {
-//        // Update interval for _i_th bounding box slab
-//        float invRayDir = 1.f / dir[i];
-//        float tNear = (box.min[i] - ori[i]) * invRayDir;
-//        float tFar  = (box.max[i] - ori[i]) * invRayDir;
-
-//        // Update parametric interval from slab intersection $t$s
-//        if (tNear > tFar) std::swap(tNear, tFar);
-//        t0 = tNear > t0 ? tNear : t0;
-//        t1 = tFar  < t1 ? tFar  : t1;
-//        if (t0 > t1) return false;
-//    }
-//    if (hitt0) *hitt0 = t0;
-//    if (hitt1) *hitt1 = t1;
-//    return true;
-//}
-
 void Ray::BuildRd(TVec2d fragCoord,osg::Camera* cam)
 {
     double fov;
@@ -203,12 +181,3 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 
     return rays;
 }
-
-//RayCollection::~RayCollection()
-//{
-//    for(unsigned int i = 0; i < rays.size(); i++)
-//    {
-//        std::cout << "bah" << std::endl;
-//        delete rays[i];
-//    }
-//}

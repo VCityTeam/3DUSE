@@ -11,17 +11,6 @@
 #include "core/tile.hpp"
 #include "Triangle.hpp"
 
-//#include "gui/osg/osgScene.hpp"
-
-//#include "Ray.hpp"
-
-//#include "../Visibilite.hpp"
-
-//bool operator<(const RayBoxHit& a, const RayBoxHit& b)
-//{
-//	return a.minDistance < b.minDistance;
-//}
-
 //AABB
 
 bool AABB::operator==(AABB const& other)
@@ -184,11 +173,11 @@ AABBCollection LoadAABB(std::string dir)
 }
 
 /**
-*	@brief Build a collection of box from a citygml file in a set of directory
-*	@param dirs Directories when citygml files are located
+*	@brief Build a collection of boxes from a citygml file in a set of directory
+*	@param dirs Directories where citygml files are located
 *	@param offset 3D offset used by the application
-*	@param type Types of cityobject to use
-*	@return collection of box, key = nameo of the box, value = <min of the box, max of the box>
+*	@param type Type of cityobject to use
+*	@return a collection of boxes, key = name of the box, value = <min of the box, max of the box>
 */
 std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dirs, citygml::CityObjectsType type)
 {
@@ -230,8 +219,8 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 }
 
 /**
-*	@brief Save a collection of box on disk
-*	@param filePath Where to save the collection
+*	@brief Save a collection of boxes on disk
+*	@param filePath where to save the collection
 *	@param AABBs The collection of box
 */
 void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec3d>> AABBs)
