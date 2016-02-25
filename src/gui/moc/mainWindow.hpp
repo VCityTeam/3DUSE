@@ -64,6 +64,9 @@ public:
     // admin mode (show all menus)
     void unlockFeatures(const QString& pass);
 
+    //Temp
+    void DisplaySun(TVec3d sunPos);
+
     QLineEdit* getFilter();
 
 private:

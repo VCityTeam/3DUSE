@@ -55,6 +55,7 @@
 #include "AABB.hpp"
 #include "Triangle.hpp"
 #include "src/core/RayBox.hpp"
+#include <queue>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2804,67 +2805,527 @@ void MainWindow::test2()
 
 	delete ReseauRoutier;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+void MainWindow::DisplaySun(TVec3d sunPos)
+{
+    //** Display sun
+
+   osg::Group* rootNode = new osg::Group();
+   osg::Texture2D *OldLyonTexture = new osg::Texture2D;
+   OldLyonTexture->setImage(osgDB::readImageFile("/home/vincent/Documents/VCity_Project/Data/soleil.jpg"));
+
+
+   osg::StateSet* bbState = new osg::StateSet;
+   bbState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+   bbState->setTextureAttributeAndModes(0, OldLyonTexture, osg::StateAttribute::ON );
+
+
+   float width = 3000.0f;
+   float height = 1500.0f;
+
+
+   osg::Geometry* bbQuad = new osg::Geometry;
+
+   osg::Vec3Array* bbVerts = new osg::Vec3Array(4);
+   (*bbVerts)[0] = osg::Vec3(-width/2.0f, 0, 0);
+   (*bbVerts)[1] = osg::Vec3( width/2.0f, 0, 0);
+   (*bbVerts)[2] = osg::Vec3( width/2.0f, 0, height);
+   (*bbVerts)[3] = osg::Vec3(-width/2.0f, 0, height);
+
+   bbQuad->setVertexArray(bbVerts);
+
+   osg::Vec2Array* bbTexCoords = new osg::Vec2Array(4);
+   (*bbTexCoords)[0].set(0.0f,0.0f);
+   (*bbTexCoords)[1].set(1.0f,0.0f);
+   (*bbTexCoords)[2].set(1.0f,1.0f);
+   (*bbTexCoords)[3].set(0.0f,1.0f);
+
+   bbQuad->setTexCoordArray(0,bbTexCoords);
+
+   bbQuad->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+
+   osg::Vec4Array* colorArray = new osg::Vec4Array;
+   colorArray->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) ); // white, fully opaque
+
+   // Use the index array to associate the first entry in our index array with all
+   // of the vertices.
+   bbQuad->setColorArray( colorArray);
+
+   bbQuad->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+   bbQuad->setStateSet(bbState);
+
+
+   osg::Billboard* TestBillBoard = new osg::Billboard();
+   rootNode->addChild(TestBillBoard);
+
+   TestBillBoard->setMode(osg::Billboard::AXIAL_ROT);
+   TestBillBoard->setAxis(osg::Vec3(0.0f,0.0f,1.0f));
+   TestBillBoard->setNormal(osg::Vec3(0.0f,-1.0f,0.0f));
+
+
+   osg::Drawable* bbDrawable = bbQuad;
+
+   sunPos = sunPos - m_app.getSettings().getDataProfile().m_offset;
+
+   osg::Vec3d pos = osg::Vec3d(sunPos.x,sunPos.y,sunPos.z);
+
+   TestBillBoard->addDrawable(bbDrawable , pos);
+
+   vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+
+   appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+/**
+*	@brief Setup a set of boxes in the right order depending on a set of rays
+*/
+std::queue<RayBoxHit> Setup(std::vector<AABB> boxes,RayCollection* rays)
+{
+    std::map<std::string,int> boxToMaxOrder;//We keep record the maximum order the box has be traverse
+    std::map<std::string,RayBoxHit> boxToRayBoxHit;//We keep record the smallest rayboxhit of a box /// MultiResolution
+
+    for(unsigned int i = 0; i < boxes.size(); i++)
+    {
+        boxToMaxOrder[boxes[i].name] = -1;
+    }
+    //For each rays
+    for(unsigned int i = 0; i < rays->rays.size(); i++)
+    {
+        Ray* ray = rays->rays[i];
+        ray->boxes.clear();
+
+        //For each boxes we check if the ray intersect the box and store it in the box list of the array
+        for(unsigned int j = 0; j < boxes.size(); j++)
+        {
+            float hit0,hit1;
+            if(ray->Intersect(boxes[j],&hit0,&hit1))
+            {
+                RayBoxHit hTemp;
+                hTemp.box = boxes[j];
+                hTemp.minDistance = hit0;
+                ray->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
+            }
+        }
+
+        std::sort(ray->boxes.begin(),ray->boxes.end());//Sort the boxes depending on the intersection distance
+
+        for(int j = 0; j < ray->boxes.size(); j++)//We update the order of each boxes
+        {
+            int current = boxToMaxOrder[ray->boxes[j].box.name];
+            boxToMaxOrder[ray->boxes[j].box.name] = std::max(j,current);
+
+            if(boxToRayBoxHit.find(ray->boxes[j].box.name) != boxToRayBoxHit.end())//= Si ray->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution
+            {
+                boxToRayBoxHit[ray->boxes[j].box.name] = std::min(ray->boxes[j],boxToRayBoxHit[ray->boxes[j].box.name]);
+            }
+            else
+            {
+                boxToRayBoxHit.insert(std::make_pair(ray->boxes[j].box.name,ray->boxes[j]));
+            }
+        }
+    }
+
+    //Sort the boxis depending on their max order
+    std::vector<BoxOrder> boxesOrder;
+
+    for(auto it = boxToMaxOrder.begin();it != boxToMaxOrder.end(); it++)
+    {
+        if(it->second >= 0)
+        {
+            BoxOrder boTemp;
+            boTemp.box = it->first;
+            boTemp.order = it->second;
+            boxesOrder.push_back(boTemp);
+        }
+    }
+
+    std::sort(boxesOrder.begin(),boxesOrder.end());
+
+    //Setup the queue and return it
+    std::queue<RayBoxHit> tileOrder;
+
+    for(BoxOrder& bo : boxesOrder)
+        tileOrder.push(boxToRayBoxHit[bo.box]);
+
+    return tileOrder;
+}
+
+
+std::map<std::string,bool> buildYearMap(int year)
+{
+    std::map<std::string,bool> yearMap;
+
+    std::string year_str = std::to_string(year);
+
+    for(int month = 1; month <= 12 ; ++month)
+    {
+        std::string month_str;
+        if (month < 10)
+            month_str = "0" + std::to_string(month);
+        else
+            month_str = std::to_string(month);
+
+        for(int day = 1; day <= 31 ; ++day)
+        {
+            //Special case for February
+            if (month == 2 && day == 29)
+            {
+                //If year is not bissextile, exit loop
+                if(!((year % 4 == 0 && year % 100 != 0) || year % 400 == 0))
+                    break;
+            }
+            if (month == 2 && day == 30)
+                break;
+
+            //Month with 30 days
+            if((month == 4 || month == 6 || month == 9 || month == 11) && day == 31)
+                break;
+
+            std::string day_str;
+            if (day < 10)
+                day_str = "0" + std::to_string(day);
+            else
+                day_str = std::to_string(day);
+
+            for(int hour = 0 ; hour < 24 ; ++hour)
+            {
+                std::string hour_str;
+                if (hour < 10)
+                    hour_str = "0" + std::to_string(hour) + "00";
+                else
+                    hour_str = std::to_string(hour) + "00";
+
+                std::string code_str = day_str + month_str + year_str + ":" + hour_str;
+                yearMap[code_str] = false;
+            }
+        }
+    }
+
+    return yearMap;
+
+}
+
+void exportLightningToCSV(TriangleList* triangles, std::string dir, std::string filename)
+{
+    //Voir QFile et QDir
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+//	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
 
-	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
-	QSettings settings("liris", "virtualcity");
-	QString lastdir = settings.value("lastdir").toString();
-	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
+//	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+//	QSettings settings("liris", "virtualcity");
+//	QString lastdir = settings.value("lastdir").toString();
+//	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
 
-	QFileInfo file1temp(File1[0]);
-	QString file1path = file1temp.absoluteFilePath();
-	QFileInfo file1(file1path);
+//	QFileInfo file1temp(File1[0]);
+//	QString file1path = file1temp.absoluteFilePath();
+//	QFileInfo file1(file1path);
 
-	QString ext = file1.suffix().toLower();
-	if(ext != "citygml" && ext != "gml")
-	{
-		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-		return;
-	}
+//	QString ext = file1.suffix().toLower();
+//	if(ext != "citygml" && ext != "gml")
+//	{
+//		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+//		return;
+//	}
 
-	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
+//	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
 
-	QFileInfo file2temp(File2[0]);
-	QString file2path = file2temp.absoluteFilePath();
-	QFileInfo file2(file2path);
+//	QFileInfo file2temp(File2[0]);
+//	QString file2path = file2temp.absoluteFilePath();
+//	QFileInfo file2(file2path);
 
-	ext = file2.suffix().toLower();
-	if(ext != "citygml" && ext != "gml")
-	{
-		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-		return;
-	}
+//	ext = file2.suffix().toLower();
+//	if(ext != "citygml" && ext != "gml")
+//	{
+//		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+//		return;
+//	}
 
-	QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-	w.setFileMode(QFileDialog::Directory);
+//	QFileDialog w;
+//	w.setWindowTitle("Selectionner le dossier de sortie");
+//	w.setFileMode(QFileDialog::Directory);
 
-	if(w.exec() == 0)
-	{
-		std::cout << "Annulation : Dossier non valide." << std::endl;
-		return;
-	}
-	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
+//	if(w.exec() == 0)
+//	{
+//		std::cout << "Annulation : Dossier non valide." << std::endl;
+//		return;
+//	}
+//	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
 
-	QApplication::setOverrideCursor(Qt::WaitCursor);
-	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
-	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
-	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
-	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
+//	QApplication::setOverrideCursor(Qt::WaitCursor);
+//	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
+//	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
+//	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
+//	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
 
-	citygml::CityModel * City1 = tile1->getCityModel();
-	citygml::CityModel * City2 = tile2->getCityModel();
+//	citygml::CityModel * City1 = tile1->getCityModel();
+//	citygml::CityModel * City2 = tile2->getCityModel();
 
-	FusionLODs(City1, City2);
+//	FusionLODs(City1, City2);
 
-	citygml::ExporterCityGML exporter(Folder);
+//	citygml::ExporterCityGML exporter(Folder);
 
-	exporter.exportCityModel(*City2);
+//	exporter.exportCityModel(*City2);
 
-	QApplication::restoreOverrideCursor();
+//	QApplication::restoreOverrideCursor();
+
+
+
+    // ************* Lightning Measure ******************************//
+
+    std::string date = "2016-11-25";
+
+    std::vector<double> elevationAngle;
+    std::vector<double> azimutAngle;
+
+    bool found = false;
+
+    // *** CSV Load
+    std::ifstream file( "/home/vincent/Documents/VCity_Project/Data/AnnualSunPath_Lyon.csv" );
+    std::string line;
+
+    while(std::getline(file,line) && found == false) // For all lines of csv file
+    {
+        std::stringstream  lineStream(line);
+        std::string        cell;
+
+        std::getline(lineStream,cell,';'); //Get first cell of line
+
+        if(cell.find(date) != std::string::npos) //If it's the right line, get all cells
+        {
+            found = true;
+            std::getline(lineStream,cell,';'); //jump second cell of line
+
+            while(std::getline(lineStream,cell,';'))
+            {
+                //Add azimuthAngle (corresponding to current hour)
+                if(cell == "--" || cell == "")
+                    azimutAngle.push_back(0.0);
+                else
+                    azimutAngle.push_back(std::stod(cell) * M_PI / 180); //Conversion to radian
+
+                //Get next cell (azimuth angle of current hour)
+                std::getline(lineStream,cell,';');
+
+                //Add Elevation angle
+                if(cell == "--" || cell == "")
+                    elevationAngle.push_back(0.0);
+                else
+                    elevationAngle.push_back(std::stod(cell) * M_PI / 180);
+
+            }
+        }
+    }
+
+    //*** Computation of beam directions
+    // North : y axis
+    // South : -y axis
+    // Est : x axis
+    // Ouest : -x axis
+
+    TVec3d origin = TVec3d(1843927.29, 5173886.65, 0.0); //Lambert 93 Coordinates
+    TVec3d sunPos = origin + TVec3d(0.0,9000.0,0.0); //Lambert 93 coordinates
+    TVec3d newSunPos = origin + TVec3d(0.0,9000.0,0.0); //Lambert 93 coordinates
+
+    TVec3d ARotAxis = TVec3d(0.0,0.0,1.0);
+    TVec3d ERotAxis = TVec3d(-1.0,0.0,0.0);
+
+    std::vector<TVec3d> beamsDirections;
+
+    for(int i = 0 ; i < elevationAngle.size() ; ++i)
+    {
+        //Compute new position of sun
+        if (elevationAngle.at(i) <= 0.01 || azimutAngle.at(i) <= 0.01) //if sun to low (angle < 1°), go to next iteration
+        {
+            beamsDirections.push_back(TVec3d(0.0,0.0,0.0)); //Add nul beam direction
+            continue;
+        }
+
+        //Azimut rotation quaternion
+        citygml::quaternion qA = citygml::quaternion();
+        qA.set_axis_angle(ARotAxis,azimutAngle.at(i));
+
+        //Elevation rotation quaternion
+        citygml::quaternion qE = citygml::quaternion();
+        qE.set_axis_angle(ERotAxis,elevationAngle.at(i));
+
+        //Total rotation quaternion
+        citygml::quaternion q = qE*qA;
+
+        sunPos = sunPos - origin;
+        newSunPos = q*sunPos;
+        newSunPos = newSunPos + origin;
+        sunPos = sunPos + origin;
+
+        //Display Sun
+//        DisplaySun(newSunPos);
+
+        //Compute sun's beams direction
+        TVec3d tmpDirection = (origin - newSunPos);
+        beamsDirections.push_back(tmpDirection.normal());
+    }
+
+    //***** MultiTileAnalysis
+
+    //TODO: Load list of all tiles from specified folder and loop on this list
+
+    //vcity::Tile* tile = new vcity::Tile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml");
+
+    std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml";
+    std::string dirTile = "/home/vincent/Documents/VCity_Project/Data/Tuiles/";
+    citygml::CityObjectsType objectType = citygml::CityObjectsType::COT_Building; //TODO:ADD Terrain
+
+    TriangleList* trianglesTile1;
+    trianglesTile1 = BuildTriangleList(path,objectType);
+
+    AABBCollection boxes = LoadAABB(dirTile);
+    std::vector<AABB> buildingBB = boxes.building; //TODO:ADD Terrain
+
+    //Build year map
+    std::map<std::string,bool> yearMap = buildYearMap(2016);
+
+    for(Triangle* t : trianglesTile1->triangles) //Loop through each triangle
+    {
+        //Initialize sunInfo
+        t->sunInfo = yearMap;
+
+        //Compute Barycenter
+        TVec3d barycenter = TVec3d();
+        barycenter.x = (t->a.x + t->b.x + t->c.x) / 3;
+        barycenter.y = (t->a.y + t->b.y + t->c.y) / 3;
+        barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;
+
+        //Create rayCollection (All the rays for this triangle)
+        RayCollection* rays = new RayCollection();
+
+        int hour = 0;
+        for(TVec3d beamDir : beamsDirections)
+        {
+            Ray* ray = new Ray(barycenter,beamDir);
+
+            //Construct id
+            std::string hour_str;
+            if(hour<10)
+                hour_str = "0"+ std::to_string(hour) + "00";
+            else
+                hour_str = std::to_string(hour) + "00";
+
+            ray->id = "25112016:" + hour_str;
+            ray->collection = rays;
+            rays->rays.push_back(ray);
+
+            hour++;
+        }
+
+        //Setup and get the tile's boxes in the right intersection order
+        std::queue<RayBoxHit> tileOrder = Setup(buildingBB,rays); //TODO: Add terrain
+
+        //While we have boxes, tiles
+        while(tileOrder.size() != 0)
+        {
+            RayBoxHit myRayBoxHit = tileOrder.front();
+            std::string tileName = myRayBoxHit.box.name;
+            tileOrder.pop();
+
+
+//            tileName = tileName.substr(0, tileName.size() - 1);
+//            std::cout<< "tilename : " << tileName.size() << std::endl;
+
+
+//            myRayBoxHit.box.name = myRayBoxHit.box.name.substr(0, myRayBoxHit.box.name.size() - 1);
+//            std::cout<< "box name : " << myRayBoxHit.box.name.size() << std::endl;
+
+            RayCollection raysTemp;//Not all rays intersect the box
+            //raysTemp.viewpoint = viewpoint;
+
+            //We get only the rays that intersect the box
+            for(unsigned int i = 0; i < rays->rays.size(); i++)
+            {
+                Ray* ray = rays->rays[i];//Get the ray
+
+                //Check if triangle is already sunny for this ray (i.e. this hour)
+                bool sunny = t->sunInfo[ray->id];
+                bool found = false;
+
+                for(RayBoxHit& rbh : ray->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
+                    found = found || rbh.box.name == tileName;
+
+                if(found && !sunny)
+                {
+                    raysTemp.rays.push_back(ray);
+                }
+            }
+
+            //std::cout << "Raytemp size : " << raysTemp.rays.size() << std::endl;
+
+            if(raysTemp.rays.size() == 0)
+            {
+                std::cout << "Skipping." << std::endl;
+                raysTemp.rays.clear();
+                continue;
+            }
+
+            //Load triangles and perform analysis
+            std::string path = dirTile + tileName;
+            //std::string pathWithPrefix = dirTile + GetTilePrefixFromDistance(myRayBoxHit.minDistance) + tileName; /// MultiResolution
+
+            //Get the triangle list
+            TriangleList* trianglesTemp;
+//            if(QFileInfo(pathWithPrefix.c_str()).exists()) /// MultiResolution
+//                trianglesTemp = BuildTriangleList(pathWithPrefix,objectType);
+//            else
+
+//            std::cout << path << std::endl;
+//            std::cout << "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml" << std::endl;
+
+//            std::cout << strcmp(path.c_str(),"/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml") << std::endl;
+
+//            std::string path2 = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml";
+
+//            std::cout << "size path : " << path.size() <<std::endl;
+//            std::cout << "size path2 : " << path2.size() <<std::endl;
+
+//            for(unsigned int i = 0; i < path.size() ; ++i)
+//            {
+//                if(path[i] != path2[i])
+//                {
+//                    std::cout<< "different letter at : " << i << std::endl;
+//                    std::cout << "letter : " << path[i] << " ; " << path2[i] << std::endl;
+//                }
+//            }
+
+//            std::cout << path << std::endl;
+
+            path = path.substr(0, path.size() - 1);
+
+            trianglesTemp = BuildTriangleList(path,objectType);
+
+            //std::cout << "Triangles_Size : " << trianglesTemp->triangles.size() << std::endl;
+
+            RayTracing(trianglesTemp,raysTemp.rays);
+
+            raysTemp.rays.clear();
+
+
+        }
+
+    }
+
+    //Export to csv (one per tile)
+    std::string filename = "Tile1_Results";
+    //exportLightningToCSV(trianglesTile1, filename);
+
 }
 
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
