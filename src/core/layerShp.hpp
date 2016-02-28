@@ -7,6 +7,10 @@
 #include "URI.hpp"
 #include <string>
 #include <memory>
+
+#ifdef _MSC_VER // remove annoying warnings in Microsoft Visual C++
+#	pragma warning(disable:4251)
+#endif
 #include "ogrsf_frmts.h"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
