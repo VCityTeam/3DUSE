@@ -93,8 +93,8 @@ endif(APPLE)
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# WIN32 x64 VCity binary kit
-IF(WIN32)
+# WIN32 x64 VCity binary kit - KIT VS 2012 x64
+IF(0)
 	if(DEFINED ENV{VCITY_KIT_ROOT})
 		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
 	endif()
@@ -110,7 +110,7 @@ IF(WIN32)
 		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
 	endif(WITH_QT5)
 
-	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270 )
+	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270)
 
 	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.1-bin-without-qt)
 
@@ -120,17 +120,43 @@ IF(WIN32)
 	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
 	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
 
-	#set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
-	#set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
+	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
+	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
+	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
+ENDIF()
 
-	#set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
-	#set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
-	#set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
+# WIN32 x64 VCity binary kit - KIT VS 2015 x64
+IF(WIN32)
+	if(DEFINED ENV{VCITY_KIT_ROOT})
+		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
+	endif()
+	if( NOT DEFINED VCITY_KIT_ROOT )
+		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
+	endif( NOT DEFINED VCITY_KIT_ROOT )
+
+	if(WITH_QT5)
+		# with qt5
+		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.6.0/5.6.0/msvc2015_64_opengl)
+	else(WITH_QT5)
+		# with qt4
+		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.7-x64-msvc2015)
+	endif(WITH_QT5)
+
+	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.2)
+
+	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/OpenSceneGraph-3.4.0)
+#  set(OSG_DIR         ${VCITY_KIT_ROOT}/osg/OpenSceneGraph-3.5.1)
+
+	set(GDAL_INCLUDE_DIR		${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/include)
+	set(GDAL_LIBRARY			${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/lib/gdal_i.lib)
+
+	set(LIBXML2_INCLUDE_DIR		${VCITY_KIT_ROOT}/libxml2-2.9.3/include/libxml2)
+	set(LIBXML2_LIBRARIES		${VCITY_KIT_ROOT}/libxml2-2.9.3/lib/libxml2.lib)
 
 	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
 	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
 	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
-ENDIF(WIN32)
+ENDIF()
 
 # Find Qt
 if (WITH_QT5)
