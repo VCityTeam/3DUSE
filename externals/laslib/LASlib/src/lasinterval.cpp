@@ -51,6 +51,7 @@ using namespace std;
   #endif
 typedef unordered_map<I32, LASintervalStartCell*> my_cell_hash;
 #else
+#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 #include <hash_map>
 using namespace std;
 typedef hash_map<I32, LASintervalStartCell*> my_cell_hash;

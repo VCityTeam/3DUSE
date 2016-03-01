@@ -242,8 +242,8 @@ namespace citygml
 					geom_list.clear();
 
 					OGRMultiPolygon* pOgrMerged = new OGRMultiPolygon;
-					std::deque<std::pair<int, int>> pointsList;
-					pointsList.push_back(std::make_pair(x,y));
+					std::queue<std::pair<int, int>> pointsList;
+					pointsList.push(std::make_pair(x,y));
 					treated[x+y*asc->get_dim_x()]=true;
 					float alt = asc->get_altitude(x,y);
 					// Search and create Polygons to merge
@@ -251,7 +251,7 @@ namespace citygml
 					{
 						pOgrMerged->addGeometryDirectly(createPoly(asc,pointsList.front().first,pointsList.front().second,1/zPrec));
 						propagateCategory(asc,&pointsList,alt,zPrec);
-						pointsList.pop_front();
+						pointsList.pop();
 					}
 					// Merge Polygons
 					OGRGeometry* pTemp = pOgrMerged->UnionCascaded();
@@ -305,7 +305,7 @@ namespace citygml
 		return model;
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////
-	void ImporterASC::propagateCategory(MNT* asc, std::deque<std::pair<int,int>>* pointsList, float alt, float prec = 1)
+	void ImporterASC::propagateCategory(MNT* asc, std::queue<std::pair<int,int>>* pointsList, float alt, float prec = 1)
 	{
 		int x = pointsList->front().first;
 		int y = pointsList->front().second;
@@ -314,22 +314,22 @@ namespace citygml
 		// If some neighbours have same altitude but no category
 		if (y>0 && !treated[x+(y-1)*asc->get_dim_x()] && abs(asc->get_altitude(x,y-1)-alt)<prec)// up
 		{
-			pointsList->push_back(std::make_pair(x,y-1));
+			pointsList->push(std::make_pair(x,y-1));
 			treated[x+(y-1)*asc->get_dim_x()]=true;
 		} 
 		if (x>0 && !treated[x-1+y*asc->get_dim_x()] && abs(asc->get_altitude(x-1,y)-alt)<prec)// left
 		{
-			pointsList->push_back(std::make_pair(x-1,y));
+			pointsList->push(std::make_pair(x-1,y));
 			treated[x-1+y*asc->get_dim_x()]=true;
 		} 
 		if ((y+1)<asc->get_dim_y() && !treated[x+(y+1)*asc->get_dim_x()] && abs(asc->get_altitude(x,y+1)-alt)<prec)// down
 		{
-			pointsList->push_back(std::make_pair(x,y+1));
+			pointsList->push(std::make_pair(x,y+1));
 			treated[x+(y+1)*asc->get_dim_x()]=true;
 		} 
 		if ((x+1)<asc->get_dim_x() && !treated[x+1+y*asc->get_dim_x()] && abs(asc->get_altitude(x+1,y)-alt)<prec)// right
 		{
-			pointsList->push_back(std::make_pair(x+1,y));
+			pointsList->push(std::make_pair(x+1,y));
 			treated[x+1+y*asc->get_dim_x()]=true;
 		} 
 	}

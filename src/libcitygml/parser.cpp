@@ -43,7 +43,8 @@ m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr), _use
 { 
 	//_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask ); // JE 13/01/16 - removeing filtering feature to allow having more than 32 COT
 	initNodes();
-	ADEHandlerFactory::getInstances(_ADEHandlers);
+	ADEHandlerFactory* _adeFactory = new ADEHandlerFactory();
+	_adeFactory->getInstances(&_ADEHandlers);
 	for (std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++) it->second->setGMLHandler(this); 
 }
 

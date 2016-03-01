@@ -6,11 +6,14 @@ endif(WITH_QT5)
 
 if (COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
-  IF(POLICY CMP0020)
+  if(POLICY CMP0020)
     cmake_policy(SET CMP0020 NEW)
-  ENDIF(POLICY CMP0020)
+  endif(POLICY CMP0020)
+  if(POLICY CMP0042)
+    cmake_policy(SET CMP0042 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0042.html
+  endif(POLICY CMP0042)
   if(POLICY CMP0054)
-	cmake_policy(SET CMP0054 OLD)
+    cmake_policy(SET CMP0054 OLD)
   endif(POLICY CMP0054)
 endif (COMMAND cmake_policy)
 
@@ -80,48 +83,83 @@ if(MSVC)
 	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
 endif()
 #------------------------------------------------------------------------------
+# APPLE OS X
+#------------------------------------------------------------------------------
+if(APPLE)
+  set(CMAKE_MACOSX_RPATH ON) # see cmake POLICY CMP0042
+endif(APPLE)
+#------------------------------------------------------------------------------
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# WIN32 x64 VCity binary kit
+# WIN32 x64 VCity binary kit - KIT VS 2012 x64 - OLD KIT - DEPRECATED
 IF(WIN32)
-	if(DEFINED ENV{VCITY_KIT_ROOT})
-		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
-	endif()
-	if( NOT DEFINED VCITY_KIT_ROOT )
-		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
-	endif( NOT DEFINED VCITY_KIT_ROOT )
+  if(NOT DEFINED KIT_VS2015)
+  	if(DEFINED ENV{VCITY_KIT_ROOT})
+  		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
+  	endif()
+  	if( NOT DEFINED VCITY_KIT_ROOT )
+  		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
+  	endif( NOT DEFINED VCITY_KIT_ROOT )
 
-	if(WITH_QT5)
-		# with qt5
-		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
-	else(WITH_QT5)
-		# with qt4
-		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
-	endif(WITH_QT5)
+  	if(WITH_QT5)
+  		# with qt5
+  		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
+  	else(WITH_QT5)
+  		# with qt4
+  		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
+  	endif(WITH_QT5)
 
-	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270 )
+  	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270)
 
-	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.1-bin-without-qt)
+  	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.1-bin-without-qt)
 
-	set(GDAL_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
-	set(GDAL_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/gdal_i.lib)
+  	set(GDAL_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
+  	set(GDAL_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/gdal_i.lib)
 
-	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
-	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
+  	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
+  	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
 
-	set(PROJ_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
-	set(PROJ_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/proj.lib)
+  	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
+  	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
+  	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
+  endif()
+ENDIF()
 
-	set(GEOS_INCLUDE_DIR		${VCITY_KIT_ROOT}/geos-3.4.2/include)
-	set(GEOS_LIBRARY			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Release/libgeos.lib)
-	set(GEOS_LIBRARY_D			${VCITY_KIT_ROOT}/geos-3.4.2/lib/Debug/libgeos.lib)
+# WIN32 x64 VCity binary kit - KIT VS 2015 x64 - NEW KIT - TO USE, SET KIT_VS2015 TO TRUE
+IF(WIN32)
+  if(DEFINED KIT_VS2015)
+  	if(DEFINED ENV{VCITY_KIT_ROOT})
+  		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
+  	endif()
+  	if( NOT DEFINED VCITY_KIT_ROOT )
+  		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
+  	endif( NOT DEFINED VCITY_KIT_ROOT )
 
-	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
-	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
-	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
-ENDIF(WIN32)
+  	if(WITH_QT5)
+  		# with qt5
+  		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.6.0/5.6.0/msvc2015_64_opengl)
+  	else(WITH_QT5)
+  		# with qt4
+  		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.7-x64-msvc2015)
+  	endif(WITH_QT5)
+
+  	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.2)
+
+  	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/OpenSceneGraph-3.4.0)
+
+  	set(GDAL_INCLUDE_DIR		${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/include)
+  	set(GDAL_LIBRARY			${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/lib/gdal_i.lib)
+
+  	set(LIBXML2_INCLUDE_DIR		${VCITY_KIT_ROOT}/libxml2-2.9.3/include/libxml2)
+  	set(LIBXML2_LIBRARIES		${VCITY_KIT_ROOT}/libxml2-2.9.3/lib/libxml2.lib)
+
+  	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
+  	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
+  	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
+  endif()
+ENDIF()
 
 # Find Qt
 if (WITH_QT5)
@@ -301,17 +339,29 @@ else(OSGWIDGET_FOUND)
   message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
 endif(OSGWIDGET_FOUND)
 
-# Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows)
+# Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows, not used under Travis too)
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
-else(WIN32)
+elseif(DEFINED ENV{TRAVIS})
+  if (APPLE)
+    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg34/include" )
+    include_directories(${OSGQT_INCLUDE_DIR})
+  else()
+    find_package(osgQt)
+    if(OSGQT_FOUND)
+      include_directories(${OSGQT_INCLUDE_DIR})
+    else(OSGQT_FOUND)
+      message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
+    endif(OSGQT_FOUND)
+  endif()
+else()
   find_package(osgQt)
   if(OSGQT_FOUND)
     include_directories(${OSGQT_INCLUDE_DIR})
   else(OSGQT_FOUND)
     message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
   endif(OSGQT_FOUND)
-endif(WIN32)
+endif()
 
 # Find OpenThreads
 find_package(OpenThreads)
@@ -339,20 +389,20 @@ else(LIBXML2_FOUND)
 endif(LIBXML2_FOUND)
 
 # Find Proj
-find_package(Proj)
-if(PROJ_FOUND)
-  include_directories(${PROJ_INCLUDE_DIR})
-else(PROJ_FOUND)
-  message(FATAL_ERROR "Proj not found.")
-endif(PROJ_FOUND)
+#find_package(Proj)
+#if(PROJ_FOUND)
+#  include_directories(${PROJ_INCLUDE_DIR})
+#else(PROJ_FOUND)
+#  message(FATAL_ERROR "Proj not found.")
+#endif(PROJ_FOUND)
 
 # Find GEOS
-find_package(GEOS)
-if(GEOS_FOUND)
-  include_directories(${GEOS_INCLUDE_DIR})
-else(GEOS_FOUND)
-  message(FATAL_ERROR "GEOS not found.")
-endif(GEOS_FOUND)
+#find_package(GEOS)
+#if(GEOS_FOUND)
+#  include_directories(${GEOS_INCLUDE_DIR})
+#else(GEOS_FOUND)
+#  message(FATAL_ERROR "GEOS not found.")
+#endif(GEOS_FOUND)
 
 # Find LASLIB
 find_package(LASLIB)
@@ -400,9 +450,15 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_RES_H}
 )
 if (WIN32)
-  SET( VCITY_GUI_SRC_WIN src/gui/osgQt/GraphicsWindowQt.cxx )
+  SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
 endif(WIN32)
+if(DEFINED ENV{TRAVIS})
+  if (APPLE)
+    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
+    set( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
+  endif (APPLE)
+endif()
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
@@ -427,8 +483,8 @@ SET( VCITY_GUI_LIB
   ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
-  ${PROJ_LIBRARY}
-  ${GEOS_LIBRARY}
+  #${PROJ_LIBRARY}
+  #${GEOS_LIBRARY}
   ${LASLIB_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
