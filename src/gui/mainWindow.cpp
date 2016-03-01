@@ -56,6 +56,8 @@
 #include "Triangle.hpp"
 #include "src/core/RayBox.hpp"
 #include <queue>
+#include "quaternion.hpp"
+#include "Hit.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2806,9 +2808,8 @@ void MainWindow::test2()
 	delete ReseauRoutier;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::DisplaySun(TVec3d sunPos)
 {
     //** Display sun
@@ -2880,81 +2881,6 @@ void MainWindow::DisplaySun(TVec3d sunPos)
    appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-/**
-*	@brief Setup a set of boxes in the right order depending on a set of rays
-*/
-std::queue<RayBoxHit> Setup(std::vector<AABB> boxes,RayCollection* rays)
-{
-    std::map<std::string,int> boxToMaxOrder;//We keep record the maximum order the box has be traverse
-    std::map<std::string,RayBoxHit> boxToRayBoxHit;//We keep record the smallest rayboxhit of a box /// MultiResolution
-
-    for(unsigned int i = 0; i < boxes.size(); i++)
-    {
-        boxToMaxOrder[boxes[i].name] = -1;
-    }
-    //For each rays
-    for(unsigned int i = 0; i < rays->rays.size(); i++)
-    {
-        Ray* ray = rays->rays[i];
-        ray->boxes.clear();
-
-        //For each boxes we check if the ray intersect the box and store it in the box list of the array
-        for(unsigned int j = 0; j < boxes.size(); j++)
-        {
-            float hit0,hit1;
-            if(ray->Intersect(boxes[j],&hit0,&hit1))
-            {
-                RayBoxHit hTemp;
-                hTemp.box = boxes[j];
-                hTemp.minDistance = hit0;
-                ray->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
-            }
-        }
-
-        std::sort(ray->boxes.begin(),ray->boxes.end());//Sort the boxes depending on the intersection distance
-
-        for(int j = 0; j < ray->boxes.size(); j++)//We update the order of each boxes
-        {
-            int current = boxToMaxOrder[ray->boxes[j].box.name];
-            boxToMaxOrder[ray->boxes[j].box.name] = std::max(j,current);
-
-            if(boxToRayBoxHit.find(ray->boxes[j].box.name) != boxToRayBoxHit.end())//= Si ray->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution
-            {
-                boxToRayBoxHit[ray->boxes[j].box.name] = std::min(ray->boxes[j],boxToRayBoxHit[ray->boxes[j].box.name]);
-            }
-            else
-            {
-                boxToRayBoxHit.insert(std::make_pair(ray->boxes[j].box.name,ray->boxes[j]));
-            }
-        }
-    }
-
-    //Sort the boxis depending on their max order
-    std::vector<BoxOrder> boxesOrder;
-
-    for(auto it = boxToMaxOrder.begin();it != boxToMaxOrder.end(); it++)
-    {
-        if(it->second >= 0)
-        {
-            BoxOrder boTemp;
-            boTemp.box = it->first;
-            boTemp.order = it->second;
-            boxesOrder.push_back(boTemp);
-        }
-    }
-
-    std::sort(boxesOrder.begin(),boxesOrder.end());
-
-    //Setup the queue and return it
-    std::queue<RayBoxHit> tileOrder;
-
-    for(BoxOrder& bo : boxesOrder)
-        tileOrder.push(boxToRayBoxHit[bo.box]);
-
-    return tileOrder;
-}
-
 
 std::map<std::string,bool> buildYearMap(int year)
 {
@@ -3010,15 +2936,113 @@ std::map<std::string,bool> buildYearMap(int year)
 
 }
 
-void exportLightningToCSV(TriangleList* triangles, std::string dir, std::string filename)
+
+std::queue<RayBoxHit> SetupTileOrder(std::vector<AABB> boxes,RayBoxCollection* rays)
 {
-    //Voir QFile et QDir
+    std::map<std::string,int> boxToMaxOrder;//We keep record the maximum order the box has be traverse
+    std::map<std::string,RayBoxHit> boxToRayBoxHit;//We keep record of the smallest rayboxhit of a box /// MultiResolution
+
+    for(unsigned int i = 0; i < boxes.size(); i++)
+    {
+        boxToMaxOrder[boxes[i].name] = -1;
+    }
+    //For each rays
+    for(unsigned int i = 0; i < rays->raysBB.size(); i++)
+    {
+        RayBox* rayBox = rays->raysBB[i];
+        rayBox->boxes.clear();
+
+        //For each boxes we check if the ray intersect the box and store it in the box list of the array
+        for(unsigned int j = 0; j < boxes.size(); j++)
+        {
+            float hit0,hit1;
+            if(rayBox->Intersect(boxes[j],&hit0,&hit1))
+            {
+                RayBoxHit hTemp;
+                hTemp.box = boxes[j];
+                hTemp.minDistance = hit0;
+                rayBox->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
+            }
+        }
+
+        std::sort(rayBox->boxes.begin(),rayBox->boxes.end());//Sort the boxes depending on the intersection distance
+
+        for(int j = 0; j < rayBox->boxes.size(); j++)//We update the order of each boxes
+        {
+            int current = boxToMaxOrder[rayBox->boxes[j].box.name];
+            boxToMaxOrder[rayBox->boxes[j].box.name] = std::max(j,current);
+
+            if(boxToRayBoxHit.find(rayBox->boxes[j].box.name) != boxToRayBoxHit.end())//= Si rayBox->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution
+            {
+                boxToRayBoxHit[rayBox->boxes[j].box.name] = std::min(rayBox->boxes[j],boxToRayBoxHit[rayBox->boxes[j].box.name]);
+            }
+            else
+            {
+                boxToRayBoxHit.insert(std::make_pair(rayBox->boxes[j].box.name,rayBox->boxes[j]));
+            }
+        }
+    }
+
+    //Sort the boxes depending on their max order
+    std::vector<BoxOrder> boxesOrder;
+
+    for(auto it = boxToMaxOrder.begin();it != boxToMaxOrder.end(); it++)
+    {
+        if(it->second >= 0)
+        {
+            BoxOrder boTemp;
+            boTemp.box = it->first;
+            boTemp.order = it->second;
+            boxesOrder.push_back(boTemp);
+        }
+    }
+
+    std::sort(boxesOrder.begin(),boxesOrder.end());
+
+    //Setup the queue and return it
+    std::queue<RayBoxHit> tileOrder;
+
+    for(BoxOrder& bo : boxesOrder)
+        tileOrder.push(boxToRayBoxHit[bo.box]);
+
+    return tileOrder;
+}
+
+///
+/// \brief Holds sun informations for a triangle for a year
+///
+struct TriangleLightInfo
+{
+    Triangle* triangle;
+    std::map<std::string,bool> yearSunInfo;
+};
+
+void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo)
+{
+    //To create directory, use QDir.mkdir("name")
+
+    std::ofstream ofs;
+    ofs.open ("./lightningresults.csv", std::ofstream::out);
+
+    ofs << "Time;TileFile;ObjectType;ObjectId;PolygoneId;Sunny" << std::endl;
+
+    for(TriangleLightInfo* tli : vSunInfo)
+    {
+        for(auto iterator : tli->yearSunInfo)
+        {
+            ofs << iterator.first << ";" << tli->triangle->tileFile << ";" << tli->triangle->objectType << ";" << tli->triangle->objectId << ";" << tli->triangle->polygonId << ";" << iterator.second << std::endl;
+            // iterator->first = key
+            // iterator->second = value
+        }
+    }
+
+    ofs.close();
+
+    std::cout << "file created" << std::endl;
+
 }
 
 
-
-
-////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
 //	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
@@ -3169,7 +3193,7 @@ void MainWindow::test3()
         sunPos = sunPos + origin;
 
         //Display Sun
-//        DisplaySun(newSunPos);
+        DisplaySun(newSunPos);
 
         //Compute sun's beams direction
         TVec3d tmpDirection = (origin - newSunPos);
@@ -3193,12 +3217,30 @@ void MainWindow::test3()
     std::vector<AABB> buildingBB = boxes.building; //TODO:ADD Terrain
 
     //Build year map
-    std::map<std::string,bool> yearMap = buildYearMap(2016);
+    //std::map<std::string,bool> yearMap = buildYearMap(2016);
+    std::map<std::string,bool> yearMap;
+
+    for(int hour = 0 ; hour < 24 ; ++hour)
+    {
+        std::string hour_str;
+        if (hour < 10)
+            hour_str = "0" + std::to_string(hour) + "00";
+        else
+            hour_str = std::to_string(hour) + "00";
+
+        std::string code_str = "25112016:" + hour_str;
+        yearMap[code_str] = false;
+    }
+
+    std::vector<TriangleLightInfo*> vSunInfoTriangle;
 
     for(Triangle* t : trianglesTile1->triangles) //Loop through each triangle
     {
         //Initialize sunInfo
-        t->sunInfo = yearMap;
+        //t->sunInfo = yearMap;
+        TriangleLightInfo* sunInfoTri = new TriangleLightInfo();
+        sunInfoTri->triangle = t;
+        sunInfoTri->yearSunInfo = yearMap;
 
         //Compute Barycenter
         TVec3d barycenter = TVec3d();
@@ -3207,13 +3249,11 @@ void MainWindow::test3()
         barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;
 
         //Create rayCollection (All the rays for this triangle)
-        RayCollection* rays = new RayCollection();
+        RayBoxCollection* raysboxes = new RayBoxCollection();
 
         int hour = 0;
         for(TVec3d beamDir : beamsDirections)
         {
-            Ray* ray = new Ray(barycenter,beamDir);
-
             //Construct id
             std::string hour_str;
             if(hour<10)
@@ -3221,15 +3261,16 @@ void MainWindow::test3()
             else
                 hour_str = std::to_string(hour) + "00";
 
-            ray->id = "25112016:" + hour_str;
-            ray->collection = rays;
-            rays->rays.push_back(ray);
+            std::string id = "25112016:" + hour_str;
+
+            RayBox* raybox = new RayBox(barycenter,beamDir,id);
+            raysboxes->raysBB.push_back(raybox);
 
             hour++;
         }
 
         //Setup and get the tile's boxes in the right intersection order
-        std::queue<RayBoxHit> tileOrder = Setup(buildingBB,rays); //TODO: Add terrain
+        std::queue<RayBoxHit> tileOrder = SetupTileOrder(buildingBB,raysboxes); //TODO: Add terrain
 
         //While we have boxes, tiles
         while(tileOrder.size() != 0)
@@ -3250,24 +3291,23 @@ void MainWindow::test3()
             //raysTemp.viewpoint = viewpoint;
 
             //We get only the rays that intersect the box
-            for(unsigned int i = 0; i < rays->rays.size(); i++)
+            for(unsigned int i = 0; i < raysboxes->raysBB.size(); i++)
             {
-                Ray* ray = rays->rays[i];//Get the ray
+                RayBox* raybox = raysboxes->raysBB[i];//Get the ray
 
                 //Check if triangle is already sunny for this ray (i.e. this hour)
-                bool sunny = t->sunInfo[ray->id];
+                bool sunny = sunInfoTri->yearSunInfo[raybox->id];
+//                bool sunny = t->sunInfo[ray->id];
                 bool found = false;
 
-                for(RayBoxHit& rbh : ray->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
+                for(RayBoxHit& rbh : raybox->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
                     found = found || rbh.box.name == tileName;
 
                 if(found && !sunny)
                 {
-                    raysTemp.rays.push_back(ray);
+                    raysTemp.rays.push_back(raybox);
                 }
             }
-
-            //std::cout << "Raytemp size : " << raysTemp.rays.size() << std::endl;
 
             if(raysTemp.rays.size() == 0)
             {
@@ -3282,49 +3322,27 @@ void MainWindow::test3()
 
             //Get the triangle list
             TriangleList* trianglesTemp;
-//            if(QFileInfo(pathWithPrefix.c_str()).exists()) /// MultiResolution
-//                trianglesTemp = BuildTriangleList(pathWithPrefix,objectType);
-//            else
-
-//            std::cout << path << std::endl;
-//            std::cout << "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml" << std::endl;
-
-//            std::cout << strcmp(path.c_str(),"/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml") << std::endl;
-
-//            std::string path2 = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml";
-
-//            std::cout << "size path : " << path.size() <<std::endl;
-//            std::cout << "size path2 : " << path2.size() <<std::endl;
-
-//            for(unsigned int i = 0; i < path.size() ; ++i)
-//            {
-//                if(path[i] != path2[i])
-//                {
-//                    std::cout<< "different letter at : " << i << std::endl;
-//                    std::cout << "letter : " << path[i] << " ; " << path2[i] << std::endl;
-//                }
-//            }
-
-//            std::cout << path << std::endl;
-
-            path = path.substr(0, path.size() - 1);
 
             trianglesTemp = BuildTriangleList(path,objectType);
 
-            //std::cout << "Triangles_Size : " << trianglesTemp->triangles.size() << std::endl;
+            std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,raysTemp.rays);
 
-            RayTracing(trianglesTemp,raysTemp.rays);
+            for(Hit* h : *tmpHits)
+            {
+                sunInfoTri->yearSunInfo[h->ray.id] = true;
+            }
 
             raysTemp.rays.clear();
-
+            delete tmpHits;
 
         }
+
+        vSunInfoTriangle.push_back(sunInfoTri);
 
     }
 
     //Export to csv (one per tile)
-    std::string filename = "Tile1_Results";
-    //exportLightningToCSV(trianglesTile1, filename);
+    exportLightningToCSV(vSunInfoTriangle);
 
 }
 

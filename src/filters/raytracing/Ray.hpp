@@ -18,8 +18,9 @@ struct Ray
 	*	@brief Build a new ray
 	*	@param ori Origin of the ray
 	*	@param dir Direction of the ray
+    *   @param Id oh the ray
 	*/
-    Ray(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0));
+    Ray(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0),std::string id = "" );
 
 	/**
 	*	@brief To know if the ray instersect a given triangle
@@ -39,6 +40,7 @@ struct Ray
     static float DotCross(TVec3d v0, TVec3d v1,TVec3d v2);
 	static TVec3d Normalized(TVec3d vec);
 
+    std::string id;///< Id of the ray
 	TVec2d fragCoord;///< Fragment coordinate of the ray
 	TVec3d ori;///< Origin of the ray
 	TVec3d dir;///< Direction of the ray
