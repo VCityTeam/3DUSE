@@ -28,7 +28,14 @@ class RayBox : public Ray
 
 public:
 
-    RayBox();
+    /**
+    *	@brief Build a new rayBox
+    *	@param ori Origin of the rayBox
+    *	@param dir Direction of the rayBox
+    *   @param id oh the rayBox
+    */
+    RayBox(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0),std::string id = "" );
+
     /**
     *	@brief To know if the ray instersects a given box
     *	@param box Box to intersect

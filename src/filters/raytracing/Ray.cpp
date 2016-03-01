@@ -4,8 +4,9 @@
 
 //Ray
 
-Ray::Ray(TVec3d ori,TVec3d dir)
+Ray::Ray(TVec3d ori, TVec3d dir, std::string id)
 {
+    this->id = id;
     this->ori = ori;
     this->dir = dir;
     inv_dir = TVec3d(1/dir.x, 1/dir.y, 1/dir.z);
@@ -174,7 +175,6 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
         {
             Ray* ray = new Ray();
             ray->BuildRd(TVec2d(i,j),cam);
-            //ray->collection = rays;
             rays->rays.push_back(ray);
         }
     }
