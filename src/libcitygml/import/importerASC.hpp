@@ -3,7 +3,7 @@
 
 #include "importer.hpp"
 #include "../citygml.hpp"
-//#include "src/core/ASCRaster.hpp"
+
 #include "src/gui/osg/osgMnt.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 
@@ -20,12 +20,14 @@ public:
 	CityModel* waterToCityGML(MNT*);
 	CityModel* waterToCityGMLPolygons(MNT*);
 	CityModel* fusionResolutions(MNT* asc1, MNT* asc2);
-	void cutASC(MNT*, std::string, std::string, int );
 	
+	void cutASC(MNT*, std::string, std::string, int );
+
 protected:
 	Geometry* generateTriangles(MNT*);
 	void propagateCategory(MNT*,std::deque<std::pair<int, int>>*, float alt, float zPrec);
 	OGRPolygon* createPoly(MNT*, int x,int y,float prec);
+	Polygon* OGRPolyToGMLPoly(OGRPolygon*);
 
 	std::vector<OGRPolygon*> geom_list;
 	bool* treated;

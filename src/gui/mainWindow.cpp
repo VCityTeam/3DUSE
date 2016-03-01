@@ -3145,25 +3145,28 @@ void MainWindow::test4()
 { 
 	/* CONVERT ASC WATER TO CITYGML WATER BY SEARCHIG POLYGONS */
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML", "","ASC files (*.asc)");
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML 1", "","ASC files (*.asc)");
+	QStringList filenames2 = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML 2", "","ASC files (*.asc)");
 
 	for(int i = 0; i < filenames.count(); ++i)
 	{
 		citygml::CityModel* model = new citygml::CityModel();
 		QFileInfo file(filenames[i]);
-		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
+		//std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
 		QString ext = file.suffix().toLower();
 		if (ext=="asc")
 		{
 			//lecture du fichier
 			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			MNT* asc = new MNT();
-			if (asc->charge(filenames[i].toStdString().c_str(), "ASC"))
+			MNT* asc1 = new MNT();
+			MNT* asc2 = new MNT();
+			if (asc1->charge(filenames[i].toStdString().c_str(), "ASC")&&(asc2->charge(filenames2[i].toStdString().c_str(), "ASC")))
 			{
 				//conversion en structure CityGML
-				model = importer->waterToCityGMLPolygons(asc);
+				model = importer->fusionResolutions(asc1, asc2);
 				delete importer;
-				delete asc;
+				delete asc1;
+				delete asc2;
 			}
 		}
 		//export en CityGML
