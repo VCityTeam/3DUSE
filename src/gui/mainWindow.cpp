@@ -960,7 +960,11 @@ void MainWindow::updateTemporalParams(int value)
 
 	QDateTime datetime(date);
 	m_currentDate = datetime;
-	if(m_useTemporal)   m_osgScene->setDate(datetime);
+    if(m_useTemporal)
+    {
+        m_osgScene->setDate(datetime);
+        m_osgScene->setPolyColor(datetime);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalSlider()

@@ -542,6 +542,42 @@ void OsgScene::setDate(const QDateTime& date)
 {
     setDateRec(date, this);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
+{
+    //get node as group in order to navigate through structure
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
+
+    if(grp)
+    {
+        //Check if it's the right tile : for demo purposes but in the future, check if the csv file exists for each tile
+
+
+    }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::setPolyColor(const QDateTime& date)
+{
+    //Get URI of CityGML Layer
+    vcity::URI uriLayer = this->getDefaultLayer("LayerCityGML")->getURI();
+
+    //Get node of CityGML Layer
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+
+    if(layer) // If layer exists (if at least one citygml file has been loaded)
+    {
+        setPolyColorRec(date, layer);
+    }
+
+    //for loop on all polygons
+    //get in file if sunny, if yes, yellow, otherwise, black
+
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::reset()
 {
