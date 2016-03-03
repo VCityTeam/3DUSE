@@ -1,4 +1,5 @@
 #include "importerASC.hpp"
+#include "src/processes/ToolAlgoCut.hpp"
 
 #include <osgDB/fstream>
 #include <QInputDialog>
@@ -290,7 +291,7 @@ namespace citygml
 
 		// -- Add temporal info --
 		bool ok;
-		int hour = QInputDialog::getInt(nullptr, "QInputDialog::getInteger()","Time:", 25, 0, 144, 8, &ok);
+		int hour = QInputDialog::getInt(nullptr, "QInputDialog::getInteger()","Time:", 0, 0, 144, 8, &ok);
 		QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
 		termDate = termDate.addSecs(hour*3600);
 		QDateTime creaDate(termDate.addSecs(-8*3600));
@@ -560,27 +561,90 @@ namespace citygml
 		std::cout<<"Building file 2 (100%)"<<std::endl;
 		std::vector<OGRPolygon*> polysMerged;
 		std::cout<<"Merging...\r";
+		//{ //debug: export to shp
+		//	const char * DriverName = "ESRI Shapefile";
+		//	OGRSFDriver * Driver;
+		//	OGRRegisterAll();
+		//	Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+
+		//	OGRDataSource * DS1 = Driver->CreateDataSource("MNT_25.shp", NULL);
+		//	OGRLayer * Layer1 = DS1->CreateLayer("Layer1");
+		//	for (OGRPolygon* poly1 : polys1)
+		//	{
+		//		OGRFeature * Feature1 = OGRFeature::CreateFeature(Layer1->GetLayerDefn());
+		//		Feature1->SetGeometry(poly1);
+		//		Layer1->CreateFeature(Feature1);
+		//		OGRFeature::DestroyFeature(Feature1);
+		//	}
+		//	OGRDataSource::DestroyDataSource(DS1);
+
+		//	OGRDataSource * DS2 = Driver->CreateDataSource("MNT_02.shp", NULL);
+		//	OGRLayer * Layer2 = DS2->CreateLayer("Layer1");
+		//	for (OGRPolygon* poly2 : polys2)
+		//	{
+		//		OGRFeature * Feature2 = OGRFeature::CreateFeature(Layer1->GetLayerDefn());
+		//		Feature2->SetGeometry(poly2);
+		//		Layer2->CreateFeature(Feature2);
+		//		OGRFeature::DestroyFeature(Feature2);
+		//	}
+		//	OGRDataSource::DestroyDataSource(DS2);
+		//}
 		int i = 1; 
 		for (OGRPolygon* poly1 : polys1)
 		{
+			std::list<OGRPolygon*> intersectingPolys;
 			OGRPolygon* pRes = new OGRPolygon(*poly1);
 			for (OGRPolygon* poly2 : polys2)
 			{
 				if (poly1->Intersects(poly2))
 				{
 					OGRPolygon* ptemp = (OGRPolygon*)pRes->Difference(poly2);
-					//delete pRes;
 					pRes = ptemp;
 					if (pRes == NULL) break;
-				}			
+					intersectingPolys.push_back(poly2);
+				}	
 			}
 			if (pRes!=NULL) 
+			{
+				if (pRes->getExteriorRing()!=nullptr)
+					for (int j = 0; j<pRes->getExteriorRing()->getNumPoints(); j++)
+					{
+						OGRPoint* pt = new OGRPoint();
+						pRes->getExteriorRing()->getPoint(j, pt);
+						for (OGRPolygon* iPoly : intersectingPolys)
+						{
+							if (pt->Touches(iPoly))
+							{
+								OGRPoint* newPt = ProjectPointOnPolygon3D(pt, iPoly);
+								pRes->getExteriorRing()->setZ(j,newPt->getZ());
+								break;
+							}
+						}
+					}
 				polysMerged.push_back(pRes);
+			}
 			std::cout<<"Merging ("<<(int)(i++*100.0/(polys1.size()+1))<<"%)\r";
 		}
 		std::cout<<"Merging (100%)"<<std::endl;
 		for (OGRPolygon* poly : polys2)
 			polysMerged.push_back(poly);
+		//debug
+		//{
+		//	const char * DriverName = "ESRI Shapefile";
+		//	OGRSFDriver * Driver;
+		//	OGRRegisterAll();
+		//	Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+		//	OGRDataSource * DS = Driver->CreateDataSource("MNT_merged.shp", NULL);
+		//	OGRLayer * Layer = DS->CreateLayer("Layer1");
+		//	for (OGRPolygon* poly : polysMerged)
+		//	{
+		//		OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+		//		Feature->SetGeometry(poly);
+		//		Layer->CreateFeature(Feature);
+		//		OGRFeature::DestroyFeature(Feature);
+		//	}
+		//	OGRDataSource::DestroyDataSource(DS);
+		//}
 		//convert all OGRpolygons to CityGML
 		Geometry* geom = new Geometry("", GT_Unknown,3);
 		i = 1;
