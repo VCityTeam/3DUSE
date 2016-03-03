@@ -3021,20 +3021,20 @@ struct TriangleLightInfo
     std::map<std::string,bool> yearSunInfo;
 };
 
-void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo)
+void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string tilename)
 {
     //To create directory, use QDir.mkdir("name")
 
     std::ofstream ofs;
-    ofs.open ("./lightningresults.csv", std::ofstream::out);
+    ofs.open ("./" + tilename + "_sunlight.csv", std::ofstream::out);
 
     ofs << "Time;TileFile;ObjectType;ObjectId;PolygoneId;Sunny" << std::endl;
 
     for(TriangleLightInfo* tli : vSunInfo)
     {
-        for(auto iterator : tli->yearSunInfo)
+        for(auto ySI : tli->yearSunInfo)
         {
-            ofs << iterator.first << ";" << tli->triangle->tileFile << ";" << tli->triangle->objectType << ";" << tli->triangle->objectId << ";" << tli->triangle->polygonId << ";" << iterator.second << std::endl;
+            ofs << ySI.first << ";" << tli->triangle->tileFile << ";" << tli->triangle->objectType << ";" << tli->triangle->objectId << ";" << tli->triangle->polygonId << ";" << ySI.second << std::endl;
             // iterator->first = key
             // iterator->second = value
         }
@@ -3346,7 +3346,8 @@ void MainWindow::test3()
     }
 
     //Export to csv (one per tile)
-    exportLightningToCSV(vSunInfoTriangle);
+    std::string tilename = "3670_10382";
+    exportLightningToCSV(vSunInfoTriangle, tilename);
 
 }
 

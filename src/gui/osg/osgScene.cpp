@@ -17,6 +17,7 @@
 #include "core/dataprofile.hpp"
 #include "osgTools.hpp"
 #include "../controllerGui.hpp"
+#include <QTextStream>
 //#include <typeinfo>
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
@@ -544,36 +545,136 @@ void OsgScene::setDate(const QDateTime& date)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
+//void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
+//{
+//    //get node uri
+//    vcity::URI uriNode = node->ge;
+
+//    //get node as group in order to navigate through structure
+//    osg::ref_ptr<osg::Group> grp = node->asGroup();
+
+
+
+//    if(grp)
+//    {
+
+
+
+//    }
+
+//}
+
+std::map<std::string,bool> loadTileSunlightInfo(QString filepath, QString datetime)
 {
-    //get node as group in order to navigate through structure
-    osg::ref_ptr<osg::Group> grp = node->asGroup();
+    std::map<std::string,bool> sunlightInfo;
 
-    if(grp)
+    QFile file(filepath);
+
+    if(file.open(QIODevice::ReadOnly)) //If file opens succesfully
     {
-        //Check if it's the right tile : for demo purposes but in the future, check if the csv file exists for each tile
+        file.readLine(); //Skip first line (header)
 
+        while(!file.atEnd())
+        {
+            QString line = file.readLine(); //Get current line
+            QStringList cells = line.split(';');
 
+            QString tmpDatetime = cells.first(); //Get first column
+
+            if(tmpDatetime.compare(datetime))
+            {
+                std::string polygonId = cells.at(4).toStdString();
+                std::string sSunlight = cells.at(5).toStdString();
+                bool bSunlight;
+                std::istringstream(sSunlight) >> bSunlight;
+                sunlightInfo[polygonId] = bSunlight;
+            }
+        }
     }
 
+    for(auto it = sunlightInfo.begin() ; it != sunlightInfo.end() ; ++it)
+    {
+        std::cout << it.first << " : " << it.second << std::endl;
+    }
+
+    return sunlightInfo;
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setPolyColor(const QDateTime& date)
 {
-    //Get URI of CityGML Layer
-    vcity::URI uriLayer = this->getDefaultLayer("LayerCityGML")->getURI();
+//    //Get URI of CityGML Layer
+//    vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerCityGML")->getURI();
 
-    //Get node of CityGML Layer
-    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+//    //Get node of CityGML Layer
+//    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
 
-    if(layer) // If layer exists (if at least one citygml file has been loaded)
-    {
-        setPolyColorRec(date, layer);
-    }
+//    if(layer) // If layer exists (if at least one citygml file has been loaded)
+//    {
+//        setPolyColorRec(date, layer);
+//    }
 
-    //for loop on all polygons
-    //get in file if sunny, if yes, yellow, otherwise, black
+    QString filepath = "/home/vincent/Documents/VCity_Project/build_debug/3670_10382_sunlight.csv";
+
+    //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)
+    QString format = "ddMMyyyy:hhmm";
+    QString datetime = date.toString(format);
+
+    //Load file infos into a map (info for each polygon of tile for the given datetime)
+    std::map<std::string,bool> polygonSunlightInfo = loadTileSunlightInfo(filepath, datetime);
+
+    //Get CityGML Layer
+   // vcity::LayerCityGML* citygmlLayer = dynamic_cast<vcity::LayerCityGML*>(vcity::app().getScene().getDefaultLayer("LayerCityGML"));
+
+//    for(vcity::Tile* tile : citygmlLayer->getTiles())
+//    {
+
+        /*for(const citygml::CityObject* obj : tile->getCityModel()->getCityObjectsRoots())
+        {
+            objs.push_back(obj);
+            for(citygml::CityObject* object : obj->getChildren())
+            {
+                for(citygml::Geometry* Geometry : object->getGeometries())
+                {
+                    for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+                    {
+                        if(PolygonCityGML->getTexture() == nullptr)
+                            continue;
+
+                        //Remplissage de ListTextures
+                        std::string Url = PolygonCityGML->getTexture()->getUrl();
+                        citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+                        TexturePolygonCityGML Poly;
+                        Poly.Id = PolygonCityGML->getId();
+                        Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+                        Poly.TexUV = PolygonCityGML->getTexCoords();
+
+                        bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+                        for(TextureCityGML* Tex: TexturesList)
+                        {
+                            if(Tex->Url == Url)
+                            {
+                                URLTest = true;
+                                Tex->ListPolygons.push_back(Poly);
+                                break;
+                            }
+                        }
+                        if(!URLTest)
+                        {
+                            TextureCityGML* Texture = new TextureCityGML;
+                            Texture->Wrap = WrapMode;
+                            Texture->Url = Url;
+                            Texture->ListPolygons.push_back(Poly);
+                            TexturesList.push_back(Texture);
+                        }
+                    }
+                }
+            }
+        }*/
+//    }
+
 
 
 }
