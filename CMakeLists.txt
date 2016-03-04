@@ -580,7 +580,7 @@ endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLEmptyQtPlugin : QtPlugin [END]
 
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [BEGIN]
-OPTION(BUILD_CityGMLVisibiliteQtPlugin "BUILD CityGMLVisibiliteQtPlugin " ON)
+OPTION(BUILD_CityGMLVisibiliteQtPlugin "BUILD CityGMLVisibiliteQtPlugin " OFF)
 if (BUILD_CityGMLVisibiliteQtPlugin)
   file(
     GLOB_RECURSE

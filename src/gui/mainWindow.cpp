@@ -51,11 +51,6 @@
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 
-#include "RayTracing.hpp"
-#include "AABB.hpp"
-#include "Triangle.hpp"
-#include "src/core/RayBox.hpp"
-
 ////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::pair<double, double>> Hauteurs;
@@ -2921,82 +2916,37 @@ void MainWindow::test4()
 	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
 	
-//	std::cout<<std::endl;
-//	vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-//	citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-//	std::vector<temporal::Version*> versions = model->getVersions();
-//	for (temporal::Version* version : versions)
-//	{
-//		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-//		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-//		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-//		{
-//			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-//		}
-//	}
-//	std::cout<<std::endl;
-//	std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-//	for (temporal::VersionTransition* transition : transitions)
-//	{
-//		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-//		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-//		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-//	}
-//	std::cout<<std::endl;
+    std::cout<<std::endl;
+    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+    std::vector<temporal::Version*> versions = model->getVersions();
+    for (temporal::Version* version : versions)
+    {
+        std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+        std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+        for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+        {
+            std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+        }
+    }
+    std::cout<<std::endl;
+    std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+    for (temporal::VersionTransition* transition : transitions)
+    {
+        std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+        std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+        std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+    }
+    std::cout<<std::endl;
 
-//	std::cout<<"Workspaces:"<<std::endl;
-//	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-//	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-//		std::cout<<it->second.name<<std::endl;
-//		for(temporal::Version* v : it->second.versions){
-//			std::cout<<"    - "<<v->getId()<<std::endl;
-//		}
-//	}
-
-    //** *******************           Tests lib        ********************************
-
-    // ** Ray / Ray Collection
-
-    Ray* r = new Ray();
-
-    RayCollection rc = RayCollection();
-    rc.rays.push_back(r);
-
-    std::cout << "Ray collection size : " << rc.rays.size() << std::endl;
-
-    Ray r2 = Ray();
-    TVec3d test = TVec3d(0.0,0.0,0.0);
-
-    float b = r2.DotCross(test,test,test);
-    std::cout << b << std::endl;
-
-    //** AABB
-
-    std::string dirTile = "/home/vincent/Documents/VCity_Project/Data/Tuiles/";
-    AABBCollection boxes = LoadAABB(dirTile);
-
-    std::cout << "Building size : " << boxes.building.size() << std::endl;
-    std::cout << "Terrain size : " << boxes.terrain.size() << std::endl;
-    std::cout << "Water size : " << boxes.veget.size() << std::endl;
-    std::cout << "Veget size : " << boxes.water.size() << std::endl;
-
-    //** Triangle
-
-    Triangle tri = Triangle();
-
-    TriangleList* tList = BuildTriangleList("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3664_10355.gml",citygml::CityObjectsType::COT_Building);
-
-    std::cout << tList->triangles.size() << std::endl;
-
-    //** RayBox
-
-    RayBox rb = RayBox();
-    float* hitt0;
-    float* hitt1;
-
-    bool inter = rb.Intersect(boxes.building.at(0),hitt0,hitt1);
-
-    std::cout << "Intersection : " << inter << std::endl;
+    std::cout<<"Workspaces:"<<std::endl;
+    std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+    for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+        std::cout<<it->second.name<<std::endl;
+        for(temporal::Version* v : it->second.versions){
+            std::cout<<"    - "<<v->getId()<<std::endl;
+        }
+    }
 
 
 
