@@ -545,28 +545,94 @@ void OsgScene::setDate(const QDateTime& date)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
-//{
-//    //get node uri
-//    vcity::URI uriNode = node->ge;
+void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node, std::map<std::string,bool>* polySunlightInfo)
+{
+    //get node uri
+    vcity::URI uriNode = osgTools::getURI(node);
 
-//    //get node as group in order to navigate through structure
-//    osg::ref_ptr<osg::Group> grp = node->asGroup();
+    //get node as group in order to navigate through structure
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
 
+    osg::ref_ptr<osg::Geode> geode = node->asGeode();
+
+    if(geode)
+    {
+        //std::cout << "URI Param node : " << uriNode.getStringURI() << std::endl;
+
+        //unsigned int nbDrawables= geode->getNumDrawables();
+
+        //std::cout << "Nb Drawables : " << nbDrawables << std::endl;
+
+
+        for(osg::ref_ptr<osg::Drawable> drawableChild : geode->getDrawableList())
+        {
+            osg::Geometry* geom =  drawableChild->asGeometry();
+
+            osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+            color->push_back( osg::Vec4( 0.1f, 0.1f, 1.0f, 1.0f ) );
+            geom->setColorBinding( osg::Geometry::BIND_OVERALL );
+
+            geom->setColorArray(color);
+
+    //        if(polySunlightInfo->count(uriNode) > 0)
+    //        {
+    //            geode->getDrawable()
+    //        }
+
+            std::cout << drawableChild->getName() << std::endl;
+
+        }
+
+
+        // Color management
+
+       // geom->setColorArray( ( !colorset && geometry.getType() == citygml::GT_Roof ) ? roof_color.get() : shared_colors.get() );
+
+
+    }
+    else
+    {
+        if(grp)
+        {
+            for(unsigned int i = 0 ; i < grp->getNumChildren() ; ++i)
+            {
+                setPolyColorRec(date,grp->getChild(i), polySunlightInfo);
+            }
+        }
+    }
 
 
 //    if(grp)
 //    {
+//        int count = grp->getNumChildren();
 
+//        // check if we had 5 LODs geodes
+//        int numGeodes = 0;
+//        for(int i=0; i<count; ++i)
+//        {
+//            osg::ref_ptr<osg::Node> child = grp->getChild(i);
+//            if(child->asGeode())
+//            {
+//                ++numGeodes;
+//            }
+//        }
+//        if(numGeodes == 5) // yes, enable or disable the good lods
+//        {
+//            grp->getChild(lod)->setNodeMask(0xffffffff - grp->getChild(lod)->getNodeMask());
+//        }
 
-
+//        for(int i=0; i<count; ++i)
+//        {
+//            osg::ref_ptr<osg::Node> child = grp->getChild(i);
+//            forceLODrec(lod, child);
+//        }
 //    }
 
-//}
+}
 
-std::map<std::string,bool> loadTileSunlightInfo(QString filepath, QString datetime)
+std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datetime)
 {
-    std::map<std::string,bool> sunlightInfo;
+    std::map<std::string,bool>* sunlightInfo = new std::map<std::string,bool>();
 
     QFile file(filepath);
 
@@ -581,21 +647,25 @@ std::map<std::string,bool> loadTileSunlightInfo(QString filepath, QString dateti
 
             QString tmpDatetime = cells.first(); //Get first column
 
-            if(tmpDatetime.compare(datetime))
+            if(tmpDatetime == datetime) //if it's the right datetime
             {
-                std::string polygonId = cells.at(4).toStdString();
-                std::string sSunlight = cells.at(5).toStdString();
+                std::string polygonId = cells.at(4).toStdString(); //Get PolygonId
+                std::string sSunlight = cells.at(5).toStdString(); //Get sunlight information as string
+
+                // cast string to boolean value
                 bool bSunlight;
                 std::istringstream(sSunlight) >> bSunlight;
-                sunlightInfo[polygonId] = bSunlight;
+
+                //Add value to map
+                (*sunlightInfo)[polygonId] = bSunlight;
             }
         }
     }
 
-    for(auto it = sunlightInfo.begin() ; it != sunlightInfo.end() ; ++it)
-    {
-        std::cout << it.first << " : " << it.second << std::endl;
-    }
+//    for(auto it = (*sunlightInfo).begin() ; it != (*sunlightInfo).end() ; ++it)
+//    {
+//        std::cout << it->first << " : " << it->second << std::endl;
+//    }
 
     return sunlightInfo;
 }
@@ -622,60 +692,21 @@ void OsgScene::setPolyColor(const QDateTime& date)
     QString datetime = date.toString(format);
 
     //Load file infos into a map (info for each polygon of tile for the given datetime)
-    std::map<std::string,bool> polygonSunlightInfo = loadTileSunlightInfo(filepath, datetime);
+    std::map<std::string,bool>* polygonSunlightInfo = loadTileSunlightInfo(filepath, datetime);
 
     //Get CityGML Layer
-   // vcity::LayerCityGML* citygmlLayer = dynamic_cast<vcity::LayerCityGML*>(vcity::app().getScene().getDefaultLayer("LayerCityGML"));
+    //vcity::LayerCityGML* citygmlLayer = dynamic_cast<vcity::LayerCityGML*>(vcity::app().getScene().getDefaultLayer("LayerCityGML"));
 
-//    for(vcity::Tile* tile : citygmlLayer->getTiles())
-//    {
+    //Get URI of CityGML Layer
+    vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerCityGML")->getURI();
 
-        /*for(const citygml::CityObject* obj : tile->getCityModel()->getCityObjectsRoots())
-        {
-            objs.push_back(obj);
-            for(citygml::CityObject* object : obj->getChildren())
-            {
-                for(citygml::Geometry* Geometry : object->getGeometries())
-                {
-                    for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
-                    {
-                        if(PolygonCityGML->getTexture() == nullptr)
-                            continue;
+    //Get node of CityGML Layer
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
 
-                        //Remplissage de ListTextures
-                        std::string Url = PolygonCityGML->getTexture()->getUrl();
-                        citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
-
-                        TexturePolygonCityGML Poly;
-                        Poly.Id = PolygonCityGML->getId();
-                        Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
-                        Poly.TexUV = PolygonCityGML->getTexCoords();
-
-                        bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-                        for(TextureCityGML* Tex: TexturesList)
-                        {
-                            if(Tex->Url == Url)
-                            {
-                                URLTest = true;
-                                Tex->ListPolygons.push_back(Poly);
-                                break;
-                            }
-                        }
-                        if(!URLTest)
-                        {
-                            TextureCityGML* Texture = new TextureCityGML;
-                            Texture->Wrap = WrapMode;
-                            Texture->Url = Url;
-                            Texture->ListPolygons.push_back(Poly);
-                            TexturesList.push_back(Texture);
-                        }
-                    }
-                }
-            }
-        }*/
-//    }
-
-
+    if(layer) // If layer exists (if at least one citygml file has been loaded) (DOESNT SEEMS TO WORK)
+    {
+        setPolyColorRec(date, layer, polygonSunlightInfo);
+    }
 
 }
 

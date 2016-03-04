@@ -9,6 +9,7 @@ Triangle::Triangle(TVec3d a,TVec3d b,TVec3d c)
     this->c = c;
     objectType = citygml::CityObjectsType::COT_All;
     subObjectType = citygml::CityObjectsType::COT_All;
+    URI = "";
 }
 
 TVec3d Triangle::GetNormal()

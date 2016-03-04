@@ -28,6 +28,7 @@ struct Triangle
 	std::string objectId;
 	std::string polygonId;
 	std::string tileFile;
+    std::string URI;
 };
 
 /**

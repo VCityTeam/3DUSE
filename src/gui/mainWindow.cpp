@@ -3024,11 +3024,12 @@ struct TriangleLightInfo
 void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string tilename)
 {
     //To create directory, use QDir.mkdir("name")
+    //Add URI
 
     std::ofstream ofs;
     ofs.open ("./" + tilename + "_sunlight.csv", std::ofstream::out);
 
-    ofs << "Time;TileFile;ObjectType;ObjectId;PolygoneId;Sunny" << std::endl;
+    ofs << "DateTime;TileFile;ObjectType;ObjectId;PolygoneId;Sunny" << std::endl;
 
     for(TriangleLightInfo* tli : vSunInfo)
     {
@@ -3197,7 +3198,7 @@ void MainWindow::test3()
         sunPos = sunPos + origin;
 
         //Display Sun
-        DisplaySun(newSunPos);
+        //DisplaySun(newSunPos);
 
         //Compute sun's beams direction
         TVec3d tmpDirection = (origin - newSunPos);
