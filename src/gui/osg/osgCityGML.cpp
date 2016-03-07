@@ -157,7 +157,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 	shared_colors->push_back( osg::Vec4( object->getDefaultColor().r, object->getDefaultColor().g, object->getDefaultColor().b, object->getDefaultColor().a ) );
 
 	osg::ref_ptr<osg::Vec4Array> roof_color = new osg::Vec4Array;
-	roof_color->push_back( osg::Vec4( 0.9f, 0.1f, 0.1f, 1.0f ) );
+    roof_color->push_back( osg::Vec4( 0.87f, 0.6f, 0.37f, 1.0f ) );
 
     unsigned int highestLOD = ReaderOsgCityGML::getHighestLodForObject(object);
 
@@ -236,8 +236,8 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 				shared_colors->clear();
                 shared_colors->push_back( osg::Vec4( 0.45f, 0.45f, 0.45f, 1.f ) );
 
-                if ( const citygml::Material* m = dynamic_cast<const citygml::Material*>( mat ) )
-                {
+//                if ( const citygml::Material* m = dynamic_cast<const citygml::Material*>( mat ) )
+//                {
 #define TOVEC4(_t_) osg::Vec4( _t_.r, _t_.g, _t_.b, _t_.a ) 
                     //osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
                     //TVec4f diffuse( m->getDiffuse(), 0.f );
@@ -246,23 +246,24 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                     //float ambient = m->getAmbientIntensity();
 
 					osg::Material* material = new osg::Material;
-                    material->setColorMode( osg::Material::AMBIENT_AND_DIFFUSE );
+                    material->setColorMode( osg::Material::OFF );
                     //material->setDiffuse( osg::Material::FRONT_AND_BACK, TOVEC4( diffuse ) );
                     //material->setSpecular( osg::Material::FRONT_AND_BACK, TOVEC4( specular ) );
                     //material->setEmission( osg::Material::FRONT_AND_BACK, TOVEC4( emissive ) );
                     //material->setShininess( osg::Material::FRONT_AND_BACK, m->getShininess() );
                     //material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4( ambient, ambient, ambient, 1.0 ) );
-                    material->setDiffuse( osg::Material::FRONT_AND_BACK, osg::Vec4(1.0,0.1,0.1,1.0) );
-                    //material->setSpecular( osg::Material::FRONT_AND_BACK, osg::Vec4(0.5,0.5,0.5,0.5) );
-                    //material->setEmission( osg::Material::FRONT_AND_BACK, osg::Vec4(0.5,0.5,0.5,0.5) );
-                    material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4(1.0,0.1,0.1,1.0) );
+                    material->setDiffuse( osg::Material::FRONT_AND_BACK, osg::Vec4(0.0,0.0,0.0,1.0) );
+                    material->setSpecular( osg::Material::FRONT_AND_BACK, osg::Vec4(0.0,0.0,0.0,1.0) );
+                    material->setEmission( osg::Material::FRONT_AND_BACK, osg::Vec4(0.0,0.0,0.0,0.5) );
+                    material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4(0.6,0.0,0.0,1.0) );
+                    material->setShininess(osg::Material::FRONT_AND_BACK, 1.0);
                     //material->setTransparency( osg::Material::FRONT_AND_BACK, m->getTransparency() );
                     stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
                     stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
 					colorset = true;
-                }
-                else if ( m_settings.m_useTextures)
+//                }
+                /*else */if ( m_settings.m_useTextures)
                 {
                     if ( const citygml::Texture* t = dynamic_cast<const citygml::Texture*>( mat ) )
                     {

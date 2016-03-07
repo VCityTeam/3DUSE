@@ -131,6 +131,8 @@ void OsgScene::init()
     osg::ref_ptr<osg::Light> light = new osg::Light();
     light->setName("light");
     light->setAmbient(osg::Vec4(0.6,0.6,0.6,1.0));
+//    light->setDiffuse(osg::Vec4(0.8,0.8,0.8,1.0));
+//    light->setSpecular(osg::Vec4(1.0,1.0,1.0,1.0));
     lightSource->setLight(light);
     light->setPosition(m_shadowVec);
     shadowedScene->addChild(lightSource);
