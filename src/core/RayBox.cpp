@@ -1,4 +1,4 @@
-#include "RayTracing.hpp"
+#include "raytracing/RayTracing.hpp"
 #include "AABB.hpp"
 
 #include "RayBox.hpp"

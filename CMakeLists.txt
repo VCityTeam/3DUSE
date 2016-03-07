@@ -385,9 +385,17 @@ else(WITH_QT5)
   QT4_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 endif(WITH_QT5)
 
-INCLUDE_DIRECTORIES( src src/libcitygml )
 
-include_directories(${PROJECT_SOURCE_DIR}/src/filters/raytracing ${PROJECT_SOURCE_DIR}/src/libcitygml/utils)
+INCLUDE_DIRECTORIES(src src/libcitygml)
+
+
+#Local libraries
+set(FILTERS_INCLUDE_DIR	${PROJECT_SOURCE_DIR}/src/libfilters)
+set(FILTERS_LIBRARIES	filters)
+
+include_directories(${FILTERS_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/libcitygml/utils)
+
+#include_directories(${PROJECT_SOURCE_DIR}/src/filters/raytracing )
 
 # General
 file(
@@ -494,7 +502,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} raytracing citygmlutils)
+target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} ${FILTERS_LIBRARIES} citygmlutils)
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )

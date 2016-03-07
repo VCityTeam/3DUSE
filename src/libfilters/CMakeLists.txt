@@ -7,9 +7,10 @@ file(
 )
 
 add_library(
-	raytracing
+	filters
 	${source_files}
 )
 
-target_link_libraries(raytracing ${OSG_LIBRARIES} citygmlutils)
+target_link_libraries(filters ${OSG_LIBRARIES} citygmlutils)
+
 

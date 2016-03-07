@@ -50,7 +50,6 @@
 #include <QPluginLoader>
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
-
 ////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::pair<double, double>> Hauteurs;
@@ -2947,8 +2946,6 @@ void MainWindow::test4()
             std::cout<<"    - "<<v->getId()<<std::endl;
         }
     }
-
-
 
 }
 ////////////////////////////////////////////////////////////////////////////////
