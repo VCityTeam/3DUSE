@@ -11,9 +11,9 @@
 #include <queue>
 #include <qfileinfo.h>
 
-#include "Hit.hpp"
+#include "raytracing/Hit.hpp"
 #include "Export.hpp"
-#include "RayTracing.hpp"
+#include "raytracing/RayTracing.hpp"
 #include "data/BelvedereDB.h"
 #include "AABB.hpp"
 #include "core/RayBox.hpp"

@@ -8,7 +8,7 @@
 #include <QColor>
 
 #include "Triangle.hpp"
-#include "Hit.hpp"
+#include "raytracing/Hit.hpp"
 
 /**
 *	@brief Viewpoint analysis using the multitile algorithm

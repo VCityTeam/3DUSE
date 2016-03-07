@@ -10,9 +10,9 @@
 #include <thread>
 #include <queue>
 
-#include "Hit.hpp"
+#include "raytracing/Hit.hpp"
 #include "Export.hpp"
-#include "RayTracing.hpp"
+#include "raytracing/RayTracing.hpp"
 
 
 /**

@@ -3,7 +3,7 @@
 
 #include <qcolor.h>
 
-#include "Hit.hpp"
+#include "raytracing/Hit.hpp"
 
 struct Skyline
 {
