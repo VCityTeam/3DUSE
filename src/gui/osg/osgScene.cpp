@@ -131,8 +131,6 @@ void OsgScene::init()
     osg::ref_ptr<osg::Light> light = new osg::Light();
     light->setName("light");
     light->setAmbient(osg::Vec4(0.6,0.6,0.6,1.0));
-//    light->setDiffuse(osg::Vec4(0.8,0.8,0.8,1.0));
-//    light->setSpecular(osg::Vec4(1.0,1.0,1.0,1.0));
     lightSource->setLight(light);
     light->setPosition(m_shadowVec);
     shadowedScene->addChild(lightSource);
@@ -559,7 +557,7 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
     if(geode)
     {
-        //std::cout << "URI Param node : " << uriNode.getStringURI() << std::endl;
+        std::cout << "URI Param node : " << uriNode.getStringURI() << std::endl;
 
         //unsigned int nbDrawables= geode->getNumDrawables();
 
@@ -569,19 +567,36 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
         for(osg::ref_ptr<osg::Drawable> drawableChild : geode->getDrawableList())
         {
             osg::Geometry* geom =  drawableChild->asGeometry();
+            osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
 
-            osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-            color->push_back( osg::Vec4( 0.1f, 0.1f, 1.0f, 1.0f ) );
-            geom->setColorBinding( osg::Geometry::BIND_OVERALL );
+            osg::Material* material = new osg::Material;
+            material->setColorMode( osg::Material::OFF );
 
-            geom->setColorArray(color);
+            osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
+            //float shininess = 1.f;
+
+            ambiantColor = osg::Vec4(1.f,1.f,0.f,1.f);
+
+            material->setAmbient( osg::Material::FRONT_AND_BACK, ambiantColor );
+            //material->setShininess(osg::Material::FRONT_AND_BACK, shininess);
+
+            stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+            stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+
+
+            /*osg::Node* n = dynamic_cast<osg::Geometry*>(geom);
+
+            vcity::URI urin = osgTools::getURI(n);
+
+            std::cout << "URI Child : " << urin.getStringURI() << std::endl;*/
+
 
     //        if(polySunlightInfo->count(uriNode) > 0)
     //        {
     //            geode->getDrawable()
     //        }
 
-            std::cout << drawableChild->getName() << std::endl;
+            //std::cout << drawableChild->getName() << std::endl;
 
         }
 
