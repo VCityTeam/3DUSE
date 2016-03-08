@@ -31,6 +31,8 @@
 #include <osg/Geode>
 #include <osg/Geometry>
 #include "osgCityGML.hpp"
+#include "osgInfo.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 class OsgScene : public osg::Group
 {
@@ -39,6 +41,9 @@ public:
 
     /// Init osg scene basic structure
     void init();
+
+    ///Init osginfo
+    void initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
 
     /// \brief addTile Add a tile in a layer of the osg scene
     /// \param uriLayer URI pointing to the layer
@@ -71,6 +76,7 @@ public:
 	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 	void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     void addShpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addInfoNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     /// \brief addLayer Add a layer to the osg scene
     /// \param name Layer name
@@ -129,6 +135,7 @@ public:
 
     /// Insert info bubble for a node
     osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
+    osg::ref_ptr<osg::Node> createInfo(osg::ref_ptr<osg::Node> node);
 
 public:
     /// Build osg node from CityGML data
@@ -138,6 +145,9 @@ public:
     /// Build osg node from CityGML temporal data
     void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
     void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
+
+    /// Fill info
+    osg::ref_ptr<osg::Switch> fillInfo(std::vector<osgInfo*> v_info);
 
     bool m_shadow;                          ///< flag to use osg shadows or not
     osg::Vec4 m_shadowVec;
@@ -149,6 +159,7 @@ public:
 
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
+
 
     std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
 };

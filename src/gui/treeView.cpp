@@ -183,6 +183,9 @@ void TreeView::reset()
 
     QTreeWidgetItem* layer4 = createItemLayer("layer_Shp", "LayerShp");
     root->addChild(layer4);
+
+    QTreeWidgetItem* layer5 = createItemLayer("layer_Info", "LayerInfo");
+    root->addChild(layer5);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)

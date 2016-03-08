@@ -154,10 +154,10 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
 	// Get the default color for the whole city object
 	osg::ref_ptr<osg::Vec4Array> shared_colors = new osg::Vec4Array;
-	shared_colors->push_back( osg::Vec4( object->getDefaultColor().r, object->getDefaultColor().g, object->getDefaultColor().b, object->getDefaultColor().a ) );
+    shared_colors->push_back( osg::Vec4( object->getDefaultColor().r, object->getDefaultColor().g, object->getDefaultColor().b, object->getDefaultColor().a ) );
 
 	osg::ref_ptr<osg::Vec4Array> roof_color = new osg::Vec4Array;
-	roof_color->push_back( osg::Vec4( 0.9f, 0.1f, 0.1f, 1.0f ) );
+    roof_color->push_back( osg::Vec4( 0.87f, 0.6f, 0.37f, 1.0f ) );
 
     unsigned int highestLOD = ReaderOsgCityGML::getHighestLodForObject(object);
 
@@ -234,7 +234,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
             if(mat)
 			{
 				shared_colors->clear();
-				shared_colors->push_back( osg::Vec4( 1.f, 1.f, 1.f, 1.f ) );
+                shared_colors->push_back( osg::Vec4( 0.45f, 0.45f, 0.45f, 1.f ) );
 
 				if ( const citygml::Material* m = dynamic_cast<const citygml::Material*>( mat ) )
 				{

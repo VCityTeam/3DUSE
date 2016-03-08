@@ -7,6 +7,7 @@
 #include "URI.hpp"
 #include "application.hpp"
 #include "ogrsf_frmts.h"
+#include "gui/osg/osgInfo.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -36,6 +37,9 @@ public:
     virtual void addTile(const vcity::URI& uriLayer, vcity::Tile& tile);
     virtual void deleteTile(const vcity::URI& uri);
     virtual void setTileName(const vcity::URI& uri, const std::string& name);
+
+    // tile
+    virtual void addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
 
     // temporal
     virtual void addTag(const vcity::URI& uri, citygml::CityObjectTag* tag);

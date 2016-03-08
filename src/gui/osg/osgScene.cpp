@@ -17,6 +17,12 @@
 #include "core/dataprofile.hpp"
 #include "osgTools.hpp"
 #include "../controllerGui.hpp"
+
+#include "osgInfo.hpp"
+#include <osg/MatrixTransform>
+#include <osg/NodeCallback>
+#include <gui/utils/AABB.hpp>
+
 //#include <typeinfo>
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
@@ -78,6 +84,92 @@ protected:
     osg::ref_ptr<osg::Node> _node;
 };
 
+
+class InfoDataType : public osg::Referenced
+{
+public:
+
+    InfoDataType(osg::Node*n);
+    float getDistance(AABBCollection boundingBox, osg::Camera *cam);
+    void UpdateSwitches(float distance);
+
+
+protected:
+    AABBCollection boudingBox;
+    osg::ref_ptr<osg::Switch> sw_node;
+
+};
+
+InfoDataType::InfoDataType(osg::Node* n)
+{
+    sw_node= n->asSwitch();
+}
+
+float InfoDataType::getDistance(AABBCollection boundingBox, osg::Camera* cam)
+{
+    cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
+    osg::Vec3d pos;
+    osg::Vec3d target;
+    osg::Vec3d up;
+    cam->getViewMatrixAsLookAt(pos,target,up);
+
+    boundingBox = LoadAABB("/home/pers/clement.chagnaud/Documents/Data/Tuiles/");
+    AABB tuileAABB = boundingBox.building.at(0);
+    float tuileX = (tuileAABB.min.x+tuileAABB.max.x)/2.0;
+    float tuileY = (tuileAABB.min.y+tuileAABB.max.y)/2.0;
+    float tuileZ = (tuileAABB.min.z+tuileAABB.max.z)/2.0;
+
+    float camX=pos.x()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.x;
+    float camY=pos.y()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.y;
+    float camZ=pos.z()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.z;
+
+    float distTuileCam = sqrt((tuileX-camX)*(tuileX-camX)+(tuileY-camY)*(tuileY-camY)+(tuileZ-camZ)*(tuileZ-camZ));
+
+    return distTuileCam;
+}
+
+void InfoDataType::UpdateSwitches(float distance)
+{
+    if(distance<=1500)
+    {
+        for(int i=0; i<sw_node->getNumChildren(); i++)
+            sw_node->setValue(i,true);
+    }
+    else
+    {
+        for(int j=0; j<sw_node->getNumChildren(); j++)
+            sw_node->setValue(j,false);
+    }
+}
+
+class UpdateInfo : public osg::NodeCallback
+{
+public :
+    UpdateInfo()
+    {
+        std::cout<<"UpdateInfo Callback created"<<std::endl;
+    }
+    virtual void operator()( osg::Node* node, osg::NodeVisitor* nv )
+    {
+
+        osg::ref_ptr<InfoDataType> SwitchNode =
+                     dynamic_cast<InfoDataType*> (node->getUserData() );
+
+        if(SwitchNode)
+        {
+
+             osg::Camera* cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
+             AABBCollection boundingBox = LoadAABB("/home/pers/clement.chagnaud/Documents/Data/Tuiles/");
+
+             float dist = SwitchNode->getDistance(boundingBox, cam);
+             SwitchNode->UpdateSwitches(dist);
+
+        }
+        traverse( node, nv );
+    }
+protected :
+
+};
 
 
 OsgScene::OsgScene()
@@ -178,6 +270,11 @@ void OsgScene::init()
     layer4->setName("layer_Shp");
     m_layers->addChild(layer4);
 
+    // build sixth default layer
+    osg::ref_ptr<osg::Group> layer5 = new osg::Group();
+    layer5->setName("layer_Info");
+    m_layers->addChild(layer5);
+
     updateGrid();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -199,6 +296,47 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
         }
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
+{
+    uriLayer.resetCursor();
+
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+        {
+//            vcity::URI uri = uriLayer;
+//            uri.append(tile.getName(), "Tile");
+//            uri.setType("Building");
+//            uri.resetCursor();
+            osg::ref_ptr<osg::Switch> SwitchNodeInfo = fillInfo(info);
+
+            InfoDataType* infoData = new InfoDataType(SwitchNodeInfo);
+            SwitchNodeInfo->setUserData(infoData);
+            SwitchNodeInfo->setUpdateCallback(new UpdateInfo);
+//          osg::ref_ptr<osg::Node> osgTile = buildTile(uri, tile);
+            layerGroup->addChild(SwitchNodeInfo);
+
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+osg::ref_ptr<osg::Switch> OsgScene::fillInfo(std::vector<osgInfo*> v_info)
+{
+    osg::Switch* SwitchNode = new osg::Switch();
+
+        for (int i=0; i<v_info.size(); i++)
+        {
+            SwitchNode->addChild(v_info[i]->getPAT());
+        }
+
+        return SwitchNode ;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setTileName(const vcity::URI& uriTile, const std::string& name)
 {
@@ -279,6 +417,24 @@ void OsgScene::addShpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::No
             layerGroup->addChild(node);
     }
 }
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::addInfoNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
+{
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+        {
+            layerGroup->removeChild(1);
+            layerGroup->addChild(node);
+        }
+
+    }
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addLayer(const std::string& name)
 {
@@ -880,14 +1036,18 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
     osg::ref_ptr<osg::Node> res = nullptr;
     osg::ref_ptr<osg::Group> current = m_layers;
 
+
     while(uri.getCursor() < uri.getDepth())
     {
         int count = current->getNumChildren();
+
         for(int i=0; i<count; ++i)
         {
+
             osg::ref_ptr<osg::Node> child = current->getChild(i);
             if(child->getName() == uri.getCurrentNode())
             {
+
                 res = child;
                 if(!(current = child->asGroup()))
                 {
@@ -937,6 +1097,40 @@ osg::ref_ptr<osg::Node> OsgScene::createInfoBubble(osg::ref_ptr<osg::Node> node)
 
     return nullptr;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//osg::ref_ptr<osg::Node> OsgScene::createInfo(osg::ref_ptr<osg::Node> node)
+//{
+//    osg::ref_ptr<osg::Group> grp = node->asGroup();
+//    if(grp)
+//    {
+//        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+//        geode->setName("infoimage");
+//        osg::Vec3 pos = node->getBound().center() + osg::Vec3( 0, 0, node->getBound().radius());
+//        std::string filepath = "/home/pers/clement.chagnaud/Documents/Data/Img/lyon1.jpg";
+
+//        osgInfo* info = new osgInfo(80,120,pos,0,osg::Vec3(0,0,1),filepath);
+//        osg::PositionAttitudeTransform* pat = new osg::PositionAttitudeTransform ;
+//        geode->addDrawable( info->getGeom());
+
+//        pat->setPosition(info->getPosition());
+//        pat->setStateSet(info->getState());
+//        pat->setAttitude(osg::Quat(osg::DegreesToRadians(info->getAngle()), osg::Vec3(0,0,1) ));
+//        pat->setName("infoimage");
+
+//        pat->addChild(geode);
+
+
+//        grp->addChild(pat);
+
+//        return geode;
+//    }
+
+//    return nullptr;
+//}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset)
 {

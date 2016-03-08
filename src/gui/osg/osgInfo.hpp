@@ -8,16 +8,23 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <osg/Geometry>
+#include <osg/PositionAttitudeTransform>
+#include <osg/MatrixTransform>
 #include <osg/Vec3>
 #include <osg/Texture2D>
 #include <osgDB/ReadFile>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+using boost::uuids::uuid;
+using boost::uuids::random_generator;
 
 
 class osgInfo
 {
 public:
     osgInfo();
-    osgInfo(osg::Vec3 position, float height, float width, float angle, osg::Vec3 axis, std::string filepath);
+    osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name);
 
     void updateGeometry();
 
@@ -33,24 +40,42 @@ public:
 
     // Getters
     osg::Vec3 getPosition();
-    float getAngle();
-    osg::Vec3 getAxe();
-    osg::Texture2D *getTexture();
+    double getAngle();
+    osg::Vec3 getAxis();
 
+    osg::Texture2D* getTexture();
+    osg::StateSet* getState();
     osg::Geometry* getGeom() ;
+    osg::Geode* getGeode() ;
+    osg::PositionAttitudeTransform* getPAT() ;
+
+    boost::uuids::uuid getID();
 
 private:
 
-    osg::Vec3 m_position ;
-    osg::Vec3 m_axe ;
+    boost::uuids::uuid id; ///unique ID of the info doc
+    std::string m_name ; ///name of the info doc
+    std::string m_filetype;
+    std::string m_purposetype;
+    std::string m_sourcetype;
 
-    float m_height;
-    float m_width;
-    float m_angle ;
 
-    osg::Texture2D *m_texture ;
+    osg::Vec3 m_position ; ///position of the node
+    osg::Vec3 m_axe ; ///rotation axis of the node
 
-    osg::Geometry  *m_geom;
+    float m_height; ///height of the doc
+    float m_width; ///width of the doc
+    double m_angle ; ///rotation angle of the node
+
+    unsigned int m_date_deb ;
+    unsigned int m_date_fin ;
+
+
+    osg::Texture2D *m_texture ; ///texture of the doc
+    osg::StateSet *m_state; ///state of the doc
+    osg::Geometry  *m_geom; ///geometry instance for the node
+    osg::Geode *m_geode; ///geometry node
+    osg::PositionAttitudeTransform *m_pat; ///position attitude transforme of the node
 
 };
 ////////////////////////////////////////////////////////////////////////////////

@@ -54,6 +54,12 @@ void Controller::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 {
     app().getScene().addTile(uriLayer, &tile);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+void Controller::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
+{
+    app().getScene().addInfo(uriLayer, info);
+}
 ////////////////////////////////////////////////////////////////////////////////
 void Controller::deleteTile(const vcity::URI& uri)
 {

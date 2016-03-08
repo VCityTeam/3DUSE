@@ -51,8 +51,15 @@
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 
-
+//CLEMENT LIB ADDING
 #include <osg/PositionAttitudeTransform>
+#include "osg/osgInfo.hpp"
+#include "osg/osgQtWidget.hpp"
+#include <math.h>
+#include <osg/MatrixTransform>
+#include <core/layerInfo.hpp>
+#include <gui/utils/AABB.hpp>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -69,6 +76,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_treeView = new TreeView(m_ui->treeWidget, this);
 	m_app.setTreeView(m_treeView);
 	m_app.setTextBowser(m_ui->textBrowser);
+
+
+
 
 	// create controller
 	m_app.setControllerGui(new ControllerGui());
@@ -720,8 +730,6 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
 
 		}
 
-		//m_pickhandler->resetPicking();
-		//m_pickhandler->addNodePicked(uri);
 	}
 
 	updateTextBox(ss);
@@ -2811,166 +2819,319 @@ void MainWindow::test1()
 
 //}
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief MainWindow::test2
 ///
 ///
+
+std::vector<osgInfo*> loadCSV()
+{
+    std::vector<osgInfo*> v_info;
+    std::vector<float> v_height;
+    std::vector<float> v_width;
+    std::vector<double> v_angle;
+
+    std::vector<osg::Vec3> v_position;
+    std::vector<osg::Vec3> v_axis;
+
+    std::vector<std::string> v_filepath;
+    std::vector<std::string> v_name;
+
+    // *** CSV Load
+        std::ifstream file( "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test2.csv");
+        std::string line;
+        std::getline(file,line); //get the first line
+        int cpt = 0 ;
+        float x=0;
+        float y=0;
+        float z=0;
+        while(std::getline(file,line)) // For all lines of csv file
+        {
+            std::stringstream  lineStream(line);
+            std::string        cell;
+            cpt=0;
+            x=0;
+            y=0;
+            z=0;
+            while(std::getline(lineStream,cell,','))
+            {
+                if (cpt==0)
+                        v_height.push_back(std::stod(cell));
+                if (cpt==1)
+                        v_width.push_back(std::stod(cell));
+                if (cpt==2)
+                        x=std::stod(cell);
+
+                if (cpt==3)
+                        y=std::stod(cell);
+
+                if (cpt==4)
+                        z=std::stod(cell);
+
+                if (cpt==5)
+                        v_angle.push_back(std::stod(cell));
+                if (cpt==6)
+                {
+                    if(cell=="z")
+                        v_axis.push_back(osg::Vec3(0,0,1));
+                }
+                if (cpt==7)
+                        v_filepath.push_back(cell);
+
+                if (cpt==8)
+                        v_name.push_back(cell);
+
+                cpt++;
+             }
+            v_position.push_back(osg::Vec3(x,y,z));
+        }
+        std::cout<<"Coordonnee image : "<<v_position[0].x()<<","<<v_position[0].y()<<","<<v_position[0].z()<<std::endl;
+        //std::cout<<"Coordonnee image : "<<v_position[0].x()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.x<<","<<v_position[0].y()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.y<<","<<v_position[0].z()<<std::endl;
+        std::cout<<"bah loadCSV     parsed"<<std::endl;
+        for (int i=0; i<v_filepath.size(); i++)
+        {
+            std::cout<<"bah     for"<<std::endl;
+
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i]));
+        }
+        return v_info;
+}
+
 void MainWindow::test2()
 {
-    std::cout<<"bah"<<std::endl;
+    std::cout<<"TEST 2"<<std::endl;
+    std::vector<osgInfo*> v_info;
 
 
-       osg::Group* rootNode = new osg::Group();
 
-       osg::Texture2D *OldLyonTexture = new osg::Texture2D;
-       OldLyonTexture->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/bb_lyon.jpg"));
+    v_info = loadCSV();
 
-       osg::StateSet* bbState = new osg::StateSet;
-       bbState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
-       bbState->setTextureAttributeAndModes(0, OldLyonTexture, osg::StateAttribute::ON );
+    std::cout<<"bah     CSV loaded"<<std::endl;
 
-       float width = 3000.0f;
-       float height = 1500.0f;
+    vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
+    vcity::log() << uriInfoLayer.getStringURI() << "\n";
 
-       osg::Geometry* bbQuad = new osg::Geometry;
+    appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 
-       osg::Vec3Array* bbVerts = new osg::Vec3Array(4);
-       (*bbVerts)[0] = osg::Vec3(-width/2.0f, 0, 0);
-       (*bbVerts)[1] = osg::Vec3( width/2.0f, 0, 0);
-       (*bbVerts)[2] = osg::Vec3( width/2.0f, 0, height);
-       (*bbVerts)[3] = osg::Vec3(-width/2.0f, 0, height);
 
-       bbQuad->setVertexArray(bbVerts);
+//    std::vector<osg::PositionAttitudeTransform*> v_transformed;
+//    std::cout<<"bah for"<<std::endl;
 
-       osg::Vec2Array* bbTexCoords = new osg::Vec2Array(4);
-       (*bbTexCoords)[0].set(0.0f,0.0f);
-       (*bbTexCoords)[1].set(1.0f,0.0f);
-       (*bbTexCoords)[2].set(1.0f,1.0f);
-       (*bbTexCoords)[3].set(0.0f,1.0f);
-       bbQuad->setTexCoordArray(0,bbTexCoords);
+//    //1ER REMPLISSAGE
+//    for (int i=0; i<v_info.size(); i++)
+//    {
+//        v_geode.push_back(new osg::Geode);
 
-       bbQuad->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+//        //v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i]));
+//        v_geode[i]->addDrawable(v_info[i]->getGeom());
 
-       osg::Vec4Array* colorArray = new osg::Vec4Array;
-       colorArray->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) ); // white, fully opaque
-       // Use the index array to associate the first entry in our index array with all
-       // of the vertices.
-       bbQuad->setColorArray( colorArray);
-       bbQuad->setColorBinding(osg::Geometry::BIND_OVERALL);
+//        v_transformed.push_back(new osg::PositionAttitudeTransform);
+//        v_transformed[i]->setStateSet(v_info[i]->getState());
+//        v_transformed[i]->setPosition(v_info[i]->getPosition());
+//        v_transformed[i]->setAttitude(osg::Quat(osg::DegreesToRadians(v_info[i]->getAngle()), v_info[i]->getAxis() ) );
 
-       bbQuad->setStateSet(bbState);
+//        v_transformed[i]->addChild(v_geode[i]);
+//    }
 
-       osg::Billboard* TestBillBoard = new osg::Billboard();
-       rootNode->addChild(TestBillBoard);
+//    std::cout<<"bah endfor"<<std::endl;
 
-       TestBillBoard->setMode(osg::Billboard::AXIAL_ROT);
-       TestBillBoard->setAxis(osg::Vec3(0.0f,0.0f,1.0f));
-       TestBillBoard->setNormal(osg::Vec3(0.0f,-1.0f,0.0f));
+//    std::cout << v_info[0]->getID() << std::endl;
+//    std::cout << v_info[1]->getID() << std::endl;
+//    std::cout << v_info[2]->getID() << std::endl;
 
-       osg::Drawable* bbDrawable = bbQuad;
 
-       TestBillBoard->addDrawable(bbDrawable , osg::Vec3(0,0,0) /*- m_app.getSettings().getDataProfile().m_offset*/ );
+    //vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
 
-       vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
-       appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
+
+//    unsigned int numofnode;
+
+//    std::cout<<"bah getcam"<<std::endl;
+//    osg::Camera* cam = m_app.getMainWindow()->m_osgView->m_osgView->getCamera();
+//    osg::Vec3d pos;
+//    osg::Vec3d target;
+//    osg::Vec3d up;
+//    cam->getViewMatrixAsLookAt(pos,target,up);
+
+
+//    std::cout<<"bah  "<<pos.y()<<std::endl;
+//    if(pos.y()<0)
+//    {
+//        std::cout<<"bah     if y<0"<<std::endl;
+//        for (int i=0; i<v_transformed.size(); i++)
+//        {
+//            root->removeChild(v_transformed[i]);
+//            //std::cout<<"bah         erase "<<i+1<<" fois"<<std::endl;
+//            // v_transformed.erase(v_transformed.begin()+i);
+//        }
+
+//        numofnode = root->getNumChildren();
+
+//    }
+//    if(pos.y()>0)
+//    {
+//        std::cout<<"bah     if y>0"<<std::endl;
+//        for (int i=0; i<v_info.size(); i++)
+//        {
+//            v_geode.push_back(new osg::Geode);
+
+//            //v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i]));
+//            v_geode[i]->addDrawable(v_info[i]->getGeom());
+
+//            v_transformed.push_back(new osg::PositionAttitudeTransform);
+//            v_transformed[i]->setStateSet(v_info[i]->getState());
+//            v_transformed[i]->setPosition(v_info[i]->getPosition());
+//            v_transformed[i]->setAttitude(osg::Quat(osg::DegreesToRadians(v_info[i]->getAngle()), v_info[i]->getAxis() ) );
+
+//            v_transformed[i]->addChild(v_geode[i]);
+//            root->addChild(v_transformed[i]);
+//        }
+//        numofnode = root->getNumChildren();
+
+
+//    }
+
+
+//        std::cout<<"bah  endif"<<std::endl;
+
+//        std::cout<<"bah  numofnode : "<< numofnode <<std::endl;
+//        //appGui().getOsgScene()->addInfoNode(uriInfoLayer, root);
+//        unsigned numofchildren = appGui().getOsgScene()->getNumChildren();
+//        std::cout<<"bah  numofchildren : "<< numofchildren <<std::endl;
+
+//    for(int i=0; i<v_transformed.size(); i++)
+//    {
+//       root->addChild(v_transformed[i]);
+//    }
+
+
+//    vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+//    appGui().getOsgScene()->addShpNode(uriLayer, root);
+
+
+      //osg::Node& node = new osg::Node;
+
+
+
+
+//    osg::Geode* qGeode = new osg::Geode;
+//    osgInfo *img1 = new osgInfo(height,width,position,angle,axis,filepath1);
+
+//    qGeode->addDrawable(img1->getGeom());
+
+//     osg::PositionAttitudeTransform* qTransformed = new osg::PositionAttitudeTransform;
+
+//     qTransformed->setStateSet(img1->getState());
+//     qTransformed->setPosition(img1->getPosition());
+//     qTransformed->setAttitude(osg::Quat(osg::DegreesToRadians(img1->getAngle()), img1->getAxe()));
+
+//     qTransformed->addChild(qGeode);
+
+//     root->addChild(qTransformed);
+
+//     vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+//     appGui().getOsgScene()->addShpNode(uriLayer, root);
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-    std::cout<<"bah test3"<<std::endl;
 
-    osg::Group* root = new osg::Group();
-    osg::Geode* qGeode = new osg::Geode();
-    osg::Geometry* qGeom = new osg::Geometry();
-
-    qGeode->addDrawable(qGeom);
+    BuildAABB("/home/pers/clement.chagnaud/Documents/Data/Tuiles/");
 
 
-         float width = 3500.f;
-         float height = 2000.f;
+//    std::cout<<"bah test3"<<std::endl;
 
-         osg::Vec3Array* qVertices = new osg::Vec3Array;
-         qVertices->push_back( osg::Vec3( -width/2, 0, 0) ); // bottom left
-         qVertices->push_back( osg::Vec3(width/2, 0, 0) ); // bottom right
-         qVertices->push_back( osg::Vec3(width/2,0, height) ); // top right
-         qVertices->push_back( osg::Vec3(-width/2,0, height) ); // top left
+//    osg::Group* root = new osg::Group();
+//    osg::Geode* qGeode = new osg::Geode();
+//    osg::Geometry* qGeom = new osg::Geometry();
 
-         qGeom->setVertexArray( qVertices );
+//    qGeode->addDrawable(qGeom);
 
-         osg::DrawElementsUInt* Quad = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
-         Quad->push_back(3);
-         Quad->push_back(2);
-         Quad->push_back(1);
-         Quad->push_back(0);
-         qGeom->addPrimitiveSet(Quad);
 
-         osg::Vec2Array* qTexCoords = new osg::Vec2Array;
-         qTexCoords->push_back(osg::Vec2(0.0f,0.0f) );
-         qTexCoords->push_back(osg::Vec2(1.0f,0.0f) );
-         qTexCoords->push_back(osg::Vec2(1.0f,1.0f) );
-         qTexCoords->push_back(osg::Vec2(0.0f,1.0f) );
+//         float width = 3500.f;
+//         float height = 2000.f;
 
-         qGeom->setTexCoordArray(0,qTexCoords);
+//         osg::Vec3Array* qVertices = new osg::Vec3Array;
+//         qVertices->push_back( osg::Vec3( -width/2, 0, 0) ); // bottom left
+//         qVertices->push_back( osg::Vec3(width/2, 0, 0) ); // bottom right
+//         qVertices->push_back( osg::Vec3(width/2,0, height) ); // top right
+//         qVertices->push_back( osg::Vec3(-width/2,0, height) ); // top left
+
+//         qGeom->setVertexArray( qVertices );
+
+//         osg::DrawElementsUInt* Quad = new osg::DrawElementsUInt(osg::PrimitiveSet::QUADS, 0);
+//         Quad->push_back(3);
+//         Quad->push_back(2);
+//         Quad->push_back(1);
+//         Quad->push_back(0);
+//         qGeom->addPrimitiveSet(Quad);
+
+//         osg::Vec2Array* qTexCoords = new osg::Vec2Array;
+//         qTexCoords->push_back(osg::Vec2(0.0f,0.0f) );
+//         qTexCoords->push_back(osg::Vec2(1.0f,0.0f) );
+//         qTexCoords->push_back(osg::Vec2(1.0f,1.0f) );
+//         qTexCoords->push_back(osg::Vec2(0.0f,1.0f) );
+
+//         qGeom->setTexCoordArray(0,qTexCoords);
+
+////         osg::Texture2D *tex = new osg::Texture2D;
+////         tex->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
+
+////         osg::StateSet* qState = new osg::StateSet;
+////         qState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+////         qState->setTextureAttributeAndModes(0, tex, osg::StateAttribute::ON );
+
+////         qGeom->setStateSet(qState);
+
+//         int NB_IMG = 3;
+//         std::cout<<"bah    transformtab"<<std::endl;
+//         osg::PositionAttitudeTransform* tabTransformed[NB_IMG];
+
+//         std::vector<osg::PositionAttitudeTransform*> vecTransformed;
+
+
+//         std::cout<<"bah    positiontab"<<std::endl;
+
+//         osg::Vec3 tabPosition[NB_IMG];
+//         tabPosition[0]= osg::Vec3(0,0,0);
+//         tabPosition[1]= osg::Vec3(5000,5000,0);
+//         tabPosition[2]= osg::Vec3(10000,10000,0);
 
 //         osg::Texture2D *tex = new osg::Texture2D;
-//         tex->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
+//         //tex->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
+//         osg::Image *img = osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg");
+//         tex->setImage(img);
 
-//         osg::StateSet* qState = new osg::StateSet;
-//         qState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
-//         qState->setTextureAttributeAndModes(0, tex, osg::StateAttribute::ON );
+//         std::cout<<"bah    texturetab"<<std::endl;
+//         osg::Texture2D* tabTex[NB_IMG];
+//         std::cout<<"bah        texturetab created"<<std::endl;
+//         tabTex[0]= new osg::Texture2D;
+//         tabTex[0]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon1.jpg"));
+//         std::cout<<"bah           texturetab img1"<<std::endl;
+//         tabTex[1]= new osg::Texture2D;
+//         tabTex[1]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon2.jpg"));
+//         std::cout<<"bah           texturetab img2"<<std::endl;
+//         tabTex[2]= new osg::Texture2D;
+//         tabTex[2]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
+//         std::cout<<"bah           texturetab img3"<<std::endl;
+//         std::cout<<"bah        texturetab filled"<<std::endl;
 
-//         qGeom->setStateSet(qState);
+//         std::cout<<"bah statetab"<<std::endl;
+//         osg::StateSet* tabState[NB_IMG];
 
-         int NB_IMG = 3;
-         std::cout<<"bah    transformtab"<<std::endl;
-         osg::PositionAttitudeTransform* tabTransformed[NB_IMG];
-
-         std::vector<osg::PositionAttitudeTransform*> vecTransformed;
-
-
-         std::cout<<"bah    positiontab"<<std::endl;
-
-         osg::Vec3 tabPosition[NB_IMG];
-         tabPosition[0]= osg::Vec3(0,0,0);
-         tabPosition[1]= osg::Vec3(5000,5000,0);
-         tabPosition[2]= osg::Vec3(10000,10000,0);
-
-         osg::Texture2D *tex = new osg::Texture2D;
-         //tex->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
-         osg::Image *img = osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg");
-         tex->setImage(img);
-
-         std::cout<<"bah    texturetab"<<std::endl;
-         osg::Texture2D* tabTex[NB_IMG];
-         std::cout<<"bah        texturetab created"<<std::endl;
-         tabTex[0]= new osg::Texture2D;
-         tabTex[0]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon1.jpg"));
-         std::cout<<"bah           texturetab img1"<<std::endl;
-         tabTex[1]= new osg::Texture2D;
-         tabTex[1]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon2.jpg"));
-         std::cout<<"bah           texturetab img2"<<std::endl;
-         tabTex[2]= new osg::Texture2D;
-         tabTex[2]->setImage(osgDB::readImageFile("/home/pers/clement.chagnaud/Documents/Data/Img/lyon3.jpg"));
-         std::cout<<"bah           texturetab img3"<<std::endl;
-         std::cout<<"bah        texturetab filled"<<std::endl;
-
-         std::cout<<"bah statetab"<<std::endl;
-         osg::StateSet* tabState[NB_IMG];
-
-         float tabAngles[NB_IMG];
-         tabAngles[0]=-25.0;
-         tabAngles[1]=25.0;
-         tabAngles[2]=50.0;
+//         float tabAngles[NB_IMG];
+//         tabAngles[0]=-25.0;
+//         tabAngles[1]=25.0;
+//         tabAngles[2]=50.0;
 
 
 
-         for(int i=0; i<NB_IMG; i++)
-         {
-             std::cout<<"bah for"<<std::endl;
-             tabState[i]= new osg::StateSet;
-             tabState[i]->setMode(GL_LIGHTING, osg::StateAttribute::OFF );
-             tabState[i]->setTextureAttributeAndModes(0, tabTex[i], osg::StateAttribute::ON );
+//         for(int i=0; i<NB_IMG; i++)
+//         {
+//             std::cout<<"bah for"<<std::endl;
+//             tabState[i]= new osg::StateSet;
+//             tabState[i]->setMode(GL_LIGHTING, osg::StateAttribute::OFF );
+//             tabState[i]->setTextureAttributeAndModes(0, tabTex[i], osg::StateAttribute::ON );
 
 //             tabTransformed[i]= new osg::PositionAttitudeTransform;
 //             tabTransformed[i]->setStateSet(tabState[i]);
@@ -2979,28 +3140,31 @@ void MainWindow::test3()
 //             tabTransformed[i]->setScale(osg::Vec3(0.5,0.5,0.5));
 //             tabTransformed[i]->addChild(qGeode);
 
-             vecTransformed.push_back(new osg::PositionAttitudeTransform);
-             vecTransformed[i]->setStateSet(tabState[i]);
-             vecTransformed[i]->setPosition(tabPosition[i]);
-             vecTransformed[i]->setAttitude(osg::Quat(osg::DegreesToRadians(tabAngles[i]), osg::Vec3(0,0,1) ) );
-             vecTransformed[i]->setScale(osg::Vec3(0.5,0.5,0.5));
+//             vecTransformed.push_back(new osg::PositionAttitudeTransform);
+//             vecTransformed[i]->setStateSet(tabState[i]);
+//             vecTransformed[i]->setPosition(tabPosition[i]);
+//             vecTransformed[i]->setAttitude(osg::Quat(osg::DegreesToRadians(tabAngles[i]), osg::Vec3(0,0,1) ) );
+//             vecTransformed[i]->setScale(osg::Vec3(0.5,0.5,0.5));
 
-             vecTransformed[i]->addChild(qGeode);
+//             vecTransformed[i]->addChild(qGeode);
 
-         }
+//         }
 
-         std::cout<<"bah size of tabTransformed before erase : "<< vecTransformed.size() <<std::endl;
-         vecTransformed.erase(vecTransformed.begin()+1);
-         std::cout<<"bah size of tabTransformed after erase : "<< vecTransformed.size() <<std::endl;
-         for(int i=0; i<vecTransformed.size(); i++)
-         {
-            root->addChild(vecTransformed[i]);
-         }
-         std::cout<<"bah endfor"<<std::endl;
+//         std::cout<<"bah size of tabTransformed before erase : "<< vecTransformed.size() <<std::endl;
+//         vecTransformed.erase(vecTransformed.begin()+1);
+//         std::cout<<"bah size of tabTransformed after erase : "<< vecTransformed.size() <<std::endl;
+//         for(int i=0; i<vecTransformed.size(); i++)
+//         {
+//            root->addChild(vecTransformed[i]);
+//         }
+//         std::cout<<"bah endfor"<<std::endl;
 
 
-         vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
-         appGui().getOsgScene()->addShpNode(uriLayer, root);
+
+
+//         vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
+
+//         appGui().getOsgScene()->addInfoNode(uriLayer, root);
 
 }
 

@@ -88,6 +88,9 @@ void DialogVisibilite::GetCamParam()
 	osg::Vec3d up;
 	cam->getViewMatrixAsLookAt(pos,target,up);
 
+
+
+
 	target = target - pos;
 	target.normalize();
 
@@ -96,7 +99,11 @@ void DialogVisibilite::GetCamParam()
 	ui->posZSB->setValue(pos.z()+offset.z);
 	ui->dirXSB->setValue(target.x());
 	ui->dirYSB->setValue(target.y());
-	ui->dirZSB->setValue(target.z());
+    ui->dirZSB->setValue(target.z());
+
+    std::cout<<"Pos : ["<<pos.x()<<","<<pos.y()<<","<<pos.z()<<"]"<<std::endl;
+    std::cout<<"Target : ["<<target.x()<<","<<target.y()<<","<<target.z()<<"]"<<std::endl;
+    std::cout<<"Up : ["<<up.x()<<","<<up.y()<<","<<up.z()<<"]"<<std::endl;
 
 }
 

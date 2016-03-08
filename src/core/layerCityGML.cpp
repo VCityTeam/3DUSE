@@ -20,7 +20,7 @@ LayerCityGML::~LayerCityGML()
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void LayerCityGML::addTile(Tile* tile)
+void LayerCityGML:: addTile(Tile* tile)
 {
     m_tiles.push_back(tile);
 }

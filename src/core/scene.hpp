@@ -10,6 +10,7 @@
 #include "layerMnt.hpp"
 #include "layerLas.hpp"
 #include "layerShp.hpp"
+#include "layerInfo.hpp"
 #include "tile.hpp"
 #include "URI.hpp"
 #include <memory>
@@ -63,10 +64,17 @@ public:
     /// \param tile The tile to add
     void addTile(const URI& uriLayer, Tile* tile);
 
+    /// \brief addInfo Add infos to appropriate layer
+    /// \param uriLayer URI pointing to the layer
+    /// \param info vector to add
+    void addInfo(const URI& uriLayer, std::vector<osgInfo *> info);
+
     /// \brief getTile Get a tile
     /// \param uri URI pointing to the tile
     /// \return The tile
     Tile* getTile(const URI& uri);
+
+    std::vector<osgInfo*> getInfo(const URI& uri);
 
     /// \brief getTiles Get all tiles in a layer
     /// \param uriLayer URI pointing to the layer

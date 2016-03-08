@@ -101,6 +101,23 @@ void ControllerGui::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
     appGui().getOsgScene()->addTile(uriLayer, tile);
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ControllerGui::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo *> info)
+{
+    Controller::addInfo(uriLayer, info);
+
+    appGui().getOsgScene()->initInfo(uriLayer, info);
+
+//    // fill treeview
+//    uriLayer.resetCursor();
+//    appGui().getTreeView()->addTile(uriLayer, tile);
+
+//    // fill osg scene
+//    uriLayer.resetCursor();
+//    appGui().getOsgScene()->addTile(uriLayer, tile);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::deleteTile(const vcity::URI& uri)
 {
     Controller::deleteTile(uri);

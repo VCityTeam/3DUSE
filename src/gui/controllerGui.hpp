@@ -26,6 +26,9 @@ public:
     virtual void deleteTile(const vcity::URI& uri) override;
     virtual void setTileName(const vcity::URI& uri, const std::string& name) override;
 
+    //info
+    virtual void addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
+
     // temporal
     virtual void addTag(const vcity::URI& uri, citygml::CityObjectTag* tag) override;
     virtual void addState(const vcity::URI& uri, citygml::CityObjectState* state) override;

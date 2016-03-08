@@ -63,7 +63,7 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
             {
                 // only do a pick if the mouse hasn't moved
                 // TODO: add a little headroom so the mouse does not have to stand perfectly still.
-                //std::cout << "Pick point : (" << m_mx << ", " << m_my << ")" << std::endl;
+                std::cout << "Pick point : (" << m_mx << ", " << m_my << ")" << std::endl;
                 pickPoint(ea,viewer);
             }
             else
@@ -399,6 +399,7 @@ void PickHandler::selectNode(const vcity::URI& uri)
         //node->getStateSet()->setAttributeAndModes( mat, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
         //node->getStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
         appGui().getOsgScene()->createInfoBubble(node);
+        //appGui().getOsgScene()->createInfo(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -419,6 +420,10 @@ void PickHandler::deselectNode(const vcity::URI& uri)
             for(int i=0; i<nb; ++i)
             {
                 if(grp->getChild(i)->getName() == "infobubble")
+                {
+                    grp->removeChild(i);
+                }
+                if(grp->getChild(i)->getName() == "infoimage")
                 {
                     grp->removeChild(i);
                 }

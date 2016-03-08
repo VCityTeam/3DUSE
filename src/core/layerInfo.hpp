@@ -1,26 +1,27 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef __LayerMnt_HPP__
-#define __LayerMnt_HPP__
+#ifndef __LAYERINFO_HPP__
+#define __LAYERINFO_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "abstractlayer.hpp"
-
 #include "URI.hpp"
 #include <string>
 #include <memory>
+#include "ogrsf_frmts.h"
+#include "gui/osg/osgInfo.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief LayerMnt class : it holds all the mnt objects
-class LayerMnt : public abstractLayer
+/// \brief LayerShp class : it holds shp objects
+class LayerInfo : public abstractLayer
 {
 public:
     /// \brief Layer Build empty layer
     /// \param name Layer name
-    LayerMnt(const std::string& name);
+    LayerInfo(const std::string& name);
 
-    virtual ~LayerMnt() override;
+    virtual ~LayerInfo() override;
 
     /// Get layer type as string
 	const std::string getType() const override;
@@ -28,13 +29,18 @@ public:
     /// Get Layer URI
 	URI getURI() const override;
 
+    void setInfo(std::vector<osgInfo*> info);
+    std::vector<osgInfo*> getInfo();
+
     void dump() override;
 
-private:
+public:
+    std::vector<osgInfo*> m_info;
 };
 ////////////////////////////////////////////////////////////////////////////////
-typedef std::shared_ptr<LayerMnt> LayerMntPtr;
+typedef std::shared_ptr<LayerInfo> LayerShpInfo;
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
-#endif // __LayerMnt_HPP__
+#endif // __LAYERINFO_HPP__
+
