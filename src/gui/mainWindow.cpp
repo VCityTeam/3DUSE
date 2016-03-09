@@ -6,6 +6,7 @@
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
+#include "moc/dialogFloodAR.hpp"
 #include <iomanip>
 
 #include "controllerGui.hpp"
@@ -152,7 +153,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
 	connect(m_ui->actionASC_To_CityGML, SIGNAL(triggered()), this, SLOT(slotASCtoCityGML()));
-	connect(m_ui->actionASC_cut, SIGNAL(triggered()), this, SLOT(slotCutASC()));
+	connect(m_ui->actionFloodAR, SIGNAL(triggered()), this, SLOT(slotFloodAR()));
 	connect(m_ui->actionShapefile_cut, SIGNAL(triggered()), this, SLOT(slotCutShapeFile()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
@@ -3372,7 +3373,7 @@ void MainWindow::slotASCtoCityGML()
 				{
 					//conversion en structure CityGML
 					if (item=="Terrain") model = importer->reliefToCityGML(asc);
-					else if (item=="Water") model = importer->waterToCityGMLPolygons(asc);
+					//else if (item=="Water") model = importer->waterToCityGMLPolygons(asc);
 					delete importer;
 					delete asc;
 				}
@@ -3525,30 +3526,11 @@ void MainWindow::slotShpWaterToCityGML()
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotCutASC()
+void MainWindow::slotFloodAR()
 {
 	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut ASC", "", "ASC files (*.asc)");
-
-	for(int i = 0; i < filenames.count(); ++i)
-	{
-		citygml::CityModel* model = new citygml::CityModel();
-		QFileInfo file(filenames[i]);
-		QString ext = file.suffix().toLower();
-		if (ext=="asc")
-		{
-			//lecture du fichier
-			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			MNT* asc = new MNT();
-			if (asc->charge(filenames[i].toStdString().c_str(), "ASC"))
-			{
-				importer->cutASC(asc,file.absolutePath().toStdString(),file.baseName().toStdString(), 500);
-			}
-			delete importer;
-			delete asc;
-		}
-		delete model;
-	}
+	dialogFloodAR diag;
+	diag.exec();
 	m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -364,7 +364,7 @@
     <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="separator"/>
     <addaction name="actionASC_To_CityGML"/>
-    <addaction name="actionASC_cut"/>
+    <addaction name="actionFloodAR"/>
     <addaction name="actionShapefile_cut"/>
     <addaction name="separator"/>
     <addaction name="actionChange_Detection"/>
@@ -833,9 +833,9 @@
     <string>Convert ASC to CityGML</string>
    </property>
   </action>
-  <action name="actionASC_cut">
+  <action name="actionFloodAR">
    <property name="text">
-    <string>ASC cut</string>
+    <string>FloodAR tools</string>
    </property>
   </action>
   <action name="actionShapefile_cut">

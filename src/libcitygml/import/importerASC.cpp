@@ -139,7 +139,7 @@ namespace citygml
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////
 	/*Maybe this function should be somewhere else*/
-	void ImporterASC::cutASC(MNT* asc, std::string path, std::string filename, int tileSize)
+	void ImporterASC::cutASC(MNT* asc, std::string path, std::string filename, int tileSizeX, int tileSizeY)
 	{
 
 		int x = 0;
@@ -153,12 +153,12 @@ namespace citygml
 			float realY = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-0.5)*(asc->get_pas_y());
 			float cornerX = (asc->get_x_noeud_NO())+x*(asc->get_pas_x());
 			float cornerY = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-1)*(asc->get_pas_y());
-			int dvX = cornerX/tileSize;
-			int dvY = cornerY/tileSize;
-			float tileXmin = dvX*tileSize;
-			float tileXmax = (dvX+1)*tileSize;
-			float tileYmin = dvY*tileSize;
-			float tileYmax = (dvY+1)*tileSize;
+			int dvX = cornerX/tileSizeX;
+			int dvY = cornerY/tileSizeY;
+			float tileXmin = dvX*tileSizeX;
+			float tileXmax = (dvX+1)*tileSizeY;
+			float tileYmin = dvY*tileSizeX;
+			float tileYmax = (dvY+1)*tileSizeY;
 			/*std::cout<<"x = "<<realX<<" | y = "<<realY<<std::endl;
 			std::cout<<"Tile : X = "<<tileXmin<<" -> "<<tileXmax<<std::endl;
 			std::cout<<"       Y = "<<tileYmin<<" -> "<<tileYmax<<std::endl<<std::endl;*/
@@ -193,7 +193,7 @@ namespace citygml
 			out<<"cellsize      "<<asc->get_pas_x()<<std::endl;
 			out<<"nodata_value  "<<asc->get_nodata()<<std::endl;
 			//parse data for this tile
-			for (iY = nR; iY > 0; iY--)
+			for (iY = nR-1; iY >= 0; iY--)
 			{
 				for (iX = 0; iX < nC; iX++)
 				{
@@ -212,22 +212,20 @@ namespace citygml
 				x = 0; //next row, first column
 				y = y-nR+1;
 			}
-			printf( "Conversion (%d%%)\r", (int)((asc->get_dim_y()-y)*100.0/asc->get_dim_y()) );
+			std::cout<<"Tiling ("<<(int)((asc->get_dim_y()-y)*100.0/asc->get_dim_y())<<"%)\r";
 			fflush(stdout);
 			out.close();
 		}
-		std::cout<<"Done!            "<<std::endl;
+		std::cout<<"Tiling (100%)"<<std::endl;
 
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////
-	CityModel* ImporterASC::waterToCityGMLPolygons(MNT* asc)
+	CityModel* ImporterASC::waterToCityGMLPolygons(MNT* asc, float zPrec = 0.1)
 	{
 		CityModel* model = new CityModel();
 		CityObject* waterbody = new WaterBody("");
 		//CityObject* watersfc = new WaterSurface("");
 		//Geometry* geom = new Geometry("", GT_Unknown,3);
-
-		const float zPrec = 0.1;
 
 		treated = new bool[asc->get_dim_x()*asc->get_dim_y()];
 		for (int i =0; i<(asc->get_dim_x()*asc->get_dim_y());i++) treated[i]=false;
@@ -276,10 +274,10 @@ namespace citygml
 					delete poPG;
 				}
 			}
-			std::cout<<"Traitement ("<<(int)(y*100.0/asc->get_dim_y())<<"%)\r";
+			std::cout<<"Constructing geometries ("<<(int)(y*100.0/asc->get_dim_y())<<"%)\r";
 			fflush(stdout);
 		}
-		std::cout<<"Traitement OK!     "<<std::endl;
+		std::cout<<"Constructing geometries OK!     "<<std::endl;
 		delete treated;
 
 		//end treatement and create CityModel
@@ -288,15 +286,6 @@ namespace citygml
 		//	watersfc->addGeometry(geom);
 		//	waterbody->getChildren().push_back(watersfc);
 		//	watersfc->_parent = waterbody;
-
-		// -- Add temporal info --
-		bool ok;
-		int hour = QInputDialog::getInt(nullptr, "QInputDialog::getInteger()","Time:", 0, 0, 144, 8, &ok);
-		QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
-		termDate = termDate.addSecs(hour*3600);
-		QDateTime creaDate(termDate.addSecs(-8*3600));
-		waterbody->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-		waterbody->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
 
 		model->addCityObject(waterbody);
 		model->addCityObjectAsRoot(waterbody);
