@@ -11,62 +11,64 @@
 #include <queue>
 #include <qfileinfo.h>
 
-#include "data/Hit.hpp"
+#include "raytracing/Hit.hpp"
 #include "Export.hpp"
-#include "RayTracing.h"
+#include "raytracing/RayTracing.hpp"
 #include "data/BelvedereDB.h"
+#include "AABB.hpp"
+#include "core/RayBox.hpp"
 
 
 /**
 *	@brief Setup a set of boxes in the right order depending on a set of rays
 */
-std::queue<RayBoxHit> Setup(std::vector<AABB> boxes,RayCollection* rays)
+std::queue<RayBoxHit> Setup(std::vector<AABB> boxes,RayBoxCollection* rays)
 {
 	std::map<std::string,int> boxToMaxOrder;//We keep record the maximum order the box has be traverse
-	std::map<std::string,RayBoxHit> boxToRayBoxHit;//We keep record the smallest rayboxhit of a box /// MultiResolution
+    std::map<std::string,RayBoxHit> boxToRayBoxHit;//We keep record of the smallest rayboxhit of a box /// MultiResolution
 
 	for(unsigned int i = 0; i < boxes.size(); i++)
 	{
 		boxToMaxOrder[boxes[i].name] = -1;
 	}
 	//For each rays
-	for(unsigned int i = 0; i < rays->rays.size(); i++)
+    for(unsigned int i = 0; i < rays->raysBB.size(); i++)
 	{
-		Ray* ray = rays->rays[i];
-		ray->boxes.clear();
+        RayBox* rayBox = rays->raysBB[i];
+        rayBox->boxes.clear();
 
 		//For each boxes we check if the ray intersect the box and store it in the box list of the array
 		for(unsigned int j = 0; j < boxes.size(); j++)
 		{
 			float hit0,hit1;
-			if(ray->Intersect(boxes[j],&hit0,&hit1))
+            if(rayBox->Intersect(boxes[j],&hit0,&hit1))
 			{
 				RayBoxHit hTemp;
 				hTemp.box = boxes[j];
 				hTemp.minDistance = hit0;
-				ray->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
+                rayBox->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
 			}
 		}
 
-		std::sort(ray->boxes.begin(),ray->boxes.end());//Sort the boxes depending on the intersection distance
+        std::sort(rayBox->boxes.begin(),rayBox->boxes.end());//Sort the boxes depending on the intersection distance
 
-		for(int j = 0; j < ray->boxes.size(); j++)//We update the order of each boxes
+        for(int j = 0; j < rayBox->boxes.size(); j++)//We update the order of each boxes
 		{
-			int current = boxToMaxOrder[ray->boxes[j].box.name];
-			boxToMaxOrder[ray->boxes[j].box.name] = std::max(j,current);
+            int current = boxToMaxOrder[rayBox->boxes[j].box.name];
+            boxToMaxOrder[rayBox->boxes[j].box.name] = std::max(j,current);
 
-			if(boxToRayBoxHit.find(ray->boxes[j].box.name) != boxToRayBoxHit.end())//= Si ray->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution 
+            if(boxToRayBoxHit.find(rayBox->boxes[j].box.name) != boxToRayBoxHit.end())//= Si rayBox->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution
 			{
-				boxToRayBoxHit[ray->boxes[j].box.name] = std::min(ray->boxes[j],boxToRayBoxHit[ray->boxes[j].box.name]);
+                boxToRayBoxHit[rayBox->boxes[j].box.name] = std::min(rayBox->boxes[j],boxToRayBoxHit[rayBox->boxes[j].box.name]);
 			}	
 			else
 			{
-				boxToRayBoxHit.insert(std::make_pair(ray->boxes[j].box.name,ray->boxes[j]));
+                boxToRayBoxHit.insert(std::make_pair(rayBox->boxes[j].box.name,rayBox->boxes[j]));
 			}
 		}
 	}
 
-	//Sort the boxis depending on their max order
+    //Sort the boxes depending on their max order
 	std::vector<BoxOrder> boxesOrder;
 
 	for(auto it = boxToMaxOrder.begin();it != boxToMaxOrder.end(); it++)
@@ -109,7 +111,7 @@ std::string GetTilePrefixFromDistance(float distance)
 ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg::Camera* cam, citygml::CityObjectsType objectType)
 {
 	//Create the viewpoint
-	ViewPoint* viewpoint = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height());
+    ViewPoint* viewpoint = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height());
 
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -122,17 +124,16 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 	viewpoint->lightDir = Ray::Normalized(camPos - camDir);
 
 	//Build the ray collection
-	RayCollection* rays = RayCollection::BuildCollection(cam);
-	rays->viewpoint = viewpoint;
+    RayBoxCollection* raysBoxes = RayBoxCollection::BuildCollection(cam);
 
-	std::cout << "Viewpoint and collection created" << std::endl;
+    std::cout << "Viewpoint and collection created" << std::endl;
 
 	//Setup and get the tile's boxes in the right intersection order
-	std::queue<RayBoxHit> tileOrder = Setup(boxes,rays);
+    std::queue<RayBoxHit> tileOrder = Setup(boxes,raysBoxes);
 
-	std::cout << "Setup Completed" << " " << tileOrder.size() << std::endl;
+    std::cout << "Setup Completed" << std::endl;
 
-	//While we have boxes, tiles
+    //While we have boxes, tiles
 	while(tileOrder.size() != 0)
 	{
 		RayBoxHit myRayBoxHit = tileOrder.front();
@@ -140,27 +141,27 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 		tileOrder.pop();
 
 		RayCollection raysTemp;//Not all rays intersect the box
-		raysTemp.viewpoint = viewpoint;
 
 		//We get only the rays that intersect the box
-		for(unsigned int i = 0; i < rays->rays.size(); i++)
+        for(unsigned int i = 0; i < raysBoxes->raysBB.size(); i++)
 		{
-			Ray* ray = rays->rays[i];//Get the ray
-			bool inter = viewpoint->hits[int(ray->fragCoord.x)][int(ray->fragCoord.y)].intersect;//Check the viewpoint to see if at the ray coordinates we have intersect something in a previous iteration
+            RayBox* raybox = raysBoxes->raysBB[i];//Get the rayBox
+
+            bool inter = viewpoint->hits[int(raybox->fragCoord.x)][int(raybox->fragCoord.y)].intersect;//Check the viewpoint to see if at the ray coordinates we have intersected something in a previous iteration
 			bool found = false;
 
-			for(RayBoxHit& rbh : ray->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
+            for(RayBoxHit& rbh : raybox->boxes)//Go through all the boxes that the ray intersect to see if the current box is one of them
 				found = found || rbh.box.name == tileName;
 
 			if(found && !inter)
 			{
-				raysTemp.rays.push_back(ray);
+                raysTemp.rays.push_back(raybox);
 			}
 		}
 
-		std::cout << "Temp collection completed" << std::endl;
+        std::cout << "Temp collection completed" << std::endl;
 
-		if(raysTemp.rays.size() == 0)
+        if(raysTemp.rays.size() == 0)
 		{
 			std::cout << "Skipping." << std::endl;
 			raysTemp.rays.clear();
@@ -169,26 +170,41 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 
 		//Load triangles and perform analysis
 		std::string path = dirTile + tileName;
+
 		std::string pathWithPrefix = dirTile + GetTilePrefixFromDistance(myRayBoxHit.minDistance) + tileName; /// MultiResolution
 
 		//Get the triangle list
 		TriangleList* trianglesTemp;
-		if(QFileInfo(pathWithPrefix.c_str()).exists()) /// MultiResolution
+
+        if(QFileInfo(pathWithPrefix.c_str()).exists()) /// MultiResolution
 			trianglesTemp = BuildTriangleList(pathWithPrefix,objectType);
 		else
 			trianglesTemp = BuildTriangleList(path,objectType);
 
-		RayTracing(trianglesTemp,raysTemp.rays);
+        //Perform raytracing and get vector of hits
+        std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,raysTemp.rays);
 
-		raysTemp.rays.clear();
+        //Change viewpoint hits depending on distance of new hits
+        for(Hit* h : *tmpHits)
+        {
+            //if there is not already a hit for this fragCoord or if the distance of the current hit is smaller than the existing one
+            if(!viewpoint->hits[int(h->ray.fragCoord.x)][int(h->ray.fragCoord.y)].intersect
+                    || viewpoint->hits[int(h->ray.fragCoord.x)][int(h->ray.fragCoord.y)].distance > h->distance)
+            {
+                viewpoint->hits[int(h->ray.fragCoord.x)][int(h->ray.fragCoord.y)] = *h;
+            }
+        }
+
+        raysTemp.rays.clear();
+        delete tmpHits;
 	}
 
-	//Return the result
-	viewpoint->position = rays->rays.front()->ori;
+    //Return the result
+    viewpoint->position = raysBoxes->raysBB.front()->ori;
 
-	delete rays;
+    delete raysBoxes;
 
-	return viewpoint;
+    return viewpoint;
 }
 
 //Merge two viewpoint, b into a
@@ -252,7 +268,7 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* 
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Building Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;
-	ViewPoint* resultBis = DoMultiTileAnalysis(dirTile,boxes.terrain,cam,citygml::CityObjectsType::COT_TINRelief);
+    ViewPoint* resultBis = DoMultiTileAnalysis(dirTile,boxes.terrain,cam,citygml::CityObjectsType::COT_TINRelief);
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Terrain Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;

@@ -11,6 +11,7 @@
 #include "../ShpExtrusion.h"
 #include "../VegetTool.hpp"
 #include "../AlignementTree.hpp"
+#include "AABB.hpp"
 
 #include <QSettings>
 #include <QFileDialog>

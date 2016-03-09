@@ -3,7 +3,7 @@
 
 #include <qcolor.h>
 
-#include "Hit.hpp"
+#include "raytracing/Hit.hpp"
 
 struct Skyline
 {
@@ -32,8 +32,9 @@ struct ViewPoint
 	*	@param width Horizontal resolution of the viewpoint
 	*	@param height Vertical resolution of the viewpoint
 	*/
-	ViewPoint(unsigned int width, unsigned int height)
+    ViewPoint(unsigned int width, unsigned int height, std::string id = "")
 	{
+        this->id = id;
 		this->width = width;
 		this->height = height;
 		hits = new Hit*[width];
@@ -77,6 +78,7 @@ struct ViewPoint
 	void ComputeMinMaxDistance();
 
 	Hit** hits;///< Hit of the rays
+    std::string id; ///< Id of the viewpoint, useful for DoMonoTileAnalysis
 	unsigned int width;///< Width of hits
 	unsigned int height;///< Height of hits
 	TVec3d lightDir;///< Direction of the light in the scene

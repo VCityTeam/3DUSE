@@ -80,7 +80,14 @@ endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 if(MSVC)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /D \"NOMINMAX\"")
 
-	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+#	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE") # /FORCE:MULTIPLE should be avoided (e.g. /INCREMENTAL is disabled because of it)
+
+	if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "19")
+		set(KIT_VS2015 YES)
+		message("VS2015 KIT used")
+	else()
+		message("VS2012 KIT used")
+	endif()
 endif()
 #------------------------------------------------------------------------------
 # APPLE OS X
@@ -139,7 +146,8 @@ IF(WIN32)
 
   	if(WITH_QT5)
   		# with qt5
-  		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.6.0/5.6.0/msvc2015_64_opengl)
+  		#set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.6.0/5.6/msvc2015_64)
+  		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.4.2/5.4/msvc2013_64_opengl)
   	else(WITH_QT5)
   		# with qt4
   		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.7-x64-msvc2015)
@@ -435,7 +443,13 @@ else(WITH_QT5)
   QT4_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 endif(WITH_QT5)
 
-INCLUDE_DIRECTORIES( src src/libcitygml )
+INCLUDE_DIRECTORIES(src src/libcitygml)
+
+# Local libraries
+set(FILTERS_INCLUDE_DIR	${PROJECT_SOURCE_DIR}/src/libfilters)
+set(FILTERS_LIBRARIES	filters)
+
+include_directories(${FILTERS_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/libcitygml/utils)
 
 # General
 file(
@@ -450,9 +464,15 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_RES_H}
 )
 if (WIN32)
-  SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
+  if(NOT DEFINED KIT_VS2015)
+    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
+  endif()
+  if(DEFINED KIT_VS2015)
+    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
+  endif()
+
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
-endif(WIN32)
+endif()
 if(DEFINED ENV{TRAVIS})
   if (APPLE)
     set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
@@ -548,7 +568,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB})
+target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} ${FILTERS_LIBRARIES} citygmlutils)
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
@@ -795,3 +815,5 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 	#--------------------------------------------------------------------------------
 	# Now the installation stuff : end
 	#--------------------------------------------------------------------------------
+
+add_subdirectory(src)

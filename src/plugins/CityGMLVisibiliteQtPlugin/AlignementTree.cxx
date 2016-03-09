@@ -8,9 +8,9 @@
 #include "gui/osg/osgScene.hpp"
 #include "export/exportCityGML.hpp"
 
-#include "data/Hit.hpp"
+#include "raytracing/Hit.hpp"
+#include "AABB.hpp"
 
-//#include "ShpExtrusion.h"
 typedef std::vector<TVec3d> LRing;
 
 /**
