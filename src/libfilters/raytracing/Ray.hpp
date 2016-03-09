@@ -7,7 +7,7 @@
 struct Hit;
 struct RayCollection;
 struct ViewPoint;
-class Triangle;
+struct Triangle;
 
 /**
 *	@brief A simple ray
