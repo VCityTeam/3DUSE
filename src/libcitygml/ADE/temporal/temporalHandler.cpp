@@ -25,8 +25,9 @@ TempHandler::TempHandler(citygml::CityGMLHandler* gHandler):ADEHandler(gHandler)
 	_inToTags=false;
 }
 
+//  JE 17/02/2016: DISCARDED BECAUSE PROBLEMS WITH RECENT VERSIONS OF UBUNTU:
 //Adding to ADE register (template in ADE.hpp)
-ADERegister<TempHandler> TempHandler::reg("temp");
+//ADERegister<TempHandler> TempHandler::reg("temp");
 
 std::string TempHandler::getAttribute( void* attributes, const std::string& attname, const std::string& defvalue = "" )
 {
