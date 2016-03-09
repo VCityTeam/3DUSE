@@ -584,6 +584,8 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
             stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
 
+
+
             /*osg::Node* n = dynamic_cast<osg::Geometry*>(geom);
 
             vcity::URI urin = osgTools::getURI(n);
