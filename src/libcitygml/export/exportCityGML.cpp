@@ -526,10 +526,10 @@ namespace citygml
 				xmlNodePtr r = exportCityObjetStateXml(*state, type + state->getParent()->getTypeAsString(), parent);
 
 				// build apperance node for current node
-				if(rootLevel)
+				/*if(rootLevel)
 				{
 					m_currentAppearence = xmlNewChild(r, NULL, BAD_CAST "app:appearance", NULL);
-				}
+				}*/
 
 				if(state->getGeom())
 				{
@@ -549,10 +549,10 @@ namespace citygml
 				xmlNodePtr r = exportCityObjetTagXml(*tag, type + tag->getParent()->getTypeAsString(), parent);
 
 				// build apperance node for current node
-				if(rootLevel)
+				/*if(rootLevel)
 				{
 					m_currentAppearence = xmlNewChild(r, NULL, BAD_CAST "app:appearance", NULL);
-				}
+				}*/
 
 				if(tag->getGeom())
 				{
@@ -569,11 +569,11 @@ namespace citygml
 			}
 		}
 
-		// build apperance node for current node
-		if(rootLevel)
+		// build apperance node for current node //// F.pedrinis 10/03/16 : Utilité d'un <app:appearance/> vide à chaque city object ? Donc retrait car bug lors de l'ouverture avec la nouvelle libcitygml.
+		/*if(rootLevel)
 		{
 			m_currentAppearence = xmlNewChild(res, NULL, BAD_CAST "app:appearance", NULL);
-		}
+		}*/
 
 		xmlNodePtr node;
 		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
