@@ -3,15 +3,17 @@
 #ifndef __ALGO_HPP__
 #define __ALGO_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-
+#include <string>
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
 class Algo
 {
 public:
-	/*Algo();
+	Algo();
     ~Algo();
+
+	void CompareTwoLidar(std::string Path1, std::string Path2);
 
 	void ConvertLasToPCD();
 	void ExtractGround();
@@ -19,7 +21,7 @@ public:
 	void RemoveGroundWithTIN();
 	void PrepareTIN();
 	void CompareBuildings();
-	void ConstructRoofs();*/
+	void ConstructRoofs();
 
 private:
 };

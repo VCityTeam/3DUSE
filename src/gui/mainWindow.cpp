@@ -459,7 +459,7 @@ bool MainWindow::loadFile(const QString& filepath)
 			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerLas")->getURI();
 			vcity::log() << uriLayer.getStringURI() << "\n";
 
-			osg::ref_ptr<osg::Node> node = las.buildLasPoints(uriLayer, -m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
+			osg::ref_ptr<osg::Node> node = las.buildLasPoints(uriLayer, - m_app.getSettings().getDataProfile().m_offset.x, - m_app.getSettings().getDataProfile().m_offset.y);
 
 			// set lasNode name
 			static int id = 0;
@@ -925,7 +925,7 @@ void MainWindow::initTemporalTools()
 
 	int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
 	m_ui->horizontalSlider->setMaximum(max);
-	
+
 	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
 	m_ui->dateTimeEdit->setDateTime(startDate);
 	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
@@ -935,15 +935,15 @@ void MainWindow::initTemporalTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-    // min and max dates are controlled in the Settings.
-    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 109574 -> number of days in 300 years
+	// min and max dates are controlled in the Settings.
+	// default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+	// QAbractSlider::maximum = 109574 -> number of days in 300 years
 
-    if(value == -1) value = m_ui->horizontalSlider->value();
-    QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
-    date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
-    //m_ui->buttonBrowserTemporal->setText(date.toString());
-    m_ui->dateTimeEdit->setDateTime(date);
+	if(value == -1) value = m_ui->horizontalSlider->value();
+	QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+	date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
+	//m_ui->buttonBrowserTemporal->setText(date.toString());
+	m_ui->dateTimeEdit->setDateTime(date);
 
 	//std::cout << "set year : " << date.year() << std::endl;
 
@@ -971,31 +971,31 @@ void MainWindow::updateTemporalSlider()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-    // min and max dates are controlled in the Settings.
-    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
-    // QAbractSlider::maximum = 109574 -> number of days in 300 years
+	// min and max dates are controlled in the Settings.
+	// default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+	// QAbractSlider::maximum = 109574 -> number of days in 300 years
 
 	m_useTemporal = !m_useTemporal;
 
-    if(m_useTemporal)
-    {
+	if(m_useTemporal)
+	{
 		bool isDays = appGui().getSettings().m_incIsDay;
-        QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+		QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
 		QDateTime date(startDate);
 		date = isDays?date.addDays(m_ui->horizontalSlider->value()):date.addSecs(m_ui->horizontalSlider->value());
 		m_currentDate = date;
-        m_osgScene->setDate(date);
+		m_osgScene->setDate(date);
 		m_ui->dateTimeEdit->setDateTime(date);
-    }
-    else
-    {
-        // -4000 is used as a special value to disable time
-        QDate date(-4000, 1, 1);
-        QDateTime datetime(date);
-        m_osgScene->setDate(datetime); // reset
+	}
+	else
+	{
+		// -4000 is used as a special value to disable time
+		QDate date(-4000, 1, 1);
+		QDateTime datetime(date);
+		m_osgScene->setDate(datetime); // reset
 		m_currentDate = datetime;
-        m_timer.stop();
-    }
+		m_timer.stop();
+	}
 
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
@@ -2744,7 +2744,7 @@ void buildJson()//GrandLyon
 	std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::test1() //Génération de stats pour étude de visibilité
+/*void MainWindow::test1() //Génération de stats pour étude de visibilité
 {
 	QTime time;
 	time.start();
@@ -2828,10 +2828,10 @@ void MainWindow::test1() //Génération de stats pour étude de visibilité
 				if(Point->getGeometryType() == wkbPoint || Point->getGeometryType() == wkbPoint25D)
 				{
 					ListPoints->addGeometry(Point);
-					/*if(Point->Distance(ListPointsLod2) < 1.0)
-					cpt1++;
-					else
-					cpt2++;*/
+					//if(Point->Distance(ListPointsLod2) < 1.0)
+					//cpt1++;
+					//else
+					//cpt2++;
 				}
 			}
 			delete DataSource2;
@@ -2871,99 +2871,104 @@ void MainWindow::test1() //Génération de stats pour étude de visibilité
 
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-}
-/*void MainWindow::test1()
-{
-QTime time;
-time.start();
-
-//vcity::app().getAlgo().ConvertLasToPCD();
-//vcity::app().getAlgo().ExtractGround();
-//vcity::app().getAlgo().ExtractBuildings();
-//vcity::app().getAlgo().RemoveGroundWithTIN();
-//vcity::app().getAlgo().CompareBuildings();
-//vcity::app().getAlgo().ConstructRoofs();
-
-int millisecondes = time.elapsed();
-std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-
-return;
-
-////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
-QApplication::setOverrideCursor(Qt::WaitCursor);
-
-OGRDataSource* Bati = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/batiout.shp", TRUE);
-OGRDataSource* Terrain = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/terrainout.shp", TRUE);
-
-OGRLayer *LayerBati = Bati->GetLayer(0);
-OGRLayer *LayerTerrain = Terrain->GetLayer(0);
-
-citygml::ExporterCityGML exporter("C:/Users/Game Trap/Downloads/Ilots.gml");
-exporter.initExport();
-citygml::Envelope Envelope;
-
-OGRFeature *FeatureBati;
-LayerBati->ResetReading();
-
-int cpt = 0;
-
-while((FeatureBati = LayerBati->GetNextFeature()) != NULL)
-{
-OGRMultiPolygon* GeometryBati = new OGRMultiPolygon;
-GeometryBati->addGeometry(FeatureBati->GetGeometryRef());
-double H = 20;
-double Zmin = 0;
-if(FeatureBati->GetFieldIndex("HAUTEUR") != -1)
-H = FeatureBati->GetFieldAsDouble("HAUTEUR");
-if(FeatureBati->GetFieldIndex("Z_MIN") != -1)
-Zmin = FeatureBati->GetFieldAsDouble("Z_MIN");
-double Zmax = Zmin + H;
-
-Zmax = Zmin;
-Zmin = Zmax-H;
-
-citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotBati_" + std::to_string(cpt), GeometryBati, &Zmax, &Zmin);
-++cpt;
-
-exporter.appendCityObject(*Ilot);
-Ilot->computeEnvelope();
-Envelope.merge(Ilot->getEnvelope());
-
-delete GeometryBati;
-}
-
-OGRFeature *FeatureTerrain;
-LayerTerrain->ResetReading();
-
-cpt = 0;
-
-while((FeatureTerrain = LayerTerrain->GetNextFeature()) != NULL)
-{
-OGRMultiPolygon* GeometryTerrain = new OGRMultiPolygon;
-GeometryTerrain->addGeometry(FeatureTerrain->GetGeometryRef());
-double H = 1;
-double Zmin = 0;
-if(FeatureTerrain->GetFieldIndex("HAUTEUR") != -1)
-H = FeatureTerrain->GetFieldAsDouble("HAUTEUR");
-if(FeatureTerrain->GetFieldIndex("Z_MIN") != -1)
-Zmin = FeatureTerrain->GetFieldAsDouble("Z_MIN");
-double Zmax = Zmin + H;
-
-citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotTerrain_" + std::to_string(cpt), GeometryTerrain, &Zmax, &Zmin);
-++cpt;
-
-exporter.appendCityObject(*Ilot);
-Ilot->computeEnvelope();
-Envelope.merge(Ilot->getEnvelope());
-
-delete GeometryTerrain;
-}
-
-exporter.addEnvelope(Envelope);
-exporter.endExport();
-
-QApplication::restoreOverrideCursor();
 }*/
+void MainWindow::test1()
+{
+	QTime time;
+	time.start();
+
+	std::string LiDAR2012 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2012//1833_5173.las";
+	std::string LiDAR2015 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2015//1833_5173_2015.las";
+
+	vcity::app().getAlgo().CompareTwoLidar(LiDAR2012, LiDAR2015);
+
+	//vcity::app().getAlgo().ConvertLasToPCD();
+	//vcity::app().getAlgo().ExtractGround();
+	//vcity::app().getAlgo().ExtractBuildings();
+	//vcity::app().getAlgo().RemoveGroundWithTIN();
+	//vcity::app().getAlgo().CompareBuildings();
+	//vcity::app().getAlgo().ConstructRoofs();
+
+	int millisecondes = time.elapsed();
+	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+
+	return;
+
+	////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+	OGRDataSource* Bati = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/batiout.shp", TRUE);
+	OGRDataSource* Terrain = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/terrainout.shp", TRUE);
+
+	OGRLayer *LayerBati = Bati->GetLayer(0);
+	OGRLayer *LayerTerrain = Terrain->GetLayer(0);
+
+	citygml::ExporterCityGML exporter("C:/Users/Game Trap/Downloads/Ilots.gml");
+	exporter.initExport();
+	citygml::Envelope Envelope;
+
+	OGRFeature *FeatureBati;
+	LayerBati->ResetReading();
+
+	int cpt = 0;
+
+	while((FeatureBati = LayerBati->GetNextFeature()) != NULL)
+	{
+		OGRMultiPolygon* GeometryBati = new OGRMultiPolygon;
+		GeometryBati->addGeometry(FeatureBati->GetGeometryRef());
+		double H = 20;
+		double Zmin = 0;
+		if(FeatureBati->GetFieldIndex("HAUTEUR") != -1)
+			H = FeatureBati->GetFieldAsDouble("HAUTEUR");
+		if(FeatureBati->GetFieldIndex("Z_MIN") != -1)
+			Zmin = FeatureBati->GetFieldAsDouble("Z_MIN");
+		double Zmax = Zmin + H;
+
+		Zmax = Zmin;
+		Zmin = Zmax-H;
+
+		citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotBati_" + std::to_string(cpt), GeometryBati, &Zmax, &Zmin);
+		++cpt;
+
+		exporter.appendCityObject(*Ilot);
+		Ilot->computeEnvelope();
+		Envelope.merge(Ilot->getEnvelope());
+
+		delete GeometryBati;
+	}
+
+	OGRFeature *FeatureTerrain;
+	LayerTerrain->ResetReading();
+
+	cpt = 0;
+
+	while((FeatureTerrain = LayerTerrain->GetNextFeature()) != NULL)
+	{
+		OGRMultiPolygon* GeometryTerrain = new OGRMultiPolygon;
+		GeometryTerrain->addGeometry(FeatureTerrain->GetGeometryRef());
+		double H = 1;
+		double Zmin = 0;
+		if(FeatureTerrain->GetFieldIndex("HAUTEUR") != -1)
+			H = FeatureTerrain->GetFieldAsDouble("HAUTEUR");
+		if(FeatureTerrain->GetFieldIndex("Z_MIN") != -1)
+			Zmin = FeatureTerrain->GetFieldAsDouble("Z_MIN");
+		double Zmax = Zmin + H;
+
+		citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotTerrain_" + std::to_string(cpt), GeometryTerrain, &Zmax, &Zmin);
+		++cpt;
+
+		exporter.appendCityObject(*Ilot);
+		Ilot->computeEnvelope();
+		Envelope.merge(Ilot->getEnvelope());
+
+		delete GeometryTerrain;
+	}
+
+	exporter.addEnvelope(Envelope);
+	exporter.endExport();
+
+	QApplication::restoreOverrideCursor();
+}
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test2() //Génération de stats pour étude de visibilité
 {

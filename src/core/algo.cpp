@@ -2,7 +2,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "algo.hpp"
 ////////////////////////////////////////////////////////////////////////////////
-	#if 0
+#if 1
 #include "application.hpp"
 #include <iostream>
 #include <vector>
@@ -17,14 +17,20 @@
 #include "citymodel.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 #include <lasreader.hpp>
+#include <laswriter.hpp>
 
 #include <pcl/ModelCoefficients.h>
+
 #include <pcl/io/pcd_io.h>
+#include <pcl/io/pcd_io.h>
+
 #include <pcl/point_types.h>
 #include <pcl/surface/concave_hull.h>
 
 #include <pcl/search/organized.h>
 #include <pcl/search/kdtree.h>
+
+#include <pcl/visualization/cloud_viewer.h>
 
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
@@ -32,6 +38,7 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/features/normal_3d_omp.h>
 #include <pcl/features/don.h>
+#include <pcl/features/integral_image_normal.h>
 
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
@@ -42,6 +49,7 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/project_inliers.h>
 #include <pcl/filters/conditional_removal.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 namespace vcity
@@ -199,7 +207,7 @@ namespace vcity
 		double threshold = 0.25; //0.1
 		//std::cout << "threshold ? " << std::endl;
 		//std::cin >> threshold;
-		
+
 		///segment scene into clusters with given distance tolerance using euclidean clustering
 		double segradius = 0.2;//3
 		//std::cout << "segradius ? " << std::endl;
@@ -265,7 +273,7 @@ namespace vcity
 		doncloud->height = 1;
 
 		writer.write<pcl::PointNormal> ("don.pcd", *doncloud, false); 
-		
+
 		// Filter by magnitude
 		std::cout << "Filtering out DoN mag <= " << threshold << "..." << std::endl;
 
@@ -334,12 +342,376 @@ namespace vcity
 		}
 	}
 
+	void SavePCDtoLAS(std::string FileName, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud)
+	{
+		LASwriteOpener laswriteopener;
+		laswriteopener.set_file_name(FileName.c_str());
+
+		// init header
+
+		LASheader lasheader;
+		lasheader.x_scale_factor = 1;
+		lasheader.y_scale_factor = 1;
+		lasheader.z_scale_factor = 1;
+		lasheader.x_offset = appGui().getSettings().getDataProfile().m_offset.x;
+		lasheader.y_offset = appGui().getSettings().getDataProfile().m_offset.y;
+		lasheader.z_offset = 0.0;
+		lasheader.point_data_format = 1;
+		lasheader.point_data_record_length = 28;
+
+		// init point 
+
+		LASpoint laspoint;
+		laspoint.init(&lasheader, lasheader.point_data_format, lasheader.point_data_record_length, 0);
+
+		// open laswriter
+
+		LASwriter* laswriter = laswriteopener.open(&lasheader);
+
+		// write points
+
+		for (pcl::PointXYZ Point : Cloud->points)
+		{
+			// populate the point
+
+			laspoint.set_X(Point.x);
+			laspoint.set_Y(Point.y);
+			laspoint.set_Z(Point.z);
+
+			// write the point
+
+			laswriter->write_point(&laspoint);
+
+			// add it to the inventory
+
+			laswriter->update_inventory(&laspoint);
+		}
+
+		// update the header
+
+		laswriter->update_header(&lasheader, TRUE);
+
+		// close the writer
+
+		I64 total_bytes = laswriter->close();
+
+		delete laswriter;
+
+		std::cout << "Fichiers " << FileName << " cree" << std::endl;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	* @brief Extrait les zones composées de nombreux points proches
+	* @param cloud : nuage de points en entrée
+	* @return un nuage de point avec les zones colorées selon les regroupements
+	*/
+	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> SegmentationRoofs(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+	{
+		OGRMultiPoint* Points = new OGRMultiPoint; //liste des points en sortie pour export Shapefile
+
+		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> PointsSegmentes; //Liste des groupements de points
+
+		// Creating the KdTree object for the search method of the extraction
+		pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+		tree->setInputCloud (cloud);
+
+		std::vector<pcl::PointIndices> cluster_indices;
+		pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+		ec.setClusterTolerance (1);
+		ec.setMinClusterSize (100);
+		ec.setMaxClusterSize (2500000);
+		ec.setSearchMethod (tree);
+		ec.setInputCloud (cloud);
+		ec.extract (cluster_indices);
+
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud_trie (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+		int j = 0;
+
+		for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
+		{
+			double r = 255 * rand() / (RAND_MAX + 1.0f);
+			double g = 255 * rand() / (RAND_MAX + 1.0f);
+			double b = 255 * rand() / (RAND_MAX + 1.0f);
+			//std::cout << r << " " << g << " " << b << std::endl;
+			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+			for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
+				cloud_cluster->points.push_back (cloud->points[*pit]); //*
+			cloud_cluster->width = (int)cloud_cluster->points.size ();
+			cloud_cluster->height = 1;
+			cloud_cluster->is_dense = true;
+
+			PointsSegmentes.push_back(cloud_cluster);
+
+			pcl::PointXYZRGB PointRGB;
+
+			for(pcl::PointXYZ P : cloud_cluster->points)
+			{
+				Points->addGeometry(new OGRPoint(P.x, P.y, P.z));
+
+				PointRGB.x = P.x;
+				PointRGB.y = P.y;
+				PointRGB.z = P.z;
+				PointRGB.r = r;
+				PointRGB.g = g;
+				PointRGB.b = b;
+
+				Cloud_trie->points.push_back(PointRGB);
+			}
+
+			//std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
+			//std::stringstream ss;
+			//ss << "1845_5181_cloud_cluster_" << j << ".pcd";
+			//writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
+			//j++;
+		}
+
+		Cloud_trie->width = (int)Cloud_trie->points.size ();
+		Cloud_trie->height = 1;
+
+		pcl::PCDWriter writer;
+		writer.write<pcl::PointXYZRGB>("ChangementsSegmente.pcd", *Cloud_trie, false);
+
+		SaveGeometrytoShape("ChangementsSegmenteShp.shp", Points);
+
+		delete Points;
+
+		return PointsSegmentes;
+	}
+
+	/**
+	* @brief Extrait les points d'un nuage de point situé à plus d'une certaine distance d'un autre nuage
+	* @param Cloud1 : Nuage de points de référence
+	* @param Cloud2 : Nuage de points que l'on va comparer à Cloud1
+	* @param Distance : Distance minimale à partir de laquelle un point de Cloud2 sera jugé comme suffisament éloigné de Cloud1, et mis de côté
+	* @return Un nuage de points contenant tous les points de Cloud2 situés à plus de Distance de Cloud1
+	*/
+	pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractDistantPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud2, float Distance)
+	{
+		pcl::PointXYZ point;
+
+		pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+		kdtree.setInputCloud(Cloud1);
+
+		int K = 1; //K plus proches voisins
+
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr CloudColore (new pcl::PointCloud<pcl::PointXYZRGB>);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr CloudModif (new pcl::PointCloud<pcl::PointXYZ>);
+
+		for(size_t i = 0; i < Cloud2->size(); ++i)
+		{
+			point = Cloud2->at(i);
+
+			pcl::PointXYZRGB P;
+			pcl::PointXYZ P2;
+
+			std::vector<int> IndicesPoints(K);
+			std::vector<float> Distances(K);
+
+			if( kdtree.nearestKSearch(point, K, IndicesPoints, Distances) > 0 )
+			{
+				P.x = point.x;
+				P2.x = point.x;
+				P.y = point.y;
+				P2.y = point.y;
+				P.z = point.z;
+				P2.z = point.z;
+
+				P.r = Distances[0]*25.5; //Rouge à 10m de différence.
+				P.g = Distances[0]*25.5;
+				P.b = Distances[0]*25.5;
+
+				CloudColore->points.push_back(P);
+
+				if(Distances[0] > Distance)
+				{
+					CloudModif->points.push_back(P2);
+				}
+			}
+		}
+
+		CloudColore->width = (int)CloudColore->points.size();
+		CloudColore->height = 1;
+		CloudColore->is_dense = false;
+
+		CloudModif->width = (int)CloudModif->points.size();
+		CloudModif->height = 1;
+		CloudModif->is_dense = false;
+
+		pcl::PCDWriter writer;
+		writer.write<pcl::PointXYZRGB> ("ComparaisonLidar.pcd", *CloudColore, false);
+
+		writer.write<pcl::PointXYZ> ("Changements.pcd", *CloudModif, false);
+
+		return CloudModif;
+	}
+
+	pcl::PointCloud<pcl::Normal>::Ptr ComputeNormals(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+	{
+		// Create the normal estimation class, and pass the input dataset to it
+		pcl::NormalEstimationOMP<pcl::PointXYZ, pcl::Normal> ne;
+		ne.setInputCloud (cloud);
+
+		// Create an empty kdtree representation, and pass it to the normal estimation object.
+		// Its content will be filled inside the object, based on the given input dataset (as no other search surface is given).
+		pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ> ());
+		ne.setSearchMethod (tree);
+
+		// Output datasets
+		pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
+
+		ne.setKSearch(4);
+		//ne.setRadiusSearch (5); 
+
+		// Compute the features
+		ne.compute (*cloud_normals);
+
+		return cloud_normals;
+	}
+	////////////////////////////////////////////////////////////////////////////////
+	/**
+	* @brief Détecte les changements sur les bâtiments entre deux fichiers LiDAR. Le plus récent est en 2.
+	* @param Path1 : Chemin pour le fichier correspondant au fichier LiDAR le plus ancien
+	* @param Path2 : Chemin pour le fichier correspondant au fichier LiDAR le plus récent
+	* @return 
+	*/
+	void Algo::CompareTwoLidar(std::string Path1, std::string Path2)
+	{
+		pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud (new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PCDReader reader;
+		//reader.read<pcl::PointXYZ> ("C://Users///FredLiris//Downloads//PCL//table_scene_lms400.pcd", *Cloud);
+		reader.read<pcl::PointXYZ> ("C://VCity.git//VCity Build//ChangementsSegmente.pcd", *Cloud);
+
+		OGRMultiLineString* NormalesTest = new OGRMultiLineString;
+
+		pcl::PointCloud<pcl::Normal>::Ptr NormalesCloud = ComputeNormals(Cloud);
+
+		SavePCDtoLAS("test.las", Cloud);
+
+		for(size_t i = 0; i < Cloud->points.size(); ++i)
+		{
+			OGRLineString* Line = new OGRLineString;
+			Line->addPoint(Cloud->points.at(i).x, Cloud->points.at(i).y, Cloud->points.at(i).z);
+			Line->addPoint(Cloud->points.at(i).x + NormalesCloud->points.at(i).normal_x, Cloud->points.at(i).y + NormalesCloud->points.at(i).normal_y, Cloud->points.at(i).z + NormalesCloud->points.at(i).normal_z);
+
+			NormalesTest->addGeometryDirectly(Line);
+		}
+
+		SaveGeometrytoShape("NormalesTest.shp", NormalesTest);
+		delete NormalesTest;
+
+		return;
+
+		LASreadOpener lasreadopener;
+		lasreadopener.set_file_name(Path1.c_str());
+		LASreader* LiDAR1 = lasreadopener.open();
+		lasreadopener.set_file_name(Path2.c_str());
+		LASreader* LiDAR2 = lasreadopener.open();
+
+		pcl::PointXYZ point;
+		pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud1 (new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud2 (new pcl::PointCloud<pcl::PointXYZ>);
+
+		while (LiDAR1->read_point())
+		{
+			point.x = (LiDAR1->point).get_x() - appGui().getSettings().getDataProfile().m_offset.x;
+			point.y = (LiDAR1->point).get_y() - appGui().getSettings().getDataProfile().m_offset.y;
+			point.z = (LiDAR1->point).get_z();
+
+			Cloud1->points.push_back(point);
+		}
+
+		Cloud1->width = (int)Cloud1->points.size();
+		Cloud1->height = 1;
+		Cloud1->is_dense = false;
+
+		//pcl::PCDWriter writer;
+		//writer.write<pcl::PointXYZ> ("LiDAR2012.pcd", *Cloud1, false);
+
+		while (LiDAR2->read_point())
+		{
+			point.x = (LiDAR2->point).get_x() - appGui().getSettings().getDataProfile().m_offset.x;
+			point.y = (LiDAR2->point).get_y() - appGui().getSettings().getDataProfile().m_offset.y;
+			point.z = (LiDAR2->point).get_z();
+
+			Cloud2->points.push_back(point);
+		}
+
+		Cloud2->width = (int)Cloud2->points.size();
+		Cloud2->height = 1;
+		Cloud2->is_dense = false;
+
+		//writer.write<pcl::PointXYZ> ("LiDAR2015.pcd", *Cloud2, false);
+
+		std::cout << "Ouverture des LiDAR terminee." << std::endl;
+
+		pcl::PointCloud<pcl::PointXYZ>::Ptr CloudModif = ExtractDistantPoints(Cloud1, Cloud2, 2.0f);
+
+		std::cout << "Extraction Points distances terminee." << std::endl;
+
+		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> PointsSegmentes = SegmentationRoofs(CloudModif);
+
+		std::cout << "Comparaison terminee." << std::endl;
+
+		//pcl::PointCloud<pcl::PointXYZRGB>::Ptr Test (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+		//pcl::PointXYZRGB pointRGB;
+
+		OGRMultiLineString* Normales = new OGRMultiLineString;
+
+		for(pcl::PointCloud<pcl::PointXYZ>::Ptr PointsCloud : PointsSegmentes)
+		{
+			pcl::PointCloud<pcl::Normal>::Ptr NormalsCloud = ComputeNormals(PointsCloud);
+
+			//std::cout << PointsCloud->points.size() << " " << NormalsCloud->points.size() << std::endl;
+
+			for(size_t i = 0; i < PointsCloud->points.size(); ++i)
+			{
+				//pointRGB.x = PointsCloud->points.at(i).x;
+				//pointRGB.y = PointsCloud->points.at(i).y;
+				//pointRGB.z = PointsCloud->points.at(i).z;
+				//pointRGB.r = 128 * (1+NormalsCloud->points.at(i).normal_x);
+				//pointRGB.g = 128 * (1+NormalsCloud->points.at(i).normal_y);
+				//pointRGB.b = 128 * (1+NormalsCloud->points.at(i).normal_z);
+
+				//std::cout << NormalsCloud->points.at(i).normal_x << " " << NormalsCloud->points.at(i).normal_y << " " << NormalsCloud->points.at(i).normal_z << std::endl;
+
+				//std::cout << unsigned(pointRGB.r) << " " << unsigned(pointRGB.g) << " " << unsigned(pointRGB.b) << std::endl;
+				//int a;
+				//std::cin >> a;
+
+				//Test->points.push_back(pointRGB);
+
+				OGRLineString* Line = new OGRLineString;
+				Line->addPoint(PointsCloud->points.at(i).x, PointsCloud->points.at(i).y, PointsCloud->points.at(i).z);
+				Line->addPoint(PointsCloud->points.at(i).x + NormalsCloud->points.at(i).normal_x, PointsCloud->points.at(i).y + NormalsCloud->points.at(i).normal_y, PointsCloud->points.at(i).z + NormalsCloud->points.at(i).normal_z);
+
+				Normales->addGeometryDirectly(Line);
+			}
+		}
+
+		SaveGeometrytoShape("Normales.shp", Normales);
+		delete Normales;
+
+		//Test->width = (int)Test->points.size();
+		//Test->height = 1;
+		//Test->is_dense = false;
+
+		//pcl::PCDWriter writer;
+		//writer.write<pcl::PointXYZRGB> ("Normals.pcd", *Test, false);
+
+		std::cout << "Calcul des normales termine." << std::endl;
+	}
+
 
 	////////////////////////////////////////////////////////////////////////////////
 	void Algo::ConvertLasToPCD()
 	{
 		LASreadOpener lasreadopener;
-		lasreadopener.set_file_name("C://Users//FredLiris//Downloads//1845_5181.las");
+		//lasreadopener.set_file_name("C://Users//FredLiris//Downloads//1845_5181.las");
+		lasreadopener.set_file_name("C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2015//1833_5173_2015.las");
 		LASreader* lasreader = lasreadopener.open();
 
 		pcl::PointXYZ point;
@@ -416,160 +788,11 @@ namespace vcity
 		pcl::PCDReader reader;
 		pcl::PCDWriter writer;
 
-		//reader.read<pcl::PointXYZ> ("C://Users//FredLiris//Downloads//samp11-utm_object.pcd", *cloud);
-		//reader.read<pcl::PointXYZ> ("C://Users//FredLiris//Downloads//table_scene_lms400.pcd", *cloud);
 		reader.read<pcl::PointXYZ> ("C://Users//FredLiris//Downloads//1845_5181_NoGround_2m.pcd", *cloud);
 
 		std::cerr << "PointCloud : " << cloud->width * cloud->height << " data points." << std::endl;
 
-		////////////////////////////////////////
-
-		// Creating the KdTree object for the search method of the extraction
-		pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
-		tree->setInputCloud (cloud);
-
-		std::vector<pcl::PointIndices> cluster_indices;
-		pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-		ec.setClusterTolerance (1);
-		ec.setMinClusterSize (200);
-		ec.setMaxClusterSize (2500000);
-		ec.setSearchMethod (tree);
-		ec.setInputCloud (cloud);
-		ec.extract (cluster_indices);
-
-		OGRMultiPoint* Points = new OGRMultiPoint;
-
-		pcl::PointCloud<pcl::PointXYZRGB>::Ptr Cloud_trie (new pcl::PointCloud<pcl::PointXYZRGB>);
-
-		int j = 0;
-
-		for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
-		{
-			double r = 255 * rand() / (RAND_MAX + 1.0f);
-			double g = 255 * rand() / (RAND_MAX + 1.0f);
-			double b = 255 * rand() / (RAND_MAX + 1.0f);
-			std::cout << r << " " << g << " " << b << std::endl;
-			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-			for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
-				cloud_cluster->points.push_back (cloud->points[*pit]); //*
-			cloud_cluster->width = (int)cloud_cluster->points.size ();
-			cloud_cluster->height = 1;
-			cloud_cluster->is_dense = true;
-
-			pcl::PointXYZRGB PointRGB;
-
-			for(pcl::PointXYZ P : cloud_cluster->points)
-			{
-				Points->addGeometry(new OGRPoint(P.x, P.y, P.z));
-
-				PointRGB.x = P.x;
-				PointRGB.y = P.y;
-				PointRGB.z = P.z;
-				PointRGB.r = r;
-				PointRGB.g = g;
-				PointRGB.b = b;
-
-				Cloud_trie->points.push_back(PointRGB);
-			}
-
-			std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-			//std::stringstream ss;
-			//ss << "1845_5181_cloud_cluster_" << j << ".pcd";
-			//writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
-			//j++;
-		}
-
-		Cloud_trie->width = (int)Cloud_trie->points.size ();
-		Cloud_trie->height = 1;
-
-		writer.write<pcl::PointXYZRGB>("1845_5181_NoGround_Trie.pcd", *Cloud_trie, false);
-
-		SaveGeometrytoShape("LidarPoints.shp", Points);
-
-		return;
-
-		////////////////////////////////////////
-
-		/*pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients ());
-		pcl::PointIndices::Ptr inliers (new pcl::PointIndices ());
-		// Create the segmentation object
-		pcl::SACSegmentation<pcl::PointXYZ> seg;
-		seg.setOptimizeCoefficients (true);
-		seg.setModelType (pcl::SACMODEL_PLANE);
-		seg.setMethodType (pcl::SAC_RANSAC);
-		seg.setMaxIterations (1000);
-		seg.setDistanceThreshold (0.01);
-
-		// Create the filtering object
-		pcl::ExtractIndices<pcl::PointXYZ> extract;
-
-		int i = 0, nr_points = (int) cloud->points.size ();
-		// While 30% of the original cloud is still there
-		while (cloud->points.size () > 0.3 * nr_points)
-		{
-		std::cerr << "Avancement : " << cloud->points.size() << " // " << 0.3 * nr_points << std::endl;
-
-		// Segment the largest planar component from the remaining cloud
-		seg.setInputCloud (cloud);
-		seg.segment (*inliers, *coefficients);
-		if (inliers->indices.size () == 0)
-		{
-		std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
-		break;
-		}
-
-		// Extract the inliers
-		extract.setInputCloud (cloud);
-		extract.setIndices (inliers);
-		extract.setNegative (false);
-		extract.filter (*cloud_p);
-		std::cerr << "PointCloud representing the planar component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
-
-		std::stringstream ss;
-		//ss << "samp11-utm_object_plane_" << i << ".pcd";
-		ss << "table_scene_lms400_plane_" << i << ".pcd";
-		//ss << "1841_5175_object_plane_" << i << ".pcd";
-		writer.write<pcl::PointXYZ> (ss.str (), *cloud_p, false);
-
-		/////////////////////////////////// Concave HULL
-
-		// Project the model inliers
-		pcl::ProjectInliers<pcl::PointXYZ> proj;
-		proj.setModelType (pcl::SACMODEL_PLANE);
-		proj.setIndices (inliers);
-		proj.setInputCloud (cloud);
-		proj.setModelCoefficients (coefficients);
-		proj.filter (*cloud_projected);
-
-		// Create a Concave Hull representation of the projected inliers
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_hull (new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::ConcaveHull<pcl::PointXYZ> chull;
-		chull.setInputCloud (cloud_projected);
-		chull.setAlpha (0.1);
-		chull.reconstruct (*cloud_hull);
-
-		std::cerr << "Concave hull has: " << cloud_hull->points.size ()
-		<< " data points." << std::endl;
-
-		if(cloud_hull->points.size () > 0)
-		{
-		std::stringstream ss2;
-		//ss2 << "samp11-utm_object_Hull_" << i << ".pcd";
-		ss2 << "table_scene_lms400_Hull_" << i << ".pcd";
-		//ss2 << "1841_5175_object_Hull_" << i << ".pcd";
-		writer.write<pcl::PointXYZ> (ss2.str (), *cloud_hull, false);
-		}
-
-		///////////////////////////////////
-
-		// Create the filtering object
-		extract.setNegative (true);
-		extract.filter (*cloud_f);
-		cloud.swap (cloud_f);
-		i++;
-		}
-
-		return;*/
+		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> Cloud_trie = SegmentationRoofs(cloud);
 	}
 
 	void Algo::PrepareTIN()
@@ -899,5 +1122,5 @@ namespace vcity
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
 
-	#endif
+#endif
 
