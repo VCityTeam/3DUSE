@@ -13,4 +13,7 @@ add_library(
 
 target_link_libraries(filters ${OSG_LIBRARIES} citygmlutils)
 
-
+if (WITH_QT5)
+#	QT5_USE_MODULES(filters Core Widgets OpenGL)
+	QT5_USE_MODULES(filters Core)
+endif(WITH_QT5)
