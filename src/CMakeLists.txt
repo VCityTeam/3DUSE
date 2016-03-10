@@ -1,2 +1,2 @@
-add_subdirectory(filters)
+add_subdirectory(libfilters)
 add_subdirectory(libcitygml)

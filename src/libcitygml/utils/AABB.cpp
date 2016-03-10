@@ -4,7 +4,8 @@
 #include <QFile>
 
 #include <iostream>
-#include <fstream>
+//#include <fstream> // MT 09/03/2016
+#include <osgDB/fstream>
 #include <map>
 
 #include "libcitygml/citygml.hpp"

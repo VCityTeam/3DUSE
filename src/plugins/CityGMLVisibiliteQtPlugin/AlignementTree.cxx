@@ -8,7 +8,7 @@
 #include "gui/osg/osgScene.hpp"
 #include "export/exportCityGML.hpp"
 
-#include "Hit.hpp"
+#include "raytracing/Hit.hpp"
 #include "AABB.hpp"
 
 typedef std::vector<TVec3d> LRing;

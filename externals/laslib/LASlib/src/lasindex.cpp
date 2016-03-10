@@ -51,6 +51,7 @@
   #endif
 typedef unordered_map<I32,U32> my_cell_hash;
 #else
+#define _SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS
 #include <hash_map>
 using namespace std;
 typedef hash_map<I32,U32> my_cell_hash;

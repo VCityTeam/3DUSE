@@ -175,7 +175,6 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
         {
             Ray* ray = new Ray();
             ray->BuildRd(TVec2d(i,j),cam);
-            //ray->collection = rays;
             rays->rays.push_back(ray);
         }
     }

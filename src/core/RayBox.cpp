@@ -1,4 +1,4 @@
-#include "RayTracing.hpp"
+#include "raytracing/RayTracing.hpp"
 #include "AABB.hpp"
 
 #include "RayBox.hpp"
@@ -35,6 +35,7 @@ RayBox::RayBox(TVec3d ori, TVec3d dir, std::string id)
     boxes = std::vector<RayBoxHit>();
 }
 
+
 //Ray aabb intersection, from pbrt-v2
 //License : http://www.pbrt.org/LICENSE.txt
 bool RayBox::Intersect(AABB box, float *hitt0, float *hitt1)
@@ -68,7 +69,6 @@ RayBoxCollection* RayBoxCollection::BuildCollection(osg::Camera* cam)
         {
             RayBox* raybox = new RayBox();
             raybox->BuildRd(TVec2d(i,j),cam);
-            //raybox->collection = raysBoxes;
             raysBoxes->raysBB.push_back(raybox);
         }
     }
