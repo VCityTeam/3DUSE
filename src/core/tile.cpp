@@ -159,7 +159,7 @@ void Tile::load(const std::string& filepath)
     // set tile name
     static int id = 0;
     std::stringstream ss;
-    ss << "tile" << id++;
+    ss << "file" << id++;
     m_name = ss.str();
 }
 ////////////////////////////////////////////////////////////////////////////////
