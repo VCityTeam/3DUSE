@@ -216,39 +216,57 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 			geom->setNormalArray( normals.get() );
 			geom->setNormalBinding( osg::Geometry::BIND_PER_VERTEX );
 
-			// Material management
-			osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
+            // Material management (Color management)
+            osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet(); //Get the stateset from the geometry
 
-			const citygml::Appearance *mat = p->getAppearance();
-
+            //Create Material and setColorMode to OFF to be able to choose ambient, diffuse and specular color (emission and shininess can also be changed).
             osg::Material* material = new osg::Material;
             material->setColorMode( osg::Material::OFF );
 
-            osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
-            osg::Vec4 diffuseColor = osg::Vec4(0.f,0.f,0.f,1.f);
-            osg::Vec4 specularColor = osg::Vec4(0.f,0.f,0.f,1.f);
+            //Default Grey color
+            osg::Vec4 ambientColor = osg::Vec4(0.7f,0.7f,0.7f,1.f);
+            osg::Vec4 diffuseColor = osg::Vec4(0.5f,0.5f,0.5f,1.f);
+            osg::Vec4 specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
 
-            if(geometry.getType() == citygml::GT_Roof)
+            //Change color depending on object Type
+            if(geometry.getType() == citygml::GT_Roof ||
+                    object->getType() == citygml::COT_RoofSurface) //Roofs
             {
-                ambiantColor = osg::Vec4(0.93f,0.5f,0.37f,1.f);
+                //Brick
+                ambientColor = osg::Vec4(0.8f,0.25f,0.25f,1.f);
                 diffuseColor = osg::Vec4(0.30f,0.30f,0.30f,1.0f);
                 specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
             }
-            else //Walls
+            else if(object->getType() == citygml::COT_TINRelief) //Land
             {
-                ambiantColor = osg::Vec4(0.7f,0.7f,0.7f,1.f);
-                diffuseColor = osg::Vec4(0.5f,0.5f,0.5f,1.f);
-                specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
+                //Brown
+                ambientColor = osg::Vec4(0.74f,0.65f,0.56f,1.f);
+                diffuseColor = osg::Vec4(0.35f,0.35f,0.35f,1.f);
             }
-            material->setAmbient( osg::Material::FRONT_AND_BACK, ambiantColor );
+            else if(object->getType() == citygml::COT_WaterBody)
+            {
+                //Blue
+                ambientColor = osg::Vec4(0.12f,0.49f,0.79f,1.f);
+            }
+            else if(object->getType() == citygml::COT_SolitaryVegetationObject || object->getType() == citygml::COT_PlantCover || object->getType() == citygml::COT_Square)
+            {
+                //Green
+                ambientColor = osg::Vec4(0.22f,0.54f,0.13f,1.f);
+                diffuseColor = osg::Vec4(0.3f,0.3f,0.3f,1.f);
+            }
+
+            material->setAmbient( osg::Material::FRONT_AND_BACK, ambientColor );
             material->setDiffuse( osg::Material::FRONT_AND_BACK, diffuseColor );
             material->setSpecular( osg::Material::FRONT_AND_BACK, specularColor );
 
             stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
             stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
+
             if ( m_settings.m_useTextures)
             {
+                const citygml::Appearance *mat = p->getAppearance();
+
                 if ( const citygml::Texture* t = dynamic_cast<const citygml::Texture*>( mat ) )
                 {
                     const citygml::TexCoords& texCoords = p->getTexCoords();
