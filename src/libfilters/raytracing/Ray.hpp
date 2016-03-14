@@ -14,21 +14,12 @@ struct Triangle;
 */
 struct Ray
 {
-<<<<<<< HEAD:src/filters/raytracing/Ray.hpp
-	/**
-	*	@brief Build a new ray
-	*	@param ori Origin of the ray
-	*	@param dir Direction of the ray
-    *   @param Id oh the ray
-	*/
-=======
     /**
     *	@brief Build a new ray
     *	@param ori Origin of the ray
     *	@param dir Direction of the ray
     *   @param Id oh the ray
     */
->>>>>>> master:src/libfilters/raytracing/Ray.hpp
     Ray(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0),std::string id = "" );
 
 	/**

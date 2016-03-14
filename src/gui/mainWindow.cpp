@@ -51,13 +51,13 @@
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 
-#include "RayTracing.hpp"
+#include "raytracing/RayTracing.hpp"
 #include "AABB.hpp"
 #include "Triangle.hpp"
 #include "src/core/RayBox.hpp"
 #include <queue>
 #include "quaternion.hpp"
-#include "Hit.hpp"
+#include "raytracing/Hit.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
