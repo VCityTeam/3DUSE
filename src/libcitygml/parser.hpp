@@ -28,7 +28,8 @@
 #include <string>
 #include <algorithm>
 #include <stack>
-#include <fstream>
+//#include <fstream> // MT 09/03/2016
+#include <osgDB/fstream>
 #include <set>
 
 //forward declaration

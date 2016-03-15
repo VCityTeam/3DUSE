@@ -12,6 +12,9 @@ if (COMMAND cmake_policy)
   if(POLICY CMP0042)
     cmake_policy(SET CMP0042 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0042.html
   endif(POLICY CMP0042)
+  if(POLICY CMP0043)
+    cmake_policy(SET CMP0043 OLD)
+  endif(POLICY CMP0043)
   if(POLICY CMP0054)
     cmake_policy(SET CMP0054 OLD)
   endif(POLICY CMP0054)
@@ -80,7 +83,16 @@ endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 if(MSVC)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /D \"NOMINMAX\"")
 
-	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+#	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE") # /FORCE:MULTIPLE should be avoided (e.g. /INCREMENTAL is disabled because of it)
+
+	if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "19")
+		set(KIT_VS2015 YES)
+		#message("VS2015 KIT used")
+	else()
+		#message("VS2012 KIT used")
+	endif()
+
+  include( "${CMAKE_SOURCE_DIR}/cmake/msvc/kit.cmake" )
 endif()
 #------------------------------------------------------------------------------
 # APPLE OS X
@@ -92,74 +104,6 @@ endif(APPLE)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-# WIN32 x64 VCity binary kit - KIT VS 2012 x64 - OLD KIT - DEPRECATED
-IF(WIN32)
-  if(NOT DEFINED KIT_VS2015)
-  	if(DEFINED ENV{VCITY_KIT_ROOT})
-  		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
-  	endif()
-  	if( NOT DEFINED VCITY_KIT_ROOT )
-  		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
-  	endif( NOT DEFINED VCITY_KIT_ROOT )
-
-  	if(WITH_QT5)
-  		# with qt5
-  		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.1.0/5.1.0/msvc2012_64_opengl)
-  	else(WITH_QT5)
-  		# with qt4
-  		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.5-x64-msvc2012)
-  	endif(WITH_QT5)
-
-  	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.0.1270)
-
-  	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/osg-3.2.1-bin-without-qt)
-
-  	set(GDAL_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include)
-  	set(GDAL_LIBRARY			${OSG_DIR}/../3rdParty/x64/lib/gdal_i.lib)
-
-  	set(LIBXML2_INCLUDE_DIR		${OSG_DIR}/../3rdParty/x64/include/libxml2)
-  	set(LIBXML2_LIBRARIES		${OSG_DIR}/../3rdParty/x64/lib/libxml2.lib) #libxml2D.lib
-
-  	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
-  	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
-  	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
-  endif()
-ENDIF()
-
-# WIN32 x64 VCity binary kit - KIT VS 2015 x64 - NEW KIT - TO USE, SET KIT_VS2015 TO TRUE
-IF(WIN32)
-  if(DEFINED KIT_VS2015)
-  	if(DEFINED ENV{VCITY_KIT_ROOT})
-  		set( VCITY_KIT_ROOT $ENV{VCITY_KIT_ROOT} )
-  	endif()
-  	if( NOT DEFINED VCITY_KIT_ROOT )
-  		message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
-  	endif( NOT DEFINED VCITY_KIT_ROOT )
-
-  	if(WITH_QT5)
-  		# with qt5
-  		set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.6.0/5.6.0/msvc2015_64_opengl)
-  	else(WITH_QT5)
-  		# with qt4
-  		set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.7-x64-msvc2015)
-  	endif(WITH_QT5)
-
-  	set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.2)
-
-  	set(OSG_DIR					${VCITY_KIT_ROOT}/osg/OpenSceneGraph-3.4.0)
-
-  	set(GDAL_INCLUDE_DIR		${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/include)
-  	set(GDAL_LIBRARY			${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/lib/gdal_i.lib)
-
-  	set(LIBXML2_INCLUDE_DIR		${VCITY_KIT_ROOT}/libxml2-2.9.3/include/libxml2)
-  	set(LIBXML2_LIBRARIES		${VCITY_KIT_ROOT}/libxml2-2.9.3/lib/libxml2.lib)
-
-  	set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
-  	set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
-  	set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
-  endif()
-ENDIF()
 
 # Find Qt
 if (WITH_QT5)
@@ -435,7 +379,13 @@ else(WITH_QT5)
   QT4_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 endif(WITH_QT5)
 
-INCLUDE_DIRECTORIES( src src/libcitygml )
+INCLUDE_DIRECTORIES(src src/libcitygml)
+
+# Local libraries
+set(FILTERS_INCLUDE_DIR	${PROJECT_SOURCE_DIR}/src/libfilters)
+set(FILTERS_LIBRARIES	filters)
+
+include_directories(${FILTERS_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/libcitygml/utils)
 
 # General
 file(
@@ -450,9 +400,15 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_RES_H}
 )
 if (WIN32)
-  SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
+  if(NOT DEFINED KIT_VS2015)
+    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
+  endif()
+  if(DEFINED KIT_VS2015)
+    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
+  endif()
+
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
-endif(WIN32)
+endif()
 if(DEFINED ENV{TRAVIS})
   if (APPLE)
     set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
@@ -548,7 +504,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB})
+target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} ${FILTERS_LIBRARIES} citygmlutils)
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
@@ -795,3 +751,5 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 	#--------------------------------------------------------------------------------
 	# Now the installation stuff : end
 	#--------------------------------------------------------------------------------
+
+add_subdirectory(src)

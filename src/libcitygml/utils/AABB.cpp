@@ -1,25 +1,34 @@
 #include "AABB.hpp"
 
-#include "gui/osg/osgScene.hpp"
-
-#include "Ray.hpp"
-
 #include <QDir>
 #include <QFile>
 
 #include <iostream>
+//#include <fstream> // MT 09/03/2016
+#include <osgDB/fstream>
+#include <map>
 
-#include "../Visibilite.hpp"
+#include "libcitygml/citygml.hpp"
+#include "core/tile.hpp"
+#include "Triangle.hpp"
 
-bool operator<(const RayBoxHit& a, const RayBoxHit& b)
+//AABB
+
+bool AABB::operator==(AABB const& other)
 {
-	return a.minDistance < b.minDistance;
+    return name == other.name;
 }
+
+
+//BoxOrder
 
 bool operator<(const BoxOrder& a, const BoxOrder& b)
 {
 	return a.order < b.order;
 }
+
+
+// AABBCollection
 
 /**
 *	@brief Load a collection of box from a file
@@ -41,8 +50,15 @@ std::vector<AABB> DoLoadAABB(std::string path)
 	for(unsigned int i = 0; i < count; i++)
 	{
 		AABB box;
-		ifs.getline(line,256);
-		box.name = std::string(line);
+        ifs.getline(line,256);
+
+        box.name = std::string(line);
+
+        //To avoid problems with files from Windows used on UNIX (Windows uses '/r/n' as 'new line' escape sequence and Unix systems use '/n' only).
+        //In order to erase '\r' character if present.
+        if(!box.name.empty() && *box.name.rbegin() == '\r')
+            box.name.erase( box.name.length()-1, 1);
+
 		double minx;
 		double miny;
 		double minz;
@@ -62,7 +78,6 @@ std::vector<AABB> DoLoadAABB(std::string path)
 			box.min = TVec3d(minx,miny,minz);
 			box.max = TVec3d(maxx,maxy,maxz);
 			bSet.push_back(box);
-
 		}
 	}
 
@@ -159,11 +174,11 @@ AABBCollection LoadAABB(std::string dir)
 }
 
 /**
-*	@brief Build a collection of box from a citygml file in a set of directory
-*	@param dirs Directories when citygml files are located
+*	@brief Build a collection of boxes from a citygml file in a set of directory
+*	@param dirs Directories where citygml files are located
 *	@param offset 3D offset used by the application
-*	@param type Types of cityobject to use
-*	@return collection of box, key = nameo of the box, value = <min of the box, max of the box>
+*	@param type Type of cityobject to use
+*	@return a collection of boxes, key = name of the box, value = <min of the box, max of the box>
 */
 std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dirs, citygml::CityObjectsType type)
 {
@@ -205,8 +220,8 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 }
 
 /**
-*	@brief Save a collection of box on disk
-*	@param filePath Where to save the collection
+*	@brief Save a collection of boxes on disk
+*	@param filePath where to save the collection
 *	@param AABBs The collection of box
 */
 void DoSaveAABB(std::string filePath, std::map<std::string,std::pair<TVec3d,TVec3d>> AABBs)
