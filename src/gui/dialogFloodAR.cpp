@@ -27,8 +27,7 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	connect(ui->chkBox_tex ,SIGNAL(stateChanged(int)),this,SLOT( enableTextures(int)));
 	connect(ui->btn_ASCtoTerrain_exec ,SIGNAL(clicked()),this,SLOT( ASCtoTerrain()));
 
-	//ui->btn_ASCtoWater_exec->setEnabled(false);
-	ui->btn_ASCtoTerrain_exec->setEnabled(false);
+	ui->chkBox_tex->setEnabled(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::~dialogFloodAR()
@@ -101,8 +100,8 @@ void dialogFloodAR::cutASC()
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::browseInputASCtoWater()
 {
-	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
-	ui->lineEdit_ASCtoWater_src->setText(filename);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Select ASC source file", "", "ASC files (*.asc)");
+	ui->lineEdit_ASCtoWater_src->setText(filenames.join(";"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::enablePolygonsParams(int state)
@@ -148,67 +147,75 @@ void dialogFloodAR::ASCtoWater()
 	QDateTime creaDate = ui->dtEdit_creationDate->dateTime();
 	QDateTime termDate = ui->dtEdit_terminationDate->dateTime();
 
-	QFileInfo file(ui->lineEdit_ASCtoWater_src->text());
-	if (!file.exists())
+	QStringList filenames = ui->lineEdit_ASCtoWater_src->text().split(";");
+	for (int i = 0; i<filenames.size(); i++)
 	{
-		QMessageBox msgBox;
-		msgBox.setText("Input file not found!");
-		msgBox.setIcon(QMessageBox::Critical);
-		msgBox.exec();
-		return;
-	}
-
-	citygml::CityModel* model = new citygml::CityModel();
-	std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
-	QString ext = file.suffix().toLower();
-	if (ext=="asc")
-	{
-		//lecture du fichier
-		citygml::ImporterASC* importer = new citygml::ImporterASC();
-		MNT* asc = new MNT();
-		if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
-		{
-			//conversion en structure CityGML
-			if (polygonsImport)
-			{
-				model = importer->waterToCityGMLPolygons(asc,prec);
-			}
-			else
-			{
-				model = importer->waterToCityGML(asc);
-			}
-			delete importer;
-			delete asc;
-		}
-	}
-	//Add temporal info
-	if (tempImport)
-	{
-		if (!(creaDate<termDate))
+		QFileInfo file = filenames[i];
+		if (!file.exists())
 		{
 			QMessageBox msgBox;
-			msgBox.setText("Invalid temporal settings!");
+			msgBox.setText("Input file not found!");
 			msgBox.setIcon(QMessageBox::Critical);
 			msgBox.exec();
+			return;
 		}
-		else
-			for (citygml::CityObject* obj : model->getCityObjectsRoots())
+
+		citygml::CityModel* model = new citygml::CityModel();
+		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
+		QString ext = file.suffix().toLower();
+		if (ext=="asc")
+		{
+			//lecture du fichier
+			citygml::ImporterASC* importer = new citygml::ImporterASC();
+			MNT* asc = new MNT();
+			if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
 			{
-				obj->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-				obj->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+				//conversion en structure CityGML
+				if (polygonsImport)
+				{
+					//model = importer->waterToCityGMLPolygons(asc,prec);
+				}
+				else
+				{
+					model = importer->waterToCityGML(asc);
+				}
+				delete importer;
+				delete asc;
 			}
+		}
+		//Add temporal info
+		if (tempImport)
+		{
+			if (!(creaDate<termDate))
+			{
+				QMessageBox msgBox;
+				msgBox.setText("Invalid temporal settings!");
+				msgBox.setIcon(QMessageBox::Critical);
+				msgBox.exec();
+			}
+			else
+				for (citygml::CityObject* obj : model->getCityObjectsRoots())
+				{
+					obj->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+					obj->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+				}
+		}
+		//export en CityGML
+		std::cout<<"Export ...";
+		if (model->size()!=0)
+		{
+			citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+			exporter.exportCityModel(*model);
+			std::cout<<"OK!"<<std::endl;
+		}
+		else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
+		delete model;
 	}
-	//export en CityGML
-	std::cout<<"Export ...";
-	if (model->size()!=0)
-	{
-		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
-		exporter.exportCityModel(*model);
-		std::cout<<"OK!"<<std::endl;
-	}
-	else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
-	delete model;
 	std::cout<<"Job done!"<<std::endl;
+	QMessageBox msgBox;
+	msgBox.setText("Conversion finished!");
+	msgBox.setIcon(QMessageBox::Information);
+	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -226,7 +233,7 @@ void dialogFloodAR::browseInput2ASCtoTerrain()
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::browseTextureASCtoTerrain()
 {
-	QString filename = QFileDialog::getOpenFileName(this, "Select texture file file", "", "ASC files (*.asc)");
+	QString filename = QFileDialog::getOpenFileName(this, "Select texture file file");
 	ui->lineEdit_ASCtoTerrainTex->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +271,82 @@ void dialogFloodAR::enableTextures(int state)
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ASCtoTerrain()
 {
+	bool fusion = ui->chkBox_fusion->isChecked();
+	citygml::CityModel* model = new citygml::CityModel();
+	QFileInfo file(ui->lineEdit_ASCtoTerrain1->text());
+	bool addTextures = ui->chkBox_tex->isChecked();
+	QFileInfo texturesPath (ui->lineEdit_ASCtoTerrainTex->text());
+	if (!file.exists())
+	{
+		QMessageBox msgBox;
+		msgBox.setText("Input file not found!");
+		msgBox.setIcon(QMessageBox::Critical);
+		msgBox.exec();
+		return;
+	}
+	if (!fusion)
+	{
+		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
+		QString ext = file.suffix().toLower();
+		if (ext=="asc")
+		{
+			//lecture du fichier
+			citygml::ImporterASC* importer = new citygml::ImporterASC();
+			MNT* asc = new MNT();
+			if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
+			{
+				//conversion en structure CityGML
+				model = importer->reliefToCityGML(asc);
+				delete importer;
+				delete asc;
+			}
+		}
+	} 
+	else
+	{
+		QFileInfo file2(ui->lineEdit_ASCtoTerrain2->text());
+		if (!file2.exists())
+		{
+			QMessageBox msgBox;
+			msgBox.setText("Input file not found!");
+			msgBox.setIcon(QMessageBox::Critical);
+			msgBox.exec();
+			return;
+		}
+		std::cout<<"MERGING FILES "<<file.baseName().toStdString()<<" AND "<<file2.baseName().toStdString()<<std::endl;
+		QString ext = file.suffix().toLower();
+		if (ext=="asc")
+		{
+			//lecture du fichier
+			citygml::ImporterASC* importer = new citygml::ImporterASC();
+			MNT* asc1 = new MNT();
+			MNT* asc2 = new MNT();
+			if (asc1->charge(file.absoluteFilePath().toStdString().c_str(), "ASC")&&(asc2->charge(file2.absoluteFilePath().toStdString().c_str(), "ASC")))
+			{
+				//conversion en structure CityGML
+				model = importer->fusionResolutions(asc1, asc2);
+				delete importer;
+				delete asc1;
+				delete asc2;
+			}
+		}
+	}
 
+	//export en CityGML
+	std::cout<<"Export ...";
+	if (model->size()!=0)
+	{
+		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+		exporter.exportCityModel(*model);
+		std::cout<<"OK!"<<std::endl;
+	}
+	else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
+	delete model;
+
+	std::cout<<"Job done!"<<std::endl;
+	QMessageBox msgBox;
+	msgBox.setText("Conversion finished!");
+	msgBox.setIcon(QMessageBox::Information);
+	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////

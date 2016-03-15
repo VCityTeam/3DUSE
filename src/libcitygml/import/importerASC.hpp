@@ -21,7 +21,7 @@ public:
 	
 	CityModel* reliefToCityGML(MNT*);
 	CityModel* waterToCityGML(MNT*);
-	CityModel* waterToCityGMLPolygons(MNT*, float);
+	CityObject* waterToCityGMLPolygons(MNT*, float);
 	CityModel* fusionResolutions(MNT* asc1, MNT* asc2);
 	
 	void cutASC(MNT*, std::string, std::string, int, int );

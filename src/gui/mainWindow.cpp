@@ -3120,125 +3120,114 @@ void MainWindow::test3()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 { 
-	/* CONVERT ASC WATER TO CITYGML WATER BY SEARCHIG POLYGONS */
-	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML 1", "","ASC files (*.asc)");
-	QStringList filenames2 = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML 2", "","ASC files (*.asc)");
-
-	for(int i = 0; i < filenames.count(); ++i)
+	QString parentDirPath = QFileDialog::getExistingDirectory(this,"Select tiles directory");
+	QDir parentDir(parentDirPath);
+	QStringList dirList = parentDir.entryList();
+	for (int k = 3; k<dirList.size(); k++)
 	{
+		QString path = dirList[k];
+		QDir dir(path);
+		std::string tilename = dir.dirName().toStdString();
+		std::cout<<tilename<<std::endl;
+		//Create World File for texturing
+		//std::vector<char> char_array(tilename.begin(), tilename.end());
+		//char_array.push_back(0);
+		//char* pch = std::strtok(&char_array[0],"T-");
+		//int x = std::atoi(pch);
+		//pch = strtok (NULL, "T-");
+		//int y = std::atoi(pch);
+		//std::string fname = parentDirPath.toStdString()+"/"+path.toStdString()+'/'+tilename+"_ORTHO.jgw";
+		//std::ofstream out;
+		//out.open(fname);
+		//out<<"0.5"<<std::endl;
+		//out<<"0"<<std::endl;
+		//out<<"0"<<std::endl;
+		//out<<"-0.5"<<std::endl;
+		//out<<x*500<<std::endl;
+		//out<<y*500<<std::endl;
+		//out.close();
+		//Fusion MNT
+		//{
+		//	citygml::CityModel* model = new citygml::CityModel();	
+
+		//	//lecture du fichier
+		//	citygml::ImporterASC* importer = new citygml::ImporterASC();
+		//	MNT* asc1 = new MNT();
+		//	MNT* asc2 = new MNT();
+		//	if (asc1->charge((parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_BDALTI_nb_entier.asc").c_str(), "ASC")&&(asc2->charge((parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_SplicedGrid_total.asc").c_str(), "ASC")))
+		//	{
+		//		//conversion en structure CityGML
+		//		model = importer->fusionResolutions(asc1, asc2);
+		//		delete importer;
+		//		delete asc1;
+		//		delete asc2;
+
+		//	}
+
+
+		//	//export en CityGML
+		//	std::cout<<"Export ...";
+		//	if (model->size()!=0)
+		//	{
+		//		citygml::ExporterCityGML exporter(parentDirPath.toStdString()+"/"+path.toStdString()+'/'+tilename+"_MNT.gml");
+		//		exporter.exportCityModel(*model);
+		//		std::cout<<"OK!"<<std::endl;
+		//	}
+		//	else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
+		//	delete model;
+		//}
+		//Convert Water
+
 		citygml::CityModel* model = new citygml::CityModel();
-		QFileInfo file(filenames[i]);
-		//std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
-		QString ext = file.suffix().toLower();
-		if (ext=="asc")
+		for (int i = 8; i<=144; i=i+8)
 		{
-			//lecture du fichier
-			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			MNT* asc1 = new MNT();
-			MNT* asc2 = new MNT();
-			if (asc1->charge(filenames[i].toStdString().c_str(), "ASC")&&(asc2->charge(filenames2[i].toStdString().c_str(), "ASC")))
+			std::string filename = tilename+"_MNSE_T"+std::to_string(i)+"_total_rond.asc";
+			QFileInfo file = QString::fromStdString(parentDirPath.toStdString()+"/"+path.toStdString()+"/"+filename);
+			citygml::CityObject* sfc;
+			std::cout<<"CONVERTING FILE "<<file.absoluteFilePath().toStdString()<<std::endl;
+			QString ext = file.suffix().toLower();
+			if (ext=="asc")
 			{
-				//conversion en structure CityGML
-				model = importer->fusionResolutions(asc1, asc2);
-				delete importer;
-				delete asc1;
-				delete asc2;
+				//lecture du fichier
+				citygml::ImporterASC* importer = new citygml::ImporterASC();
+				MNT* asc = new MNT();
+				if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
+				{
+					//conversion en structure CityGML
+					sfc = importer->waterToCityGMLPolygons(asc,0.01);
+					delete importer;
+					delete asc;
+				}
 			}
+			//Add temporal info
+			//for (citygml::CityObject* obj : model->getCityObjectsRoots())
+			//{
+			//	QDateTime creaDate = QDateTime::fromString("2000-01-01T08:00:00",Qt::ISODate);
+			//	creaDate = creaDate.addSecs(i*3600);
+			//	QDateTime termDate = creaDate.addSecs(8*3600);
+			//	obj->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+			//	obj->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+			//}
+			QDateTime creaDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
+			creaDate = creaDate.addSecs(i*3600);
+			QDateTime termDate = creaDate.addSecs(8*3600);
+			sfc->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
+			sfc->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+			model->addCityObject(sfc);
+			model->addCityObjectAsRoot(sfc);
 		}
+		model->computeEnvelope();
 		//export en CityGML
-		std::cout<<"Export ...";
+		//std::cout<<"Export ..."<<parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_MNSE.gml"<<std::endl;
 		if (model->size()!=0)
 		{
-			citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+			citygml::ExporterCityGML exporter(parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_MNSE.gml");
 			exporter.exportCityModel(*model);
 			std::cout<<"OK!"<<std::endl;
 		}
 		else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
 		delete model;
 	}
-	std::cout<<"Job done!"<<std::endl;
-	m_osgView->setActive(true);
-
-	//buildJson();
-
-	/*std::vector<std::string> building;
-	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
-
-	std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
-
-	int cpt = 0;
-	for(AnalysisResult ar : res)
-	{
-	addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
-	addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
-	cpt++;
-	}*/
-
-	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
-
-	//ProcessLasShpVeget();
-	/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
-	std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
-
-	std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
-
-	ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
-	for(std::pair<std::string,PolygonData> p : top)
-	{
-	ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
-	}
-	ofs.close();*/
-
-	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
-
-	//ExtrudeAlignementTree();
-
-	/*LASreadOpener lasreadopener;
-	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
-	LASreader* lasreader = lasreadopener.open();
-
-	OGRMultiPoint* mp = new OGRMultiPoint;
-
-	while (lasreader->read_point())
-	{
-	OGRPoint* point = new OGRPoint;
-	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
-	}*/
-
-	//std::cout<<std::endl;
-	//vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-	//citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-	//std::vector<temporal::Version*> versions = model->getVersions();
-	//for (temporal::Version* version : versions)
-	//{
-	//	std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-	//	std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-	//	for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-	//	{
-	//		std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-	//	}
-	//}
-	//std::cout<<std::endl;
-	//std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-	//for (temporal::VersionTransition* transition : transitions)
-	//{
-	//	std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-	//	std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-	//	std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-	//}
-	//std::cout<<std::endl;
-
-	//std::cout<<"Workspaces:"<<std::endl;
-	//std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-	//for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-	//	std::cout<<it->second.name<<std::endl;
-	//	for(temporal::Version* v : it->second.versions){
-	//		std::cout<<"    - "<<v->getId()<<std::endl;
-	//	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
@@ -3348,11 +3337,11 @@ void MainWindow::slotASCtoCityGML()
 	m_osgView->setActive(false);
 
 	QStringList items;
-    items << tr("Terrain") << tr("Water");
+	items << tr("Terrain") << tr("Water");
 
-    bool ok;
-    QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),
-                                         tr("Type of ASC file:"), items, 0, false, &ok);
+	bool ok;
+	QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),
+		tr("Type of ASC file:"), items, 0, false, &ok);
 	if (ok && item.isEmpty()) return;
 	else if (ok && !item.isEmpty())
 	{

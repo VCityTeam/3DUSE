@@ -18,7 +18,7 @@ public:
 private:
     Ui::dialogFloodAR *ui;
 
-private slots:
+public slots:
 	void browseInputDirASCCut();
 	void browseOutputDirASCCut();
 	void cutASC();

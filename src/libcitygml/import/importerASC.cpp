@@ -3,6 +3,7 @@
 
 #include <osgDB/fstream>
 #include <QInputDialog>
+#include <QDir>
 
 namespace citygml
 {
@@ -181,6 +182,11 @@ namespace citygml
 				realY = (asc->get_y_noeud_NO())+(asc->get_dim_y()-(--iY)-0.5)*(asc->get_pas_y());
 			}
 
+			//QDir dir = QString::fromStdString(path);
+			//QString tileName = QString::fromStdString("T"+std::to_string(dvX)+"-"+std::to_string(dvY));
+			//if (!dir.exists(tileName))
+			//dir.mkdir(tileName);
+			//std::string fname = path+"/"+tileName.toStdString()+"/"+tileName.toStdString()+"_"+filename+".asc";
 			std::string fname = path+"/"+"T"+std::to_string(dvX)+"-"+std::to_string(dvY)+"_"+filename+".asc";
 			std::ofstream out;
 			out.open(fname);
@@ -220,9 +226,9 @@ namespace citygml
 
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////
-	CityModel* ImporterASC::waterToCityGMLPolygons(MNT* asc, float zPrec = 0.1)
+	CityObject* ImporterASC::waterToCityGMLPolygons(MNT* asc, float zPrec = 0.1)
 	{
-		CityModel* model = new CityModel();
+		//CityModel* model = new CityModel();
 		CityObject* waterbody = new WaterBody("");
 		//CityObject* watersfc = new WaterSurface("");
 		//Geometry* geom = new Geometry("", GT_Unknown,3);
@@ -287,12 +293,12 @@ namespace citygml
 		//	waterbody->getChildren().push_back(watersfc);
 		//	watersfc->_parent = waterbody;
 
-		model->addCityObject(waterbody);
-		model->addCityObjectAsRoot(waterbody);
+		//model->addCityObject(waterbody);
+		//model->addCityObjectAsRoot(waterbody);
 		//}
 
-		model->computeEnvelope();
-		return model;
+		//model->computeEnvelope();
+		return waterbody;
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////
 	void ImporterASC::propagateCategory(MNT* asc, std::queue<std::pair<int,int>>* pointsList, float alt, float prec = 1)
