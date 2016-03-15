@@ -3,4 +3,5 @@
     <qresource prefix="/images">
         <file>LirisLogo.png</file>
     </qresource>
+
 </RCC>
