@@ -316,7 +316,7 @@ void OsgScene::init()
     }
 
     //build skybox
-    addChild(createSkybox());
+    //addChild(createSkybox());
 
     // build layers node
     m_layers = new osg::Group();
@@ -324,9 +324,6 @@ void OsgScene::init()
 
     m_effectShadow->addChild(m_layers);
     m_effectNone->addChild(m_layers);
-
-
-
 
     // build first default layer
     osg::ref_ptr<osg::Group> layer0 = new osg::Group();
