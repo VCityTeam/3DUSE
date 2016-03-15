@@ -73,6 +73,7 @@ public:
 
     GeometryType getType( void ) const;
 
+    const CityObject* getParent() const;
     CityObject* getParent();
 
     void addPolygon( Polygon* );

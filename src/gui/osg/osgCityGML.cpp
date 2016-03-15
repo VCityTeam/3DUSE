@@ -152,13 +152,6 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
         parent->addChild(geode);
     }*/
 
-	// Get the default color for the whole city object
-	osg::ref_ptr<osg::Vec4Array> shared_colors = new osg::Vec4Array;
-	shared_colors->push_back( osg::Vec4( object->getDefaultColor().r, object->getDefaultColor().g, object->getDefaultColor().b, object->getDefaultColor().a ) );
-
-	osg::ref_ptr<osg::Vec4Array> roof_color = new osg::Vec4Array;
-	roof_color->push_back( osg::Vec4( 0.9f, 0.1f, 0.1f, 1.0f ) );
-
     unsigned int highestLOD = ReaderOsgCityGML::getHighestLodForObject(object);
 
     for(unsigned int i = 0; i < object->size(); i++)
@@ -223,130 +216,131 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 			geom->setNormalArray( normals.get() );
 			geom->setNormalBinding( osg::Geometry::BIND_PER_VERTEX );
 
-			// Material management
+            // Material management (Color management)
+            osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet(); //Get the stateset from the geometry
 
-			osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
+            //Create Material and setColorMode to OFF to be able to choose ambient, diffuse and specular color (emission and shininess can also be changed).
+            osg::Material* material = new osg::Material;
+            material->setColorMode( osg::Material::OFF );
 
-			const citygml::Appearance *mat = p->getAppearance();
+            //Default Grey color
+            osg::Vec4 ambientColor = osg::Vec4(0.7f,0.7f,0.7f,1.f);
+            osg::Vec4 diffuseColor = osg::Vec4(0.5f,0.5f,0.5f,1.f);
+            osg::Vec4 specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
 
-			bool colorset = false;
+            //Change color depending on object Type
+            if(geometry.getType() == citygml::GT_Roof ||
+                    object->getType() == citygml::COT_RoofSurface) //Roofs
+            {
+                //Brick
+                ambientColor = osg::Vec4(0.8f,0.25f,0.25f,1.f);
+                diffuseColor = osg::Vec4(0.30f,0.30f,0.30f,1.0f);
+                specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
+            }
+            else if(object->getType() == citygml::COT_TINRelief) //Land
+            {
+                //Brown
+                ambientColor = osg::Vec4(0.74f,0.65f,0.56f,1.f);
+                diffuseColor = osg::Vec4(0.35f,0.35f,0.35f,1.f);
+            }
+            else if(object->getType() == citygml::COT_WaterBody)
+            {
+                //Blue
+                ambientColor = osg::Vec4(0.12f,0.49f,0.79f,1.f);
+            }
+            else if(object->getType() == citygml::COT_SolitaryVegetationObject || object->getType() == citygml::COT_PlantCover || object->getType() == citygml::COT_Square)
+            {
+                //Green
+                ambientColor = osg::Vec4(0.22f,0.54f,0.13f,1.f);
+                diffuseColor = osg::Vec4(0.3f,0.3f,0.3f,1.f);
+            }
 
-            if(mat)
-			{
-				shared_colors->clear();
-				shared_colors->push_back( osg::Vec4( 1.f, 1.f, 1.f, 1.f ) );
+            material->setAmbient( osg::Material::FRONT_AND_BACK, ambientColor );
+            material->setDiffuse( osg::Material::FRONT_AND_BACK, diffuseColor );
+            material->setSpecular( osg::Material::FRONT_AND_BACK, specularColor );
 
-				if ( const citygml::Material* m = dynamic_cast<const citygml::Material*>( mat ) )
-				{
-#define TOVEC4(_t_) osg::Vec4( _t_.r, _t_.g, _t_.b, _t_.a ) 
-                    //osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-                    //TVec4f diffuse( m->getDiffuse(), 0.f );
-                    //TVec4f emissive( m->getEmissive(), 0.f );
-                    //TVec4f specular( m->getSpecular(), 0.f );
-                    //float ambient = m->getAmbientIntensity();
+            stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+            stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
-					osg::Material* material = new osg::Material;
-					material->setColorMode( osg::Material::OFF );
-                    //material->setDiffuse( osg::Material::FRONT_AND_BACK, TOVEC4( diffuse ) );
-                    //material->setSpecular( osg::Material::FRONT_AND_BACK, TOVEC4( specular ) );
-                    //material->setEmission( osg::Material::FRONT_AND_BACK, TOVEC4( emissive ) );
-                    //material->setShininess( osg::Material::FRONT_AND_BACK, m->getShininess() );
-                    //material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4( ambient, ambient, ambient, 1.0 ) );
-                    material->setDiffuse( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
-                    material->setSpecular( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
-                    material->setEmission( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
-                    material->setAmbient( osg::Material::FRONT_AND_BACK, osg::Vec4(1,1,1,1) );
-                    //material->setTransparency( osg::Material::FRONT_AND_BACK, m->getTransparency() );
-					stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
-					stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
-					colorset = true;
-				}
-                else if ( m_settings.m_useTextures)
+            if ( m_settings.m_useTextures)
+            {
+                const citygml::Appearance *mat = p->getAppearance();
+
+                if ( const citygml::Texture* t = dynamic_cast<const citygml::Texture*>( mat ) )
                 {
-                    if ( const citygml::Texture* t = dynamic_cast<const citygml::Texture*>( mat ) )
+                    const citygml::TexCoords& texCoords = p->getTexCoords();
+
+                    if ( texCoords.size() > 0 )
                     {
-                        const citygml::TexCoords& texCoords = p->getTexCoords();
+                        osg::Texture2D* texture = nullptr;
 
-                        if ( texCoords.size() > 0 )
+                        if(m_settings._textureMap.find(t->getUrl()) == m_settings._textureMap.end())
                         {
-                            osg::Texture2D* texture = nullptr;
+                            // Load a new texture
+                            //osg::notify(osg::NOTICE) << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
 
-                            if(m_settings._textureMap.find(t->getUrl()) == m_settings._textureMap.end())
+                            if(osg::Image* image = osgDB::readImageFile(m_settings.m_filepath+"/"+t->getUrl()))
                             {
-                                // Load a new texture
-                                //osg::notify(osg::NOTICE) << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
-
-                                if(osg::Image* image = osgDB::readImageFile(m_settings.m_filepath+"/"+t->getUrl()))
-                                {
-                                    //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
-                                    //std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
-                                    texture = new osg::Texture2D;
-                                    texture->setImage( image );
-                                    texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-                                    texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-                                    texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-                                    texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-                                    texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
-                                }
-                                else
-                                    osg::notify(osg::NOTICE) << "  Warning: Texture " << t->getUrl() << " not found!" << std::endl;
-
-                                m_settings._textureMap[ t->getUrl() ] = texture;
+                                //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
+                                //std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
+                                texture = new osg::Texture2D;
+                                texture->setImage( image );
+                                texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+                                texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+                                texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+                                texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+                                texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
                             }
                             else
-                                texture = m_settings._textureMap[ t->getUrl() ];
+                                osg::notify(osg::NOTICE) << "  Warning: Texture " << t->getUrl() << " not found!" << std::endl;
 
-                            if(texture)
-                            {
-                                osg::ref_ptr<osg::Vec2Array> tex = new osg::Vec2Array;
-
-                                tex->reserve( texCoords.size() );
-
-                                // georeferencedtexture special case : need to divide texccords by image size
-                                if(dynamic_cast<const citygml::GeoreferencedTexture*>( mat ))
-                                {
-                                    float w = texture->getImage()->s();
-                                    float h = texture->getImage()->t();
-                                    /*citygml::TexCoords& tc = p->getTexCoords(); // fail, cityobject is const...
-                                    for ( unsigned int k = 0; k < tc.size(); k++ )
-                                    {
-                                        tc[k].x /= w;
-                                        tc[k].x /= h;
-                                    }*/
-                                    for ( unsigned int k = 0; k < texCoords.size(); k++ )
-                                    {
-                                        tex->push_back( osg::Vec2( texCoords[k].x/w, texCoords[k].y/h ) );
-                                    }
-                                }
-                                else
-                                {
-                                    for ( unsigned int k = 0; k < texCoords.size(); k++ )
-                                    {
-                                        tex->push_back( osg::Vec2( texCoords[k].x, texCoords[k].y ) );
-                                    }
-                                }
-
-                                geom->setTexCoordArray( 0, tex );
-
-                                stateset->setTextureAttributeAndModes( 0, texture, osg::StateAttribute::ON );
-
-                                colorset = true;
-                            }
+                            m_settings._textureMap[ t->getUrl() ] = texture;
                         }
                         else
+                            texture = m_settings._textureMap[ t->getUrl() ];
+
+                        if(texture)
                         {
-                            osg::notify(osg::NOTICE) << "  Warning: Texture coordinates not found for poly " << p->getId() << std::endl;
+                            osg::ref_ptr<osg::Vec2Array> tex = new osg::Vec2Array;
+
+                            tex->reserve( texCoords.size() );
+
+                            // georeferencedtexture special case : need to divide texccords by image size
+                            if(dynamic_cast<const citygml::GeoreferencedTexture*>( mat ))
+                            {
+                                float w = texture->getImage()->s();
+                                float h = texture->getImage()->t();
+                                /*citygml::TexCoords& tc = p->getTexCoords(); // fail, cityobject is const...
+                                for ( unsigned int k = 0; k < tc.size(); k++ )
+                                {
+                                    tc[k].x /= w;
+                                    tc[k].x /= h;
+                                }*/
+                                for ( unsigned int k = 0; k < texCoords.size(); k++ )
+                                {
+                                    tex->push_back( osg::Vec2( texCoords[k].x/w, texCoords[k].y/h ) );
+                                }
+                            }
+                            else
+                            {
+                                for ( unsigned int k = 0; k < texCoords.size(); k++ )
+                                {
+                                    tex->push_back( osg::Vec2( texCoords[k].x, texCoords[k].y ) );
+                                }
+                            }
+
+                            geom->setTexCoordArray( 0, tex );
+
+                            stateset->setTextureAttributeAndModes( 0, texture, osg::StateAttribute::ON );
                         }
                     }
+                    else
+                    {
+                        osg::notify(osg::NOTICE) << "  Warning: Texture coordinates not found for poly " << p->getId() << std::endl;
+                    }
                 }
-			}
-
-			// Color management
-
-			geom->setColorArray( ( !colorset && geometry.getType() == citygml::GT_Roof ) ? roof_color.get() : shared_colors.get() );
-
-			geom->setColorBinding( osg::Geometry::BIND_OVERALL );
+            }
 #if 0
             // Set lighting model to two sided
 			osg::ref_ptr< osg::LightModel > lightModel = new osg::LightModel;
