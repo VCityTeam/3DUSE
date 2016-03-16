@@ -1272,7 +1272,7 @@ void MainWindow::exportOsga()
 	}
 	archive->close();*/
 
-	m_osgView->setActive(true);
+    m_osgView->setActive(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportJSON()
