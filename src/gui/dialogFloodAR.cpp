@@ -27,7 +27,7 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	connect(ui->chkBox_tex ,SIGNAL(stateChanged(int)),this,SLOT( enableTextures(int)));
 	connect(ui->btn_ASCtoTerrain_exec ,SIGNAL(clicked()),this,SLOT( ASCtoTerrain()));
 
-	ui->chkBox_tex->setEnabled(false);
+	//ui->chkBox_tex->setEnabled(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::~dialogFloodAR()
@@ -160,7 +160,7 @@ void dialogFloodAR::ASCtoWater()
 			return;
 		}
 
-		citygml::CityModel* model = new citygml::CityModel();
+		citygml::CityModel* model;
 		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
 		QString ext = file.suffix().toLower();
 		if (ext=="asc")
@@ -173,7 +173,10 @@ void dialogFloodAR::ASCtoWater()
 				//conversion en structure CityGML
 				if (polygonsImport)
 				{
-					//model = importer->waterToCityGMLPolygons(asc,prec);
+					model = new citygml::CityModel();
+					citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc,prec);
+					model->addCityObject(waterbody);
+					model->addCityObjectAsRoot(waterbody);
 				}
 				else
 				{
@@ -260,19 +263,17 @@ void dialogFloodAR::enableTextures(int state)
 	case Qt::Checked:
 		ui->lineEdit_ASCtoTerrainTex->setEnabled(true);
 		ui->btn_ASCtoTerrain_tex->setEnabled(true);
-		ui->chkBox_worldfile->setEnabled(true);
 		break;
 	default:
 		ui->lineEdit_ASCtoTerrainTex->setEnabled(false);
 		ui->btn_ASCtoTerrain_tex->setEnabled(false);
-		ui->chkBox_worldfile->setEnabled(false);
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ASCtoTerrain()
 {
 	bool fusion = ui->chkBox_fusion->isChecked();
-	citygml::CityModel* model = new citygml::CityModel();
+	citygml::CityModel* model;
 	QFileInfo file(ui->lineEdit_ASCtoTerrain1->text());
 	bool addTextures = ui->chkBox_tex->isChecked();
 	QFileInfo texturesPath (ui->lineEdit_ASCtoTerrainTex->text());
@@ -284,6 +285,7 @@ void dialogFloodAR::ASCtoTerrain()
 		msgBox.exec();
 		return;
 	}
+	float xOrig, yOrig, scale;
 	if (!fusion)
 	{
 		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
@@ -323,21 +325,82 @@ void dialogFloodAR::ASCtoTerrain()
 			MNT* asc2 = new MNT();
 			if (asc1->charge(file.absoluteFilePath().toStdString().c_str(), "ASC")&&(asc2->charge(file2.absoluteFilePath().toStdString().c_str(), "ASC")))
 			{
+				//Check which MNT is the more precise one
+				MNT* morePrecise;
+				MNT* lessPrecise;
+				if (asc1->get_pas_x()>=asc2->get_pas_x())
+				{
+					lessPrecise = asc1;
+					morePrecise = asc2;
+				}
+				else
+				{
+					lessPrecise = asc2;
+					morePrecise = asc1;
+				}
 				//conversion en structure CityGML
-				model = importer->fusionResolutions(asc1, asc2);
+				model = importer->fusionResolutions(lessPrecise, morePrecise);
 				delete importer;
 				delete asc1;
 				delete asc2;
 			}
 		}
 	}
+	//add textures
+	std::vector<TextureCityGML*> TexturesList;
+	if (addTextures)
+	{
+		std::vector<TextureCityGML*> TexturesList;
+		for(citygml::CityObject* obj : model->getCityObjectsRoots())
+		{
+			for(citygml::CityObject* object : obj->getChildren())
+			{
+				for(citygml::Geometry* Geometry : object->getGeometries())
+				{
+					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+					{
+						if(PolygonCityGML->getTexture() == nullptr)
+							continue;
 
+						//Remplissage de ListTextures
+						std::string Url = texturesPath.absoluteFilePath().toStdString();
+						citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
+
+						TexturePolygonCityGML Poly;
+						Poly.Id = PolygonCityGML->getId();
+						Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+						//Poly.TexUV = PolygonCityGML->getTexCoords();
+
+						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+						for(TextureCityGML* Tex: TexturesList)
+						{
+							if(Tex->Url == Url)
+							{
+								URLTest = true;
+								Tex->ListPolygons.push_back(Poly);
+								break;
+							}
+						}
+						if(!URLTest)
+						{
+							TextureCityGML* Texture = new TextureCityGML;
+							Texture->Wrap = WrapMode;
+							Texture->Url = Url;
+							Texture->ListPolygons.push_back(Poly);
+							TexturesList.push_back(Texture);
+						}
+					}
+				}
+			}
+		}
+	}
 	//export en CityGML
 	std::cout<<"Export ...";
 	if (model->size()!=0)
 	{
 		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
-		exporter.exportCityModel(*model);
+		if(addTextures) exporter.exportCityModelWithListTextures(*model,&TexturesList);
+		else exporter.exportCityModel(*model);
 		std::cout<<"OK!"<<std::endl;
 	}
 	else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
