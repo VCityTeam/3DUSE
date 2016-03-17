@@ -2,7 +2,7 @@
 <uml:Model xmi:version="2.1"
     xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:uml="http://schema.omg.org/spec/UML/2.2" xsi:schemaLocation="http://schema.omg.org/spec/UML/2.2 http://www.eclipse.org/uml2/3.0.0/UML" xmi:id="_Q5ChQOqqEeW22v3Rixc9cw"
-    name="DocumentADE">
+    name="untitledModel">
   <packagedElement xmi:type="uml:Class" xmi:id="_dt5T0OqqEeW22v3Rixc9cw" name="gmlBase:AbstractGML"/>
   <packagedElement xmi:type="uml:Class" xmi:id="_npeMIOqqEeW22v3Rixc9cw" name="gml:AbstractFeature">
     <generalization xmi:type="uml:Generalization" xmi:id="_sO0moOqqEeW22v3Rixc9cw" general="_dt5T0OqqEeW22v3Rixc9cw"
@@ -53,7 +53,7 @@
       <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_Sm_SAerEEeW22v3Rixc9cw" value="1"/>
       <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_Sm_SAOrEEeW22v3Rixc9cw"/>
     </ownedAttribute>
-    <ownedAttribute xmi:type="uml:Property" xmi:id="_t30wgOrFEeW22v3Rixc9cw" name="documentType" type="_nawtwOuGEeW17oVR90qtng"/>
+    <ownedAttribute xmi:type="uml:Property" xmi:id="_t30wgOrFEeW22v3Rixc9cw" name="documentType" type="_KRXkMOwfEeWYuoDcHiEGDw"/>
     <ownedAttribute xmi:type="uml:Property" xmi:id="_ZrsY8OrGEeW22v3Rixc9cw" type="_vI4kAOqqEeW22v3Rixc9cw"
         association="_Zrrx4OrGEeW22v3Rixc9cw"/>
     <ownedAttribute xmi:type="uml:Property" xmi:id="_iy_7serGEeW22v3Rixc9cw" type="_ufoewOrCEeW22v3Rixc9cw"
@@ -285,10 +285,5 @@
   <packagedElement xmi:type="uml:Class" xmi:id="_IF8R4OuEEeW17oVR90qtng" name="g"/>
   <packagedElement xmi:type="uml:Class" xmi:id="_MOJdYOuEEeW17oVR90qtng" name="gml.TimeInstant"/>
   <packagedElement xmi:type="uml:Class" xmi:id="_TvBN0OuEEeW17oVR90qtng" name="gml.TimePeriod"/>
-  <packagedElement xmi:type="uml:Stereotype" xmi:id="_6fOIEOuEEeW17oVR90qtng" name="DocumentType" clientDependency="__LMH8OuEEeW17oVR90qtng _MJS9IOuFEeW17oVR90qtng"/>
-  <packagedElement xmi:type="uml:Dependency" xmi:id="__LMH8OuEEeW17oVR90qtng" supplier="_7g-uwOt-EeW17oVR90qtng"
-      client="_6fOIEOuEEeW17oVR90qtng"/>
-  <packagedElement xmi:type="uml:Dependency" xmi:id="_MJS9IOuFEeW17oVR90qtng" supplier="_7g-uwOt-EeW17oVR90qtng"
-      client="_6fOIEOuEEeW17oVR90qtng"/>
-  <packagedElement xmi:type="uml:Class" xmi:id="_nawtwOuGEeW17oVR90qtng" name="gml.CodeType"/>
+  <packagedElement xmi:type="uml:Class" xmi:id="_KRXkMOwfEeWYuoDcHiEGDw" name="gml.CodeType"/>
 </uml:Model>
