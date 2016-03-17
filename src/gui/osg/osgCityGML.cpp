@@ -175,6 +175,9 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
 			osg::Geometry* geom = new osg::Geometry;
 
+            // Name
+            geom->setName(p->getId());
+
 			// Vertices
 			osg::Vec3Array* vertices = new osg::Vec3Array;
 			const std::vector<TVec3d>& vert = p->getVertices();

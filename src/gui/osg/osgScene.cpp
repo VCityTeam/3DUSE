@@ -755,6 +755,8 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
             stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
             stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
+            std::cout << drawableChild->getName() << std::endl;
+
 
 
 
@@ -765,20 +767,14 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
             std::cout << "URI Child : " << urin.getStringURI() << std::endl;*/
 
 
-    //        if(polySunlightInfo->count(uriNode) > 0)
-    //        {
-    //            geode->getDrawable()
-    //        }
+//            if(polySunlightInfo->count(uriNode) > 0)
+//            {
+//                geode->getDrawable()
+//            }
 
             //std::cout << drawableChild->getName() << std::endl;
 
         }
-
-
-        // Color management
-
-       // geom->setColorArray( ( !colorset && geometry.getType() == citygml::GT_Roof ) ? roof_color.get() : shared_colors.get() );
-
 
     }
     else

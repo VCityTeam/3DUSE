@@ -3,11 +3,10 @@
 
 #include <vector>
 
+#include "raytracing/RayTracing.hpp"
+#include "AABB.hpp"
 #include "osg/Camera"
 #include "vecs.hpp"
-
-struct AABB;
-struct Ray;
 
 /**
 *	@brief A hit between a ray and a bounding box

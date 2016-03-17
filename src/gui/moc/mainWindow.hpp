@@ -65,7 +65,7 @@ public:
     void unlockFeatures(const QString& pass);
 
     //TEMP
-    void DisplaySun(TVec3d sunPos);
+//    void DisplaySun(TVec3d sunPos);
 
     QLineEdit* getFilter();
 
