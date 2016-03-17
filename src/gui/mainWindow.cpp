@@ -2864,6 +2864,37 @@ void MainWindow::test3()
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
 
 ////////////////////////////////////////////////////////////////////////////////
+/// \brief dataSourceToPointVector Gets all the OGRPoints from the OGRDataSource variable and add them into a vector of OGRPoint*.
+/// \param poDS OGRDataSource to get the Points from.
+/// \return a vector of OGRPoint*.
+///
+std::vector<OGRPoint*> dataSourceToPointVector(OGRDataSource* poDS)
+{
+    std::vector<OGRPoint*> vPoints;
+
+    OGRLayer *poLayer;
+    int nbLayers = poDS->GetLayerCount();
+    if(nbLayers > 0)
+    {
+        poLayer = poDS->GetLayer(0);
+        OGRFeature *poFeature;
+        poLayer->ResetReading();
+
+        while( (poFeature = poLayer->GetNextFeature()) != NULL )
+        {
+            OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+            if(poGeometry != NULL && (poGeometry->getGeometryType() == OGRwkbGeometryType::wkbPoint25D || poGeometry->getGeometryType() == OGRwkbGeometryType::wkbPoint))
+            {
+                OGRPoint* point = dynamic_cast<OGRPoint*>(poGeometry);
+                vPoints.push_back(point);
+            }
+        }
+    }
+
+    return vPoints;
+}
+
 void MainWindow::test4()
 {
 	//buildJson();
@@ -2915,37 +2946,56 @@ void MainWindow::test4()
 	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
 	
-    std::cout<<std::endl;
-    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-    std::vector<temporal::Version*> versions = model->getVersions();
-    for (temporal::Version* version : versions)
-    {
-        std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-        std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-        for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-        {
-            std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-        }
-    }
-    std::cout<<std::endl;
-    std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-    for (temporal::VersionTransition* transition : transitions)
-    {
-        std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-        std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-        std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-    }
-    std::cout<<std::endl;
+//    std::cout<<std::endl;
+//    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+//    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+//    std::vector<temporal::Version*> versions = model->getVersions();
+//    for (temporal::Version* version : versions)
+//    {
+//        std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+//        std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+//        for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+//        {
+//            std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+//        }
+//    }
+//    std::cout<<std::endl;
+//    std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+//    for (temporal::VersionTransition* transition : transitions)
+//    {
+//        std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+//        std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+//        std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+//    }
+//    std::cout<<std::endl;
 
-    std::cout<<"Workspaces:"<<std::endl;
-    std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-    for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-        std::cout<<it->second.name<<std::endl;
-        for(temporal::Version* v : it->second.versions){
-            std::cout<<"    - "<<v->getId()<<std::endl;
-        }
-    }
+//    std::cout<<"Workspaces:"<<std::endl;
+//    std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+//    for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+//        std::cout<<it->second.name<<std::endl;
+//        for(temporal::Version* v : it->second.versions){
+//            std::cout<<"    - "<<v->getId()<<std::endl;
+//        }
+//    }
+
+    //*******************Hausdorff Dist
+
+    //Load 2 shapefiles
+    QString filepath1 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/SkylinePoints.shp";
+    QString filepath2 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_2/SkylinePoints.shp";
+
+    std::cout << "load shp file : " << filepath1.toStdString() << std::endl;
+    OGRDataSource* poDS1 = OGRSFDriverRegistrar::Open(filepath1.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
+
+    std::cout << "load shp file : " << filepath2.toStdString() << std::endl;
+    OGRDataSource* poDS2 = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
+
+    //Get vector of OGRPoints from OGRDataSource
+    std::vector<OGRPoint*> vPoints1 = dataSourceToPointVector(poDS1);
+    std::vector<OGRPoint*> vPoints2 = dataSourceToPointVector(poDS2);
+
+    //Compute symetric Hausdorff Distance beetween two point clouds
+
 
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -200,7 +200,7 @@ void ShpExtruction(std::string dir)
         int nbLayers = poDS->GetLayerCount();
         if(nbLayers > 0)
         {
-			poLayer = poDS->GetLayer(0);
+            poLayer = poDS->GetLayer(0);
 
 			OGRFeature *poFeature;
             poLayer->ResetReading();
@@ -223,7 +223,7 @@ void ShpExtruction(std::string dir)
 					citygml::Geometry* Wall = new citygml::Geometry(name+"_WallGeometry", citygml::GT_Wall, 2);
 
 					//Emprise au sol
-					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+                    OGRPolygon* poPG = (OGRPolygon*) poGeometry;
 
                     LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()), dir);
 
