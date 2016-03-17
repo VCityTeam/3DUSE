@@ -5,8 +5,8 @@
 
 #include "osg/Camera"
 
-struct AABB;
-struct Ray;
+#include "raytracing/RayTracing.hpp"
+#include "AABB.hpp"
 
 /**
 *	@brief A hit between a ray and a bounding box
