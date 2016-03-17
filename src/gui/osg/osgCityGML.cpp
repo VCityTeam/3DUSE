@@ -152,13 +152,6 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
         parent->addChild(geode);
     }*/
 
-	// Get the default color for the whole city object
-	osg::ref_ptr<osg::Vec4Array> shared_colors = new osg::Vec4Array;
-	shared_colors->push_back( osg::Vec4( object->getDefaultColor().r, object->getDefaultColor().g, object->getDefaultColor().b, object->getDefaultColor().a ) );
-
-	osg::ref_ptr<osg::Vec4Array> roof_color = new osg::Vec4Array;
-    roof_color->push_back( osg::Vec4( 0.87f, 0.6f, 0.37f, 1.0f ) );
-
     unsigned int highestLOD = ReaderOsgCityGML::getHighestLodForObject(object);
 
     for(unsigned int i = 0; i < object->size(); i++)
@@ -181,10 +174,6 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 			// Geometry management
 
 			osg::Geometry* geom = new osg::Geometry;
-            
-            //Set name of geom to URI
-//            std::string URI =
-//            geom->setName();
 
 			// Vertices
 			osg::Vec3Array* vertices = new osg::Vec3Array;
@@ -227,49 +216,57 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 			geom->setNormalArray( normals.get() );
 			geom->setNormalBinding( osg::Geometry::BIND_PER_VERTEX );
 
-			// Material management
+            // Material management (Color management)
+            osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet(); //Get the stateset from the geometry
 
-			osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
-
-            const citygml::Appearance* mat = p->getAppearance();
-
-			bool colorset = false;
-
+            //Create Material and setColorMode to OFF to be able to choose ambient, diffuse and specular color (emission and shininess can also be changed).
             osg::Material* material = new osg::Material;
             material->setColorMode( osg::Material::OFF );
 
-            osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
-            osg::Vec4 diffuseColor = osg::Vec4(0.f,0.f,0.f,1.f);
-            osg::Vec4 specularColor = osg::Vec4(0.f,0.f,0.f,1.f);
-            //osg::Vec4 emissionColor = osg::Vec4(0.f,0.f,0.f,1.f);
-            //float shininess = 1.f;
+            //Default Grey color
+            osg::Vec4 ambientColor = osg::Vec4(0.7f,0.7f,0.7f,1.f);
+            osg::Vec4 diffuseColor = osg::Vec4(0.5f,0.5f,0.5f,1.f);
+            osg::Vec4 specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
 
-            if(geometry.getType() == citygml::GT_Roof)
+            //Change color depending on object Type
+            if(geometry.getType() == citygml::GT_Roof ||
+                    object->getType() == citygml::COT_RoofSurface) //Roofs
             {
-                ambiantColor = osg::Vec4(0.93f,0.5f,0.37f,1.f);
+                //Brick
+                ambientColor = osg::Vec4(0.8f,0.25f,0.25f,1.f);
                 diffuseColor = osg::Vec4(0.30f,0.30f,0.30f,1.0f);
                 specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
             }
-            else //Walls
+            else if(object->getType() == citygml::COT_TINRelief) //Land
             {
-                ambiantColor = osg::Vec4(0.7f,0.7f,0.7f,1.f);
-                diffuseColor = osg::Vec4(0.5f,0.5f,0.5f,1.f);
-                specularColor = osg::Vec4(0.2f,0.2f,0.2f,1.f);
+                //Brown
+                ambientColor = osg::Vec4(0.74f,0.65f,0.56f,1.f);
+                diffuseColor = osg::Vec4(0.35f,0.35f,0.35f,1.f);
+            }
+            else if(object->getType() == citygml::COT_WaterBody)
+            {
+                //Blue
+                ambientColor = osg::Vec4(0.12f,0.49f,0.79f,1.f);
+            }
+            else if(object->getType() == citygml::COT_SolitaryVegetationObject || object->getType() == citygml::COT_PlantCover || object->getType() == citygml::COT_Square)
+            {
+                //Green
+                ambientColor = osg::Vec4(0.22f,0.54f,0.13f,1.f);
+                diffuseColor = osg::Vec4(0.3f,0.3f,0.3f,1.f);
             }
 
-            material->setAmbient( osg::Material::FRONT_AND_BACK, ambiantColor );
+            material->setAmbient( osg::Material::FRONT_AND_BACK, ambientColor );
             material->setDiffuse( osg::Material::FRONT_AND_BACK, diffuseColor );
             material->setSpecular( osg::Material::FRONT_AND_BACK, specularColor );
-            //material->setEmission( osg::Material::FRONT_AND_BACK, emissionColor );
-            //material->setShininess(osg::Material::FRONT_AND_BACK, shininess);
 
             stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
             stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
 
-            colorset = true;
 
             if ( m_settings.m_useTextures)
             {
+                const citygml::Appearance *mat = p->getAppearance();
+
                 if ( const citygml::Texture* t = dynamic_cast<const citygml::Texture*>( mat ) )
                 {
                     const citygml::TexCoords& texCoords = p->getTexCoords();
@@ -336,8 +333,6 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                             geom->setTexCoordArray( 0, tex );
 
                             stateset->setTextureAttributeAndModes( 0, texture, osg::StateAttribute::ON );
-
-                            colorset = true;
                         }
                     }
                     else
@@ -346,13 +341,6 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                     }
                 }
             }
-            //}
-
-			// Color management
-
-//			geom->setColorArray( ( !colorset && geometry.getType() == citygml::GT_Roof ) ? roof_color.get() : shared_colors.get() );
-
-//			geom->setColorBinding( osg::Geometry::BIND_OVERALL );
 #if 0
             // Set lighting model to two sided
 			osg::ref_ptr< osg::LightModel > lightModel = new osg::LightModel;
@@ -363,7 +351,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
             grp->getChild(geometry.getLOD())->asGeode()->addDrawable(geom);
             //geode->addDrawable( geom );
 		}
-    }
+	}
 
     if ( m_settings._printNames )
 	{

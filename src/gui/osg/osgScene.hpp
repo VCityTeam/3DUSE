@@ -30,7 +30,10 @@
 #include <osg/Group>
 #include <osg/Geode>
 #include <osg/Geometry>
+#include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"
+
+
 ////////////////////////////////////////////////////////////////////////////////
 class OsgScene : public osg::Group
 {
@@ -153,6 +156,9 @@ public:
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
     void setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node, std::map<std::string,bool>* polySunlightInfo);
+
+    osg::TextureCubeMap* readCubeMap();
+    osg::Node* createSkybox();
 
     std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
 };
