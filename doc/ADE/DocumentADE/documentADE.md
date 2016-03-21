@@ -1,7 +1,7 @@
 # Document ADE
 
 # Current Proposition
-#### Publication Date: March 18, 2016
+#### Publication Date: March 21, 2016
 
 ![Image Alt](DocumentADE.png)
 
@@ -9,7 +9,6 @@
 - What's the precise definition of a referring date?
 - Shouldn't there be many referring dates for a particular city object in a document? 
 - Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
-- Do we need to specify producerType, heldByType (to specify whether they are official/non official/private sources)?
 
 
 ## Evolution of Document ADE
@@ -64,7 +63,7 @@ DocumentType has been replaced by gml:codeType (considering CityGML 2.0 changes)
 referringDate and referringPeriod makes use of gml:TimeInstant and gml:TimePeriod respectively.
 purpose is now a string to support various possibilities.
 
-![Image Alt](DocumentADE.png)
+![Image Alt](evolution/DocumentADEv1.png)
 
 #### Open Problems
 - What's the precise definition of a referring date?
