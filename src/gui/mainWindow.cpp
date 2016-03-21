@@ -2836,6 +2836,9 @@ std::vector<osgInfo*> loadCSV()
 
     std::vector<std::string> v_filepath;
     std::vector<std::string> v_name;
+    std::vector<std::string> v_filetype;
+    std::vector<std::string> v_sourcetype;
+    std::vector<std::string> v_LOD;
 
     // *** CSV Load
         std::ifstream file( "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test2.csv");
@@ -2880,36 +2883,41 @@ std::vector<osgInfo*> loadCSV()
 
                 if (cpt==8)
                         v_name.push_back(cell);
+                if (cpt==9)
+                        v_filetype.push_back(cell);
+                if (cpt==10)
+                        v_sourcetype.push_back(cell);
+                if (cpt==11)
+                        v_LOD.push_back(cell);
 
                 cpt++;
              }
             v_position.push_back(osg::Vec3(x,y,z));
         }
-        std::cout<<"Coordonnee image : "<<v_position[0].x()<<","<<v_position[0].y()<<","<<v_position[0].z()<<std::endl;
+        //std::cout<<"Coordonnee image : "<<v_position[0].x()<<","<<v_position[0].y()<<","<<v_position[0].z()<<std::endl;
         //std::cout<<"Coordonnee image : "<<v_position[0].x()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.x<<","<<v_position[0].y()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.y<<","<<v_position[0].z()<<std::endl;
-        std::cout<<"bah loadCSV     parsed"<<std::endl;
+        std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
         for (int i=0; i<v_filepath.size(); i++)
         {
-            std::cout<<"bah     for"<<std::endl;
-
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i]));
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i]));
         }
+        std::cout<<"[MainWindow > test2 > loadCSV].....v_info filled"<<std::endl;
         return v_info;
 }
 
 void MainWindow::test2()
 {
-    std::cout<<"TEST 2"<<std::endl;
+    std::cout<<"[MainWindow > test2]"<<std::endl;
     std::vector<osgInfo*> v_info;
 
 
 
     v_info = loadCSV();
 
-    std::cout<<"bah     CSV loaded"<<std::endl;
+    std::cout<<"[MainWindow > test2].....CSV loaded"<<std::endl;
 
     vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
-    vcity::log() << uriInfoLayer.getStringURI() << "\n";
+
 
     appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 

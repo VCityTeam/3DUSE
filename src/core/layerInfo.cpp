@@ -39,7 +39,8 @@ URI LayerInfo::getURI() const
 void LayerInfo::setInfo(std::vector<osgInfo*> info)
 {
     m_info=info;
-    std::cout<<"infos added"<<std::endl;
+    std::cout<<"[layerInfo > setInfo].....infos added"<<std::endl;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

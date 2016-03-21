@@ -21,11 +21,17 @@ osgInfo::osgInfo()
     m_geode->addDrawable(m_geom);
     m_pat->addChild(m_geode);
 
-    id = boost::uuids::random_generator()();
     m_name = "NULL";
+    m_filetype = "NULL";
+    m_sourcetype = "NULL";
+    m_LOD ="NULL";
+
+    m_displayable = true;
+    m_requested = true;
+
 }
 
-osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3 axis, std::string filepath, std::string name)
+osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod)
 {
     m_texture = new osg::Texture2D;
     m_geom = new osg::Geometry;
@@ -38,6 +44,9 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_axe = axis;
 
     m_name = name;
+    m_filetype = type;
+    m_sourcetype = source;
+    m_LOD = lod;
 
     m_texture->setImage(osgDB::readImageFile(filepath));
     m_height = height;
@@ -78,8 +87,11 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
 
     m_pat->addChild(m_geode);
 
+    m_displayable = true;
+    m_requested = true;
 
-    id = boost::uuids::random_generator()();
+
+    //id = boost::uuids::random_generator()();
 
 
 }
@@ -132,16 +144,6 @@ osg::StateSet* osgInfo::getState()
     return m_state;
 }
 
-
-////////////////////////////////////////////////////////////////////////
-/// \brief id getter
-/// \return
-///
-boost::uuids::uuid osgInfo::getID()
-{
-    return id;
-}
-
 ////////////////////////////////////////////////////////////////////////
 /// \brief geode getter
 /// \return
@@ -158,6 +160,60 @@ osg::Geode* osgInfo::getGeode()
 osg::PositionAttitudeTransform* osgInfo::getPAT()
 {
     return m_pat;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief name getter
+/// \return
+///
+std::string osgInfo::getInfoName()
+{
+    return m_name;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief type getter
+/// \return
+///
+std::string osgInfo::getType()
+{
+    return m_filetype;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief source getter
+/// \return
+///
+std::string osgInfo::getSourceType()
+{
+    return m_sourcetype;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief source getter
+/// \return
+///
+std::string osgInfo::getInfoLOD()
+{
+    return m_LOD;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief displayable getter
+/// \return
+///
+bool osgInfo::isDisplayable()
+{
+    return m_displayable;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief requested getter
+/// \return
+///
+bool osgInfo::isRequested()
+{
+    return m_requested;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -220,6 +276,15 @@ void osgInfo::setTexture(std::string filepath)
 
 }
 
+void osgInfo::setDisplayable(bool statut)
+{
+    m_displayable=statut;
+}
+
+void osgInfo::setRequested(bool statut)
+{
+    m_requested=statut;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

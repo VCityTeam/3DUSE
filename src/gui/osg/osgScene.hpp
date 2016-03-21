@@ -42,9 +42,6 @@ public:
     /// Init osg scene basic structure
     void init();
 
-    ///Init osginfo
-    void initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
-
     /// \brief addTile Add a tile in a layer of the osg scene
     /// \param uriLayer URI pointing to the layer
     /// \param tile Tile to add
@@ -146,8 +143,15 @@ public:
     void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
     void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
 
+    ///Init osginfo
+    void initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
     /// Fill info
     osg::ref_ptr<osg::Switch> fillInfo(std::vector<osgInfo*> v_info);
+    /// Fill info
+    void fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info);
+    /// Filter info
+    void filterInfo(const QString& filter);
+
 
     bool m_shadow;                          ///< flag to use osg shadows or not
     osg::Vec4 m_shadowVec;

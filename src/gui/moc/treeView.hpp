@@ -55,6 +55,9 @@ public:
     void setTileName(const vcity::URI& uri, const std::string& name);
     void deleteTile(const vcity::URI& uri);
 
+    void addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info);
+
+
 	void addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
 	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 	void setAssimpNodeName(const vcity::URI& uri, const std::string& name);

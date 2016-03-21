@@ -105,15 +105,15 @@ void ControllerGui::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo *> i
 {
     Controller::addInfo(uriLayer, info);
 
+    // fill osg scene
+    uriLayer.resetCursor();
     appGui().getOsgScene()->initInfo(uriLayer, info);
 
-//    // fill treeview
-//    uriLayer.resetCursor();
-//    appGui().getTreeView()->addTile(uriLayer, tile);
 
-//    // fill osg scene
-//    uriLayer.resetCursor();
-//    appGui().getOsgScene()->addTile(uriLayer, tile);
+    // fill treeview
+    uriLayer.resetCursor();
+    appGui().getTreeView()->addInfo(uriLayer, info);
+
 }
 
 

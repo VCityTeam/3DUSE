@@ -400,6 +400,37 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 
     m_tree->blockSignals(false);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info)
+{
+    //uriLayer.resetCursor();
+    std::cout<<"[treeView > addInfo]"<<std::endl;
+    m_tree->blockSignals(true);
+
+    //std::vector<QTreeWidgetItem*> v_item;
+
+    QTreeWidgetItem* layer = getNode(uriLayer);
+    //QTreeWidgetItem* item = createItemGeneric("info", "doc");
+
+    //layer->addChild(item);
+
+
+    if(layer)
+    {
+        std::cout<<"[treeView > addInfo].....if(layer)"<<std::endl;
+        for(int i=0; i<v_info.size(); i++)
+        {
+            QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), "Doc");
+            layer->addChild(item);
+        }
+    }
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::setTileName(const vcity::URI& uri, const std::string& name)
 {
@@ -578,6 +609,7 @@ void TreeView::resetSelection()
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 {
+    //std::cout<<"[treeView > getNode]"<<std::endl;
     QTreeWidgetItem* res = nullptr;
     QTreeWidgetItem* current = m_tree->topLevelItem(0);
 
@@ -603,6 +635,7 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
 {
+    std::cout<<"[treeView > slotSelectNode]"<<std::endl;
     //std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
 
     // insane brute force hack :
@@ -757,6 +790,7 @@ void TreeView::slotItemDoubleClicked(QTreeWidgetItem* item, int)
 ////////////////////////////////////////////////////////////////////////////////
 void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 {
+    //std::cout<<"[treeview > searchNode]"<<std::endl;
     if(node)
     {
         int count = node->childCount();
@@ -775,10 +809,12 @@ void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotFilter()
 {
-    //std::cout << "filter : " << appGui().getMainWindow()->getFilter()->text().toStdString() << std::endl;
+    std::cout << "[treeView > slotFilter ].....filtre : -" << appGui().getMainWindow()->getFilter()->text().toStdString() <<"-"<<std::endl;
 
     appGui().getControllerGui().resetSelection();
     searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
+    appGui().getOsgScene()->filterInfo(appGui().getMainWindow()->getFilter()->text());
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddTile()

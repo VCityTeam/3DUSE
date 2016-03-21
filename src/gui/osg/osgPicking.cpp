@@ -423,10 +423,6 @@ void PickHandler::deselectNode(const vcity::URI& uri)
                 {
                     grp->removeChild(i);
                 }
-                if(grp->getChild(i)->getName() == "infoimage")
-                {
-                    grp->removeChild(i);
-                }
             }
         }
 
