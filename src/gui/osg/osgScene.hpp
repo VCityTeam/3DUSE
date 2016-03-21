@@ -30,6 +30,7 @@
 #include <osg/Group>
 #include <osg/Geode>
 #include <osg/Geometry>
+#include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"
 #include "osgInfo.hpp"
 
@@ -73,7 +74,6 @@ public:
 	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 	void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     void addShpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
-    void addInfoNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     /// \brief addLayer Add a layer to the osg scene
     /// \param name Layer name
@@ -132,7 +132,6 @@ public:
 
     /// Insert info bubble for a node
     osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
-    osg::ref_ptr<osg::Node> createInfo(osg::ref_ptr<osg::Node> node);
 
 public:
     /// Build osg node from CityGML data
@@ -142,16 +141,6 @@ public:
     /// Build osg node from CityGML temporal data
     void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
     void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
-
-    ///Init osginfo
-    void initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
-    /// Fill info
-    osg::ref_ptr<osg::Switch> fillInfo(std::vector<osgInfo*> v_info);
-    /// Fill info
-    void fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info);
-    /// Filter info
-    void filterInfo(const QString& filter);
-
 
     bool m_shadow;                          ///< flag to use osg shadows or not
     osg::Vec4 m_shadowVec;
@@ -163,7 +152,6 @@ public:
 
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
-
 
     std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
 };

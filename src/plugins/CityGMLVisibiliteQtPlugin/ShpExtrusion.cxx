@@ -9,7 +9,7 @@
 
 #include <unordered_map>
 
-#include "data/AABB.hpp"
+#include "AABB.hpp"
 #include "Visibilite.hpp"
 
 std::map<std::string,TriangleList*> tileTriangles;

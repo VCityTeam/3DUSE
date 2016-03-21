@@ -2,9 +2,10 @@
 #define __AABB_HPP__
 
 #include <string>
+#include <vector>
 
+#include "vecs.hpp"
 
-#include "gui/osg/osgScene.hpp"
 
 /**
 *	@brief An axis aligned bounding box
@@ -15,25 +16,11 @@ struct AABB
 	TVec3d max;///< Max point of the box
 	std::string name;///< Name of the box
 
-	bool operator==(AABB const& other)
-	{
-		return name == other.name;
-	}
+    bool operator==(AABB const& other);
 };
 
 /**
-*	@brief A hit between a ray and a bounding box
-*/
-struct RayBoxHit
-{
-	AABB box;///< Box hitted
-	float minDistance;///< Distance between the ray origin and the bounding box
-};
-
-bool operator<(const RayBoxHit& a, const RayBoxHit& b);
-
-/**
-*	Used when ordering a collection of bounding box
+*	Used when ordering a collection of bounding boxes
 */
 struct BoxOrder
 {
@@ -43,8 +30,9 @@ struct BoxOrder
 
 bool operator<(const BoxOrder& a, const BoxOrder& b);
 
+
 /**
-*	Used to store bounding box collection of different layer
+*	Used to store a bounding box collection of different layer
 */
 struct AABBCollection
 {
@@ -58,16 +46,15 @@ struct AABBCollection
 };
 
 /**
-*	@brief Build bounding box for a set of tile, bounding box are saved on disk, not returned
-*	@param dir Directory where citygml are located
+*	@brief Build bounding box from a set of tile, bounding boxes are saved on disk in a text file, not returned
+*	@param dir Directory where the citygml files are located
 */
 void BuildAABB(std::string dir);
 
 /**
 *	@brief Load an aabb set previously build
-*	@param dir Directory where citygml are located, must contain two directory for terrain and building
-*	@param name Name of the set of tile to load
-*	@return List of AABB for the set of tile, <BuildingAABB,TerrainAABB>
+*	@param dir Directory where citygml files are located, must contain several subdirectories, one for each data layer (terrain, building, water, ..)
+*	@return AABB Collection of the set of tiles
 */
 AABBCollection LoadAABB(std::string dir);
 

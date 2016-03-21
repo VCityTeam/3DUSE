@@ -342,7 +342,8 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
     //QTreeWidgetItem* root = m_tree->topLevelItem(0);
     QTreeWidgetItem* layer = getNode(uriLayer);
 
-    QTreeWidgetItem* item = createItemGeneric(tile.getName().c_str(), "Tile");
+    //QTreeWidgetItem* item = createItemGeneric(tile.getCityGMLfilePath().c_str(), "File"); // AS EXPECTED, PROBLEM WITH THAT with URI !!!
+	QTreeWidgetItem* item = createItemGeneric(tile.getName().c_str(), "File");
     layer->addChild(item);
 
     citygml::CityModel* citymodel = tile.getCityModel();

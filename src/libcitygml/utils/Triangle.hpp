@@ -1,10 +1,11 @@
 #ifndef __TRIANGLE_HPP__
 #define __TRIANGLE_HPP__
 
-#include "gui/osg/osgScene.hpp"
+#include "libcitygml/citygml.hpp"
+#include "core/tile.hpp"
 
 /**
-*	@brief A triangle create from a citygml polygon
+*	@brief A triangle created from a citygml polygon
 */
 struct Triangle
 {
@@ -14,20 +15,9 @@ struct Triangle
 	*	@param b Second point of the triangle
 	*	@param c Third point of the triangle
 	*/
-	Triangle(TVec3d a = TVec3d(0.0,0.0,0.0),TVec3d b = TVec3d(0.0,0.0,0.0),TVec3d c = TVec3d(0.0,0.0,0.0))
-	{
-		this->a = a;
-		this->b = b;
-		this->c = c;
-		objectType = citygml::CityObjectsType::COT_All;
-		subObjectType = citygml::CityObjectsType::COT_All;
-	}
+    Triangle(TVec3d a = TVec3d(0.0,0.0,0.0),TVec3d b = TVec3d(0.0,0.0,0.0),TVec3d c = TVec3d(0.0,0.0,0.0));
 
-	TVec3d GetNormal()
-	{
-		TVec3d normal = (b - a).cross(c - a);
-		return normal/normal.length();
-	}
+    TVec3d GetNormal();
 
 	TVec3d a; ///< First point of the triangle
 	TVec3d b; ///< Second point of the triangle
@@ -49,21 +39,7 @@ struct TriangleList
 	/**
 	*	@brief Build a new collection of triangle
 	*/
-	TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>())
-	{
-		this->triangles = triangles;
-	}
-
-	/**
-	*	@brief Delete all triangles from the list
-	*/
-	~TriangleList()
-	{
-		for(unsigned int i = 0; i < triangles.size(); i++)
-		{
-			delete triangles[i];
-		}
-	}
+    TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>());
 
 	std::vector<Triangle*> triangles;///< Triangles of the list
 };

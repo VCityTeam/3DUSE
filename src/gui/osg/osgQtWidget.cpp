@@ -91,12 +91,12 @@ public:
             if((ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0)
             {
                 m_mod = true;
-                std::cout << "mod key on" << std::endl;
+                //std::cout << "mod key on" << std::endl;
             }
             else
             {
                 m_mod = false;
-                std::cout << "mod key off" << std::endl;
+                //std::cout << "mod key off" << std::endl;
             }
 
             // check if we are using first person camera
@@ -104,12 +104,10 @@ public:
             MyFirstPersonManipulator* fpsCam = dynamic_cast<MyFirstPersonManipulator*>(ksm->getCurrentMatrixManipulator());
             if(fpsCam != NULL)
             {
-                std::cout<<"mode fps"<<std::endl;
                 switch(ea.getKey())
                 {
                 case osgGA::GUIEventAdapter::KEY_Up:
                 {
-
                     if(m_mod)
                         fpsCam->moveUp(m_speed);
                     else
@@ -118,7 +116,6 @@ public:
                 }
                 case osgGA::GUIEventAdapter::KEY_Down:
                 {
-
                     if(m_mod)
                         fpsCam->moveUp(-m_speed);
                     else
@@ -165,7 +162,7 @@ public:
 
 private:
     bool m_mod;
-    float m_speed                                                                                                                             ;
+    float m_speed;
 };
 ////////////////////////////////////////////////////////////////////////////////
 osgQtWidget::osgQtWidget(QWidget* parent)
@@ -199,7 +196,7 @@ QWidget* osgQtWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, QWidget* /*pare
 
    const osg::GraphicsContext::Traits* traits = gw->getTraits();
 
-   camera->setClearColor( osg::Vec4(0.75, 0.93, 1.0, 1.0) );
+   camera->setClearColor( osg::Vec4(0.46, 0.7, 0.99, 1.0) );
    //camera->setClearColor( osg::Vec4(1.0, 1.0, 1.0, 1.0) );
    camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
    camera->setProjectionMatrixAsPerspective(30.0f, static_cast<double>(traits->width)/static_cast<double>(traits->height), 1.0f, 10000.0f );

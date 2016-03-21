@@ -11,6 +11,16 @@
 #include <osg/ValueObject>
 #include <osgText/Text>
 #include <osgUtil/Optimizer>
+
+#include <osg/Depth>
+#include <osg/CullFace>
+#include <osg/TexMat>
+#include <osg/TexGen>
+#include <osg/TexEnv>
+#include <osg/TexEnvCombine>
+#include <osg/VertexProgram>
+#include <osg/ShapeDrawable>
+
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
 #include "osgCityGML.hpp"
@@ -84,6 +94,101 @@ protected:
     std::string _name;
     osg::ref_ptr<osg::Node> _node;
 };
+
+/////////////////////////////////////////////////////////////////////////////////////
+//** Skybox related classes
+osg::TextureCubeMap* OsgScene::readCubeMap()
+{
+    osg::TextureCubeMap* cubemap = new osg::TextureCubeMap;
+
+    osg::ref_ptr<osg::Image>imagePosX = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/right.png");
+    osg::ref_ptr<osg::Image>imageNegX = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/left.png");
+    osg::ref_ptr<osg::Image>imagePosY = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/bottom.png");
+    osg::ref_ptr<osg::Image>imageNegY = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/top.png");
+    osg::ref_ptr<osg::Image>imagePosZ = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/back.png");
+    osg::ref_ptr<osg::Image>imageNegZ = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/front.png");
+
+
+    if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ)
+    {
+        cubemap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
+        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
+        cubemap->setImage(osg::TextureCubeMap::POSITIVE_Y, imagePosY);
+        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_Y, imageNegY);
+        cubemap->setImage(osg::TextureCubeMap::POSITIVE_Z, imagePosZ);
+        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_Z, imageNegZ);
+
+        cubemap->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
+        cubemap->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
+        cubemap->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
+
+        cubemap->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+        cubemap->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+    }
+
+    return cubemap;
+}
+
+// Update texture matrix for cubemaps
+struct TexMatCallback : public osg::NodeCallback
+{
+public:
+
+    TexMatCallback(osg::TexMat& tm) :
+        _texMat(tm)
+    {
+    }
+
+    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
+    {
+        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+        if (cv)
+        {
+            const osg::Matrix& MV = *(cv->getModelViewMatrix());
+            const osg::Matrix R = osg::Matrix::rotate( osg::DegreesToRadians(112.0f), 0.0f,0.0f,1.0f)*
+                                  osg::Matrix::rotate( osg::DegreesToRadians(90.0f), 1.0f,0.0f,0.0f);
+
+            osg::Quat q = MV.getRotate();
+            const osg::Matrix C = osg::Matrix::rotate( q.inverse() );
+
+            _texMat.setMatrix( C*R );
+        }
+
+        traverse(node,nv);
+    }
+
+    osg::TexMat& _texMat;
+};
+
+
+class MoveEarthySkyWithEyePointTransform : public osg::Transform
+{
+public:
+    /** Get the transformation matrix which moves from local coords to world coords.*/
+    virtual bool computeLocalToWorldMatrix(osg::Matrix& matrix,osg::NodeVisitor* nv) const
+    {
+        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+        if (cv)
+        {
+            osg::Vec3 eyePointLocal = cv->getEyeLocal();
+            matrix.preMultTranslate(eyePointLocal);
+        }
+        return true;
+    }
+
+    /** Get the transformation matrix which moves from world coords to local coords.*/
+    virtual bool computeWorldToLocalMatrix(osg::Matrix& matrix,osg::NodeVisitor* nv) const
+    {
+        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
+        if (cv)
+        {
+            osg::Vec3 eyePointLocal = cv->getEyeLocal();
+            matrix.postMultTranslate(-eyePointLocal);
+        }
+        return true;
+    }
+};
+
 
 
 class InfoDataType : public osg::Referenced
@@ -664,6 +769,9 @@ void OsgScene::init()
     {
         addChild(m_effectNone);
     }
+
+    //build skybox
+    //addChild(createSkybox());
 
     // build layers node
     m_layers = new osg::Group();
@@ -1628,18 +1736,14 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
     osg::ref_ptr<osg::Node> res = nullptr;
     osg::ref_ptr<osg::Group> current = m_layers;
 
-
     while(uri.getCursor() < uri.getDepth())
     {
         int count = current->getNumChildren();
-
         for(int i=0; i<count; ++i)
         {
-
             osg::ref_ptr<osg::Node> child = current->getChild(i);
             if(child->getName() == uri.getCurrentNode())
             {
-
                 res = child;
                 if(!(current = child->asGroup()))
                 {
@@ -1689,40 +1793,6 @@ osg::ref_ptr<osg::Node> OsgScene::createInfoBubble(osg::ref_ptr<osg::Node> node)
 
     return nullptr;
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//osg::ref_ptr<osg::Node> OsgScene::createInfo(osg::ref_ptr<osg::Node> node)
-//{
-//    osg::ref_ptr<osg::Group> grp = node->asGroup();
-//    if(grp)
-//    {
-//        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-//        geode->setName("infoimage");
-//        osg::Vec3 pos = node->getBound().center() + osg::Vec3( 0, 0, node->getBound().radius());
-//        std::string filepath = "/home/pers/clement.chagnaud/Documents/Data/Img/lyon1.jpg";
-
-//        osgInfo* info = new osgInfo(80,120,pos,0,osg::Vec3(0,0,1),filepath);
-//        osg::PositionAttitudeTransform* pat = new osg::PositionAttitudeTransform ;
-//        geode->addDrawable( info->getGeom());
-
-//        pat->setPosition(info->getPosition());
-//        pat->setStateSet(info->getState());
-//        pat->setAttitude(osg::Quat(osg::DegreesToRadians(info->getAngle()), osg::Vec3(0,0,1) ));
-//        pat->setName("infoimage");
-
-//        pat->addChild(geode);
-
-
-//        grp->addChild(pat);
-
-//        return geode;
-//    }
-
-//    return nullptr;
-//}
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Node> OsgScene::buildGrid(const osg::Vec3& bbox_lower, const osg::Vec3& bbox_upper, const osg::Vec2& step, const osg::Vec3& offset, const osg::Vec2& tileOffset)
 {

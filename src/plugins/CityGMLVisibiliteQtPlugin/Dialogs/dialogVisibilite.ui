@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>720</width>
+    <width>749</width>
     <height>805</height>
    </rect>
   </property>
@@ -148,7 +148,7 @@
       <double>999999999.000000000000000</double>
      </property>
      <property name="value">
-      <double>0.700000000000000</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -161,7 +161,7 @@
       <double>999999999.000000000000000</double>
      </property>
      <property name="value">
-      <double>572.279999999999973</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -201,7 +201,7 @@
       <double>999999999.000000000000000</double>
      </property>
      <property name="value">
-      <double>-0.590000000000000</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -221,7 +221,7 @@
       <double>999999999.000000000000000</double>
      </property>
      <property name="value">
-      <double>1842700.000000000000000</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -241,7 +241,7 @@
       <double>999999999.000000000000000</double>
      </property>
      <property name="value">
-      <double>5175630.000000000000000</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -311,7 +311,7 @@
       <double>999999999.000000000000000</double>
      </property>
      <property name="value">
-      <double>-0.400000000000000</double>
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
