@@ -9,6 +9,7 @@
 - What's the precise definition of a referring date?
 - Shouldn't there be many referring dates for a particular city object in a document? 
 - Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
+- Do we need to specify producerType, heldByType (to specify whether they are official/non official/private sources)?
 
 
 ## Evolution of Document ADE
@@ -34,16 +35,18 @@ Following the discussion with Clémentine Périnaud, further questions were rais
 
 ### Second Proposition 
 #### Publication Date: March 15, 2016
-A document may or may not have an associated shapefile.
+After considering CityGML ADE, the above requirements have been incorporated to the CityGML model.
+- A document may or may not have an associated shapefile.
 A document may refer to an abstract location, i.e., the city of Giors, or a particular sector in a city, the boundaries of which may not be clear since the reference may have been used in a generic manner.
 By deriving DocumentObject from AbstractCityObject (which in turn inherits from VersionableAbstractFeature), we inherit attributes like identifier, creationDate, publicationDate, and the possibility to specify any external reference of the document.
-New attributes like currentHolder and recoveredOn have been added to specify the current owner of a document.
+This derivation also permits to create a directory of documents (Refer CityObjectGroup).
+- Two classes called Agent and AgentGroup have been added to specify the creator (or producer) of a document. AgentGroup is a group of agents. Example two or three persons in the municipal council talking on a particular topic. AgentGroup derives from Agent, therefore we may have groups of AgentGroups and so on.
+- New attributes like currentHolder and recoveredOn have been added to specify the current owner of a document.
 Another attribute called purpose have been added with a type 'PurposeType' to specify the purpose of a document.
 'documentType' is used to specify the format of a document.
-A document may have _Tag_s.
-A document may refer any other AbstractCityObject (on a particular date of past/future or a period) and this is captured by the association class 'Reference'.
-A separate class called 'AbstractLocation' has been added to associate a document to abstract locations like city, quarter which cannot be specified in CityGML.
-Two classes called Agent and AgentGroup have been added to specify the creator (or producer) of a document. AgentGroup is a group of agents. Example two or three persons in the municipal council talking on a particular topic. AgentGroup derives from Agent, therefore we may have groups of AgentGroups and so on.
+- A document may have _Tag_s.
+- A document may refer any other AbstractCityObject (on a particular date of past/future or a period) and this is captured by the association class 'Reference'.
+- A separate class called 'AbstractLocation' has been added to associate a document to abstract locations like city, quarter which cannot be specified in CityGML.
 
 
 ![Image Alt](evolution/DocumentADE.png)
@@ -63,7 +66,7 @@ purpose is now a string to support various possibilities.
 
 ![Image Alt](DocumentADE.png)
 
-## Open Problems
+#### Open Problems
 - What's the precise definition of a referring date?
 - Shouldn't there be many referring dates for a particular city object in a document? 
 - Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
