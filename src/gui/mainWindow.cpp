@@ -30,7 +30,7 @@
 #include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
-#include "core/BatimentShape.hpp"
+//#include "core/BatimentShape.hpp"
 #include <geos/geom/GeometryFactory.h>
 
 /*#include "assimp/Importer.hpp"
@@ -61,7 +61,7 @@
 #include <math.h>
 #include <osg/MatrixTransform>
 #include <core/layerInfo.hpp>
-#include <gui/utils/AABB.hpp>
+//#include <gui/utils/AABB.hpp>
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2863,43 +2863,44 @@ std::vector<osgInfo*> loadCSV()
 
 void MainWindow::test2()
 {
-	//Création d'ilots à partir de Shapefile contenant des routes
-	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-	OGRLayer *LayerRoutes = Routes->GetLayer(0);
-	OGRFeature *FeatureRoutes;
-	LayerRoutes->ResetReading();
     std::cout<<"[MainWindow > test2]"<<std::endl;
     std::vector<osgInfo*> v_info;
-
-	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-	{
-		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
-
-		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-		{
-			ReseauRoutier->addGeometry(Route);
-		}
-	}
-
-	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
     v_info = loadCSV();
-
-	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
-    std::cout<<"[MainWindow > test2].....CSV loaded"<<std::endl;
-
-	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-	{
-		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-			ReseauMP->addGeometry(temp);
-	}
     vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
-
-	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
-
-	delete ReseauRoutier;
     appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
+
+	//Création d'ilots à partir de Shapefile contenant des routes
+//	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+//	OGRLayer *LayerRoutes = Routes->GetLayer(0);
+//	OGRFeature *FeatureRoutes;
+//	LayerRoutes->ResetReading();
+
+//	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
+//	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
+//	{
+//		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+
+//		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
+//		{
+//			ReseauRoutier->addGeometry(Route);
+//		}
+//	}
+
+//	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+
+//	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+//    std::cout<<"[MainWindow > test2].....CSV loaded"<<std::endl;
+
+//	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
+//	{
+//		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
+//		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
+//			ReseauMP->addGeometry(temp);
+//	}
+
+//	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+
+//	delete ReseauRoutier;
 
 
 

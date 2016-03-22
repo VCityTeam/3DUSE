@@ -378,6 +378,7 @@ void PickHandler::selectNode(const vcity::URI& uri)
 {
     uri.resetCursor();
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+    std::cout<<"[osgPicking > selectNode]...... uri selected : "<<uri.getStringURI()<<std::endl;
     if(node)
     {
         //osg::ref_ptr<osg::PolygonMode> pm = new osg::PolygonMode;
