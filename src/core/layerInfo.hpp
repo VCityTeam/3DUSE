@@ -13,7 +13,7 @@
 namespace vcity
 {
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief LayerShp class : it holds shp objects
+/// \brief LayerInfo class : it holds shp objects
 class LayerInfo : public abstractLayer
 {
 public:
@@ -31,6 +31,11 @@ public:
 
     void setInfo(std::vector<osgInfo*> info);
     std::vector<osgInfo*> getInfo();
+
+    /// \brief getCityObjectNode Get a CityGML node
+    /// \param uri URI pointing to the CityGML node
+    /// \return Ptr to CityGML node or nullptr
+    //osg::Info* getInfoNode(const URI& uri);
 
     void dump() override;
 

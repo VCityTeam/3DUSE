@@ -289,20 +289,21 @@ void InfoDataType::display()
             {
                 osg::Node* node = subSwitch->getChild(j);
                 osgInfo* info = dynamic_cast<osgInfo*>(node);
-                //std::cout<<std::endl<<"[Callback > display].....document : "<<info->getInfoName()<<std::endl;
-                //std::cout<<"[Callback > display].............isDisplayable : "<<info->isDisplayable()<<std::endl;
-                //std::cout<<"[Callback > display].............isRequested : "<<info->isRequested()<<std::endl;
+                std::cout<<std::endl<<"[Callback > display].....document : "<<info->getInfoName()<<std::endl;
+                std::cout<<"[Callback > display].............isDisplayable : "<<info->isDisplayable()<<std::endl;
+                std::cout<<"[Callback > display].............isRequested : "<<info->isRequested()<<std::endl;
+                //std::cout<<"[Callback > display]........ => switched (before test) : "<<subSwitch->getValue(j)<<std::endl;
                 if(info->isDisplayable() && info->isRequested())
                 {
                     subSwitch->setValue(j,true);
-                    //std::cout<<"[Callback > display]........switched on"<<std::endl;
+//                    std::cout<<"[Callback > display]........switched on"<<std::endl;
                 }
                 else
                 {
                     subSwitch->setValue(j,false);
-                    //std::cout<<"[Callback > display]........switched off"<<std::endl;
+//                    std::cout<<"[Callback > display]........switched off"<<std::endl;
                 }
-                //std::cout<<"[Callback > display]........ => switched : "<<subSwitch->getValue(j)<<std::endl;
+                std::cout<<"[Callback > display]........ => switched : "<<subSwitch->getValue(j)<<std::endl;
 
             }
         }
@@ -898,13 +899,14 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                 if(citySwitch)
                 {
                     citySwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
-                    osg::ref_ptr<osg::Group> cityGroup = citySwitch->getChild(0)->asGroup();
+                    osg::ref_ptr<osg::Group> cityGroup = citySwitch->getChild(citySwitch->getNumChildren()-1)->asGroup();
                     if(cityGroup)
                     {
                         cityGroup->addChild(v_info[i]->getPAT());
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
+
             }
             if(v_info[i]->getInfoLOD()=="district")
             {
@@ -913,7 +915,7 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                 if(districtSwitch)
                 {
                     districtSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
-                    osg::ref_ptr<osg::Group> districtGroup = districtSwitch->getChild(0)->asGroup();
+                    osg::ref_ptr<osg::Group> districtGroup = districtSwitch->getChild(districtSwitch->getNumChildren()-1)->asGroup();
                     if(districtGroup)
                     {
                         districtGroup->addChild(v_info[i]->getPAT());
@@ -930,7 +932,7 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     //std::cout<<"[osgScene > fillSwitches].....if(buildingSwitch)"<<std::endl;
                     buildingSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]));
                     //std::cout<<"[osgScene > fillSwitches].....if(buildingSwitch).....dynamic_cast"<<std::endl;
-                    osg::ref_ptr<osg::Group> buildingGroup = buildingSwitch->getChild(0)->asGroup();
+                    osg::ref_ptr<osg::Group> buildingGroup = buildingSwitch->getChild(buildingSwitch->getNumChildren()-1)->asGroup();
                     if(buildingGroup)
                     {
                         //std::cout<<"[osgScene > fillSwitches].....if(buildingGroup)"<<std::endl;
@@ -946,7 +948,7 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                 if(streetSwitch)
                 {
                     streetSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
-                    osg::ref_ptr<osg::Group> streetGroup = streetSwitch->getChild(0)->asGroup();
+                    osg::ref_ptr<osg::Group> streetGroup = streetSwitch->getChild(streetSwitch->getNumChildren()-1)->asGroup();
                     if(streetGroup)
                     {
                         streetGroup->addChild(v_info[i]->getPAT());
