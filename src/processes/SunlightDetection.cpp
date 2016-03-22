@@ -10,7 +10,18 @@
 #include "src/core/RayBox.hpp"
 #include "quaternion.hpp"
 
+//For displaySun Function, to be removed
+#include <osg/Texture2D>
+#include <osg/Billboard>
+#include <osgDB/Registry>
+#include "src/core/application.hpp"
+#include "src/gui/applicationGui.hpp"
 
+///
+/// \brief buildYearMap builds a std::map mapping every datetime of a year to a boolean valeur representing sunlight.
+/// \param year The year for which the map should be build
+/// \return A std::map mapping datetime (ddmmyyyy:hhmm) for a given year to a boolean value representing sunlight at this datetime (true = sunny, false = shadowed)
+///
 std::map<std::string,bool> buildYearMap(int year)
 {
     std::map<std::string,bool> yearMap;
@@ -65,6 +76,12 @@ std::map<std::string,bool> buildYearMap(int year)
 }
 
 
+///
+/// \brief SetupTileOrder create a std::queue queueing the tiles intersected by a given RayBoxCollection and sorted by intersection distance
+/// \param boxes Vector of tiles' bounding boxes to check intersection with
+/// \param rays Rays to throw to see if they intersect with boxes
+/// \return a std::queue of RayboxHit (struct which holds a bounding box (AABB) and minDistance intersection) sorted by intersection distance (min first)
+///
 std::queue<RayBoxHit> SetupTileOrder(std::vector<AABB> boxes,RayBoxCollection* rays)
 {
     std::map<std::string,int> boxToMaxOrder;//We keep record the maximum order the box has be traverse
@@ -137,21 +154,30 @@ std::queue<RayBoxHit> SetupTileOrder(std::vector<AABB> boxes,RayBoxCollection* r
 }
 
 
+///
+/// \brief exportLightningToCSV Export Sunlight informations for a given tile into a csv file.
+/// \param vSunInfo vector holding informations about sunlight for a given triangle.
+/// \param tilename Name of the tile.
+///
 void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string tilename)
 {
     //To create directory, use QDir.mkdir("name")
+    //Delete file and recreate it or clear it
     //Add URI
 
     std::ofstream ofs;
     ofs.open ("./" + tilename + "_sunlight.csv", std::ofstream::out);
 
-    ofs << "DateTime;TileFile;ObjectType;ObjectId;PolygoneId;Sunny" << std::endl;
+
+
+    ofs << "TileName : " << tilename << std::endl;
+    ofs << "DateTime;PolygoneId;Sunny" << std::endl;
 
     for(TriangleLightInfo* tli : vSunInfo)
     {
         for(auto ySI : tli->yearSunInfo)
         {
-            ofs << ySI.first << ";" << tli->triangle->tileFile << ";" << tli->triangle->objectType << ";" << tli->triangle->objectId << ";" << tli->triangle->polygonId << ";" << ySI.second << std::endl;
+            ofs << ySI.first << ";" << tli->triangle->polygonId << ";" << ySI.second << std::endl;
             // iterator->first = key
             // iterator->second = value
         }
@@ -163,12 +189,88 @@ void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string 
 
 }
 
+//Function to visualize sun in 3D-USE to verify results, to be removed
+void DisplaySun(TVec3d sunPos)
+{
+    //** Display sun
+
+   osg::Group* rootNode = new osg::Group();
+   osg::Texture2D *OldLyonTexture = new osg::Texture2D;
+   OldLyonTexture->setImage(osgDB::readImageFile("/home/vincent/Documents/VCity_Project/Data/soleil.jpg"));
+
+
+   osg::StateSet* bbState = new osg::StateSet;
+   bbState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+   bbState->setTextureAttributeAndModes(0, OldLyonTexture, osg::StateAttribute::ON );
+
+
+   float width = 3000.0f;
+   float height = 1500.0f;
+
+
+   osg::Geometry* bbQuad = new osg::Geometry;
+
+   osg::Vec3Array* bbVerts = new osg::Vec3Array(4);
+   (*bbVerts)[0] = osg::Vec3(-width/2.0f, 0, 0);
+   (*bbVerts)[1] = osg::Vec3( width/2.0f, 0, 0);
+   (*bbVerts)[2] = osg::Vec3( width/2.0f, 0, height);
+   (*bbVerts)[3] = osg::Vec3(-width/2.0f, 0, height);
+
+   bbQuad->setVertexArray(bbVerts);
+
+   osg::Vec2Array* bbTexCoords = new osg::Vec2Array(4);
+   (*bbTexCoords)[0].set(0.0f,0.0f);
+   (*bbTexCoords)[1].set(1.0f,0.0f);
+   (*bbTexCoords)[2].set(1.0f,1.0f);
+   (*bbTexCoords)[3].set(0.0f,1.0f);
+
+   bbQuad->setTexCoordArray(0,bbTexCoords);
+
+   bbQuad->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
+
+   osg::Vec4Array* colorArray = new osg::Vec4Array;
+   colorArray->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) ); // white, fully opaque
+
+   // Use the index array to associate the first entry in our index array with all
+   // of the vertices.
+   bbQuad->setColorArray( colorArray);
+
+   bbQuad->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+   bbQuad->setStateSet(bbState);
+
+
+   osg::Billboard* TestBillBoard = new osg::Billboard();
+   rootNode->addChild(TestBillBoard);
+
+   TestBillBoard->setMode(osg::Billboard::AXIAL_ROT);
+   TestBillBoard->setAxis(osg::Vec3(0.0f,0.0f,1.0f));
+   TestBillBoard->setNormal(osg::Vec3(0.0f,-1.0f,0.0f));
+
+
+   osg::Drawable* bbDrawable = bbQuad;
+
+   sunPos = sunPos - vcity::app().getSettings().getDataProfile().m_offset;
+
+   osg::Vec3d pos = osg::Vec3d(sunPos.x,sunPos.y,sunPos.z);
+
+   TestBillBoard->addDrawable(bbDrawable , pos);
+
+   vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerShp")->getURI();
+
+   appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
+}
+
 
 void SunlightDetection()
 {
+    QTime time;
+    time.start();
+
     // ************* Lightning Measure ******************************//
 
     std::string date = "2016-11-25";
+    std::string tilename = "3675_10347";
 
     std::vector<double> elevationAngle;
     std::vector<double> azimutAngle;
@@ -219,8 +321,8 @@ void SunlightDetection()
     // Ouest : -x axis
 
     TVec3d origin = TVec3d(1843927.29, 5173886.65, 0.0); //Lambert 93 Coordinates
-    TVec3d sunPos = origin + TVec3d(0.0,9000.0,0.0); //Lambert 93 coordinates
-    TVec3d newSunPos = origin + TVec3d(0.0,9000.0,0.0); //Lambert 93 coordinates
+    TVec3d sunPos = origin + TVec3d(0.0,60000.0,0.0); //SunPos is the first position of the sun (north) from which the angles are expressed
+    TVec3d newSunPos = origin + TVec3d(0.0,60000.0,0.0); //Lambert 93 coordinates
 
     TVec3d ARotAxis = TVec3d(0.0,0.0,1.0);
     TVec3d ERotAxis = TVec3d(-1.0,0.0,0.0);
@@ -256,7 +358,7 @@ void SunlightDetection()
         //DisplaySun(newSunPos);
 
         //Compute sun's beams direction
-        TVec3d tmpDirection = (origin - newSunPos);
+        TVec3d tmpDirection = (newSunPos - origin);
         beamsDirections.push_back(tmpDirection.normal());
     }
 
@@ -266,7 +368,7 @@ void SunlightDetection()
 
     //vcity::Tile* tile = new vcity::Tile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml");
 
-    std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml";
+    std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/" + tilename + ".gml";
     std::string dirTile = "/home/vincent/Documents/VCity_Project/Data/Tuiles/";
     citygml::CityObjectsType objectType = citygml::CityObjectsType::COT_Building; //TODO:ADD Terrain
 
@@ -306,7 +408,7 @@ void SunlightDetection()
         TVec3d barycenter = TVec3d();
         barycenter.x = (t->a.x + t->b.x + t->c.x) / 3;
         barycenter.y = (t->a.y + t->b.y + t->c.y) / 3;
-        barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;
+        barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;        
 
         //Create rayCollection (All the rays for this triangle)
         RayBoxCollection* raysboxes = new RayBoxCollection();
@@ -322,6 +424,11 @@ void SunlightDetection()
                 hour_str = std::to_string(hour) + "00";
 
             std::string id = "25112016:" + hour_str;
+
+            //Addition of an offset for raytracing
+            barycenter.x += 0.01f*beamDir.x;
+            barycenter.y += 0.01f*beamDir.y;
+            barycenter.z += 0.01f*beamDir.z;
 
             RayBox* raybox = new RayBox(barycenter,beamDir,id);
             raysboxes->raysBB.push_back(raybox);
@@ -402,80 +509,9 @@ void SunlightDetection()
     }
 
     //Export to csv (one per tile)
-    std::string tilename = "3670_10382";
     exportLightningToCSV(vSunInfoTriangle, tilename);
+
+     std::cout << "Time : " << time.elapsed()/60000 << " min" << std::endl;
 
 }
 
-
-//Function to visualize sun in 3D-USE to verify results, to be removed
-//void DisplaySun(TVec3d sunPos)
-//{
-//    //** Display sun
-
-//   osg::Group* rootNode = new osg::Group();
-//   osg::Texture2D *OldLyonTexture = new osg::Texture2D;
-//   OldLyonTexture->setImage(osgDB::readImageFile("/home/vincent/Documents/VCity_Project/Data/soleil.jpg"));
-
-
-//   osg::StateSet* bbState = new osg::StateSet;
-//   bbState->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
-//   bbState->setTextureAttributeAndModes(0, OldLyonTexture, osg::StateAttribute::ON );
-
-
-//   float width = 3000.0f;
-//   float height = 1500.0f;
-
-
-//   osg::Geometry* bbQuad = new osg::Geometry;
-
-//   osg::Vec3Array* bbVerts = new osg::Vec3Array(4);
-//   (*bbVerts)[0] = osg::Vec3(-width/2.0f, 0, 0);
-//   (*bbVerts)[1] = osg::Vec3( width/2.0f, 0, 0);
-//   (*bbVerts)[2] = osg::Vec3( width/2.0f, 0, height);
-//   (*bbVerts)[3] = osg::Vec3(-width/2.0f, 0, height);
-
-//   bbQuad->setVertexArray(bbVerts);
-
-//   osg::Vec2Array* bbTexCoords = new osg::Vec2Array(4);
-//   (*bbTexCoords)[0].set(0.0f,0.0f);
-//   (*bbTexCoords)[1].set(1.0f,0.0f);
-//   (*bbTexCoords)[2].set(1.0f,1.0f);
-//   (*bbTexCoords)[3].set(0.0f,1.0f);
-
-//   bbQuad->setTexCoordArray(0,bbTexCoords);
-
-//   bbQuad->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,4));
-
-//   osg::Vec4Array* colorArray = new osg::Vec4Array;
-//   colorArray->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f) ); // white, fully opaque
-
-//   // Use the index array to associate the first entry in our index array with all
-//   // of the vertices.
-//   bbQuad->setColorArray( colorArray);
-
-//   bbQuad->setColorBinding(osg::Geometry::BIND_OVERALL);
-
-//   bbQuad->setStateSet(bbState);
-
-
-//   osg::Billboard* TestBillBoard = new osg::Billboard();
-//   rootNode->addChild(TestBillBoard);
-
-//   TestBillBoard->setMode(osg::Billboard::AXIAL_ROT);
-//   TestBillBoard->setAxis(osg::Vec3(0.0f,0.0f,1.0f));
-//   TestBillBoard->setNormal(osg::Vec3(0.0f,-1.0f,0.0f));
-
-
-//   osg::Drawable* bbDrawable = bbQuad;
-
-//   sunPos = sunPos - app().getSettings().getDataProfile().m_offset;
-
-//   osg::Vec3d pos = osg::Vec3d(sunPos.x,sunPos.y,sunPos.z);
-
-//   TestBillBoard->addDrawable(bbDrawable , pos);
-
-//   vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
-
-//   appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
-//}

@@ -720,7 +720,7 @@ void OsgScene::setDate(const QDateTime& date)
 void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node, std::map<std::string,bool>* polySunlightInfo)
 {
     //get node uri
-    vcity::URI uriNode = osgTools::getURI(node);
+    //vcity::URI uriNode = osgTools::getURI(node);
 
     //get node as group in order to navigate through structure
     osg::ref_ptr<osg::Group> grp = node->asGroup();
@@ -729,7 +729,8 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
     if(geode)
     {
-        std::cout << "URI Param node : " << uriNode.getStringURI() << std::endl;
+        //std::cout << "URI Param node : " << uriNode.getStringURI() << std::endl;
+        //std::cout << "Node Param Id : " << node->getName() << std::endl;
 
         //unsigned int nbDrawables= geode->getNumDrawables();
 
@@ -738,24 +739,36 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
         for(osg::ref_ptr<osg::Drawable> drawableChild : geode->getDrawableList())
         {
-            osg::Geometry* geom =  drawableChild->asGeometry();
-            osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
+            std::string drawableName = drawableChild->getName();
 
-            osg::Material* material = new osg::Material;
-            material->setColorMode( osg::Material::OFF );
+            if(polySunlightInfo->count(drawableName) > 0) //If there is a value for this polygon in the map
+            {
+                osg::Geometry* geom =  drawableChild->asGeometry();
+                osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
 
-            osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
-            //float shininess = 1.f;
+                osg::Material* material = new osg::Material;
+                material->setColorMode( osg::Material::OFF );
 
-            ambiantColor = osg::Vec4(1.f,1.f,0.f,1.f);
+                osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
+                //float shininess = 1.f;
 
-            material->setAmbient( osg::Material::FRONT_AND_BACK, ambiantColor );
-            //material->setShininess(osg::Material::FRONT_AND_BACK, shininess);
+                if((*polySunlightInfo)[drawableName] == true) //If sunny
+                {
+                    ambiantColor = osg::Vec4(1.f,1.f,0.f,1.f); //change polygon color to yellow
+                }
+                else // if shadowed
+                {
+                    ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f); // Change polygon color to black
+                }
 
-            stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
-            stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+                material->setAmbient( osg::Material::FRONT_AND_BACK, ambiantColor );
+                //material->setShininess(osg::Material::FRONT_AND_BACK, shininess);
 
-            std::cout << drawableChild->getName() << std::endl;
+                stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+                stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+
+                //std::cout << "DrawableId : " << drawableChild->getName() << std::endl;
+            }
 
 
 
@@ -788,33 +801,6 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
         }
     }
 
-
-//    if(grp)
-//    {
-//        int count = grp->getNumChildren();
-
-//        // check if we had 5 LODs geodes
-//        int numGeodes = 0;
-//        for(int i=0; i<count; ++i)
-//        {
-//            osg::ref_ptr<osg::Node> child = grp->getChild(i);
-//            if(child->asGeode())
-//            {
-//                ++numGeodes;
-//            }
-//        }
-//        if(numGeodes == 5) // yes, enable or disable the good lods
-//        {
-//            grp->getChild(lod)->setNodeMask(0xffffffff - grp->getChild(lod)->getNodeMask());
-//        }
-
-//        for(int i=0; i<count; ++i)
-//        {
-//            osg::ref_ptr<osg::Node> child = grp->getChild(i);
-//            forceLODrec(lod, child);
-//        }
-//    }
-
 }
 
 std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datetime)
@@ -836,8 +822,8 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
 
             if(tmpDatetime == datetime) //if it's the right datetime
             {
-                std::string polygonId = cells.at(4).toStdString(); //Get PolygonId
-                std::string sSunlight = cells.at(5).toStdString(); //Get sunlight information as string
+                std::string polygonId = cells.at(1).toStdString(); //Get PolygonId
+                std::string sSunlight = cells.at(2).toStdString(); //Get sunlight information as string
 
                 // cast string to boolean value
                 bool bSunlight;
@@ -872,7 +858,9 @@ void OsgScene::setPolyColor(const QDateTime& date)
 //        setPolyColorRec(date, layer);
 //    }
 
-    QString filepath = "/home/vincent/Documents/VCity_Project/build_debug/3670_10382_sunlight.csv";
+
+    QString tilename = "3675_10347";
+    QString filepath = "/home/vincent/Documents/VCity_Project/build-VCity-Qt4_gcc-/" + tilename + "_sunlight.csv";
 
     //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)
     QString format = "ddMMyyyy:hhmm";
@@ -892,7 +880,23 @@ void OsgScene::setPolyColor(const QDateTime& date)
 
     if(layer) // If layer exists (if at least one citygml file has been loaded) (DOESNT SEEMS TO WORK)
     {
-        setPolyColorRec(date, layer, polygonSunlightInfo);
+        //Get all tiles and call color change function only for the right tile (until URI is changed, after this can be automatized and changement can be done for every tile using URI)
+        osg::ref_ptr<osg::Group> layerGrp = layer->asGroup();
+
+        for(unsigned int i = 0 ; i < layerGrp->getNumChildren() ; ++i)
+        {
+            osg::ref_ptr<osg::Node> tileNode = layerGrp->getChild(i);
+
+            int pos_ = tileNode->getName().find("_");
+            int posExtension = tileNode->getName().find(".");
+
+            std::string nodeTileName = tileNode->getName().substr(pos_ + 1, posExtension - pos_ - 1);
+
+            if(nodeTileName == tilename.toStdString())
+            {
+                setPolyColorRec(date, tileNode, polygonSunlightInfo);
+            }
+        }
     }
 
 }
