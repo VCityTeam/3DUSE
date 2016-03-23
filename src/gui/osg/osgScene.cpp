@@ -859,7 +859,7 @@ void OsgScene::setPolyColor(const QDateTime& date)
 //    }
 
 
-    QString tilename = "3675_10347";
+    QString tilename = "3670_10382";
     QString filepath = "/home/vincent/Documents/VCity_Project/build-VCity-Qt4_gcc-/" + tilename + "_sunlight.csv";
 
     //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)

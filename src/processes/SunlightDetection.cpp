@@ -67,7 +67,7 @@ std::map<std::string,bool> buildYearMap(int year)
                     hour_str = std::to_string(hour) + "00";
 
                 std::string code_str = day_str + month_str + year_str + ":" + hour_str;
-                yearMap[code_str] = false;
+                yearMap[code_str] = true;
             }
         }
     }
@@ -269,8 +269,8 @@ void SunlightDetection()
 
     // ************* Lightning Measure ******************************//
 
-    std::string date = "2016-11-25";
-    std::string tilename = "3675_10347";
+    std::string date = "2016-08-10";
+    std::string tilename = "3670_10382";
 
     std::vector<double> elevationAngle;
     std::vector<double> azimutAngle;
@@ -355,12 +355,20 @@ void SunlightDetection()
         sunPos = sunPos + origin;
 
         //Display Sun
-        //DisplaySun(newSunPos);
+        DisplaySun(newSunPos);
 
         //Compute sun's beams direction
         TVec3d tmpDirection = (newSunPos - origin);
         beamsDirections.push_back(tmpDirection.normal());
     }
+
+//    int cpt = 0;
+//    for(TVec3d beamDir : beamsDirections)
+//    {
+//        std::cout << "BeamDir at Hour " << cpt << " : " << beamDir << std::endl ;
+//        cpt++;
+//    }
+
 
     //***** MultiTileAnalysis
 
@@ -390,9 +398,18 @@ void SunlightDetection()
         else
             hour_str = std::to_string(hour) + "00";
 
-        std::string code_str = "25112016:" + hour_str;
-        yearMap[code_str] = false;
+        std::string code_str = "10082016:" + hour_str;
+
+        if(beamsDirections.at(hour) == TVec3d(0.0,0.0,0.0))
+        {
+            yearMap[code_str] = false;
+        }
+        else
+        {
+            yearMap[code_str] = true;
+        }
     }
+
 
     std::vector<TriangleLightInfo*> vSunInfoTriangle;
 
@@ -423,14 +440,22 @@ void SunlightDetection()
             else
                 hour_str = std::to_string(hour) + "00";
 
-            std::string id = "25112016:" + hour_str;
+            std::string id = "10082016:" + hour_str;
+
+            //If direction is null (ie sun is too low) make every triangle in the shadow and goes to next iteration
+            if(beamDir == TVec3d(0.0,0.0,0.0))
+            {
+                hour++;
+                continue;
+            }
 
             //Addition of an offset for raytracing
-            barycenter.x += 0.01f*beamDir.x;
-            barycenter.y += 0.01f*beamDir.y;
-            barycenter.z += 0.01f*beamDir.z;
+            TVec3d tmpBarycenter = TVec3d(0.0,0.0,0.0);
+            tmpBarycenter.x = barycenter.x + 0.01f*beamDir.x;
+            tmpBarycenter.y = barycenter.y + 0.01f*beamDir.y;
+            tmpBarycenter.z = barycenter.z + 0.01f*beamDir.z;
 
-            RayBox* raybox = new RayBox(barycenter,beamDir,id);
+            RayBox* raybox = new RayBox(tmpBarycenter,beamDir,id);
             raysboxes->raysBB.push_back(raybox);
 
             hour++;
@@ -445,7 +470,6 @@ void SunlightDetection()
             RayBoxHit myRayBoxHit = tileOrder.front();
             std::string tileName = myRayBoxHit.box.name;
             tileOrder.pop();
-
 
 //            tileName = tileName.substr(0, tileName.size() - 1);
 //            std::cout<< "tilename : " << tileName.size() << std::endl;
@@ -462,15 +486,15 @@ void SunlightDetection()
             {
                 RayBox* raybox = raysboxes->raysBB[i];//Get the ray
 
-                //Check if triangle is already sunny for this ray (i.e. this hour)
+                //Check if triangle is sunny for this ray (i.e. this hour)
                 bool sunny = sunInfoTri->yearSunInfo[raybox->id];
-//                bool sunny = t->sunInfo[ray->id];
+                //bool sunny = t->sunInfo[ray->id];
                 bool found = false;
 
                 for(RayBoxHit& rbh : raybox->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
                     found = found || rbh.box.name == tileName;
 
-                if(found && !sunny)
+                if(found && sunny)
                 {
                     raysTemp.rays.push_back(raybox);
                 }
@@ -496,7 +520,7 @@ void SunlightDetection()
 
             for(Hit* h : *tmpHits)
             {
-                sunInfoTri->yearSunInfo[h->ray.id] = true;
+                sunInfoTri->yearSunInfo[h->ray.id] = false;
             }
 
             raysTemp.rays.clear();
