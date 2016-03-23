@@ -17,6 +17,8 @@
 #include "polygon.hpp"
 //#include <fstream> // MT 18/07/2014
 #include <osgDB/fstream>
+
+#include <iterator> // MT 15/02/2016 (vs2015)
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {

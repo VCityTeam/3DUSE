@@ -11,6 +11,7 @@
 #include "../ShpExtrusion.h"
 #include "../VegetTool.hpp"
 #include "../AlignementTree.hpp"
+#include "AABB.hpp"
 #include "src/processes/ExportToShape.hpp"
 
 #include <QSettings>
@@ -98,7 +99,6 @@ void DialogVisibilite::GetCamParam()
 	ui->dirXSB->setValue(target.x());
 	ui->dirYSB->setValue(target.y());
 	ui->dirZSB->setValue(target.z());
-
 }
 
 void DialogVisibilite::SetCamParam()
@@ -215,7 +215,7 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la ca
 
 	float width = ui->resXSB->value();
 
-	float height = width * fovy/fovx;
+	float height = floor(width * fovy/fovx);
 
 	float znear = ui->projDistanceSB->value();
 

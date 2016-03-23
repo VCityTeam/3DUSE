@@ -10,9 +10,9 @@
 #include <thread>
 #include <queue>
 
-#include "data/Hit.hpp"
+#include "raytracing/Hit.hpp"
 #include "Export.hpp"
-#include "RayTracing.h"
+#include "raytracing/RayTracing.hpp"
 
 
 /**
@@ -26,7 +26,7 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::string dirTile, std::vector<osg:
 	ViewPoint** result = new ViewPoint*[cams.size()];
 	RayCollection** rays = new RayCollection*[cams.size()];
 
-	std::vector<Ray*> allRays;//All rays of all viewpoints are merge in one vector to launch the algo only once
+    std::vector<Ray*> allRays;//All rays of all viewpoints are merged in one vector to launch the algo only once
 
 	//For each camera, create its ray collection and viewpoint
 	for(unsigned int i = 0; i < cams.size(); i++)
@@ -43,11 +43,16 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::string dirTile, std::vector<osg:
 		TVec3d camDir = TVec3d(target.x(),target.y(),target.z());
 
 		//Create the viewpoint and ray collection
-		result[i] = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height());
+        std::string viewpointId = std::to_string(i);
+        result[i] = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height(),viewpointId);
 		result[i]->lightDir = Ray::Normalized(camPos - camDir);
 		rays[i] = RayCollection::BuildCollection(cam);
 
-		rays[i]->viewpoint = result[i];
+        //rays[i]->viewpoint = result[i];
+        for(Ray* r : rays[i]->rays)
+        {
+            r->id = viewpointId;
+        }
 
 		allRays.insert(allRays.end(),rays[i]->rays.begin(),rays[i]->rays.end());
 	}
@@ -67,7 +72,26 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::string dirTile, std::vector<osg:
 
 	//For each tiles perform raytracing on it
 	for(unsigned int i = 0; i < triangles.size(); i++)
-		RayTracing(triangles[i],allRays);
+    {
+        std::vector<Hit*>* tmpHits = RayTracing(triangles[i],allRays);
+
+        //Change viewpoint hits depending on distance of new hits
+        for(Hit* h : *tmpHits)
+        {
+            //Get id of the viewpoint corresponding to the current hit
+            std::string vpId = h->ray.id;
+
+            //Get corresponding viewpoint
+            ViewPoint* viewpoint = result[std::stoi(vpId)]; // The id of the viewpoint is actually its location in result
+
+            //if there is not already a hit for this fragCoord or if the distance of the current hit is smaller than the existing one
+            if(!viewpoint->hits[int(h->ray.fragCoord.x)][int(h->ray.fragCoord.y)].intersect
+                    || viewpoint->hits[int(h->ray.fragCoord.x)][int(h->ray.fragCoord.y)].distance > h->distance)
+            {
+                viewpoint->hits[int(h->ray.fragCoord.x)][int(h->ray.fragCoord.y)] = *h;
+            }
+        }
+    }
 
 	std::vector<ViewPoint*> resReturn;//When results are stored
 

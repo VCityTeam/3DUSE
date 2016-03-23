@@ -950,6 +950,7 @@ void MainWindow::updateTemporalParams(int value)
 	QDateTime datetime(date);
 	m_currentDate = datetime;
 	if(m_useTemporal)   m_osgScene->setDate(datetime);
+	
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalSlider()
@@ -2874,11 +2875,11 @@ void buildJson()//GrandLyon
 }*/
 void MainWindow::test1()
 {
-	QTime time;
+	/*QTime time;
 	time.start();
 
-	std::string LiDAR2012 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2012//1833_5173.las";
-	std::string LiDAR2015 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2015//1833_5173_2015.las";
+	std::string LiDAR2012 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2012//1833_5173_1_1_1.laz";
+	std::string LiDAR2015 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2015//1833_5173_2015_1_1_1.las";
 
 	vcity::app().getAlgo().CompareTwoLidar(LiDAR2012, LiDAR2015);
 
@@ -2892,7 +2893,7 @@ void MainWindow::test1()
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 
-	return;
+	return;*/
 
 	////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
 	QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -3309,6 +3310,7 @@ void MainWindow::test4()
 			std::cout<<"    - "<<v->getId()<<std::endl;
 		}
 	}
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)

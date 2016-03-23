@@ -535,7 +535,8 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 										coin=true;
 
 										if (i > 3)
-											fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, COIN WITH (i > 3)!\n", (unsigned long)noeudLinearRing); // TEMP
+											//fprintf(stderr, "--> WARNING : noeudLinearRing: %lu, COIN WITH (i > 3)!\n", (unsigned long)noeudLinearRing); // TEMP
+											fprintf(stderr, "--> WARNING : COIN WITH (i > 3)!\n"); // TEMP
 									}
 								}
 							}

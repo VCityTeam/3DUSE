@@ -63,45 +63,53 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //  Derived ADE handlers management :
-// inspired from http://stackoverflow.com/questions/582331/is-there-a-way-to-instantiate-objects-from-a-string-holding-their-class-name
 //
+//  JE 17/02/2016: DISCARDED BECAUSE PROBLEMS WITH RECENT VERSIONS OF UBUNTU: 
+//	inspired from http://stackoverflow.com/questions/582331/is-there-a-way-to-instantiate-objects-from-a-string-holding-their-class-name
+//
+//
+////template for creating a handler of the given type
+//template<typename T> ADEHandler* createT() {return new T();};
+//
+////Contains the map for the derived ADE handlers
+//struct ADEHandlerFactory
+//{
+//	typedef std::map<std::string,ADEHandler*(*)()> mapType;
+//
+//	static ADEHandler* createInstance(std::string const& s) 
+//	{
+//		mapType::iterator it = getMap()->find(s);
+//		if(it == getMap()->end())
+//			return 0;
+//		return it->second();
+//    }
+//
+//	static void getInstances(std::map<std::string,ADEHandler*>& map)
+//	{
+//		for(mapType::iterator it = getMap()->begin(); it != getMap()->end(); it++) map[it->first] = it->second();
+//	}
+//
+//protected:
+//	static mapType* getMap() {if (!ADEmap) {ADEmap = new mapType();} return ADEmap;}
+//
+//private:
+//	static mapType* ADEmap;
+//};
+//
+////template for registring each ADE handler in the ADEHandlerFactory map
+//template<typename T> struct ADERegister:ADEHandlerFactory
+//{
+//	ADERegister(const std::string s)
+//	{
+//		std::pair<std::string,ADEHandler*(*)()> entry (s,&createT<T>);
+//		getMap()->insert(entry);
+//	}
+//};
 
-//template for creating a handler of the given type
-template<typename T> ADEHandler* createT() {return new T();};
-
-//Contains the map for the derived ADE handlers
-struct ADEHandlerFactory
+class ADEHandlerFactory
 {
-	typedef std::map<std::string,ADEHandler*(*)()> mapType;
-
-	static ADEHandler* createInstance(std::string const& s) 
-	{
-		mapType::iterator it = getMap()->find(s);
-		if(it == getMap()->end())
-			return 0;
-		return it->second();
-    }
-
-	static void getInstances(std::map<std::string,ADEHandler*>& map)
-	{
-		for(mapType::iterator it = getMap()->begin(); it != getMap()->end(); it++) map[it->first] = it->second();
-	}
-
-protected:
-	static mapType* getMap() {if (!ADEmap) {ADEmap = new mapType();} return ADEmap;}
-
-private:
-	static mapType* ADEmap;
-};
-
-//template for registring each ADE handler in the ADEHandlerFactory map
-template<typename T> struct ADERegister:ADEHandlerFactory
-{
-	ADERegister(const std::string s)
-	{
-		std::pair<std::string,ADEHandler*(*)()> entry (s,&createT<T>);
-		getMap()->insert(entry);
-	}
+public:
+	void getInstances(std::map<std::string,ADEHandler*>*); 
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
