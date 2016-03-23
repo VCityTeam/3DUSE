@@ -1,10 +1,7 @@
-#include "raytracing/RayTracing.hpp"
-#include "AABB.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 #include "src/processes/ExportToShape.hpp"
 
 #include "RayBox.hpp"
-
 
 //RayBoxHit
 
