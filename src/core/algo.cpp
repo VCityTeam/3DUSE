@@ -16,7 +16,7 @@
 #include "src/gui/osg/osgGDAL.hpp"
 #include "citymodel.hpp"
 ////////////////////////////////////////////////////////////////////////////////
-#include <lasreader.hpp>
+/*#include <lasreader.hpp>
 #include <laswriter.hpp>
 
 #include <pcl/ModelCoefficients.h>
@@ -48,7 +48,7 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/passthrough.h>
 #include <pcl/filters/project_inliers.h>
-#include <pcl/filters/conditional_removal.h>
+#include <pcl/filters/conditional_removal.h>*/
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +62,7 @@ namespace vcity
 	{
 	}
 
-#if 1
+#if 0
 	////////////////////////////////////////////////////////////////////////////////
 	/**
 	* @brief ProjectPointOnPolygon3D : prend un point 2D Point et calcule sa coordonnée Z en partant du principe qu'il est coplanaire à Polygon
@@ -711,18 +711,18 @@ namespace vcity
 
 	void Algo::CompareTwoLidar(std::string Path1, std::string Path2)
 	{
-		LASreadOpener lasreadopener;
+		/*LASreadOpener lasreadopener;
 		lasreadopener.set_file_name(Path1.c_str());
 		LASreader* LiDAR1 = lasreadopener.open();
 		lasreadopener.set_file_name(Path2.c_str());
 		LASreader* LiDAR2 = lasreadopener.open();
 
-		/*LASwriteOpener laswriteopener;
-		laswriteopener.set_file_name("Batiments2012.las");
-		LASwriter* laswriter1 = laswriteopener.open(&LiDAR1->header);
+		//LASwriteOpener laswriteopener;
+		//laswriteopener.set_file_name("Batiments2012.las");
+		//LASwriter* laswriter1 = laswriteopener.open(&LiDAR1->header);
 
-		laswriteopener.set_file_name("Batiments2015.las");
-		LASwriter* laswriter2 = laswriteopener.open(&LiDAR2->header);*/
+		//laswriteopener.set_file_name("Batiments2015.las");
+		//LASwriter* laswriter2 = laswriteopener.open(&LiDAR2->header);
 
 		pcl::PointXYZ point;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud1 (new pcl::PointCloud<pcl::PointXYZ>);
@@ -766,10 +766,10 @@ namespace vcity
 		LiDAR2->close();
 		delete LiDAR1;
 		delete LiDAR2;
-		/*laswriter1->close();
-		laswriter2->close();
-		delete laswriter1;
-		delete laswriter2;*/
+		//laswriter1->close();
+		//laswriter2->close();
+		//delete laswriter1;
+		//delete laswriter2;
 
 		std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> Buildings1 = SegmentationRoofs(Cloud1);
 		std::cout << "Segmentation 1 terminee" << std::endl;
@@ -841,7 +841,7 @@ namespace vcity
 					}
 				}
 			}
-		}
+		}*/
 	}
 
 } // namespace vcity
