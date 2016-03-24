@@ -56,19 +56,19 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
     }
 
     //If number of Ray is not a multiple of thread number, add the rest of the ray to the threads
-//    if(rays.size() % tCount != 0)
-//    {
-//        for(unsigned int i = 0 ; i < rays.size() % tCount ; ++i)
-//        {
-//            toDo[i].push_back(rays.at(rayPerThread * tCount + i));
-//        }
-//    }
+    if(rays.size() % tCount != 0)
+    {
+        for(unsigned int i = 0 ; i < rays.size() % tCount ; ++i)
+        {
+            toDo[i].push_back(rays.at(rayPerThread * tCount + i));
+        }
+    }
 
     //List of hits for each thread
     std::vector<Hit*>* hitsArray = new std::vector<Hit*>[tCount];
 
-    std::cout << "Thread : " << tCount << std::endl;
-    std::cout << "Ray count : " << rays.size() << std::endl;
+    //std::cout << "Thread : " << tCount << std::endl;
+    //std::cout << "Ray count : " << rays.size() << std::endl;
 
     std::vector<std::thread*> threads;//Our thread list
 
@@ -84,7 +84,7 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
     }
 
 
-    std::cout << "Thread Launched " << std::endl;
+   // std::cout << "Thread Launched " << std::endl;
 
     for(unsigned int i = 0; i < tCount; i++)//Join all our thread and update global data min and max distance
     {
@@ -93,7 +93,7 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
     }
 
 
-    std::cout << "The joining is completed" << std::endl;
+    //std::cout << "The joining is completed" << std::endl;
 
     //Join vector of hits
     std::vector<Hit*>* hits = new std::vector<Hit*>();
@@ -116,7 +116,7 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 
     delete[] toDo;
 
-    std::cout << "Time : " << time.elapsed()/1000 << " sec" << std::endl;
+   // std::cout << "Time : " << time.elapsed()/1000 << " sec" << std::endl;
 
     return hits;
 }

@@ -10,6 +10,8 @@
 #include "src/core/RayBox.hpp"
 #include "quaternion.hpp"
 
+#include <QDir>
+
 //For displaySun Function, to be removed
 #include <osg/Texture2D>
 #include <osg/Billboard>
@@ -165,8 +167,12 @@ void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string 
     //Delete file and recreate it or clear it
     //Add URI
 
+    QDir outputDir("./SunlightOutput/");
+    if(!outputDir.exists("./SunlightOutput/"))
+        outputDir.mkpath(outputDir.absolutePath());
+
     std::ofstream ofs;
-    ofs.open ("./" + tilename + "_sunlight.csv", std::ofstream::out);
+    ofs.open ("./SunlightOutput/" + tilename + "_sunlight.csv", std::ofstream::out);
 
 
 
@@ -197,10 +203,12 @@ void SunlightDetection()
     QTime time;
     time.start();
 
+    std::cout << "Sunlight Calculation started." << std::endl;
+
     // ************* Lightning Measure ******************************//
 
     std::string date = "2016-08-10";
-    std::string tilename = "3670_10382";
+    //std::string tilename = "3670_10382";
 
     std::vector<double> elevationAngle;
     std::vector<double> azimutAngle;
@@ -324,153 +332,185 @@ void SunlightDetection()
     //vcity::Tile* tile = new vcity::Tile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml");
 
 
-    //Load TriangleList of tile to treat
-    std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/" + tilename + ".gml";
-    citygml::CityObjectsType buildingObjType = citygml::CityObjectsType::COT_Building;
-
-    TriangleList* trianglesTile1 = BuildTriangleList(path,buildingObjType);
-
-
     //Load AABB
     std::string dirTile = "/home/vincent/Documents/VCity_Project/Data/Tuiles/";
 
     AABBCollection boxes = LoadAABB(dirTile);
 
-    std::vector<AABB> buildingBB = boxes.building;
-    std::vector<AABB> terrainBB = boxes.terrain;
+//    std::vector<AABB> buildingBB = boxes.building;
+//    std::vector<AABB> terrainBB = boxes.terrain;
 
     //Concatenate buildingAABB and terrainAABB
-//    std::vector<AABB> building_terrainBB;
+    std::vector<AABB> building_terrainBB;
 
-//    building_terrainBB.reserve(boxes.building.size() + boxes.terrain.size()); //preallocate memory
-//    building_terrainBB.insert( building_terrainBB.end(), boxes.building.begin(), boxes.building.end() ); // insert building AABB
-//    building_terrainBB.insert( building_terrainBB.end(), boxes.terrain.begin(), boxes.terrain.end() ); // insert terrain AABB
+    building_terrainBB.reserve(boxes.building.size() + boxes.terrain.size()); //preallocate memory
+    building_terrainBB.insert( building_terrainBB.end(), boxes.building.begin(), boxes.building.end() ); // insert building AABB
+    building_terrainBB.insert( building_terrainBB.end(), boxes.terrain.begin(), boxes.terrain.end() ); // insert terrain AABB
 
-    //Vector containing lightningInfo
-    std::vector<TriangleLightInfo*> vSunInfoTriangle;
+    //Create vector of tiles to analyse
+    std::vector<std::string> tiles;
 
-    for(Triangle* t : trianglesTile1->triangles) //Loop through each triangle
+    //tiles.push_back("3670_10383");
+    //tiles.push_back("3670_10382");
+
+    tiles.push_back("3674_10346");
+    tiles.push_back("3674_10347");
+    tiles.push_back("3674_10348");
+
+    tiles.push_back("3675_10346");
+    tiles.push_back("3675_10347");
+    tiles.push_back("3675_10348");
+
+    tiles.push_back("3676_10346");
+    tiles.push_back("3676_10347");
+    tiles.push_back("3676_10348");
+
+    unsigned int cpt_tiles = 1;
+    int time_tot = 0;
+
+    for(std::string tilename : tiles)
     {
-        //Initialize sunInfo
-        TriangleLightInfo* sunInfoTri = new TriangleLightInfo();
-        sunInfoTri->triangle = t;
-        sunInfoTri->yearSunInfo = yearMap;
 
-        //Compute Barycenter
-        TVec3d barycenter = TVec3d();
-        barycenter.x = (t->a.x + t->b.x + t->c.x) / 3;
-        barycenter.y = (t->a.y + t->b.y + t->c.y) / 3;
-        barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;        
+        std::cout << "Tile " << tilename << " analyse." << std::endl;
 
-        //Create rayCollection (All the rays for this triangle)
-        RayBoxCollection* raysboxes = new RayBoxCollection();
+        //Load TriangleList of tile to treat
+        std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/" + tilename + ".gml";
 
-        int hour = 0;
-        for(TVec3d beamDir : beamsDirections)
+        TriangleList* trianglesTile1 = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
+
+
+        //Vector containing lightningInfo
+        std::vector<TriangleLightInfo*> vSunInfoTriangle;
+
+        for(Triangle* t : trianglesTile1->triangles) //Loop through each triangle
         {
-            //Construct id
-            std::string hour_str;
-            if(hour<10)
-                hour_str = "0"+ std::to_string(hour) + "00";
-            else
-                hour_str = std::to_string(hour) + "00";
+            //Initialize sunInfo
+            TriangleLightInfo* sunInfoTri = new TriangleLightInfo();
+            sunInfoTri->triangle = t;
+            sunInfoTri->yearSunInfo = yearMap;
 
-            std::string id = "10082016:" + hour_str;
+            //Compute Barycenter
+            TVec3d barycenter = TVec3d();
+            barycenter.x = (t->a.x + t->b.x + t->c.x) / 3;
+            barycenter.y = (t->a.y + t->b.y + t->c.y) / 3;
+            barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;
 
-            //If direction is null (ie sun is too low) make every triangle in the shadow and goes to next iteration
-            if(beamDir == TVec3d(0.0,0.0,0.0))
+            //Create rayCollection (All the rays for this triangle)
+            RayBoxCollection* raysboxes = new RayBoxCollection();
+
+            int hour = 0;
+            for(TVec3d beamDir : beamsDirections)
             {
-                hour++;
-                continue;
-            }
+                //Construct id
+                std::string hour_str;
+                if(hour<10)
+                    hour_str = "0"+ std::to_string(hour) + "00";
+                else
+                    hour_str = std::to_string(hour) + "00";
 
-            //Add an offset for raytracing
-            TVec3d tmpBarycenter = TVec3d(0.0,0.0,0.0);
-            tmpBarycenter.x = barycenter.x + 0.01f*beamDir.x;
-            tmpBarycenter.y = barycenter.y + 0.01f*beamDir.y;
-            tmpBarycenter.z = barycenter.z + 0.01f*beamDir.z;
+                std::string id = "10082016:" + hour_str;
 
-            RayBox* raybox = new RayBox(tmpBarycenter,beamDir,id);
-            raysboxes->raysBB.push_back(raybox);
-
-            hour++;
-        }
-
-        //Setup and get the tile's boxes in the right intersection order
-        std::queue<RayBoxHit> tileOrder = SetupTileOrder(buildingBB,raysboxes);
-
-        //While we have boxes, tiles
-        while(tileOrder.size() != 0)
-        {
-            RayBoxHit myRayBoxHit = tileOrder.front();
-            std::string tileName = myRayBoxHit.box.name;
-            tileOrder.pop();
-
-//            tileName = tileName.substr(0, tileName.size() - 1);
-//            std::cout<< "tilename : " << tileName.size() << std::endl;
-
-
-//            myRayBoxHit.box.name = myRayBoxHit.box.name.substr(0, myRayBoxHit.box.name.size() - 1);
-//            std::cout<< "box name : " << myRayBoxHit.box.name.size() << std::endl;
-
-            RayCollection raysTemp;//Not all rays intersect the box
-            //raysTemp.viewpoint = viewpoint;
-
-            //We get only the rays that intersect the box
-            for(unsigned int i = 0; i < raysboxes->raysBB.size(); i++)
-            {
-                RayBox* raybox = raysboxes->raysBB[i];//Get the ray
-
-                //Check if triangle is sunny for this ray (i.e. this hour)
-                bool sunny = sunInfoTri->yearSunInfo[raybox->id];
-                //bool sunny = t->sunInfo[ray->id];
-                bool found = false;
-
-                for(RayBoxHit& rbh : raybox->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
-                    found = found || rbh.box.name == tileName;
-
-                if(found && sunny)
+                //If direction is null (ie sun is too low) make every triangle in the shadow and goes to next iteration
+                if(beamDir == TVec3d(0.0,0.0,0.0))
                 {
-                    raysTemp.rays.push_back(raybox);
+                    hour++;
+                    continue;
                 }
+
+                //Add an offset for raytracing
+                TVec3d tmpBarycenter = TVec3d(0.0,0.0,0.0);
+                tmpBarycenter.x = barycenter.x + 0.01f*beamDir.x;
+                tmpBarycenter.y = barycenter.y + 0.01f*beamDir.y;
+                tmpBarycenter.z = barycenter.z + 0.01f*beamDir.z;
+
+                RayBox* raybox = new RayBox(tmpBarycenter,beamDir,id);
+                raysboxes->raysBB.push_back(raybox);
+
+                hour++;
             }
 
-            if(raysTemp.rays.size() == 0)
+            //Setup and get the tile's boxes in the right intersection order
+            std::queue<RayBoxHit> tileOrder = SetupTileOrder(building_terrainBB,raysboxes);
+
+            //While we have boxes, tiles
+            while(tileOrder.size() != 0)
             {
-                std::cout << "Skipping." << std::endl;
+                RayBoxHit myRayBoxHit = tileOrder.front();
+                std::string tileName = myRayBoxHit.box.name;
+                tileOrder.pop();
+
+                RayCollection raysTemp;//Not all rays intersect the box
+
+                //We get only the rays that intersect the box
+                for(unsigned int i = 0; i < raysboxes->raysBB.size(); i++)
+                {
+                    RayBox* raybox = raysboxes->raysBB[i];//Get the ray
+
+                    //Check if triangle is sunny for this ray (i.e. this hour)
+                    bool sunny = sunInfoTri->yearSunInfo[raybox->id];
+                    bool found = false;
+
+                    for(RayBoxHit& rbh : raybox->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
+                        found = found || rbh.box.name == tileName;
+
+                    if(found && sunny)
+                    {
+                        raysTemp.rays.push_back(raybox);
+                    }
+                }
+
+                if(raysTemp.rays.size() == 0)
+                {
+                    //std::cout << "Skipping." << std::endl;
+                    raysTemp.rays.clear();
+                    continue;
+                }
+
+                //Load triangles and perform analysis
+                std::string path = dirTile + tileName;
+
+                //Get the triangle list
+                TriangleList* trianglesTemp;
+
+                if(tileName.find("_BATI") != std::string::npos)
+                {
+                    trianglesTemp = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
+                }
+                else if(tileName.find("_MNT") != std::string::npos)
+                {
+                    trianglesTemp = BuildTriangleList(path,citygml::CityObjectsType::COT_TINRelief);
+                }
+
+                std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,raysTemp.rays);
+
+                for(Hit* h : *tmpHits)
+                {
+                    sunInfoTri->yearSunInfo[h->ray.id] = false;
+                }
+
                 raysTemp.rays.clear();
-                continue;
+                delete tmpHits;
+
             }
 
-            //Load triangles and perform analysis
-            std::string path = dirTile + tileName;
-            //std::string pathWithPrefix = dirTile + GetTilePrefixFromDistance(myRayBoxHit.minDistance) + tileName; /// MultiResolution
-
-            //Get the triangle list
-            TriangleList* trianglesTemp;
-
-            trianglesTemp = BuildTriangleList(path,buildingObjType);
-
-            std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,raysTemp.rays);
-
-            for(Hit* h : *tmpHits)
-            {
-                sunInfoTri->yearSunInfo[h->ray.id] = false;
-            }
-
-            raysTemp.rays.clear();
-            delete tmpHits;
+            vSunInfoTriangle.push_back(sunInfoTri);
 
         }
 
-        vSunInfoTriangle.push_back(sunInfoTri);
+        //Export to csv (one per tile)
+        exportLightningToCSV(vSunInfoTriangle, tilename);
+
+        for(int i = 0; i < vSunInfoTriangle.size(); ++i)
+           delete vSunInfoTriangle[i];
+
+        std::cout << "Tile " << cpt_tiles << " of " << tiles.size() << " done in : " << (double)time.elapsed()/60000.0 << " min." << std::endl;
+
+        time_tot += time.elapsed();
+        time.restart();
 
     }
 
-    //Export to csv (one per tile)
-    exportLightningToCSV(vSunInfoTriangle, tilename);
-
-    std::cout << "Time : " << time.elapsed()/60000 << " min" << std::endl;
+    std::cout << "Total time : " << (double)time_tot/60000.0 << " min" << std::endl;
 
 }
 

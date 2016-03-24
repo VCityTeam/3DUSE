@@ -847,19 +847,8 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setPolyColor(const QDateTime& date)
 {
-//    //Get URI of CityGML Layer
-//    vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerCityGML")->getURI();
 
-//    //Get node of CityGML Layer
-//    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
-
-//    if(layer) // If layer exists (if at least one citygml file has been loaded)
-//    {
-//        setPolyColorRec(date, layer);
-//    }
-
-
-    QString tilename = "3670_10382";
+    QString tilename = "3670_10383";
     QString filepath = "/home/vincent/Documents/VCity_Project/build-VCity-Qt4_gcc-/" + tilename + "_sunlight.csv";
 
     //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)

@@ -25,17 +25,12 @@ TriangleList::TriangleList(std::vector<Triangle*> triangles)
     this->triangles = triangles;
 }
 
-//TriangleList* BuildTriangleList(std::string tilefilename)
-//{
-
-//}
 
 TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType)
 {
     std::vector<Triangle*> triangles;
 
     vcity::Tile* tile = new vcity::Tile(tilefilename);
-
     citygml::CityModel * model = tile->getCityModel();
 
     for(citygml::CityObject* obj : model->getCityObjectsRoots()) //For each city object
@@ -57,6 +52,7 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
                             TVec3d c = vert[ind[ i * 3 + 2 ]];
 
                             Triangle* t = new Triangle(a,b,c);
+
                             t->subObjectType = object->getType();
                             t->objectType = obj->getType();
                             t->objectId = obj->getId();
@@ -74,7 +70,6 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
             (obj->getType() == citygml::COT_TINRelief  && objectType == citygml::COT_TINRelief) ||
             (obj->getType() == citygml::COT_WaterBody  && objectType == citygml::COT_WaterBody))
         {
-
             for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque géométrie
                 for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
                 {
@@ -89,6 +84,7 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
                         TVec3d c = vert[ind[ i * 3 + 2 ]];
 
                         Triangle* t = new Triangle(a,b,c);
+
                         t->objectType = obj->getType();
                         t->objectId = obj->getId();
                         t->polygonId = PolygonCityGML->getId();
