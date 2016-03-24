@@ -25,6 +25,11 @@ TriangleList::TriangleList(std::vector<Triangle*> triangles)
     this->triangles = triangles;
 }
 
+//TriangleList* BuildTriangleList(std::string tilefilename)
+//{
+
+//}
+
 TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType)
 {
     std::vector<Triangle*> triangles;

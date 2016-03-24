@@ -206,7 +206,7 @@ namespace citygml
     TVec3d operator*(quaternion const& lhs,TVec3d const& rhs)
     {
         quaternion q=conjugated(lhs)*quaternion(rhs.x,rhs.y,rhs.z,0.0f)*lhs;
-        return {q.x(),q.y(),q.z()};
+        return TVec3d(q.x(),q.y(),q.z());
     }
 
     std::array<double,9> quaternion::to_rotation_matrix() const
