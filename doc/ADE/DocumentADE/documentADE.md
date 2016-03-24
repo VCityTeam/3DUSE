@@ -9,7 +9,8 @@
 - What's the precise definition of a referring date?
 - Shouldn't there be many referring dates for a particular city object in a document? 
 - Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
-
+- Should Reference or Document have attributes like address like core:AbstractBuilding?
+- Do we need a separate attribute publicationDate (use creationDate instead?)
 
 ## Evolution of Document ADE
 ### First proposition 
