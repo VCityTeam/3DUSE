@@ -193,7 +193,7 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 
 			if(f.absoluteFilePath().endsWith(".gml"))
 			{
-				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toLatin1().data()); // MT: no more toAscii with qt5
+				//vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toLatin1().data()); // MT: no more toAscii with qt5
 
 				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toLatin1().data(),type); // MT: no more toAscii with qt5
 
@@ -211,7 +211,7 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 				std::cout << (bDir.dirName()+"/"+f.fileName()).toLatin1().data() << std::endl; // MT: no more toAscii with qt5
 				
 				delete list;
-				delete tile;
+				//delete tile;
 			}
 		}
 	}
