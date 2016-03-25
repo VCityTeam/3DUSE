@@ -172,9 +172,7 @@ void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string 
         outputDir.mkpath(outputDir.absolutePath());
 
     std::ofstream ofs;
-    ofs.open ("./SunlightOutput/" + tilename + "_sunlight.csv", std::ofstream::out);
-
-
+    ofs.open ("./SunlightOutput/" + tilename + ".csv", std::ofstream::out);
 
     ofs << "TileName : " << tilename << std::endl;
     ofs << "DateTime;PolygoneId;Sunny" << std::endl;
@@ -350,20 +348,36 @@ void SunlightDetection()
     //Create vector of tiles to analyse
     std::vector<std::string> tiles;
 
-    //tiles.push_back("3670_10383");
-    //tiles.push_back("3670_10382");
+    //Test rapide
+    tiles.push_back("3670_10383");
+    tiles.push_back("3670_10382");
 
-    tiles.push_back("3674_10346");
-    tiles.push_back("3674_10347");
-    tiles.push_back("3674_10348");
 
-    tiles.push_back("3675_10346");
-    tiles.push_back("3675_10347");
-    tiles.push_back("3675_10348");
+    //test fred
+//    tiles.push_back("3674_10346");
+//    tiles.push_back("3674_10347");
+//    tiles.push_back("3674_10348");
 
-    tiles.push_back("3676_10346");
-    tiles.push_back("3676_10347");
-    tiles.push_back("3676_10348");
+//    tiles.push_back("3675_10346");
+//    tiles.push_back("3675_10347");
+//    tiles.push_back("3675_10348");
+
+//    tiles.push_back("3676_10346");
+//    tiles.push_back("3676_10347");
+//    tiles.push_back("3676_10348");
+
+    //test moi
+//    tiles.push_back("3682_10350");
+//    tiles.push_back("3682_10351");
+//    tiles.push_back("3682_10352");
+
+//    tiles.push_back("3683_10350");
+//    tiles.push_back("3683_10351");
+//    tiles.push_back("3683_10352");
+
+//    tiles.push_back("3684_10350");
+//    tiles.push_back("3684_10351");
+//    tiles.push_back("3684_10352");
 
     unsigned int cpt_tiles = 1;
     int time_tot = 0;

@@ -847,19 +847,15 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setPolyColor(const QDateTime& date)
 {
+//    QString tilename = "3670_10383";
+//    QString filepath = "/home/vincent/Documents/VCity_Project/build-VCity-Qt4_gcc-/" + tilename + "_sunlight.csv";
 
-    QString tilename = "3670_10383";
-    QString filepath = "/home/vincent/Documents/VCity_Project/build-VCity-Qt4_gcc-/" + tilename + "_sunlight.csv";
+    //PolygonID mapped to sunlight info
+    std::map<std::string,bool>* polygonSunlightInfo;
 
     //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)
     QString format = "ddMMyyyy:hhmm";
     QString datetime = date.toString(format);
-
-    //Load file infos into a map (info for each polygon of tile for the given datetime)
-    std::map<std::string,bool>* polygonSunlightInfo = loadTileSunlightInfo(filepath, datetime);
-
-    //Get CityGML Layer
-    //vcity::LayerCityGML* citygmlLayer = dynamic_cast<vcity::LayerCityGML*>(vcity::app().getScene().getDefaultLayer("LayerCityGML"));
 
     //Get URI of CityGML Layer
     vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerCityGML")->getURI();
@@ -869,7 +865,6 @@ void OsgScene::setPolyColor(const QDateTime& date)
 
     if(layer) // If layer exists (if at least one citygml file has been loaded) (DOESNT SEEMS TO WORK)
     {
-        //Get all tiles and call color change function only for the right tile (until URI is changed, after this can be automatized and changement can be done for every tile using URI)
         osg::ref_ptr<osg::Group> layerGrp = layer->asGroup();
 
         for(unsigned int i = 0 ; i < layerGrp->getNumChildren() ; ++i)
@@ -881,10 +876,27 @@ void OsgScene::setPolyColor(const QDateTime& date)
 
             std::string nodeTileName = tileNode->getName().substr(pos_ + 1, posExtension - pos_ - 1);
 
-            if(nodeTileName == tilename.toStdString())
+            //Check if sunlight is computed for this tile
+
+            QDir dir("./SunlightOutput/");
+            if(dir.exists())
             {
-                setPolyColorRec(date, tileNode, polygonSunlightInfo);
+                for(QFileInfo f : dir.entryInfoList())
+                {
+                    if(f.fileName().toStdString() == nodeTileName + ".csv")
+                    {
+                        //If yes Load file infos into a map (info for each polygon of tile for the given datetime)
+                        std::map<std::string,bool>* polygonSunlightInfo = loadTileSunlightInfo(f.filePath(), datetime);
+                        setPolyColorRec(date, tileNode, polygonSunlightInfo);
+                        delete polygonSunlightInfo;
+                    }
+                }
             }
+
+//            if(nodeTileName == tilename.toStdString())
+//            {
+//                setPolyColorRec(date, tileNode, polygonSunlightInfo);
+//            }
         }
     }
 
