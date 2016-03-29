@@ -19,15 +19,11 @@ namespace citygml
 	CityModel* ImporterASC::reliefToCityGML(MNT* asc)
 	{
 		CityModel* model = new CityModel();
-		//CityObject* reliefFeature = new ReliefFeature("");
 		CityObject* reliefTIN = new TINRelief("");
 
 		reliefTIN->addGeometry(generateTriangles(asc));
 
 		model->addCityObject(reliefTIN);
-		//reliefFeature->getChildren().push_back(reliefTIN);
-		//model->addCityObject(reliefFeature);
-		//model->addCityObjectAsRoot(reliefFeature);
 		model->addCityObjectAsRoot(reliefTIN);
 		model->computeEnvelope();
 		std::cout<<"Conversion OK    "<<std::endl;
@@ -38,12 +34,6 @@ namespace citygml
 	{
 		CityModel* model = new CityModel();
 		CityObject* waterbody = new WaterBody("");
-		//CityObject* watersfc = new WaterSurface("");
-
-		//watersfc->addGeometry(generateTriangles(asc));
-
-		//waterbody->getChildren().push_back(watersfc);
-		//watersfc->_parent = waterbody;
 		waterbody->addGeometry(generateTriangles(asc));
 		model->addCityObject(waterbody);
 		model->addCityObjectAsRoot(waterbody);
@@ -232,8 +222,6 @@ namespace citygml
 	{
 		//CityModel* model = new CityModel();
 		CityObject* waterbody = new WaterBody("");
-		//CityObject* watersfc = new WaterSurface("");
-		//Geometry* geom = new Geometry("", GT_Unknown,3);
 
 		treated = new bool[asc->get_dim_x()*asc->get_dim_y()];
 		for (int i =0; i<(asc->get_dim_x()*asc->get_dim_y());i++) treated[i]=false;
@@ -243,7 +231,6 @@ namespace citygml
 			{
 				if (!treated[x+y*asc->get_dim_x()] && asc->get_altitude(x,y)!=asc->get_nodata())
 				{
-					//CityObject* watersfc = new WaterSurface("");
 					Geometry* geom = new Geometry("", GT_Unknown,3);
 
 					geom_list.clear();
@@ -274,9 +261,6 @@ namespace citygml
 
 					if (geom->size()!=0)
 					{
-						//watersfc->addGeometry(geom);
-						//waterbody->getChildren().push_back(watersfc);
-						//watersfc->_parent = waterbody;
 						waterbody->addGeometry(geom);
 					}
 					delete pOgrMerged;
@@ -289,18 +273,6 @@ namespace citygml
 		std::cout<<"Constructing geometries OK!     "<<std::endl;
 		delete treated;
 
-		//end treatement and create CityModel
-		//if (geom->size()!=0)
-		//{
-		//	watersfc->addGeometry(geom);
-		//	waterbody->getChildren().push_back(watersfc);
-		//	watersfc->_parent = waterbody;
-
-		//model->addCityObject(waterbody);
-		//model->addCityObjectAsRoot(waterbody);
-		//}
-
-		//model->computeEnvelope();
 		return waterbody;
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////
@@ -654,15 +626,11 @@ namespace citygml
 		}
 		//add to CityModel
 		CityModel* model = new CityModel();
-		//CityObject* reliefFeature = new ReliefFeature("");
 		CityObject* reliefTIN = new TINRelief("");
 
 		reliefTIN->addGeometry(geom);
 
 		model->addCityObject(reliefTIN);
-		//reliefFeature->getChildren().push_back(reliefTIN);
-		//model->addCityObject(reliefFeature);
-		//model->addCityObjectAsRoot(reliefFeature);
 		model->addCityObjectAsRoot(reliefTIN);
 		model->computeEnvelope();
 		std::cout<<"Conversion (100%)"<<std::endl;

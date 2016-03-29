@@ -3485,7 +3485,6 @@ void MainWindow::slotShpWaterToCityGML()
 
 				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
 				{
-					//citygml::CityObject* watersfc = new citygml::WaterSurface("");
 					citygml::Geometry* geom = new citygml::Geometry("", citygml::GT_Unknown,3);
 					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
 
@@ -3536,9 +3535,6 @@ void MainWindow::slotShpWaterToCityGML()
 						poly->addRing(ring2);
 					}
 					geom->addPolygon(poly);
-					//watersfc->addGeometry(geom);
-					//waterbody->getChildren().push_back(watersfc);
-					//watersfc->_parent = waterbody;
 					waterbody->addGeometry(geom);
 				}
 			}	
@@ -3547,13 +3543,6 @@ void MainWindow::slotShpWaterToCityGML()
 		model->addCityObjectAsRoot(waterbody);
 		if (waterbody->getChildCount()!=0)
 		{
-			//for temporal data - see at the beginning of this function
-			//QDateTime termDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
-			//termDate = termDate.addSecs(hour*3600);
-			//QDateTime creaDate(termDate.addSecs(-8*3600));
-			//waterbody->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-			//waterbody->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
-			//--
 			model->computeEnvelope();
 			//CityModel created, now to export
 			//export en CityGML

@@ -249,12 +249,6 @@ namespace citygml
 		case citygml::GT_Ceiling:
 			return exportGeometryGenericXml(geom, "bldg:Ceiling", parent);
 			break;
-		case citygml::GT_Water:
-			return exportGeometryGenericXml(geom, "wtr:Water", parent);
-			break;
-		case citygml::GT_WaterGround:
-			return exportGeometryGenericXml(geom, "wtr:WaterGround", parent);
-			break;
 		default:
 			break;
 		}
@@ -474,12 +468,6 @@ namespace citygml
 		case citygml::COT_WaterBody:
 			res = exportCityObjetGenericXml(obj, "wtr:WaterBody", parent);
 			break;
-		//case citygml::COT_ReliefFeature:
-		//	{
-		//		res = exportCityObjetGenericXml(obj, "dem:ReliefFeature", parent);				
-		//		xmlNodePtr nodelod = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getChild(0)->getGeometry(0)->getLOD()).c_str());
-		//	}
-		//	break;
 		case citygml::COT_TINRelief:
 			{
 				xmlNodePtr node1 = xmlNewChild(parent, NULL, BAD_CAST "dem:ReliefFeature", NULL);
@@ -532,12 +520,6 @@ namespace citygml
 		case citygml::COT_CeilingSurface:
             res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent, true);
 			break;
-		//case citygml::COT_WaterSurface:
-  //          res = exportCityObjetGenericXml(obj, "wtr:WaterSurface", parent, true);
-		//	break;
-		//case citygml::COT_WaterGroundSurface:
-  //          res = exportCityObjetGenericXml(obj, "wtr:WaterGroundSurface", parent, true);
-		//	break;
 		default:
 			break;
 		}
@@ -603,29 +585,36 @@ namespace citygml
 		bool isTerrain = false;
 		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
 		{
-			// JE - Export for Water Surfaces
-			//if (obj.getType() == COT_WaterSurface)
-			//{
-			//	xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("wtr:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"Surface").c_str(), NULL);
-			//	node = xmlNewChild(node1, NULL, BAD_CAST "gml:CompositeSurface", NULL);
-			//}
-			// JE 13/01/16 - Export for TINRelief
-			//else 
-				if (obj.getType() == COT_TINRelief)
+			switch(obj.getType())
 			{
-				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getGeometry(0)->getLOD()).c_str());
-				xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "dem:tin", NULL);
-				xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:TriangulatedSurface", NULL);
-				std::string id = obj.getId() + "_POLY";
-				xmlNewProp(node3, BAD_CAST "gml:id", BAD_CAST id.c_str());
-				node = xmlNewChild(node3, NULL, BAD_CAST "gml:trianglePatches", NULL);
-				isTerrain = true;
-			}
-			else
-			{
-				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"MultiSurface").c_str(), NULL);
-				node = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
-				xmlNewProp(node, BAD_CAST "srsDimension", BAD_CAST "3");
+				case COT_TINRelief:
+					{
+						xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getGeometry(0)->getLOD()).c_str());
+						xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "dem:tin", NULL);
+						xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:TriangulatedSurface", NULL);
+						std::string id = obj.getId() + "_POLY";
+						xmlNewProp(node3, BAD_CAST "gml:id", BAD_CAST id.c_str());
+						node = xmlNewChild(node3, NULL, BAD_CAST "gml:trianglePatches", NULL);
+						isTerrain = true;
+						break;
+					}
+				case COT_WaterBody:
+					{
+						xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST "wtr:boundedBy", NULL);
+						xmlNodePtr nodeSurface = xmlNewChild(node1, NULL, BAD_CAST "wtr:WaterSurface", NULL);
+						std::string id;
+						std::stringstream ss; ss << "PtrId_" << nodeSurface; id = ss.str();
+						xmlNewProp(nodeSurface, BAD_CAST "gml:id", BAD_CAST id.c_str());
+						xmlNodePtr nodeLodSfc = xmlNewChild(nodeSurface, NULL, BAD_CAST (std::string("wtr:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"Surface").c_str(), NULL);
+						node = xmlNewChild(nodeLodSfc, NULL, BAD_CAST "gml:CompositeSurface", NULL);
+						break;
+					}
+				default:
+					{
+						xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"MultiSurface").c_str(), NULL);
+						node = xmlNewChild(node1, NULL, BAD_CAST "gml:MultiSurface", NULL);
+						xmlNewProp(node, BAD_CAST "srsDimension", BAD_CAST "3");
+					}
 			}
 		}
 

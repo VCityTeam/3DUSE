@@ -70,8 +70,6 @@ LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& pa
 
 	DECLARE_SIMPLE_OBJECT_CLASS( Square, MAKE_RGB( 159, 159, 159 ) );
 
-	DECLARE_SIMPLE_OBJECT_CLASS( ReliefFeature, MAKE_RGB( 100, 230, 10 ) );
-
 	DECLARE_SIMPLE_OBJECT_CLASS( TINRelief, MAKE_RGB( 100, 230, 10 ) );
 
 	DECLARE_SIMPLE_OBJECT_CLASS( Tunnel, MAKE_RGB( 180, 180, 150 ) );
@@ -99,10 +97,6 @@ LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& pa
 	DECLARE_SIMPLE_OBJECT_CLASS( InteriorWallSurface, MAKE_RGB( 186, 184, 135 ) );
 
 	DECLARE_SIMPLE_OBJECT_CLASS( CeilingSurface, MAKE_RGB( 186, 184, 135 ) );
-
-	DECLARE_SIMPLE_OBJECT_CLASS( WaterSurface, MAKE_RGB( 67, 109, 247 ) );
-
-	DECLARE_SIMPLE_OBJECT_CLASS( WaterGroundSurface, MAKE_RGB( 67, 109, 247 ) );
 
     //DECLARE_SIMPLE_OBJECT_CLASS( TrafficArea, MAKE_RGB( 159, 159, 159 ) );
 ////////////////////////////////////////////////////////////////////////////////

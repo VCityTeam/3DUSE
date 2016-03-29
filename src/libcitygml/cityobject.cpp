@@ -403,7 +403,6 @@ std::string getCityObjectsClassName( CityObjectsTypeMask mask )
     GETCITYNAME( PlantCover );
     GETCITYNAME( SolitaryVegetationObject );
     GETCITYNAME( WaterBody );
-	//GETCITYNAME( ReliefFeature );
     GETCITYNAME( TINRelief );
     GETCITYNAME( LandUse );
     GETCITYNAME( Tunnel );
@@ -418,7 +417,6 @@ std::string getCityObjectsClassName( CityObjectsTypeMask mask )
     GETCITYNAME( FloorSurface );
     GETCITYNAME( InteriorWallSurface );
     GETCITYNAME( CeilingSurface );
-	//GETCITYNAME( WaterSurface );
 #undef GETCITYNAME
     std::string s = ss.str();
     if ( s != "" ) s.erase( s.length() - 1, 1 ); // remove the last | char
