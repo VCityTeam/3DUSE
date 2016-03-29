@@ -13,9 +13,8 @@ class Triangle;
 struct TriangleLightInfo
 {
     Triangle* triangle;
-    std::map<std::string,bool> yearSunInfo;
+    std::map<int,bool> yearSunInfo;
 };
-
 
 void SunlightDetection();
 

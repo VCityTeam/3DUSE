@@ -51,13 +51,6 @@
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 
-//#include "raytracing/RayTracing.hpp"
-//#include "AABB.hpp"
-//#include "Triangle.hpp"
-//#include "src/core/RayBox.hpp"
-//#include <queue>
-//#include "quaternion.hpp"
-//#include "raytracing/Hit.hpp"
 #include "processes/SunlightDetection.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2780,37 +2773,38 @@ void MainWindow::test1()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test2()
 {
-	//Création d'ilots à partir de Shapefile contenant des routes
-	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-	OGRLayer *LayerRoutes = Routes->GetLayer(0);
-	OGRFeature *FeatureRoutes;
-	LayerRoutes->ResetReading();
+//    //Création d'ilots à partir de Shapefile contenant des routes
+//    OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+//    OGRLayer *LayerRoutes = Routes->GetLayer(0);
+//    OGRFeature *FeatureRoutes;
+//    LayerRoutes->ResetReading();
 
-	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-	{
-		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+//    OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
+//    while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
+//    {
+//        OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
 
-		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-		{
-			ReseauRoutier->addGeometry(Route);
-		}
-	}
+//        if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
+//        {
+//            ReseauRoutier->addGeometry(Route);
+//        }
+//    }
 
-	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+//    OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
 
-	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+//    OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
 
-	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-	{
-		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-			ReseauMP->addGeometry(temp);
-	}
+//    for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
+//    {
+//        OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
+//        if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
+//            ReseauMP->addGeometry(temp);
+//    }
 
-	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+//    SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
 
-	delete ReseauRoutier;
+//    delete ReseauRoutier;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

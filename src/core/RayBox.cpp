@@ -18,7 +18,7 @@ RayBoxCollection::RayBoxCollection(std::vector<RayBox*> raysBoxes)
 
 //RayBox
 
-RayBox::RayBox(TVec3d ori, TVec3d dir, std::string id)
+RayBox::RayBox(TVec3d ori, TVec3d dir, int id)
 {
     this->id = id;
     this->ori = ori;

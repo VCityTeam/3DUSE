@@ -34,7 +34,7 @@ public:
     *	@param dir Direction of the rayBox
     *   @param id oh the rayBox
     */
-    RayBox(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0),std::string id = "" );
+    RayBox(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0),int id = -1 );
 
     /**
     *	@brief To know if the ray instersects a given box

@@ -19,62 +19,168 @@
 #include "src/core/application.hpp"
 #include "src/gui/applicationGui.hpp"
 
+
+////Partly taken from http://howardhinnant.github.io/date_algorithms.html
+/////
+///// \brief encodeDateTime Compute number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+///// \param y year
+///// \param m month
+///// \param d day
+///// \param h hour
+///// \return Number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+/////
+//float encodeDateTime(int y, int m, int d, int h)
+//{
+//    //Compute Date value : Compute number of days since civil (1970-01-01)
+//    y -= m <= 2;
+
+//    int era = (y >= 0 ? y : y-399) / 400;
+//    unsigned int yoe = static_cast<unsigned>(y - era * 400);      // [0, 399] yoe = years of era
+//    unsigned int doy = (153*(m + (m > 2 ? -3 : 9)) + 2)/5 + d-1;  // [0, 365] doy = days of year
+//    unsigned int doe = yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096] doe = days of era
+
+//    float date = era * 146097 + static_cast<int>(doe) - 719468;
+
+//    //Compute time value : 1hour = 1/24
+//    float time = static_cast<float>(h)/24.0;
+
+//    return date + time;
+//}
+
+////Partly taken from http://howardhinnant.github.io/date_algorithms.html
+/////
+///// \brief decodeDateTime
+///// \param dDateTime
+///// \return
+/////
+//std::string decodeDateTime(float dDateTime)
+//{
+//    std::string sDateTime = "";
+
+//    //Gets date
+//    int iDate = static_cast<int>(dDateTime); //Gets integer portion, i.e. code representing date
+
+//    iDate += 719468; // shift the epoch from 1970-01-01 to 0000-03-01
+//    int era = (iDate >= 0 ? iDate : iDate - 146096) / 146097;
+
+//    unsigned int doe = static_cast<unsigned>(iDate - era * 146097);          // [0, 146096] doe = days of year
+//    unsigned int yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;  // [0, 399] yoe = years of era
+//    int y = static_cast<int>(yoe) + era * 400; // y = year
+
+//    unsigned int doy = doe - (365*yoe + yoe/4 - yoe/100);                // [0, 365] doy = days of year
+//    unsigned int mp = (5*doy + 2)/153;                                   // [0, 11] mp = m' = month number starting from March
+
+//    unsigned int d = doy - (153*mp+2)/5 + 1;                             // [1, 31] d = day
+//    unsigned int m = mp + (mp < 10 ? 3 : -9);                            // [1, 12] m = month
+//    y = y + (m <= 2);
+
+//    //Gets time
+//    float dTime = dDateTime - static_cast<float>(iDate - 719468); //Get decimal part, i.e. code reprensenting time
+
+//    float dH = round(dTime * 24);
+//    int h = static_cast<int>(dH);
+
+//    //Convert to string
+//    std::string sMonth = "";
+//    if(m < 10)
+//        sMonth = "0";
+//    sMonth += std::to_string(m);
+
+
+//    std::string sDay = "";
+//    if(d < 10)
+//        sDay = "0";
+//    sDay += std::to_string(d);
+
+//    std::string sHour = "";
+//    if(h < 10)
+//        sHour = "0";
+//    sHour += std::to_string(h);
+
+//    sDateTime = std::to_string(y) + "-" + sMonth + "-" + sDay + ":" + sHour + "00";
+
+//    return sDateTime;
+//}
+
+
+//Partly taken from http://howardhinnant.github.io/date_algorithms.html
 ///
-/// \brief buildYearMap builds a std::map mapping every datetime of a year to a boolean valeur representing sunlight.
-/// \param year The year for which the map should be build
-/// \return A std::map mapping datetime (ddmmyyyy:hhmm) for a given year to a boolean value representing sunlight at this datetime (true = sunny, false = shadowed)
+/// \brief encodeDateTime Compute number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+/// \param y year
+/// \param m month
+/// \param d day
+/// \param h hour
+/// \return Number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
 ///
-std::map<std::string,bool> buildYearMap(int year)
+int encodeDateTime(int y, int m, int d, int h)
 {
-    std::map<std::string,bool> yearMap;
+    //Compute Date value : Compute number of days since civil (1970-01-01)
+    y -= m <= 2;
 
-    std::string year_str = std::to_string(year);
+    int era = (y >= 0 ? y : y-399) / 400;
+    unsigned int yoe = static_cast<unsigned>(y - era * 400);      // [0, 399] yoe = years of era
+    unsigned int doy = (153*(m + (m > 2 ? -3 : 9)) + 2)/5 + d-1;  // [0, 365] doy = days of year
+    unsigned int doe = yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096] doe = days of era
 
-    for(int month = 1; month <= 12 ; ++month)
-    {
-        std::string month_str;
-        if (month < 10)
-            month_str = "0" + std::to_string(month);
-        else
-            month_str = std::to_string(month);
+    int date = era * 146097 + static_cast<int>(doe) - 719468;
 
-        for(int day = 1; day <= 31 ; ++day)
-        {
-            //Special case for February
-            if (month == 2 && day == 29)
-            {
-                //If year is not bissextile, exit loop
-                if(!((year % 4 == 0 && year % 100 != 0) || year % 400 == 0))
-                    break;
-            }
-            if (month == 2 && day == 30)
-                break;
+    //Add time
+    int datetime = date * 24 + h;
 
-            //Month with 30 days
-            if((month == 4 || month == 6 || month == 9 || month == 11) && day == 31)
-                break;
+    return datetime;
+}
 
-            std::string day_str;
-            if (day < 10)
-                day_str = "0" + std::to_string(day);
-            else
-                day_str = std::to_string(day);
+//Partly taken from http://howardhinnant.github.io/date_algorithms.html
+///
+/// \brief decodeDateTime
+/// \param dDateTime
+/// \return
+///
+std::string decodeDateTime(int dateTime)
+{
+    std::string sDateTime = "";
 
-            for(int hour = 0 ; hour < 24 ; ++hour)
-            {
-                std::string hour_str;
-                if (hour < 10)
-                    hour_str = "0" + std::to_string(hour) + "00";
-                else
-                    hour_str = std::to_string(hour) + "00";
+    //Gets time
+    int time = dateTime % 24;
 
-                std::string code_str = day_str + month_str + year_str + ":" + hour_str;
-                yearMap[code_str] = true;
-            }
-        }
-    }
+    //"Extract" time info from dateTime
+    dateTime = (dateTime - time) / 24;
 
-    return yearMap;
+    dateTime += 719468; // shift the epoch from 1970-01-01 to 0000-03-01
+    int era = (dateTime >= 0 ? dateTime : dateTime - 146096) / 146097;
+
+    unsigned int doe = static_cast<unsigned>(dateTime - era * 146097);          // [0, 146096] doe = days of year
+    unsigned int yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;  // [0, 399] yoe = years of era
+    int y = static_cast<int>(yoe) + era * 400; // y = year
+
+    unsigned int doy = doe - (365*yoe + yoe/4 - yoe/100);                // [0, 365] doy = days of year
+    unsigned int mp = (5*doy + 2)/153;                                   // [0, 11] mp = m' = month number starting from March
+
+    unsigned int d = doy - (153*mp+2)/5 + 1;                             // [1, 31] d = day
+    unsigned int m = mp + (mp < 10 ? 3 : -9);                            // [1, 12] m = month
+    y = y + (m <= 2);
+
+
+    //Convert to string
+    std::string sMonth = "";
+    if(m < 10)
+        sMonth = "0";
+    sMonth += std::to_string(m);
+
+
+    std::string sDay = "";
+    if(d < 10)
+        sDay = "0";
+    sDay += std::to_string(d);
+
+    std::string sHour = "";
+    if(time < 10)
+        sHour = "0";
+    sHour += std::to_string(time);
+
+    sDateTime = sDay + sMonth + std::to_string(y) + ":" + sHour + "00";
+
+    return sDateTime;
 }
 
 
@@ -181,7 +287,8 @@ void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string 
     {
         for(auto ySI : tli->yearSunInfo)
         {
-            ofs << ySI.first << ";" << tli->triangle->polygonId << ";" << ySI.second << std::endl;
+            std::string dateTime = decodeDateTime(ySI.first);
+            ofs << dateTime << ";" << tli->triangle->polygonId << ";" << ySI.second << std::endl;
             // iterator->first = key
             // iterator->second = value
         }
@@ -206,7 +313,9 @@ void SunlightDetection()
     // ************* Lightning Measure ******************************//
 
     std::string date = "2016-08-10";
-    //std::string tilename = "3670_10382";
+
+    //Date
+    int year = 2016; int month = 8; int day = 10;
 
     std::vector<double> elevationAngle;
     std::vector<double> azimutAngle;
@@ -300,28 +409,39 @@ void SunlightDetection()
 
     //********* Build year map ************//
 
-    //std::map<std::string,bool> yearMap = buildYearMap(2016);
-    std::map<std::string,bool> yearMap;
+    std::map<int,bool> yearMap;
+
+//    for(int hour = 0 ; hour < 24 ; ++hour)
+//    {
+//        std::string hour_str;
+//        if (hour < 10)
+//            hour_str = "0" + std::to_string(hour) + "00";
+//        else
+//            hour_str = std::to_string(hour) + "00";
+
+//        std::string code_str = "10082016:" + hour_str;
+
+//        if(beamsDirections.at(hour) == TVec3d(0.0,0.0,0.0))
+//        {
+//            yearMap[code_str] = false;
+//        }
+//        else
+//        {
+//            yearMap[code_str] = true;
+//        }
+//    }
+
 
     for(int hour = 0 ; hour < 24 ; ++hour)
     {
-        std::string hour_str;
-        if (hour < 10)
-            hour_str = "0" + std::to_string(hour) + "00";
-        else
-            hour_str = std::to_string(hour) + "00";
-
-        std::string code_str = "10082016:" + hour_str;
+        int datetime = encodeDateTime(year,month,day,hour);
 
         if(beamsDirections.at(hour) == TVec3d(0.0,0.0,0.0))
-        {
-            yearMap[code_str] = false;
-        }
+            yearMap[datetime] = false;
         else
-        {
-            yearMap[code_str] = true;
-        }
+            yearMap[datetime] = true;
     }
+
 
     //***** MultiTileAnalysis
 
@@ -384,14 +504,14 @@ void SunlightDetection()
 
     for(std::string tilename : tiles)
     {
-
-        std::cout << "Tile " << tilename << " analyse." << std::endl;
+        std::cout << "===================================================" << std::endl;
+        std::cout << "Computation of tile " << tilename << "..." << std::endl;
+        std::cout << "===================================================" << std::endl;
 
         //Load TriangleList of tile to treat
         std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/" + tilename + ".gml";
 
         TriangleList* trianglesTile1 = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
-
 
         //Vector containing lightningInfo
         std::vector<TriangleLightInfo*> vSunInfoTriangle;
@@ -415,21 +535,15 @@ void SunlightDetection()
             int hour = 0;
             for(TVec3d beamDir : beamsDirections)
             {
-                //Construct id
-                std::string hour_str;
-                if(hour<10)
-                    hour_str = "0"+ std::to_string(hour) + "00";
-                else
-                    hour_str = std::to_string(hour) + "00";
-
-                std::string id = "10082016:" + hour_str;
-
                 //If direction is null (ie sun is too low) make every triangle in the shadow and goes to next iteration
                 if(beamDir == TVec3d(0.0,0.0,0.0))
                 {
                     hour++;
                     continue;
                 }
+
+                //Id
+                int id = encodeDateTime(year,month,day,hour);
 
                 //Add an offset for raytracing
                 TVec3d tmpBarycenter = TVec3d(0.0,0.0,0.0);
@@ -517,10 +631,13 @@ void SunlightDetection()
         for(int i = 0; i < vSunInfoTriangle.size(); ++i)
            delete vSunInfoTriangle[i];
 
+        std::cout << "===================================================" << std::endl;
         std::cout << "Tile " << cpt_tiles << " of " << tiles.size() << " done in : " << (double)time.elapsed()/60000.0 << " min." << std::endl;
+        std::cout << "===================================================" << std::endl;
 
         time_tot += time.elapsed();
         time.restart();
+        ++cpt_tiles;
 
     }
 
@@ -600,4 +717,69 @@ void SunlightDetection()
 //   vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerShp")->getURI();
 
 //   appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
+//}
+
+
+///
+/// \brief buildYearMap builds a std::map mapping every datetime of a year to a boolean value representing sunlight.
+/// \param year The year for which the map should be build
+/// \return A std::map mapping datetime (ddmmyyyy:hhmm) for a given year to a boolean value representing sunlight at this datetime (true = sunny, false = shadowed)
+///
+//std::map<float,bool> buildYearMap(int year)
+//{
+    /*std::map<std::string,bool> yearMap;
+
+    std::string year_str = std::to_string(year);
+
+    for(int month = 1; month <= 12 ; ++month)
+    {
+        std::string month_str;
+        if (month < 10)
+            month_str = "0" + std::to_string(month);
+        else
+            month_str = std::to_string(month);
+
+        for(int day = 1; day <= 31 ; ++day)
+        {
+            //Special case for February
+            if (month == 2 && day == 29)
+            {
+                //If year is not bissextile, exit loop
+                if(!((year % 4 == 0 && year % 100 != 0) || year % 400 == 0))
+                    break;
+            }
+            if (month == 2 && day == 30)
+                break;
+
+            //Month with 30 days
+            if((month == 4 || month == 6 || month == 9 || month == 11) && day == 31)
+                break;
+
+            std::string day_str;
+            if (day < 10)
+                day_str = "0" + std::to_string(day);
+            else
+                day_str = std::to_string(day);
+
+            for(int hour = 0 ; hour < 24 ; ++hour)
+            {
+                std::string hour_str;
+                if (hour < 10)
+                    hour_str = "0" + std::to_string(hour) + "00";
+                else
+                    hour_str = std::to_string(hour) + "00";
+
+                std::string code_str = day_str + month_str + year_str + ":" + hour_str;
+                yearMap[code_str] = true;
+            }
+        }
+    }
+
+    return yearMap;*/
+
+//    std::map<float,bool> yearMap;
+
+
+
+//    return yearMap;
 //}

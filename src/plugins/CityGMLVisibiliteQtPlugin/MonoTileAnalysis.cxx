@@ -43,15 +43,14 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>
         TVec3d camDir = TVec3d(target.x(),target.y(),target.z());
 
         //Create the viewpoint and ray collection
-        std::string viewpointId = std::to_string(i);
-        result[i] = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height(),viewpointId);
+        result[i] = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height(),i);
         result[i]->lightDir = Ray::Normalized(camPos - camDir);
         rays[i] = RayCollection::BuildCollection(cam);
 
         //rays[i]->viewpoint = result[i];
         for(Ray* r : rays[i]->rays)
         {
-            r->id = viewpointId;
+            r->id = i;
         }
 
         allRays.insert(allRays.end(),rays[i]->rays.begin(),rays[i]->rays.end());
@@ -79,10 +78,10 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>
         for(Hit* h : *tmpHits)
         {
             //Get id of the viewpoint corresponding to the current hit
-            std::string vpId = h->ray.id;
+            int vpId = h->ray.id;
 
             //Get corresponding viewpoint
-            ViewPoint* viewpoint = result[std::stoi(vpId)]; // The id of the viewpoint is actually its location in result
+            ViewPoint* viewpoint = result[vpId]; // The id of the viewpoint is actually its location in result
 
             //if there is not already a hit for this fragCoord or if the distance of the current hit is smaller than the existing one
             if(!viewpoint->hits[int(h->ray.fragCoord.x)][int(h->ray.fragCoord.y)].intersect

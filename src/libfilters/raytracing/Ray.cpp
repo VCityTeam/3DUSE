@@ -4,7 +4,7 @@
 
 //Ray
 
-Ray::Ray(TVec3d ori, TVec3d dir, std::string id)
+Ray::Ray(TVec3d ori, TVec3d dir, int id)
 {
     this->id = id;
     this->ori = ori;
