@@ -6,6 +6,8 @@
 #include "gui/osg/osgMnt.hpp"
 #include "import/importerASC.hpp"
 #include "export/exportCityGML.hpp"
+#include "AABB.hpp"
+#include "processes/ShpExtrusion.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::dialogFloodAR(QWidget *parent) :
@@ -26,8 +28,13 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	connect(ui->chkBox_fusion ,SIGNAL(stateChanged(int)),this,SLOT( enableASCFusion(int)));
 	connect(ui->chkBox_tex ,SIGNAL(stateChanged(int)),this,SLOT( enableTextures(int)));
 	connect(ui->btn_ASCtoTerrain_exec ,SIGNAL(clicked()),this,SLOT( ASCtoTerrain()));
+	connect(ui->btn_ShpExt_dir, SIGNAL(clicked()), this, SLOT(browseInputDirShpExt()));
+	connect(ui->btn_ShpExt_in, SIGNAL(clicked()), this, SLOT(browseInputShpExt()));
+	connect(ui->btn_ShpExt_exec, SIGNAL(clicked()), this, SLOT(ShpExtrusion()));
 
-	//ui->chkBox_tex->setEnabled(false);
+	ui->btn_ShpExt_in->setEnabled(false);
+	ui->lineEdit_ShpExt_in->setEnabled(false);
+	ui->label_15->setEnabled(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::~dialogFloodAR()
@@ -285,7 +292,6 @@ void dialogFloodAR::ASCtoTerrain()
 		msgBox.exec();
 		return;
 	}
-	float xOrig, yOrig, scale;
 	if (!fusion)
 	{
 		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
@@ -413,3 +419,25 @@ void dialogFloodAR::ASCtoTerrain()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void dialogFloodAR::browseInputShpExt()
+{
+	QString filename = QFileDialog::getOpenFileName(this, "Select SHP file", "", "SHP files (*.shp)");
+	ui->lineEdit_ShpExt_in->setText(filename);
+}
+////////////////////////////////////////////////////////////////////////////////
+void dialogFloodAR::browseInputDirShpExt()
+{
+	QString path = QFileDialog::getExistingDirectory(this,"Select data directory");
+	ui->lineEdit_ShpExt_dir->setText(path);
+}
+////////////////////////////////////////////////////////////////////////////////
+void dialogFloodAR::ShpExtrusion()
+{
+	std::string dir = ui->lineEdit_ShpExt_dir->text().toStdString();
+	if(dir != "")
+	{
+		dir+="/";
+		BuildAABB(dir);
+		ShpExtruction(dir);
+	}
+}

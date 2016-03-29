@@ -35,6 +35,10 @@ public slots:
 	void enableTextures(int);
 	void ASCtoTerrain();
 
+	void browseInputDirShpExt();
+	void browseInputShpExt();
+	void ShpExtrusion();
+
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOG_FLOODAR_H
