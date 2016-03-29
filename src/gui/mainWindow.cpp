@@ -3485,7 +3485,7 @@ void MainWindow::slotShpWaterToCityGML()
 
 				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
 				{
-					citygml::CityObject* watersfc = new citygml::WaterSurface("");
+					//citygml::CityObject* watersfc = new citygml::WaterSurface("");
 					citygml::Geometry* geom = new citygml::Geometry("", citygml::GT_Unknown,3);
 					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
 
@@ -3536,9 +3536,10 @@ void MainWindow::slotShpWaterToCityGML()
 						poly->addRing(ring2);
 					}
 					geom->addPolygon(poly);
-					watersfc->addGeometry(geom);
-					waterbody->getChildren().push_back(watersfc);
-					watersfc->_parent = waterbody;
+					//watersfc->addGeometry(geom);
+					//waterbody->getChildren().push_back(watersfc);
+					//watersfc->_parent = waterbody;
+					waterbody->addGeometry(geom);
 				}
 			}	
 		}

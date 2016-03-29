@@ -474,15 +474,19 @@ namespace citygml
 		case citygml::COT_WaterBody:
 			res = exportCityObjetGenericXml(obj, "wtr:WaterBody", parent);
 			break;
-		case citygml::COT_ReliefFeature:
-			{
-				res = exportCityObjetGenericXml(obj, "dem:ReliefFeature", parent);				
-				xmlNodePtr nodelod = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getChild(0)->getGeometry(0)->getLOD()).c_str());
-			}
-			break;
+		//case citygml::COT_ReliefFeature:
+		//	{
+		//		res = exportCityObjetGenericXml(obj, "dem:ReliefFeature", parent);				
+		//		xmlNodePtr nodelod = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getChild(0)->getGeometry(0)->getLOD()).c_str());
+		//	}
+		//	break;
 		case citygml::COT_TINRelief:
 			{
-				xmlNodePtr node2 = xmlNewChild(parent, NULL, BAD_CAST "dem:reliefComponent", NULL);
+				xmlNodePtr node1 = xmlNewChild(parent, NULL, BAD_CAST "dem:ReliefFeature", NULL);
+				std::string id;
+				std::stringstream ss; ss << "PtrId_" << node1; id = ss.str();
+				xmlNewProp(node1, BAD_CAST "gml:id", BAD_CAST id.c_str());
+				xmlNodePtr node2 = xmlNewChild(node1, NULL, BAD_CAST "dem:reliefComponent", NULL);
 				res = exportCityObjetGenericXml(obj, "dem:TINRelief", node2);
 			}
 			break;
@@ -528,12 +532,12 @@ namespace citygml
 		case citygml::COT_CeilingSurface:
             res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent, true);
 			break;
-		case citygml::COT_WaterSurface:
-            res = exportCityObjetGenericXml(obj, "wtr:WaterSurface", parent, true);
-			break;
-		case citygml::COT_WaterGroundSurface:
-            res = exportCityObjetGenericXml(obj, "wtr:WaterGroundSurface", parent, true);
-			break;
+		//case citygml::COT_WaterSurface:
+  //          res = exportCityObjetGenericXml(obj, "wtr:WaterSurface", parent, true);
+		//	break;
+		//case citygml::COT_WaterGroundSurface:
+  //          res = exportCityObjetGenericXml(obj, "wtr:WaterGroundSurface", parent, true);
+		//	break;
 		default:
 			break;
 		}
@@ -600,13 +604,14 @@ namespace citygml
 		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
 		{
 			// JE - Export for Water Surfaces
-			if (obj.getType() == COT_WaterSurface)
-			{
-				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("wtr:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"Surface").c_str(), NULL);
-				node = xmlNewChild(node1, NULL, BAD_CAST "gml:CompositeSurface", NULL);
-			}
+			//if (obj.getType() == COT_WaterSurface)
+			//{
+			//	xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST (std::string("wtr:lod")+std::to_string(obj.getGeometry(0)->getLOD())+"Surface").c_str(), NULL);
+			//	node = xmlNewChild(node1, NULL, BAD_CAST "gml:CompositeSurface", NULL);
+			//}
 			// JE 13/01/16 - Export for TINRelief
-			else if (obj.getType() == COT_TINRelief)
+			//else 
+				if (obj.getType() == COT_TINRelief)
 			{
 				xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST "dem:lod", BAD_CAST std::to_string(obj.getGeometry(0)->getLOD()).c_str());
 				xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "dem:tin", NULL);
