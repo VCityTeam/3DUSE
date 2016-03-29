@@ -5,17 +5,6 @@
 #include <stdlib.h>
 #include <map>
 
-class Triangle;
-
-///
-/// \brief The TriangleLightInfo struct holds informations about sunlight for a year on a given triangle
-///
-struct TriangleLightInfo
-{
-    Triangle* triangle;
-    std::map<int,bool> yearSunInfo;
-};
-
 void SunlightDetection();
 
 #endif // SUNLIGHTDETECTION_HPP

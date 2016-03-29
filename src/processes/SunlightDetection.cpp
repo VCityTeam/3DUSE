@@ -13,94 +13,11 @@
 #include <QDir>
 
 //For displaySun Function, to be removed
-#include <osg/Texture2D>
-#include <osg/Billboard>
-#include <osgDB/Registry>
-#include "src/core/application.hpp"
-#include "src/gui/applicationGui.hpp"
-
-
-////Partly taken from http://howardhinnant.github.io/date_algorithms.html
-/////
-///// \brief encodeDateTime Compute number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
-///// \param y year
-///// \param m month
-///// \param d day
-///// \param h hour
-///// \return Number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
-/////
-//float encodeDateTime(int y, int m, int d, int h)
-//{
-//    //Compute Date value : Compute number of days since civil (1970-01-01)
-//    y -= m <= 2;
-
-//    int era = (y >= 0 ? y : y-399) / 400;
-//    unsigned int yoe = static_cast<unsigned>(y - era * 400);      // [0, 399] yoe = years of era
-//    unsigned int doy = (153*(m + (m > 2 ? -3 : 9)) + 2)/5 + d-1;  // [0, 365] doy = days of year
-//    unsigned int doe = yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096] doe = days of era
-
-//    float date = era * 146097 + static_cast<int>(doe) - 719468;
-
-//    //Compute time value : 1hour = 1/24
-//    float time = static_cast<float>(h)/24.0;
-
-//    return date + time;
-//}
-
-////Partly taken from http://howardhinnant.github.io/date_algorithms.html
-/////
-///// \brief decodeDateTime
-///// \param dDateTime
-///// \return
-/////
-//std::string decodeDateTime(float dDateTime)
-//{
-//    std::string sDateTime = "";
-
-//    //Gets date
-//    int iDate = static_cast<int>(dDateTime); //Gets integer portion, i.e. code representing date
-
-//    iDate += 719468; // shift the epoch from 1970-01-01 to 0000-03-01
-//    int era = (iDate >= 0 ? iDate : iDate - 146096) / 146097;
-
-//    unsigned int doe = static_cast<unsigned>(iDate - era * 146097);          // [0, 146096] doe = days of year
-//    unsigned int yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;  // [0, 399] yoe = years of era
-//    int y = static_cast<int>(yoe) + era * 400; // y = year
-
-//    unsigned int doy = doe - (365*yoe + yoe/4 - yoe/100);                // [0, 365] doy = days of year
-//    unsigned int mp = (5*doy + 2)/153;                                   // [0, 11] mp = m' = month number starting from March
-
-//    unsigned int d = doy - (153*mp+2)/5 + 1;                             // [1, 31] d = day
-//    unsigned int m = mp + (mp < 10 ? 3 : -9);                            // [1, 12] m = month
-//    y = y + (m <= 2);
-
-//    //Gets time
-//    float dTime = dDateTime - static_cast<float>(iDate - 719468); //Get decimal part, i.e. code reprensenting time
-
-//    float dH = round(dTime * 24);
-//    int h = static_cast<int>(dH);
-
-//    //Convert to string
-//    std::string sMonth = "";
-//    if(m < 10)
-//        sMonth = "0";
-//    sMonth += std::to_string(m);
-
-
-//    std::string sDay = "";
-//    if(d < 10)
-//        sDay = "0";
-//    sDay += std::to_string(d);
-
-//    std::string sHour = "";
-//    if(h < 10)
-//        sHour = "0";
-//    sHour += std::to_string(h);
-
-//    sDateTime = std::to_string(y) + "-" + sMonth + "-" + sDay + ":" + sHour + "00";
-
-//    return sDateTime;
-//}
+//#include <osg/Texture2D>
+//#include <osg/Billboard>
+//#include <osgDB/Registry>
+//#include "src/core/application.hpp"
+//#include "src/gui/applicationGui.hpp"
 
 
 //Partly taken from http://howardhinnant.github.io/date_algorithms.html
@@ -267,37 +184,27 @@ std::queue<RayBoxHit> SetupTileOrder(std::vector<AABB> boxes,RayBoxCollection* r
 /// \param vSunInfo vector holding informations about sunlight for a given triangle.
 /// \param tilename Name of the tile.
 ///
-void exportLightningToCSV(std::vector<TriangleLightInfo*> vSunInfo, std::string tilename)
+void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, std::string tilename)
 {
-    //To create directory, use QDir.mkdir("name")
-    //Delete file and recreate it or clear it
-    //Add URI
-
     QDir outputDir("./SunlightOutput/");
     if(!outputDir.exists("./SunlightOutput/"))
         outputDir.mkpath(outputDir.absolutePath());
 
     std::ofstream ofs;
-    ofs.open ("./SunlightOutput/" + tilename + ".csv", std::ofstream::out);
+    ofs.open ("./SunlightOutput/" + tilename + ".csv", std::ofstream::app);
 
     ofs << "TileName : " << tilename << std::endl;
     ofs << "DateTime;PolygoneId;Sunny" << std::endl;
 
-    for(TriangleLightInfo* tli : vSunInfo)
+    for(auto ySI : sunInfo)
     {
-        for(auto ySI : tli->yearSunInfo)
-        {
-            std::string dateTime = decodeDateTime(ySI.first);
-            ofs << dateTime << ";" << tli->triangle->polygonId << ";" << ySI.second << std::endl;
-            // iterator->first = key
-            // iterator->second = value
-        }
+        std::string dateTime = decodeDateTime(ySI.first);
+        ofs << dateTime << ";" << t->polygonId << ";" << ySI.second << std::endl;
+        // iterator->first = key
+        // iterator->second = value
     }
 
     ofs.close();
-
-    std::cout << "file created" << std::endl;
-
 }
 
 
@@ -411,27 +318,6 @@ void SunlightDetection()
 
     std::map<int,bool> yearMap;
 
-//    for(int hour = 0 ; hour < 24 ; ++hour)
-//    {
-//        std::string hour_str;
-//        if (hour < 10)
-//            hour_str = "0" + std::to_string(hour) + "00";
-//        else
-//            hour_str = std::to_string(hour) + "00";
-
-//        std::string code_str = "10082016:" + hour_str;
-
-//        if(beamsDirections.at(hour) == TVec3d(0.0,0.0,0.0))
-//        {
-//            yearMap[code_str] = false;
-//        }
-//        else
-//        {
-//            yearMap[code_str] = true;
-//        }
-//    }
-
-
     for(int hour = 0 ; hour < 24 ; ++hour)
     {
         int datetime = encodeDateTime(year,month,day,hour);
@@ -454,9 +340,6 @@ void SunlightDetection()
     std::string dirTile = "/home/vincent/Documents/VCity_Project/Data/Tuiles/";
 
     AABBCollection boxes = LoadAABB(dirTile);
-
-//    std::vector<AABB> buildingBB = boxes.building;
-//    std::vector<AABB> terrainBB = boxes.terrain;
 
     //Concatenate buildingAABB and terrainAABB
     std::vector<AABB> building_terrainBB;
@@ -513,15 +396,14 @@ void SunlightDetection()
 
         TriangleList* trianglesTile1 = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
 
-        //Vector containing lightningInfo
-        std::vector<TriangleLightInfo*> vSunInfoTriangle;
+        int cpt_tri = 1;
 
         for(Triangle* t : trianglesTile1->triangles) //Loop through each triangle
         {
+            std::cout << "Triangle " << cpt_tri << " of " << trianglesTile1->triangles.size() << "..." << std::endl;
+
             //Initialize sunInfo
-            TriangleLightInfo* sunInfoTri = new TriangleLightInfo();
-            sunInfoTri->triangle = t;
-            sunInfoTri->yearSunInfo = yearMap;
+            std::map<int,bool> yearSunInfo = yearMap;
 
             //Compute Barycenter
             TVec3d barycenter = TVec3d();
@@ -574,14 +456,12 @@ void SunlightDetection()
                 {
                     RayBox* raybox = raysboxes->raysBB[i];//Get the ray
 
-                    //Check if triangle is sunny for this ray (i.e. this hour)
-                    bool sunny = sunInfoTri->yearSunInfo[raybox->id];
                     bool found = false;
 
                     for(RayBoxHit& rbh : raybox->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
                         found = found || rbh.box.name == tileName;
 
-                    if(found && sunny)
+                    if(found)
                     {
                         raysTemp.rays.push_back(raybox);
                     }
@@ -589,7 +469,6 @@ void SunlightDetection()
 
                 if(raysTemp.rays.size() == 0)
                 {
-                    //std::cout << "Skipping." << std::endl;
                     raysTemp.rays.clear();
                     continue;
                 }
@@ -613,7 +492,7 @@ void SunlightDetection()
 
                 for(Hit* h : *tmpHits)
                 {
-                    sunInfoTri->yearSunInfo[h->ray.id] = false;
+                    yearSunInfo[h->ray.id] = false;
                 }
 
                 raysTemp.rays.clear();
@@ -621,15 +500,16 @@ void SunlightDetection()
 
             }
 
-            vSunInfoTriangle.push_back(sunInfoTri);
+            exportLightningToCSV(yearSunInfo,t,tilename);
 
+            for(int i = 0; i < raysboxes->raysBB.size(); ++i)
+               delete raysboxes->raysBB[i];
+
+            delete raysboxes;
+
+            ++cpt_tri;
         }
 
-        //Export to csv (one per tile)
-        exportLightningToCSV(vSunInfoTriangle, tilename);
-
-        for(int i = 0; i < vSunInfoTriangle.size(); ++i)
-           delete vSunInfoTriangle[i];
 
         std::cout << "===================================================" << std::endl;
         std::cout << "Tile " << cpt_tiles << " of " << tiles.size() << " done in : " << (double)time.elapsed()/60000.0 << " min." << std::endl;
