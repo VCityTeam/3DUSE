@@ -8,6 +8,7 @@
 #include "export/exportCityGML.hpp"
 #include "AABB.hpp"
 #include "processes/ShpExtrusion.hpp"
+#include "processes/ASCCut.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::dialogFloodAR(QWidget *parent) :
@@ -56,7 +57,6 @@ void dialogFloodAR::browseOutputDirASCCut()
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::cutASC()
 {
-	//cutASC is in ImporterASC now, but maybe this should be changed?
 	QFileInfo file(ui->lineEdit_ASCcut_src->text());
 	QDir dir(ui->lineEdit_ASCcut_out->text());
 	int tileSizeX = ui->spinBox_tileSize_x->value();
@@ -93,7 +93,7 @@ void dialogFloodAR::cutASC()
 		MNT* asc = new MNT();
 		if (asc->charge(ui->lineEdit_ASCcut_src->text().toStdString().c_str(), "ASC"))
 		{
-			importer->cutASC(asc,ui->lineEdit_ASCcut_out->text().toStdString(),file.baseName().toStdString(), tileSizeX, tileSizeY );
+			ASCCut(asc, tileSizeX, tileSizeY, ui->lineEdit_ASCcut_out->text().toStdString(),file.baseName().toStdString());
 		}
 		delete importer;
 		delete asc;

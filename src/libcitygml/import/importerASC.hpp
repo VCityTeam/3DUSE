@@ -24,8 +24,6 @@ public:
 	CityObject* waterToCityGMLPolygons(MNT*, float);
 	CityModel* fusionResolutions(MNT* asc1, MNT* asc2);
 	
-	void cutASC(MNT*, std::string, std::string, int, int );
-
 protected:
 	Geometry* generateTriangles(MNT*);
 	void propagateCategory(MNT*,std::queue<std::pair<int, int>>*, float alt, float zPrec);

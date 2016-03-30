@@ -1,7 +1,6 @@
 #include "importerASC.hpp"
 #include "src/processes/ToolAlgoCut.hpp"
 
-#include <osgDB/fstream>
 #include <QInputDialog>
 #include <QDir>
 
@@ -44,17 +43,13 @@ namespace citygml
 	/////////////////////////////////////////////////////////////////////////////////////////
 	Geometry* ImporterASC::generateTriangles(MNT* asc)
 	{
-		int incrx = 1; // for manually changing step
+		int incrx = 1; // for manually changing step if needed
 		int incry = 1;
 		Geometry* geom = new Geometry("", GT_Unknown,3);
 		for (int y=0; y<asc->get_dim_y()-incry;y+=incry)
 		{
-			//incry=25-incry; //for alternative step
-			//incrx=13;
 			for (int x=0; x<asc->get_dim_x()-incrx;x+=incrx)
 			{
-				//incrx = 25-incrx; //for alternative step
-				bool emptyCell = true;
 				float xmin = (asc->get_x_noeud_NO())+(x+0.5)*(asc->get_pas_x());
 				float xmax = (asc->get_x_noeud_NO())+(x+incrx+0.5)*(asc->get_pas_x());
 				float ymax = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-0.5)*(asc->get_pas_y());
@@ -77,145 +72,27 @@ namespace citygml
 				{
 					Polygon* t = new Polygon("");
 					LinearRing* lr = new LinearRing("",true);
-					//std::vector<TVec3d> vec = lr->getVertices();
 					lr->getVertices().push_back( v1 );
 					lr->getVertices().push_back( v2 );
 					lr->getVertices().push_back( v3 );
 					t->addRing( lr );
 					geom->addPolygon( t );
-					emptyCell = false;
 				}
 				if(v2[2]!=(asc->get_nodata()) && v3[2]!=(asc->get_nodata()) && v4[2]!=(asc->get_nodata()) )
 				{
 					Polygon* t = new Polygon("");
 					LinearRing* lr = new LinearRing("",true);
-					//std::vector<TVec3d> vec = lr->getVertices();
 					lr->getVertices().push_back( v3 );
 					lr->getVertices().push_back( v2 );
 					lr->getVertices().push_back( v4 );
 					t->addRing( lr );
 					geom->addPolygon( t );
-					emptyCell = false;
 				}
-				//if (emptyCell) //on regarde si on peut pas faire un triangle dans l'autre sens
-				//{
-				//	if(v1[2]!=(NODATA_value) && v2[2]!=(NODATA_value) && v4[2]!=(NODATA_value) )
-				//	{
-				//		Polygon* t = new Polygon("");
-				//		LinearRing* lr = new LinearRing("",true);
-				//		//std::vector<TVec3d> vec = lr->getVertices();
-				//		lr->getVertices().push_back( v1 );
-				//		lr->getVertices().push_back( v2 );
-				//		lr->getVertices().push_back( v4 );
-				//		t->addRing( lr );
-				//		geom->addPolygon( t );
-				//		emptyCell = false;
-				//	}
-				//	if(v1[2]!=(NODATA_value) && v3[2]!=(NODATA_value) && v4[2]!=(NODATA_value) )
-				//	{
-				//		Polygon* t = new Polygon("");
-				//		LinearRing* lr = new LinearRing("",true);
-				//		//std::vector<TVec3d> vec = lr->getVertices();
-				//		lr->getVertices().push_back( v1 );
-				//		lr->getVertices().push_back( v3 );
-				//		lr->getVertices().push_back( v4 );
-				//		t->addRing( lr );
-				//		geom->addPolygon( t );
-				//		emptyCell = false;
-				//	}
-				//}
 			}
 			printf( "Conversion (%d%%)\r", (int)(y*100.0/asc->get_dim_y()) );
 			fflush(stdout);
 		}
 		return geom;
-	}
-	/////////////////////////////////////////////////////////////////////////////////////////
-	/*Maybe this function should be somewhere else*/
-	void ImporterASC::cutASC(MNT* asc, std::string path, std::string filename, int tileSizeX, int tileSizeY)
-	{
-
-		int x = 0;
-		int y = asc->get_dim_y()-1;
-
-		while ( y>0 )
-		{
-
-			// get bounds of the tile we're in
-			float realX = (asc->get_x_noeud_NO())+(x+0.5)*(asc->get_pas_x());
-			float realY = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-0.5)*(asc->get_pas_y());
-			float cornerX = (asc->get_x_noeud_NO())+x*(asc->get_pas_x());
-			float cornerY = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-1)*(asc->get_pas_y());
-			int dvX = cornerX/tileSizeX;
-			int dvY = cornerY/tileSizeY;
-			float tileXmin = dvX*tileSizeX;
-			float tileXmax = (dvX+1)*tileSizeY;
-			float tileYmin = dvY*tileSizeX;
-			float tileYmax = (dvY+1)*tileSizeY;
-			/*std::cout<<"x = "<<realX<<" | y = "<<realY<<std::endl;
-			std::cout<<"Tile : X = "<<tileXmin<<" -> "<<tileXmax<<std::endl;
-			std::cout<<"       Y = "<<tileYmin<<" -> "<<tileYmax<<std::endl<<std::endl;*/
-
-			//get number of rows and columns in this tile
-			int nC = 1;
-			int iX = x;
-			while (tileXmin <= realX && realX < tileXmax)
-			{
-				if (iX+1>=asc->get_dim_x()) break;
-				nC++;
-				realX = (asc->get_x_noeud_NO())+(++iX+0.5)*(asc->get_pas_x());
-			}
-			int nR = 1;
-			int iY = y;
-			while (tileYmin <= realY && realY < tileYmax)
-			{
-				if (iY<=0) break;
-				nR++;
-				realY = (asc->get_y_noeud_NO())+(asc->get_dim_y()-(--iY)-0.5)*(asc->get_pas_y());
-			}
-
-			//QDir dir = QString::fromStdString(path);
-			//QString tileName = QString::fromStdString("T"+std::to_string(dvX)+"-"+std::to_string(dvY));
-			//if (!dir.exists(tileName))
-			//dir.mkdir(tileName);
-			//std::string fname = path+"/"+tileName.toStdString()+"/"+tileName.toStdString()+"_"+filename+".asc";
-			std::string fname = path+"/"+"T"+std::to_string(dvX)+"-"+std::to_string(dvY)+"_"+filename+".asc";
-			std::ofstream out;
-			out.open(fname);
-
-			//write out file header
-			out<<"ncols         "<<nC<<std::endl;
-			out<<"nrows         "<<nR<<std::endl;
-			out<<"xllcorner     "<<std::fixed<<cornerX<<std::endl;
-			out<<"yllcorner     "<<std::fixed<<cornerY<<std::endl;
-			out<<"cellsize      "<<asc->get_pas_x()<<std::endl;
-			out<<"nodata_value  "<<asc->get_nodata()<<std::endl;
-			//parse data for this tile
-			for (iY = nR-1; iY >= 0; iY--)
-			{
-				for (iX = 0; iX < nC; iX++)
-				{
-					//access & write data at x+iX, y-iY
-					out<<asc->get_altitude(x+iX,y-iY)<<" ";
-				}
-				out<<std::endl;
-			}
-			//tile is finished, set xy for next tile
-			if ((x+nC)<asc->get_dim_x())
-			{
-				x = x+nC-1; //same row, next column
-			}
-			else
-			{
-				x = 0; //next row, first column
-				y = y-nR+1;
-			}
-			std::cout<<"Tiling ("<<(int)((asc->get_dim_y()-y)*100.0/asc->get_dim_y())<<"%)\r";
-			fflush(stdout);
-			out.close();
-		}
-		std::cout<<"Tiling (100%)"<<std::endl;
-
 	}
 	/////////////////////////////////////////////////////////////////////////////////////////
 	CityObject* ImporterASC::waterToCityGMLPolygons(MNT* asc, float zPrec = 0.1)
@@ -381,80 +258,6 @@ namespace citygml
 		const int prec = 10;
 		//create OGRPloygons for both asc
 		std::vector<OGRPolygon*> polys1, polys2;
-#if 0
-		for (int y = 0; y<asc1->get_dim_y()-1; y++)
-		{
-			for (int x = 0; x<asc1->get_dim_x()-1; x++)
-			{
-				float xmin = (asc1->get_x_noeud_NO())+(x+0.5)*(asc1->get_pas_x());
-				float xmax = (asc1->get_x_noeud_NO())+(x+1+0.5)*(asc1->get_pas_x());
-				float ymax = (asc1->get_y_noeud_NO())+(asc1->get_dim_y()-y-0.5)*(asc1->get_pas_y());
-				float ymin = (asc1->get_y_noeud_NO())+(asc1->get_dim_y()-y-1-0.5)*(asc1->get_pas_y());
-				//1st triangle
-				if(asc1->get_altitude(x,y)!=asc1->get_nodata() && asc1->get_altitude(x,y+1)!=asc1->get_nodata() && asc1->get_altitude(x+1,y)!=asc1->get_nodata())
-				{
-					OGRLinearRing* ring1 = new OGRLinearRing;
-					ring1->addPoint(xmin, ymax, floor(asc1->get_altitude(x,y)*prec+0.5)/prec);
-					ring1->addPoint(xmin, ymin, floor(asc1->get_altitude(x,y+1)*prec+0.5)/prec);
-					ring1->addPoint(xmax, ymax, floor(asc1->get_altitude(x+1,y)*prec+0.5)/prec);
-					ring1->addPoint(xmin, ymax, floor(asc1->get_altitude(x,y)*prec+0.5)/prec);
-					OGRPolygon* poly1 = new OGRPolygon();
-					poly1->addRingDirectly(ring1);
-					polys1.push_back(poly1);
-				}
-
-				//2nd triangle
-				if(asc1->get_altitude(x+1,y)!=asc1->get_nodata() && asc1->get_altitude(x,y+1)!=asc1->get_nodata() && asc1->get_altitude(x+1,y+1)!=asc1->get_nodata())
-				{
-					OGRLinearRing* ring2 = new OGRLinearRing;
-					ring2->addPoint(xmax, ymax, floor(asc1->get_altitude(x+1,y)*prec+0.5)/prec);
-					ring2->addPoint(xmin, ymin, floor(asc1->get_altitude(x,y+1)*prec+0.5)/prec);
-					ring2->addPoint(xmax, ymin, floor(asc1->get_altitude(x+1,y+1)*prec+0.5)/prec);
-					ring2->addPoint(xmax, ymax, floor(asc1->get_altitude(x+1,y)*prec+0.5)/prec);
-					OGRPolygon* poly2 = new OGRPolygon();
-					poly2->addRingDirectly(ring2);
-					polys1.push_back(poly2);
-				}
-			}
-			std::cout<<"Building file 1 ("<<(int)(y*100.0/asc1->get_dim_y())<<"%)\r";
-		}
-		std::cout<<"Building file 1 (100%)"<<std::endl;
-		for (int y = 0; y<asc2->get_dim_y()-1; y++)
-		{
-			for (int x = 0; x<asc2->get_dim_x()-1; x++)
-			{
-				float xmin = (asc2->get_x_noeud_NO())+(x+0.5)*(asc2->get_pas_x());
-				float xmax = (asc2->get_x_noeud_NO())+(x+1+0.5)*(asc2->get_pas_x());
-				float ymax = (asc2->get_y_noeud_NO())+(asc2->get_dim_y()-y-0.5)*(asc2->get_pas_y());
-				float ymin = (asc2->get_y_noeud_NO())+(asc2->get_dim_y()-y-1-0.5)*(asc2->get_pas_y());
-				//1st triangle
-				if(asc2->get_altitude(x,y)!=asc2->get_nodata() && asc2->get_altitude(x,y+1)!=asc2->get_nodata() && asc2->get_altitude(x+1,y)!=asc2->get_nodata())
-				{
-					OGRLinearRing* ring1 = new OGRLinearRing;
-					ring1->addPoint(xmin, ymax, floor(asc2->get_altitude(x,y)*prec+0.5)/prec);
-					ring1->addPoint(xmin, ymin, floor(asc2->get_altitude(x,y+1)*prec+0.5)/prec);
-					ring1->addPoint(xmax, ymax, floor(asc2->get_altitude(x+1,y)*prec+0.5)/prec);
-					ring1->addPoint(xmin, ymax, floor(asc2->get_altitude(x,y)*prec+0.5)/prec);
-					OGRPolygon* poly1 = new OGRPolygon();
-					poly1->addRingDirectly(ring1);
-					polys2.push_back(poly1);
-				}
-				//2nd triangle
-				if(asc2->get_altitude(x+1,y)!=asc2->get_nodata() && asc2->get_altitude(x,y+1)!=asc2->get_nodata() && asc2->get_altitude(x+1,y+1)!=asc2->get_nodata())
-				{
-					OGRLinearRing* ring2 = new OGRLinearRing;
-					ring2->addPoint(xmax, ymax, floor(asc2->get_altitude(x+1,y)*prec+0.5)/prec);
-					ring2->addPoint(xmin, ymin, floor(asc2->get_altitude(x,y+1)*prec+0.5)/prec);
-					ring2->addPoint(xmax, ymin, floor(asc2->get_altitude(x+1,y+1)*prec+0.5)/prec);
-					ring2->addPoint(xmax, ymax, floor(asc2->get_altitude(x+1,y)*prec+0.5)/prec);
-					OGRPolygon* poly2 = new OGRPolygon();
-					poly2->addRingDirectly(ring2);
-					polys2.push_back(poly2);
-				}
-			}
-			std::cout<<"Building file 2 ("<<(int)(y*100.0/asc2->get_dim_y())<<"%)\r";
-		}
-#else
 		for (int y = 0; y<asc1->get_dim_y()-1; y++)
 		{
 			for (int x = 0; x<asc1->get_dim_x()-1; x++)
@@ -527,7 +330,6 @@ namespace citygml
 			}
 			std::cout<<"Building file 2 ("<<(int)(y*100.0/asc2->get_dim_y())<<"%)\r";
 		}
-#endif
 		std::cout<<"Building file 2 (100%)"<<std::endl;
 		std::vector<OGRPolygon*> polysMerged;
 		std::cout<<"Merging...\r";
