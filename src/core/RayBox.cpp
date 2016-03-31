@@ -16,6 +16,12 @@ RayBoxCollection::RayBoxCollection(std::vector<RayBox*> raysBoxes)
     this->raysBB = raysBoxes;
 }
 
+RayBoxCollection::~RayBoxCollection()
+{
+    for(int i = 0; i < raysBB.size(); ++i)
+       delete raysBB[i];
+}
+
 //RayBox
 
 RayBox::RayBox(TVec3d ori, TVec3d dir, int id)

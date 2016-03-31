@@ -180,11 +180,10 @@ std::queue<RayBoxHit> SetupTileOrder(std::vector<AABB> boxes,RayBoxCollection* r
 
 
 ///
-/// \brief exportLightningToCSV Export Sunlight informations for a given tile into a csv file.
-/// \param vSunInfo vector holding informations about sunlight for a given triangle.
-/// \param tilename Name of the tile.
+/// \brief initExportFile
+/// \param tilename
 ///
-void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, std::string tilename)
+void initExportFile(std::string tilename)
 {
     QDir outputDir("./SunlightOutput/");
     if(!outputDir.exists("./SunlightOutput/"))
@@ -195,6 +194,19 @@ void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, std::string t
 
     ofs << "TileName : " << tilename << std::endl;
     ofs << "DateTime;PolygoneId;Sunny" << std::endl;
+
+    ofs.close();
+}
+
+///
+/// \brief exportLightningToCSV Export Sunlight informations for a given tile into a csv file.
+/// \param vSunInfo vector holding informations about sunlight for a given triangle.
+/// \param tilename Name of the tile.
+///
+void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, std::string tilename)
+{
+    std::ofstream ofs;
+    ofs.open ("./SunlightOutput/" + tilename + ".csv", std::ofstream::app);
 
     for(auto ySI : sunInfo)
     {
@@ -335,7 +347,6 @@ void SunlightDetection()
 
     //vcity::Tile* tile = new vcity::Tile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml");
 
-
     //Load AABB
     std::string dirTile = "/home/vincent/Documents/VCity_Project/Data/Tuiles/";
 
@@ -382,6 +393,13 @@ void SunlightDetection()
 //    tiles.push_back("3684_10351");
 //    tiles.push_back("3684_10352");
 
+
+    //test fred
+//    tiles.push_back("3666_10346");
+//    tiles.push_back("3667_10346");
+//    tiles.push_back("3666_10347");
+//    tiles.push_back("3667_10347");
+
     unsigned int cpt_tiles = 1;
     int time_tot = 0;
 
@@ -394,13 +412,16 @@ void SunlightDetection()
         //Load TriangleList of tile to treat
         std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/" + tilename + ".gml";
 
-        TriangleList* trianglesTile1 = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
+        TriangleList* trianglesTile = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
 
         int cpt_tri = 1;
 
-        for(Triangle* t : trianglesTile1->triangles) //Loop through each triangle
+        //Create csv file where results are exported
+        initExportFile(tilename);
+
+        for(Triangle* t : trianglesTile->triangles) //Loop through each triangle
         {
-            std::cout << "Triangle " << cpt_tri << " of " << trianglesTile1->triangles.size() << "..." << std::endl;
+            std::cout << "Triangle " << cpt_tri << " of " << trianglesTile->triangles.size() << "..." << std::endl;
 
             //Initialize sunInfo
             std::map<int,bool> yearSunInfo = yearMap;
@@ -495,21 +516,35 @@ void SunlightDetection()
                     yearSunInfo[h->ray.id] = false;
                 }
 
-                raysTemp.rays.clear();
-                delete tmpHits;
+                //Delete triangles
+//                for(int i = 0 ; i < trianglesTemp->triangles.size() ; ++i)
+//                    delete trianglesTemp->triangles[i];
+                delete trianglesTemp;
 
+                //Clear rays
+                raysTemp.rays.clear();
+
+                //Delete hits
+                for(int i = 0 ; i < tmpHits->size() ; ++i)
+                    delete tmpHits->at(i);
+
+                delete tmpHits;
             }
 
             exportLightningToCSV(yearSunInfo,t,tilename);
 
-            for(int i = 0; i < raysboxes->raysBB.size(); ++i)
-               delete raysboxes->raysBB[i];
-
+            //Delete RayBoxes
+//            for(int i = 0; i < raysboxes->raysBB.size(); ++i)
+//               delete raysboxes->raysBB[i];
             delete raysboxes;
 
             ++cpt_tri;
         }
 
+        //Delete TriangleList
+//        for(int i = 0 ; i < trianglesTile->triangles.size() ; ++i)
+//            delete trianglesTile->triangles[i];
+        delete trianglesTile;
 
         std::cout << "===================================================" << std::endl;
         std::cout << "Tile " << cpt_tiles << " of " << tiles.size() << " done in : " << (double)time.elapsed()/60000.0 << " min." << std::endl;
@@ -599,67 +634,3 @@ void SunlightDetection()
 //   appGui().getOsgScene()->addShpNode(uriLayer, rootNode);
 //}
 
-
-///
-/// \brief buildYearMap builds a std::map mapping every datetime of a year to a boolean value representing sunlight.
-/// \param year The year for which the map should be build
-/// \return A std::map mapping datetime (ddmmyyyy:hhmm) for a given year to a boolean value representing sunlight at this datetime (true = sunny, false = shadowed)
-///
-//std::map<float,bool> buildYearMap(int year)
-//{
-    /*std::map<std::string,bool> yearMap;
-
-    std::string year_str = std::to_string(year);
-
-    for(int month = 1; month <= 12 ; ++month)
-    {
-        std::string month_str;
-        if (month < 10)
-            month_str = "0" + std::to_string(month);
-        else
-            month_str = std::to_string(month);
-
-        for(int day = 1; day <= 31 ; ++day)
-        {
-            //Special case for February
-            if (month == 2 && day == 29)
-            {
-                //If year is not bissextile, exit loop
-                if(!((year % 4 == 0 && year % 100 != 0) || year % 400 == 0))
-                    break;
-            }
-            if (month == 2 && day == 30)
-                break;
-
-            //Month with 30 days
-            if((month == 4 || month == 6 || month == 9 || month == 11) && day == 31)
-                break;
-
-            std::string day_str;
-            if (day < 10)
-                day_str = "0" + std::to_string(day);
-            else
-                day_str = std::to_string(day);
-
-            for(int hour = 0 ; hour < 24 ; ++hour)
-            {
-                std::string hour_str;
-                if (hour < 10)
-                    hour_str = "0" + std::to_string(hour) + "00";
-                else
-                    hour_str = std::to_string(hour) + "00";
-
-                std::string code_str = day_str + month_str + year_str + ":" + hour_str;
-                yearMap[code_str] = true;
-            }
-        }
-    }
-
-    return yearMap;*/
-
-//    std::map<float,bool> yearMap;
-
-
-
-//    return yearMap;
-//}

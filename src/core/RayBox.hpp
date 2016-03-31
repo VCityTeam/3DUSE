@@ -61,6 +61,8 @@ struct RayBoxCollection
     */
     RayBoxCollection(std::vector<RayBox*> raysBoxes = std::vector<RayBox*>());
 
+    ~RayBoxCollection();
+
     /**
     *	@brief Build a collection of rays from a camera
     *	@param cam The camera we want to used to build the collection

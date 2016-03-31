@@ -847,9 +847,6 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setPolyColor(const QDateTime& date)
 {
-//    QString tilename = "3670_10383";
-//    QString filepath = "/home/vincent/Documents/VCity_Project/build-VCity-Qt4_gcc-/" + tilename + "_sunlight.csv";
-
     //PolygonID mapped to sunlight info
     std::map<std::string,bool>* polygonSunlightInfo;
 

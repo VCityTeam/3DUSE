@@ -2811,8 +2811,9 @@ void MainWindow::test2()
 
 void MainWindow::test3()
 {
-
     SunlightDetection();
+
+
 //	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
 
 //	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul

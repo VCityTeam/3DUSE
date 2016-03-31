@@ -114,6 +114,10 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         hits->insert( hits->end(), hitsArray[i].begin(), hitsArray[i].end() );
     }
 
+
+    hitsArray->clear();
+    delete[] hitsArray;
+
     delete[] toDo;
 
    //std::cout << "Time : " << time.elapsed()/1000 << " sec" << std::endl;

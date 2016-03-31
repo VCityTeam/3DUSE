@@ -25,6 +25,11 @@ TriangleList::TriangleList(std::vector<Triangle*> triangles)
     this->triangles = triangles;
 }
 
+TriangleList::~TriangleList()
+{
+    for(int i = 0 ; i < triangles.size() ; ++i)
+        delete triangles[i];
+}
 
 TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType)
 {

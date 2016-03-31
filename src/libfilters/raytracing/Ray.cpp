@@ -166,6 +166,12 @@ RayCollection::RayCollection(std::vector<Ray*> rays)
     this->rays = rays;
 }
 
+RayCollection::~RayCollection()
+{
+    for(int i = 0; i < rays.size(); ++i)
+       delete rays[i];
+}
+
 RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 {
     RayCollection* rays = new RayCollection();
