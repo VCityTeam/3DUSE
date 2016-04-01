@@ -3,7 +3,7 @@
 # Current Proposition
 #### Publication Date: March 21, 2016
 
-![Image Alt](DocumentADE.png)
+![Image Alt](evolution/DocumentADE-Alaric2v4.png)
 
 ## Open Problems
 - What's the precise definition of a referring date?
@@ -15,9 +15,9 @@
 ## Evolution of Document ADE
 ### First proposition 
 #### Publication Date: March 3, 2016
-After understanding the requirements specified by Clémentine Périnaud, the following UML diagram was proposed.
+After understanding the requirements specified by Clémentine Périnaud, the following UML diagram was proposed with Sylvie Servigne.
 
-![Image Alt](evolution/HistoricalDocuments-classdiagram.png)
+![Image Alt](evolution/DocumentADE-Alaric1.png)
 
 #### Open Problems
 Following the discussion with Clémentine Périnaud, further questions were raised and following are the open problems.
@@ -49,7 +49,7 @@ Another attribute called purpose have been added with a type 'PurposeType' to sp
 - A separate class called 'AbstractLocation' has been added to associate a document to abstract locations like city, quarter which cannot be specified in CityGML.
 
 
-![Image Alt](evolution/DocumentADE.png)
+![Image Alt](evolution/DocumentADE-Alaric2v1.png)
 
 #### Open Problems
 - Why do we need to create a class called Agent or Agent Group, instead of giving a reference to the external data source which may have all the details?
@@ -64,10 +64,23 @@ DocumentType has been replaced by gml:codeType (considering CityGML 2.0 changes)
 referringDate and referringPeriod makes use of gml:TimeInstant and gml:TimePeriod respectively.
 purpose is now a string to support various possibilities.
 
-![Image Alt](evolution/DocumentADEv1.png)
+![Image Alt](evolution/DocumentADE-Alaric2v2.png)
 
 #### Open Problems
 - What's the precise definition of a referring date?
 - Shouldn't there be many referring dates for a particular city object in a document? 
 - Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
 - Do we need to specify producerType, heldByType (to specify whether they are official/non official/private sources)?
+
+### Fourth proposition
+#### Publication Date: March 25, 2016
+
+![Image Alt](evolution/DocumentADE-Alaric2v3.png)
+
+### Fifth proposition
+#### Publication Date: March 31, 2016
+
+![Image Alt](evolution/DocumentADE-Alaric2v4.png)
+
+
+
