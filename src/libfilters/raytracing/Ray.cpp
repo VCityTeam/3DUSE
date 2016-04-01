@@ -168,7 +168,7 @@ RayCollection::RayCollection(std::vector<Ray*> rays)
 
 RayCollection::~RayCollection()
 {
-    for(int i = 0; i < rays.size(); ++i)
+    for(unsigned int i = 0; i < rays.size(); ++i)
        delete rays[i];
 }
 

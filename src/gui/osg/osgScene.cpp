@@ -847,9 +847,6 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setPolyColor(const QDateTime& date)
 {
-    //PolygonID mapped to sunlight info
-    std::map<std::string,bool>* polygonSunlightInfo;
-
     //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)
     QString format = "ddMMyyyy:hhmm";
     QString datetime = date.toString(format);
@@ -867,6 +864,8 @@ void OsgScene::setPolyColor(const QDateTime& date)
         for(unsigned int i = 0 ; i < layerGrp->getNumChildren() ; ++i)
         {
             osg::ref_ptr<osg::Node> tileNode = layerGrp->getChild(i);
+
+            std::cout<<tileNode->getNumDescriptions()<<std::endl;
 
             int pos_ = tileNode->getName().find("_");
             int posExtension = tileNode->getName().find(".");
@@ -889,11 +888,6 @@ void OsgScene::setPolyColor(const QDateTime& date)
                     }
                 }
             }
-
-//            if(nodeTileName == tilename.toStdString())
-//            {
-//                setPolyColorRec(date, tileNode, polygonSunlightInfo);
-//            }
         }
     }
 

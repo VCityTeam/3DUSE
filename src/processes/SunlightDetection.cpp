@@ -9,8 +9,10 @@
 #include "raytracing/Hit.hpp"
 #include "src/core/RayBox.hpp"
 #include "quaternion.hpp"
+#include "core/dateTime.hpp"
 
 #include <QDir>
+
 
 //For displaySun Function, to be removed
 //#include <osg/Texture2D>
@@ -20,85 +22,85 @@
 //#include "src/gui/applicationGui.hpp"
 
 
-//Partly taken from http://howardhinnant.github.io/date_algorithms.html
-///
-/// \brief encodeDateTime Compute number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
-/// \param y year
-/// \param m month
-/// \param d day
-/// \param h hour
-/// \return Number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
-///
-int encodeDateTime(int y, int m, int d, int h)
-{
-    //Compute Date value : Compute number of days since civil (1970-01-01)
-    y -= m <= 2;
+////Partly taken from http://howardhinnant.github.io/date_algorithms.html
+/////
+///// \brief encodeDateTime Compute number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+///// \param y year
+///// \param m month
+///// \param d day
+///// \param h hour
+///// \return Number of days since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+/////
+//int encodeDateTime(int y, int m, int d, int h)
+//{
+//    //Compute Date value : Compute number of days since civil (1970-01-01)
+//    y -= m <= 2;
 
-    int era = (y >= 0 ? y : y-399) / 400;
-    unsigned int yoe = static_cast<unsigned>(y - era * 400);      // [0, 399] yoe = years of era
-    unsigned int doy = (153*(m + (m > 2 ? -3 : 9)) + 2)/5 + d-1;  // [0, 365] doy = days of year
-    unsigned int doe = yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096] doe = days of era
+//    int era = (y >= 0 ? y : y-399) / 400;
+//    unsigned int yoe = static_cast<unsigned>(y - era * 400);      // [0, 399] yoe = years of era
+//    unsigned int doy = (153*(m + (m > 2 ? -3 : 9)) + 2)/5 + d-1;  // [0, 365] doy = days of year
+//    unsigned int doe = yoe * 365 + yoe/4 - yoe/100 + doy;         // [0, 146096] doe = days of era
 
-    int date = era * 146097 + static_cast<int>(doe) - 719468;
+//    int date = era * 146097 + static_cast<int>(doe) - 719468;
 
-    //Add time
-    int datetime = date * 24 + h;
+//    //Add time
+//    int datetime = date * 24 + h;
 
-    return datetime;
-}
+//    return datetime;
+//}
 
-//Partly taken from http://howardhinnant.github.io/date_algorithms.html
-///
-/// \brief decodeDateTime
-/// \param dDateTime
-/// \return
-///
-std::string decodeDateTime(int dateTime)
-{
-    std::string sDateTime = "";
+////Partly taken from http://howardhinnant.github.io/date_algorithms.html
+/////
+///// \brief decodeDateTime
+///// \param dDateTime
+///// \return
+/////
+//std::string decodeDateTime(int dateTime)
+//{
+//    std::string sDateTime = "";
 
-    //Gets time
-    int time = dateTime % 24;
+//    //Gets time
+//    int time = dateTime % 24;
 
-    //"Extract" time info from dateTime
-    dateTime = (dateTime - time) / 24;
+//    //"Extract" time info from dateTime
+//    dateTime = (dateTime - time) / 24;
 
-    dateTime += 719468; // shift the epoch from 1970-01-01 to 0000-03-01
-    int era = (dateTime >= 0 ? dateTime : dateTime - 146096) / 146097;
+//    dateTime += 719468; // shift the epoch from 1970-01-01 to 0000-03-01
+//    int era = (dateTime >= 0 ? dateTime : dateTime - 146096) / 146097;
 
-    unsigned int doe = static_cast<unsigned>(dateTime - era * 146097);          // [0, 146096] doe = days of year
-    unsigned int yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;  // [0, 399] yoe = years of era
-    int y = static_cast<int>(yoe) + era * 400; // y = year
+//    unsigned int doe = static_cast<unsigned>(dateTime - era * 146097);          // [0, 146096] doe = days of year
+//    unsigned int yoe = (doe - doe/1460 + doe/36524 - doe/146096) / 365;  // [0, 399] yoe = years of era
+//    int y = static_cast<int>(yoe) + era * 400; // y = year
 
-    unsigned int doy = doe - (365*yoe + yoe/4 - yoe/100);                // [0, 365] doy = days of year
-    unsigned int mp = (5*doy + 2)/153;                                   // [0, 11] mp = m' = month number starting from March
+//    unsigned int doy = doe - (365*yoe + yoe/4 - yoe/100);                // [0, 365] doy = days of year
+//    unsigned int mp = (5*doy + 2)/153;                                   // [0, 11] mp = m' = month number starting from March
 
-    unsigned int d = doy - (153*mp+2)/5 + 1;                             // [1, 31] d = day
-    unsigned int m = mp + (mp < 10 ? 3 : -9);                            // [1, 12] m = month
-    y = y + (m <= 2);
-
-
-    //Convert to string
-    std::string sMonth = "";
-    if(m < 10)
-        sMonth = "0";
-    sMonth += std::to_string(m);
+//    unsigned int d = doy - (153*mp+2)/5 + 1;                             // [1, 31] d = day
+//    unsigned int m = mp + (mp < 10 ? 3 : -9);                            // [1, 12] m = month
+//    y = y + (m <= 2);
 
 
-    std::string sDay = "";
-    if(d < 10)
-        sDay = "0";
-    sDay += std::to_string(d);
+//    //Convert to string
+//    std::string sMonth = "";
+//    if(m < 10)
+//        sMonth = "0";
+//    sMonth += std::to_string(m);
 
-    std::string sHour = "";
-    if(time < 10)
-        sHour = "0";
-    sHour += std::to_string(time);
 
-    sDateTime = sDay + sMonth + std::to_string(y) + ":" + sHour + "00";
+//    std::string sDay = "";
+//    if(d < 10)
+//        sDay = "0";
+//    sDay += std::to_string(d);
 
-    return sDateTime;
-}
+//    std::string sHour = "";
+//    if(time < 10)
+//        sHour = "0";
+//    sHour += std::to_string(time);
+
+//    sDateTime = sDay + sMonth + std::to_string(y) + ":" + sHour + "00";
+
+//    return sDateTime;
+//}
 
 
 ///
@@ -189,8 +191,21 @@ void initExportFile(std::string tilename)
     if(!outputDir.exists("./SunlightOutput/"))
         outputDir.mkpath(outputDir.absolutePath());
 
+
+    QString sOutputDir = "./SunlightOutput/";
+
+    if(tilename.find("_BATI") != std::string::npos)
+        sOutputDir =  "./SunlightOutput/_BATI/";
+    else if(tilename.find("_MNT") != std::string::npos)
+        sOutputDir =  "./SunlightOutput/_MNT/";
+
+
+    QDir outputDir2(sOutputDir);
+    if(!outputDir2.exists(sOutputDir))
+        outputDir2.mkpath(outputDir2.absolutePath());
+
     std::ofstream ofs;
-    ofs.open ("./SunlightOutput/" + tilename + ".csv", std::ofstream::app);
+    ofs.open (sOutputDir.toStdString() + tilename + ".csv", std::ofstream::app);
 
     ofs << "TileName : " << tilename << std::endl;
     ofs << "DateTime;PolygoneId;Sunny" << std::endl;
@@ -218,8 +233,6 @@ void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, std::string t
 
     ofs.close();
 }
-
-
 
 
 void SunlightDetection()
@@ -293,7 +306,7 @@ void SunlightDetection()
 
     std::vector<TVec3d> beamsDirections;
 
-    for(int i = 0 ; i < elevationAngle.size() ; ++i)
+    for(unsigned int i = 0 ; i < elevationAngle.size() ; ++i)
     {
         //Compute new position of sun
         if (elevationAngle.at(i) <= 0.01 || azimutAngle.at(i) <= 0.01) //if sun to low (angle < 1°), go to next iteration
@@ -363,9 +376,10 @@ void SunlightDetection()
     std::vector<std::string> tiles;
 
     //Test rapide
-    tiles.push_back("3670_10383");
-    tiles.push_back("3670_10382");
-
+    tiles.push_back("_BATI/3670_10383");
+    tiles.push_back("_BATI/3670_10382");
+    tiles.push_back("_MNT/3670_10383");
+    tiles.push_back("_MNT/3670_10382");
 
     //test fred
 //    tiles.push_back("3674_10346");
@@ -410,9 +424,22 @@ void SunlightDetection()
         std::cout << "===================================================" << std::endl;
 
         //Load TriangleList of tile to treat
-        std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/" + tilename + ".gml";
+        std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/" + tilename + ".gml";
 
-        TriangleList* trianglesTile = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
+        TriangleList* trianglesTile;
+
+        if(tilename.find("_BATI") != std::string::npos)
+        {
+            trianglesTile = BuildTriangleList(path,citygml::CityObjectsType::COT_Building);
+        }
+        else if(tilename.find("_MNT") != std::string::npos)
+        {
+            trianglesTile = BuildTriangleList(path,citygml::CityObjectsType::COT_TINRelief);
+        }
+        else
+        {
+            trianglesTile = new TriangleList();
+        }
 
         int cpt_tri = 1;
 
@@ -517,15 +544,13 @@ void SunlightDetection()
                 }
 
                 //Delete triangles
-//                for(int i = 0 ; i < trianglesTemp->triangles.size() ; ++i)
-//                    delete trianglesTemp->triangles[i];
                 delete trianglesTemp;
 
                 //Clear rays
                 raysTemp.rays.clear();
 
                 //Delete hits
-                for(int i = 0 ; i < tmpHits->size() ; ++i)
+                for(unsigned int i = 0 ; i < tmpHits->size() ; ++i)
                     delete tmpHits->at(i);
 
                 delete tmpHits;
@@ -534,16 +559,12 @@ void SunlightDetection()
             exportLightningToCSV(yearSunInfo,t,tilename);
 
             //Delete RayBoxes
-//            for(int i = 0; i < raysboxes->raysBB.size(); ++i)
-//               delete raysboxes->raysBB[i];
             delete raysboxes;
 
             ++cpt_tri;
         }
 
         //Delete TriangleList
-//        for(int i = 0 ; i < trianglesTile->triangles.size() ; ++i)
-//            delete trianglesTile->triangles[i];
         delete trianglesTile;
 
         std::cout << "===================================================" << std::endl;

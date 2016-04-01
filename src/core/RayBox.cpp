@@ -18,7 +18,7 @@ RayBoxCollection::RayBoxCollection(std::vector<RayBox*> raysBoxes)
 
 RayBoxCollection::~RayBoxCollection()
 {
-    for(int i = 0; i < raysBB.size(); ++i)
+    for(unsigned int i = 0; i < raysBB.size(); ++i)
        delete raysBB[i];
 }
 
