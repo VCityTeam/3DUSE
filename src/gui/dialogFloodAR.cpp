@@ -16,19 +16,19 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	ui(new Ui::dialogFloodAR)
 {
 	ui->setupUi(this);
-	connect(ui->btn_ASCcut_in,SIGNAL(clicked()),this,SLOT(browseInputDirASCCut()));
-	connect(ui->btn_ASCcut_out,SIGNAL(clicked()),this,SLOT(browseOutputDirASCCut()));
-	connect(ui->btn_ASCcut_exec,SIGNAL(clicked()),this,SLOT(cutASC()));
-	connect(ui->btn_ASCtoWater_src,SIGNAL(clicked()),this,SLOT(browseInputASCtoWater()));	
-	connect(ui->chkBox_ASCtoWater_simplify ,SIGNAL(stateChanged(int)),this,SLOT( enablePolygonsParams(int)));
-	connect(ui->chkBox_ASCtoWater_time ,SIGNAL(stateChanged(int)),this,SLOT( enableTemporalParams(int)));
-	connect(ui->btn_ASCtoWater_exec ,SIGNAL(clicked()),this,SLOT( ASCtoWater()));
-	connect(ui->btn_ASCtoTerrain_src1 ,SIGNAL(clicked()),this,SLOT( browseInput1ASCtoTerrain()));
-	connect(ui->ben_ASCtoTerrain_src2 ,SIGNAL(clicked()),this,SLOT( browseInput2ASCtoTerrain()));
-	connect(ui->btn_ASCtoTerrain_tex ,SIGNAL(clicked()),this,SLOT( browseTextureASCtoTerrain()));
-	connect(ui->chkBox_fusion ,SIGNAL(stateChanged(int)),this,SLOT( enableASCFusion(int)));
-	connect(ui->chkBox_tex ,SIGNAL(stateChanged(int)),this,SLOT( enableTextures(int)));
-	connect(ui->btn_ASCtoTerrain_exec ,SIGNAL(clicked()),this,SLOT( ASCtoTerrain()));
+	connect(ui->btn_ASCcut_in, SIGNAL(clicked()), this, SLOT(browseInputDirASCCut()));
+	connect(ui->btn_ASCcut_out, SIGNAL(clicked()), this, SLOT(browseOutputDirASCCut()));
+	connect(ui->btn_ASCcut_exec, SIGNAL(clicked()), this, SLOT(cutASC()));
+	connect(ui->btn_ASCtoWater_src, SIGNAL(clicked()), this, SLOT(browseInputASCtoWater()));
+	connect(ui->chkBox_ASCtoWater_simplify, SIGNAL(stateChanged(int)), this, SLOT(enablePolygonsParams(int)));
+	connect(ui->chkBox_ASCtoWater_time, SIGNAL(stateChanged(int)), this, SLOT(enableTemporalParams(int)));
+	connect(ui->btn_ASCtoWater_exec, SIGNAL(clicked()), this, SLOT(ASCtoWater()));
+	connect(ui->btn_ASCtoTerrain_src1, SIGNAL(clicked()), this, SLOT(browseInput1ASCtoTerrain()));
+	connect(ui->ben_ASCtoTerrain_src2, SIGNAL(clicked()), this, SLOT(browseInput2ASCtoTerrain()));
+	connect(ui->btn_ASCtoTerrain_tex, SIGNAL(clicked()), this, SLOT(browseTextureASCtoTerrain()));
+	connect(ui->chkBox_fusion, SIGNAL(stateChanged(int)), this, SLOT(enableASCFusion(int)));
+	connect(ui->chkBox_tex, SIGNAL(stateChanged(int)), this, SLOT(enableTextures(int)));
+	connect(ui->btn_ASCtoTerrain_exec, SIGNAL(clicked()), this, SLOT(ASCtoTerrain()));
 	connect(ui->btn_ShpExt_dir, SIGNAL(clicked()), this, SLOT(browseInputDirShpExt()));
 	connect(ui->btn_ShpExt_in, SIGNAL(clicked()), this, SLOT(browseInputShpExt()));
 	connect(ui->btn_ShpExt_exec, SIGNAL(clicked()), this, SLOT(ShpExtrusion()));
@@ -51,7 +51,7 @@ void dialogFloodAR::browseInputDirASCCut()
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::browseOutputDirASCCut()
 {
-	QString path = QFileDialog::getExistingDirectory(this,"Select output directory");
+	QString path = QFileDialog::getExistingDirectory(this, "Select output directory");
 	ui->lineEdit_ASCcut_out->setText(path);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ void dialogFloodAR::cutASC()
 		msgBox.exec();
 		return;
 	}
-	if (!dir.exists()||ui->lineEdit_ASCcut_out->text().toStdString()=="")
+	if (!dir.exists() || ui->lineEdit_ASCcut_out->text().toStdString() == "")
 	{
 		QMessageBox msgBox;
 		msgBox.setText("Output directory not found!");
@@ -77,7 +77,7 @@ void dialogFloodAR::cutASC()
 		msgBox.exec();
 		return;
 	}
-	if (!(tileSizeX>0 && tileSizeY>0))
+	if (!(tileSizeX > 0 && tileSizeY > 0))
 	{
 		QMessageBox msgBox;
 		msgBox.setText("Invalid Tile Size");
@@ -86,19 +86,19 @@ void dialogFloodAR::cutASC()
 		return;
 	}
 	QString ext = file.suffix().toLower();
-	if (ext=="asc")
+	if (ext == "asc")
 	{
 		//reading file
 		citygml::ImporterASC* importer = new citygml::ImporterASC();
 		MNT* asc = new MNT();
 		if (asc->charge(ui->lineEdit_ASCcut_src->text().toStdString().c_str(), "ASC"))
 		{
-			ASCCut(asc, tileSizeX, tileSizeY, ui->lineEdit_ASCcut_out->text().toStdString(),file.baseName().toStdString());
+			ASCCut(asc, tileSizeX, tileSizeY, ui->lineEdit_ASCcut_out->text().toStdString(), file.baseName().toStdString());
 		}
 		delete importer;
 		delete asc;
 	}
-	std::cout<<"Job done!"<<std::endl;
+	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Tiling finished!");
 	msgBox.setIcon(QMessageBox::Information);
@@ -155,7 +155,7 @@ void dialogFloodAR::ASCtoWater()
 	QDateTime termDate = ui->dtEdit_terminationDate->dateTime();
 
 	QStringList filenames = ui->lineEdit_ASCtoWater_src->text().split(";");
-	for (int i = 0; i<filenames.size(); i++)
+	for (int i = 0; i < filenames.size(); i++)
 	{
 		QFileInfo file = filenames[i];
 		if (!file.exists())
@@ -168,9 +168,9 @@ void dialogFloodAR::ASCtoWater()
 		}
 
 		citygml::CityModel* model;
-		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
+		std::cout << "CONVERTING FILE " << file.baseName().toStdString() << std::endl;
 		QString ext = file.suffix().toLower();
-		if (ext=="asc")
+		if (ext == "asc")
 		{
 			//lecture du fichier
 			citygml::ImporterASC* importer = new citygml::ImporterASC();
@@ -181,7 +181,7 @@ void dialogFloodAR::ASCtoWater()
 				if (polygonsImport)
 				{
 					model = new citygml::CityModel();
-					citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc,prec);
+					citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc, prec);
 					model->addCityObject(waterbody);
 					model->addCityObjectAsRoot(waterbody);
 				}
@@ -196,7 +196,7 @@ void dialogFloodAR::ASCtoWater()
 		//Add temporal info
 		if (tempImport)
 		{
-			if (!(creaDate<termDate))
+			if (!(creaDate < termDate))
 			{
 				QMessageBox msgBox;
 				msgBox.setText("Invalid temporal settings!");
@@ -206,22 +206,22 @@ void dialogFloodAR::ASCtoWater()
 			else
 				for (citygml::CityObject* obj : model->getCityObjectsRoots())
 				{
-					obj->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-					obj->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
+					obj->setAttribute("creationDate", creaDate.toString(Qt::ISODate).toStdString());
+					obj->setAttribute("terminationDate", termDate.toString(Qt::ISODate).toStdString());
 				}
 		}
 		//export en CityGML
-		std::cout<<"Export ...";
-		if (model->size()!=0)
+		std::cout << "Export ...";
+		if (model->size() != 0)
 		{
-			citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
+			citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
 			exporter.exportCityModel(*model);
-			std::cout<<"OK!"<<std::endl;
+			std::cout << "OK!" << std::endl;
 		}
-		else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
+		else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
 		delete model;
 	}
-	std::cout<<"Job done!"<<std::endl;
+	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Conversion finished!");
 	msgBox.setIcon(QMessageBox::Information);
@@ -283,7 +283,7 @@ void dialogFloodAR::ASCtoTerrain()
 	citygml::CityModel* model;
 	QFileInfo file(ui->lineEdit_ASCtoTerrain1->text());
 	bool addTextures = ui->chkBox_tex->isChecked();
-	QFileInfo texturesPath (ui->lineEdit_ASCtoTerrainTex->text());
+	QFileInfo texturesPath(ui->lineEdit_ASCtoTerrainTex->text());
 	if (!file.exists())
 	{
 		QMessageBox msgBox;
@@ -294,9 +294,9 @@ void dialogFloodAR::ASCtoTerrain()
 	}
 	if (!fusion)
 	{
-		std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
+		std::cout << "CONVERTING FILE " << file.baseName().toStdString() << std::endl;
 		QString ext = file.suffix().toLower();
-		if (ext=="asc")
+		if (ext == "asc")
 		{
 			//lecture du fichier
 			citygml::ImporterASC* importer = new citygml::ImporterASC();
@@ -309,7 +309,7 @@ void dialogFloodAR::ASCtoTerrain()
 				delete asc;
 			}
 		}
-	} 
+	}
 	else
 	{
 		QFileInfo file2(ui->lineEdit_ASCtoTerrain2->text());
@@ -321,20 +321,20 @@ void dialogFloodAR::ASCtoTerrain()
 			msgBox.exec();
 			return;
 		}
-		std::cout<<"MERGING FILES "<<file.baseName().toStdString()<<" AND "<<file2.baseName().toStdString()<<std::endl;
+		std::cout << "MERGING FILES " << file.baseName().toStdString() << " AND " << file2.baseName().toStdString() << std::endl;
 		QString ext = file.suffix().toLower();
-		if (ext=="asc")
+		if (ext == "asc")
 		{
 			//lecture du fichier
 			citygml::ImporterASC* importer = new citygml::ImporterASC();
 			MNT* asc1 = new MNT();
 			MNT* asc2 = new MNT();
-			if (asc1->charge(file.absoluteFilePath().toStdString().c_str(), "ASC")&&(asc2->charge(file2.absoluteFilePath().toStdString().c_str(), "ASC")))
+			if (asc1->charge(file.absoluteFilePath().toStdString().c_str(), "ASC") && (asc2->charge(file2.absoluteFilePath().toStdString().c_str(), "ASC")))
 			{
 				//Check which MNT is the more precise one
 				MNT* morePrecise;
 				MNT* lessPrecise;
-				if (asc1->get_pas_x()>=asc2->get_pas_x())
+				if (asc1->get_pas_x() >= asc2->get_pas_x())
 				{
 					lessPrecise = asc1;
 					morePrecise = asc2;
@@ -356,63 +356,102 @@ void dialogFloodAR::ASCtoTerrain()
 	std::vector<TextureCityGML*> TexturesList;
 	if (addTextures)
 	{
-		std::vector<TextureCityGML*> TexturesList;
-		for(citygml::CityObject* obj : model->getCityObjectsRoots())
+		for (citygml::CityObject* obj : model->getCityObjectsRoots())
 		{
-			for(citygml::CityObject* object : obj->getChildren())
+			for (citygml::Geometry* Geometry : obj->getGeometries())
 			{
-				for(citygml::Geometry* Geometry : object->getGeometries())
+				for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 				{
-					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+					//if (PolygonCityGML->getTexture() == nullptr)
+					//	continue;
+
+					std::vector<TVec2f> TexUV;
+
+					OGRLinearRing * OgrRing = new OGRLinearRing;
+					for (TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 					{
-						if(PolygonCityGML->getTexture() == nullptr)
-							continue;
+						OgrRing->addPoint(Point.x, Point.y, Point.z);
+						TexUV.push_back(TVec2f(Point.x, Point.y));
+					}
 
-						//Remplissage de ListTextures
-						std::string Url = texturesPath.absoluteFilePath().toStdString();
-						citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
+					//if (PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
+					{
+						double A, B, C, D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
+						double offset_x;
+						double offset_y;
 
-						TexturePolygonCityGML Poly;
-						Poly.Id = PolygonCityGML->getId();
-						Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
-						//Poly.TexUV = PolygonCityGML->getTexCoords();
+						//std::string path = PathFolder + "/" + PolygonCityGML->getTexture()->getUrl().substr(0, PolygonCityGML->getTexture()->getUrl().find_last_of('.'))+".jgw";
+						//std::cout << path << std::endl;
+						std::ifstream fichier(texturesPath.absolutePath().toStdString() + "/" + texturesPath.baseName().toStdString() + ".jgw", std::ios::in);
 
-						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-						for(TextureCityGML* Tex: TexturesList)
+						if (fichier)
 						{
-							if(Tex->Url == Url)
-							{
-								URLTest = true;
-								Tex->ListPolygons.push_back(Poly);
-								break;
-							}
+							fichier >> A >> B >> C >> D >> offset_x >> offset_y;
+							fichier.close();
 						}
-						if(!URLTest)
+						//std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;
+						int i = 0;
+						for (TVec2f UV : TexUV)
 						{
-							TextureCityGML* Texture = new TextureCityGML;
-							Texture->Wrap = WrapMode;
-							Texture->Url = Url;
-							Texture->ListPolygons.push_back(Poly);
-							TexturesList.push_back(Texture);
+							UV.x = (UV.x - offset_x) / 499;
+							UV.y = 1 + (UV.y - offset_y) / (-499);//Car D est négatif
+							TexUV.at(i) = UV;
+							++i;
 						}
+						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D négatif (données de LYON)
+						//int i = 0;
+						//for (TVec2f UV : TexUV)
+						//{
+						//	UV.x = UV.x / 4095;
+						//	UV.y = 1 + UV.y / 4095;//Car D est négatif
+						//	TexUV.at(i) = UV;
+						//	++i;
+						//}
+					}
+					//Remplissage de ListTextures
+					std::string Url = texturesPath.absoluteFilePath().toStdString();
+					citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
+
+					TexturePolygonCityGML Poly;
+					Poly.Id = PolygonCityGML->getId();
+					Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
+					Poly.TexUV = TexUV;
+
+					bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+					for (TextureCityGML* Tex : TexturesList)
+					{
+						if (Tex->Url == Url)
+						{
+							URLTest = true;
+							Tex->ListPolygons.push_back(Poly);
+							break;
+						}
+					}
+					if (!URLTest)
+					{
+						TextureCityGML* Texture = new TextureCityGML;
+						Texture->Wrap = WrapMode;
+						Texture->Url = Url;
+						Texture->ListPolygons.push_back(Poly);
+						TexturesList.push_back(Texture);
 					}
 				}
 			}
 		}
 	}
 	//export en CityGML
-	std::cout<<"Export ...";
-	if (model->size()!=0)
+	std::cout << "Export ...";
+	if (model->size() != 0)
 	{
-		citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
-		if(addTextures) exporter.exportCityModelWithListTextures(*model,&TexturesList);
+		citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
+		if (addTextures) exporter.exportCityModelWithListTextures(*model, &TexturesList);
 		else exporter.exportCityModel(*model);
-		std::cout<<"OK!"<<std::endl;
+		std::cout << "OK!" << std::endl;
 	}
-	else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
+	else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
 	delete model;
 
-	std::cout<<"Job done!"<<std::endl;
+	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Conversion finished!");
 	msgBox.setIcon(QMessageBox::Information);
@@ -427,16 +466,16 @@ void dialogFloodAR::browseInputShpExt()
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::browseInputDirShpExt()
 {
-	QString path = QFileDialog::getExistingDirectory(this,"Select data directory");
+	QString path = QFileDialog::getExistingDirectory(this, "Select data directory");
 	ui->lineEdit_ShpExt_dir->setText(path);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ShpExtrusion()
 {
 	std::string dir = ui->lineEdit_ShpExt_dir->text().toStdString();
-	if(dir != "")
+	if (dir != "")
 	{
-		dir+="/";
+		dir += "/";
 		BuildAABB(dir);
 		ShpExtruction(dir);
 	}
