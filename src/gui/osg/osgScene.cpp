@@ -729,13 +729,12 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
     if(geode)
     {
-        //std::cout << "URI Param node : " << uriNode.getStringURI() << std::endl;
-        //std::cout << "Node Param Id : " << node->getName() << std::endl;
+//        osg::Node::DescriptionList Type = geode->getDescriptions();
 
-        //unsigned int nbDrawables= geode->getNumDrawables();
+//        std::cout << "Type size : " << std::endl;
 
-        //std::cout << "Nb Drawables : " << nbDrawables << std::endl;
-
+//        for(unsigned int i = 0 ; i < Type.size(); ++i)
+//            std::cout << "Geode name : " << geode->getName() << "Type : " << Type.at(i) << std::endl;
 
         for(osg::ref_ptr<osg::Drawable> drawableChild : geode->getDrawableList())
         {
@@ -770,23 +769,6 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
                 //std::cout << "DrawableId : " << drawableChild->getName() << std::endl;
             }
 
-
-
-
-            /*osg::Node* n = dynamic_cast<osg::Geometry*>(geom);
-
-            vcity::URI urin = osgTools::getURI(n);
-
-            std::cout << "URI Child : " << urin.getStringURI() << std::endl;*/
-
-
-//            if(polySunlightInfo->count(uriNode) > 0)
-//            {
-//                geode->getDrawable()
-//            }
-
-            //std::cout << drawableChild->getName() << std::endl;
-
         }
 
     }
@@ -803,9 +785,9 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
 }
 
-std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datetime)
+std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datetime, std::map<std::string,bool>* sunlightInfo)
 {
-    std::map<std::string,bool>* sunlightInfo = new std::map<std::string,bool>();
+//    std::map<std::string,bool>* sunlightInfo = new std::map<std::string,bool>();
 
     QFile file(filepath);
 
@@ -835,11 +817,6 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
         }
     }
 
-//    for(auto it = (*sunlightInfo).begin() ; it != (*sunlightInfo).end() ; ++it)
-//    {
-//        std::cout << it->first << " : " << it->second << std::endl;
-//    }
-
     return sunlightInfo;
 }
 
@@ -865,29 +842,41 @@ void OsgScene::setPolyColor(const QDateTime& date)
         {
             osg::ref_ptr<osg::Node> tileNode = layerGrp->getChild(i);
 
-            std::cout<<tileNode->getNumDescriptions()<<std::endl;
-
             int pos_ = tileNode->getName().find("_");
             int posExtension = tileNode->getName().find(".");
 
             std::string nodeTileName = tileNode->getName().substr(pos_ + 1, posExtension - pos_ - 1);
 
             //Check if sunlight is computed for this tile
+            std::map<std::string,bool>* polygonSunlightInfo = new std::map<std::string,bool>();
 
-            QDir dir("./SunlightOutput/");
-            if(dir.exists())
+            QDir dirMNT("./SunlightOutput/_MNT");
+            if(dirMNT.exists())
             {
-                for(QFileInfo f : dir.entryInfoList())
+                for(QFileInfo f : dirMNT.entryInfoList())
                 {
                     if(f.fileName().toStdString() == nodeTileName + ".csv")
                     {
                         //If yes Load file infos into a map (info for each polygon of tile for the given datetime)
-                        std::map<std::string,bool>* polygonSunlightInfo = loadTileSunlightInfo(f.filePath(), datetime);
-                        setPolyColorRec(date, tileNode, polygonSunlightInfo);
-                        delete polygonSunlightInfo;
+                        loadTileSunlightInfo(f.filePath(), datetime, polygonSunlightInfo);
                     }
                 }
             }
+            QDir dirBATI("./SunlightOutput/_BATI");
+            if(dirBATI.exists())
+            {
+                for(QFileInfo f : dirBATI.entryInfoList())
+                {
+                    if(f.fileName().toStdString() == nodeTileName + ".csv")
+                    {
+                        //If yes Load file infos into a map (info for each polygon of tile for the given datetime)
+                        loadTileSunlightInfo(f.filePath(), datetime, polygonSunlightInfo);
+                    }
+                }
+            }
+
+            setPolyColorRec(date, tileNode, polygonSunlightInfo);
+            delete polygonSunlightInfo;
         }
     }
 

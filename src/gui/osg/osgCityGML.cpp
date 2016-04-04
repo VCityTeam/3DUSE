@@ -178,6 +178,9 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
             // Name
             geom->setName(p->getId());
 
+            //Description, i.e. Type
+
+
 			// Vertices
 			osg::Vec3Array* vertices = new osg::Vec3Array;
 			const std::vector<TVec3d>& vert = p->getVertices();
@@ -352,6 +355,17 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 #endif
             // That's it!
             grp->getChild(geometry.getLOD())->asGeode()->addDrawable(geom);
+
+            //Add description (i.e. MNT, BATI, WATER, ...)
+//            osg::Node::DescriptionList Type;
+
+//            if(object->getType() == citygml::COT_TINRelief)
+//            {
+//                Type.push_back("MNT");
+//            }
+
+//            grp->getChild(geometry.getLOD())->asGeode()->setDescriptions(Type);
+
             //geode->addDrawable( geom );
 		}
 	}

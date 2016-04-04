@@ -376,10 +376,10 @@ void SunlightDetection()
     std::vector<std::string> tiles;
 
     //Test rapide
-    tiles.push_back("_BATI/3670_10383");
-    tiles.push_back("_BATI/3670_10382");
-    tiles.push_back("_MNT/3670_10383");
-    tiles.push_back("_MNT/3670_10382");
+//    tiles.push_back("_BATI/3670_10383");
+//    tiles.push_back("_BATI/3670_10382");
+//    tiles.push_back("_MNT/3670_10383");
+//    tiles.push_back("_MNT/3670_10382");
 
     //test fred
 //    tiles.push_back("3674_10346");
@@ -413,6 +413,51 @@ void SunlightDetection()
 //    tiles.push_back("3667_10346");
 //    tiles.push_back("3666_10347");
 //    tiles.push_back("3667_10347");
+
+    //Test part dieu
+    tiles.push_back("_BATI/3686_10349");
+    tiles.push_back("_BATI/3686_10350");
+    tiles.push_back("_BATI/3686_10351");
+
+    tiles.push_back("_MNT/3686_10349");
+    tiles.push_back("_MNT/3686_10350");
+    tiles.push_back("_MNT/3686_10351");
+
+
+    tiles.push_back("_BATI/3687_10349");
+    tiles.push_back("_BATI/3687_10350");
+    tiles.push_back("_BATI/3687_10351");
+
+    tiles.push_back("_MNT/3687_10349");
+    tiles.push_back("_MNT/3687_10350");
+    tiles.push_back("_MNT/3687_10351");
+
+
+    tiles.push_back("_BATI/3688_10349");
+    tiles.push_back("_BATI/3688_10350");
+    tiles.push_back("_BATI/3688_10351");
+
+    tiles.push_back("_MNT/3688_10349");
+    tiles.push_back("_MNT/3688_10350");
+    tiles.push_back("_MNT/3688_10351");
+
+
+    tiles.push_back("_BATI/3689_10349");
+    tiles.push_back("_BATI/3689_10350");
+    tiles.push_back("_BATI/3689_10351");
+
+    tiles.push_back("_MNT/3689_10349");
+    tiles.push_back("_MNT/3689_10350");
+    tiles.push_back("_MNT/3689_10351");
+
+
+    tiles.push_back("_BATI/3690_10349");
+    tiles.push_back("_BATI/3690_10350");
+    tiles.push_back("_BATI/3690_10351");
+
+    tiles.push_back("_MNT/3690_10349");
+    tiles.push_back("_MNT/3690_10350");
+    tiles.push_back("_MNT/3690_10351");
 
     unsigned int cpt_tiles = 1;
     int time_tot = 0;
