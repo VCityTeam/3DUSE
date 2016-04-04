@@ -7,7 +7,6 @@
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
 #include "moc/dialogFloodAR.hpp"
-#include <iomanip>
 
 #include "controllerGui.hpp"
 
@@ -18,7 +17,6 @@
 #include <QListView>
 #include <QMessageBox>
 #include <QDate>
-#include <QInputDialog>
 
 #include "citygml.hpp"
 #include "export/exportCityGML.hpp"
@@ -26,7 +24,6 @@
 #include "export/exportOBJ.hpp"
 
 #include "import/importerAssimp.hpp"
-#include "import/importerASC.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
@@ -151,11 +148,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
 	connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
-	connect(m_ui->actionASC_To_CityGML, SIGNAL(triggered()), this, SLOT(slotASCtoCityGML()));
-	connect(m_ui->actionFloodAR, SIGNAL(triggered()), this, SLOT(slotFloodAR()));
-	connect(m_ui->actionShapefile_cut, SIGNAL(triggered()), this, SLOT(slotCutShapeFile()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
+	connect(m_ui->actionFloodAR, SIGNAL(triggered()), this, SLOT(slotFloodAR()));
 
 	connect(m_ui->actionTiling_CityGML, SIGNAL(triggered()), this, SLOT(slotTilingCityGML()));
 	connect(m_ui->actionCut_MNT_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutMNTwithShapefile()));
@@ -814,12 +809,12 @@ QLineEdit* MainWindow::getFilter()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::reset()
 {
-	// reset text box
-	m_ui->textBrowser->clear();
-	//unlockFeatures("pass2");
-	unlockFeatures("");
-	m_ui->mainToolBar->hide();
-	//m_ui->statusBar->hide();
+    // reset text box
+    m_ui->textBrowser->clear();
+    //unlockFeatures("pass2");
+    unlockFeatures("");
+    m_ui->mainToolBar->hide();
+    //m_ui->statusBar->hide();
 
 	// TODO : need to be adjusted manually if we had other dataprofiles, should do something better
 
@@ -838,7 +833,7 @@ void MainWindow::reset()
 	{
 		m_app.getSettings().getDataProfile() = vcity::createDataProfileLyon();
 	}
-	else if(dpName == "Sablons")
+	else if (dpName == "Sablons")
 	{
 		m_app.getSettings().getDataProfile() = vcity::createDataProfileSablons();
 	}
@@ -938,7 +933,7 @@ void MainWindow::initTemporalTools()
 
 	int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
 	m_ui->horizontalSlider->setMaximum(max);
-
+	
 	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
 	m_ui->dateTimeEdit->setDateTime(startDate);
 	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
@@ -948,15 +943,15 @@ void MainWindow::initTemporalTools()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
-	// min and max dates are controlled in the Settings.
-	// default size for the temporal slider is in mainWindow.ui, in the temporal slider params
-	// QAbractSlider::maximum = 109574 -> number of days in 300 years
+    // min and max dates are controlled in the Settings.
+    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
-	if(value == -1) value = m_ui->horizontalSlider->value();
-	QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
-	date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
-	//m_ui->buttonBrowserTemporal->setText(date.toString());
-	m_ui->dateTimeEdit->setDateTime(date);
+    if(value == -1) value = m_ui->horizontalSlider->value();
+    QDateTime date = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+    date = appGui().getSettings().m_incIsDay?date.addDays(value):date.addSecs(value);
+    //m_ui->buttonBrowserTemporal->setText(date.toString());
+    m_ui->dateTimeEdit->setDateTime(date);
 
 	//std::cout << "set year : " << date.year() << std::endl;
 
@@ -984,31 +979,31 @@ void MainWindow::updateTemporalSlider()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::toggleUseTemporal()
 {
-	// min and max dates are controlled in the Settings.
-	// default size for the temporal slider is in mainWindow.ui, in the temporal slider params
-	// QAbractSlider::maximum = 109574 -> number of days in 300 years
+    // min and max dates are controlled in the Settings.
+    // default size for the temporal slider is in mainWindow.ui, in the temporal slider params
+    // QAbractSlider::maximum = 109574 -> number of days in 300 years
 
 	m_useTemporal = !m_useTemporal;
 
-	if(m_useTemporal)
-	{
+    if(m_useTemporal)
+    {
 		bool isDays = appGui().getSettings().m_incIsDay;
-		QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
+        QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
 		QDateTime date(startDate);
 		date = isDays?date.addDays(m_ui->horizontalSlider->value()):date.addSecs(m_ui->horizontalSlider->value());
 		m_currentDate = date;
-		m_osgScene->setDate(date);
+        m_osgScene->setDate(date);
 		m_ui->dateTimeEdit->setDateTime(date);
-	}
-	else
-	{
-		// -4000 is used as a special value to disable time
-		QDate date(-4000, 1, 1);
-		QDateTime datetime(date);
-		m_osgScene->setDate(datetime); // reset
+    }
+    else
+    {
+        // -4000 is used as a special value to disable time
+        QDate date(-4000, 1, 1);
+        QDateTime datetime(date);
+        m_osgScene->setDate(datetime); // reset
 		m_currentDate = datetime;
-		m_timer.stop();
-	}
+        m_timer.stop();
+    }
 
 	m_ui->horizontalSlider->setEnabled(m_useTemporal);
 	m_ui->dateTimeEdit->setEnabled(m_useTemporal);
@@ -1026,7 +1021,7 @@ void MainWindow::exportCityGML()
 	citygml::ExporterCityGML exporter(filename.toStdString());
 
 	// check temporal params
-	if(m_useTemporal)
+	if (m_useTemporal)
 	{
 		exporter.setTemporalExport(true);
 		exporter.setDate(m_ui->dateTimeEdit->dateTime());
@@ -1034,29 +1029,29 @@ void MainWindow::exportCityGML()
 
 	// check if something is picked
 	const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
-	if(uris.size() > 0)
+	if (uris.size() > 0)
 	{
 		//std::cout << "Citygml export cityobject : " << uris[0].getStringURI() << std::endl;
 		std::vector<const citygml::CityObject*> objs;
 		std::vector<TextureCityGML*> TexturesList;
 
-		for(const vcity::URI& uri : uris)
+		for (const vcity::URI& uri : uris)
 		{
 			uri.resetCursor();
 			std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
 
-			if(uri.getType() == "Building")
+			if (uri.getType() == "Building")
 			{
 				const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
-				if(obj) objs.push_back(obj);
+				if (obj) objs.push_back(obj);
 
-				for(citygml::CityObject* object : obj->getChildren())
+				for (citygml::CityObject* object : obj->getChildren())
 				{
-					for(citygml::Geometry* Geometry : object->getGeometries())
+					for (citygml::Geometry* Geometry : object->getGeometries())
 					{
-						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+						for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 						{
-							if(PolygonCityGML->getTexture() == nullptr)
+							if (PolygonCityGML->getTexture() == nullptr)
 							{
 								continue;
 							}
@@ -1067,20 +1062,20 @@ void MainWindow::exportCityGML()
 
 							TexturePolygonCityGML Poly;
 							Poly.Id = PolygonCityGML->getId();
-							Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+							Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 							Poly.TexUV = PolygonCityGML->getTexCoords();
 
 							bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-							for(TextureCityGML* Tex: TexturesList)
+							for (TextureCityGML* Tex : TexturesList)
 							{
-								if(Tex->Url == Url)
+								if (Tex->Url == Url)
 								{
 									URLTest = true;
 									Tex->ListPolygons.push_back(Poly);
 									break;
 								}
 							}
-							if(!URLTest)
+							if (!URLTest)
 							{
 								TextureCityGML* Texture = new TextureCityGML;
 								Texture->Wrap = WrapMode;
@@ -1092,20 +1087,20 @@ void MainWindow::exportCityGML()
 					}
 				}
 			}
-			else if(uri.getType() == "Tile")
+			else if (uri.getType() == "Tile")
 			{
 				citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
-				for(const citygml::CityObject* obj : model->getCityObjectsRoots())
+				for (const citygml::CityObject* obj : model->getCityObjectsRoots())
 				{
 					objs.push_back(obj);
 
-					for(citygml::CityObject* object : obj->getChildren())
+					for (citygml::CityObject* object : obj->getChildren())
 					{
-						for(citygml::Geometry* Geometry : object->getGeometries())
+						for (citygml::Geometry* Geometry : object->getGeometries())
 						{
-							for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+							for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 							{
-								if(PolygonCityGML->getTexture() == nullptr)
+								if (PolygonCityGML->getTexture() == nullptr)
 								{
 									continue;
 								}
@@ -1116,20 +1111,20 @@ void MainWindow::exportCityGML()
 
 								TexturePolygonCityGML Poly;
 								Poly.Id = PolygonCityGML->getId();
-								Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+								Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 								Poly.TexUV = PolygonCityGML->getTexCoords();
 
 								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-								for(TextureCityGML* Tex: TexturesList)
+								for (TextureCityGML* Tex : TexturesList)
 								{
-									if(Tex->Url == Url)
+									if (Tex->Url == Url)
 									{
 										URLTest = true;
 										Tex->ListPolygons.push_back(Poly);
 										break;
 									}
 								}
-								if(!URLTest)
+								if (!URLTest)
 								{
 									TextureCityGML* Texture = new TextureCityGML;
 									Texture->Wrap = WrapMode;
@@ -1142,22 +1137,22 @@ void MainWindow::exportCityGML()
 					}
 				}
 			}
-			else if(uri.getType() == "LayerCityGML")
+			else if (uri.getType() == "LayerCityGML")
 			{
 				vcity::LayerCityGML* layer = static_cast<vcity::LayerCityGML*>(m_app.getScene().getLayer(uri));
 
-				for(vcity::Tile* tile : layer->getTiles())
+				for (vcity::Tile* tile : layer->getTiles())
 				{
-					for(const citygml::CityObject* obj : tile->getCityModel()->getCityObjectsRoots())
+					for (const citygml::CityObject* obj : tile->getCityModel()->getCityObjectsRoots())
 					{
 						objs.push_back(obj);
-						for(citygml::CityObject* object : obj->getChildren())
+						for (citygml::CityObject* object : obj->getChildren())
 						{
-							for(citygml::Geometry* Geometry : object->getGeometries())
+							for (citygml::Geometry* Geometry : object->getGeometries())
 							{
-								for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+								for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 								{
-									if(PolygonCityGML->getTexture() == nullptr)
+									if (PolygonCityGML->getTexture() == nullptr)
 										continue;
 
 									//Remplissage de ListTextures
@@ -1166,20 +1161,20 @@ void MainWindow::exportCityGML()
 
 									TexturePolygonCityGML Poly;
 									Poly.Id = PolygonCityGML->getId();
-									Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+									Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 									Poly.TexUV = PolygonCityGML->getTexCoords();
 
 									bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-									for(TextureCityGML* Tex: TexturesList)
+									for (TextureCityGML* Tex : TexturesList)
 									{
-										if(Tex->Url == Url)
+										if (Tex->Url == Url)
 										{
 											URLTest = true;
 											Tex->ListPolygons.push_back(Poly);
 											break;
 										}
 									}
-									if(!URLTest)
+									if (!URLTest)
 									{
 										TextureCityGML* Texture = new TextureCityGML;
 										Texture->Wrap = WrapMode;
@@ -1207,15 +1202,15 @@ void MainWindow::exportCityGML()
 
 		std::vector<TextureCityGML*> TexturesList;
 
-		for(citygml::CityObject* obj : model->getCityObjectsRoots())
+		for (citygml::CityObject* obj : model->getCityObjectsRoots())
 		{
-			for(citygml::CityObject* object : obj->getChildren())
+			for (citygml::CityObject* object : obj->getChildren())
 			{
-				for(citygml::Geometry* Geometry : object->getGeometries())
+				for (citygml::Geometry* Geometry : object->getGeometries())
 				{
-					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+					for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 					{
-						if(PolygonCityGML->getTexture() == nullptr)
+						if (PolygonCityGML->getTexture() == nullptr)
 							continue;
 
 						//Remplissage de ListTextures
@@ -1224,20 +1219,20 @@ void MainWindow::exportCityGML()
 
 						TexturePolygonCityGML Poly;
 						Poly.Id = PolygonCityGML->getId();
-						Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+						Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 						Poly.TexUV = PolygonCityGML->getTexCoords();
 
 						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-						for(TextureCityGML* Tex: TexturesList)
+						for (TextureCityGML* Tex : TexturesList)
 						{
-							if(Tex->Url == Url)
+							if (Tex->Url == Url)
 							{
 								URLTest = true;
 								Tex->ListPolygons.push_back(Poly);
 								break;
 							}
 						}
-						if(!URLTest)
+						if (!URLTest)
 						{
 							TextureCityGML* Texture = new TextureCityGML;
 							Texture->Wrap = WrapMode;
@@ -1618,13 +1613,13 @@ void MainWindow::generateLOD1OnFile()
 
 			delete tile;
 			ModelOut->computeEnvelope(),
-				exporter.exportCityModel(*ModelOut);
+			exporter.exportCityModel(*ModelOut);
 
 			delete ModelOut;
 			std::cout << "Fichier " << file.baseName().toStdString() + "_LOD1.gml cree dans " << Folder << std::endl;
 		}
 	}
-
+	
 	QApplication::restoreOverrideCursor();
 	m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 
@@ -2879,115 +2874,37 @@ void MainWindow::test3()
 
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
-{ 
-	QString parentDirPath = QFileDialog::getExistingDirectory(this,"Select tiles directory");
-	QDir parentDir(parentDirPath);
-	QStringList dirList = parentDir.entryList();
-	for (int k = 3; k<dirList.size(); k++)
+{
+	//buildJson();
+
+	/*std::vector<std::string> building;
+	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
+
+	std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+
+	int cpt = 0;
+	for(AnalysisResult ar : res)
 	{
-		QString path = dirList[k];
-		QDir dir(path);
-		std::string tilename = dir.dirName().toStdString();
-		std::cout<<tilename<<std::endl;
-		//Create World File for texturing
-		//std::vector<char> char_array(tilename.begin(), tilename.end());
-		//char_array.push_back(0);
-		//char* pch = std::strtok(&char_array[0],"T-");
-		//int x = std::atoi(pch);
-		//pch = strtok (NULL, "T-");
-		//int y = std::atoi(pch);
-		//std::string fname = parentDirPath.toStdString()+"/"+path.toStdString()+'/'+tilename+"_ORTHO.jgw";
-		//std::ofstream out;
-		//out.open(fname);
-		//out<<"0.5"<<std::endl;
-		//out<<"0"<<std::endl;
-		//out<<"0"<<std::endl;
-		//out<<"-0.5"<<std::endl;
-		//out<<x*500<<std::endl;
-		//out<<y*500<<std::endl;
-		//out.close();
-		//Fusion MNT
-		//{
-		//	citygml::CityModel* model = new citygml::CityModel();	
+	addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
+	addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
+	cpt++;
+	}*/
 
-		//	//lecture du fichier
-		//	citygml::ImporterASC* importer = new citygml::ImporterASC();
-		//	MNT* asc1 = new MNT();
-		//	MNT* asc2 = new MNT();
-		//	if (asc1->charge((parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_BDALTI_nb_entier.asc").c_str(), "ASC")&&(asc2->charge((parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_SplicedGrid_total.asc").c_str(), "ASC")))
-		//	{
-		//		//conversion en structure CityGML
-		//		model = importer->fusionResolutions(asc1, asc2);
-		//		delete importer;
-		//		delete asc1;
-		//		delete asc2;
+	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
 
-		//	}
+	//ProcessLasShpVeget();
+	/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
+	std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
 
+	std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
 
-		//	//export en CityGML
-		//	std::cout<<"Export ...";
-		//	if (model->size()!=0)
-		//	{
-		//		citygml::ExporterCityGML exporter(parentDirPath.toStdString()+"/"+path.toStdString()+'/'+tilename+"_MNT.gml");
-		//		exporter.exportCityModel(*model);
-		//		std::cout<<"OK!"<<std::endl;
-		//	}
-		//	else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
-		//	delete model;
-		//}
-		//Convert Water
-
-		citygml::CityModel* model = new citygml::CityModel();
-		for (int i = 8; i<=144; i=i+8)
-		{
-			std::string filename = tilename+"_MNSE_T"+std::to_string(i)+"_total_rond.asc";
-			QFileInfo file = QString::fromStdString(parentDirPath.toStdString()+"/"+path.toStdString()+"/"+filename);
-			citygml::CityObject* sfc;
-			std::cout<<"CONVERTING FILE "<<file.absoluteFilePath().toStdString()<<std::endl;
-			QString ext = file.suffix().toLower();
-			if (ext=="asc")
-			{
-				//lecture du fichier
-				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				MNT* asc = new MNT();
-				if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
-				{
-					//conversion en structure CityGML
-					sfc = importer->waterToCityGMLPolygons(asc,0.01);
-					delete importer;
-					delete asc;
-				}
-			}
-			//Add temporal info
-			//for (citygml::CityObject* obj : model->getCityObjectsRoots())
-			//{
-			//	QDateTime creaDate = QDateTime::fromString("2000-01-01T08:00:00",Qt::ISODate);
-			//	creaDate = creaDate.addSecs(i*3600);
-			//	QDateTime termDate = creaDate.addSecs(8*3600);
-			//	obj->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-			//	obj->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
-			//}
-			QDateTime creaDate = QDateTime::fromString("2000-01-01T00:00:00",Qt::ISODate);
-			creaDate = creaDate.addSecs(i*3600);
-			QDateTime termDate = creaDate.addSecs(8*3600);
-			sfc->setAttribute("creationDate",creaDate.toString(Qt::ISODate).toStdString());
-			sfc->setAttribute("terminationDate",termDate.toString(Qt::ISODate).toStdString());
-			model->addCityObject(sfc);
-			model->addCityObjectAsRoot(sfc);
-		}
-		model->computeEnvelope();
-		//export en CityGML
-		//std::cout<<"Export ..."<<parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_MNSE.gml"<<std::endl;
-		if (model->size()!=0)
-		{
-			citygml::ExporterCityGML exporter(parentDirPath.toStdString()+"/"+path.toStdString()+"/"+tilename+"_MNSE.gml");
-			exporter.exportCityModel(*model);
-			std::cout<<"OK!"<<std::endl;
-		}
-		else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
-		delete model;
+	ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
+	for(std::pair<std::string,PolygonData> p : top)
+	{
+	ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
 	}
+	ofs.close();*/
+
 	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
 	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
 	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
@@ -3007,37 +2924,37 @@ void MainWindow::test4()
 	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
 	
-    //std::cout<<std::endl;
-    //vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-    //citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-    //std::vector<temporal::Version*> versions = model->getVersions();
-    //for (temporal::Version* version : versions)
-    //{
-    //    std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-    //    std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-    //    for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-    //    {
-    //        std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-    //    }
-    //}
-    //std::cout<<std::endl;
-    //std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-    //for (temporal::VersionTransition* transition : transitions)
-    //{
-    //    std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-    //    std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-    //    std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-    //}
-    //std::cout<<std::endl;
+    std::cout<<std::endl;
+    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+    std::vector<temporal::Version*> versions = model->getVersions();
+    for (temporal::Version* version : versions)
+    {
+        std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+        std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+        for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+        {
+            std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+        }
+    }
+    std::cout<<std::endl;
+    std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+    for (temporal::VersionTransition* transition : transitions)
+    {
+        std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+        std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+        std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+    }
+    std::cout<<std::endl;
 
-    //std::cout<<"Workspaces:"<<std::endl;
-    //std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-    //for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-    //    std::cout<<it->second.name<<std::endl;
-    //    for(temporal::Version* v : it->second.versions){
-    //        std::cout<<"    - "<<v->getId()<<std::endl;
-    //    }
-    //}
+    std::cout<<"Workspaces:"<<std::endl;
+    std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+    for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+        std::cout<<it->second.name<<std::endl;
+        for(temporal::Version* v : it->second.versions){
+            std::cout<<"    - "<<v->getId()<<std::endl;
+        }
+    }
 
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -3143,179 +3060,6 @@ void MainWindow::loadShpFile(const QString& filepath)
 	//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotASCtoCityGML()
-{
-	m_osgView->setActive(false);
-
-	QStringList items;
-	items << tr("Terrain") << tr("Water");
-
-	bool ok;
-	QString item = QInputDialog::getItem(this, tr("QInputDialog::getItem()"),
-		tr("Type of ASC file:"), items, 0, false, &ok);
-	if (ok && item.isEmpty()) return;
-	else if (ok && !item.isEmpty())
-	{
-		QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert ASC to CityGML", "","ASC files (*.asc)");
-
-		for(int i = 0; i < filenames.count(); ++i)
-		{
-			citygml::CityModel* model = new citygml::CityModel();
-			QFileInfo file(filenames[i]);
-			std::cout<<"CONVERTING FILE "<<file.baseName().toStdString()<<std::endl;
-			QString ext = file.suffix().toLower();
-			if (ext=="asc")
-			{
-				//lecture du fichier
-				citygml::ImporterASC* importer = new citygml::ImporterASC();
-				MNT* asc = new MNT();
-				if (asc->charge(filenames[i].toStdString().c_str(), "ASC"))
-				{
-					//conversion en structure CityGML
-					if (item=="Terrain") model = importer->reliefToCityGML(asc);
-					//else if (item=="Water") model = importer->waterToCityGMLPolygons(asc);
-					delete importer;
-					delete asc;
-				}
-			}
-			//export en CityGML
-			std::cout<<"Export ...";
-			if (model->size()!=0)
-			{
-				citygml::ExporterCityGML exporter((file.path()+'/'+file.baseName()+".gml").toStdString());
-				exporter.exportCityModel(*model);
-				std::cout<<"OK!"<<std::endl;
-			}
-			else std::cout<<std::endl<<"Export aborted: empty CityModel!"<<std::endl;
-			delete model;
-		}
-		std::cout<<"Job done!"<<std::endl;
-		m_osgView->setActive(true);
-	}
-}
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotShpWaterToCityGML()
-{
-	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Shp to CityGML", "","Shapefiles (*.shp)");
-
-	for(int i = 0; i < filenames.count(); ++i)
-	{
-		QFileInfo file(filenames[i]);
-		QDir dir  = file.absoluteDir();
-		if (!dir.exists("citygml"))
-			dir.mkdir("citygml");
-		citygml::CityModel* model = new citygml::CityModel();
-		citygml::CityObject* waterbody = new citygml::WaterBody("");
-		// for temporal data
-		// This is VERY SPECIFIC CODE and will certainly have to be modified/deleted in the future
-		//std::string fname = file.baseName().toStdString();
-		//size_t pos1 = fname.find_last_of("T");
-		//size_t pos2 = fname.find("_",pos1);
-		//std::string str_hour = fname.substr(pos1+1,pos2-pos1-1);
-		//int hour = atoi(str_hour.c_str());
-		//std::cout<<str_hour<<" : "<<hour<<std::endl;
-		//int a; std::cin>> a;
-		// --
-		const char * DriverName = "ESRI Shapefile";
-		OGRSFDriver * Driver;
-
-		OGRRegisterAll();
-		Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-		if( Driver == NULL )
-		{
-			printf( "%s driver not available.\n", DriverName );
-			return;
-		}
-		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
-
-
-		int nbLayers = poDS->GetLayerCount();
-		if(nbLayers > 0)
-		{
-			OGRLayer *poLayer = poDS->GetLayer(0);
-
-			OGRFeature *poFeature;
-			poLayer->ResetReading();
-
-			int cpt = 0;
-			while( (poFeature = poLayer->GetNextFeature()) != NULL )
-			{
-				std::string name = "test_"+std::to_string(cpt++);
-				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-				{
-					citygml::Geometry* geom = new citygml::Geometry("", citygml::GT_Unknown,3);
-					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-
-					std::vector<TVec3d> LRing;
-					OGRPoint p;
-					TVec3d v;
-					OGRLinearRing* poLR = poPG->getExteriorRing();
-					for(int i=0; i<poLR->getNumPoints(); ++i)
-					{
-						poLR->getPoint(i, &p);
-						v = TVec3d(p.getX(), p.getY(), p.getZ());
-						LRing.push_back(v);
-					}
-					std::vector<std::vector<TVec3d>> ptsSolIntern;
-
-					for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
-					{
-						std::vector<TVec3d> ptsSolTemp;// = OGRLinearRingToLRing(poPG->getInteriorRing(i));
-						poLR = poPG->getInteriorRing(i);
-						for(int i=0; i<poLR->getNumPoints(); ++i)
-						{
-							poLR->getPoint(i, &p);
-							v = TVec3d(p.getX(), p.getY(), p.getZ());
-							ptsSolTemp.push_back(v);
-						}
-						if(ptsSolTemp.size() == 0)
-							continue;
-						ptsSolIntern.push_back(ptsSolTemp);
-
-					}
-					//build CityGML polygon
-					citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
-					//poly->addRing(LRingToCityRing(LRing,name));
-					citygml::LinearRing* ring1 = new citygml::LinearRing(name+"_ring",true);
-					for(unsigned int j = 0; j < LRing.size(); j++)
-					{
-						ring1->addVertex(LRing[j]);
-					}
-					poly->addRing(ring1);
-					for(std::vector<TVec3d> vec : ptsSolIntern)
-					{
-						//poly->addRing(LRingToCityRing(vec,name,false));
-						citygml::LinearRing* ring2 = new citygml::LinearRing(name+"_ring",false);
-						for(unsigned int j = 0; j < vec.size(); j++)
-						{
-							ring2->addVertex(vec[j]);
-						}
-						poly->addRing(ring2);
-					}
-					geom->addPolygon(poly);
-					waterbody->addGeometry(geom);
-				}
-			}	
-		}
-		model->addCityObject(waterbody);
-		model->addCityObjectAsRoot(waterbody);
-		if (waterbody->getChildCount()!=0)
-		{
-			model->computeEnvelope();
-			//CityModel created, now to export
-			//export en CityGML
-			std::cout<<"Export ...";
-			citygml::ExporterCityGML exporter((file.path()+"/citygml/"+file.baseName()+".gml").toStdString());
-			exporter.exportCityModel(*model);
-			std::cout<<"OK!"<<std::endl;
-		}
-		delete model;
-	}
-}
-////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotFloodAR()
 {
 	m_osgView->setActive(false);
@@ -3323,180 +3067,3 @@ void MainWindow::slotFloodAR()
 	diag.exec();
 	m_osgView->setActive(true);
 }
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotCutShapeFile()
-{
-	const uint tilesize = 500;
-	m_osgView->setActive(false);
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut Shapefile", "","Shapefiles (*.shp)");
-
-	QMessageBox msgBox;
-	msgBox.setText("Use centroid and don't cut shape features?");
-	msgBox.setStandardButtons( QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel );
-	int ret = msgBox.exec();
-	if (ret == QMessageBox::Cancel) {m_osgView->setActive(true);return;}
-
-
-	for(int i = 0; i < filenames.count(); ++i)
-	{		
-		QFileInfo file(filenames[i]);
-		QDir dir  = file.absoluteDir();
-		if (!dir.exists("tiles"))
-			dir.mkdir("tiles");
-
-		const char * DriverName = "ESRI Shapefile";
-		OGRSFDriver * Driver;
-
-		OGRRegisterAll();
-		Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-		if( Driver == NULL )
-		{
-			printf( "%s driver not available.\n", DriverName );
-			return;
-		}
-		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
-
-		double Xmin = 100000000, Xmax = -100000000, Ymin = 100000000, Ymax = -100000000;
-
-		int nbLayers = poDS->GetLayerCount();
-		if(nbLayers > 0)
-		{
-			OGRLayer *poLayer = poDS->GetLayer(0);
-
-			OGRFeature *poFeature;
-			poLayer->ResetReading();
-
-			while( (poFeature = poLayer->GetNextFeature()) != NULL )
-			{
-				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-				{
-					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-
-					OGRLinearRing* poLR = poPG->getExteriorRing();
-
-					int nbPoints = poLR->getNumPoints();
-
-					for(int i=0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
-					{
-						OGRPoint p;
-						poLR->getPoint(i, &p);
-
-						if(p.getX() > Xmax)
-							Xmax = p.getX();
-						if(p.getX() < Xmin)
-							Xmin = p.getX();
-						if(p.getY() > Ymax)
-							Ymax = p.getY();
-						if(p.getY() < Ymin)
-							Ymin = p.getY();
-					}
-				}
-			}
-
-			Xmin = tilesize * ((int)Xmin/tilesize);
-			Ymin = tilesize * ((int)Ymin/tilesize);
-			Xmax = tilesize * ((int)Xmax/tilesize);
-			Ymax = tilesize * ((int)Ymax/tilesize);
-
-			std::cout << std::setprecision(10) << "Boite englobante creee : " << Xmin << " " << Xmax << " | " << Ymin << " " << Ymax << std::endl;
-
-			std::vector<OGRPolygon*> Tuiles;
-
-			for(int x = (int)Xmin; x <= (int)Xmax; x+=tilesize)
-			{
-				for(int y = (int)Ymin; y <= (int)Ymax; y+=tilesize)
-				{
-					OGRLinearRing* Ring = new OGRLinearRing;
-					Ring->addPoint(x, y);
-					Ring->addPoint(x+tilesize, y);
-					Ring->addPoint(x+tilesize, y+tilesize);
-					Ring->addPoint(x, y+tilesize);
-					Ring->addPoint(x, y);
-
-					OGRPolygon* Poly = new OGRPolygon;
-					Poly->addRingDirectly(Ring);
-
-					Tuiles.push_back(Poly);
-				}
-			}
-			std::cout <<Tuiles.size()<< " tuiles crees" << std::endl;
-
-			int cpt = -1;
-			for(int x = (int)Xmin; x <= (int)Xmax; x+=tilesize)
-			{
-				for(int y = (int)Ymin; y <= (int)Ymax; y+=tilesize)
-				{
-					++cpt;
-
-					OGRPolygon* Tuile = Tuiles.at(cpt);
-					QFileInfo file(filenames[i]);
-					//file.absoluteDir().mkdir(file.baseName());
-					std::string name = file.absoluteDir().absolutePath().toStdString()+"/tiles/"+"Tile_" + std::to_string((int)x/tilesize) + "_" + std::to_string((int)y/tilesize)+"_"+file.baseName().toStdString() + ".shp";
-
-					remove(name.c_str());
-					OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
-
-					OGRLayer * Layer = DS->CreateLayer("Layer1");
-
-					poLayer->ResetReading();
-					while((poFeature = poLayer->GetNextFeature()) != NULL)
-					{
-						OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-						if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-						{
-							OGRPolygon* poPG = (OGRPolygon*) poGeometry;
-
-							if(!poPG->Intersects(Tuile))
-								continue;
-							OGRGeometry * Geometry;
-							if (ret == QMessageBox::No)
-							{
-								Geometry =  poPG->Intersection(Tuile);
-								if(!Geometry->IsValid() || Geometry->IsEmpty() || Geometry->getGeometryType() != wkbPolygon25D && Geometry->getGeometryType() != wkbPolygon && Geometry->getGeometryType() != wkbMultiPolygon25D && Geometry->getGeometryType() != wkbMultiPolygon)
-									continue;
-							}
-							if (ret == QMessageBox::Yes)
-							{
-								OGRPoint* Centroid = new OGRPoint;
-								poPG->Centroid(Centroid);
-
-								if(!Tuile->Contains(Centroid))
-									continue;
-
-								Geometry = poPG;
-								delete Centroid;
-							}
-
-							for(int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la première fois, pour la première poFeature
-							{
-								if(Layer->FindFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef(), 1) == -1)
-									Layer->CreateField(new OGRFieldDefn(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldDefnRef(i)->GetType()));
-							}
-
-							OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
-
-							Feature->SetGeometry(Geometry);
-
-							//Ajout des données sémantiques du shapefile
-							for(int i = 0; i < poFeature->GetFieldCount(); ++i)
-								Feature->SetField(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldAsString(i));
-
-							Layer->CreateFeature(Feature);
-
-							OGRFeature::DestroyFeature(Feature);
-						}
-					}
-					OGRDataSource::DestroyDataSource(DS);
-					delete Tuile;
-				}					
-				std::cout<<"\rTiling... ("<<(int)100*(cpt+1)/Tuiles.size()<<"%)"<<std::flush;
-			}
-		}
-		std::cout<<"\rTiling done     "<<std::endl;
-	}
-	m_osgView->setActive(true);
-}
-////////////////////////////////////////////////////////////////////////////////

@@ -138,10 +138,7 @@ private slots:
     void slotCityGML_cut();
     void slotFixBuilding();
     void slotObjToCityGML();
-	void slotASCtoCityGML();
-	void slotShpWaterToCityGML();
 	void slotFloodAR();
-	void slotCutShapeFile();
 
 	void slotChangeDetection();
 
