@@ -86,7 +86,7 @@ before_build:
   - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
 #
   - cd %APPVEYOR_BUILD_FOLDER%
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DCityGMLVisibiliteQtPlugin=ON
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
