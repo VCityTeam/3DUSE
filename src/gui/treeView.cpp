@@ -412,7 +412,15 @@ void TreeView::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info)
     //std::vector<QTreeWidgetItem*> v_item;
 
     QTreeWidgetItem* layer = getNode(uriLayer);
-    //QTreeWidgetItem* item = createItemGeneric("info", "doc");
+    QTreeWidgetItem* itemStreet = createItemGeneric("street", "LOD");
+    QTreeWidgetItem* itemBuilding = createItemGeneric("building", "LOD");
+    QTreeWidgetItem* itemDistrict = createItemGeneric("district", "LOD");
+    QTreeWidgetItem* itemCity = createItemGeneric("city", "LOD");
+
+    layer->addChild(itemStreet);
+    layer->addChild(itemBuilding);
+    layer->addChild(itemDistrict);
+    layer->addChild(itemCity);
 
     //layer->addChild(item);
 
@@ -422,8 +430,27 @@ void TreeView::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info)
         std::cout<<"[treeView > addInfo].....if(layer)"<<std::endl;
         for(int i=0; i<v_info.size(); i++)
         {
-            QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), "Doc");
-            layer->addChild(item);
+            if(v_info[i]->getInfoLOD()=="street")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(0)->addChild(item);
+            }
+            if(v_info[i]->getInfoLOD()=="building")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(1)->addChild(item);
+            }
+            if(v_info[i]->getInfoLOD()=="district")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(2)->addChild(item);
+            }
+            if(v_info[i]->getInfoLOD()=="city")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(3)->addChild(item);
+            }
+
         }
     }
 
@@ -774,6 +801,7 @@ void TreeView::slotItemChanged(QTreeWidgetItem* item, int /*column*/)
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
+    std::cout<<"[treeView > slotItemClicked].....uri : "<<uri.getStringURI()<<std::endl;
 
     if(uri.getDepth() > 0)
     {
@@ -810,7 +838,7 @@ void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotFilter()
 {
-    std::cout << "[treeView > slotFilter ].....filtre : -" << appGui().getMainWindow()->getFilter()->text().toStdString() <<"-"<<std::endl;
+    //std::cout << "[treeView > slotFilter ].....filtre : -" << appGui().getMainWindow()->getFilter()->text().toStdString() <<"-"<<std::endl;
 
     appGui().getControllerGui().resetSelection();
     searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());

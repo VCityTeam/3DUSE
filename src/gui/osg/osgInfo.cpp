@@ -52,11 +52,13 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_height = height;
     m_width = width;
 
+    m_distancetocam = 0 ;
+
     osg::Vec3Array* qVertices = new osg::Vec3Array;
-    qVertices->push_back( osg::Vec3( -m_width/2, 0, 0) ); // bottom left
-    qVertices->push_back( osg::Vec3(m_width/2, 0, 0) ); // bottom right
-    qVertices->push_back( osg::Vec3(m_width/2,0, m_height) ); // top right
-    qVertices->push_back( osg::Vec3(-m_width/2,0, m_height) ); // top left
+    qVertices->push_back( osg::Vec3( -m_width/2, 0, -m_height/2) ); // bottom left
+    qVertices->push_back( osg::Vec3(m_width/2, 0, -m_height/2) ); // bottom right
+    qVertices->push_back( osg::Vec3(m_width/2,0, m_height/2) ); // top right
+    qVertices->push_back( osg::Vec3(-m_width/2,0, m_height/2) ); // top left
 
     m_geom->setVertexArray( qVertices );
 
@@ -74,10 +76,47 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     qTexCoords->push_back(osg::Vec2(0.0f,1.0f) );
     m_geom->setTexCoordArray(0,qTexCoords);
 
-    m_state->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
     m_state->setTextureAttributeAndModes(0, m_texture, osg::StateAttribute::ON );
+    //m_state->setMode( GL_LIGHTING, osg::StateAttribute::OFF );
+
+    //Create a material for the geometry.
+    m_material = new osg::Material;
+    m_material->setAmbient(osg::Material::FRONT_AND_BACK,osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+    m_material->setDiffuse(osg::Material::FRONT_AND_BACK,osg::Vec4(1.0f,1.0f,1.0f,1.0f));
+    m_material->setAlpha(osg::Material::FRONT_AND_BACK, 1);
+
+
+    m_state->setAttribute(m_material,osg::StateAttribute::ON);
+    m_state->setMode(GL_BLEND, osg::StateAttribute::ON);
+
+    osg::BlendFunc* blend = new osg::BlendFunc;
+    blend->setFunction(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_DST_ALPHA);
 
     //m_geom->setStateSet(m_state);
+
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+
+    osg::Geometry* geom = new osg::Geometry;
+    osg::Vec3Array* vertices = new osg::Vec3Array;
+    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+    vertices->push_back( osg::Vec3( m_position.x(), m_position.y(), m_position.z()-m_height/2) );
+    vertices->push_back( osg::Vec3( m_position.x(), m_position.y(), 180 ));
+
+    indices->push_back(0);
+    indices->push_back(1);
+
+    osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+    color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+
+    geom->setVertexArray(vertices);
+    geom->addPrimitiveSet(indices);
+    geom->setColorArray(color, osg::Array::BIND_OVERALL);
+
+    geode->addDrawable(geom);
+
+
+
 
     m_geode->addDrawable(m_geom);
 
@@ -85,7 +124,18 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_pat->setPosition(m_position);
     m_pat->setAttitude(osg::Quat(osg::DegreesToRadians(m_angle), m_axe));
 
+    m_billboard = new osg::Billboard();
+    //osg::Drawable* billboardDrawable = m_geom;
+    m_billboard->addDrawable(m_geom, osg::Vec3(0,0,0));
+    //m_pat->addChild(m_billboard);
+
+    m_group = new osg::Group;
+
+    m_group->addChild(m_pat);
+    //m_group->addChild(geode);
+
     m_pat->addChild(m_geode);
+
 
     m_displayable = true;
     m_requested = true;
@@ -95,14 +145,19 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
 
 
 }
-////////////////////////////////////////////////////////////////////////
-/// \brief Angle getter
-/// \return
-///
-double osgInfo::getAngle()
+
+void osgInfo::BillboardOFF()
 {
-    return m_angle;
+    m_pat->removeChild(m_billboard);
+    m_pat->addChild(m_geode);
 }
+
+void osgInfo::BillboardON()
+{
+    m_pat->removeChild(m_geode);
+    m_pat->addChild(m_billboard);
+}
+
 ////////////////////////////////////////////////////////////////////////
 /// \brief Position getter
 /// \return
@@ -112,54 +167,22 @@ osg::Vec3 osgInfo::getPosition()
     return m_position;
 }
 ////////////////////////////////////////////////////////////////////////
-/// \brief Axe getter
+/// \brief Distance to cam getter
 /// \return
 ///
-osg::Vec3 osgInfo::getAxis()
+float osgInfo::getDistancetoCam()
 {
-    return m_axe;
-}
-////////////////////////////////////////////////////////////////////////
-/// \brief Geometry getter
-/// \return
-///
-osg::Geometry* osgInfo::getGeom()
-{
-    return m_geom;
-}
-////////////////////////////////////////////////////////////////////////
-/// \brief Texture getter
-/// \return
-///
-osg::Texture2D* osgInfo::getTexture()
-{
-    return m_texture;
-}
-////////////////////////////////////////////////////////////////////////
-/// \brief State getter
-/// \return
-///
-osg::StateSet* osgInfo::getState()
-{
-    return m_state;
-}
-
-////////////////////////////////////////////////////////////////////////
-/// \brief geode getter
-/// \return
-///
-osg::Geode* osgInfo::getGeode()
-{
-    return m_geode;
+    return m_distancetocam;
 }
 
 ////////////////////////////////////////////////////////////////////////
 /// \brief pat getter
 /// \return
 ///
-osg::PositionAttitudeTransform* osgInfo::getPAT()
+osg::Group* osgInfo::getPAT()
 {
-    return m_pat;
+    return m_group;
+    //return m_pat;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -268,6 +291,18 @@ void osgInfo::setWidth(float newWidth)
 
 }
 
+
+////////////////////////////////////////////////////////////////////////
+/// \brief Distance to cam setter
+/// \param newDist
+///
+void osgInfo::setDistancetoCam(float newDist)
+{
+    m_distancetocam=newDist;
+    //TODO : void update geom
+
+}
+
 void osgInfo::setTexture(std::string filepath)
 {
     m_texture->setImage(osgDB::readImageFile(filepath));
@@ -285,6 +320,26 @@ void osgInfo::setRequested(bool statut)
 {
     m_requested=statut;
 }
+
+void osgInfo::setTransparency(float alpha)
+{
+   m_material->setAlpha(osg::Material::FRONT_AND_BACK, alpha);
+}
+
+
+void osgInfo::Scaling(float scale)
+{
+   //m_width*=scale;
+   //m_height*=scale;
+
+
+   scale = 2*(1-scale);
+   m_pat->setScale(osg::Vec3(scale, 1, scale));
+
+
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

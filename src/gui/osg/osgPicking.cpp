@@ -159,6 +159,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         //node = (nodePath.size()>=1)?nodePath[nodePath.size()-1]:0;
 
         osg::Node* node = nodePath.back();
+        std::cout<<"[osgPicking > pickPoint ].....selected node name : "<<node->getName()<<std::endl;
 
         //osg::notify(osg::NOTICE) << "Picked: " << node->getName() << std::endl;
 
@@ -198,6 +199,7 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
 
                 uri = osgTools::getURI(node);
                 obj = appGui().getScene().getCityObjectNode(uri, true);
+
                 //obj = m_scene->findNode(node->getName());
             }
 

@@ -46,6 +46,7 @@ void DialogSettings::doSettings()
 
     ui->checkBoxTextures->setChecked(vcity::app().getSettings().m_loadTextures);
 
+
 	QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
 	QDateTime endDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_endDate),Qt::ISODate);
 	ui->dateTimeEditTempStart->setDateTime(startDate);

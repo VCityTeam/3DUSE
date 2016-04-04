@@ -32,7 +32,7 @@
 #include <osg/MatrixTransform>
 #include <osg/NodeCallback>
 //#include <gui/utils/AABB.hpp>
-#include "AABB.hpp"
+//#include "AABB.hpp"
 
 #include <string>
 
@@ -198,14 +198,16 @@ class InfoDataType : public osg::Referenced
 public:
 
     InfoDataType(osg::Node*n);
-    float getDistance(AABBCollection boundingBox, osg::Camera *cam);
-    //void setDisplayability(float distance);
+    //float getDistance(AABBCollection boundingBox, osg::Camera *cam);
+    void computeDistances(osg::Camera *cam);
+    void setDisplayability();
+    void forceDisplayability();
+    void updateScale();
     void display();
-    //void displayRequest();
     void filterLOD(float distance);
 
 protected:
-    AABBCollection boudingBox;
+    //AABBCollection boudingBox;
     osg::ref_ptr<osg::Switch> switchRoot;
 
 };
@@ -215,7 +217,7 @@ InfoDataType::InfoDataType(osg::Node* n)
     switchRoot = n->asSwitch();
 }
 
-float InfoDataType::getDistance(AABBCollection boundingBox, osg::Camera* cam)
+void InfoDataType::computeDistances(osg::Camera *cam)
 {
     cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
     osg::Vec3d pos;
@@ -223,63 +225,10 @@ float InfoDataType::getDistance(AABBCollection boundingBox, osg::Camera* cam)
     osg::Vec3d up;
     cam->getViewMatrixAsLookAt(pos,target,up);
 
-    boundingBox = LoadAABB("/home/pers/clement.chagnaud/Documents/Data/Tuiles/");
-    AABB tuileAABB = boundingBox.building.at(0);
-    float tuileX = (tuileAABB.min.x+tuileAABB.max.x)/2.0;
-    float tuileY = (tuileAABB.min.y+tuileAABB.max.y)/2.0;
-    float tuileZ = (tuileAABB.min.z+tuileAABB.max.z)/2.0;
+    //std::cout<<"[osgScene > computeDistances]...target vector : ["<<target.x()<<","<<target.y()<<","<<target.z()<<"]"<<std::endl;
 
-    float camX=pos.x()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.x;
-    float camY=pos.y()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.y;
-    float camZ=pos.z()+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.z;
+    float distancetoCam;
 
-    float distTuileCam = sqrt((tuileX-camX)*(tuileX-camX)+(tuileY-camY)*(tuileY-camY)+(tuileZ-camZ)*(tuileZ-camZ));
-
-    return distTuileCam;
-}
-
-//void InfoDataType::setDisplayability(float distance)
-//{
-//    if(distance<=1500)
-//    {
-//        for(int i=0; i<sw_node->getNumChildren(); i++)
-//        {
-//            osg::Node* node = sw_node->getChild(i);
-//            osgInfo* info = dynamic_cast<osgInfo*>(node);
-//            if(!info->isDisplayable())
-//                info->setDisplayable(true);
-//            //std::cout<<"[osgScene > UpdateSwitches].....is info displayable : "<<info->isDisplayable()<<std::endl;
-//        }
-//    }
-//    else
-//    {
-
-//        for(int j=0; j<sw_node->getNumChildren(); j++)
-//        {
-//            osg::Node* node = sw_node->getChild(j);
-//            osgInfo* info = dynamic_cast<osgInfo*>(node);
-//            if(info->isDisplayable())
-//                info->setDisplayable(false);
-//            //std::cout<<"[osgScene > UpdateSwitches].....is info displayable : "<<info->isDisplayable()<<std::endl;
-//        }
-//    }
-//}
-//void InfoDataType::display()
-//{
-//    //std::cout<<"[osgScene > display]"<<std::endl;
-//    for(int i=0; i<sw_node->getNumChildren(); i++)
-//    {
-//        osg::Node* node = sw_node->getChild(i);
-//        osgInfo* info = dynamic_cast<osgInfo*>(node);
-//        if(info->isDisplayable() && info->isRequested())
-//            sw_node->setValue(i,true);
-//        else
-//            sw_node->setValue(i,false);
-//    }
-//}
-void InfoDataType::display()
-{
-    //std::cout<<"[osgScene > display]"<<std::endl;
     for(int i=0; i<switchRoot->getNumChildren(); i++)
     {
         osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
@@ -289,10 +238,176 @@ void InfoDataType::display()
             {
                 osg::Node* node = subSwitch->getChild(j);
                 osgInfo* info = dynamic_cast<osgInfo*>(node);
-                std::cout<<std::endl<<"[Callback > display].....document : "<<info->getInfoName()<<std::endl;
-                std::cout<<"[Callback > display].............isDisplayable : "<<info->isDisplayable()<<std::endl;
-                std::cout<<"[Callback > display].............isRequested : "<<info->isRequested()<<std::endl;
-                //std::cout<<"[Callback > display]........ => switched (before test) : "<<subSwitch->getValue(j)<<std::endl;
+                float infoX = info->getPosition().x();
+                float infoY = info->getPosition().y();
+                float infoZ = info->getPosition().z();
+                float camX=pos.x()/*+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.x*/;
+                float camY=pos.y()/*+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.y*/;
+                float camZ=pos.z()/*+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.z*/;
+
+                distancetoCam = sqrt((infoX-camX)*(infoX-camX)+(infoY-camY)*(infoY-camY)+(infoZ-camZ)*(infoZ-camZ));
+                info->setDistancetoCam(distancetoCam);
+                //std::cout<<"[osgScene > computeDistances].....doc : "<<info->getInfoName()<<" distance to cam : "<<distancetoCam<<std::endl;
+            }
+        }
+    }
+}
+
+
+
+
+void InfoDataType::setDisplayability()
+{
+    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    {
+        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
+        if(subSwitch->getName()=="street")
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+                if(info->getDistancetoCam()<=500)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(1.0f);
+                }
+                else if (info->getDistancetoCam()>500 && info->getDistancetoCam()<1500)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(0.2f);
+                }
+                else
+                {
+                    info->setDisplayable(false);
+                }
+            }
+        }
+        if(subSwitch->getName()=="building")
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+                if(info->getDistancetoCam()<=1500 && info->getDistancetoCam()>=500)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(1.0f);
+                }
+                else if(info->getDistancetoCam()>1500 &&  info->getDistancetoCam() < 6000)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(0.2f);
+                }
+                else
+                {
+                    info->setDisplayable(false);
+                    info->setTransparency(0.2f);
+                }
+            }
+        }
+        if(subSwitch->getName()=="district")
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+                float dist=info->getDistancetoCam();
+                if(dist<=6000 && dist>=1500)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(1.0f);
+                }
+                else if(info->getDistancetoCam()>6000 && info->getDistancetoCam() < 30000)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(0.2f);
+                }
+                else
+                {
+                    info->setDisplayable(false);
+                    info->setTransparency(0.2f);
+                }
+            }
+        }
+        if(subSwitch->getName()=="city")
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+                if(info->getDistancetoCam()<=30000 && info->getDistancetoCam()>=6000)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(1.0f);
+                }
+                else if(info->getDistancetoCam()>30000)
+                {
+                    info->setDisplayable(true);
+                    info->setTransparency(0.2f);
+                }
+                else
+                {
+                    info->setDisplayable(false);
+                    info->setTransparency(0.2f);
+                }
+            }
+        }
+    }
+}
+
+
+void InfoDataType::forceDisplayability()
+{
+    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    {
+        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
+        if(subSwitch)
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+                info->setDisplayable(true);
+            }
+        }
+
+    }
+}
+
+void InfoDataType::updateScale()
+{
+    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    {
+        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
+        if(subSwitch)
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+                float scale = info->getDistancetoCam()/50450.1;
+                info->Scaling(scale);
+            }
+        }
+
+    }
+}
+
+void InfoDataType::display()
+{
+    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    {
+        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
+        if(subSwitch)
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+//                std::cout<<std::endl<<"[Callback > display].....document : "<<info->getInfoName()<<std::endl;
+//                std::cout<<"[Callback > display].............isDisplayable : "<<info->isDisplayable()<<std::endl;
+//                std::cout<<"[Callback > display].............isRequested : "<<info->isRequested()<<std::endl;
                 if(info->isDisplayable() && info->isRequested())
                 {
                     subSwitch->setValue(j,true);
@@ -303,7 +418,7 @@ void InfoDataType::display()
                     subSwitch->setValue(j,false);
 //                    std::cout<<"[Callback > display]........switched off"<<std::endl;
                 }
-                std::cout<<"[Callback > display]........ => switched : "<<subSwitch->getValue(j)<<std::endl;
+//                std::cout<<"[Callback > display]........ => switched : "<<subSwitch->getValue(j)<<std::endl;
 
             }
         }
@@ -312,200 +427,15 @@ void InfoDataType::display()
 }
 
 
-//void InfoDataType::displayRequest()
-//{
-//    osg::ref_ptr<osg::Switch> switchRoot = layerInfo->getChild(0)->asSwitch();
-//    if(switchRoot)
-//    {
-
-//    }
-//    //std::cout<<"[osgScene > display]"<<std::endl;
-//    for(int i=0; i<sw_node->getNumChildren(); i++)
-//    {
-//        osg::Node* node = sw_node->getChild(i);
-//        osgInfo* info = dynamic_cast<osgInfo*>(node);
-//        if(info->isRequested())
-//            sw_node->setValue(i,true);
-//        else
-//            sw_node->setValue(i,false);
-//    }
-//}
-
-//void InfoDataType:: filterLOD(float distance)
-//{
-//  std::cout<<"[Callback > filterLOD].....distance : "<<distance<<std::endl;
-//  if(distance<=500)
-//  {
-//      std::cout<<"[Callback > filterLOD].....LOD : street"<<std::endl;
-//      for(int i=0; i<switchRoot->getNumChildren(); i++)
-//      {
-//          if(switchRoot->getChild(i)->getName()=="sw_Street")
-//          {
-//              switchRoot->setValue(i,true);
-//              osg::ref_ptr<osg::Switch> switchStreet = switchRoot->getChild(i)->asSwitch();
-//              if(switchStreet)
-//              {
-//                  for(int j=0; j<switchStreet->getNumChildren();j++)
-//                  {
-//                      osg::Node* node = switchStreet->getChild(j);
-//                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-//                      std::cout<<"[Callback > filterLOD > street].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
-//                      if(info->isRequested())
-//                      {
-//                          switchStreet->setValue(j,true);
-//                          std::cout<<"[Callback > filterLOD > street].....document : "<<info->getInfoName()<<" turned on"<<std::endl;
-//                      }
-//                      else
-//                      {
-//                          switchStreet->setValue(j,false);
-//                          std::cout<<"[Callback > filterLOD > street].....document : "<<info->getInfoName()<<" turned off"<<std::endl;
-//                      }
-//                  }
-//              }
-//          }
-//          else
-//          {
-//              switchRoot->setValue(i,false);
-//              std::cout<<"[Callback > filterLOD > street].....switch : "<<switchRoot->getChild(i)->getName()<<" turned off"<<std::endl;
-//          }
-
-//      }
-//  }
-//  else if(distance<=1500)
-//  {
-//      std::cout<<"[Callback > filterLOD].....LOD : building"<<std::endl;
-//      for(int i=0; i<switchRoot->getNumChildren(); i++)
-//      {
-//          if(switchRoot->getChild(i)->getName()=="sw_Building")
-//          {
-//              switchRoot->setValue(i,true);
-//              osg::ref_ptr<osg::Switch> switchBuilding = switchRoot->getChild(i)->asSwitch();
-//              if(switchBuilding)
-//              {
-//                  for(int j=0; j<switchBuilding->getNumChildren();j++)
-//                  {
-//                      osg::Node* node = switchBuilding->getChild(j);
-//                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-//                      std::cout<<"[Callback > filterLOD > building].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
-//                      if(info->isRequested())
-//                      {
-//                          std::cout<<"[Callback > filterLOD > building].....document : "<<info->getInfoName()<<" turned on"<<std::endl;
-//                          switchBuilding->setValue(j,true);
-//                      }
-//                      else
-//                      {
-//                          switchBuilding->setValue(j,false);
-//                          std::cout<<"[Callback > filterLOD > building].....document : "<<info->getInfoName()<<" turned off"<<std::endl;
-//                      }
-//                  }
-//              }
-//          }
-//          else
-//          {
-//              switchRoot->setValue(i,false);
-//              std::cout<<"[Callback > filterLOD > building].....switch : "<<switchRoot->getChild(i)->getName()<<" turned off"<<std::endl;
-//          }
-//      }
-//  }
-//  else if(distance<=5000)
-//  {
-//      std::cout<<"[Callback > filterLOD].....LOD : district"<<std::endl;
-//      for(int i=0; i<switchRoot->getNumChildren(); i++)
-//      {
-//          if(switchRoot->getChild(i)->getName()=="sw_District")
-//          {
-//              switchRoot->setValue(i,true);
-//              osg::ref_ptr<osg::Switch> switchDistrict = switchRoot->getChild(i)->asSwitch();
-//              if(switchDistrict)
-//              {
-//                  for(int j=0; j<switchDistrict->getNumChildren();j++)
-//                  {
-//                      osg::Node* node = switchDistrict->getChild(j);
-//                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-//                      std::cout<<"[Callback > filterLOD > district].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
-//                      if(info->isRequested())
-//                      {
-//                          std::cout<<"[Callback > filterLOD > district].....document : "<<info->getInfoName()<<" turned on"<<std::endl;
-//                          switchDistrict->setValue(j,true);
-//                      }
-//                      else
-//                      {
-//                          switchDistrict->setValue(j,false);
-//                          std::cout<<"[Callback > filterLOD > district].....document : "<<info->getInfoName()<<" turned off"<<std::endl;
-//                      }
-//                  }
-//              }
-//          }
-//          else
-//          {
-//              switchRoot->setValue(i,false);
-//              std::cout<<"[Callback > filterLOD > district].....switch : "<<switchRoot->getChild(i)->getName()<<" is turned off"<<std::endl;
-//          }
-//      }
-//  }
-//  else if(distance<=30000)
-//  {
-//     std::cout<<"[Callback > filterLOD].....LOD : city"<<std::endl;
-//      for(int i=0; i<switchRoot->getNumChildren(); i++)
-//      {
-//          //std::cout<<"[Callback > filterLOD > city].....children name : "<<switchRoot->getChild(i)->getName()<<std::endl;
-//          if(switchRoot->getChild(i)->getName()=="sw_City")
-//          {
-//              switchRoot->setValue(i,true);
-//              //std::cout<<"[Callback > filterLOD > city].....found child : "<<switchRoot->getChild(i)->getName()<<std::endl;
-//              osg::ref_ptr<osg::Switch> switchCity = switchRoot->getChild(i)->asSwitch();
-//              if(switchCity)
-//              {
-//                  //std::cout<<"[Callback > filterLOD > city].....if(switchCity)"<<std::endl;
-//                  for(int j=0; j<switchCity->getNumChildren();j++)
-//                  {
-//                      osg::Node* node = switchCity->getChild(j);
-//                      //std::cout<<"[Callback > filterLOD > city].....if(switchCity)....child #"<<j<<std::endl;
-//                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-//                      //std::cout<<"[Callback > filterLOD > city].....if(switchCity)....casted"<<std::endl;
-//                      std::cout<<"[Callback > filterLOD > city].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
-//                      if(info->isRequested())
-//                      {
-//                          //std::cout<<"[Callback > filterLOD > city].....if(switchCity)....if(info "<<info->getInfoName()<<" isRequested)"<<std::endl;
-//                          switchCity->setValue(j,true);
-//                          std::cout<<"[Callback > filterLOD > city].....document : "<<info->getInfoName()<<" turned on"<<std::endl;
-//                      }
-//                      else
-//                      {
-//                          switchCity->setValue(j,false);
-//                          std::cout<<"[Callback > filterLOD > city].....document : "<<info->getInfoName()<<" turned off"<<std::endl;
-//                      }
-
-//                  }
-//              }
-//          }
-//          else
-//          {
-//              switchRoot->setValue(i,false);
-//              std::cout<<"[Callback > filterLOD > street].....city : "<<switchRoot->getChild(i)->getName()<<" is turned off"<<std::endl;
-//          }
-//      }
-//  }
-//  else
-//  {
-//      for(int i=0; i<switchRoot->getNumChildren(); i++)
-//      {
-//          switchRoot->setValue(i,false);
-//      }
-//  }
-
-//}
-
 void InfoDataType:: filterLOD(float distance)
 {
-  //std::cout<<"[Callback > filterLOD].....distance : "<<distance<<std::endl;
   if(distance<=500)
   {
-      //std::cout<<"[Callback > filterLOD].....LOD : street"<<std::endl;
       for(int i=0; i<switchRoot->getNumChildren(); i++)
       {
-          if(switchRoot->getChild(i)->getName()=="sw_Street")
+          if(switchRoot->getChild(i)->getName()=="street")
           {
+              switchRoot->setValue(i,true);
               osg::ref_ptr<osg::Switch> switchStreet = switchRoot->getChild(i)->asSwitch();
               if(switchStreet)
               {
@@ -513,35 +443,31 @@ void InfoDataType:: filterLOD(float distance)
                   {
                       osg::Node* node = switchStreet->getChild(j);
                       osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(true);
-                      //std::cout<<"[Callback > filterLOD > street]..... document "<<info->getInfoName()<<"is displayable ? "<<info->isDisplayable()<<std::endl;
+                      if(info->isRequested())
+                      {
+                          switchStreet->setValue(j,true);
+                      }
+                      else
+                      {
+                          switchStreet->setValue(j,false);
+                      }
                   }
               }
           }
           else
           {
-              osg::ref_ptr<osg::Switch> switchOther = switchRoot->getChild(i)->asSwitch();
-              if(switchOther)
-              {
-                  for(int j=0; j<switchOther->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchOther->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(false);
-                      //std::cout<<"[Callback > filterLOD > street]..... document "<<info->getInfoName()<<"is displayable ? "<<info->isDisplayable()<<std::endl;
-                  }
-              }
+              switchRoot->setValue(i,false);
           }
+
       }
   }
   else if(distance<=1500)
   {
-      //std::cout<<"[Callback > filterLOD].....LOD : building"<<std::endl;
       for(int i=0; i<switchRoot->getNumChildren(); i++)
       {
-          if(switchRoot->getChild(i)->getName()=="sw_Building")
+          if(switchRoot->getChild(i)->getName()=="building")
           {
-              //switchRoot->setValue(i,true);
+              switchRoot->setValue(i,true);
               osg::ref_ptr<osg::Switch> switchBuilding = switchRoot->getChild(i)->asSwitch();
               if(switchBuilding)
               {
@@ -549,35 +475,32 @@ void InfoDataType:: filterLOD(float distance)
                   {
                       osg::Node* node = switchBuilding->getChild(j);
                       osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(true);
-                      //std::cout<<"[Callback > filterLOD > building]..... document "<<info->getInfoName()<<" is displayable ? "<<info->isDisplayable()<<std::endl;
+                      //std::cout<<"[Callback > filterLOD > building].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
+                      if(info->isRequested())
+                      {
+                          switchBuilding->setValue(j,true);
+                      }
+                      else
+                      {
+                          switchBuilding->setValue(j,false);
+                      }
                   }
               }
           }
           else
           {
-              osg::ref_ptr<osg::Switch> switchOther = switchRoot->getChild(i)->asSwitch();
-              if(switchOther)
-              {
-                  for(int j=0; j<switchOther->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchOther->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(false);
-                      //std::cout<<"[Callback > filterLOD > building]..... document "<<info->getInfoName()<<" is displayable ? "<<info->isDisplayable()<<std::endl;
-                  }
-              }
+              switchRoot->setValue(i,false);
           }
       }
   }
-  else if(distance<=5000)
+  else if(distance<=6000)
   {
       //std::cout<<"[Callback > filterLOD].....LOD : district"<<std::endl;
       for(int i=0; i<switchRoot->getNumChildren(); i++)
       {
-          if(switchRoot->getChild(i)->getName()=="sw_District")
+          if(switchRoot->getChild(i)->getName()=="district")
           {
-              //switchRoot->setValue(i,true);
+              switchRoot->setValue(i,true);
               osg::ref_ptr<osg::Switch> switchDistrict = switchRoot->getChild(i)->asSwitch();
               if(switchDistrict)
               {
@@ -585,89 +508,67 @@ void InfoDataType:: filterLOD(float distance)
                   {
                       osg::Node* node = switchDistrict->getChild(j);
                       osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(true);
-                      //std::cout<<"[Callback > filterLOD > district]..... document "<<info->getInfoName()<<" is displayable ? "<<info->isDisplayable()<<std::endl;
-
+                      if(info->isRequested())
+                      {
+                          switchDistrict->setValue(j,true);
+                      }
+                      else
+                      {
+                          switchDistrict->setValue(j,false);
+                      }
                   }
               }
           }
           else
           {
-              osg::ref_ptr<osg::Switch> switchOther = switchRoot->getChild(i)->asSwitch();
-              if(switchOther)
-              {
-                  for(int j=0; j<switchOther->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchOther->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(false);
-                      //std::cout<<"[Callback > filterLOD > district]..... document "<<info->getInfoName()<<" is displayable ? "<<info->isDisplayable()<<std::endl;
-                  }
-              }
+              switchRoot->setValue(i,false);
           }
       }
   }
-  else if(distance<=30000)
+  else if(distance<=50000)
   {
-     //std::cout<<"[Callback > filterLOD].....LOD : city"<<std::endl;
       for(int i=0; i<switchRoot->getNumChildren(); i++)
       {
-          //std::cout<<"[Callback > filterLOD > city].....children name : "<<switchRoot->getChild(i)->getName()<<std::endl;
-          if(switchRoot->getChild(i)->getName()=="sw_City")
+          if(switchRoot->getChild(i)->getName()=="city")
           {
-              //switchRoot->setValue(i,true);
-              //std::cout<<"[Callback > filterLOD > city].....found child : "<<switchRoot->getChild(i)->getName()<<std::endl;
+              switchRoot->setValue(i,true);
               osg::ref_ptr<osg::Switch> switchCity = switchRoot->getChild(i)->asSwitch();
               if(switchCity)
               {
-                  //std::cout<<"[Callback > filterLOD > city].....if(switchCity)"<<std::endl;
                   for(int j=0; j<switchCity->getNumChildren();j++)
                   {
                       osg::Node* node = switchCity->getChild(j);
                       osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(true);
-                      //std::cout<<"[Callback > filterLOD > city]..... document "<<info->getInfoName()<<" is displayable ? "<<info->isDisplayable()<<std::endl;
+                      //std::cout<<"[Callback > filterLOD > city].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
+                      if(info->isRequested())
+                      {
+                          switchCity->setValue(j,true);
+                      }
+                      else
+                      {
+                          switchCity->setValue(j,false);
+                      }
 
                   }
               }
           }
           else
           {
-              osg::ref_ptr<osg::Switch> switchOther = switchRoot->getChild(i)->asSwitch();
-              if(switchOther)
-              {
-                  for(int j=0; j<switchOther->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchOther->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      info->setDisplayable(false);
-                      //std::cout<<"[Callback > filterLOD > city]..... document "<<info->getInfoName()<<" is displayable ? "<<info->isDisplayable()<<std::endl;
-                  }
-              }
+              switchRoot->setValue(i,false);
           }
       }
   }
   else
   {
-      //std::cout<<"[Callback > filterLOD].....LOD : city"<<std::endl;
       for(int i=0; i<switchRoot->getNumChildren(); i++)
       {
-          osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-          if(subSwitch)
-          {
-              //std::cout<<"[Callback > filterLOD > city].....if(switchCity)"<<std::endl;
-              for(int j=0; j<subSwitch->getNumChildren();j++)
-              {
-                  osg::Node* node = subSwitch->getChild(j);
-                  osgInfo* info = dynamic_cast<osgInfo*>(node);
-                  info->setDisplayable(false);
-                  //std::cout<<"[Callback > filterLOD > city]..... document "<<info->getInfoName()<<" is displayable ? "<<info->isDisplayable()<<std::endl;
-
-              }
-          }
+          switchRoot->setValue(i,false);
       }
   }
+
 }
+
+
 
 
 class UpdateInfo : public osg::NodeCallback
@@ -685,16 +586,13 @@ public :
         if(layerInfo)
         {
 
-             osg::Camera* cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
-             AABBCollection boundingBox = LoadAABB("/home/pers/clement.chagnaud/Documents/Data/Tuiles/");
+            osg::Camera* cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
 
-             float dist = layerInfo->getDistance(boundingBox, cam);
+            layerInfo->computeDistances(cam);
+            layerInfo->setDisplayability();
+            //layerInfo->forceDisplayability();
+            //layerInfo->updateScale();
 
-//             layerInfo->setDisplayability(dist);
-//             layerInfo->display();
-
-             //layerInfo->displayRequests();
-            layerInfo->filterLOD(dist);
             layerInfo->display();
 
 
@@ -848,23 +746,23 @@ void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
         {
             std::cout<<"[osgScene > initInfo].....if(layerGroup)"<<std::endl;
             osg::ref_ptr<osg::Switch> switchRoot = new osg::Switch;
-            switchRoot->setName("sw_Root");
+            switchRoot->setName("switch_root");
             layerGroup->addChild(switchRoot);
 
             osg::ref_ptr<osg::Switch> switch0 = new osg::Switch;
-            switch0->setName("sw_City");
+            switch0->setName("city");
             switchRoot->addChild(switch0);
 
             osg::ref_ptr<osg::Switch> switch1 = new osg::Switch;
-            switch1->setName("sw_District");
+            switch1->setName("district");
             switchRoot->addChild(switch1);
 
             osg::ref_ptr<osg::Switch> switch2 = new osg::Switch;
-            switch2->setName("sw_Building");
+            switch2->setName("building");
             switchRoot->addChild(switch2);
 
             osg::ref_ptr<osg::Switch> switch3 = new osg::Switch;
-            switch3->setName("sw_Street");
+            switch3->setName("street");
             switchRoot->addChild(switch3);
 
             fillSwitches(switchRoot, info);
@@ -889,6 +787,7 @@ void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info)
 {
+    int cpt = 0;
     std::cout<<"[osgScene > fillSwitches] "<<std::endl;
         for (int i=0; i<v_info.size(); i++)
         {
@@ -900,9 +799,34 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                 {
                     citySwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
                     osg::ref_ptr<osg::Group> cityGroup = citySwitch->getChild(citySwitch->getNumChildren()-1)->asGroup();
+                    cityGroup->setName(v_info[i]->getInfoName());
                     if(cityGroup)
                     {
                         cityGroup->addChild(v_info[i]->getPAT());
+
+//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+
+//                        osg::Geometry* geom = new osg::Geometry;
+//                        osg::Vec3Array* vertices = new osg::Vec3Array;
+//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+//                        vertices->push_back( v_info[i]->getPosition() );
+//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
+
+//                        indices->push_back(0);
+//                        indices->push_back(1);
+
+//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+
+//                        geom->setVertexArray(vertices);
+//                        geom->addPrimitiveSet(indices);
+//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
+
+//                        geode->addDrawable(geom);
+
+//                        cityGroup->addChild(geode);
+
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -910,15 +834,39 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
             }
             if(v_info[i]->getInfoLOD()=="district")
             {
+                cpt++;
                 //std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is LOD : "<<v_info[i]->getInfoLOD()<<std::endl;
                 osg::ref_ptr<osg::Switch> districtSwitch = switchRoot->getChild(1)->asSwitch();
                 if(districtSwitch)
                 {
                     districtSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
                     osg::ref_ptr<osg::Group> districtGroup = districtSwitch->getChild(districtSwitch->getNumChildren()-1)->asGroup();
+                    districtGroup->setName(v_info[i]->getInfoName());
                     if(districtGroup)
                     {
                         districtGroup->addChild(v_info[i]->getPAT());
+//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+
+//                        osg::Geometry* geom = new osg::Geometry;
+//                        osg::Vec3Array* vertices = new osg::Vec3Array;
+//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+//                        vertices->push_back( v_info[i]->getPosition() );
+//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
+
+//                        indices->push_back(0);
+//                        indices->push_back(1);
+
+//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+
+//                        geom->setVertexArray(vertices);
+//                        geom->addPrimitiveSet(indices);
+//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
+
+//                        geode->addDrawable(geom);
+
+//                        districtGroup->addChild(geode);
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -933,10 +881,33 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     buildingSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]));
                     //std::cout<<"[osgScene > fillSwitches].....if(buildingSwitch).....dynamic_cast"<<std::endl;
                     osg::ref_ptr<osg::Group> buildingGroup = buildingSwitch->getChild(buildingSwitch->getNumChildren()-1)->asGroup();
+                    buildingGroup->setName(v_info[i]->getInfoName());
                     if(buildingGroup)
                     {
                         //std::cout<<"[osgScene > fillSwitches].....if(buildingGroup)"<<std::endl;
                         buildingGroup->addChild(v_info[i]->getPAT());
+//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+
+//                        osg::Geometry* geom = new osg::Geometry;
+//                        osg::Vec3Array* vertices = new osg::Vec3Array;
+//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+//                        vertices->push_back( v_info[i]->getPosition() );
+//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
+
+//                        indices->push_back(0);
+//                        indices->push_back(1);
+
+//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+
+//                        geom->setVertexArray(vertices);
+//                        geom->addPrimitiveSet(indices);
+//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
+
+//                        geode->addDrawable(geom);
+
+//                        buildingGroup->addChild(geode);
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -949,15 +920,39 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                 {
                     streetSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
                     osg::ref_ptr<osg::Group> streetGroup = streetSwitch->getChild(streetSwitch->getNumChildren()-1)->asGroup();
+                    streetGroup->setName(v_info[i]->getInfoName());
                     if(streetGroup)
                     {
                         streetGroup->addChild(v_info[i]->getPAT());
+//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+
+//                        osg::Geometry* geom = new osg::Geometry;
+//                        osg::Vec3Array* vertices = new osg::Vec3Array;
+//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+//                        vertices->push_back( v_info[i]->getPosition() );
+//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
+
+//                        indices->push_back(0);
+//                        indices->push_back(1);
+
+//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+
+//                        geom->setVertexArray(vertices);
+//                        geom->addPrimitiveSet(indices);
+//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
+
+//                        geode->addDrawable(geom);
+
+//                        streetGroup->addChild(geode);
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
             }
 
         }
+        std::cout<<"[osgScene > fillSwitches].....nb info in district : "<<cpt<<std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -983,7 +978,6 @@ osg::ref_ptr<osg::Switch> OsgScene::fillInfo(std::vector<osgInfo*> v_info)
 
 void OsgScene:: filterInfo(const QString& filter)
 {
-    int cpt=1;
     std::cout<<"[osgScene > filterInfo]"<<std::endl;
     osg::ref_ptr<osg::Node> layer = m_layers->getChild(5);
     if(layer)
@@ -1010,17 +1004,17 @@ void OsgScene:: filterInfo(const QString& filter)
         //                    std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found = "<< found <<std::endl;
                                 if(filter.toStdString()==info->getType())
                                 {
-                                    std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found filetype : "<< info->getType() <<std::endl;
+                                    //std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found filetype : "<< info->getType() <<std::endl;
                                     info->setRequested(true);
                                 }
                                 else if(filter.toStdString()==info->getSourceType())
                                 {
                                     info->setRequested(true);
-                                    std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found sourcetype : "<< info->getSourceType() <<std::endl;
+                                    //std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found sourcetype : "<< info->getSourceType() <<std::endl;
                                 }
                                 else if(info->getInfoName().find(filter.toStdString())<=100)
                                 {
-                                    std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found word : "<< filter.toStdString() <<std::endl;
+                                    //std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found word : "<< filter.toStdString() <<std::endl;
                                     info->setRequested(true);
                                 }
                                 else if(filter.toStdString()=="")

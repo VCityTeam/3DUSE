@@ -2797,7 +2797,7 @@ std::vector<osgInfo*> loadCSV()
     std::vector<std::string> v_LOD;
 
     // *** CSV Load
-        std::ifstream file( "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test2.csv");
+        std::ifstream file( "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test3.csv");
         std::string line;
         std::getline(file,line); //get the first line
         int cpt = 0 ;
@@ -2838,13 +2838,19 @@ std::vector<osgInfo*> loadCSV()
                         v_filepath.push_back(cell);
 
                 if (cpt==8)
-                        v_name.push_back(cell);
+                {
+                    v_name.push_back(cell);
+
+                }
                 if (cpt==9)
                         v_filetype.push_back(cell);
                 if (cpt==10)
                         v_sourcetype.push_back(cell);
                 if (cpt==11)
-                        v_LOD.push_back(cell);
+                {
+                    v_LOD.push_back(cell);
+
+                }
 
                 cpt++;
              }
@@ -2868,6 +2874,13 @@ void MainWindow::test2()
     v_info = loadCSV();
     vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
     appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
+
+
+    for (int i=0; i<v_info.size(); i++)
+    {
+        v_info[i]->BillboardON();
+    }
+
 
 	//Création d'ilots à partir de Shapefile contenant des routes
 //	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
@@ -2908,64 +2921,114 @@ void MainWindow::test2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
+    osg::Group *l_root= new osg::Group;
+
+
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+
+    osg::Geometry* geom = new osg::Geometry;
+    osg::Vec3Array* vertices = new osg::Vec3Array;
+    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+    vertices->push_back(osg::Vec3(0, 0, 0));
+    vertices->push_back(osg::Vec3(1000, 1000, 1000));
+
+    indices->push_back(0);
+    indices->push_back(1);
+
+    osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+    color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+
+    geom->setVertexArray(vertices);
+    geom->addPrimitiveSet(indices);
+    geom->setColorArray(color, osg::Array::BIND_OVERALL);
+
+    geode->addDrawable(geom);
+
+
+
+
+    l_root->addChild(geode);
+
+
+
+    vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+    appGui().getOsgScene()->addShpNode(uriLayer, l_root);
+
+//    osg::Vec3 sp(0,-180,120);
+//    osg::Vec3 ep(0,480,120);
+//    osg::ref_ptr<Geometry> beam( new osg::Geometry);
+//    osg::ref_ptr<osg::Vec3Array> points = new osg::Vec3Array;
+//    points->push_back(sp);
+//    points->push_back(ep);
+//    osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+//    color->push_back(osg::Vec4(1.0,0.0,0.0,1.0));
+//    beam->setVertexArray(points.get());
+//    beam->setColorArray(color.get());
+//    beam->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE);
+//    beam->addPrimitiveSet(new osg::DrawArrays(GL_LINES,0,2));
+
+
+
+
 	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
 
-	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
-	QSettings settings("liris", "virtualcity");
-	QString lastdir = settings.value("lastdir").toString();
-	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
+//	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+//	QSettings settings("liris", "virtualcity");
+//	QString lastdir = settings.value("lastdir").toString();
+//	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
 
-	QFileInfo file1temp(File1[0]);
-	QString file1path = file1temp.absoluteFilePath();
-	QFileInfo file1(file1path);
+//	QFileInfo file1temp(File1[0]);
+//	QString file1path = file1temp.absoluteFilePath();
+//	QFileInfo file1(file1path);
 
-	QString ext = file1.suffix().toLower();
-	if(ext != "citygml" && ext != "gml")
-	{
-		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-		return;
-	}
+//	QString ext = file1.suffix().toLower();
+//	if(ext != "citygml" && ext != "gml")
+//	{
+//		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+//		return;
+//	}
 
-	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
+//	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
 
-	QFileInfo file2temp(File2[0]);
-	QString file2path = file2temp.absoluteFilePath();
-	QFileInfo file2(file2path);
+//	QFileInfo file2temp(File2[0]);
+//	QString file2path = file2temp.absoluteFilePath();
+//	QFileInfo file2(file2path);
 
-	ext = file2.suffix().toLower();
-	if(ext != "citygml" && ext != "gml")
-	{
-		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-		return;
-	}
+//	ext = file2.suffix().toLower();
+//	if(ext != "citygml" && ext != "gml")
+//	{
+//		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+//		return;
+//	}
 
-	QFileDialog w;
-	w.setWindowTitle("Selectionner le dossier de sortie");
-	w.setFileMode(QFileDialog::Directory);
+//	QFileDialog w;
+//	w.setWindowTitle("Selectionner le dossier de sortie");
+//	w.setFileMode(QFileDialog::Directory);
 
-	if(w.exec() == 0)
-	{
-		std::cout << "Annulation : Dossier non valide." << std::endl;
-		return;
-	}
-	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
+//	if(w.exec() == 0)
+//	{
+//		std::cout << "Annulation : Dossier non valide." << std::endl;
+//		return;
+//	}
+//	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
 
-	QApplication::setOverrideCursor(Qt::WaitCursor);
-	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
-	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
-	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
-	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
+//	QApplication::setOverrideCursor(Qt::WaitCursor);
+//	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
+//	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
+//	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
+//	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
 
-	citygml::CityModel * City1 = tile1->getCityModel();
-	citygml::CityModel * City2 = tile2->getCityModel();
+//	citygml::CityModel * City1 = tile1->getCityModel();
+//	citygml::CityModel * City2 = tile2->getCityModel();
 
-	FusionLODs(City1, City2);
+//	FusionLODs(City1, City2);
 
-	citygml::ExporterCityGML exporter(Folder);
+//	citygml::ExporterCityGML exporter(Folder);
 
-	exporter.exportCityModel(*City2);
+//	exporter.exportCityModel(*City2);
 
-	QApplication::restoreOverrideCursor();
+//	QApplication::restoreOverrideCursor();
 }
 
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);

@@ -9,14 +9,13 @@
 
 #include <osg/Geometry>
 #include <osg/PositionAttitudeTransform>
+#include <osg/Billboard>
 #include <osg/MatrixTransform>
 #include <osg/Vec3>
 #include <osg/Texture2D>
 #include <osgDB/ReadFile>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
+#include <osg/BlendFunc>
+#include <osg/Material>
 
 
 class osgInfo : public osg::Group
@@ -25,30 +24,29 @@ public:
     osgInfo();
     osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod);
 
-    void updateGeometry();
+    void BillboardOFF();///use geode
+    void BillboardON();///use billboard
+    void Scaling(float scale);
 
     // Setters
     void setPosition(osg::Vec3 newPos);
     void setAxis(osg::Vec3 newAxis);
 
+    void setAngle(float newAngle);
     void setHeight(float newHeight);
     void setWidth(float newWidth);
-    void setAngle(float newAngle);
+    void setDistancetoCam(float newDist);
 
     void setTexture(std::string filepath);
+    void setTransparency(float alpha);
     void setDisplayable(bool statut);
     void setRequested(bool statut);
 
     // Getters
     osg::Vec3 getPosition();
-    double getAngle();
-    osg::Vec3 getAxis();
+    float getDistancetoCam();
 
-    osg::Texture2D* getTexture();
-    osg::StateSet* getState();
-    osg::Geometry* getGeom() ;
-    osg::Geode* getGeode() ;
-    osg::PositionAttitudeTransform* getPAT() ;
+    osg::Group *getPAT();
 
     std::string getInfoName();
     std::string getType();
@@ -74,6 +72,8 @@ private:
     float m_width; ///width of the doc
     double m_angle ; ///rotation angle of the node
 
+    float m_distancetocam ; ///distance between doc and cam
+
 
     unsigned int m_date_deb ;
     unsigned int m_date_fin ;
@@ -83,9 +83,12 @@ private:
 
 
     osg::Texture2D *m_texture ; ///texture of the doc
+    osg::Material *m_material ; ///material
     osg::StateSet *m_state; ///state of the doc
     osg::Geometry  *m_geom; ///geometry instance for the node
     osg::Geode *m_geode; ///geometry node
+    osg::Group *m_group; ///group node
+    osg::Billboard *m_billboard; ///billboard
     osg::PositionAttitudeTransform *m_pat; ///position attitude transforme of the node
 
 
