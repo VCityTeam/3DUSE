@@ -30,42 +30,39 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 enum CityObjectsType {
-    COT_GenericCityObject, // JE 13/01/16 - removeing filtering feature to allow having more than 32 COT
-    COT_Building,
-    COT_Room,
-    COT_BuildingInstallation,
-    COT_BuildingFurniture,
-    COT_Door,
-    COT_Window,
-    COT_CityFurniture,
-    COT_Track,
-    COT_Road,
-    COT_Railway,
-    COT_Square,
-    COT_PlantCover,
-    COT_SolitaryVegetationObject,
-    COT_WaterBody,
-	COT_ReliefFeature,
-    COT_TINRelief,
-    COT_LandUse,
-    COT_Tunnel,
-    COT_Bridge,
-    COT_BridgeConstructionElement,
-    COT_BridgeInstallation,
-    COT_BridgePart,
-    COT_BuildingPart,
+    COT_GenericCityObject           = 1 << 0,
+    COT_Building                    = 1 << 1,
+    COT_Room                        = 1 << 2,
+    COT_BuildingInstallation        = 1 << 3,
+    COT_BuildingFurniture           = 1 << 4,
+    COT_Door                        = 1 << 5,
+    COT_Window                      = 1 << 6,
+    COT_CityFurniture               = 1 << 7,
+    COT_Track                       = 1 << 8,
+    COT_Road                        = 1 << 9,
+    COT_Railway                     = 1 << 10,
+    COT_Square                      = 1 << 11,
+    COT_PlantCover                  = 1 << 12,
+    COT_SolitaryVegetationObject    = 1 << 13,
+    COT_WaterBody                   = 1 << 14,
+    COT_TINRelief                   = 1 << 15,
+    COT_LandUse                     = 1 << 16,
+    COT_Tunnel						= 1 << 17,
+    COT_Bridge						= 1 << 18,
+    COT_BridgeConstructionElement	= 1 << 19,
+    COT_BridgeInstallation			= 1 << 20,
+    COT_BridgePart                  = 1 << 21,
+    COT_BuildingPart                = 1 << 22,
 
-    COT_WallSurface,
-    COT_RoofSurface,
-    COT_GroundSurface,
-    COT_ClosureSurface,
-    COT_FloorSurface,
-    COT_InteriorWallSurface,
-    COT_CeilingSurface,
-    COT_WaterSurface,
-	COT_WaterGroundSurface,
+    COT_WallSurface                 = 1 << 23,
+    COT_RoofSurface                 = 1 << 24,
+    COT_GroundSurface               = 1 << 25,
+    COT_ClosureSurface              = 1 << 26,
+    COT_FloorSurface                = 1 << 27,
+    COT_InteriorWallSurface         = 1 << 28,
+    COT_CeilingSurface              = 1 << 29,
 
-    COT_All
+    COT_All                         = 0xFFFFFFFF
 };
 typedef unsigned int CityObjectsTypeMask;
 
@@ -171,7 +168,6 @@ public:
 
 //protected:
     void finish( AppearanceManager&, const ParserParams& );
-
 
 protected:
     CityObjectsType _type;
