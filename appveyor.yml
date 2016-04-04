@@ -90,4 +90,4 @@ before_build:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-  - msbuild /m VCity.sln # /m is ignored ? (but not really important because the VM has only one processor !)
+  - msbuild /m 3DUSE.sln # /m is ignored ? (but not really important because the VM has only one processor !)
