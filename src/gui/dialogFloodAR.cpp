@@ -394,7 +394,7 @@ void dialogFloodAR::ASCtoTerrain()
 						for (TVec2f UV : TexUV)
 						{
 							UV.x = (UV.x - offset_x) / 499;
-							UV.y = 1 + (UV.y - offset_y) / (-499);//Car D est négatif
+							UV.y = 1 + (UV.y - offset_y) / 499;//Car D est négatif
 							TexUV.at(i) = UV;
 							++i;
 						}
@@ -409,7 +409,8 @@ void dialogFloodAR::ASCtoTerrain()
 						//}
 					}
 					//Remplissage de ListTextures
-					std::string Url = texturesPath.absoluteFilePath().toStdString();
+					QDir workdir = file.dir();
+					std::string Url = workdir.relativeFilePath(texturesPath.filePath()).toStdString();
 					citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
 
 					TexturePolygonCityGML Poly;

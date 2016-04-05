@@ -170,19 +170,12 @@ namespace citygml
 		return res;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent, bool isTerrain)
+	xmlNodePtr ExporterCityGML::exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent)
 	{
 		xmlNodePtr res;
-		if (isTerrain)
-		{
-			res = xmlNewChild(parent, NULL, BAD_CAST ("gml:Triangle"), NULL);
-		}
-		else
-		{
-			xmlNodePtr node = xmlNewChild(parent, NULL, BAD_CAST "gml:surfaceMember", NULL);
-			res = xmlNewChild(node, NULL, BAD_CAST ("gml:Polygon"), NULL);
-			xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
-		}
+		xmlNodePtr node = xmlNewChild(parent, NULL, BAD_CAST "gml:surfaceMember", NULL);
+		res = xmlNewChild(node, NULL, BAD_CAST ("gml:Polygon"), NULL);
+		xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST poly.getId().c_str());
 
 		const std::vector<citygml::LinearRing*>& lrings = poly.getInteriorRings();
 		std::vector<citygml::LinearRing*>::const_iterator it = lrings.begin();
@@ -201,7 +194,7 @@ namespace citygml
 		return res;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent, bool isTerrain)
+	xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent)
 	{
         //xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL); //Maxime a ajouté un Wall (Roof) après le WallSurface (RoofSurface) alors qu'il n'y est pas dans les CityGML fournis
         //xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
@@ -214,19 +207,19 @@ namespace citygml
 		for(const citygml::Polygon* poly : geom.getPolygons())
 		{
 			//exportPolygonAppearanceXml(*poly, m_currentAppearence); ///////// EXPORT TEXTURE VERSION MAXIME -> Un appel du fichier image par Polygon. Commenté car texture gérée par exportCityModelWithListTextures.
-			exportPolygonXml(*poly, parent, isTerrain);//node3
+			exportPolygonXml(*poly, parent);//node3
 		}
 
         //return res;
         return parent;//node1;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent, bool isTerrain)
+	xmlNodePtr ExporterCityGML::exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent)
 	{
 		switch(geom.getType())
 		{
 		case citygml::GT_Unknown:
-			return exportGeometryGenericXml(geom, "bldg:Unknown", parent, isTerrain);
+			return exportGeometryGenericXml(geom, "bldg:Unknown", parent);
 			break;
 		case citygml::GT_Roof:
 			return exportGeometryGenericXml(geom, "bldg:Roof", parent);
@@ -623,7 +616,7 @@ namespace citygml
 			//std::cout << "Geometry" << std::endl;
 
 			if(res)
-				exportGeometryXml(*geom, node, isTerrain);
+				exportGeometryXml(*geom, node);
 			else exportGeometryXml(*geom, parent);
 		}
 		if (obj._isXlink!=xLinkState::LINKED)

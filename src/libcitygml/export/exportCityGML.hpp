@@ -97,9 +97,9 @@ private:
     xmlNodePtr exportListTextures(xmlNodePtr root, std::vector<TextureCityGML*>* ListTextures);
     xmlNodePtr exportEnvelopeXml(const citygml::Envelope& env, xmlNodePtr parent);
     xmlNodePtr exportLinearRingXml(const citygml::LinearRing& ring, xmlNodePtr parent);
-    xmlNodePtr exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent, bool isTerrain = false);
-    xmlNodePtr exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent, bool isTerrain = false);
-    xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent, bool isTerrain = false);
+    xmlNodePtr exportPolygonXml(const citygml::Polygon& poly, xmlNodePtr parent);
+    xmlNodePtr exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent);
+    xmlNodePtr exportGeometryXml(const citygml::Geometry& geom, xmlNodePtr parent);
     xmlNodePtr exportCityObjetStateXml(const citygml::CityObjectState& state, const std::string &nodeType, xmlNodePtr parent);
     xmlNodePtr exportCityObjetTagXml(const citygml::CityObjectTag& tag, const std::string &nodeType, xmlNodePtr parent);
     xmlNodePtr exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string &nodeType, xmlNodePtr parent, bool isSurface=false);

@@ -46,14 +46,14 @@ namespace citygml
 		int incrx = 1; // for manually changing step if needed
 		int incry = 1;
 		Geometry* geom = new Geometry("", GT_Unknown,3);
-		for (int y=0; y<asc->get_dim_y()-incry;y+=incry)
+		for (int y=0; y<asc->get_dim_y()-incry-1;y+=incry)
 		{
-			for (int x=0; x<asc->get_dim_x()-incrx;x+=incrx)
+			for (int x=0; x<asc->get_dim_x()-incrx-1;x+=incrx)
 			{
-				float xmin = (asc->get_x_noeud_NO())+(x+0.5)*(asc->get_pas_x());
-				float xmax = (asc->get_x_noeud_NO())+(x+incrx+0.5)*(asc->get_pas_x());
-				float ymax = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-0.5)*(asc->get_pas_y());
-				float ymin = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-incry-0.5)*(asc->get_pas_y());
+				float xmin = (asc->get_x_noeud_NO())+(x)*(asc->get_pas_x());
+				float xmax = (asc->get_x_noeud_NO())+(x+incrx)*(asc->get_pas_x());
+				float ymax = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y)*(asc->get_pas_y());
+				float ymin = (asc->get_y_noeud_NO())+(asc->get_dim_y()-y-incry)*(asc->get_pas_y());
 				TVec3d v1, v2, v3, v4;
 				v1[0] = xmin;
 				v1[1] = ymax;
