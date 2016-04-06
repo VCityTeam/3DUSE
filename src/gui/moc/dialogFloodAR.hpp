@@ -2,6 +2,8 @@
 #define DIALOG_FLOODAR_H
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
+#include <QFileDialog>
+#include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class dialogFloodAR;
@@ -17,6 +19,8 @@ public:
 
 private:
     Ui::dialogFloodAR *ui;
+
+	std::vector<TextureCityGML*> getTexturesList(citygml::CityModel*, QFileInfo, QFileInfo);
 
 public slots:
 	void browseInputDirASCCut();

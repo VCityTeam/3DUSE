@@ -1,11 +1,9 @@
 #include "moc/dialogFloodAR.hpp"
 #include "ui_dialogFloodAR.h"
-#include <QFileDialog>
 #include <QMessageBox>
 
 #include "gui/osg/osgMnt.hpp"
 #include "import/importerASC.hpp"
-#include "export/exportCityGML.hpp"
 #include "AABB.hpp"
 #include "processes/ShpExtrusion.hpp"
 #include "processes/ASCCut.hpp"
@@ -356,89 +354,7 @@ void dialogFloodAR::ASCtoTerrain()
 	std::vector<TextureCityGML*> TexturesList;
 	if (addTextures)
 	{
-		for (citygml::CityObject* obj : model->getCityObjectsRoots())
-		{
-			for (citygml::Geometry* Geometry : obj->getGeometries())
-			{
-				for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
-				{
-					//if (PolygonCityGML->getTexture() == nullptr)
-					//	continue;
-
-					std::vector<TVec2f> TexUV;
-
-					OGRLinearRing * OgrRing = new OGRLinearRing;
-					for (TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
-					{
-						OgrRing->addPoint(Point.x, Point.y, Point.z);
-						TexUV.push_back(TVec2f(Point.x, Point.y));
-					}
-
-					//if (PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
-					{
-						double A, B, C, D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
-						double offset_x;
-						double offset_y;
-
-						//std::string path = PathFolder + "/" + PolygonCityGML->getTexture()->getUrl().substr(0, PolygonCityGML->getTexture()->getUrl().find_last_of('.'))+".jgw";
-						//std::cout << path << std::endl;
-						std::ifstream fichier(texturesPath.absolutePath().toStdString() + "/" + texturesPath.baseName().toStdString() + ".jgw", std::ios::in);
-
-						if (fichier)
-						{
-							fichier >> A >> B >> C >> D >> offset_x >> offset_y;
-							fichier.close();
-						}
-						//std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;
-						int i = 0;
-						for (TVec2f UV : TexUV)
-						{
-							UV.x = (UV.x - offset_x) / 499;
-							UV.y = 1 + (UV.y - offset_y) / 499;//Car D est négatif
-							TexUV.at(i) = UV;
-							++i;
-						}
-						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D négatif (données de LYON)
-						//int i = 0;
-						//for (TVec2f UV : TexUV)
-						//{
-						//	UV.x = UV.x / 4095;
-						//	UV.y = 1 + UV.y / 4095;//Car D est négatif
-						//	TexUV.at(i) = UV;
-						//	++i;
-						//}
-					}
-					//Remplissage de ListTextures
-					QDir workdir = file.dir();
-					std::string Url = workdir.relativeFilePath(texturesPath.filePath()).toStdString();
-					citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
-
-					TexturePolygonCityGML Poly;
-					Poly.Id = PolygonCityGML->getId();
-					Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
-					Poly.TexUV = TexUV;
-
-					bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-					for (TextureCityGML* Tex : TexturesList)
-					{
-						if (Tex->Url == Url)
-						{
-							URLTest = true;
-							Tex->ListPolygons.push_back(Poly);
-							break;
-						}
-					}
-					if (!URLTest)
-					{
-						TextureCityGML* Texture = new TextureCityGML;
-						Texture->Wrap = WrapMode;
-						Texture->Url = Url;
-						Texture->ListPolygons.push_back(Poly);
-						TexturesList.push_back(Texture);
-					}
-				}
-			}
-		}
+		TexturesList = getTexturesList(model, file, texturesPath);
 	}
 	//export en CityGML
 	std::cout << "Export ...";
@@ -451,12 +367,90 @@ void dialogFloodAR::ASCtoTerrain()
 	}
 	else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
 	delete model;
-
+	for (TextureCityGML* tex : TexturesList) delete tex;
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Conversion finished!");
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
+std::vector<TextureCityGML*> dialogFloodAR::getTexturesList(citygml::CityModel* model, QFileInfo file, QFileInfo texturesPath)
+{
+	std::vector<TextureCityGML*> TexturesList;
+
+	for (citygml::CityObject* obj : model->getCityObjectsRoots())
+	{
+		for (citygml::Geometry* Geometry : obj->getGeometries())
+		{
+			for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+			{
+
+				std::vector<TVec2f> TexUV;
+
+				OGRLinearRing * OgrRing = new OGRLinearRing;
+				for (TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
+				{
+					OgrRing->addPoint(Point.x, Point.y, Point.z);
+					TexUV.push_back(TVec2f(Point.x, Point.y));
+				}
+
+				{
+					//double A, B, C, D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
+					double offset_x;
+					double offset_y;
+
+					//std::ifstream fichier(texturesPath.absolutePath().toStdString() + "/" + texturesPath.baseName().toStdString() + ".jgw", std::ios::in);
+
+					//if (fichier)
+					//{
+					//	fichier >> A >> B >> C >> D >> offset_x >> offset_y;
+					//	fichier.close();
+					//}
+					offset_x = model->getEnvelope().getLowerBound().x;
+					offset_y = model->getEnvelope().getUpperBound().y;
+					float tileSize = 500; // taille de la zone en mètres
+					int i = 0;
+					for (TVec2f UV : TexUV)
+					{
+						UV.x = (UV.x - offset_x) / tileSize; // 
+						UV.y = 1 + (UV.y - offset_y) / tileSize;//Car D est négatif
+						TexUV.at(i) = UV;
+						++i;
+					}
+				}
+				//Remplissage de ListTextures
+				QDir workdir = file.dir();
+				std::string Url = workdir.relativeFilePath(texturesPath.filePath()).toStdString();
+				citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
+
+				TexturePolygonCityGML Poly;
+				Poly.Id = PolygonCityGML->getId();
+				Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
+				Poly.TexUV = TexUV;
+
+				bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+				for (TextureCityGML* Tex : TexturesList)
+				{
+					if (Tex->Url == Url)
+					{
+						URLTest = true;
+						Tex->ListPolygons.push_back(Poly);
+						break;
+					}
+				}
+				if (!URLTest)
+				{
+					TextureCityGML* Texture = new TextureCityGML;
+					Texture->Wrap = WrapMode;
+					Texture->Url = Url;
+					Texture->ListPolygons.push_back(Poly);
+					TexturesList.push_back(Texture);
+				}
+			}
+		}
+	}
+	return TexturesList;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::browseInputShpExt()

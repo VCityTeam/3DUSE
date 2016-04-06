@@ -41,7 +41,7 @@ _filterNodeType( false ), _filterDepth( 0 ), _exterior( true ),
 _currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
 m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr), _useXLink(false)
 { 
-	//_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask ); // JE 13/01/16 - removeing filtering feature to allow having more than 32 COT
+	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
 	initNodes();
 	ADEHandlerFactory* _adeFactory = new ADEHandlerFactory();
 	_adeFactory->getInstances(&_ADEHandlers);
@@ -379,7 +379,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		// City objects management
 #define MANAGE_OBJECT( _t_ )\
 	case CG_ ## _t_ :\
-        /*if ( _objectsMask & COT_ ## _t_ )*/ /* JE 13/01/16 - removeing filtering feature to allow having more than 32 COT*/\
+        if ( _objectsMask & COT_ ## _t_ )\
         {\
 			pushCityObject( new _t_( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
@@ -424,12 +424,12 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                 }\
             }\
         }\
-        /*else*/\
-        /*{*/\
-            /*pushCityObject( nullptr );*/\
-            /*_filterNodeType = true;*/\
-            /*_filterDepth = getPathDepth();*/\
-        /*}*/\
+        else\
+        {\
+            pushCityObject( nullptr );\
+            _filterNodeType = true;\
+            _filterDepth = getPathDepth();\
+        }\
         break;
 
 		MANAGE_OBJECT( GenericCityObject );
@@ -458,11 +458,10 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 #undef MANAGE_OBJECT
 
 		// BoundarySurfaceType
-
 #define MANAGE_SURFACETYPE( _t_ )\
     case CG_ ## _t_ ## Surface :\
         _currentGeometryType = GT_ ## _t_;\
-        /*if ( _objectsMask & COT_ ## _t_ ## Surface )*/ /* JE 13/01/16 - removeing filtering feature to allow having more than 32 COT*/\
+        if ( _objectsMask & COT_ ## _t_ ## Surface )\
         {\
 			pushCityObject( new _t_ ## Surface( getGmlIdAttribute( attributes ) ) );\
 			std::string xLinkQuery = getAttribute(attributes,"xlink:href");\
@@ -508,12 +507,12 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
                 }\
             }\
         }\
-        /*else*/\
-        /*{*/\
-            /*pushCityObject( nullptr );*/\
-            /*_filterNodeType = true;*/\
-            /*_filterDepth = getPathDepth();*/\
-        /*}*/\
+        else\
+        {\
+            pushCityObject( nullptr );\
+            _filterNodeType = true;\
+            _filterDepth = getPathDepth();\
+        }\
         break;
 		MANAGE_SURFACETYPE( Wall );
 		MANAGE_SURFACETYPE( Roof );
@@ -643,7 +642,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					try{tHandler->startElement(name, attributes);}
-					catch (...) {std::cerr<<"Method startElement() does not exist for "<<nspace<<" ADE Handler"<<std::endl;}
+					catch (...) { std::cerr << "Method startElement() does not exist for " << nspace << " ADE Handler" << std::endl; }
 				}
 			}
 		}
@@ -1072,11 +1071,12 @@ void CityGMLHandler::endElement( const std::string& name )
 			if ( pos != std::string::npos )
 			{
 				std::string nspace = name.substr( 0, pos );
+				
 				if (_ADEHandlers.find(nspace)!=_ADEHandlers.end())
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					try{tHandler->endElement(name);}
-					catch (...) {std::cerr<<"Method endElement() does not exist for "<<nspace<<" ADE Handler"<<std::endl;}
+					catch (...) { std::cerr << "Method endElement() does not exist for " << nspace << " ADE Handler" << std::endl; }
 				}
 			}
 		}
