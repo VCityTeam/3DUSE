@@ -1,26 +1,24 @@
-#ifndef DIALOG_FLOODAR_H
-#define DIALOG_FLOODAR_H
+#ifndef DIALOG_INONDATIONS_H
+#define DIALOG_INONDATIONS_H
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include <QFileDialog>
 #include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class dialogFloodAR;
+class dialogInondations;
 }
 ////////////////////////////////////////////////////////////////////////////////
-class dialogFloodAR : public QDialog
+class dialogInondations : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit dialogFloodAR(QWidget *parent = 0);
-    ~dialogFloodAR();
+    explicit dialogInondations(QWidget *parent = 0);
+    ~dialogInondations();
 
 private:
-    Ui::dialogFloodAR *ui;
-
-	std::vector<TextureCityGML*> getTexturesList(citygml::CityModel*, QFileInfo, QFileInfo);
+    Ui::dialogInondations *ui;
 
 public slots:
 	void browseInputDirASCCut();
@@ -45,4 +43,4 @@ public slots:
 
 };
 ////////////////////////////////////////////////////////////////////////////////
-#endif // DIALOG_FLOODAR_H
+#endif // DIALOG_INONDATIONS_H

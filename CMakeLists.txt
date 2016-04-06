@@ -621,6 +621,33 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [END]
 
+# --> CityGMLInondationsQtPlugin : QtPlugin [BEGIN]
+OPTION(BUILD_CityGMLInondationsQtPlugin "BUILD CityGMLInondationsQtPlugin " OFF)
+if (BUILD_CityGMLInondationsQtPlugin)
+  set(CityGMLInondations_Qt_Plugin_HEADER src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.h src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.hpp)
+  set(CityGMLInondations_Qt_Plugin_UI src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.ui)
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP(CityGMLInondations_Qt_Plugin_MOC_CPP ${CityGMLInondations_Qt_Plugin_HEADER})
+    QT5_WRAP_UI(CityGMLInondations_Qt_Plugin_UI_CPP ${CityGMLInondations_Qt_Plugin_UI})
+    set(CityGMLInondations_Qt_Plugin_SRC ${CityGMLInondations_Qt_Plugin_SRC} ${CityGMLInondations_Qt_Plugin_MOC_CPP} ${CityGMLInondations_Qt_Plugin_UI_CPP})
+  else(WITH_QT5) 
+    QT4_WRAP_CPP(CityGMLInondations_Qt_Plugin_MOC_CPP ${CityGMLInondations_Qt_Plugin_HEADER})
+    QT4_WRAP_UI(CityGMLInondations_Qt_Plugin_UI_CPP ${CityGMLInondations_Qt_Plugin_UI})
+    set(CityGMLInondations_Qt_Plugin_SRC ${CityGMLInondations_Qt_Plugin_SRC} ${CityGMLInondations_Qt_Plugin_MOC_CPP} ${CityGMLInondations_Qt_Plugin_UI_CPP})
+    set(CityGMLInondations_Qt_Plugin_LIB ${CityGMLInondations_Qt_Plugin_LIB} ${QT_LIBRARIES})
+  endif(WITH_QT5)
+
+  add_library(CityGMLInondationsQtPlugin SHARED src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.cxx src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.cxx
+        ${CityGMLInondations_Qt_Plugin_HEADER} ${CityGMLInondations_Qt_Plugin_SRC}
+        ${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
+  target_link_libraries (CityGMLInondationsQtPlugin ${LINUX_FLAGS} ${CityGMLInondations_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  if (WITH_QT5)
+    QT5_USE_MODULES(CityGMLInondationsQtPlugin Core Widgets OpenGL)
+  endif(WITH_QT5)
+endif (BUILD_CityGMLInondationsQtPlugin)
+# --> CityGMLInondationsQtPlugin : QtPlugin [END]
+
 ################
 # 3DUSE plugins
 ################
@@ -655,6 +682,9 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 	if (BUILD_CityGMLVisibiliteQtPlugin)
 		set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
 	endif (BUILD_CityGMLVisibiliteQtPlugin)
+  if (BUILD_CityGMLInondationsQtPlugin)
+    set(CityGMLInondationsQtPlugin "CityGMLInondationsQtPlugin")
+  endif (BUILD_CityGMLInondationsQtPlugin)
 	################
 	# 3DUSE plugins
 	################

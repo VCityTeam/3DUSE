@@ -6,7 +6,7 @@
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
-#include "moc/dialogFloodAR.hpp"
+//#include "moc/dialogFloodAR.hpp"
 
 #include "controllerGui.hpp"
 
@@ -150,7 +150,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
-	connect(m_ui->actionFloodAR, SIGNAL(triggered()), this, SLOT(slotFloodAR()));
+	//connect(m_ui->actionFloodAR, SIGNAL(triggered()), this, SLOT(slotFloodAR()));
 
 	connect(m_ui->actionTiling_CityGML, SIGNAL(triggered()), this, SLOT(slotTilingCityGML()));
 	connect(m_ui->actionCut_MNT_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutMNTwithShapefile()));
@@ -3060,10 +3060,10 @@ void MainWindow::loadShpFile(const QString& filepath)
 	//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotFloodAR()
-{
-	m_osgView->setActive(false);
-	dialogFloodAR diag;
-	diag.exec();
-	m_osgView->setActive(true);
-}
+//void MainWindow::slotFloodAR()
+//{
+//	m_osgView->setActive(false);
+//	dialogFloodAR diag;
+//	diag.exec();
+//	m_osgView->setActive(true);
+//}

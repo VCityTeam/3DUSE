@@ -1,17 +1,15 @@
-#include "moc/dialogFloodAR.hpp"
-#include "ui_dialogFloodAR.h"
+#include "dialogInondations.hpp"
+#include "ui_dialogInondations.h"
 #include <QMessageBox>
 
-#include "gui/osg/osgMnt.hpp"
-#include "import/importerASC.hpp"
+#include "../FloodARTools.hpp"
 #include "AABB.hpp"
 #include "processes/ShpExtrusion.hpp"
-#include "processes/ASCCut.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
-dialogFloodAR::dialogFloodAR(QWidget *parent) :
+dialogInondations::dialogInondations(QWidget *parent) :
 	QDialog(parent),
-	ui(new Ui::dialogFloodAR)
+	ui(new Ui::dialogInondations)
 {
 	ui->setupUi(this);
 	connect(ui->btn_ASCcut_in, SIGNAL(clicked()), this, SLOT(browseInputDirASCCut()));
@@ -36,24 +34,24 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	ui->label_15->setEnabled(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
-dialogFloodAR::~dialogFloodAR()
+dialogInondations::~dialogInondations()
 {
 	delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInputDirASCCut()
+void dialogInondations::browseInputDirASCCut()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCcut_src->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseOutputDirASCCut()
+void dialogInondations::browseOutputDirASCCut()
 {
 	QString path = QFileDialog::getExistingDirectory(this, "Select output directory");
 	ui->lineEdit_ASCcut_out->setText(path);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::cutASC()
+void dialogInondations::cutASC()
 {
 	QFileInfo file(ui->lineEdit_ASCcut_src->text());
 	QDir dir(ui->lineEdit_ASCcut_out->text());
@@ -86,15 +84,7 @@ void dialogFloodAR::cutASC()
 	QString ext = file.suffix().toLower();
 	if (ext == "asc")
 	{
-		//reading file
-		citygml::ImporterASC* importer = new citygml::ImporterASC();
-		MNT* asc = new MNT();
-		if (asc->charge(ui->lineEdit_ASCcut_src->text().toStdString().c_str(), "ASC"))
-		{
-			ASCCut(asc, tileSizeX, tileSizeY, ui->lineEdit_ASCcut_out->text().toStdString(), file.baseName().toStdString());
-		}
-		delete importer;
-		delete asc;
+		FloodAR::cutASC(file.absoluteFilePath().toStdString(), dir.absolutePath().toStdString(), tileSizeX, tileSizeY);
 	}
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
@@ -103,13 +93,13 @@ void dialogFloodAR::cutASC()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInputASCtoWater()
+void dialogInondations::browseInputASCtoWater()
 {
 	QStringList filenames = QFileDialog::getOpenFileNames(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCtoWater_src->setText(filenames.join(";"));
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enablePolygonsParams(int state)
+void dialogInondations::enablePolygonsParams(int state)
 {
 	switch (state)
 	{
@@ -125,7 +115,7 @@ void dialogFloodAR::enablePolygonsParams(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enableTemporalParams(int state)
+void dialogInondations::enableTemporalParams(int state)
 {
 	switch (state)
 	{
@@ -144,14 +134,21 @@ void dialogFloodAR::enableTemporalParams(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::ASCtoWater()
+void dialogInondations::ASCtoWater()
 {
 	bool polygonsImport = ui->chkBox_ASCtoWater_simplify->isChecked();
 	float prec = ui->dbSpinBox_ASCtoWater_prec->value();
 	bool tempImport = ui->chkBox_ASCtoWater_time->isChecked();
 	QDateTime creaDate = ui->dtEdit_creationDate->dateTime();
 	QDateTime termDate = ui->dtEdit_terminationDate->dateTime();
-
+	if (tempImport && !(creaDate < termDate))
+	{
+		tempImport = false;
+		QMessageBox msgBox;
+		msgBox.setText("Invalid temporal settings!");
+		msgBox.setIcon(QMessageBox::Critical);
+		msgBox.exec();
+	}
 	QStringList filenames = ui->lineEdit_ASCtoWater_src->text().split(";");
 	for (int i = 0; i < filenames.size(); i++)
 	{
@@ -164,60 +161,7 @@ void dialogFloodAR::ASCtoWater()
 			msgBox.exec();
 			return;
 		}
-
-		citygml::CityModel* model;
-		std::cout << "CONVERTING FILE " << file.baseName().toStdString() << std::endl;
-		QString ext = file.suffix().toLower();
-		if (ext == "asc")
-		{
-			//lecture du fichier
-			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			MNT* asc = new MNT();
-			if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
-			{
-				//conversion en structure CityGML
-				if (polygonsImport)
-				{
-					model = new citygml::CityModel();
-					citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc, prec);
-					model->addCityObject(waterbody);
-					model->addCityObjectAsRoot(waterbody);
-				}
-				else
-				{
-					model = importer->waterToCityGML(asc);
-				}
-				delete importer;
-				delete asc;
-			}
-		}
-		//Add temporal info
-		if (tempImport)
-		{
-			if (!(creaDate < termDate))
-			{
-				QMessageBox msgBox;
-				msgBox.setText("Invalid temporal settings!");
-				msgBox.setIcon(QMessageBox::Critical);
-				msgBox.exec();
-			}
-			else
-				for (citygml::CityObject* obj : model->getCityObjectsRoots())
-				{
-					obj->setAttribute("creationDate", creaDate.toString(Qt::ISODate).toStdString());
-					obj->setAttribute("terminationDate", termDate.toString(Qt::ISODate).toStdString());
-				}
-		}
-		//export en CityGML
-		std::cout << "Export ...";
-		if (model->size() != 0)
-		{
-			citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
-			exporter.exportCityModel(*model);
-			std::cout << "OK!" << std::endl;
-		}
-		else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
-		delete model;
+		FloodAR::ASCtoWater(file.absoluteFilePath().toStdString(), polygonsImport, prec, tempImport, creaDate.toString(Qt::ISODate).toStdString(), termDate.toString(Qt::ISODate).toStdString());
 	}
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
@@ -227,25 +171,25 @@ void dialogFloodAR::ASCtoWater()
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-void dialogFloodAR::browseInput1ASCtoTerrain()
+void dialogInondations::browseInput1ASCtoTerrain()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCtoTerrain1->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInput2ASCtoTerrain()
+void dialogInondations::browseInput2ASCtoTerrain()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCtoTerrain2->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseTextureASCtoTerrain()
+void dialogInondations::browseTextureASCtoTerrain()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select texture file file");
 	ui->lineEdit_ASCtoTerrainTex->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enableASCFusion(int state)
+void dialogInondations::enableASCFusion(int state)
 {
 	switch (state)
 	{
@@ -261,7 +205,7 @@ void dialogFloodAR::enableASCFusion(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enableTextures(int state)
+void dialogInondations::enableTextures(int state)
 {
 	switch (state)
 	{
@@ -275,10 +219,9 @@ void dialogFloodAR::enableTextures(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::ASCtoTerrain()
+void dialogInondations::ASCtoTerrain()
 {
 	bool fusion = ui->chkBox_fusion->isChecked();
-	citygml::CityModel* model;
 	QFileInfo file(ui->lineEdit_ASCtoTerrain1->text());
 	bool addTextures = ui->chkBox_tex->isChecked();
 	QFileInfo texturesPath(ui->lineEdit_ASCtoTerrainTex->text());
@@ -290,84 +233,18 @@ void dialogFloodAR::ASCtoTerrain()
 		msgBox.exec();
 		return;
 	}
-	if (!fusion)
+	QFileInfo file2(ui->lineEdit_ASCtoTerrain2->text());
+	if (fusion && !file2.exists())
 	{
-		std::cout << "CONVERTING FILE " << file.baseName().toStdString() << std::endl;
-		QString ext = file.suffix().toLower();
-		if (ext == "asc")
-		{
-			//lecture du fichier
-			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			MNT* asc = new MNT();
-			if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
-			{
-				//conversion en structure CityGML
-				model = importer->reliefToCityGML(asc);
-				delete importer;
-				delete asc;
-			}
-		}
+		QMessageBox msgBox;
+		msgBox.setText("Input file not found!");
+		msgBox.setIcon(QMessageBox::Critical);
+		msgBox.exec();
+		return;
 	}
-	else
-	{
-		QFileInfo file2(ui->lineEdit_ASCtoTerrain2->text());
-		if (!file2.exists())
-		{
-			QMessageBox msgBox;
-			msgBox.setText("Input file not found!");
-			msgBox.setIcon(QMessageBox::Critical);
-			msgBox.exec();
-			return;
-		}
-		std::cout << "MERGING FILES " << file.baseName().toStdString() << " AND " << file2.baseName().toStdString() << std::endl;
-		QString ext = file.suffix().toLower();
-		if (ext == "asc")
-		{
-			//lecture du fichier
-			citygml::ImporterASC* importer = new citygml::ImporterASC();
-			MNT* asc1 = new MNT();
-			MNT* asc2 = new MNT();
-			if (asc1->charge(file.absoluteFilePath().toStdString().c_str(), "ASC") && (asc2->charge(file2.absoluteFilePath().toStdString().c_str(), "ASC")))
-			{
-				//Check which MNT is the more precise one
-				MNT* morePrecise;
-				MNT* lessPrecise;
-				if (asc1->get_pas_x() >= asc2->get_pas_x())
-				{
-					lessPrecise = asc1;
-					morePrecise = asc2;
-				}
-				else
-				{
-					lessPrecise = asc2;
-					morePrecise = asc1;
-				}
-				//conversion en structure CityGML
-				model = importer->fusionResolutions(lessPrecise, morePrecise);
-				delete importer;
-				delete asc1;
-				delete asc2;
-			}
-		}
-	}
-	//add textures
-	std::vector<TextureCityGML*> TexturesList;
-	if (addTextures)
-	{
-		TexturesList = getTexturesList(model, file, texturesPath);
-	}
-	//export en CityGML
-	std::cout << "Export ...";
-	if (model->size() != 0)
-	{
-		citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
-		if (addTextures) exporter.exportCityModelWithListTextures(*model, &TexturesList);
-		else exporter.exportCityModel(*model);
-		std::cout << "OK!" << std::endl;
-	}
-	else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
-	delete model;
-	for (TextureCityGML* tex : TexturesList) delete tex;
+	
+	FloodAR::ASCtoTerrain(file.absoluteFilePath().toStdString(), fusion, file2.absoluteFilePath().toStdString(), addTextures, texturesPath.absoluteFilePath().toStdString());
+
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Conversion finished!");
@@ -375,97 +252,19 @@ void dialogFloodAR::ASCtoTerrain()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
-std::vector<TextureCityGML*> dialogFloodAR::getTexturesList(citygml::CityModel* model, QFileInfo file, QFileInfo texturesPath)
-{
-	std::vector<TextureCityGML*> TexturesList;
-
-	for (citygml::CityObject* obj : model->getCityObjectsRoots())
-	{
-		for (citygml::Geometry* Geometry : obj->getGeometries())
-		{
-			for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
-			{
-
-				std::vector<TVec2f> TexUV;
-
-				OGRLinearRing * OgrRing = new OGRLinearRing;
-				for (TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
-				{
-					OgrRing->addPoint(Point.x, Point.y, Point.z);
-					TexUV.push_back(TVec2f(Point.x, Point.y));
-				}
-
-				{
-					//double A, B, C, D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
-					double offset_x;
-					double offset_y;
-
-					//std::ifstream fichier(texturesPath.absolutePath().toStdString() + "/" + texturesPath.baseName().toStdString() + ".jgw", std::ios::in);
-
-					//if (fichier)
-					//{
-					//	fichier >> A >> B >> C >> D >> offset_x >> offset_y;
-					//	fichier.close();
-					//}
-					offset_x = model->getEnvelope().getLowerBound().x;
-					offset_y = model->getEnvelope().getUpperBound().y;
-					float tileSize = 500; // taille de la zone en mètres
-					int i = 0;
-					for (TVec2f UV : TexUV)
-					{
-						UV.x = (UV.x - offset_x) / tileSize; // 
-						UV.y = 1 + (UV.y - offset_y) / tileSize;//Car D est négatif
-						TexUV.at(i) = UV;
-						++i;
-					}
-				}
-				//Remplissage de ListTextures
-				QDir workdir = file.dir();
-				std::string Url = workdir.relativeFilePath(texturesPath.filePath()).toStdString();
-				citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
-
-				TexturePolygonCityGML Poly;
-				Poly.Id = PolygonCityGML->getId();
-				Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
-				Poly.TexUV = TexUV;
-
-				bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-				for (TextureCityGML* Tex : TexturesList)
-				{
-					if (Tex->Url == Url)
-					{
-						URLTest = true;
-						Tex->ListPolygons.push_back(Poly);
-						break;
-					}
-				}
-				if (!URLTest)
-				{
-					TextureCityGML* Texture = new TextureCityGML;
-					Texture->Wrap = WrapMode;
-					Texture->Url = Url;
-					Texture->ListPolygons.push_back(Poly);
-					TexturesList.push_back(Texture);
-				}
-			}
-		}
-	}
-	return TexturesList;
-}
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInputShpExt()
+void dialogInondations::browseInputShpExt()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select SHP file", "", "SHP files (*.shp)");
 	ui->lineEdit_ShpExt_in->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInputDirShpExt()
+void dialogInondations::browseInputDirShpExt()
 {
 	QString path = QFileDialog::getExistingDirectory(this, "Select data directory");
 	ui->lineEdit_ShpExt_dir->setText(path);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::ShpExtrusion()
+void dialogInondations::ShpExtrusion()
 {
 	std::string dir = ui->lineEdit_ShpExt_dir->text().toStdString();
 	if (dir != "")
