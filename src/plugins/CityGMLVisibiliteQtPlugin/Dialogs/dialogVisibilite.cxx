@@ -8,7 +8,7 @@
 #include "../Visibilite.hpp"
 #include "../data/BelvedereDB.h"
 #include "../FlatRoof.hpp"
-#include "../ShpExtrusion.h"
+#include "processes/ShpExtrusion.hpp"
 #include "../VegetTool.hpp"
 #include "../AlignementTree.hpp"
 #include "AABB.hpp"
