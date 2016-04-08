@@ -51,7 +51,7 @@
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 
-#include "processes/SunlightDetection.hpp"
+#include "core/dateTime.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2811,7 +2811,11 @@ void MainWindow::test2()
 
 void MainWindow::test3()
 {
-    SunlightDetection();
+   std::string date = "2016-08-10";
+   encodeDateTime(date,2);
+
+
+   // SunlightDetection();
 
 
 //	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.

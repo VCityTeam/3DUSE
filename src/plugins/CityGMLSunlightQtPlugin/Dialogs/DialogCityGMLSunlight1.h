@@ -15,9 +15,18 @@ public:
     explicit DialogCityGMLSunlight1(QWidget *parent = 0);
     ~DialogCityGMLSunlight1();
 
+private:
+    void AddItemsFromDirToList(QString dirpath);
+
 private slots:
-    void DirTilesButtonClicked();
+    void DirFilesButtonClicked();
+    void AddFileButtonClicked();
+    void RemoveFileButtonClicked();
+    void AddAllFilesButtonClicked();
+    void ClearAllFilesButtonClicked();
     void AnnualSunPathButtonClicked();
+    void CreateSunlightFilesButtonClicked();
+
 
 private:
     Ui::DialogCityGMLSunlight1 *ui;

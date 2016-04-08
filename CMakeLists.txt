@@ -624,6 +624,11 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " ON)
 if (BUILD_CityGMLSunlightQtPlugin)
+  file(
+    GLOB_RECURSE
+    CityGMLSunlight_Qt_Plugin_SRC
+    src/plugins/CityGMLSunlightQtPlugin/*.cxx
+  )
         set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h)
         set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)
 	if (WITH_QT5)

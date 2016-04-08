@@ -20,6 +20,22 @@ int encodeDateTime(int y, int m, int d, int h)
     return datetime;
 }
 
+
+int encodeDateTime(std::string date, int hour)
+{
+    //Split string
+    std::string sYear = date.substr(0,4);
+    int year = std::stoi(sYear);
+
+    std::string sMonth = date.substr(5,2);
+    int month = std::stoi(sMonth);
+
+    std::string sDay = date.substr(8,2);
+    int day = std::stoi(sDay);
+
+    return encodeDateTime(year,month,day,hour);
+}
+
 //Partly taken from http://howardhinnant.github.io/date_algorithms.html
 std::string decodeDateTime(int dateTime)
 {

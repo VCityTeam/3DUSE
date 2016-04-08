@@ -23,23 +23,13 @@ class CityGMLSunlightQtPlugin :
 
     bool Generic_plugin(const QString &plugin)
     {
-        DialogCityGMLSunlight1 dial1;
-		//dial1.setBoundingBox(1845500, 5174000, 1846000, 5174500);
-		if (dial1.exec() == QDialog::Accepted)
-		{
-			unsigned int xmin,ymin,xmax,ymax;
-//			dial1.getBoundingBox(xmin,ymin,xmax,ymax);
+        your_code_here();
 
-			your_code_here(xmin, ymin, xmax ,ymax);
-
-			return true;
-		}
-
-		return false;
+        return true;
     }
 
 private:
-	int your_code_here(unsigned int ui_G_xmin, unsigned int ui_G_ymin, unsigned int ui_G_xmax, unsigned int ui_G_ymax);
+    int your_code_here(void);
 };
 
 #endif // CITYGMLSunlightQTPLUGIN_H

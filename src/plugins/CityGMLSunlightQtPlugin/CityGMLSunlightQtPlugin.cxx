@@ -4,25 +4,17 @@
 #include <QMessageBox>
 
 // add your object header here if you call code...
-// ...
+#include "Dialogs/DialogCityGMLSunlight1.h"
 
-int CityGMLSunlightQtPlugin::your_code_here(unsigned int ui_G_xmin, unsigned int ui_G_ymin, unsigned int ui_G_xmax, unsigned int ui_G_ymax)
+int CityGMLSunlightQtPlugin::your_code_here(void)
 {
-	// add your object instantiation here if you call code...
-	// ...
-	
-    fprintf(stdout, "\n[BEGIN] : cityGMLSunlight\n");
-	// add your code (or call your object) here...
-	// ...
-	int res = 0;
-    fprintf(stdout, "[ END ] : cityGMLSunlight\n");
+    // add your code (or call your object) here...
+    DialogCityGMLSunlight1* dialSunlight = new DialogCityGMLSunlight1(mw);
+    dialSunlight->show();
 
-	if (res)
-        QMessageBox(QMessageBox::Information,  "3DUSE", "CityGMLSunlightQtPlugin: error, see terminal.").exec();
-	else
-        QMessageBox(QMessageBox::Information,  "3DUSE", "CityGMLSunlightQtPlugin: end of process, see terminal.").exec();
+    int res = 0;
 
-	return res;
+    return res;
 }
 
 #if QT_VERSION < 0x050000 // (for QT4)

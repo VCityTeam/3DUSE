@@ -3,11 +3,6 @@
 
 #include <iostream>
 
-//class dateTime
-//{
-//public:
-//    dateTime();
-//};
 
 ///
 /// \brief encodeDateTime Compute number of hours since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
@@ -18,6 +13,14 @@
 /// \return Number of hours since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
 ///
 int encodeDateTime(int y, int m, int d, int h);
+
+///
+/// \brief encodeDateTime Compute number of hours since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+/// \param date date as string. Must be given in the following format : yyyy-MM-dd
+/// \param hour hour given as int. Represents the hour of the day.
+/// \return Number of hours since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+///
+int encodeDateTime(std::string date, int hour);
 
 ///
 /// \brief decodeDateTime Generates a string representing the datetime embedded in an integer. The integer represents the number of hours since civil 1970-01-01.
