@@ -200,9 +200,9 @@ void PutLRingOnTiledTerrain(LRing ring, std::vector<OGRFeature*> pointsFeatures,
 		ModelOut->computeEnvelope();
 
 		QDir dirArbres;
-		dirArbres.mkdir("./Arbres/");
+		dirArbres.mkdir(QString::fromStdString(dir) + "/_VEGET/");
 
-		citygml::ExporterCityGML exporter("./Arbres/" + box.name.substr(box.name.find_last_of("/"), box.name.length()));
+		citygml::ExporterCityGML exporter(dir + "/_VEGET/" + box.name.substr(box.name.find_last_of("/"), box.name.length()));
 		exporter.exportCityModel(*ModelOut);
 		std::cout << "Done exporting box " << box.name << std::endl;
 	}
@@ -212,7 +212,7 @@ void PutLRingOnTiledTerrain(LRing ring, std::vector<OGRFeature*> pointsFeatures,
 
 void ExtrudeAlignementTree(std::string dir)
 {
-	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
+	QString filepath = QFileDialog::getOpenFileName(nullptr, "Load shp file");
 
 	QFileInfo file(filepath);
 

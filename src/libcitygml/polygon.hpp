@@ -51,6 +51,8 @@ public:
 
     LIBCITYGML_EXPORT virtual ~Polygon( void ) override;
 
+	Polygon* Clone();
+
     // Get the vertices
     const std::vector<TVec3d>& getVertices( void ) const;
 

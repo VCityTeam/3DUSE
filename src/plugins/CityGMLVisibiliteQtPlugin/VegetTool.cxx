@@ -7,7 +7,7 @@
 #include "citygml.hpp"
 #include "export/exportCityGML.hpp"
 
-std::string ProcessLasShpVeget()
+std::string ProcessLasShpVeget(std::string dirTile)
 {
 	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load Shp file");
 
@@ -102,7 +102,7 @@ std::string ProcessLasShpVeget()
 			std::cout << "Exporting Dat File." << std::endl;
 
 			std::filebuf fb;
-			ouputfileName = "./SkylineOutput/"+fileBis.baseName().toStdString()+".dat";
+			ouputfileName = dirTile+"/SkylineOutput/"+fileBis.baseName().toStdString()+".dat";
 			fb.open(ouputfileName,std::ios::out);
 
 			std::ostream file(&fb);

@@ -8,7 +8,7 @@
 *	@brief Compute vegatation using a shp and las file
 *	@return outputFile Name of the resulting file (without ext)
 */
-std::string ProcessLasShpVeget();
+std::string ProcessLasShpVeget(std::string dirTile);
 
 /**
 *	@brief Convert a cloud point to a vegetation city object

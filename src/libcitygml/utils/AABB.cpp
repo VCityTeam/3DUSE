@@ -27,6 +27,11 @@ bool operator<(const BoxOrder& a, const BoxOrder& b)
 	return a.order < b.order;
 }
 
+bool operator<(const BoxwithRays& a, const BoxwithRays& b)
+{
+	return a.minDistance < b.minDistance;
+}
+
 
 // AABBCollection
 
@@ -50,9 +55,9 @@ std::vector<AABB> DoLoadAABB(std::string path)
 	for(unsigned int i = 0; i < count; i++)
 	{
 		AABB box;
-        ifs.getline(line,256);
+		ifs.getline(line,256);
 
-        box.name = std::string(line);
+		box.name = std::string(line);
 
         //To avoid problems with files from Windows used on UNIX (Windows uses '/r/n' as 'new line' escape sequence and Unix systems use '/n' only).
         //In order to erase '\r' character if present.
@@ -73,7 +78,7 @@ std::vector<AABB> DoLoadAABB(std::string path)
 		ifs.getline(line,256);maxy = atof(line);
 		ifs.getline(line,256);maxz = atof(line);
 
-		if(minx < maxx && miny < maxy && minz < maxz)
+		if(minx < maxx && miny < maxy && minz <= maxz)
 		{
 			box.min = TVec3d(minx,miny,minz);
 			box.max = TVec3d(maxx,maxy,maxz);
