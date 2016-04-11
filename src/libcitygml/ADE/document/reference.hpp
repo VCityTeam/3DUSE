@@ -2,6 +2,7 @@
 #define REFERENCE_HPP
 
 #include "cityobject.hpp"
+#include "documentObject.hpp"
 
 namespace documentADE
 {
@@ -25,19 +26,24 @@ namespace documentADE
       QDateTime getReferringDate();
       std::string getReferenceText();
       std::string getPurpose();
-      PurposeType getPurpseType();
+      PurposeType getPurposeType();
       CoveragePeriod getCoveragePeriod();
+      DocumentObject* getReferenceDocumentObject();
+      citygml::CityObject* getReferencedCityObject();
 
       void setReferringDate(QDateTime referringDate);
       void setReferenceText(std::string referenceText);
       void setPurpose(std::string purpose);
-      void setPurpseType(PurposeType purpseType);
+      void setPurposeType(PurposeType purpseType);
       void setCoveragePeriod(CoveragePeriod coveragePeriod);
+      void setReference(citygml::CityObject*, DocumentObject*);
   private:
+      citygml::CityObject *_cityObject;
+      DocumentObject *_documentObject;
       QDateTime _referringDate;
       std::string _referenceText;
       std::string _purpose;
-      PurposeType _purpseType;
+      PurposeType _purposeType;
       CoveragePeriod _coveragePeriod;
 
   };

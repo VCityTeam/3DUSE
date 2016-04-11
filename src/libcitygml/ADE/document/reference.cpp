@@ -15,9 +15,9 @@ namespace documentADE
       {
           return _purpose;
       }
-      PurposeType Reference::getPurpseType()
+      PurposeType Reference::getPurposeType()
       {
-          return _purpseType;
+          return _purposeType;
       }
       CoveragePeriod Reference::getCoveragePeriod()
       {
@@ -36,13 +36,19 @@ namespace documentADE
       {
           this->_purpose=purpose;
       }
-      void Reference::setPurpseType(PurposeType purpseType)
+      void Reference::setPurposeType(PurposeType purposeType)
       {
-          this->_purposeType=purpseType;
+          this->_purposeType=purposeType;
       }
       void Reference::setCoveragePeriod(CoveragePeriod coveragePeriod)
       {
           this->_coveragePeriod = coveragePeriod;
       }
 
+      void Reference::setReference(citygml::CityObject *cityObject,
+                                   DocumentObject *documentObject)
+      {
+          this->_cityObject = cityObject;
+          this->_documentObject = documentObject;
+      }
 }

@@ -2,21 +2,21 @@
 
 namespace documentADE
 {
-  std::string getText()
+  std::string Tag::getText()
   {
       return _text;
   }
-  int getCount()
+  int Tag::getCount()
   {
       return _count;
   }
 
-  void setText(std::string text)
+  void Tag::setText(std::string text)
   {
-      this._text=text;
+      _text=text;
   }
-  void setCount(int count)
+  void Tag::setCount(int count)
   {
-      this._count=count;
+      _count=count;
   }
 }
