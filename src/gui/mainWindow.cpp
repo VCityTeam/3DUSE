@@ -6,7 +6,6 @@
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
-//#include "moc/dialogFloodAR.hpp"
 
 #include "controllerGui.hpp"
 
@@ -3059,11 +3058,4 @@ void MainWindow::loadShpFile(const QString& filepath)
 
 	//OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }
-////////////////////////////////////////////////////////////////////////////////
-//void MainWindow::slotFloodAR()
-//{
-//	m_osgView->setActive(false);
-//	dialogFloodAR diag;
-//	diag.exec();
-//	m_osgView->setActive(true);
-//}
+

@@ -25,6 +25,9 @@ public slots:
 	void browseOutputDirASCCut();
 	void cutASC();
 
+	void browseInputTextureCut();
+	void textureCut();
+
 	void browseInputASCtoWater();
 	void enablePolygonsParams(int);
 	void enableTemporalParams(int);

@@ -623,8 +623,8 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 
 # --> CityGMLInondationsQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLInondationsQtPlugin "BUILD CityGMLInondationsQtPlugin " OFF)
-if (BUILD_CityGMLInondationsQtPlugin)
-  set(CityGMLInondations_Qt_Plugin_HEADER src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.h src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.hpp)
+if (BUILD_CityGMLInondationsQtPlugin) 
+  set(CityGMLInondations_Qt_Plugin_HEADER src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.h src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.hpp src/plugins/CityGMLInondationsQtPlugin/FloodARTools.hpp)
   set(CityGMLInondations_Qt_Plugin_UI src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.ui)
   if (WITH_QT5)
     ADD_DEFINITIONS("-DWITH_QT5")
@@ -638,7 +638,7 @@ if (BUILD_CityGMLInondationsQtPlugin)
     set(CityGMLInondations_Qt_Plugin_LIB ${CityGMLInondations_Qt_Plugin_LIB} ${QT_LIBRARIES})
   endif(WITH_QT5)
 
-  add_library(CityGMLInondationsQtPlugin SHARED src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.cxx src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.cxx
+  add_library(CityGMLInondationsQtPlugin SHARED src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.cxx src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.cxx src/plugins/CityGMLInondationsQtPlugin/FloodARTools.cxx
         ${CityGMLInondations_Qt_Plugin_HEADER} ${CityGMLInondations_Qt_Plugin_SRC}
         ${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
   target_link_libraries (CityGMLInondationsQtPlugin ${LINUX_FLAGS} ${CityGMLInondations_Qt_Plugin_LIB} ${VCITY_GUI_LIB})

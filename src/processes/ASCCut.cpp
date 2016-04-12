@@ -46,7 +46,7 @@ void ASCCut(MNT* asc, int tileSizeX, int tileSizeY, std::string path, std::strin
 		//if (!dir.exists(tileName))
 		//dir.mkdir(tileName);
 		//std::string fname = path+"/"+tileName.toStdString()+"/"+tileName.toStdString()+"_"+filename+".asc";
-		std::string fname = path+"/"+"T"+std::to_string(dvX)+"-"+std::to_string(dvY)+"_"+filename+".asc";
+		std::string fname = path+"/"+std::to_string(dvX)+"-"+std::to_string(dvY)+"_"+filename+".asc";
 		std::ofstream out;
 		out.open(fname);
 

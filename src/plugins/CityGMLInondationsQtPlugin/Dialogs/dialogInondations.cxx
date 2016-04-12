@@ -28,6 +28,8 @@ dialogInondations::dialogInondations(QWidget *parent) :
 	connect(ui->btn_ShpExt_dir, SIGNAL(clicked()), this, SLOT(browseInputDirShpExt()));
 	connect(ui->btn_ShpExt_in, SIGNAL(clicked()), this, SLOT(browseInputShpExt()));
 	connect(ui->btn_ShpExt_exec, SIGNAL(clicked()), this, SLOT(ShpExtrusion()));
+	connect(ui->btn_texCut_in, SIGNAL(clicked()), this, SLOT(browseInputTextureCut()));
+	connect(ui->btn_texCut_exec, SIGNAL(clicked()), this, SLOT(textureCut()));
 
 	ui->btn_ShpExt_in->setEnabled(false);
 	ui->lineEdit_ShpExt_in->setEnabled(false);
@@ -93,6 +95,44 @@ void dialogInondations::cutASC()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void dialogInondations::browseInputTextureCut()
+{
+	QString filename = QFileDialog::getOpenFileName(this, "Select texture file", "", "");
+	ui->lineEdit_texCut_src->setText(filename);
+}
+////////////////////////////////////////////////////////////////////////////////
+void dialogInondations::textureCut()
+{
+	QFileInfo file(ui->lineEdit_texCut_src->text());
+	int tileSizeX = ui->spinBox_txTileSize_x->value();
+	int tileSizeY = ui->spinBox_txTileSize_y->value();
+	if (!file.exists())
+	{
+		QMessageBox msgBox;
+		msgBox.setText("Input file not found!");
+		msgBox.setIcon(QMessageBox::Critical);
+		msgBox.exec();
+		return;
+	}
+	if (!(tileSizeX > 0 && tileSizeY > 0))
+	{
+		QMessageBox msgBox;
+		msgBox.setText("Invalid Tile Size");
+		msgBox.setIcon(QMessageBox::Critical);
+		msgBox.exec();
+		return;
+	}
+
+	FloodAR::cutPicture(file.absoluteFilePath().toStdString(), tileSizeX, tileSizeY);
+
+	std::cout << "Job done!" << std::endl;
+	QMessageBox msgBox;
+	msgBox.setText("Tiling finished!");
+	msgBox.setIcon(QMessageBox::Information);
+	msgBox.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
+
 void dialogInondations::browseInputASCtoWater()
 {
 	QStringList filenames = QFileDialog::getOpenFileNames(this, "Select ASC source file", "", "ASC files (*.asc)");
