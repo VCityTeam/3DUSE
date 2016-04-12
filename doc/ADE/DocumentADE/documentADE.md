@@ -88,3 +88,5 @@ purpose is now a string to support various possibilities.
 #### Publication Date: April 4, 2016
 - Additional of new attributes
 - Rename attributes
+
+![Image Alt](evolution/DocumentADE-Alaric2v5.png)
