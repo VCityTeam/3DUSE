@@ -100,7 +100,7 @@ std::queue<RayBoxHit> SetupFileOrder(std::vector<AABB> boxes,RayBoxCollection* r
 /// \param sunpathFile File containing the azimut and elevation angles of the sun for a given year/period.
 /// \param date Date of the day when the sunlight should be computed.
 ///
-void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, std::string sunpathFile, std::string startDate, std::string endDate)
+void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, std::string sunpathFile, std::string startDate, std::string endDate, QString outputDir)
 {
 
     QTime time;
@@ -108,9 +108,15 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
 
     std::cout << "Sunlight Calculation started." << std::endl;
 
-    // *** Compute sun's beam direction from sunpathFile and associate them to an hour encoded as an int. *** //
-    std::map<int,TVec3d> SunsBeamsDir = loadSunpathFile(sunpathFile, startDate, endDate);
+    //Create output folders
+    createOutputFolders(outputDir);
 
+    //Convert dates to integer
+    int iStartDate = encodeDateTime(startDate,0);
+    int iEndDate = encodeDateTime(endDate,23);
+
+    // *** Compute sun's beam direction from sunpathFile and associate them to an hour encoded as an int. *** //
+    std::map<int,TVec3d> SunsBeamsDir = loadSunpathFile(sunpathFile, iStartDate, iEndDate);
 
     // *** Build year map *** //
     std::map<int,bool> yearMap;
@@ -157,8 +163,8 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
         else
             trianglesfile = new TriangleList();
 
-        //Create csv file where results are exported
-        initExportFile(f);
+        //Create csv file where results will be exported
+        createFileFolder(f, outputDir);
 
         int cpt_tri = 1;//Output purpose
 
@@ -264,7 +270,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 delete tmpHits;
             }
 
-            exportLightningToCSV(yearSunInfo,t,f); //Export result for this triangle in a csv file
+            exportLightningToCSV(yearSunInfo,t,f, iStartDate, iEndDate, outputDir); //Export result for this triangle in a csv file
 
             //Delete RayBoxes
             delete raysboxes;

@@ -7,6 +7,6 @@
 
 class FileInfo;
 
-void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, std::string sunpathFile, std::string startDate, std::string endDate);
+void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, std::string sunpathFile, std::string startDate, std::string endDate, QString outputDir);
 
 #endif // SUNLIGHTDETECTION_HPP

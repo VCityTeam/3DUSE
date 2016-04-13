@@ -8,34 +8,53 @@
 #include <fstream>
 
 
-void initExportFile(FileInfo* file)
+void createOutputFolders(QString sOutputDir)
 {
-    //Open stream and write headers
-    std::ofstream ofs;
-    ofs.open ("./SunlightOutput/" + file->WithPrevFolder() + ".csv", std::ofstream::app);
+    //*** Create output folders
+    QDir outputDirSunlight(sOutputDir + "SunlightOutput/");
+    if(!outputDirSunlight.exists(sOutputDir + "SunlightOutput/"))
+        outputDirSunlight.mkpath(outputDirSunlight.absolutePath());
 
-    ofs << "FileName : " << file->WithPrevFolder() << std::endl;
-    ofs << "DateTime;PolygoneId;Sunny" << std::endl;
+    QDir outputDirBati(sOutputDir + "SunlightOutput/_BATI");
+    if(!outputDirBati.exists(sOutputDir + "SunlightOutput/_BATI"))
+        outputDirBati.mkpath(outputDirBati.absolutePath());
 
-    ofs.close();
+    QDir outputDirMnt(sOutputDir + "SunlightOutput/_MNT");
+    if(!outputDirMnt.exists(sOutputDir + "SunlightOutput/_MNT"))
+        outputDirMnt.mkpath(outputDirMnt.absolutePath());
+}
+
+void createFileFolder(FileInfo* file, QString sOutputDir)
+{
+    //Create folder corresponding to file
+    QString path = sOutputDir + "SunlightOutput/" + QString::fromStdString(file->WithPrevFolder()) + "/";
+    QDir outputDir(path);
+    if(!outputDir.exists(path))
+        outputDir.mkpath(outputDir.absolutePath());
 }
 
 
 
-void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* file)
+void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* file, int iStartDate, int iEndDate, QString outputDir)
 {
-    std::ofstream ofs;
-    ofs.open ("./SunlightOutput/" + file->WithPrevFolder() + ".csv", std::ofstream::app);
+    int nb_days = (iEndDate - iStartDate + 1) / 24;
 
-    for(auto ySI : sunInfo)
+    for(int day_nb = 0 ; day_nb < nb_days ; ++day_nb)
     {
-        std::string dateTime = decodeDateTime(ySI.first);
-        ofs << dateTime << ";" << t->polygonId << ";" << ySI.second << std::endl;
-        // iterator->first = key
-        // iterator->second = value
-    }
+        //Get day as string
+        int iDate = iStartDate + (day_nb*24);
+        std::string datetime = decodeDateTime(iDate);
+        std::string day = datetime.substr(0,datetime.find(":"));
 
-    ofs.close();
+        //Create and open file
+        std::ofstream ofs;
+        ofs.open (outputDir.toStdString() + "/SunlightOutput/" + file->WithPrevFolder() + "/" + day + ".csv", std::ofstream::app);
+
+        for(int i = 0 ; i < 24 ; ++i)
+        {
+            ofs << iDate + i << ";" << t->polygonId << ";" << std::to_string(sunInfo[iDate + i]) << std::endl;
+        }
+    }
 }
 
 
@@ -79,15 +98,12 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
 
 
 
-std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, std::string startDate, std::string endDate)
+std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, int iStartDate, int iEndDate)
 {
     std::map<int,TVec3d> SunBeamDir;
 
     std::ifstream file(sunpathFile); //Load file
     std::string line;
-
-    int iStartDate = encodeDateTime(startDate,0);
-    int iEndDate = encodeDateTime(endDate,23);
 
     bool found = false; //Date found
     bool exit_loop = false;
@@ -109,6 +125,19 @@ std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, std::string startD
         {
             found = true;
             std::getline(lineStream,cell,';'); //jump second cell of line
+
+            //Encode 27 march and 30 november (dates when time changes : summer hour <-> winter hour)
+            int twentySevenMarch = encodeDateTime(2016,3,27,0);
+            int thirtyNovember = encodeDateTime(2016,11,30,0);
+            bool timeshift = false;
+
+            if(iCurrentDate < twentySevenMarch || iCurrentDate >= thirtyNovember)
+            {
+                //Skip first two cells -> shift time back from hour
+                std::getline(lineStream,cell,';');
+                std::getline(lineStream,cell,';');
+                timeshift = true;
+            }
 
             int hour = 0;
             while(std::getline(lineStream,cell,';'))
@@ -139,6 +168,13 @@ std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, std::string startD
                 SunBeamDir[dateTime] = computeBeamDir(azimutAngle, elevationAngle);
 
                 ++hour;
+            }
+
+            if(timeshift)
+            {
+                //Add nul beam direction for last hour of the day
+                int dateTime = encodeDateTime(sCurrentDate,hour);
+                SunBeamDir[dateTime] = TVec3d(0.0,0.0,0.0);
             }
         }
         else if(iCurrentDate > iEndDate)
