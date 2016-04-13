@@ -91,9 +91,10 @@ purpose is now a string to support various possibilities.
 
 ![Image Alt](evolution/DocumentADE-Alaric2v5.png)
 
-### Fifth proposition (Model ADE-Alaric 2v5)
-#### Publication Date: April 4, 2016
+### Sixth proposition (Model ADE-Alaric 2v6)
+#### Publication Date: April 11, 2016
 - Additional of new attributes
 - Rename attributes
+- Add association to VersionTransition (to describe the provenance of an information related to change in the value of attributes.
 
 ![Image Alt](evolution/DocumentADE-Alaric2v6.png)
