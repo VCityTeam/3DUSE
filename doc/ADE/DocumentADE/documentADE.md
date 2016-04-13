@@ -1,16 +1,8 @@
 # Document ADE
 
 # Current Proposition
-#### Publication Date: March 21, 2016
 
-![Image Alt](evolution/DocumentADE-Alaric2v4.png)
-
-## Open Problems
-- What's the precise definition of a referring date?
-- Shouldn't there be many referring dates for a particular city object in a document? 
-- Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
-- Should Reference or Document have attributes like address like core:AbstractBuilding?
-- Do we need a separate attribute publicationDate (use creationDate instead?)
+![Image Alt](evolution/DocumentADE-Alaric2v6.png)
 
 ## Evolution of Document ADE
 ### First proposition (Model ADE-Alaric 1)
@@ -82,6 +74,14 @@ purpose is now a string to support various possibilities.
 #### Publication Date: March 31, 2016
 - Additional of new attributes
 
+## Open Problems
+- What's the precise definition of a referring date?
+- Shouldn't there be many referring dates for a particular city object in a document? 
+- Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
+- Should Reference or Document have attributes like address like core:AbstractBuilding?
+- Do we need a separate attribute publicationDate (use creationDate instead?)
+
+
 ![Image Alt](evolution/DocumentADE-Alaric2v4.png)
 
 ### Fifth proposition (Model ADE-Alaric 2v5)
@@ -90,3 +90,10 @@ purpose is now a string to support various possibilities.
 - Rename attributes
 
 ![Image Alt](evolution/DocumentADE-Alaric2v5.png)
+
+### Fifth proposition (Model ADE-Alaric 2v5)
+#### Publication Date: April 4, 2016
+- Additional of new attributes
+- Rename attributes
+
+![Image Alt](evolution/DocumentADE-Alaric2v6.png)
