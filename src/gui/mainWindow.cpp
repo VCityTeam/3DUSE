@@ -58,11 +58,16 @@
 #include <osg/PositionAttitudeTransform>
 #include "osg/osgInfo.hpp"
 #include "osg/osgQtWidget.hpp"
+#include <osg/LineWidth>
 #include <math.h>
 #include <osg/MatrixTransform>
 #include <core/layerInfo.hpp>
-//#include <gui/utils/AABB.hpp>
-
+#include "raytracing/RayTracing.hpp"
+#include "Triangle.hpp"
+#include "raytracing/Hit.hpp"
+#include <fstream>
+#include <string>
+#include "gui/applicationGui.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2780,15 +2785,17 @@ void MainWindow::test1()
 ///
 ///
 
-std::vector<osgInfo*> loadCSV()
+std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
     std::vector<osgInfo*> v_info;
     std::vector<float> v_height;
     std::vector<float> v_width;
     std::vector<double> v_angle;
+    std::vector<float> v_anchoring;
 
     std::vector<osg::Vec3> v_position;
     std::vector<osg::Vec3> v_axis;
+
 
     std::vector<std::string> v_filepath;
     std::vector<std::string> v_name;
@@ -2838,19 +2845,18 @@ std::vector<osgInfo*> loadCSV()
                         v_filepath.push_back(cell);
 
                 if (cpt==8)
-                {
-                    v_name.push_back(cell);
+                        v_name.push_back(cell);
 
-                }
                 if (cpt==9)
                         v_filetype.push_back(cell);
+
                 if (cpt==10)
                         v_sourcetype.push_back(cell);
-                if (cpt==11)
-                {
-                    v_LOD.push_back(cell);
 
-                }
+                if (cpt==11)
+                    v_LOD.push_back(cell);
+                if (cpt==12)
+                    v_anchoring.push_back(std::stod(cell));
 
                 cpt++;
              }
@@ -2861,9 +2867,68 @@ std::vector<osgInfo*> loadCSV()
         std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
         for (int i=0; i<v_filepath.size(); i++)
         {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i]));
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i]));
         }
         std::cout<<"[MainWindow > test2 > loadCSV].....v_info filled"<<std::endl;
+
+
+        std::vector<Ray*> v_ray;
+        int cpt2=0;
+
+        for(osgInfo* i : v_info)
+        {
+            if(i->m_anchoring==0)
+            {
+                osg::Vec3 osgvec3 = i->getPosition();
+                TVec3d ori = TVec3d(osgvec3.x()+offsetx,osgvec3.y()+offsety,osgvec3.z());
+                std::cout<<"[Origin rays : "<<ori.x<<","<<ori.y<<","<<ori.z<<std::endl;
+                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), i->getInfoName());
+                v_ray.push_back(tmp_ray);
+                cpt2++;
+            }
+        }
+        std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
+
+        TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
+        TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
+
+        TriangleList* triangles = new TriangleList();
+        triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
+
+        triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
+        triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
+
+        std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
+        cpt2=0;
+        for(Hit* h : *(v_hit))
+        {
+            for(osgInfo* i : v_info)
+            {
+                if (i->getInfoName()==h->ray.id)
+                {
+                    i->setAnchoringPoint(h->point.z);
+                    cpt2++;
+                }
+            }
+        }
+        std::cout<<"Anchoring points updated : "<<cpt2<<std::endl;
+
+        //Open stream and write headers
+         std::ofstream ofs;
+         ofs.open ("/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test3.csv", std::ofstream::in | std::ofstream::out);
+
+         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage"<<std::endl;
+         for(osgInfo* i : v_info)
+         {
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_position.x()<<","<<i->m_position.y()<<","<<i->m_position.z()<<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<std::endl;
+         }
+         ofs.close();
+         std::cout<<"CSV written"<<std::endl;
+
+
+
+        //std::cout<<"[MainWindow > test2 > loadCSV].....v_info filled"<<std::endl;
         return v_info;
 }
 
@@ -2871,7 +2936,7 @@ void MainWindow::test2()
 {
     std::cout<<"[MainWindow > test2]"<<std::endl;
     std::vector<osgInfo*> v_info;
-    v_info = loadCSV();
+    v_info = loadCSV(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
     vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
     appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 
@@ -2880,6 +2945,64 @@ void MainWindow::test2()
     {
         v_info[i]->BillboardON();
     }
+
+//    std::vector<Ray*> v_ray;
+
+//    for(osgInfo* i : v_info)
+//    //for(int i=0; i<v_info.size(); i++)
+//    {
+//        osg::Vec3 osgvec3 = i->getPosition();
+//        TVec3d ori = TVec3d(osgvec3.x()+m_app.getSettings().getDataProfile().m_offset.x,osgvec3.y()+m_app.getSettings().getDataProfile().m_offset.y,osgvec3.z());
+
+//        Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), i->getInfoName());
+//        v_ray.push_back(tmp_ray);
+//    }
+
+//    TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
+//    TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
+
+//    TriangleList* triangles = new TriangleList();
+//    triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
+
+//    triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
+//    triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
+
+
+
+
+//    std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
+
+//    std::cout << "Hist size : " << v_hit->size() << std::endl;
+
+//    //for(int i=0; i<v_hit.size(); i++)
+
+//    for(Hit* h : *(v_hit))
+//    {
+//        for(osgInfo* i : v_info)
+//        {
+//            if (i->getInfoName()==h->ray.id)
+//            {
+//                i->setAnchoringPoint(h->point.z);
+//            }
+//        }
+//       //std::cout<<"Point d'ancrage image "<< h->ray.id << " : " << h->point.x<<" "<<h->point.y<<" "<<h->point.z<<std::endl;
+//    }
+
+//    //Open stream and write headers
+//     std::ofstream ofs;
+//     ofs.open ("/home/pers/clement.chagnaud/Documents/Data/test.csv", std::ofstream::in | std::ofstream::out);
+//     ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage"<<std::endl;
+//     for(osgInfo* i : v_info)
+//     {
+//        ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_position.x()<<","<<i->m_position.y()<<","<<i->m_position.z()<<","<<std::to_string(i->m_angle)<<",";
+//        ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<",";
+//        if(i->m_anchoring!=0)
+//            ofs<<i->m_anchoring;
+//        ofs<<std::endl;
+//     }
+//     ofs.close();
+//     std::cout<<"CSV written"<<std::endl;
+
 
 
 	//Création d'ilots à partir de Shapefile contenant des routes
@@ -2924,32 +3047,65 @@ void MainWindow::test3()
     osg::Group *l_root= new osg::Group;
 
 
-    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+    osg::ref_ptr<osg::Geode> polyline_geode = new osg::Geode;
 
-    osg::Geometry* geom = new osg::Geometry;
-    osg::Vec3Array* vertices = new osg::Vec3Array;
+    osg::Geometry* pl_geom = new osg::Geometry;
+    osg::Vec3Array* pl_vertices = new osg::Vec3Array;
+//    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+    pl_vertices->push_back(osg::Vec3(4720, 7190, 300));
+    pl_vertices->push_back(osg::Vec3(4890, 7190, 300));
+    pl_vertices->push_back(osg::Vec3(4890, 7090, 300));
+    pl_vertices->push_back(osg::Vec3(4770, 7050, 300));
+    pl_vertices->push_back(osg::Vec3(4720, 7190, 300));
+
+//    indices->push_back(0);
+//    indices->push_back(1);
+
+    osg::ref_ptr<osg::Vec4Array> pl_color = new osg::Vec4Array;
+    pl_color->push_back(osg::Vec4(0.0,0.0,0.0,1.0));
+
+    pl_geom->setVertexArray(pl_vertices);
+    pl_geom->addPrimitiveSet(new osg::DrawArrays(GL_LINE_STRIP, 0, pl_vertices->size()));
+
+
+    //geom->addPrimitiveSet(indices);
+    pl_geom->setColorArray(pl_color, osg::Array::BIND_OVERALL);
+
+    polyline_geode->addDrawable(pl_geom);
+
+
+    osg::LineWidth* linewidth = new osg::LineWidth();
+    linewidth->setWidth(2.5f);
+    polyline_geode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
+
+
+
+    l_root->addChild(polyline_geode);
+
+
+    osg::ref_ptr<osg::Geode> line_geode = new osg::Geode;
+
+    osg::Geometry* l_geom = new osg::Geometry;
+    osg::Vec3Array* l_vertices = new osg::Vec3Array;
     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
-    vertices->push_back(osg::Vec3(0, 0, 0));
-    vertices->push_back(osg::Vec3(1000, 1000, 1000));
+    l_vertices->push_back( osg::Vec3(4805,7120,450));
+    l_vertices->push_back( osg::Vec3(4805,7120,300));
 
     indices->push_back(0);
     indices->push_back(1);
 
-    osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-    color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+    osg::ref_ptr<osg::Vec4Array> l_color = new osg::Vec4Array;
+    l_color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
 
-    geom->setVertexArray(vertices);
-    geom->addPrimitiveSet(indices);
-    geom->setColorArray(color, osg::Array::BIND_OVERALL);
+    l_geom->setVertexArray(l_vertices);
+    l_geom->addPrimitiveSet(indices);
+    l_geom->setColorArray(l_color, osg::Array::BIND_OVERALL);
 
-    geode->addDrawable(geom);
+    line_geode->addDrawable(l_geom);
 
-
-
-
-    l_root->addChild(geode);
-
+    l_root->addChild(line_geode);
 
 
     vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();

@@ -22,7 +22,7 @@ class osgInfo : public osg::Group
 {
 public:
     osgInfo();
-    osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod);
+    osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod, float anchor);
 
     void BillboardOFF();///use geode
     void BillboardON();///use billboard
@@ -36,6 +36,7 @@ public:
     void setHeight(float newHeight);
     void setWidth(float newWidth);
     void setDistancetoCam(float newDist);
+    void setAnchoringPoint(float altitude);
 
     void setTexture(std::string filepath);
     void setTransparency(float alpha);
@@ -59,18 +60,18 @@ public:
 private:
 
 
-    std::string m_name ; ///name of the info doc
-    std::string m_filetype; ///type of file (image, doc...)
-    std::string m_sourcetype; ///source of file (official, user..)
-    std::string m_LOD ; ///level of detail to display (street, building, district, city)
+//    std::string m_name ; ///name of the info doc
+//    std::string m_filetype; ///type of file (image, doc...)
+//    std::string m_sourcetype; ///source of file (official, user..)
+//    std::string m_LOD ; ///level of detail to display (street, building, district, city)
 
 
-    osg::Vec3 m_position ; ///position of the node
-    osg::Vec3 m_axe ; ///rotation axis of the node
+//    osg::Vec3 m_position ; ///position of the node
+//    osg::Vec3 m_axe ; ///rotation axis of the node
 
-    float m_height; ///height of the doc
-    float m_width; ///width of the doc
-    double m_angle ; ///rotation angle of the node
+//    float m_height; ///height of the doc
+//    float m_width; ///width of the doc
+//    double m_angle ; ///rotation angle of the node
 
     float m_distancetocam ; ///distance between doc and cam
 
@@ -90,6 +91,23 @@ private:
     osg::Group *m_group; ///group node
     osg::Billboard *m_billboard; ///billboard
     osg::PositionAttitudeTransform *m_pat; ///position attitude transforme of the node
+
+public :
+    float m_height; ///height of the doc
+    float m_width; ///width of the doc
+
+    osg::Vec3 m_position ; ///position of the node
+    double m_angle ; ///rotation angle of the node
+    osg::Vec3 m_axe ; ///rotation axis of the node
+
+    std::string m_filepath ; ///level of detail to display (street, building, district, city)
+    std::string m_name ; ///name of the info doc
+
+    std::string m_filetype; ///type of file (image, doc...)
+    std::string m_sourcetype; ///source of file (official, user..)
+    std::string m_LOD ; ///level of detail to display (street, building, district, city)
+
+    float m_anchoring ;
 
 
 };

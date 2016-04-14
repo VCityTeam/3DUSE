@@ -31,7 +31,7 @@ osgInfo::osgInfo()
 
 }
 
-osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod)
+osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod, float anchor)
 {
     m_texture = new osg::Texture2D;
     m_geom = new osg::Geometry;
@@ -47,12 +47,23 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_filetype = type;
     m_sourcetype = source;
     m_LOD = lod;
+    m_filepath=filepath;
 
     m_texture->setImage(osgDB::readImageFile(filepath));
     m_height = height;
     m_width = width;
 
     m_distancetocam = 0 ;
+    m_anchoring = anchor ;
+
+//    if(m_LOD=="street")
+//        m_position.z()=m_anchoring+20;
+//    if(m_LOD=="building")
+//        m_position.z()=m_anchoring+100;
+//    if(m_LOD=="district")
+//        m_position.z()=m_anchoring+350;
+//    if(m_LOD=="city")
+//        m_position.z()=m_anchoring+700;
 
     osg::Vec3Array* qVertices = new osg::Vec3Array;
     qVertices->push_back( osg::Vec3( -m_width/2, 0, -m_height/2) ); // bottom left
@@ -101,7 +112,7 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
     vertices->push_back( osg::Vec3( m_position.x(), m_position.y(), m_position.z()-m_height/2) );
-    vertices->push_back( osg::Vec3( m_position.x(), m_position.y(), 180 ));
+    vertices->push_back( osg::Vec3( m_position.x(), m_position.y(), m_anchoring ));
 
     indices->push_back(0);
     indices->push_back(1);
@@ -125,14 +136,13 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_pat->setAttitude(osg::Quat(osg::DegreesToRadians(m_angle), m_axe));
 
     m_billboard = new osg::Billboard();
-    //osg::Drawable* billboardDrawable = m_geom;
+
     m_billboard->addDrawable(m_geom, osg::Vec3(0,0,0));
-    //m_pat->addChild(m_billboard);
 
     m_group = new osg::Group;
 
     m_group->addChild(m_pat);
-    //m_group->addChild(geode);
+    m_group->addChild(geode);
 
     m_pat->addChild(m_geode);
 
@@ -299,7 +309,46 @@ void osgInfo::setWidth(float newWidth)
 void osgInfo::setDistancetoCam(float newDist)
 {
     m_distancetocam=newDist;
-    //TODO : void update geom
+
+}
+
+void osgInfo::setAnchoringPoint(float altitude)
+{
+    m_anchoring=altitude;
+    m_group->removeChild(1);
+
+    if(m_LOD=="street")
+        m_position.z()=m_anchoring+20;
+    if(m_LOD=="building")
+        m_position.z()=m_anchoring+100;
+    if(m_LOD=="district")
+        m_position.z()=m_anchoring+350;
+    if(m_LOD=="city")
+        m_position.z()=m_anchoring+700;
+
+    m_pat->setPosition(m_position);
+
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+
+    osg::Geometry* geom = new osg::Geometry;
+    osg::Vec3Array* vertices = new osg::Vec3Array;
+    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+    vertices->push_back( osg::Vec3( m_position.x(), m_position.y(), m_position.z()-m_height/2) );
+    vertices->push_back( osg::Vec3( m_position.x(), m_position.y(), m_anchoring ));
+
+    indices->push_back(0);
+    indices->push_back(1);
+
+    osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
+    color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
+
+    geom->setVertexArray(vertices);
+    geom->addPrimitiveSet(indices);
+    geom->setColorArray(color, osg::Array::BIND_OVERALL);
+
+    geode->addDrawable(geom);
+    m_group->addChild(geode);
 
 }
 

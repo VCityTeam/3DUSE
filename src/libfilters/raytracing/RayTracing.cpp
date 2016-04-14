@@ -55,11 +55,20 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         toDo[i].insert(toDo[i].begin(),rays.begin()+i*rayPerThread,rays.begin()+(i+1)*rayPerThread);
     }
 
+    //If number of Ray is not a multiple of thread number, add the rest of the ray to the threads
+    if(rays.size() % tCount != 0)
+    {
+        for(unsigned int i = 0 ; i < rays.size() % tCount ; ++i)
+        {
+            toDo[i].push_back(rays.at(rayPerThread * tCount + i));
+        }
+    }
+
     //List of hits for each thread
     std::vector<Hit*>* hitsArray = new std::vector<Hit*>[tCount];
 
-    std::cout << "Thread : " << tCount << std::endl;
-    std::cout << "Ray count : " << rays.size() << std::endl;
+    //std::cout << "Thread : " << tCount << std::endl;
+    //std::cout << "Ray count : " << rays.size() << std::endl;
 
     std::vector<std::thread*> threads;//Our thread list
 
@@ -74,7 +83,8 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         threads.push_back(t);
     }
 
-    std::cout << "Thread Launched " << std::endl;
+
+   //std::cout << "Thread Launched " << std::endl;
 
     for(unsigned int i = 0; i < tCount; i++)//Join all our thread and update global data min and max distance
     {
@@ -82,13 +92,14 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         delete threads[i];
     }
 
-    std::cout << "The joining is completed" << std::endl;
+
+    //std::cout << "The joining is completed" << std::endl;
 
     //Join vector of hits
     std::vector<Hit*>* hits = new std::vector<Hit*>();
 
     // preallocate memory
-     std::vector<Hit*>::size_type mem_size = 0;
+    std::vector<Hit*>::size_type mem_size = 0;
 
     for(unsigned int i = 0; i < tCount; i++)
     {
@@ -103,9 +114,13 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         hits->insert( hits->end(), hitsArray[i].begin(), hitsArray[i].end() );
     }
 
+
+    hitsArray->clear();
+    delete[] hitsArray;
+
     delete[] toDo;
 
-    std::cout << "Time : " << time.elapsed()/1000 << " sec" << std::endl;
+   //std::cout << "Time : " << time.elapsed()/1000 << " sec" << std::endl;
 
     return hits;
 }

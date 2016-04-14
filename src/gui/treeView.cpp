@@ -842,7 +842,7 @@ void TreeView::slotFilter()
 
     appGui().getControllerGui().resetSelection();
     searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
-    appGui().getOsgScene()->filterInfo(appGui().getMainWindow()->getFilter()->text());
+    //appGui().getOsgScene()->filterInfo(appGui().getMainWindow()->getFilter()->text());
 
 }
 ////////////////////////////////////////////////////////////////////////////////
