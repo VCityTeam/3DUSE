@@ -624,7 +624,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
 		if(item->text(1) == "LayerLas")
 			m_tree->addAction(m_actionExportJSON);
     }
-    else if(item->text(1) == "Tile")
+    else if(item->text(1) == "File")
     {
         //std::cout << "Tile" << std::endl;
         m_tree->addAction(m_actionDeleteTile);
