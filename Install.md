@@ -31,6 +31,21 @@ Open questions: some MTO installation docs (in emails) also mention
 mkdir build; cd build; cmake .. -DCMAKE_BUILD_TYPE=Release; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
 
 ## Ubuntu install
- libgdal-dev libproj-dev
-libassimp-dev libgeos++-dev
+ * Install QtCreator : `apt-get install qtcreator`
+ * Then all the depencies : `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev libproj-dev libgeos++-dev`
 
+ You now need to manually instal LASlib
+ * If you are a poor intern at LIRIS without any right on your computer follow these steps (btw you might need to add `sudo` before previous installs) :
+  1. `cd externals/`
+  2. `sudo zip laslib.zip laslib`
+  3. `sudo cp laslib.zip /root` (enter your password as required)
+  4. `sudo su`
+  5. `cd ~`
+  6. `unzip laslib.zip`
+  7. `cd laslib`
+  8. `mkdir build`
+  9. `cd build`
+  10. `cmake .. -DCMAKE_BUILD_TYPE=Release; cmake .. -DCMAKE_BUILD_TYPE=Release; make`
+  11. `sudo make install`
+
+ * If you are on your own linux distribution skip steps from 2 to 6
