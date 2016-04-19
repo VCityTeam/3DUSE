@@ -36,16 +36,19 @@ public:
     void setHeight(float newHeight);
     void setWidth(float newWidth);
     void setDistancetoCam(float newDist);
+    void setDistancetoSC(float newScreenDist);
     void setAnchoringPoint(float altitude);
 
     void setTexture(std::string filepath);
     void setTransparency(float alpha);
     void setDisplayable(bool statut);
     void setRequested(bool statut);
+    void setonScreen(bool statut);
 
     // Getters
     osg::Vec3 getPosition();
     float getDistancetoCam();
+    float getDistancetoSC();
 
     osg::Group *getPAT();
 
@@ -56,24 +59,12 @@ public:
 
     bool isDisplayable();
     bool isRequested();
+    bool isonScreen();
 
 private:
 
-
-//    std::string m_name ; ///name of the info doc
-//    std::string m_filetype; ///type of file (image, doc...)
-//    std::string m_sourcetype; ///source of file (official, user..)
-//    std::string m_LOD ; ///level of detail to display (street, building, district, city)
-
-
-//    osg::Vec3 m_position ; ///position of the node
-//    osg::Vec3 m_axe ; ///rotation axis of the node
-
-//    float m_height; ///height of the doc
-//    float m_width; ///width of the doc
-//    double m_angle ; ///rotation angle of the node
-
     float m_distancetocam ; ///distance between doc and cam
+    float m_distancetoSC ; /// distance between doc and screen center
 
 
     unsigned int m_date_deb ;
@@ -81,6 +72,7 @@ private:
 
     bool m_displayable;
     bool m_requested;
+    bool m_onscreen;
 
 
     osg::Texture2D *m_texture ; ///texture of the doc

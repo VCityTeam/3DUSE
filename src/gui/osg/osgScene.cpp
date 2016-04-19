@@ -196,8 +196,9 @@ class InfoDataType : public osg::Referenced
 public:
 
     InfoDataType(osg::Node*n);
-    //float getDistance(AABBCollection boundingBox, osg::Camera *cam);
-    void computeDistances(osg::Camera *cam);
+    void computeDistancestoCam(osg::Camera *cam);
+    void computeDistancestoSC(osg::Camera *cam);
+    int getNumberofObjectonScreen();
     void setDisplayability();
     void forceDisplayability();
     void updateScale();
@@ -205,7 +206,6 @@ public:
     void filterLOD(float distance);
 
 protected:
-    //AABBCollection boudingBox;
     osg::ref_ptr<osg::Switch> switchRoot;
 
 };
@@ -215,7 +215,7 @@ InfoDataType::InfoDataType(osg::Node* n)
     switchRoot = n->asSwitch();
 }
 
-void InfoDataType::computeDistances(osg::Camera *cam)
+void InfoDataType::computeDistancestoCam(osg::Camera *cam)
 {
     cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
     osg::Vec3d pos;
@@ -239,9 +239,10 @@ void InfoDataType::computeDistances(osg::Camera *cam)
                 float infoX = info->getPosition().x();
                 float infoY = info->getPosition().y();
                 float infoZ = info->getPosition().z();
-                float camX=pos.x()/*+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.x*/;
-                float camY=pos.y()/*+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.y*/;
-                float camZ=pos.z()/*+appGui().getMainWindow()->m_app.getSettings().m_dataprofile.m_offset.z*/;
+                float camX=pos.x();
+                float camY=pos.y();
+                float camZ=pos.z();
+
 
                 distancetoCam = sqrt((infoX-camX)*(infoX-camX)+(infoY-camY)*(infoY-camY)+(infoZ-camZ)*(infoZ-camZ));
                 info->setDistancetoCam(distancetoCam);
@@ -251,7 +252,64 @@ void InfoDataType::computeDistances(osg::Camera *cam)
     }
 }
 
+void InfoDataType::computeDistancestoSC(osg::Camera *cam)
+{
+    int screenX = appGui().getMainWindow()->m_osgView->m_widget->width();
+    int screenY = appGui().getMainWindow()->m_osgView->m_widget->height();
+    //std::cout<<"[osgScene > computeDistancestoSC].....screensize : ["<<screenX<<","<<screenY<<"]"<<std::endl;
 
+    osg::Matrix Mwin = cam->getViewport()->computeWindowMatrix();
+    osg::Matrix Mview = cam->getViewMatrix();
+    osg::Matrix Mproj = cam->getProjectionMatrix();
+
+    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    {
+        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
+        if(subSwitch)
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+                osg::Vec3 worldcoord = info->getPosition();
+
+                osg::Vec3 screencoord = worldcoord*Mview*Mproj*Mwin;
+
+                int Ds = sqrt((screencoord.x()-screenX/2)*(screencoord.x()-screenX/2)+(screencoord.y()-screenY/2)*(screencoord.y()-screenY/2));
+                //std::cout<<"[osgScene > computeDistancestoSC].....doc : "<<info->getInfoName()<<" Ds : "<<Ds<<std::endl;
+
+                info->setDistancetoSC(Ds);
+              if(screencoord.x()+info->m_width/2>0 && screencoord.x()-info->m_width/2<screenX && screencoord.y()+info->m_height/2>0 && screencoord.y()-info->m_height/2<screenY)
+                  info->setonScreen(true);
+              else
+                  info->setonScreen(false);
+
+            }
+        }
+    }
+}
+
+int InfoDataType::getNumberofObjectonScreen()
+{
+    int obj=0;
+
+    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    {
+        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
+        if(subSwitch)
+        {
+            for(int j=0; j<subSwitch->getNumChildren();j++)
+            {
+                osg::Node* node = subSwitch->getChild(j);
+                osgInfo* info = dynamic_cast<osgInfo*>(node);
+
+                if(info->isonScreen())
+                    obj++;
+            }
+        }
+    }
+    return obj;
+}
 
 
 void InfoDataType::setDisplayability()
@@ -354,7 +412,6 @@ void InfoDataType::setDisplayability()
     }
 }
 
-
 void InfoDataType::forceDisplayability()
 {
     for(int i=0; i<switchRoot->getNumChildren(); i++)
@@ -423,7 +480,6 @@ void InfoDataType::display()
 
     }
 }
-
 
 void InfoDataType:: filterLOD(float distance)
 {
@@ -566,9 +622,6 @@ void InfoDataType:: filterLOD(float distance)
 
 }
 
-
-
-
 class UpdateInfo : public osg::NodeCallback
 {
 public :
@@ -586,8 +639,13 @@ public :
 
             osg::Camera* cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
 
-            layerInfo->computeDistances(cam);
+
+
+            layerInfo->computeDistancestoCam(cam);
+            layerInfo->computeDistancestoSC(cam);
             layerInfo->setDisplayability();
+            std::cout<<"Number of object on screen : "<<layerInfo->getNumberofObjectonScreen()<<std::endl;
+
             //layerInfo->forceDisplayability();
             //layerInfo->updateScale();
 
@@ -801,30 +859,6 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     if(cityGroup)
                     {
                         cityGroup->addChild(v_info[i]->getPAT());
-
-//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-
-//                        osg::Geometry* geom = new osg::Geometry;
-//                        osg::Vec3Array* vertices = new osg::Vec3Array;
-//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
-
-//                        vertices->push_back( v_info[i]->getPosition() );
-//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
-
-//                        indices->push_back(0);
-//                        indices->push_back(1);
-
-//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
-
-//                        geom->setVertexArray(vertices);
-//                        geom->addPrimitiveSet(indices);
-//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
-
-//                        geode->addDrawable(geom);
-
-//                        cityGroup->addChild(geode);
-
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -843,28 +877,6 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     if(districtGroup)
                     {
                         districtGroup->addChild(v_info[i]->getPAT());
-//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-
-//                        osg::Geometry* geom = new osg::Geometry;
-//                        osg::Vec3Array* vertices = new osg::Vec3Array;
-//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
-
-//                        vertices->push_back( v_info[i]->getPosition() );
-//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
-
-//                        indices->push_back(0);
-//                        indices->push_back(1);
-
-//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
-
-//                        geom->setVertexArray(vertices);
-//                        geom->addPrimitiveSet(indices);
-//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
-
-//                        geode->addDrawable(geom);
-
-//                        districtGroup->addChild(geode);
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -884,28 +896,6 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     {
                         //std::cout<<"[osgScene > fillSwitches].....if(buildingGroup)"<<std::endl;
                         buildingGroup->addChild(v_info[i]->getPAT());
-//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-
-//                        osg::Geometry* geom = new osg::Geometry;
-//                        osg::Vec3Array* vertices = new osg::Vec3Array;
-//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
-
-//                        vertices->push_back( v_info[i]->getPosition() );
-//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
-
-//                        indices->push_back(0);
-//                        indices->push_back(1);
-
-//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
-
-//                        geom->setVertexArray(vertices);
-//                        geom->addPrimitiveSet(indices);
-//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
-
-//                        geode->addDrawable(geom);
-
-//                        buildingGroup->addChild(geode);
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -922,28 +912,6 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     if(streetGroup)
                     {
                         streetGroup->addChild(v_info[i]->getPAT());
-//                        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-
-//                        osg::Geometry* geom = new osg::Geometry;
-//                        osg::Vec3Array* vertices = new osg::Vec3Array;
-//                        osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
-
-//                        vertices->push_back( v_info[i]->getPosition() );
-//                        vertices->push_back( osg::Vec3( v_info[i]->getPosition().x(), v_info[i]->getPosition().y(), 0) );
-
-//                        indices->push_back(0);
-//                        indices->push_back(1);
-
-//                        osg::ref_ptr<osg::Vec4Array> color = new osg::Vec4Array;
-//                        color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
-
-//                        geom->setVertexArray(vertices);
-//                        geom->addPrimitiveSet(indices);
-//                        geom->setColorArray(color, osg::Array::BIND_OVERALL);
-
-//                        geode->addDrawable(geom);
-
-//                        streetGroup->addChild(geode);
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }

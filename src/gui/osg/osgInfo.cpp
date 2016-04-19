@@ -149,6 +149,7 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
 
     m_displayable = true;
     m_requested = true;
+    m_onscreen = false;
 
 
     //id = boost::uuids::random_generator()();
@@ -183,6 +184,15 @@ osg::Vec3 osgInfo::getPosition()
 float osgInfo::getDistancetoCam()
 {
     return m_distancetocam;
+}
+
+////////////////////////////////////////////////////////////////////////
+/// \brief Distance to SC getter
+/// \return
+///
+float osgInfo::getDistancetoSC()
+{
+    return m_distancetoSC;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -250,6 +260,15 @@ bool osgInfo::isRequested()
 }
 
 ////////////////////////////////////////////////////////////////////////
+/// \brief requested getter
+/// \return
+///
+bool osgInfo::isonScreen()
+{
+    return m_onscreen;
+}
+
+////////////////////////////////////////////////////////////////////////
 /// \brief Axis setter
 /// \param newAxis
 ///
@@ -312,6 +331,16 @@ void osgInfo::setDistancetoCam(float newDist)
 
 }
 
+////////////////////////////////////////////////////////////////////////
+/// \brief Distance to SC setter
+/// \param newScreenDist
+///
+void osgInfo::setDistancetoSC(float newScreenDist)
+{
+    m_distancetoSC=newScreenDist;
+
+}
+
 void osgInfo::setAnchoringPoint(float altitude)
 {
     m_anchoring=altitude;
@@ -322,9 +351,9 @@ void osgInfo::setAnchoringPoint(float altitude)
     if(m_LOD=="building")
         m_position.z()=m_anchoring+100;
     if(m_LOD=="district")
-        m_position.z()=m_anchoring+350;
+        m_position.z()=m_anchoring+200;
     if(m_LOD=="city")
-        m_position.z()=m_anchoring+700;
+        m_position.z()=m_anchoring+500;
 
     m_pat->setPosition(m_position);
 
@@ -369,6 +398,12 @@ void osgInfo::setRequested(bool statut)
 {
     m_requested=statut;
 }
+
+void osgInfo::setonScreen(bool statut)
+{
+    m_onscreen=statut;
+}
+
 
 void osgInfo::setTransparency(float alpha)
 {

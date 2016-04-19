@@ -7,6 +7,7 @@
 #include <iostream>
 #include <algorithm>
 #include "gui/moc/mainWindow.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 PickHandler::PickHandler()
     : m_mx(0.0),m_my(0.0), m_pickingMode(1), m_addToSelection(false)
@@ -63,6 +64,9 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
             {
                 // only do a pick if the mouse hasn't moved
                 // TODO: add a little headroom so the mouse does not have to stand perfectly still.
+                int screenX=ea.getWindowWidth();
+                int screenY=ea.getWindowHeight();
+                std::cout<<"Screensize : ["<<screenX<<","<<screenY<<"]"<<std::endl;
                 std::cout << "Pick point : (" << m_mx << ", " << m_my << ")" << std::endl;
                 pickPoint(ea,viewer);
             }

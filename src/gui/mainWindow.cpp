@@ -68,6 +68,9 @@
 #include <fstream>
 #include <string>
 #include "gui/applicationGui.hpp"
+#include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2787,6 +2790,9 @@ void MainWindow::test1()
 
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
+    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test.csv";
+
+
     std::vector<osgInfo*> v_info;
     std::vector<float> v_height;
     std::vector<float> v_width;
@@ -2804,7 +2810,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
     std::vector<std::string> v_LOD;
 
     // *** CSV Load
-        std::ifstream file( "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test3.csv");
+        std::ifstream file(sourcepath);
         std::string line;
         std::getline(file,line); //get the first line
         int cpt = 0 ;
@@ -2889,33 +2895,38 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         }
         std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
 
-        TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
-        TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
-
-        TriangleList* triangles = new TriangleList();
-        triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
-
-        triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
-        triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
-
-        std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
-        cpt2=0;
-        for(Hit* h : *(v_hit))
+        if(cpt2!=0)
         {
-            for(osgInfo* i : v_info)
+            TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
+            TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
+
+            TriangleList* triangles = new TriangleList();
+            triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
+
+            triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
+            triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
+
+            std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
+            cpt2=0;
+            for(Hit* h : *(v_hit))
             {
-                if (i->getInfoName()==h->ray.id)
+                for(osgInfo* i : v_info)
                 {
-                    i->setAnchoringPoint(h->point.z);
-                    cpt2++;
+                    if (i->getInfoName()==h->ray.id)
+                    {
+                        i->setAnchoringPoint(h->point.z);
+                        cpt2++;
+                    }
                 }
             }
+            std::cout<<"Anchoring points updated : "<<cpt2<<std::endl;
+
         }
-        std::cout<<"Anchoring points updated : "<<cpt2<<std::endl;
+
 
         //Open stream and write headers
          std::ofstream ofs;
-         ofs.open ("/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test3.csv", std::ofstream::in | std::ofstream::out);
+         ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
 
          ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage"<<std::endl;
          for(osgInfo* i : v_info)
@@ -2945,6 +2956,8 @@ void MainWindow::test2()
     {
         v_info[i]->BillboardON();
     }
+
+
 
 //    std::vector<Ray*> v_ray;
 
@@ -3044,72 +3057,79 @@ void MainWindow::test2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-    osg::Group *l_root= new osg::Group;
+//    std::string _name = "screenshot";
+//    osgViewer::ScreenCaptureHandler* screen = new osgViewer::ScreenCaptureHandler();
+//    osgViewer::ScreenCaptureHandler::WriteToFile* captureHandler = new osgViewer::ScreenCaptureHandler::WriteToFile(_name, "png");
+//    screen->setCaptureOperation(captureHandler);
+//    screen->captureNextFrame();
+//    this->frame();
 
 
-    osg::ref_ptr<osg::Geode> polyline_geode = new osg::Geode;
+//    osg::Group *l_root= new osg::Group;
 
-    osg::Geometry* pl_geom = new osg::Geometry;
-    osg::Vec3Array* pl_vertices = new osg::Vec3Array;
+//    osg::ref_ptr<osg::Geode> polyline_geode = new osg::Geode;
+
+//    osg::Geometry* pl_geom = new osg::Geometry;
+//    osg::Vec3Array* pl_vertices = new osg::Vec3Array;
+////    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
+
+//    pl_vertices->push_back(osg::Vec3(4720, 7190, 300));
+//    pl_vertices->push_back(osg::Vec3(4890, 7190, 300));
+//    pl_vertices->push_back(osg::Vec3(4890, 7090, 300));
+//    pl_vertices->push_back(osg::Vec3(4770, 7050, 300));
+//    pl_vertices->push_back(osg::Vec3(4720, 7190, 300));
+
+////    indices->push_back(0);
+////    indices->push_back(1);
+
+//    osg::ref_ptr<osg::Vec4Array> pl_color = new osg::Vec4Array;
+//    pl_color->push_back(osg::Vec4(0.0,0.0,0.0,1.0));
+
+//    pl_geom->setVertexArray(pl_vertices);
+//    pl_geom->addPrimitiveSet(new osg::DrawArrays(GL_LINE_STRIP, 0, pl_vertices->size()));
+
+
+//    //geom->addPrimitiveSet(indices);
+//    pl_geom->setColorArray(pl_color, osg::Array::BIND_OVERALL);
+
+//    polyline_geode->addDrawable(pl_geom);
+
+
+//    osg::LineWidth* linewidth = new osg::LineWidth();
+//    linewidth->setWidth(2.5f);
+//    polyline_geode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
+
+
+
+//    l_root->addChild(polyline_geode);
+
+
+//    osg::ref_ptr<osg::Geode> line_geode = new osg::Geode;
+
+//    osg::Geometry* l_geom = new osg::Geometry;
+//    osg::Vec3Array* l_vertices = new osg::Vec3Array;
 //    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
-    pl_vertices->push_back(osg::Vec3(4720, 7190, 300));
-    pl_vertices->push_back(osg::Vec3(4890, 7190, 300));
-    pl_vertices->push_back(osg::Vec3(4890, 7090, 300));
-    pl_vertices->push_back(osg::Vec3(4770, 7050, 300));
-    pl_vertices->push_back(osg::Vec3(4720, 7190, 300));
+//    l_vertices->push_back( osg::Vec3(4805,7120,450));
+//    l_vertices->push_back( osg::Vec3(4805,7120,300));
 
 //    indices->push_back(0);
 //    indices->push_back(1);
 
-    osg::ref_ptr<osg::Vec4Array> pl_color = new osg::Vec4Array;
-    pl_color->push_back(osg::Vec4(0.0,0.0,0.0,1.0));
+//    osg::ref_ptr<osg::Vec4Array> l_color = new osg::Vec4Array;
+//    l_color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
 
-    pl_geom->setVertexArray(pl_vertices);
-    pl_geom->addPrimitiveSet(new osg::DrawArrays(GL_LINE_STRIP, 0, pl_vertices->size()));
+//    l_geom->setVertexArray(l_vertices);
+//    l_geom->addPrimitiveSet(indices);
+//    l_geom->setColorArray(l_color, osg::Array::BIND_OVERALL);
 
+//    line_geode->addDrawable(l_geom);
 
-    //geom->addPrimitiveSet(indices);
-    pl_geom->setColorArray(pl_color, osg::Array::BIND_OVERALL);
-
-    polyline_geode->addDrawable(pl_geom);
-
-
-    osg::LineWidth* linewidth = new osg::LineWidth();
-    linewidth->setWidth(2.5f);
-    polyline_geode->getOrCreateStateSet()->setAttributeAndModes(linewidth, osg::StateAttribute::ON);
+//    l_root->addChild(line_geode);
 
 
-
-    l_root->addChild(polyline_geode);
-
-
-    osg::ref_ptr<osg::Geode> line_geode = new osg::Geode;
-
-    osg::Geometry* l_geom = new osg::Geometry;
-    osg::Vec3Array* l_vertices = new osg::Vec3Array;
-    osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
-
-    l_vertices->push_back( osg::Vec3(4805,7120,450));
-    l_vertices->push_back( osg::Vec3(4805,7120,300));
-
-    indices->push_back(0);
-    indices->push_back(1);
-
-    osg::ref_ptr<osg::Vec4Array> l_color = new osg::Vec4Array;
-    l_color->push_back(osg::Vec4(1.0,1.0,1.0,1.0));
-
-    l_geom->setVertexArray(l_vertices);
-    l_geom->addPrimitiveSet(indices);
-    l_geom->setColorArray(l_color, osg::Array::BIND_OVERALL);
-
-    line_geode->addDrawable(l_geom);
-
-    l_root->addChild(line_geode);
-
-
-    vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
-    appGui().getOsgScene()->addShpNode(uriLayer, l_root);
+//    vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerShp")->getURI();
+//    appGui().getOsgScene()->addShpNode(uriLayer, l_root);
 
 //    osg::Vec3 sp(0,-180,120);
 //    osg::Vec3 ep(0,480,120);
