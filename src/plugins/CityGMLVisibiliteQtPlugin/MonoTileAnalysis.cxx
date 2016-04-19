@@ -21,32 +21,32 @@
 *	@param paths Paths to all tiles used in the analysis
 *	@return The analysis results
 */
-std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths)
+std::vector<ViewPoint*> DoMonoTileAnalysis(std::string dirTile, std::vector<osg::ref_ptr<osg::Camera>> cams,std::vector<std::string> paths)
 {
-    ViewPoint** result = new ViewPoint*[cams.size()];
-    RayCollection** rays = new RayCollection*[cams.size()];
+	ViewPoint** result = new ViewPoint*[cams.size()];
+	RayCollection** rays = new RayCollection*[cams.size()];
 
     std::vector<Ray*> allRays;//All rays of all viewpoints are merged in one vector to launch the algo only once
 
-    //For each camera, create its ray collection and viewpoint
-    for(unsigned int i = 0; i < cams.size(); i++)
-    {
-        //Get the position and direction of the camera
-        osg::Camera* cam = cams[i];
-        std::cout << cam->getViewport() << std::endl;
-        osg::Vec3d pos;
-        osg::Vec3d target;
-        osg::Vec3d up;
-        cam->getViewMatrixAsLookAt(pos,target,up);
+	//For each camera, create its ray collection and viewpoint
+	for(unsigned int i = 0; i < cams.size(); i++)
+	{
+		//Get the position and direction of the camera
+		osg::Camera* cam = cams[i];
+		std::cout << cam->getViewport() << std::endl;
+		osg::Vec3d pos;
+		osg::Vec3d target;
+		osg::Vec3d up;
+		cam->getViewMatrixAsLookAt(pos,target,up);
 
-        TVec3d camPos = TVec3d(pos.x(),pos.y(),pos.z());
-        TVec3d camDir = TVec3d(target.x(),target.y(),target.z());
+		TVec3d camPos = TVec3d(pos.x(),pos.y(),pos.z());
+		TVec3d camDir = TVec3d(target.x(),target.y(),target.z());
 
-        //Create the viewpoint and ray collection
+		//Create the viewpoint and ray collection
         std::string viewpointId = std::to_string(i);
         result[i] = new ViewPoint(cam->getViewport()->width(),cam->getViewport()->height(),viewpointId);
-        result[i]->lightDir = Ray::Normalized(camPos - camDir);
-        rays[i] = RayCollection::BuildCollection(cam);
+		result[i]->lightDir = Ray::Normalized(camPos - camDir);
+		rays[i] = RayCollection::BuildCollection(cam);
 
         //rays[i]->viewpoint = result[i];
         for(Ray* r : rays[i]->rays)
@@ -54,24 +54,24 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>
             r->id = viewpointId;
         }
 
-        allRays.insert(allRays.end(),rays[i]->rays.begin(),rays[i]->rays.end());
-    }
+		allRays.insert(allRays.end(),rays[i]->rays.begin(),rays[i]->rays.end());
+	}
 
-    //List of list of triangle for tiles
-    std::vector<TriangleList*> triangles;
+	//List of list of triangle for tiles
+	std::vector<TriangleList*> triangles;
 
-    std::cout << "Loading Scene." << std::endl;
+	std::cout << "Loading Scene." << std::endl;
 
-    //Load each tiles
-    for(unsigned int i = 0; i < paths.size(); i++)
-    {
-        //Get the triangle list
-        TriangleList* trianglesTemp = BuildTriangleList(paths[i],citygml::CityObjectsType::COT_Building);
-        triangles.push_back(trianglesTemp);
-    }
+	//Load each tiles
+	for(unsigned int i = 0; i < paths.size(); i++)
+	{
+		//Get the triangle list
+		TriangleList* trianglesTemp = BuildTriangleList(paths[i],citygml::CityObjectsType::COT_Building);
+		triangles.push_back(trianglesTemp);
+	}
 
-    //For each tiles perform raytracing on it
-    for(unsigned int i = 0; i < triangles.size(); i++)
+	//For each tiles perform raytracing on it
+	for(unsigned int i = 0; i < triangles.size(); i++)
     {
         std::vector<Hit*>* tmpHits = RayTracing(triangles[i],allRays);
 
@@ -93,36 +93,36 @@ std::vector<ViewPoint*> DoMonoTileAnalysis(std::vector<osg::ref_ptr<osg::Camera>
         }
     }
 
-    std::vector<ViewPoint*> resReturn;//When results are stored
+	std::vector<ViewPoint*> resReturn;//When results are stored
 
-    for(unsigned int i = 0; i < cams.size(); i++)
-    {
-        result[i]->ComputeSkyline();//Compute the skyline of the viewpoint
-        result[i]->ComputeMinMaxDistance();//Compute the min and max distance of the viewpoint
-        //Export data
-        ExportData(result[i],std::to_string(i)+"_");
-        ExportImages(result[i],std::to_string(i)+"_");
-        result[i]->position = rays[i]->rays.front()->ori;
+	for(unsigned int i = 0; i < cams.size(); i++)
+	{
+		result[i]->ComputeSkyline();//Compute the skyline of the viewpoint
+		result[i]->ComputeMinMaxDistance();//Compute the min and max distance of the viewpoint
+		//Export data
+		ExportData(dirTile, result[i],std::to_string(i)+"_");
+		ExportImages(dirTile, result[i],std::to_string(i)+"_");
+		result[i]->position = rays[i]->rays.front()->ori;
 
-        resReturn.push_back(result[i]);
-    }
+		resReturn.push_back(result[i]);
+	}
 
-    //Delete everything not useful
-    for(unsigned int i = 0; i < cams.size(); i++)
-    {
-        delete rays[i];
-    }
+	//Delete everything not useful
+	for(unsigned int i = 0; i < cams.size(); i++)
+	{
+		delete rays[i];
+	}
 
-    delete[] result;
-    delete[] rays;
+	delete[] result;
+	delete[] rays;
 
-    for(unsigned int i = 0; i <  triangles.size();i++)
-        delete triangles[i];
+	for(unsigned int i = 0; i <  triangles.size();i++)
+		delete triangles[i];
 
-    return resReturn;
+	return resReturn;
 }
 
-std::vector<ViewPoint*> BasisAnalyse(std::vector<std::string> paths,osg::Camera* cam)
+std::vector<ViewPoint*> BasisAnalyse(std::string dirTile, std::vector<std::string> paths,osg::Camera* cam)
 {
 	QTime time;
 	time.start();
@@ -133,7 +133,7 @@ std::vector<ViewPoint*> BasisAnalyse(std::vector<std::string> paths,osg::Camera*
 	osg::ref_ptr<osg::Camera> mycam(new osg::Camera(*cam,osg::CopyOp::DEEP_COPY_ALL));
 	temp.push_back(mycam);
 
-	std::vector<ViewPoint*> result = DoMonoTileAnalysis(temp,paths);
+	std::vector<ViewPoint*> result = DoMonoTileAnalysis(dirTile, temp,paths);
 	
 	std::cout << "Total Time : " << time.elapsed()/1000 << " sec" << std::endl;
 
@@ -141,7 +141,7 @@ std::vector<ViewPoint*> BasisAnalyse(std::vector<std::string> paths,osg::Camera*
 
 }
 
-std::vector<ViewPoint*> CascadeAnalyse(std::vector<std::string> paths,osg::Camera* cam, unsigned int count, float zIncrement)
+std::vector<ViewPoint*> CascadeAnalyse(std::string dirTile, std::vector<std::string> paths,osg::Camera* cam, unsigned int count, float zIncrement)
 {
 	//Get the info about the camera and update it
 	osg::Vec3d pos;
@@ -170,12 +170,12 @@ std::vector<ViewPoint*> CascadeAnalyse(std::vector<std::string> paths,osg::Camer
 	}
 
 
-	std::vector<ViewPoint*> result = DoMonoTileAnalysis(temp,paths);
+	std::vector<ViewPoint*> result = DoMonoTileAnalysis(dirTile, temp,paths);
 
 	return result;
 }
 
-std::vector<ViewPoint*> MultiViewpointAnalyse(std::vector<std::string> paths,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
+std::vector<ViewPoint*> MultiViewpointAnalyse(std::string dirTile, std::vector<std::string> paths,osg::Camera* cam, std::vector<std::pair<TVec3d,TVec3d>> viewpoints)
 {
 	osg::Vec3d pos;
 	osg::Vec3d target;
@@ -202,7 +202,7 @@ std::vector<ViewPoint*> MultiViewpointAnalyse(std::vector<std::string> paths,osg
 		temp.push_back(mycam);
 	}
 
-	std::vector<ViewPoint*> result = DoMonoTileAnalysis(temp,paths);
+	std::vector<ViewPoint*> result = DoMonoTileAnalysis(dirTile, temp,paths);
 
 	return result;
 }

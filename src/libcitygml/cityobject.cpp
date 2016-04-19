@@ -385,7 +385,7 @@ std::ostream& operator<<( std::ostream& os, const CityObject& o )
 ////////////////////////////////////////////////////////////////////////////////
 std::string getCityObjectsClassName( CityObjectsTypeMask mask )
 {
-#define GETCITYNAME( _t_ ) if ( mask == COT_ ## _t_ ) ss << # _t_ << "|";
+#define GETCITYNAME( _t_ ) if ( mask & COT_ ## _t_ ) ss << # _t_ << "|";
     std::stringstream ss;
     GETCITYNAME( GenericCityObject );
     GETCITYNAME( Building );

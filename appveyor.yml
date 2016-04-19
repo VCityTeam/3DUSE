@@ -1,0 +1,93 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+#
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Operating system (build VM template)
+os: Visual Studio 2015
+
+# environment variables
+environment:
+#
+  QT5_DIR: C:\Qt\5.6\msvc2015_64
+#
+  KIT_ROOT: C:\local_vs2015_64
+#
+  matrix:
+  - B_USE_QT5:  OFF  # so we use Qt4 here for UI
+  - B_USE_QT5:  ON
+
+# this is how to allow failing jobs in the matrix
+matrix:
+  fast_finish: true # set this flag to immediately finish build once one of the jobs fails
+#  allow_failures:
+
+# build cache to preserve files/folders between builds
+#cache:
+# - %KIT_ROOT% # don't work !?
+#  - C:\local_vs2015_64 # cached folder size cannot exceed 500 MB, so OFF for the moment...
+
+# scripts that are called at very beginning, before repo cloning
+init:
+#  - set
+#  - msbuild /version
+#  - cmake --version
+#  - dir C:\Libraries
+#  - dir C:\Libraries\boost_1_59_0
+#  - dir C:\Qt
+#  - dir C:\Qt\5.6
+  - set APPVEYOR=TRUE
+  - set CACHE=FALSE
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build Configuration, i.e. Debug, Release, etc
+configuration:
+  - Release
+  - Debug
+
+# MSBuild verbosity level
+#  verbosity: quiet|minimal|normal|detailed
+
+# scripts to run before build
+before_build:
+  - IF EXIST %KIT_ROOT% SET CACHE=TRUE
+#
+  - echo %CACHE%
+  - IF %CACHE%==FALSE echo CACHE_IS_FALSE
+  - IF %CACHE%==TRUE echo CACHE_IS_TRUE
+#
+  - IF %CACHE%==FALSE mkdir %KIT_ROOT%
+  - IF %CACHE%==FALSE cd %KIT_ROOT%
+# Qt4
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
+  - IF %CACHE%==FALSE 7z x qt-4.8.7-x64-msvc2015.7z > nul
+# OSG
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/osg-3.4.0.7z
+  - IF %CACHE%==FALSE 7z x osg-3.4.0.7z > nul
+# assimp
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/assimp-3.2.rar
+  - IF %CACHE%==FALSE 7z x assimp-3.2.rar > nul
+# gdal
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal.rar
+  - IF %CACHE%==FALSE 7z x gdal.rar > nul
+# laslib
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/laslib.rar
+  - IF %CACHE%==FALSE 7z x laslib.rar > nul
+# libxml
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
+  - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
+#
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+  - msbuild /m 3DUSE.sln # /m is ignored ? (but not really important because the VM has only one processor !)

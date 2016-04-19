@@ -78,6 +78,8 @@ OGRGeometry* BuildRoads(OGRLayer* Layer)
 */
 void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel* MNT_roads, std::vector<TextureCityGML*>* TexturesList_roads, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground)
 {
+	///// TODO : ne pas prendre en comptes les tunnels !!!! /////
+
 	OGRLayer* Layer = Roads->GetLayer(0);
 
 	OGRGeometry* ListRoads = BuildRoads(Layer);

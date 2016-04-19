@@ -243,7 +243,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
                 ambientColor = osg::Vec4(0.74f,0.65f,0.56f,1.f);
                 diffuseColor = osg::Vec4(0.35f,0.35f,0.35f,1.f);
             }
-			else if(object->getType() == citygml::COT_WaterBody )
+            else if(object->getType() == citygml::COT_WaterBody)
             {
                 //Blue
                 ambientColor = osg::Vec4(0.12f,0.49f,0.79f,1.f);
