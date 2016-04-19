@@ -124,7 +124,7 @@ namespace citygml
 				}
 				poly->addRing(ring);
 				TVec3d Normale = ring->computeNormal();
-				if(std::abs(Normale.z) <= 0.2)
+				if((std::abs(Normale.z) <= 0.2)||(!_detectRoof))
 					WallGeom->addPolygon(poly);
 				else
 					RoofGeom->addPolygon(poly);
@@ -200,12 +200,13 @@ namespace citygml
 		return m_model;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	CityModel* ImporterAssimp::import(const std::string& fileName)
+	CityModel* ImporterAssimp::import(const std::string& fileName, bool detectRoof)
 	{
 		Assimp::Importer importer;
 		// read file with assimp
 		const aiScene* aiScene = importer.ReadFile( fileName.c_str(), aiProcessPreset_TargetRealtime_Quality );
 
+		_detectRoof = detectRoof;
 		// convert it to CityGML
 		CityModel* model = assimpSceneToCityGML(aiScene);
 		model->computeEnvelope();
