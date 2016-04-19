@@ -5,8 +5,8 @@
 
 #include "osg/Camera"
 
-struct AABB;
-struct Ray;
+#include "raytracing/RayTracing.hpp"
+#include "AABB.hpp"
 
 /**
 *	@brief A hit between a ray and a bounding box
@@ -15,6 +15,7 @@ struct RayBoxHit
 {
     AABB box;///< Box hitted
     float minDistance;///< Distance between the ray origin and the bounding box
+	std::vector<unsigned int> ListRays; //Contient la liste des rayons intersectant cette box.
 };
 
 bool operator<(const RayBoxHit& a, const RayBoxHit& b);

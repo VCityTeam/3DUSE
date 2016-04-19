@@ -1,4 +1,4 @@
-#include "ShpExtrusion.h"
+#include "ShpExtrusion.hpp"
 
 #include <qstring.h>
 #include <qfiledialog.h>
@@ -10,7 +10,8 @@
 #include <unordered_map>
 
 #include "AABB.hpp"
-#include "Visibilite.hpp"
+#include "Triangle.hpp"
+#include "raytracing/Hit.hpp"
 
 std::map<std::string,TriangleList*> tileTriangles;
 

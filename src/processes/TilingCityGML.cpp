@@ -76,7 +76,9 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 
 					std::vector<TVec2f> TexUV = PolygonCityGML->getTexCoords();
 
-					if(PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
+					bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
+
+					if(HasTexture && PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
 					{
 						/*double A, B, C ,D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
 						double offset_x;
@@ -106,14 +108,13 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 					}
 
 					OgrRing->closeRings();
+
 					if(OgrRing->getNumPoints() > 3)
 					{
 						OGRPolygon * OgrPoly = new OGRPolygon;
 						OgrPoly->addRingDirectly(OgrRing);
 						if(OgrPoly->IsValid() && OgrPoly->Intersects(PolyTile))
 						{
-							bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
-
 							std::string Url;
 							citygml::Texture::WrapMode WrapMode;
 							std::vector<std::vector<TVec2f>> TexUVout;

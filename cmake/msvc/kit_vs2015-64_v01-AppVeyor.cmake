@@ -11,7 +11,7 @@ endif( NOT DEFINED VCITY_KIT_ROOT )
 
 if(WITH_QT5)
 	# with qt5
-	set(QT5_DIR				${VCITY_KIT_ROOT}/Qt/Qt5.6.0/5.6/msvc2015_64)
+	#QT5_DIR				see appveyor
 else(WITH_QT5)
 	# with qt4
 	set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.7-x64-msvc2015)

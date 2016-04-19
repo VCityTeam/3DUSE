@@ -6,14 +6,34 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>749</width>
-    <height>805</height>
+    <width>522</width>
+    <height>674</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Visibilite</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="19" column="2">
+    <widget class="QDoubleSpinBox" name="projDistanceSB">
+     <property name="minimum">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>100000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>5.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="0">
+    <widget class="QLabel" name="label_13">
+     <property name="text">
+      <string>Vegetation %</string>
+     </property>
+    </widget>
+   </item>
    <item row="27" column="2">
     <widget class="QPushButton" name="alignementTreeB">
      <property name="text">
@@ -60,14 +80,63 @@
    </item>
    <item row="18" column="3">
     <widget class="QDoubleSpinBox" name="fovySB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>1.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>179.000000000000000</double>
+      <double>180.000000000000000</double>
      </property>
      <property name="value">
-      <double>45.000000000000000</double>
+      <double>80.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="17" column="0">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Resolution</string>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="0">
+    <widget class="QLabel" name="label_14">
+     <property name="text">
+      <string>Water %</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="4">
+    <widget class="QDoubleSpinBox" name="posZSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="15" column="3">
+    <widget class="QDoubleSpinBox" name="dirYSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -80,14 +149,17 @@
    </item>
    <item row="18" column="2">
     <widget class="QDoubleSpinBox" name="fovxSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>1.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>179.000000000000000</double>
+      <double>360.000000000000000</double>
      </property>
      <property name="value">
-      <double>45.000000000000000</double>
+      <double>120.000000000000000</double>
      </property>
     </widget>
    </item>
@@ -109,66 +181,6 @@
     <widget class="QLabel" name="label_15">
      <property name="text">
       <string>Terrain %</string>
-     </property>
-    </widget>
-   </item>
-   <item row="19" column="2">
-    <widget class="QDoubleSpinBox" name="projDistanceSB">
-     <property name="minimum">
-      <double>0.100000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>100000.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>5.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="0">
-    <widget class="QLabel" name="label_14">
-     <property name="text">
-      <string>Water %</string>
-     </property>
-    </widget>
-   </item>
-   <item row="17" column="0">
-    <widget class="QLabel" name="label_5">
-     <property name="text">
-      <string>Resolution</string>
-     </property>
-    </widget>
-   </item>
-   <item row="15" column="3">
-    <widget class="QDoubleSpinBox" name="dirYSB">
-     <property name="minimum">
-      <double>-999999999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>999999999.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="14" column="4">
-    <widget class="QDoubleSpinBox" name="posZSB">
-     <property name="minimum">
-      <double>-999999999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>999999999.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.000000000000000</double>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
-    <widget class="QLabel" name="label_13">
-     <property name="text">
-      <string>Vegetation %</string>
      </property>
     </widget>
    </item>
@@ -194,6 +206,9 @@
    </item>
    <item row="15" column="2">
     <widget class="QDoubleSpinBox" name="dirXSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -212,19 +227,6 @@
      </property>
     </widget>
    </item>
-   <item row="14" column="2">
-    <widget class="QDoubleSpinBox" name="posXSB">
-     <property name="minimum">
-      <double>-999999999.000000000000000</double>
-     </property>
-     <property name="maximum">
-      <double>999999999.000000000000000</double>
-     </property>
-     <property name="value">
-      <double>0.000000000000000</double>
-     </property>
-    </widget>
-   </item>
    <item row="23" column="0">
     <widget class="QLabel" name="label_9">
      <property name="text">
@@ -234,6 +236,9 @@
    </item>
    <item row="14" column="3">
     <widget class="QDoubleSpinBox" name="posYSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -298,12 +303,15 @@
       <number>10</number>
      </property>
      <property name="value">
-      <number>256</number>
+      <number>20</number>
      </property>
     </widget>
    </item>
    <item row="15" column="4">
     <widget class="QDoubleSpinBox" name="dirZSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
      <property name="minimum">
       <double>-999999999.000000000000000</double>
      </property>
@@ -558,6 +566,22 @@
      </property>
      <property name="value">
       <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="2">
+    <widget class="QDoubleSpinBox" name="posXSB">
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
+     <property name="minimum">
+      <double>-999999999.000000000000000</double>
+     </property>
+     <property name="maximum">
+      <double>999999999.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>0.000000000000000</double>
      </property>
     </widget>
    </item>

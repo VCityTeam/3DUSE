@@ -54,7 +54,7 @@ std::string COTToString(citygml::CityObjectsType type)
 	return ToString[type];
 }
 
-void ExportData(ViewPoint* viewpoint, std::string filePrefix)
+void ExportData(std::string dirTile, ViewPoint* viewpoint, std::string filePrefix)
 {
 	struct CityObjectExportData
 	{
@@ -144,7 +144,7 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 	}
 
 	std::ofstream ofs;
-	ofs.open ("./SkylineOutput/"+filePrefix+"result.csv", std::ofstream::out);
+	ofs.open (dirTile+"SkylineOutput/"+filePrefix+"result.csv", std::ofstream::out);
 
 	ofs << "Param;Count;Global%;InHit%;InBuilding%" << std::endl;
 	ofs << "Pixel;"<<cpt << ";100%" << std::endl;
@@ -194,7 +194,7 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 
 
 
-	ofs.open ("./SkylineOutput/"+filePrefix+"skyline.csv", std::ofstream::out);
+	ofs.open (dirTile+"/SkylineOutput/"+filePrefix+"skyline.csv", std::ofstream::out);
 	ofs << viewpoint->skyline.Points.size() << std::endl;
 	for(unsigned int i = 0; i < viewpoint->skyline.FragCoords.size(); i++)
 	{
@@ -228,12 +228,12 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 		return;
 	}
 
-	remove(std::string("./SkylineOutput/"+filePrefix+"Result.shp").c_str());
-	remove(std::string("./SkylineOutput/"+filePrefix+"CityObjectData.shp").c_str());
-	remove(std::string("./SkylineOutput/"+filePrefix+"SkylinePoints.shp").c_str());
-	remove(std::string("./SkylineOutput/"+filePrefix+"SkylineLine.shp").c_str());
-	remove(std::string("./SkylineOutput/"+filePrefix+"Viewpoint.shp").c_str());
-	OGRDataSource * DS = Driver->CreateDataSource(std::string("./SkylineOutput/"+filePrefix+"Result.shp").c_str(), NULL);
+	remove(std::string(dirTile+"/SkylineOutput/"+filePrefix+"Result.shp").c_str());
+	remove(std::string(dirTile+"/SkylineOutput/"+filePrefix+"CityObjectData.shp").c_str());
+	remove(std::string(dirTile+"/SkylineOutput/"+filePrefix+"SkylinePoints.shp").c_str());
+	remove(std::string(dirTile+"/SkylineOutput/"+filePrefix+"SkylineLine.shp").c_str());
+	remove(std::string(dirTile+"/SkylineOutput/"+filePrefix+"Viewpoint.shp").c_str());
+	OGRDataSource * DS = Driver->CreateDataSource(std::string(dirTile+"/SkylineOutput/"+filePrefix+"Result.shp").c_str(), NULL);
 
 	OGRLayer * LayerViewshed = DS->CreateLayer("Viewshed");
 
@@ -457,14 +457,17 @@ void ExportData(ViewPoint* viewpoint, std::string filePrefix)
 TVec3d SkyShadeBlue(TVec3d d, TVec3d light)
 {
 	// light direction
-	TVec3d lig = light;
+	/*TVec3d lig = light;
 	float sun = (lig.dot(d)+1.0)/2.0;
 	TVec3d color = TVec3d(0.35,0.45,0.75)*(0.75-0.5*d[2]);
-	color = color + TVec3d(0.65,0.6,0.55)*pow( sun, 8.0 );
+	color = color + TVec3d(0.65,0.6,0.55)*pow( sun, 8.0 );*/
+
+	TVec3d color(0.0, 0.0, 0.2);
+
 	return color;
 }
 
-void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix)
+void ExportImageRoofWall(std::string dirTile, ViewPoint* viewpoint, std::string filePrefix)
 {
 	QImage imageMurToit(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);//Wall/Roof Image
 	TVec3d light1 = viewpoint->lightDir;
@@ -509,10 +512,10 @@ void ExportImageRoofWall(ViewPoint* viewpoint, std::string filePrefix)
 	}
 	//Images needs to be mirrored because of qt's way of storing them
 	imageMurToit = imageMurToit.mirrored(false,true);
-	imageMurToit.save(std::string("./SkylineOutput/"+filePrefix+"raytraceMurToit.png").c_str());
+	imageMurToit.save(std::string(dirTile+"/SkylineOutput/"+filePrefix+"raytraceMurToit.png").c_str());
 }
 
-void ExportImageZBuffer(ViewPoint* viewpoint, std::string filePrefix)
+void ExportImageZBuffer(std::string dirTile, ViewPoint* viewpoint, std::string filePrefix)
 {
 	QImage imageZBuffer(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);//Zbuffer image
 	TVec3d light1 = viewpoint->lightDir;
@@ -535,10 +538,10 @@ void ExportImageZBuffer(ViewPoint* viewpoint, std::string filePrefix)
 	}
 	//Images needs to be mirrored because of qt's way of storing them
 	imageZBuffer = imageZBuffer.mirrored(false,true);
-	imageZBuffer.save(std::string("./SkylineOutput/"+filePrefix+"raytraceZBuffer.png").c_str());
+	imageZBuffer.save(std::string(dirTile+"/SkylineOutput/"+filePrefix+"raytraceZBuffer.png").c_str());
 }
 
-void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefix)
+void ExportImageHighlightRemarquable(std::string dirTile, ViewPoint* viewpoint, std::string filePrefix)
 {
 	QImage imageBuilding(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);//Important build in color, the rest in white
 	TVec3d light1 = viewpoint->lightDir;
@@ -588,10 +591,10 @@ void ExportImageHighlightRemarquable(ViewPoint* viewpoint, std::string filePrefi
 	}
 	//Images needs to be mirrored because of qt's way of storing them
 	imageBuilding = imageBuilding.mirrored(false,true);
-	imageBuilding.save(std::string("./SkylineOutput/"+filePrefix+"raytraceBuilding.png").c_str());
+	imageBuilding.save(std::string(dirTile+"/SkylineOutput/"+filePrefix+"raytraceBuilding.png").c_str());
 }
 
-void ExportImageSkyline(ViewPoint* viewpoint, std::string filePrefix)
+void ExportImageSkyline(std::string dirTile, ViewPoint* viewpoint, std::string filePrefix)
 {
 	QImage imageSkyline(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);
 
@@ -619,26 +622,26 @@ void ExportImageSkyline(ViewPoint* viewpoint, std::string filePrefix)
 
 	//Images needs to be mirrored because of qt's way of storing them
 	imageSkyline = imageSkyline.mirrored(false,true);
-	imageSkyline.save(std::string("./SkylineOutput/"+filePrefix+"raytraceSkyline.png").c_str());
+	imageSkyline.save(std::string(dirTile+"/SkylineOutput/"+filePrefix+"raytraceSkyline.png").c_str());
 }
 
-void ExportImages(ViewPoint* viewpoint, std::string filePrefix)
+void ExportImages(std::string dirTile, ViewPoint* viewpoint, std::string filePrefix)
 {
 	std::cout << "Saving image." << std::endl;
 
-	ExportImageRoofWall(viewpoint,filePrefix);
-	ExportImageZBuffer(viewpoint,filePrefix);
-	ExportImageHighlightRemarquable(viewpoint,filePrefix);
-	ExportImageSkyline(viewpoint,filePrefix);
+	ExportImageRoofWall(dirTile, viewpoint,filePrefix);
+	ExportImageZBuffer(dirTile, viewpoint,filePrefix);
+	ExportImageHighlightRemarquable(dirTile, viewpoint,filePrefix);
+	ExportImageSkyline(dirTile, viewpoint,filePrefix);
 
 
 	std::cout << "Image saved !" << std::endl;
 }
 
-void ExportPanoramaSkyline(ViewPoint* front, ViewPoint* right, ViewPoint* back, ViewPoint* left, std::string filePrefix)
+void ExportPanoramaSkyline(std::string dirTile, ViewPoint* front, ViewPoint* right, ViewPoint* back, ViewPoint* left, std::string filePrefix)
 {
 	std::ofstream ofs;
-	ofs.open ("./SkylineOutput/"+filePrefix+"skyline.txt", std::ofstream::out);
+	ofs.open (dirTile + "/SkylineOutput/"+filePrefix+"skyline.txt", std::ofstream::out);
 
 	unsigned int cpt = front->skyline.FragCoords.size()+right->skyline.FragCoords.size()+back->skyline.FragCoords.size()+left->skyline.FragCoords.size();
 
