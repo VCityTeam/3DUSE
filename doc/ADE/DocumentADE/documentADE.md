@@ -2,7 +2,7 @@
 
 # Current Proposition
 
-![Image Alt](evolution/DocumentADE-Alaric2v6.png)
+![Image Alt](evolution/DocumentADE-Alaric2v7.png)
 
 ## Evolution of Document ADE
 ### First proposition (Model ADE-Alaric 1)
@@ -98,3 +98,9 @@ purpose is now a string to support various possibilities.
 - Add association to VersionTransition (to describe the provenance of an information related to change in the value of attributes.
 
 ![Image Alt](evolution/DocumentADE-Alaric2v6.png)
+
+### Seventh proposition (Model ADE-Alaric 2v7)
+#### Publication Date: April 13, 2016
+- Ordering of attributes
+
+![Image Alt](evolution/DocumentADE-Alaric2v7.png)
