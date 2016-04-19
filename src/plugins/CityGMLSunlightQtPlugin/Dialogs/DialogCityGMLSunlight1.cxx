@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QFileDialog>
+#include <QCheckBox>
 
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
@@ -17,6 +18,8 @@ DialogCityGMLSunlight1::DialogCityGMLSunlight1(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::DialogCityGMLSunlight1)
 {
+    //this->setWindowFlags(Qt::WindowMinimizeButtonHint); Flag to add minimize button -> not working
+
     ui->setupUi(this);
 
     this->setModal(false);
@@ -48,6 +51,7 @@ DialogCityGMLSunlight1::DialogCityGMLSunlight1(QWidget *parent) :
     connect(ui->VisuRemoveFile_B,SIGNAL(clicked()),this,SLOT(VisuRemoveFileButtonClicked()));
     connect(ui->VisuAddAllFiles_B,SIGNAL(clicked()),this,SLOT(VisuAddAllFilesButtonClicked()));
     connect(ui->VisuClearAllFiles_B,SIGNAL(clicked()),this,SLOT(VisuClearAllFilesButtonClicked()));
+    connect(ui->VisudirFiles_B,SIGNAL(clicked()),this,SLOT(VisuDirFilesButtonClicked()));
     connect(ui->StartVisu_B,SIGNAL(clicked()),this,SLOT(StartVisuButtonClicked()));
     connect(ui->StopVisu_B,SIGNAL(clicked()),this,SLOT(StopVisuButtonClicked()));
 
@@ -87,6 +91,10 @@ DialogCityGMLSunlight1::DialogCityGMLSunlight1(QWidget *parent) :
     //Add files from this input directory into VisuNonSelectedFiles List
     AddCalculatedFilesToList(inputDir);
 
+    //Fill visu files dir
+    QString filesdir = settings.value("dirfilessunlightvisu").toString();
+    ui->VisudirFiles_LE->setText(filesdir);
+
     //Gets previous dates
     QString format = "yyyy-MM-dd";
 
@@ -119,6 +127,7 @@ void DialogCityGMLSunlight1::DirFilesButtonClicked()
     AddItemsFromDirToList(dirpath);
 
     //Add path to directory in LineEdit
+    ui->VisudirFiles_LE->setText(dirpath);
     ui->dirFiles_LE->setText(dirpath);
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -230,7 +239,8 @@ void DialogCityGMLSunlight1::CreateSunlightFilesButtonClicked()
         SunlightDetection(fileDir.toStdString(), files, sunpathFile, startDate.toStdString(), endDate.toStdString(), outputDir);
     }   
 
-    //After calculation, rerun the input dir scan in visualise tab
+    //After calculation, change Visu inputdir to Calculation output dir and rerun the input dir scan in visualise tab
+    ui->InputDirectory_LE->setText(ui->OutputDirectory_LE->text());
     AddCalculatedFilesToList(ui->InputDirectory_LE->text());
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -246,7 +256,7 @@ void DialogCityGMLSunlight1::EndDateChanged()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::InputDirButtonClicked()
 {
-    QString dirpath = QFileDialog::getExistingDirectory(nullptr,"Choose Input Directory");
+    QString dirpath = QFileDialog::getExistingDirectory(nullptr,"Choose Sunlight Input Directory");
     QSettings settings("liris", "virtualcity");
     settings.setValue("inputdirsunlightvisu",dirpath);
 
@@ -301,6 +311,15 @@ void DialogCityGMLSunlight1::VisuClearAllFilesButtonClicked()
     ui->VisuSelectedFiles_List->clear();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void DialogCityGMLSunlight1::VisuDirFilesButtonClicked()
+{
+    QString dirpath = QFileDialog::getExistingDirectory(nullptr,"Choose Files Directory");
+    QSettings settings("liris", "virtualcity");
+    settings.setValue("dirfilessunlightvisu",dirpath);
+
+    ui->VisudirFiles_LE->setText(dirpath);
+}
+////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::StartVisuButtonClicked()
 {
     //Disable all buttons and enables stop visualisation button
@@ -312,6 +331,8 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     ui->VisuRemoveFile_B->setEnabled(false);
     ui->VisuAddAllFiles_B->setEnabled(false);
     ui->VisuClearAllFiles_B->setEnabled(false);
+    ui->VisudirFiles_LE->setEnabled(false);
+    ui->VisudirFiles_B->setEnabled(false);
     ui->VisuStartDate->setEnabled(false);
     ui->VisuEndDate->setEnabled(false);
     ui->TimeIncrement_ComboBox->setEnabled(false);
@@ -320,19 +341,62 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     ui->StopVisu_B->setEnabled(true);
 
 
+    //Activate sunlight visualisation
+    appGui().getMainWindow()->m_sunlightVisu = true;
 
+    //Enable time in mainwindow
+    appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
+//    QString widgetName = "checkBoxTemporalTools";
+//    QCheckBox* checkBoxTemporalTools = appGui().getMainWindow()->findChild<QCheckBox*>(widgetName);
+
+//    checkBoxTemporalTools->setChecked(true);
+
+    //PROBLEM : FIRST TIME THAT WE CHANGE DATE, WRONG DATE DISPLAYED (ONLY DISPLAY)
+    //Change start date and end date in mainwindow
+    QSettings settings ("liris","virtualcity");
+
+    QDateTime startDate = ui->VisuStartDate->dateTime();
+    vcity::app().getSettings().m_startDate = startDate.toString(Qt::ISODate).toStdString();
+    settings.setValue("startDate",startDate.toString(Qt::ISODate));
+
+    QDateTime endDate = ui->VisuEndDate->dateTime();
+    vcity::app().getSettings().m_endDate = endDate.toString(Qt::ISODate).toStdString();
+    settings.setValue("endDate",endDate.toString(Qt::ISODate));
+
+    appGui().getMainWindow()->initTemporalTools();
+
+    //load files sunlight info on specified period
+
+    /*
+    appGui().getMainWindow()->toggleUseTemporal();
 
     vcity::app().getSettings().m_startDate = ui->VisuStartDate->text().toStdString();
 
     QSettings settings ("liris","virtualcity");
-    settings.setValue("startDate",ui->VisuStartDate->text());
+    settings.setValue("startDate",ui->VisuStartDate->dateTime().toString(Qt::ISODate));
+    settings.setValue("endDate",ui->VisuEndDate->dateTime().toString(Qt::ISODate));
 
     appGui().getMainWindow()->initTemporalTools();
 
-    appGui().getMainWindow()->m_useTemporal = true;
-    appGui().getMainWindow()->toggleUseTemporal();
+    //Load selected files
+    for(int i = 0; i < ui->VisuSelectedFiles_List->count(); ++i)
+    {
+        QString filepath = ui->VisudirFiles_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text() + ".gml";
+
+        //TODO: CHECK IF NOT ALREADY LOADED
+        appGui().getMainWindow()->loadFile(filepath);
+    }
+
+    //Enable visualisation
+    appGui().getMainWindow()->m_sunlightVisu = true;*/
 
 
+
+   // appGui().getMainWindow()->m_ui->checkBoxTemporalTools->setChecked(true);
+
+
+
+    // Tests to bring mainwindow foreground and send Sunlight background
     //appGui()->->setWindowState(Qt::WindowActive);
 //    appGui().getMainWindow()->raise();
 //    appGui().getMainWindow()->activateWindow();
@@ -349,6 +413,9 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::StopVisuButtonClicked()
 {
+    //Disable sunlight visu
+    appGui().getMainWindow()->m_sunlightVisu = false;
+
     //Enable all buttons and disables stop visualisation
     ui->InputDirectory_B->setEnabled(true);
     ui->InputDirectory_LE->setEnabled(true);
@@ -358,12 +425,19 @@ void DialogCityGMLSunlight1::StopVisuButtonClicked()
     ui->VisuRemoveFile_B->setEnabled(true);
     ui->VisuAddAllFiles_B->setEnabled(true);
     ui->VisuClearAllFiles_B->setEnabled(true);
+    ui->VisudirFiles_LE->setEnabled(true);
+    ui->VisudirFiles_B->setEnabled(true);
     ui->VisuStartDate->setEnabled(true);
     ui->VisuEndDate->setEnabled(true);
     ui->TimeIncrement_ComboBox->setEnabled(true);
     ui->StartVisu_B->setEnabled(true);
 
     ui->StopVisu_B->setEnabled(false);
+
+    //Disable time in mainwindow
+    appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
+
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 bool DialogCityGMLSunlight1::ListContains(QListWidget* list, QString item)

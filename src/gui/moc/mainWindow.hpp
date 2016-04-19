@@ -43,6 +43,7 @@ public:
     bool m_useTemporal;     ///< use temporal slider (also used for citygml temporal export)
     bool m_temporalAnim;    ///< temporal animation ? (play button clicked ?)
     int m_unlockLevel;      ///< admin mode (to hide dev menus)
+    bool m_sunlightVisu;    ///< if start visualisation is pressed in sunlight plugin
 
     QTimer m_timer;         ///< anim timer
 	QDateTime m_currentDate;	///< current date on the temporal slider
@@ -64,8 +65,7 @@ public:
     // admin mode (show all menus)
     void unlockFeatures(const QString& pass);
 
-    //TEMP
-//    void DisplaySun(TVec3d sunPos);
+    void ChangecheckBoxTemporalToolsState();
 
     QLineEdit* getFilter();
 

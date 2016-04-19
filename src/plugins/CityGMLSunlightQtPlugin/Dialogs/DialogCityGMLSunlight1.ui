@@ -24,7 +24,7 @@
      </property>
      <widget class="QWidget" name="Calculation_Tab">
       <attribute name="title">
-       <string>Calculation</string>
+       <string>Computation</string>
       </attribute>
       <widget class="Line" name="line_3">
        <property name="geometry">
@@ -52,7 +52,7 @@
         <item>
          <widget class="QLabel" name="label_8">
           <property name="text">
-           <string>From :</string>
+           <string>From</string>
           </property>
          </widget>
         </item>
@@ -99,7 +99,7 @@
         <item>
          <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Until :</string>
+           <string>To</string>
           </property>
          </widget>
         </item>
@@ -149,7 +149,7 @@
         <item>
          <widget class="QLabel" name="label_14">
           <property name="text">
-           <string>Output Directory: </string>
+           <string>Output Directory </string>
           </property>
          </widget>
         </item>
@@ -531,7 +531,7 @@
            </size>
           </property>
           <property name="text">
-           <string>Choose files to anlayse :</string>
+           <string>Choose files to anlayse</string>
           </property>
          </widget>
         </item>
@@ -546,7 +546,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>580</y>
+         <y>640</y>
          <width>671</width>
          <height>16</height>
         </rect>
@@ -571,7 +571,7 @@
         <item>
          <widget class="QLabel" name="label_15">
           <property name="text">
-           <string>Input Directory:</string>
+           <string>Sunlight Input Directory</string>
           </property>
          </widget>
         </item>
@@ -607,7 +607,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>480</y>
+         <y>550</y>
          <width>671</width>
          <height>29</height>
         </rect>
@@ -625,7 +625,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>From :</string>
+           <string>From</string>
           </property>
          </widget>
         </item>
@@ -672,7 +672,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Until :</string>
+           <string>To</string>
           </property>
          </widget>
         </item>
@@ -710,7 +710,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>450</y>
+         <y>520</y>
          <width>671</width>
          <height>16</height>
         </rect>
@@ -723,7 +723,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>530</y>
+         <y>600</y>
          <width>671</width>
          <height>29</height>
         </rect>
@@ -741,7 +741,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Time Increment :</string>
+           <string>Time Increment</string>
           </property>
          </widget>
         </item>
@@ -789,7 +789,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>620</y>
+         <y>670</y>
          <width>671</width>
          <height>41</height>
         </rect>
@@ -881,7 +881,7 @@
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Choose files to Visualise :</string>
+           <string>Choose files to Visualise</string>
           </property>
          </widget>
         </item>
@@ -1036,14 +1036,52 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="layoutWidget_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>480</y>
+         <width>671</width>
+         <height>29</height>
+        </rect>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_14">
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Files Directory</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_19">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Minimum</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="VisudirFiles_LE"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="VisudirFiles_B">
+          <property name="text">
+           <string>Search Directory</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </widget>
-   </item>
-   <item>
-    <widget class="Line" name="line_10">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
     </widget>
    </item>
   </layout>

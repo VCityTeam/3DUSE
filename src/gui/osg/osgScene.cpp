@@ -28,7 +28,9 @@
 #include "osgTools.hpp"
 #include "../controllerGui.hpp"
 #include <QTextStream>
-//#include <typeinfo>
+
+#include "core/dateTime.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -729,6 +731,7 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
     if(geode)
     {
+
 //        osg::Node::DescriptionList Type = geode->getDescriptions();
 
 //        std::cout << "Type size : " << std::endl;
@@ -739,6 +742,8 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
         for(osg::ref_ptr<osg::Drawable> drawableChild : geode->getDrawableList())
         {
             std::string drawableName = drawableChild->getName();
+
+           // std::cout << "drawable name : " << drawableName << std::endl;
 
             if(polySunlightInfo->count(drawableName) > 0) //If there is a value for this polygon in the map
             {
@@ -791,10 +796,25 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
 
     QFile file(filepath);
 
+//    std::cout << filepath.toStdString() << std::endl;
+
+    //TO BE REMOVED : SHIFT DATETIME OF 2 HOURS
+    std::string dt = datetime.toStdString();
+    //std::cout << "original dt : " << std::endl;
+
+    int day = std::stoi(dt.substr(0,2));
+    int month = std::stoi(dt.substr(2,2));
+    int year = std::stoi(dt.substr(4,4));
+    int hour = std::stoi(dt.substr(9,2));
+
+    int idt = encodeDateTime(year,month,day,hour);
+    idt-=2;
+    std::string ndt = decodeDateTime(idt);
+    //std::cout << "newdt : " << ndt << std::endl;
+    datetime = QString::fromStdString(ndt);
+
     if(file.open(QIODevice::ReadOnly)) //If file opens succesfully
     {
-        file.readLine(); //Skip first line (header)
-
         while(!file.atEnd())
         {
             QString line = file.readLine(); //Get current line
@@ -824,6 +844,9 @@ std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datet
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setPolyColor(const QDateTime& date)
 {
+
+//    encodeDateTime(date);
+//#if 0
     //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)
     QString format = "ddMMyyyy:hhmm";
     QString datetime = date.toString(format);
@@ -867,8 +890,10 @@ void OsgScene::setPolyColor(const QDateTime& date)
             {
                 for(QFileInfo f : dirBATI.entryInfoList())
                 {
+                    //std::cout << "bah" << std::endl;
                     if(f.fileName().toStdString() == nodeTileName + ".csv")
                     {
+                        //std::cout << "bah 2 " << std::endl;
                         //If yes Load file infos into a map (info for each polygon of tile for the given datetime)
                         loadTileSunlightInfo(f.filePath(), datetime, polygonSunlightInfo);
                     }
@@ -879,6 +904,8 @@ void OsgScene::setPolyColor(const QDateTime& date)
             delete polygonSunlightInfo;
         }
     }
+
+//#endif
 
 }
 

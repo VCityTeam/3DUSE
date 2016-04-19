@@ -2,6 +2,7 @@
 #define DATETIME_HPP
 
 #include <iostream>
+#include <QDateTime>
 
 
 ///
@@ -21,6 +22,9 @@ int encodeDateTime(int y, int m, int d, int h);
 /// \return Number of hours since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
 ///
 int encodeDateTime(std::string date, int hour);
+
+
+int encodeDateTime(const QDateTime& date);
 
 ///
 /// \brief decodeDateTime Generates a string representing the datetime embedded in an integer. The integer represents the number of hours since civil 1970-01-01.

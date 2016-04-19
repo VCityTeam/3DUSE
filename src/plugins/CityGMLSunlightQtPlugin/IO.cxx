@@ -52,7 +52,7 @@ void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* fil
 
         for(int i = 0 ; i < 24 ; ++i)
         {
-            ofs << iDate + i << ";" << t->polygonId << ";" << std::to_string(sunInfo[iDate + i]) << std::endl;
+            ofs << decodeDateTime(iDate + i) << ";" << t->polygonId << ";" << std::to_string(sunInfo[iDate + i]) << std::endl;
         }
     }
 }

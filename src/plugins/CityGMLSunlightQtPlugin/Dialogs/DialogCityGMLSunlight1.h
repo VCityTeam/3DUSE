@@ -39,6 +39,7 @@ private slots:
     void VisuRemoveFileButtonClicked();
     void VisuAddAllFilesButtonClicked();
     void VisuClearAllFilesButtonClicked();
+    void VisuDirFilesButtonClicked();
     void StartVisuButtonClicked();
     void StopVisuButtonClicked();
 

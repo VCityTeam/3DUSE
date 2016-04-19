@@ -58,7 +58,7 @@
 std::vector<std::pair<double, double>> Hauteurs;
 
 MainWindow::MainWindow(QWidget *parent) :
-	QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0)
+    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0), m_sunlightVisu(false)
 {
 	m_ui->setupUi(this);
 
@@ -113,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	//connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
 	//connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
 	connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
-	connect(m_ui->checkBoxTemporalTools, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
+    connect(m_ui->checkBoxTemporalTools, SIGNAL(stateChanged(int)), this, SLOT(toggleUseTemporal()));
 	connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
 	//connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
 	connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
@@ -935,7 +935,6 @@ void MainWindow::initTemporalTools()
 	m_ui->dateTimeEdit->setDateTime(startDate);
 	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
 	m_ui->dateTimeEdit->setMaximumDateTime(endDate);
-
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
@@ -957,7 +956,9 @@ void MainWindow::updateTemporalParams(int value)
     if(m_useTemporal)
     {
         m_osgScene->setDate(datetime);
-        m_osgScene->setPolyColor(datetime);
+
+        //if(m_sunlightVisu) //If start visu button pressed in sunlight plugin
+            m_osgScene->setPolyColor(datetime);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -1011,6 +1012,11 @@ void MainWindow::toggleUseTemporal()
 	m_ui->toolButton->setEnabled(m_useTemporal);
 
 	//std::cout << "toggle temporal tool" << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::ChangecheckBoxTemporalToolsState()
+{
+     m_ui->checkBoxTemporalTools->setChecked(!m_useTemporal); //This will trigger a signal and call toggleUseTemporal function
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
@@ -2811,9 +2817,8 @@ void MainWindow::test2()
 
 void MainWindow::test3()
 {
-   std::string date = "2016-08-10";
-   encodeDateTime(date,2);
-
+    m_ui->checkBoxTemporalTools->setChecked(true);
+    //this->repaint();
 
    // SunlightDetection();
 

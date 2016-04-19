@@ -1,5 +1,6 @@
 #include "dateTime.hpp"
 
+#include <QString>
 
 //Partly taken from http://howardhinnant.github.io/date_algorithms.html
 int encodeDateTime(int y, int m, int d, int h)
@@ -34,6 +35,18 @@ int encodeDateTime(std::string date, int hour)
     int day = std::stoi(sDay);
 
     return encodeDateTime(year,month,day,hour);
+}
+
+int encodeDateTime(const QDateTime& date)
+{
+    QString format = "yyyy-MM-dd:hh";
+    std::string sDatetime = date.toString(format).toStdString();
+
+    int pos = sDatetime.find(":");
+    std::string sDate = sDatetime.substr(0,pos);
+    std::string sHour = sDatetime.substr(pos + 1, std::string::npos);
+
+    return encodeDateTime(sDate,std::stoi(sHour));
 }
 
 //Partly taken from http://howardhinnant.github.io/date_algorithms.html
