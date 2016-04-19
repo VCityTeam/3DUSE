@@ -3052,8 +3052,8 @@ void MainWindow::test2() //Génération de stats pour étude de visibilité
 
 			std::vector<float> Dist;
 
-			ofs << "LoD2 à une distance de " << max << std::endl;
-			ofs << "Comparaison LoD1 à partir de " << i << "000m et LoD2" << std::endl;
+			ofs << "LoD2 a une distance de " << max << std::endl;
+			ofs << "Comparaison LoD1 a partir de " << i << "000m et LoD2" << std::endl;
 
 			//OGRMultiLineString* MLS = new OGRMultiLineString;
 
