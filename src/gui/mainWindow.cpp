@@ -3228,13 +3228,13 @@ void MainWindow::test3()
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
 
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief dataSourceToPointVector Gets all the OGRPoints from the OGRDataSource variable and add them into a vector of OGRPoint*.
+/// \brief dataSourceToPointList Gets all the OGRPoints from the OGRDataSource variable and add them into a list of OGRPoint*.
 /// \param poDS OGRDataSource to get the Points from.
-/// \return a vector of OGRPoint*.
+/// \return a list of OGRPoint*.
 ///
-std::vector<OGRPoint*> dataSourceToPointVector(OGRDataSource* poDS)
+std::list<OGRPoint*> dataSourceToPointList(OGRDataSource* poDS)
 {
-    std::vector<OGRPoint*> vPoints;
+    std::list<OGRPoint*> vPoints;
 
     OGRLayer *poLayer;
     int nbLayers = poDS->GetLayerCount();
@@ -3342,7 +3342,7 @@ void MainWindow::test4()
 //        }
 //    }
 
-    //*******************Hausdorff Dist
+    //*******************Comparison of 2 skylines
 
     //Load 2 shapefiles
     QString filepath1 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/SkylinePoints.shp";
@@ -3355,10 +3355,68 @@ void MainWindow::test4()
     OGRDataSource* poDS2 = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
 
     //Get vector of OGRPoints from OGRDataSource
-    std::vector<OGRPoint*> vPoints1 = dataSourceToPointVector(poDS1);
-    std::vector<OGRPoint*> vPoints2 = dataSourceToPointVector(poDS2);
+    std::list<OGRPoint*> vPoints1 = dataSourceToPointList(poDS1);
+    std::list<OGRPoint*> vPoints2 = dataSourceToPointList(poDS2);
 
-    //Compute symetric Hausdorff Distance beetween two point clouds
+    //Load point of view
+    QString pov_filepath = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/Viewpoint.shp";
+
+    std::cout << "load point of view : " << pov_filepath.toStdString() << std::endl;
+    OGRDataSource* povODS = OGRSFDriverRegistrar::Open(pov_filepath.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
+
+    std::list<OGRPoint*> vPoV = dataSourceToPointList(povODS);
+    std::list<OGRPoint*>::iterator it = vPoV.begin();
+    OGRPoint* pov = *it;
+    //Convert it to TVec3d for convinience
+    TVec3d PoV = TVec3d(pov->getX(), pov->getY(), pov->getZ());
+
+    //Iterate through two lists simultaneously
+    std::list<OGRPoint*>::iterator itList1 = vPoints1.begin();
+    std::list<OGRPoint*>::iterator itList2 = vPoints2.begin();
+
+    //Compute ref vector (making the assesment that first point of skyline is the same for both skylines)
+    TVec3d vRef = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
+
+    //epsilon for float comparison
+    float epsilon = 0.001;
+
+    for(; itList1 != vPoints1.end() && itList2 != vPoints2.end(); ++itList1, ++itList2) // && ou || ?
+    {
+        //Create vectors
+        TVec3d v1 = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
+        TVec3d v2 = TVec3d((*itList2)->getX() - PoV.x, (*itList2)->getY() - PoV.y, (*itList2)->getZ() - PoV.z);
+
+        //Compute angles with reference vector
+        float angle1 = acos(PoV.dot(v1) / (PoV.length() * v1.length()));
+        float angle2 = acos(PoV.dot(v2) / (PoV.length() * v2.length()));
+
+        if(abs(angle1 - angle2) > epsilon) // ie there are not equals
+        {
+            if(angle1 < angle2)
+            {
+                //Compute intersection between list 2 and v1
+
+                //insert the intersection into list 2
+            }
+            else if(angle1 > angle2)
+            {
+                //Compute intersection between list 1 and v2
+                //insert the intersection into list 1
+            }
+        }
+
+    }
+
+
+
+//    std::cout << vPoints1.size() << std::endl;
+//    std::cout << vPoints2.size() << std::endl;
+//    std::cout << vPoV.size() << std::endl;
+
+
+
+
+
 
 
 }
