@@ -360,7 +360,6 @@
      <string>Tools</string>
     </property>
     <addaction name="actionFix_building"/>
-    <addaction name="actionCityGML_cut"/>
     <addaction name="actionOBJ_to_CityGML"/>
     <addaction name="separator"/>
     <addaction name="actionChange_Detection"/>
@@ -747,11 +746,6 @@
   <action name="actionExport_OBJ_Assimp">
    <property name="text">
     <string>Export OBJ (Assimp)</string>
-   </property>
-  </action>
-  <action name="actionCityGML_cut">
-   <property name="text">
-    <string>CityGML cut...</string>
    </property>
   </action>
   <action name="actionChange_Detection">
