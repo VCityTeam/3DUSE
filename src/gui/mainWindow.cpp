@@ -3584,18 +3584,11 @@ void MainWindow::test4()
 
 	std::cout<<"Workspaces:"<<std::endl;
 	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+    for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++)
+    {
 		std::cout<<it->second.name<<std::endl;
-		for(temporal::Version* v : it->second.versions){
-			std::cout<<"    - "<<v->getId()<<std::endl;
-		}
-	}
-
-	std::cout<<"Workspaces:"<<std::endl;
-	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-		std::cout<<it->second.name<<std::endl;
-		for(temporal::Version* v : it->second.versions){
+        for(temporal::Version* v : it->second.versions)
+        {
 			std::cout<<"    - "<<v->getId()<<std::endl;
 		}
 	}
