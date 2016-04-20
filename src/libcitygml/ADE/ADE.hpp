@@ -11,7 +11,7 @@ class ADEHandler
 public:
 	ADEHandler(void){gmlHandler=NULL;}
 	ADEHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
-	~ADEHandler(void){};
+    virtual ~ADEHandler(void){};
 	void setGMLHandler(citygml::CityGMLHandler* gHandler){gmlHandler=gHandler;}
 	virtual void startElement(std::string,void*){};
 	virtual void endElement(std::string){};
