@@ -1,5 +1,5 @@
-#include "dialogInondations.hpp"
-#include "ui_dialogInondations.h"
+#include "dialogFloodAR.hpp"
+#include "ui_dialogFloodAR.h"
 #include <QMessageBox>
 
 #include "../FloodARTools.hpp"
@@ -7,9 +7,9 @@
 #include "processes/ShpExtrusion.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
-dialogInondations::dialogInondations(QWidget *parent) :
+dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	QDialog(parent),
-	ui(new Ui::dialogInondations)
+	ui(new Ui::dialogFloodAR)
 {
 	ui->setupUi(this);
 	connect(ui->btn_ASCcut_in, SIGNAL(clicked()), this, SLOT(browseInputDirASCCut()));
@@ -36,24 +36,24 @@ dialogInondations::dialogInondations(QWidget *parent) :
 	ui->label_15->setEnabled(false);
 }
 ////////////////////////////////////////////////////////////////////////////////
-dialogInondations::~dialogInondations()
+dialogFloodAR::~dialogFloodAR()
 {
 	delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::browseInputDirASCCut()
+void dialogFloodAR::browseInputDirASCCut()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCcut_src->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::browseOutputDirASCCut()
+void dialogFloodAR::browseOutputDirASCCut()
 {
 	QString path = QFileDialog::getExistingDirectory(this, "Select output directory");
 	ui->lineEdit_ASCcut_out->setText(path);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::cutASC()
+void dialogFloodAR::cutASC()
 {
 	QFileInfo file(ui->lineEdit_ASCcut_src->text());
 	QDir dir(ui->lineEdit_ASCcut_out->text());
@@ -95,13 +95,13 @@ void dialogInondations::cutASC()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::browseInputTextureCut()
+void dialogFloodAR::browseInputTextureCut()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select texture file", "", "");
 	ui->lineEdit_texCut_src->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::textureCut()
+void dialogFloodAR::textureCut()
 {
 	QFileInfo file(ui->lineEdit_texCut_src->text());
 	int tileSizeX = ui->spinBox_txTileSize_x->value();
@@ -133,13 +133,13 @@ void dialogInondations::textureCut()
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-void dialogInondations::browseInputASCtoWater()
+void dialogFloodAR::browseInputASCtoWater()
 {
 	QStringList filenames = QFileDialog::getOpenFileNames(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCtoWater_src->setText(filenames.join(";"));
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::enablePolygonsParams(int state)
+void dialogFloodAR::enablePolygonsParams(int state)
 {
 	switch (state)
 	{
@@ -155,7 +155,7 @@ void dialogInondations::enablePolygonsParams(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::enableTemporalParams(int state)
+void dialogFloodAR::enableTemporalParams(int state)
 {
 	switch (state)
 	{
@@ -174,7 +174,7 @@ void dialogInondations::enableTemporalParams(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::ASCtoWater()
+void dialogFloodAR::ASCtoWater()
 {
 	bool polygonsImport = ui->chkBox_ASCtoWater_simplify->isChecked();
 	float prec = ui->dbSpinBox_ASCtoWater_prec->value();
@@ -211,25 +211,25 @@ void dialogInondations::ASCtoWater()
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-void dialogInondations::browseInput1ASCtoTerrain()
+void dialogFloodAR::browseInput1ASCtoTerrain()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCtoTerrain1->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::browseInput2ASCtoTerrain()
+void dialogFloodAR::browseInput2ASCtoTerrain()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
 	ui->lineEdit_ASCtoTerrain2->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::browseTextureASCtoTerrain()
+void dialogFloodAR::browseTextureASCtoTerrain()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select texture file file");
 	ui->lineEdit_ASCtoTerrainTex->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::enableASCFusion(int state)
+void dialogFloodAR::enableASCFusion(int state)
 {
 	switch (state)
 	{
@@ -245,7 +245,7 @@ void dialogInondations::enableASCFusion(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::enableTextures(int state)
+void dialogFloodAR::enableTextures(int state)
 {
 	switch (state)
 	{
@@ -259,7 +259,7 @@ void dialogInondations::enableTextures(int state)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::ASCtoTerrain()
+void dialogFloodAR::ASCtoTerrain()
 {
 	bool fusion = ui->chkBox_fusion->isChecked();
 	QFileInfo file(ui->lineEdit_ASCtoTerrain1->text());
@@ -292,19 +292,19 @@ void dialogInondations::ASCtoTerrain()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::browseInputShpExt()
+void dialogFloodAR::browseInputShpExt()
 {
 	QString filename = QFileDialog::getOpenFileName(this, "Select SHP file", "", "SHP files (*.shp)");
 	ui->lineEdit_ShpExt_in->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::browseInputDirShpExt()
+void dialogFloodAR::browseInputDirShpExt()
 {
 	QString path = QFileDialog::getExistingDirectory(this, "Select data directory");
 	ui->lineEdit_ShpExt_dir->setText(path);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogInondations::ShpExtrusion()
+void dialogFloodAR::ShpExtrusion()
 {
 	std::string dir = ui->lineEdit_ShpExt_dir->text().toStdString();
 	if (dir != "")

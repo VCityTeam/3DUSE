@@ -621,32 +621,32 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [END]
 
-# --> CityGMLInondationsQtPlugin : QtPlugin [BEGIN]
-OPTION(BUILD_CityGMLInondationsQtPlugin "BUILD CityGMLInondationsQtPlugin " OFF)
-if (BUILD_CityGMLInondationsQtPlugin) 
-  set(CityGMLInondations_Qt_Plugin_HEADER src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.h src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.hpp src/plugins/CityGMLInondationsQtPlugin/FloodARTools.hpp)
-  set(CityGMLInondations_Qt_Plugin_UI src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.ui)
+# --> CityGMLFloodARQtPlugin : QtPlugin [BEGIN]
+OPTION(BUILD_CityGMLFloodARQtPlugin "BUILD CityGMLFloodARQtPlugin " OFF)
+if (BUILD_CityGMLFloodARQtPlugin) 
+  set(CityGMLFloodAR_Qt_Plugin_HEADER src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.h src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.hpp src/plugins/CityGMLFloodARQtPlugin/FloodARTools.hpp)
+  set(CityGMLFloodAR_Qt_Plugin_UI src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.ui)
   if (WITH_QT5)
     ADD_DEFINITIONS("-DWITH_QT5")
-    QT5_WRAP_CPP(CityGMLInondations_Qt_Plugin_MOC_CPP ${CityGMLInondations_Qt_Plugin_HEADER})
-    QT5_WRAP_UI(CityGMLInondations_Qt_Plugin_UI_CPP ${CityGMLInondations_Qt_Plugin_UI})
-    set(CityGMLInondations_Qt_Plugin_SRC ${CityGMLInondations_Qt_Plugin_SRC} ${CityGMLInondations_Qt_Plugin_MOC_CPP} ${CityGMLInondations_Qt_Plugin_UI_CPP})
+    QT5_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
+    QT5_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
+    set(CityGMLFloodAR_Qt_Plugin_SRC ${CityGMLFloodAR_Qt_Plugin_SRC} ${CityGMLFloodAR_Qt_Plugin_MOC_CPP} ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
   else(WITH_QT5) 
-    QT4_WRAP_CPP(CityGMLInondations_Qt_Plugin_MOC_CPP ${CityGMLInondations_Qt_Plugin_HEADER})
-    QT4_WRAP_UI(CityGMLInondations_Qt_Plugin_UI_CPP ${CityGMLInondations_Qt_Plugin_UI})
-    set(CityGMLInondations_Qt_Plugin_SRC ${CityGMLInondations_Qt_Plugin_SRC} ${CityGMLInondations_Qt_Plugin_MOC_CPP} ${CityGMLInondations_Qt_Plugin_UI_CPP})
-    set(CityGMLInondations_Qt_Plugin_LIB ${CityGMLInondations_Qt_Plugin_LIB} ${QT_LIBRARIES})
+    QT4_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
+    QT4_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
+    set(CityGMLFloodAR_Qt_Plugin_SRC ${CityGMLFloodAR_Qt_Plugin_SRC} ${CityGMLFloodAR_Qt_Plugin_MOC_CPP} ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
+    set(CityGMLFloodAR_Qt_Plugin_LIB ${CityGMLFloodAR_Qt_Plugin_LIB} ${QT_LIBRARIES})
   endif(WITH_QT5)
 
-  add_library(CityGMLInondationsQtPlugin SHARED src/plugins/CityGMLInondationsQtPlugin/CityGMLInondationsQtPlugin.cxx src/plugins/CityGMLInondationsQtPlugin/Dialogs/dialogInondations.cxx src/plugins/CityGMLInondationsQtPlugin/FloodARTools.cxx
-        ${CityGMLInondations_Qt_Plugin_HEADER} ${CityGMLInondations_Qt_Plugin_SRC}
+  add_library(CityGMLFloodARQtPlugin SHARED src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.cxx src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.cxx src/plugins/CityGMLFloodARQtPlugin/FloodARTools.cxx
+        ${CityGMLFloodAR_Qt_Plugin_HEADER} ${CityGMLFloodAR_Qt_Plugin_SRC}
         ${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
-  target_link_libraries (CityGMLInondationsQtPlugin ${LINUX_FLAGS} ${CityGMLInondations_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  target_link_libraries (CityGMLFloodARQtPlugin ${LINUX_FLAGS} ${CityGMLFloodAR_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
   if (WITH_QT5)
-    QT5_USE_MODULES(CityGMLInondationsQtPlugin Core Widgets OpenGL)
+    QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)
   endif(WITH_QT5)
-endif (BUILD_CityGMLInondationsQtPlugin)
-# --> CityGMLInondationsQtPlugin : QtPlugin [END]
+endif (BUILD_CityGMLFloodARQtPlugin)
+# --> CityGMLFloodARQtPlugin : QtPlugin [END]
 
 ################
 # 3DUSE plugins
@@ -682,9 +682,9 @@ endif (BUILD_CityGMLInondationsQtPlugin)
 	if (BUILD_CityGMLVisibiliteQtPlugin)
 		set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
 	endif (BUILD_CityGMLVisibiliteQtPlugin)
-  if (BUILD_CityGMLInondationsQtPlugin)
-    set(CityGMLInondationsQtPlugin "CityGMLInondationsQtPlugin")
-  endif (BUILD_CityGMLInondationsQtPlugin)
+  if (BUILD_CityGMLFloodARQtPlugin)
+    set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
+  endif (BUILD_CityGMLFloodARQtPlugin)
 	################
 	# 3DUSE plugins
 	################

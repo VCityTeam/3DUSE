@@ -7,9 +7,9 @@
 #include <QDebug>
 #include <QMessageBox>
 
-#include "gui/osg/osgMnt.hpp"
+#include "src/DataStructures/DEM/osgMnt.hpp"
 #include "import/importerASC.hpp"
-#include "processes/ASCCut.hpp"
+#include "libfilters/tiling/ASCCut.hpp"
 
 namespace FloodAR
 {
@@ -95,13 +95,28 @@ namespace FloodAR
 	////////////////////////////////////////////////////////////////////////////////
 	void cutASC(std::string filePath, std::string outputDir, int tileSizeX, int tileSizeY)
 	{
-		QFileInfo file = QFileInfo(QString(filePath.c_str()));
 		//reading file
 		citygml::ImporterASC* importer = new citygml::ImporterASC();
 		MNT* asc = new MNT();
 		if (asc->charge(filePath.c_str(), "ASC"))
 		{
-			ASCCut(asc, tileSizeX, tileSizeY, outputDir, file.baseName().toStdString());
+			int xMin = floor(asc->get_x_noeud_NO() / tileSizeX);
+			int yMin = floor(asc->get_y_noeud_NO() / tileSizeY);
+			int xMax = floor((asc->get_x_noeud_NO() + asc->get_dim_x()*asc->get_pas_x()) / tileSizeX)+1;
+			int yMax = floor((asc->get_y_noeud_NO() + asc->get_dim_y()*asc->get_pas_y()) / tileSizeY)+1;
+			for (int y = yMin; y < yMax; y++)
+			{
+				for (int x = xMin; x < xMax; x++)
+				{
+					MNT* tiledDEM = BuildTile(asc, tileSizeX, tileSizeY, x, y);
+					if (tiledDEM == nullptr) continue;
+					std::string outputname = outputDir + "/" + std::to_string(x) + "-" + std::to_string(y) + "_MNT.asc";
+					tiledDEM->write(outputname.c_str());
+					delete tiledDEM;
+				}
+				std::cout << "Tiling (" << (int)((y - yMin)*100.0 / (yMax - yMin)) << "%)\r";
+			}
+			std::cout << "Tiling (100%)" << std::endl;
 		}
 		delete importer;
 		delete asc;
@@ -326,182 +341,4 @@ namespace FloodAR
 		std::cout << "Tiling texture... (100%)" << std::endl;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	/*
-	 *Method for tiling shapefiles, stored here for now
-	 */
-	 //void slotCutShapeFile()
-	 //{
-	 //	const uint tilesize = 500;
-	 //	m_osgView->setActive(false);
-	 //	QStringList filenames = QFileDialog::getOpenFileNames(this, "Cut Shapefile", "", "Shapefiles (*.shp)");
-
-	 //	QMessageBox msgBox;
-	 //	msgBox.setText("Use centroid and don't cut shape features?");
-	 //	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-	 //	int ret = msgBox.exec();
-	 //	if (ret == QMessageBox::Cancel) { m_osgView->setActive(true); return; }
-
-
-	 //	for (int i = 0; i < filenames.count(); ++i)
-	 //	{
-	 //		QFileInfo file(filenames[i]);
-	 //		QDir dir = file.absoluteDir();
-	 //		if (!dir.exists("tiles"))
-	 //			dir.mkdir("tiles");
-
-	 //		const char * DriverName = "ESRI Shapefile";
-	 //		OGRSFDriver * Driver;
-
-	 //		OGRRegisterAll();
-	 //		Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-	 //		if (Driver == NULL)
-	 //		{
-	 //			printf("%s driver not available.\n", DriverName);
-	 //			return;
-	 //		}
-	 //		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filenames[i].toStdString().c_str(), FALSE);
-
-	 //		double Xmin = 100000000, Xmax = -100000000, Ymin = 100000000, Ymax = -100000000;
-
-	 //		int nbLayers = poDS->GetLayerCount();
-	 //		if (nbLayers > 0)
-	 //		{
-	 //			OGRLayer *poLayer = poDS->GetLayer(0);
-
-	 //			OGRFeature *poFeature;
-	 //			poLayer->ResetReading();
-
-	 //			while ((poFeature = poLayer->GetNextFeature()) != NULL)
-	 //			{
-	 //				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-	 //				if (poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-	 //				{
-	 //					OGRPolygon* poPG = (OGRPolygon*)poGeometry;
-
-	 //					OGRLinearRing* poLR = poPG->getExteriorRing();
-
-	 //					int nbPoints = poLR->getNumPoints();
-
-	 //					for (int i = 0; i<nbPoints; ++i)//Pour récupérer les points de l'exterior ring
-	 //					{
-	 //						OGRPoint p;
-	 //						poLR->getPoint(i, &p);
-
-	 //						if (p.getX() > Xmax)
-	 //							Xmax = p.getX();
-	 //						if (p.getX() < Xmin)
-	 //							Xmin = p.getX();
-	 //						if (p.getY() > Ymax)
-	 //							Ymax = p.getY();
-	 //						if (p.getY() < Ymin)
-	 //							Ymin = p.getY();
-	 //					}
-	 //				}
-	 //			}
-
-	 //			Xmin = tilesize * ((int)Xmin / tilesize);
-	 //			Ymin = tilesize * ((int)Ymin / tilesize);
-	 //			Xmax = tilesize * ((int)Xmax / tilesize);
-	 //			Ymax = tilesize * ((int)Ymax / tilesize);
-
-	 //			std::cout << std::setprecision(10) << "Boite englobante creee : " << Xmin << " " << Xmax << " | " << Ymin << " " << Ymax << std::endl;
-
-	 //			std::vector<OGRPolygon*> Tuiles;
-
-	 //			for (int x = (int)Xmin; x <= (int)Xmax; x += tilesize)
-	 //			{
-	 //				for (int y = (int)Ymin; y <= (int)Ymax; y += tilesize)
-	 //				{
-	 //					OGRLinearRing* Ring = new OGRLinearRing;
-	 //					Ring->addPoint(x, y);
-	 //					Ring->addPoint(x + tilesize, y);
-	 //					Ring->addPoint(x + tilesize, y + tilesize);
-	 //					Ring->addPoint(x, y + tilesize);
-	 //					Ring->addPoint(x, y);
-
-	 //					OGRPolygon* Poly = new OGRPolygon;
-	 //					Poly->addRingDirectly(Ring);
-
-	 //					Tuiles.push_back(Poly);
-	 //				}
-	 //			}
-	 //			std::cout << Tuiles.size() << " tuiles crees" << std::endl;
-
-	 //			int cpt = -1;
-	 //			for (int x = (int)Xmin; x <= (int)Xmax; x += tilesize)
-	 //			{
-	 //				for (int y = (int)Ymin; y <= (int)Ymax; y += tilesize)
-	 //				{
-	 //					++cpt;
-
-	 //					OGRPolygon* Tuile = Tuiles.at(cpt);
-	 //					QFileInfo file(filenames[i]);
-	 //					//file.absoluteDir().mkdir(file.baseName());
-	 //					std::string name = file.absoluteDir().absolutePath().toStdString() + "/tiles/" + "Tile_" + std::to_string((int)x / tilesize) + "_" + std::to_string((int)y / tilesize) + "_" + file.baseName().toStdString() + ".shp";
-
-	 //					remove(name.c_str());
-	 //					OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
-
-	 //					OGRLayer * Layer = DS->CreateLayer("Layer1");
-
-	 //					poLayer->ResetReading();
-	 //					while ((poFeature = poLayer->GetNextFeature()) != NULL)
-	 //					{
-	 //						OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-	 //						if (poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-	 //						{
-	 //							OGRPolygon* poPG = (OGRPolygon*)poGeometry;
-
-	 //							if (!poPG->Intersects(Tuile))
-	 //								continue;
-	 //							OGRGeometry * Geometry;
-	 //							if (ret == QMessageBox::No)
-	 //							{
-	 //								Geometry = poPG->Intersection(Tuile);
-	 //								if (!Geometry->IsValid() || Geometry->IsEmpty() || Geometry->getGeometryType() != wkbPolygon25D && Geometry->getGeometryType() != wkbPolygon && Geometry->getGeometryType() != wkbMultiPolygon25D && Geometry->getGeometryType() != wkbMultiPolygon)
-	 //									continue;
-	 //							}
-	 //							if (ret == QMessageBox::Yes)
-	 //							{
-	 //								OGRPoint* Centroid = new OGRPoint;
-	 //								poPG->Centroid(Centroid);
-
-	 //								if (!Tuile->Contains(Centroid))
-	 //									continue;
-
-	 //								Geometry = poPG;
-	 //								delete Centroid;
-	 //							}
-
-	 //							for (int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la première fois, pour la première poFeature
-	 //							{
-	 //								if (Layer->FindFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef(), 1) == -1)
-	 //									Layer->CreateField(new OGRFieldDefn(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldDefnRef(i)->GetType()));
-	 //							}
-
-	 //							OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
-
-	 //							Feature->SetGeometry(Geometry);
-
-	 //							//Ajout des données sémantiques du shapefile
-	 //							for (int i = 0; i < poFeature->GetFieldCount(); ++i)
-	 //								Feature->SetField(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldAsString(i));
-
-	 //							Layer->CreateFeature(Feature);
-
-	 //							OGRFeature::DestroyFeature(Feature);
-	 //						}
-	 //					}
-	 //					OGRDataSource::DestroyDataSource(DS);
-	 //					delete Tuile;
-	 //				}
-	 //				std::cout << "\rTiling... (" << (int)100 * (cpt + 1) / Tuiles.size() << "%)" << std::flush;
-	 //			}
-	 //		}
-	 //		std::cout << "\rTiling done     " << std::endl;
-	 //	}
-	 //	m_osgView->setActive(true);
-	 //}
 } //namespace FloodAR

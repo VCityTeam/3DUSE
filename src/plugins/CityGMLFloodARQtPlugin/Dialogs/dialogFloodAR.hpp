@@ -1,24 +1,24 @@
-#ifndef DIALOG_INONDATIONS_H
-#define DIALOG_INONDATIONS_H
+#ifndef DIALOG_FloodAR_H
+#define DIALOG_FloodAR_H
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include <QFileDialog>
 #include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class dialogInondations;
+class dialogFloodAR;
 }
 ////////////////////////////////////////////////////////////////////////////////
-class dialogInondations : public QDialog
+class dialogFloodAR : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit dialogInondations(QWidget *parent = 0);
-    ~dialogInondations();
+    explicit dialogFloodAR(QWidget *parent = 0);
+    ~dialogFloodAR();
 
 private:
-    Ui::dialogInondations *ui;
+    Ui::dialogFloodAR *ui;
 
 public slots:
 	void browseInputDirASCCut();
@@ -46,4 +46,4 @@ public slots:
 
 };
 ////////////////////////////////////////////////////////////////////////////////
-#endif // DIALOG_INONDATIONS_H
+#endif // DIALOG_FloodAR_H

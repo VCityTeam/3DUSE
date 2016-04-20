@@ -35,7 +35,7 @@
 #include "assimp/Scene.h"*/
 
 #include "osg/osgAssimp.hpp"
-#include "osg/osgMnt.hpp"
+#include "src/DataStructures/DEM/osgMnt.hpp"
 
 #include "utils/CityGMLFusion.h"
 #include "osg/osgLas.hpp"

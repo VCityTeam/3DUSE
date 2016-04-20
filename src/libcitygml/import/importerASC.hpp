@@ -7,7 +7,7 @@
 #include "../citygml.hpp"
 
 
-#include "src/gui/osg/osgMnt.hpp"
+#include "src/DataStructures/DEM/osgMnt.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 
 namespace citygml
