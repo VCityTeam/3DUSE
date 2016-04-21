@@ -160,22 +160,22 @@ namespace citygml
 		//std::cout<<x<<";"<<y<<" / "<<dim_x<<";"<<dim_y<<std::endl;
 
 		// If some neighbours have same altitude but no category
-		if (y>0 && !treated[x+(y-1)*asc->get_dim_x()] && abs(asc->get_altitude(x,y-1)-alt)<prec)// up
+		if (y>0 && !treated[x+(y-1)*asc->get_dim_x()] && fabs(asc->get_altitude(x,y-1)-alt)<prec)// up
 		{
 			pointsList->push(std::make_pair(x,y-1));
 			treated[x+(y-1)*asc->get_dim_x()]=true;
 		} 
-		if (x>0 && !treated[x-1+y*asc->get_dim_x()] && abs(asc->get_altitude(x-1,y)-alt)<prec)// left
+		if (x>0 && !treated[x-1+y*asc->get_dim_x()] && fabs(asc->get_altitude(x-1,y)-alt)<prec)// left
 		{
 			pointsList->push(std::make_pair(x-1,y));
 			treated[x-1+y*asc->get_dim_x()]=true;
 		} 
-		if ((y+1)<asc->get_dim_y() && !treated[x+(y+1)*asc->get_dim_x()] && abs(asc->get_altitude(x,y+1)-alt)<prec)// down
+		if ((y+1)<asc->get_dim_y() && !treated[x+(y+1)*asc->get_dim_x()] && fabs(asc->get_altitude(x,y+1)-alt)<prec)// down
 		{
 			pointsList->push(std::make_pair(x,y+1));
 			treated[x+(y+1)*asc->get_dim_x()]=true;
 		} 
-		if ((x+1)<asc->get_dim_x() && !treated[x+1+y*asc->get_dim_x()] && abs(asc->get_altitude(x+1,y)-alt)<prec)// right
+		if ((x+1)<asc->get_dim_x() && !treated[x+1+y*asc->get_dim_x()] && fabs(asc->get_altitude(x+1,y)-alt)<prec)// right
 		{
 			pointsList->push(std::make_pair(x+1,y));
 			treated[x+1+y*asc->get_dim_x()]=true;
@@ -388,7 +388,7 @@ namespace citygml
 							if (pt->Touches(iPoly))
 							{
 								OGRPoint* newPt = ProjectPointOnPolygon3D(pt, iPoly);
-								pRes->getExteriorRing()->setZ(j,newPt->getZ());
+								pRes->getExteriorRing()->setPoint(j,newPt->getX(),newPt->getY(),newPt->getZ());
 								break;
 							}
 						}
