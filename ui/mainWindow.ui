@@ -818,21 +818,6 @@
     <string>Cut MNT with Shapefile</string>
    </property>
   </action>
-  <action name="actionASC_To_CityGML">
-   <property name="text">
-    <string>Convert ASC to CityGML</string>
-   </property>
-  </action>
-  <action name="actionFloodAR">
-   <property name="text">
-    <string>FloodAR tools</string>
-   </property>
-  </action>
-  <action name="actionShapefile_cut">
-   <property name="text">
-    <string>Shapefile cut</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

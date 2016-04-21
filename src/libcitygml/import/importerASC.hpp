@@ -13,26 +13,26 @@
 namespace citygml
 {
 
-class ImporterASC : public Importer
-{
-public:
-	ImporterASC(void);
-	~ImporterASC(void);
-	
-	CityModel* reliefToCityGML(MNT*);
-	CityModel* waterToCityGML(MNT*);
-	CityObject* waterToCityGMLPolygons(MNT*, float);
-	CityModel* fusionResolutions(MNT* asc1, MNT* asc2);
-	
-protected:
-	Geometry* generateTriangles(MNT*);
-	void propagateCategory(MNT*,std::queue<std::pair<int, int>>*, float alt, float zPrec);
-	OGRPolygon* createPoly(MNT*, int x,int y,float prec);
-	Polygon* OGRPolyToGMLPoly(OGRPolygon*);
+  class ImporterASC : public Importer
+  {
+  public:
+    ImporterASC(void);
+    ~ImporterASC(void);
 
-	std::vector<OGRPolygon*> geom_list;
-	bool* treated;
-};
+    CityModel* reliefToCityGML(MNT*);
+    CityModel* waterToCityGML(MNT*);
+    CityObject* waterToCityGMLPolygons(MNT*, float);
+    CityModel* fusionResolutions(MNT* asc1, MNT* asc2);
+
+  protected:
+    Geometry* generateTriangles(MNT*);
+    void propagateCategory(MNT*, std::queue<std::pair<int, int>>*, float alt, float zPrec);
+    OGRPolygon* createPoly(MNT*, int x, int y, float prec);
+    Polygon* OGRPolyToGMLPoly(OGRPolygon*);
+
+    std::vector<OGRPolygon*> geom_list;
+    bool* treated;
+  };
 
 } //namespace citygml
 
