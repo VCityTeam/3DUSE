@@ -640,7 +640,10 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
      ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
   )
   # For raytracing:
-	target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC src/libfilters)
+	target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
+    src/libfilters
+    src/libcitygml/utils # For Triangle.hpp
+  )
 	target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
     ${CityGMLVisibilite_Qt_Plugin_LIB}
