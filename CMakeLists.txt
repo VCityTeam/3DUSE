@@ -667,6 +667,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
   )
 	target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
+    ${CITYGML_LIBRARIES}
     ${CityGMLVisibilite_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
