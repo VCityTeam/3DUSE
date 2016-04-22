@@ -381,11 +381,17 @@ endif(WITH_QT5)
 
 INCLUDE_DIRECTORIES(src src/libcitygml)
 
-# Local libraries
+### Local libraries variable definitions (to unify notations
+# with external libraries when using target_include_directories()...
 set(FILTERS_INCLUDE_DIR	${PROJECT_SOURCE_DIR}/src/libfilters)
 set(FILTERS_LIBRARIES	filters)
 
-include_directories(${FILTERS_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/libcitygml/utils)
+set( CITYGML_INCLUDE_DIR
+   ${CMAKE_SOURCE_DIR}/src
+   ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils
+)
+set(CITYGML_LIBRARIES citygml)
 
 # General
 file(
@@ -399,6 +405,7 @@ file(
   src/processes/*.cpp
   src/utils/*.cpp
 )
+
 SET( VCITY_GUI_SRC
   ${VCITY_GUI_SRC}
   ${VCITY_GUI_Qt_SRC}
@@ -506,9 +513,16 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} ${FILTERS_LIBRARIES}
-  citygml
-  citygmlutils
+
+target_include_directories( ${PRJ_NAME} PUBLIC ${CITYGML_INCLUDE_DIR} )
+target_include_directories( ${PRJ_NAME} PUBLIC ${FILTERS_INCLUDE_DIR} )
+
+target_link_libraries (${PRJ_NAME}
+  ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
+  ${VCITY_GUI_LIB}
+  ${FILTERS_LIBRARIES}
+  ${CITYGML_LIBRARIES}
+  citygmlutils    # FIXME: make this a variable
 )
 
 if (WITH_QT5)

@@ -1,14 +1,12 @@
 add_subdirectory(utils)
 
-include_directories( ${CMAKE_SOURCE_DIR}/src )
-
-if (APPLE)
+if(APPLE)
   # FIXME: instead of hiding the deprecation messages update the code ?
   # In order to avoid 'glu*' related deprecation messages...
   set_source_files_properties( tesselator.cpp
     PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations"
   ) 
-endif (APPLE)
+endif(APPLE)
 
 add_library( citygml # SHARED
   URI.cpp
@@ -25,8 +23,7 @@ add_library( citygml # SHARED
   parser.cpp
   parserlibxml2.cpp
   parserparams.cpp
-  #FIXME: remove the following file and the xerces dependency 
-  # as well ?
+  #FIXME: remove the following file and the xerces dependency as well ?
   # parserxercesc.cpp 
   polygon.cpp
   temporalExt.cpp
@@ -49,4 +46,12 @@ add_library( citygml # SHARED
   ADE/temporal/versionTransition.cpp
 )
 
+target_include_directories( citygml PUBLIC ${CMAKE_SOURCE_DIR}/src )
+# Required for generated citygml_export.h
+target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
+
 target_link_libraries( citygml ${LIBXML2_LIBRARIES} )
+
+# Dealing with VC++ oddities: generates the export header citygml_exports.h 
+include (GenerateExportHeader)
+GENERATE_EXPORT_HEADER( citygml ) 

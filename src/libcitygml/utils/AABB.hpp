@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "citygml_export.h"
 #include "vecs.hpp"
 
 
@@ -60,13 +61,13 @@ struct AABBCollection
 *	@brief Build bounding box from a set of tile, bounding boxes are saved on disk in a text file, not returned
 *	@param dir Directory where the citygml files are located
 */
-void BuildAABB(std::string dir);
+void CITYGML_EXPORT BuildAABB(std::string dir);
 
 /**
 *	@brief Load an aabb set previously build
 *	@param dir Directory where citygml files are located, must contain several subdirectories, one for each data layer (terrain, building, water, ..)
 *	@return AABB Collection of the set of tiles
 */
-AABBCollection LoadAABB(std::string dir);
+AABBCollection CITYGML_EXPORT LoadAABB(std::string dir);
 
 #endif
