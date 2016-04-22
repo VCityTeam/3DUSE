@@ -391,7 +391,13 @@ include_directories(${FILTERS_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/libcitygml/
 file(
   GLOB_RECURSE
   VCITY_GUI_SRC
-  src/*.cpp
+  src/core/*.cpp
+  src/gui/*.cpp
+  src/libfilters/*.cpp
+  src/main.cpp
+  src/plugins/*.cpp
+  src/processes/*.cpp
+  src/utils/*.cpp
 )
 SET( VCITY_GUI_SRC
   ${VCITY_GUI_SRC}
@@ -419,10 +425,6 @@ if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
 endif(WITH_QT5)
-
-if (APPLE)
-  set_source_files_properties(src/libcitygml/tesselator.cpp PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations") # for warnings: 'glu*' is deprecated...
-endif (APPLE)
 
 SET( VCITY_GUI_LIB
   ${ASSIMP_LIBRARY}
@@ -504,7 +506,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} ${FILTERS_LIBRARIES} citygmlutils)
+target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} ${FILTERS_LIBRARIES}
+  citygml
+  citygmlutils
+)
+
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
