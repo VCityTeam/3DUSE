@@ -573,10 +573,21 @@ if (BUILD_CityGMLCutQtPlugin)
 	  set(CityGMLCut_Qt_Plugin_LIB ${CityGMLCut_Qt_Plugin_LIB} ${QT_LIBRARIES})
 	endif(WITH_QT5)
 
-	add_library(CityGMLCutQtPlugin SHARED src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.cxx
-				${CityGMLCut_Qt_Plugin_HEADER} ${CityGMLCut_Qt_Plugin_SRC}
-				${VCITY_GUI_SRC_WIN} src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx) # if need, add cxx files here before the ')'
-	target_link_libraries (CityGMLCutQtPlugin ${CityGMLCut_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  add_library( CityGMLCutQtPlugin SHARED
+    src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx
+    src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.cxx
+    src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx
+    ${CityGMLCut_Qt_Plugin_HEADER}
+    ${CityGMLCut_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC_WIN}
+  )
+	target_include_directories( CityGMLCutQtPlugin PUBLIC
+    ${CITYGML_INCLUDE_DIR}
+  )
+	target_link_libraries( CityGMLCutQtPlugin
+    ${CityGMLCut_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+  )
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLCutQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)
@@ -600,10 +611,20 @@ if (BUILD_CityGMLEmptyQtPlugin)
 	  set(CityGMLEmpty_Qt_Plugin_LIB ${CityGMLEmpty_Qt_Plugin_LIB} ${QT_LIBRARIES})
 	endif(WITH_QT5)
 
-	add_library(CityGMLEmptyQtPlugin SHARED src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.cxx
-				${CityGMLEmpty_Qt_Plugin_HEADER} ${CityGMLEmpty_Qt_Plugin_SRC}
-				${VCITY_GUI_SRC_WIN}) # if need, add cxx files here before the ')'
-	target_link_libraries (CityGMLEmptyQtPlugin ${CityGMLEmpty_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  add_library( CityGMLEmptyQtPlugin SHARED
+    src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx
+    src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.cxx
+    ${CityGMLEmpty_Qt_Plugin_HEADER}
+    ${CityGMLEmpty_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC_WIN}
+  )
+	target_include_directories( CityGMLEmptyQtPlugin PUBLIC
+    ${CITYGML_INCLUDE_DIR}
+  )
+  target_link_libraries( CityGMLEmptyQtPlugin
+    ${CityGMLEmpty_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+  )
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)

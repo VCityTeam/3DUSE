@@ -21,7 +21,7 @@
 #include "envelope.hpp"
 #include "polygon.hpp"
 #include "parserparams.hpp"
-#include "citygmlcommon.hpp"
+#include "citygml_export.h"
 #include <vector>
 #include <ostream>
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ enum GeometryType
 /// \brief Geometry class
 ///
 ////////////////////////////////////////////////////////////////////////////////
-class Geometry : public Object
+class CITYGML_EXPORT Geometry : public Object
 {
     friend class CityGMLHandler;
     friend class CityObject;
