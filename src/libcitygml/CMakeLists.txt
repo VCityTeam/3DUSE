@@ -50,7 +50,10 @@ target_include_directories( citygml PUBLIC ${CMAKE_SOURCE_DIR}/src )
 # Required for generated citygml_export.h
 target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
 
-target_link_libraries( citygml ${LIBXML2_LIBRARIES} )
+target_link_libraries( citygml
+  ${LIBXML2_LIBRARIES}
+  ${OPENGL_glu_LIBRARY}
+)
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
 include (GenerateExportHeader)

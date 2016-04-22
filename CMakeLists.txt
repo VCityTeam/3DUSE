@@ -189,6 +189,7 @@ message(STATUS "Qt version used : ${QTDIR}")
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
+message( "DEBUG" ${OPENGL_glu_LIBRARY} )
 include_directories(${OPENGL_INCLUDE_DIR})
 
 #if (APPLE) # for OpenGL and maybe other things
