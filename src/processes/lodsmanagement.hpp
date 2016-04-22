@@ -3,7 +3,7 @@
 #ifndef __LODSMANAGEMENT_HPP__
 #define __LODSMANAGEMENT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "src/core/URI.hpp"
+#include "libcitygml/URI.hpp"
 #include "libcitygml/citygml.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 #include <stdlib.h>

@@ -20,7 +20,7 @@
 #include "object.hpp"
 #include "geometry.hpp"
 #include "temporalExt.hpp"
-#include "core/URI.hpp"
+#include "URI.hpp"
 #include <ostream>
 ////////////////////////////////////////////////////////////////////////////////
 //forward declaration

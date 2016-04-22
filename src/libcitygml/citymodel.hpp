@@ -22,7 +22,7 @@
 #include "cityobject.hpp"
 #include "appearancemanager.hpp"
 #include "vecs.hpp"
-#include "core/URI.hpp"
+#include "URI.hpp"
 #include "ADE/temporal/version.hpp"
 #include "ADE/temporal/versionTransition.hpp"
 #include "ADE/temporal/workspace.hpp"

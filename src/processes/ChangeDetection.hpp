@@ -3,7 +3,7 @@
 #ifndef __CHANGEDETECTION_HPP__
 #define __CHANGEDETECTION_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "src/core/URI.hpp"
+#include "libcitygml/URI.hpp"
 #include "libcitygml/citygml.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 #include <stdlib.h>
