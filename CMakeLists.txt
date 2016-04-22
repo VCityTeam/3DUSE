@@ -642,7 +642,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
   # For raytracing:
 	target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
     src/libfilters
-    src/libcitygml/utils # For Triangle.hpp
+    ${CITYGML_INCLUDE_DIR}
   )
 	target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
