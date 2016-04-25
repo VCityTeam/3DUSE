@@ -1,4 +1,4 @@
-add_subdirectory(utils)
+#add_subdirectory(utils)
 
 if(APPLE)
   # FIXME: instead of hiding the deprecation messages update the code ?
@@ -8,7 +8,7 @@ if(APPLE)
   ) 
 endif(APPLE)
 
-add_library( citygml # SHARED
+add_library( citygml SHARED
   URI.cpp
   appearance.cpp
   appearancemanager.cpp
@@ -23,7 +23,7 @@ add_library( citygml # SHARED
   parser.cpp
   parserlibxml2.cpp
   parserparams.cpp
-  #FIXME: remove the following file and the xerces dependency as well ?
+  #FIXME: remove the following empty file and the xerces dependency as well ?
   # parserxercesc.cpp 
   polygon.cpp
   temporalExt.cpp
@@ -38,7 +38,7 @@ add_library( citygml # SHARED
   import/importer.cpp
   import/importerAssimp.cpp
 
-  # FIXME Refer to above comment on ADE
+  # FIXME : ADE should be in separate libraries (possibly as libCityGML plugins)
   ADE/ADE.cpp
   ADE/temporal/temporalHandler.cpp
   ADE/temporal/transaction.cpp
@@ -51,8 +51,12 @@ target_include_directories( citygml PUBLIC ${CMAKE_SOURCE_DIR}/src )
 target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
 
 target_link_libraries( citygml
+  ${ASSIMP_LIBRARY}
   ${LIBXML2_LIBRARIES}
-  ${OPENGL_glu_LIBRARY}
+  ${OPENGL_LIBRARIES}    # FIXME: tesselation dependency 
+  ${OPENTHREADS_LIBRARY}
+  ${OSG_LIBRARIES}       # FIXME: this dependency is a nonsense
+  ${QT_LIBRARIES}        # FIXME: this dependency is a nonsense too
 )
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 

@@ -192,10 +192,6 @@ find_package(OpenGL REQUIRED)
 message( "DEBUG" ${OPENGL_glu_LIBRARY} )
 include_directories(${OPENGL_INCLUDE_DIR})
 
-#if (APPLE) # for OpenGL and maybe other things
-#  INCLUDE_DIRECTORIES(/usr/X11/include)
-#endif (APPLE)
-
 # Find ASSIMP
 find_package(ASSIMP)
 if(ASSIMP_FOUND)
@@ -380,19 +376,24 @@ else(WITH_QT5)
   QT4_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 endif(WITH_QT5)
 
-INCLUDE_DIRECTORIES(src src/libcitygml)
-
-### Local libraries variable definitions (to unify notations
-# with external libraries when using target_include_directories()...
+### Local libraries variable definitions (to unify notations with external
+#   libraries usage when using target_include_directories() ).
 set(FILTERS_INCLUDE_DIR	${PROJECT_SOURCE_DIR}/src/libfilters)
 set(FILTERS_LIBRARIES	filters)
 
 set( CITYGML_INCLUDE_DIR
-   ${CMAKE_SOURCE_DIR}/src
+   ${CMAKE_SOURCE_DIR}/src               #FIXME
+   ${CMAKE_SOURCE_DIR}/src/libcitygml
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME
    ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
-   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils
 )
 set(CITYGML_LIBRARIES citygml)
+
+# FIXME: remove the following line and replace it with target_include_directories
+INCLUDE_DIRECTORIES(src
+  ${CITYGML_INCLUDE_DIR}
+)
+
 
 # General
 file(
@@ -405,6 +406,8 @@ file(
   src/plugins/*.cpp
   src/processes/*.cpp
   src/utils/*.cpp
+  src/libcitygml/utils/*.cpp   ## FIXME: Finishing the job implies a core lib
+                         ## which seems to depend on libcityGML.
 )
 
 SET( VCITY_GUI_SRC
@@ -523,7 +526,7 @@ target_link_libraries (${PRJ_NAME}
   ${VCITY_GUI_LIB}
   ${FILTERS_LIBRARIES}
   ${CITYGML_LIBRARIES}
-  citygmlutils    # FIXME: make this a variable
+  #citygmlutils    # FIXME: make this a variable
 )
 
 if (WITH_QT5)
