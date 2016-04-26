@@ -17,6 +17,9 @@
 #ifndef __CITYGML_CITYMODEL_HPP__
 #define __CITYGML_CITYMODEL_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include <vector>
+#include <map>
+#include <ostream>
 #include "object.hpp"
 #include "envelope.hpp"
 #include "cityobject.hpp"
@@ -26,9 +29,9 @@
 #include "ADE/temporal/version.hpp"
 #include "ADE/temporal/versionTransition.hpp"
 #include "ADE/temporal/workspace.hpp"
-#include <vector>
-#include <map>
-#include <ostream>
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -36,13 +39,13 @@ namespace citygml
 typedef std::vector< CityObject* > CityObjects;
 typedef std::map< CityObjectsType, CityObjects > CityObjectsMap;
 ////////////////////////////////////////////////////////////////////////////////
-class CityModel : public Object
+class CITYGML_EXPORT CityModel : public Object
 {
     friend class CityGMLHandler;
 public:
     CityModel( const std::string& id = "CityModel" );
 
-    LIBCITYGML_EXPORT ~CityModel( void ) override;
+    ~CityModel( void ) override;
 
     // Return the envelope (ie. the bounding box) of the model
     const Envelope& getEnvelope( void ) const;
