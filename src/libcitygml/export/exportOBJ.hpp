@@ -6,7 +6,7 @@
 #include "exporter.hpp"
 #include "citygml.hpp"
 #include <fstream>
-// FIXME #include <osgDB/fstream>
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
