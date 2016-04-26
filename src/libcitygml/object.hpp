@@ -21,7 +21,10 @@
 #include <map>
 #include <ostream>
 #include <vector>
+
 #include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL crap complains on STL _Id member
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -29,6 +32,7 @@ namespace citygml
 enum xLinkState { NONE, LINKED, UNLINKED, TARGET };
 ////////////////////////////////////////////////////////////////////////////////
 typedef std::map< std::string, std::string > AttributesMap;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Base object associated with an unique id and a set of attributes (key-value pairs)
 class CITYGML_EXPORT Object
