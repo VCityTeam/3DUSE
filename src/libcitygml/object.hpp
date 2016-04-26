@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL crap complains on STL _Id member
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
@@ -51,31 +51,33 @@ public:
 
     AttributesMap& getAttributes();
 
-    //inline osg::ref_ptr<osg::Group> getOsgNode() { return m_osgNode; }
-    //inline void setOsgNode(osg::ref_ptr<osg::Group> node) { m_osgNode = node; }
+    //inline osg::ref_ptr<osg::Group> getOsgNode() { return m_osgNode; } FIXME
+    //inline void setOsgNode(osg::ref_ptr<osg::Group> node)
+    //                                             { m_osgNode = node; } FIXME
 
-    //inline osg::Group* getOsgNode() { return m_osgNode; }
-    //inline void setOsgNode(osg::Group* node) { m_osgNode->ref(); m_osgNode = node; }
-    //inline void setOsgNode(osg::Group* node) { m_osgNode = node; }
+    //inline osg::Group* getOsgNode() { return m_osgNode; }              FIXME
+    //inline void setOsgNode(osg::Group* node)
+    //              { m_osgNode->ref(); m_osgNode = node; }              FIXME
+    //inline void setOsgNode(osg::Group* node) { m_osgNode = node; }     FIXME
 
     void setAttribute( const std::string& name, const std::string& value, bool forceOnExist = true );
 
-	std::vector<Object*>& getXLinkTargets();
-	void addXLinkTarget(Object*);
-	xLinkState _isXlink;
+    std::vector<Object*>& getXLinkTargets();
+    void addXLinkTarget(Object*);
+    xLinkState _isXlink;
 
-	bool _isInVersion;
-	bool _isInWorkspace;
+    bool _isInVersion;
+    bool _isInWorkspace;
 
 protected:
     std::string _id;
 
     AttributesMap _attributes;
 
-	std::vector<Object*> _xLinkTargets;
+    std::vector<Object*> _xLinkTargets;
 
-    //osg::ref_ptr<osg::Group> m_osgNode;
-    //osg::Group* m_osgNode;
+    //osg::ref_ptr<osg::Group> m_osgNode;  FIXME
+    //osg::Group* m_osgNode;               FIXME
 };
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream&, const citygml::Object& );
