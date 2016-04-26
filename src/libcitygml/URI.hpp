@@ -5,6 +5,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <vector>
 #include <string>
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -13,7 +16,7 @@ namespace vcity
 ///
 /// It is like a file path, to navigate in the data tree
 ///
-class URI
+class CITYGML_EXPORT URI
 {
 public:
     URI();
