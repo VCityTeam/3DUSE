@@ -21,6 +21,7 @@
 #include <map>
 #include <ostream>
 #include <vector>
+#include "citygml_export.h"
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -30,7 +31,7 @@ enum xLinkState { NONE, LINKED, UNLINKED, TARGET };
 typedef std::map< std::string, std::string > AttributesMap;
 ///////////////////////////////////////////////////////////////////////////////
 // Base object associated with an unique id and a set of attributes (key-value pairs)
-class Object
+class CITYGML_EXPORT Object
 {
     friend class CityGMLHandler;
     friend std::ostream& operator<<( std::ostream&, const Object & );

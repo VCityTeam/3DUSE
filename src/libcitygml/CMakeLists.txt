@@ -53,6 +53,7 @@ target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
 target_link_libraries( citygml
   ${ASSIMP_LIBRARY}
   ${LIBXML2_LIBRARIES}
+  ${GDAL_LIBRARY}
   ${OPENGL_LIBRARIES}    # FIXME: tesselation dependency 
   ${OPENTHREADS_LIBRARY}
   ${OSG_LIBRARIES}       # FIXME: this dependency is a nonsense
