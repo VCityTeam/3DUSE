@@ -44,7 +44,7 @@ public:
 
     void addVertex( const TVec3d& v );
 
-    CITYGML_EXPORT TVec3d computeNormal( void ) const;
+    TVec3d computeNormal( void ) const;
 
     // Return the envelope (ie. the bounding box) of the object
     const Envelope& getEnvelope( void ) const;

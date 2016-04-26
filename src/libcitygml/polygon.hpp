@@ -51,7 +51,7 @@ public:
 
     Polygon( const std::string& id );
 
-    CITYGML_EXPORT virtual ~Polygon( void ) override;
+    virtual ~Polygon( void ) override;
 
 	Polygon* Clone();
 
