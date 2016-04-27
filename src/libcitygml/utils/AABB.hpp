@@ -68,6 +68,6 @@ void BuildAABB(std::string dir);
 *	@param dir Directory where citygml files are located, must contain several subdirectories, one for each data layer (terrain, building, water, ..)
 *	@return AABB Collection of the set of tiles
 */
-AABBCollection CITYGML_EXPORT LoadAABB(std::string dir);
+AABBCollection LoadAABB(std::string dir);
 
 #endif
