@@ -61,7 +61,7 @@ struct AABBCollection
 *	@brief Build bounding box from a set of tile, bounding boxes are saved on disk in a text file, not returned
 *	@param dir Directory where the citygml files are located
 */
-void CITYGML_EXPORT BuildAABB(std::string dir);
+void BuildAABB(std::string dir);
 
 /**
 *	@brief Load an aabb set previously build

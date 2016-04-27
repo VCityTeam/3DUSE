@@ -20,7 +20,9 @@ class Controller;
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The Application class
 /// Stores Common application data
-class CITYGML_EXPORT Application
+
+// class CITYGML_EXPORT Application   FIXME : waiting for core to be a library
+class Application
 {
 public:
     Application();
