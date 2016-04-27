@@ -200,7 +200,7 @@ namespace citygml
 		return m_model;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	CityModel* ImporterAssimp::import(const std::string& fileName, bool detectRoof)
+	CityModel* ImporterAssimp::import(const std::string& fileName, bool detectRoof) //detectRoof should be set at true to detect roofs and false if we only want wall polygons
 	{
 		Assimp::Importer importer;
 		// read file with assimp
