@@ -28,7 +28,6 @@ namespace citygml
     Geometry* generateTriangles(MNT*);
     void propagateCategory(MNT*, std::queue<std::pair<int, int>>*, float alt, float zPrec);
     OGRPolygon* createPoly(MNT*, int x, int y, float prec);
-    Polygon* OGRPolyToGMLPoly(OGRPolygon*);
 
     std::vector<OGRPolygon*> geom_list;
     bool* treated;
