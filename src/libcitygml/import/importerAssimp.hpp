@@ -33,7 +33,7 @@ public:
 
     /// Read filename with assimp and converts it to CityGML
     /// \param fileName Input file path
-    CityModel* import(const std::string& fileName);
+    CityModel* import(const std::string& fileName, bool detectRoof = true);
 
 private:
     /// Interal method : CityGML converter
@@ -42,7 +42,9 @@ private:
     /// Internal method : recursive method doing the conversion
     void assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent);
 
-    CityModel* m_model; ///< Result of import
+	bool _detectRoof;
+	
+	CityModel* m_model; ///< Result of import
 };
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

@@ -621,6 +621,33 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [END]
 
+# --> CityGMLFloodARQtPlugin : QtPlugin [BEGIN]
+OPTION(BUILD_CityGMLFloodARQtPlugin "BUILD CityGMLFloodARQtPlugin " OFF)
+if (BUILD_CityGMLFloodARQtPlugin) 
+  set(CityGMLFloodAR_Qt_Plugin_HEADER src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.h src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.hpp src/plugins/CityGMLFloodARQtPlugin/FloodARTools.hpp)
+  set(CityGMLFloodAR_Qt_Plugin_UI src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.ui)
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
+    QT5_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
+    set(CityGMLFloodAR_Qt_Plugin_SRC ${CityGMLFloodAR_Qt_Plugin_SRC} ${CityGMLFloodAR_Qt_Plugin_MOC_CPP} ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
+  else(WITH_QT5) 
+    QT4_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
+    QT4_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
+    set(CityGMLFloodAR_Qt_Plugin_SRC ${CityGMLFloodAR_Qt_Plugin_SRC} ${CityGMLFloodAR_Qt_Plugin_MOC_CPP} ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
+    set(CityGMLFloodAR_Qt_Plugin_LIB ${CityGMLFloodAR_Qt_Plugin_LIB} ${QT_LIBRARIES})
+  endif(WITH_QT5)
+
+  add_library(CityGMLFloodARQtPlugin SHARED src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.cxx src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.cxx src/plugins/CityGMLFloodARQtPlugin/FloodARTools.cxx
+        ${CityGMLFloodAR_Qt_Plugin_HEADER} ${CityGMLFloodAR_Qt_Plugin_SRC}
+        ${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
+  target_link_libraries (CityGMLFloodARQtPlugin ${LINUX_FLAGS} ${CityGMLFloodAR_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  if (WITH_QT5)
+    QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)
+  endif(WITH_QT5)
+endif (BUILD_CityGMLFloodARQtPlugin)
+# --> CityGMLFloodARQtPlugin : QtPlugin [END]
+
 ################
 # 3DUSE plugins
 ################
@@ -655,6 +682,9 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 	if (BUILD_CityGMLVisibiliteQtPlugin)
 		set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
 	endif (BUILD_CityGMLVisibiliteQtPlugin)
+  if (BUILD_CityGMLFloodARQtPlugin)
+    set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
+  endif (BUILD_CityGMLFloodARQtPlugin)
 	################
 	# 3DUSE plugins
 	################
