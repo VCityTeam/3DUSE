@@ -31,10 +31,11 @@
 #endif
 
 #include "vecs.hpp"
+#include "citygml_export.h"
 #include <vector>
 
 // GLU based polygon tesselator
-class Tesselator 
+class CITYGML_EXPORT Tesselator 
 {		
 public:
 	Tesselator( void ); 
