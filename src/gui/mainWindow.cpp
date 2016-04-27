@@ -35,7 +35,7 @@
 #include "assimp/Scene.h"*/
 
 #include "osg/osgAssimp.hpp"
-#include "osg/osgMnt.hpp"
+#include "src/DataStructures/DEM/osgMnt.hpp"
 
 #include "utils/CityGMLFusion.h"
 #include "osg/osgLas.hpp"
@@ -828,6 +828,10 @@ void MainWindow::reset()
 	else if(dpName == "Lyon")
 	{
 		m_app.getSettings().getDataProfile() = vcity::createDataProfileLyon();
+	}
+	else if (dpName == "Sablons")
+	{
+		m_app.getSettings().getDataProfile() = vcity::createDataProfileSablons();
 	}
 	else
 	{
