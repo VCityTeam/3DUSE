@@ -402,6 +402,7 @@ file(
   src/core/*.cpp
   src/gui/*.cpp
   src/libfilters/*.cpp
+  src/DataStructures/*.cpp
   src/main.cpp
   src/plugins/*.cpp
   src/processes/*.cpp
