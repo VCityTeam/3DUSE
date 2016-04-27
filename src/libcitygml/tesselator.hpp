@@ -32,6 +32,7 @@
 
 #include "vecs.hpp"
 #include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
 #include <vector>
 
 // GLU based polygon tesselator

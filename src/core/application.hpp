@@ -9,6 +9,9 @@
 #include "tools/log.hpp"
 #include "algo.hpp"
 #include "algo2.hpp"
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -17,7 +20,7 @@ class Controller;
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The Application class
 /// Stores Common application data
-class Application
+class CITYGML_EXPORT Application
 {
 public:
     Application();

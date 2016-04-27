@@ -18,6 +18,9 @@
 #define __CITYGML_PARSERPARAMS_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <string>
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -34,7 +37,7 @@ namespace citygml
 // tesselate: convert the interior & exteriors polygons to triangles
 // destSRS: the SRS (WKT, EPSG, OGC URN, etc.) where the coordinates must be transformed, default ("") is no transformation
 // m_basePath : base path used to find textures
-class ParserParams
+class CITYGML_EXPORT ParserParams
 {
 public:
     ParserParams( void );
