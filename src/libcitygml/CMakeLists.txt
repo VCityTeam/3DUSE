@@ -46,6 +46,11 @@ add_library( citygml SHARED
   ADE/temporal/versionTransition.cpp
 )
 
+# The dependence of this library towards QT both undue and a drag:
+if (WITH_QT5)
+  set_targEt_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
+endif(WITH_QT5)
+
 target_include_directories( citygml PUBLIC ${CMAKE_SOURCE_DIR}/src )
 # Required for generated citygml_export.h
 target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
