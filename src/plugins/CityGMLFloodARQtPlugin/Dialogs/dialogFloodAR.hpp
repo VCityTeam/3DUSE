@@ -21,15 +21,16 @@ private:
     Ui::dialogFloodAR *ui;
 
 public slots:
-	void browseInputDirASCCut();
-	void browseOutputDirASCCut();
+
+  void browseWorkingDirectory();
+
+	void browseInputASCCut();
 	void cutASC();
 
 	void browseInputTextureCut();
 	void textureCut();
 
 	void browseInputASCtoWater();
-	void enablePolygonsParams(int);
 	void enableTemporalParams(int);
 	void ASCtoWater();
 

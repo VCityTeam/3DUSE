@@ -93,8 +93,21 @@ namespace FloodAR
     return TexturesList;
   }
   ////////////////////////////////////////////////////////////////////////////////
-  void cutASC(std::string filePath, std::string outputDir, int tileSizeX, int tileSizeY)
+  void cutASC(std::string filePath, std::string workingDir, int tileSizeX, int tileSizeY, bool isTerrain)
   {
+    QDir wkDir(workingDir.c_str());
+    QDir outDir;
+    if (isTerrain)
+    {
+      wkDir.mkpath("tmp/_MNT");
+      outDir = QDir((workingDir + "/tmp/_MNT").c_str());
+    }
+    else
+    {
+      wkDir.mkpath("tmp/_WATER");
+      outDir = QDir((workingDir + "/tmp/_WATER").c_str());
+    }
+
     //reading file
     citygml::ImporterASC* importer = new citygml::ImporterASC();
     MNT* asc = new MNT();
@@ -110,7 +123,9 @@ namespace FloodAR
         {
           MNT* tiledDEM = BuildTile(asc, tileSizeX, tileSizeY, x, y);
           if (tiledDEM == nullptr) continue;
-          std::string outputname = outputDir + "/" + std::to_string(x) + "-" + std::to_string(y) + "_MNT.asc";
+          std::string baseName = QFileInfo(filePath.c_str()).baseName().toStdString();
+          if (!outDir.exists((std::to_string(x) + "-" + std::to_string(y)).c_str())) outDir.mkdir((std::to_string(x) + "_" + std::to_string(y)).c_str());
+          std::string outputname = outDir.absolutePath().toStdString() + "/" + std::to_string(x) + "_" + std::to_string(y) + "/" + std::to_string(x) + "_" + std::to_string(y) + "_" + baseName + ".asc";
           tiledDEM->write(outputname.c_str());
           delete tiledDEM;
         }
@@ -122,49 +137,137 @@ namespace FloodAR
     delete asc;
   }
   ////////////////////////////////////////////////////////////////////////////////
-  void ASCtoWater(std::string filePath, bool polygonsImport, float prec, bool tempImport, std::string creaDate, std::string termDate)
+  void ASCtoWaterAuto(std::string workingDir, float prec, std::string startingDate)
   {
-    QFileInfo file = QFileInfo(QString(filePath.c_str()));
-    citygml::CityModel* model;
-    std::cout << "CONVERTING FILE " << file.baseName().toStdString() << std::endl;
-    QString ext = file.suffix().toLower();
+    QDir wkDir(workingDir.c_str());
+    QDir tmpDir((workingDir + "/tmp/_WATER").c_str());
+    // check if tmp directory exists in working directory
+    if (!tmpDir.exists()) { std::cerr << "Input file not found!" << std::endl; return; }
+    // explore tmp directory for tile directories
+    for (QFileInfo f : tmpDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
+    {
+      QDir tileDir(f.absoluteFilePath());
+      std::string tilenumber = f.baseName().toStdString();
+      citygml::CityModel* model = new citygml::CityModel();
+      // TODO: explore the dir once to create the list of dates
+      std::map<int, QFileInfo> fileList;
+      for (QFileInfo ff : tileDir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
+      {
+        //TODO: detect the "_TX_" string in the filename
+        std::string fname = ff.baseName().toStdString();
+        std::size_t pos1 = fname.find_first_of("_T");
+        std::size_t pos2 = fname.find_first_of("_", pos1 + 1);
+        int startTime;
+        try
+        {
+          startTime = std::stoi(fname.substr(pos1 + 2, pos2));
+        }
+        catch (const std::invalid_argument&)
+        {
+          std::cerr << "Temporal information could not be detected, file skipped!" << std::endl;
+          continue;
+        }
+        //TODO: create a list or something taht contains the dates of start, end, and filenames
+        fileList.insert(std::make_pair(startTime, ff));
+      }
+      // Do treatement (TODO: parse the lst created just before instead)
+      for (std::map<int, QFileInfo>::iterator it = fileList.begin(); it != fileList.end(); it++)
+      {
+        QFileInfo ff = it->second;
+        std::cout << "CONVERTING FILE " << ff.baseName().toStdString() << std::endl;
+        QString ext = ff.suffix().toLower();
+        if (ext == "asc")
+        {
+          //lecture du fichier
+          citygml::ImporterASC* importer = new citygml::ImporterASC();
+          MNT* asc = new MNT();
+          if (asc->charge(ff.absoluteFilePath().toStdString().c_str(), "ASC"))
+          {
+            //conversion en structure CityGML
+            citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc, prec);
+            if (waterbody->getGeometries().size() > 0)
+            {
+              //Add temporal info
+              int startTime = it->first;
+              QDateTime creaDate = QDateTime::fromString(startingDate.c_str(), Qt::ISODate).addSecs(startTime * 3600);
+              waterbody->setAttribute("creationDate", creaDate.toString(Qt::ISODate).toStdString());
+
+              std::map<int, QFileInfo>::iterator it2 = std::next(it, 1);
+              if (it2 != fileList.end())
+              {
+                int endTime = it2->first;
+                QDateTime termDate = QDateTime::fromString(startingDate.c_str(), Qt::ISODate).addSecs(endTime * 3600);
+                waterbody->setAttribute("terminationDate", termDate.toString(Qt::ISODate).toStdString());
+              }
+              // Add Surface to CityModel
+              model->addCityObject(waterbody);
+              model->addCityObjectAsRoot(waterbody);
+            }
+            else
+            {
+              delete waterbody;
+            }
+            delete importer;
+            delete asc;
+          }
+        }
+      }
+      //export en CityGML
+      std::cout << "Export ...";
+      if (model != nullptr && model->size() != 0)
+      {
+        wkDir.mkpath(("_WATER/" + tilenumber).c_str());
+        citygml::ExporterCityGML exporter((wkDir.path().toStdString() + "/_WATER/" + tilenumber + "/" + tilenumber + "_WATER.gml"));
+        exporter.exportCityModel(*model);
+        std::cout << "OK!" << std::endl;
+      }
+      else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
+      delete model;
+    }
+  }
+  ////////////////////////////////////////////////////////////////////////////////
+  void ASCtoWaterManual(std::string workingDir, std::string inputfilepath, std::string savefilepath, float prec, std::string creaDate, std::string termDate)
+  {
+    QDir wkDir(workingDir.c_str());
+    citygml::CityModel* model = new citygml::CityModel();
+    QFileInfo ff(inputfilepath.c_str());
+    std::string tilenumber;
+    std::cout << "CONVERTING FILE " << ff.baseName().toStdString() << std::endl;
+    QString ext = ff.suffix().toLower();
     if (ext == "asc")
     {
       //lecture du fichier
       citygml::ImporterASC* importer = new citygml::ImporterASC();
       MNT* asc = new MNT();
-      if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
+      if (asc->charge(ff.absoluteFilePath().toStdString().c_str(), "ASC"))
       {
         //conversion en structure CityGML
-        if (polygonsImport)
+        citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc, prec);
+        if (waterbody->getGeometries().size() > 0)
         {
-          model = new citygml::CityModel();
-          citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc, prec);
           model->addCityObject(waterbody);
           model->addCityObjectAsRoot(waterbody);
         }
         else
         {
-          model = importer->waterToCityGML(asc);
+          delete waterbody;
         }
         delete importer;
         delete asc;
       }
     }
     //Add temporal info
-    if (tempImport)
+    for (citygml::CityObject* obj : model->getCityObjectsRoots())
     {
-      for (citygml::CityObject* obj : model->getCityObjectsRoots())
-      {
-        obj->setAttribute("creationDate", creaDate);
-        obj->setAttribute("terminationDate", termDate);
-      }
+      obj->setAttribute("creationDate", creaDate);
+      obj->setAttribute("terminationDate", termDate);
     }
+
     //export en CityGML
     std::cout << "Export ...";
-    if (model->size() != 0)
+    if (model != nullptr && model->size() != 0)
     {
-      citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
+      citygml::ExporterCityGML exporter(savefilepath);
       exporter.exportCityModel(*model);
       std::cout << "OK!" << std::endl;
     }
@@ -248,7 +351,7 @@ namespace FloodAR
     for (TextureCityGML* tex : TexturesList) delete tex;
   }
   ////////////////////////////////////////////////////////////////////////////////
-  void cutPicture(std::string filename, int tileSizeX, int tileSizeY)
+  void cutPicture(std::string filename, std::string workingDir, int tileSizeX, int tileSizeY)
   {
 
     float NW_x, NW_y;
@@ -256,8 +359,6 @@ namespace FloodAR
     float rx, ry;
 
     QFileInfo file(filename.c_str());
-
-    //TODO : read info from world file or display a prompt?$
 
     std::string ext = file.suffix().toStdString();
     std::stringstream wext;
@@ -288,10 +389,11 @@ namespace FloodAR
     int origWidth = reader.size().rwidth();
     int origHeight = reader.size().rheight();
 
-    QDir dir = file.absoluteDir();
-    if (!dir.exists("_MNT"))
-      dir.mkdir("_MNT");
-    QDir MNTdir = dir.path() + "/_MNT";
+    QDir wkDir(workingDir.c_str());
+    QDir outDir;
+    wkDir.mkdir("_MNT");
+    QDir MNTdir = wkDir.path() + "/_MNT";
+
     int x, y;
     x = 0;
     y = 0;
@@ -320,7 +422,7 @@ namespace FloodAR
         tileDir.mkdir("Appearance");
 
       QFileInfo file(filename.c_str());
-      std::string outputname = file.absolutePath().toStdString() + "/_MNT/" + tilenumber + "/Appearance/" + tilenumber + "_MNT.jpg";
+      std::string outputname = tileDir.path().toStdString() + "/Appearance/" + tilenumber + "_MNT.jpg";
       QImageReader reader(file.absoluteFilePath());
       reader.setClipRect(QRect(x, y, width, height));
       QImage croppedImage = reader.read();
