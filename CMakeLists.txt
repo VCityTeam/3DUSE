@@ -378,8 +378,8 @@ endif(WITH_QT5)
 
 ### Local libraries variable definitions (to unify notations with external
 #   libraries usage when using target_include_directories() ).
-set(FILTERS_INCLUDE_DIR	${PROJECT_SOURCE_DIR}/src/libfilters)
-set(FILTERS_LIBRARIES	filters)
+set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
+set( FILTERS_LIBRARIES   filters )
 
 set( CITYGML_INCLUDE_DIR
    ${CMAKE_SOURCE_DIR}/src               #FIXME
@@ -700,10 +700,25 @@ if (BUILD_CityGMLFloodARQtPlugin)
     set(CityGMLFloodAR_Qt_Plugin_LIB ${CityGMLFloodAR_Qt_Plugin_LIB} ${QT_LIBRARIES})
   endif(WITH_QT5)
 
-  add_library(CityGMLFloodARQtPlugin SHARED src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.cxx src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.cxx src/plugins/CityGMLFloodARQtPlugin/FloodARTools.cxx
-        ${CityGMLFloodAR_Qt_Plugin_HEADER} ${CityGMLFloodAR_Qt_Plugin_SRC}
-        ${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
-  target_link_libraries (CityGMLFloodARQtPlugin ${LINUX_FLAGS} ${CityGMLFloodAR_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  add_library( CityGMLFloodARQtPlugin SHARED
+    src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.cxx
+    src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.cxx
+    src/plugins/CityGMLFloodARQtPlugin/FloodARTools.cxx
+    ${CityGMLFloodAR_Qt_Plugin_HEADER}
+    ${CityGMLFloodAR_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC}
+    # if needed, add cxx files here
+  )
+
+  target_include_directories( CityGMLFloodARQtPlugin PUBLIC
+    ${FILTERS_INCLUDE_DIR}
+  )
+
+  target_link_libraries ( CityGMLFloodARQtPlugin
+    ${LINUX_FLAGS}
+    ${CityGMLFloodAR_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+  )
   if (WITH_QT5)
     QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)
   endif(WITH_QT5)
