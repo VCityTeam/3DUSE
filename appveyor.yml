@@ -13,7 +13,6 @@ os: Visual Studio 2015
 
 # environment variables
 environment:
-#
   QT5_DIR: C:\Qt\5.6\msvc2015_64
 #
   KIT_ROOT: C:\local_vs2015_64
@@ -86,7 +85,7 @@ before_build:
   - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
 #
   - cd %APPVEYOR_BUILD_FOLDER%
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
