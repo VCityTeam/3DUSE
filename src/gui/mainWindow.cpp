@@ -3259,57 +3259,278 @@ std::list<OGRPoint*> dataSourceToPointList(OGRDataSource* poDS)
     return vPoints;
 }
 
+
+double LinearInterp(double z1, double z2, double mu)
+{
+    return (z1 * (1 - mu) + z2 * mu);
+}
+
+/***********
+Compute intersection between two segments. Returns true if the two lines intersect and fille pIntersect with the intersection coordinates.
+Only one point from the second skyline will match the other one so we compute the intersection in 2D and then add the z coordinates (by interpolation).
+p1, p2 : points of the line
+p3, p4 : points of the segment line
+*************/
+TVec3d LineLineIntersection(TVec3d p1, TVec3d p2, TVec3d p3, TVec3d p4)
+{
+    TVec3d pIntersec(0.0, 0.0, 0.0);
+
+    // Peut etre faire une fonction recursive qui teste d'abord entre droite 1 et le segment, puis si on trouve pas, on teste avec les segments à dte et à gauche,..
+    //Est ce que c'est utile ? Sinon faire une fonction qui teste avec toutes les polylignes -> permet de gérer les cas ou il y a des renfoncements avec les arbres (on garde la plus haute intersection)
+    double epsilon = 0.001;
+
+    double denominator = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+
+    if(fabs(denominator) < epsilon) //if lines are parallel TODO: differenciate coincident and parallel)
+    {        
+        //take the point with the max y (the highest in terms of skylines)
+        //maybe to be changed by the farest point fom pov in direction of pov to point of skyline
+        if(p3.y >= p4.y)
+            pIntersec = p3;
+        else
+            pIntersec = p4;
+
+        std::cout << "parallels " << std::endl;
+    }
+
+    // else, compute intersection point
+    pIntersec.x = ((p1.x * p2.y - p1.y * p2.x) * (p3.x - p4.x) - (p1.x - p2.x) * (p3.x * p4.y - p3.y * p4.x)) / denominator;
+    pIntersec.y = ((p1.x * p2.y - p1.y * p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x * p4.y - p3.y * p4.x)) / denominator;
+
+    return pIntersec;
+
+//    std::cout << "" << std::endl;
+//    std::cout << "p3 : " << p3.x << " ; " << p3.y << std::endl;
+//    std::cout <<  "intersection point : " << (*pIntersec).x /*<< " ; " << (*pIntersec).y */<< std::endl;
+//    std::cout << "p4 : " << p4.x << " ; " << p4.y << std::endl;
+
+    //check if its inside the line segment interval or not
+    //Supposing that p3 <= p4, is that always true ?
+//    if((pIntersec.x >= p3.x && (*pIntersec).x <= p4.x) ||
+//            ((*pIntersec).y >= p3.y && (*pIntersec).y <= p4.y))
+//    {
+//        //Interpolate z value
+//        double mu = ((*pIntersec).x - p3.x) / (p4.x - p3.x);
+//        (*pIntersec).z = LinearInterp(p3.z, p4.z, mu);
+//        return true;
+//    }
+//    else
+//        return false;
+
+}
+
+TVec3d OGRPointToTVec3d(OGRPoint OGRP)
+{
+    return TVec3d(OGRP.getX(), OGRP.getY(), OGRP.getZ());
+}
+
+OGRPoint TVec3dToOGRPoint(TVec3d vec3dP)
+{
+    return OGRPoint(vec3dP.x, vec3dP.y, vec3dP.z);
+}
+
 void MainWindow::test4()
 {
-	//buildJson();
+    QSettings settings("liris", "virtualcity");
+    settings.setValue("tiledir","/home/vincent/Documents/VCity_Project/Data/Tuiles");
 
-	/*std::vector<std::string> building;
-	building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
+    //BATI
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3682_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3682_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3682_10351.gml");
 
-	std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3683_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3683_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3683_10351.gml");
 
-	int cpt = 0;
-	for(AnalysisResult ar : res)
-	{
-	addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
-	addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
-	cpt++;
-	}*/
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3684_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3684_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3684_10351.gml");
 
-	//if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
+    //MNT
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3682_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3682_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3682_10351.gml");
 
-	//ProcessLasShpVeget();
-	/*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
-	std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3683_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3683_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3683_10351.gml");
 
-	std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3684_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3684_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3684_10351.gml");
 
-	ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
-	for(std::pair<std::string,PolygonData> p : top)
-	{
-	ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
-	}
-	ofs.close();*/
+    //WATER
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3682_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3682_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3682_10351.gml");
 
-	/*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
-	ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3683_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3683_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3683_10351.gml");
 
-	//ExtrudeAlignementTree();
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3684_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3684_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3684_10351.gml");
 
-	/*LASreadOpener lasreadopener;
-	lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
-	LASreader* lasreader = lasreadopener.open();
+    //VEGET
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3682_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3682_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3682_10351.gml");
 
-	OGRMultiPoint* mp = new OGRMultiPoint;
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3683_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3683_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3683_10351.gml");
 
-	while (lasreader->read_point())
-	{
-	OGRPoint* point = new OGRPoint;
-	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
-	}*/
-	
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3684_10349.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3684_10350.gml");
+    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3684_10351.gml");
+
+
+
+
+#if 0
+    //*******************Comparison of 2 skylines
+
+    //Load 2 shapefiles
+    QString filepath1 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/SkylinePoints.shp";
+    QString filepath2 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_2/SkylinePoints.shp";
+
+    std::cout << "load shp file : " << filepath1.toStdString() << std::endl;
+    OGRDataSource* poDS1 = OGRSFDriverRegistrar::Open(filepath1.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
+
+    std::cout << "load shp file : " << filepath2.toStdString() << std::endl;
+    OGRDataSource* poDS2 = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
+
+    //Get vector of OGRPoints from OGRDataSource
+    std::list<OGRPoint*> vPoints1 = dataSourceToPointList(poDS1);
+    std::list<OGRPoint*> vPoints2 = dataSourceToPointList(poDS2);
+
+    std::cout << vPoints1.size() << std::endl;
+    std::cout << vPoints2.size() << std::endl;
+
+
+
+
+    //Load point of view
+    QString pov_filepath = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/Viewpoint.shp";
+
+    std::cout << "load point of view : " << pov_filepath.toStdString() << std::endl;
+    OGRDataSource* povODS = OGRSFDriverRegistrar::Open(pov_filepath.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
+
+    std::list<OGRPoint*> vPoV = dataSourceToPointList(povODS);
+    std::list<OGRPoint*>::iterator it = vPoV.begin();
+    //OGRPoint* pov = *it;
+    //TVec3d PoV = TVec3d(pov->getX(), pov->getY(), pov->getZ());
+    //Convert it to TVec3d for convinience
+    TVec3d PoV = OGRPointToTVec3d(**it);
+
+    //Iterate through two lists simultaneously
+    std::list<OGRPoint*>::iterator itList1 = vPoints1.begin();
+    std::list<OGRPoint*>::iterator itList2 = vPoints2.begin();
+
+    //Compute ref vector (making the assesment that first point of skyline is the same for both skylines)
+    TVec3d vRef = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
+
+    //epsilon for float comparison
+    float epsilon = 0.001;
+
+    for(; itList1 != vPoints1.end() && itList2 != vPoints2.end(); ++itList1, ++itList2) // && ou || ?
+    {
+        //Create vectors
+        TVec3d v1 = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
+        TVec3d v2 = TVec3d((*itList2)->getX() - PoV.x, (*itList2)->getY() - PoV.y, (*itList2)->getZ() - PoV.z);
+
+        //Compute angles with reference vector
+        float angle1 = acos(vRef.dot(v1) / (vRef.length() * v1.length()));
+        float angle2 = acos(vRef.dot(v2) / (vRef.length() * v2.length()));
+
+
+        if(fabs(angle1 - angle2) > epsilon) // ie there are not equals
+        {       
+            if(angle1 < angle2)
+            {
+                //Get line of list2 to compute intersection with (ie line from previous point of list2 to current point)
+                std::list<OGRPoint*>::iterator prevPointList2 = std::prev(itList2,1);
+
+                //Compute intersection between list 2 and v1
+                TVec3d pIntersect = LineLineIntersection(PoV, OGRPointToTVec3d(**itList1), OGRPointToTVec3d(**prevPointList2), OGRPointToTVec3d(**itList2));
+
+                //insert the intersection into list 2
+                if(inter)
+                {
+                    std::cout << "intersection" << std::endl;
+                    /*OGRPoint* newPoint = new OGRPoint();
+                    *newPoint = TVec3dToOGRPoint(pIntersect);
+                    vPoints2.insert(itList2,newPoint);*/
+                }
+                else
+                    std::cout << "no intersection found" << std::endl;
+
+            }
+            else if(angle1 > angle2)
+            {
+                //Compute intersection between list 1 and v2
+                //insert the intersection into list 1
+            }
+        }
+//        else
+//            std::cout << "angles are equals" << std::endl;
+
+    }
+
+#endif
+
+
+    //buildJson();
+
+    /*std::vector<std::string> building;
+    building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
+
+    std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
+
+    int cpt = 0;
+    for(AnalysisResult ar : res)
+    {
+    addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
+    addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
+    cpt++;
+    }*/
+
+    //if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
+
+    //ProcessLasShpVeget();
+    /*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
+    std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
+
+    std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
+
+    ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
+    for(std::pair<std::string,PolygonData> p : top)
+    {
+    ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
+    }
+    ofs.close();*/
+
+    /*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
+    ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
+    ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
+    ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
+
+    //ExtrudeAlignementTree();
+
+    /*LASreadOpener lasreadopener;
+    lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
+    LASreader* lasreader = lasreadopener.open();
+
+    OGRMultiPoint* mp = new OGRMultiPoint;
+
+    while (lasreader->read_point())
+    {
+    OGRPoint* point = new OGRPoint;
+    mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
+    }*/
+
 //    std::cout<<std::endl;
 //    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
 //    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
@@ -3341,80 +3562,6 @@ void MainWindow::test4()
 //            std::cout<<"    - "<<v->getId()<<std::endl;
 //        }
 //    }
-
-    //*******************Comparison of 2 skylines
-
-    //Load 2 shapefiles
-    QString filepath1 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/SkylinePoints.shp";
-    QString filepath2 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_2/SkylinePoints.shp";
-
-    std::cout << "load shp file : " << filepath1.toStdString() << std::endl;
-    OGRDataSource* poDS1 = OGRSFDriverRegistrar::Open(filepath1.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
-
-    std::cout << "load shp file : " << filepath2.toStdString() << std::endl;
-    OGRDataSource* poDS2 = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
-
-    //Get vector of OGRPoints from OGRDataSource
-    std::list<OGRPoint*> vPoints1 = dataSourceToPointList(poDS1);
-    std::list<OGRPoint*> vPoints2 = dataSourceToPointList(poDS2);
-
-    //Load point of view
-    QString pov_filepath = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/Viewpoint.shp";
-
-    std::cout << "load point of view : " << pov_filepath.toStdString() << std::endl;
-    OGRDataSource* povODS = OGRSFDriverRegistrar::Open(pov_filepath.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
-
-    std::list<OGRPoint*> vPoV = dataSourceToPointList(povODS);
-    std::list<OGRPoint*>::iterator it = vPoV.begin();
-    OGRPoint* pov = *it;
-    //Convert it to TVec3d for convinience
-    TVec3d PoV = TVec3d(pov->getX(), pov->getY(), pov->getZ());
-
-    //Iterate through two lists simultaneously
-    std::list<OGRPoint*>::iterator itList1 = vPoints1.begin();
-    std::list<OGRPoint*>::iterator itList2 = vPoints2.begin();
-
-    //Compute ref vector (making the assesment that first point of skyline is the same for both skylines)
-    TVec3d vRef = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
-
-    //epsilon for float comparison
-    float epsilon = 0.001;
-
-    for(; itList1 != vPoints1.end() && itList2 != vPoints2.end(); ++itList1, ++itList2) // && ou || ?
-    {
-        //Create vectors
-        TVec3d v1 = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
-        TVec3d v2 = TVec3d((*itList2)->getX() - PoV.x, (*itList2)->getY() - PoV.y, (*itList2)->getZ() - PoV.z);
-
-        //Compute angles with reference vector
-        float angle1 = acos(PoV.dot(v1) / (PoV.length() * v1.length()));
-        float angle2 = acos(PoV.dot(v2) / (PoV.length() * v2.length()));
-
-        if(abs(angle1 - angle2) > epsilon) // ie there are not equals
-        {
-            if(angle1 < angle2)
-            {
-                //Compute intersection between list 2 and v1
-
-                //insert the intersection into list 2
-            }
-            else if(angle1 > angle2)
-            {
-                //Compute intersection between list 1 and v2
-                //insert the intersection into list 1
-            }
-        }
-
-    }
-
-
-
-//    std::cout << vPoints1.size() << std::endl;
-//    std::cout << vPoints2.size() << std::endl;
-//    std::cout << vPoV.size() << std::endl;
-
-
-
 
 
 
