@@ -688,7 +688,7 @@ endif (BUILD_CityGMLFloodARQtPlugin)
 	################
 	# 3DUSE plugins
 	################
-	INSTALL(TARGETS ${PRJ_NAME} CityGMLCut ${CityGMLCutQtPlugin} ${CityGMLEmptyQtPlugin} ${CityGMLVisibiliteQtPlugin} # add your plugin installation here
+	INSTALL(TARGETS ${PRJ_NAME} CityGMLCut ${CityGMLCutQtPlugin} ${CityGMLEmptyQtPlugin} ${CityGMLVisibiliteQtPlugin} ${CityGMLFloodARQtPlugin} # add your plugin installation here
 		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
 		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
 		LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
