@@ -291,15 +291,15 @@ bool MNT::write(const char* nom_fichier)
 	out = fopen(nom_fichier,"wt");
 	fprintf(out, "ncols         %d\n", dim_x);
 	fprintf(out, "nrows         %d\n", dim_y);
-	fprintf(out, "xllcorner     %f\n", x_noeud_NO);
-	fprintf(out, "yllcorner     %f\n", y_noeud_NO);
-	fprintf(out, "cellsize      %f\n", pas_x);
-	fprintf(out, "nodata_value  %f\n", NODATA_value);
+	fprintf(out, "xllcorner     %.3f\n", x_noeud_NO);
+	fprintf(out, "yllcorner     %.3f\n", y_noeud_NO);
+	fprintf(out, "cellsize      %.3f\n", pas_x);
+	fprintf(out, "nodata_value  %.3f\n", NODATA_value);
 	for (int y = 0; y<dim_y; y++)
 	{
 		for (int x = 0; x<dim_x; x++)
 		{
-			fprintf(out, "%f ", get_altitude(x,y));
+			fprintf(out, "%.3f ", get_altitude(x,y));
 		}
 		fprintf(out, "\n");
 	}
