@@ -2,8 +2,7 @@
 
 #include <qstring.h>
 #include <qfiledialog.h>
-
-#include "gui/osg/osgGDAL.hpp"
+#include "ogrsf_frmts.h"
 #include "gui/osg/osgScene.hpp"
 #include "export/exportCityGML.hpp"
 
