@@ -9,7 +9,7 @@ if(APPLE)
 endif(APPLE)
 
 add_library( citygml SHARED
-  # WTF: the following are dependencies of import/importerASC.cpp
+  # FIXME: the following are dependencies of import/importerASC.cpp
   ${CMAKE_SOURCE_DIR}/src/processes/ToolAlgoCut.cpp       # WTF
   ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
   URI.cpp
@@ -52,8 +52,11 @@ add_library( citygml SHARED
 
 # The dependence of this library towards QT both undue and a drag:
 if (WITH_QT5)
-  set_targEt_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
-endif(WITH_QT5)
+  QT5_USE_MODULES( citygml Core Widgets Xml OpenGL )
+  # FIXME: assert the following two lines are indeed required
+  add_definitions("-DWITH_QT5")
+  set_target_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
+endif ()
 
 target_include_directories( citygml PUBLIC 
  ${CMAKE_SOURCE_DIR}

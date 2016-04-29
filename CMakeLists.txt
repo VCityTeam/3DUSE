@@ -399,16 +399,92 @@ INCLUDE_DIRECTORIES(src
 file(
   GLOB_RECURSE
   VCITY_GUI_SRC
-  src/core/*.cpp
-  src/gui/*.cpp
-  src/libfilters/*.cpp
-  src/DataStructures/*.cpp
+src/core/RayBox.cpp
+src/core/abstractlayer.cpp
+src/core/algo.cpp
+src/core/algo2.cpp
+src/core/application.cpp
+src/core/cell.cpp
+src/core/controller.cpp
+src/core/dataprofile.cpp
+src/core/layerAssimp.cpp
+src/core/layerCityGML.cpp
+src/core/layerLas.cpp
+src/core/layerMnt.cpp
+src/core/layerShp.cpp
+src/core/layerTiledCityGML.cpp
+src/core/scene.cpp
+src/core/settings.cpp
+src/core/tile.cpp
+src/core/tools/log.cpp
+
+src/gui/applicationGui.cpp
+src/gui/controllerGui.cpp
+src/gui/dialogAbout.cpp
+src/gui/dialogAddBuilding.cpp
+src/gui/dialogAddLayer.cpp
+src/gui/dialogDoc.cpp
+src/gui/dialogDynState.cpp
+src/gui/dialogEditAssimpNode.cpp
+src/gui/dialogEditBldg.cpp
+src/gui/dialogEditLayer.cpp
+src/gui/dialogEditTile.cpp
+src/gui/dialogLink.cpp
+src/gui/dialogLoadBBox.cpp
+src/gui/dialogSettings.cpp
+src/gui/dialogShpTool.cpp
+src/gui/dialogState.cpp
+src/gui/dialogTag.cpp
+src/gui/dialogTilingCityGML.cpp
+src/gui/dialogYearOfConst.cpp
+src/gui/dialogYearOfDemol.cpp
+src/gui/mainWindow.cpp
+src/gui/plugindialog.cpp
+src/gui/treeView.cpp
+
+src/gui/osg/osgAssimp.cpp
+src/gui/osg/osgCityGML.cpp
+src/gui/osg/osgCompass.cpp
+src/gui/osg/osgGDAL.cpp
+src/gui/osg/osgInfoBubbles.cpp
+src/gui/osg/osgLas.cpp
+src/gui/osg/osgPicking.cpp
+src/gui/osg/osgQtWidget.cpp
+src/gui/osg/osgScene.cpp
+src/gui/osg/osgTools.cpp
+
+# Interestingly enough the following are not necessary !?
+# src/gui/osgQt/osg32/GraphicsWindowQt.cxx
+# src/gui/osgQt/osg34/GraphicsWindowQt.cxx
+# src/plugins/*.cpp
+
+src/libfilters/raytracing/Hit.cpp
+src/libfilters/raytracing/Ray.cpp
+src/libfilters/raytracing/RayTracing.cpp
+src/libfilters/tiling/ASCCut.cpp
+
+src/DataStructures/DEM/osgMnt.cpp
+
+src/processes/ChangeDetection.cpp
+src/processes/EnhanceMNT.cpp
+src/processes/ExportToShape.cpp
+src/processes/LinkCityGMLShape.cpp
+src/processes/ShpExtrusion.cpp
+src/processes/TilingCityGML.cpp
+src/processes/ToolAlgoCut.cpp
+src/processes/lodsmanagement.cpp
+
+src/utils/CityGMLFusion.cpp
+
   src/main.cpp
-  src/plugins/*.cpp
-  src/processes/*.cpp
-  src/utils/*.cpp
-  src/libcitygml/utils/*.cpp   ## FIXME: Finishing the job implies a core lib
-                         ## which seems to depend on libcityGML.
+
+  ## FIXME: the following should be dealt with within src/libcitygml.
+  # Yet finishing this job implies the availability of a core library
+  # since some of the libcitygml/utils content seems to depend both
+  # on libcityGML and the core. Actually, if this is indeed the case
+  # then those files should be compile with core, or the utils but not
+  # within libcityGML that should remain "3D-Use core" free.
+  src/libcitygml/utils/*.cpp  
 )
 
 SET( VCITY_GUI_SRC
