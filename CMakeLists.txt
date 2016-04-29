@@ -718,6 +718,7 @@ if (BUILD_CityGMLFloodARQtPlugin)
     ${LINUX_FLAGS}
     ${CityGMLFloodAR_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
+    ${CITYGML_LIBRARIES}
   )
   if (WITH_QT5)
     QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)

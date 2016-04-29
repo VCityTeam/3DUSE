@@ -9,6 +9,9 @@ if(APPLE)
 endif(APPLE)
 
 add_library( citygml SHARED
+  # WTF: the following are dependencies of import/importerASC.cpp
+  ${CMAKE_SOURCE_DIR}/src/processes/ToolAlgoCut.cpp       # WTF
+  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
   URI.cpp
   appearance.cpp
   appearancemanager.cpp
@@ -36,6 +39,7 @@ add_library( citygml SHARED
   export/exporter.cpp
 
   import/importer.cpp
+  import/importerASC.cpp
   import/importerAssimp.cpp
 
   # FIXME : ADE should be in separate libraries (possibly as libCityGML plugins)
@@ -51,7 +55,12 @@ if (WITH_QT5)
   set_targEt_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
 endif(WITH_QT5)
 
-target_include_directories( citygml PUBLIC ${CMAKE_SOURCE_DIR}/src )
+target_include_directories( citygml PUBLIC 
+ ${CMAKE_SOURCE_DIR}
+ ${CMAKE_SOURCE_DIR}/src
+ ${CMAKE_SOURCE_DIR}/src/processes     # FIXME: to be removed with ToolAlgoCut.cpp
+ ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/  # FIXME: remove with osgMnt.cpp
+)
 # Required for generated citygml_export.h
 target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
 
