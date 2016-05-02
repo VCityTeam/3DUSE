@@ -134,7 +134,7 @@ namespace citygml
             std::cin >> a;
           }
           //convert merged Polygon to CityGML
-		  geom->addPolygon(ConvertOGRPolytoGMLPoly(poPG, ""));
+          geom->addPolygon(OGRPolyToGMLPoly(poPG));
 
           if (geom->size() != 0)
           {
@@ -200,6 +200,57 @@ namespace citygml
     OGRPolygon* poly = new OGRPolygon();
     poly->addRingDirectly(ring);
     return poly;
+  }
+  /////////////////////////////////////////////////////////////////////////////////////////
+  Polygon* ImporterASC::OGRPolyToGMLPoly(OGRPolygon* orgPoly)
+  {
+    //get interior and exterior rings
+    std::vector<TVec3d> extRing;
+    OGRPoint p;
+    TVec3d v;
+    OGRLinearRing* poLR = orgPoly->getExteriorRing();
+    if (poLR == nullptr) return nullptr;
+    for (int i = 0; i < poLR->getNumPoints(); ++i)
+    {
+      poLR->getPoint(i, &p);
+      v = TVec3d(p.getX(), p.getY(), p.getZ());
+      extRing.push_back(v);
+    }
+    std::vector<std::vector<TVec3d>> intRing;
+
+    for (unsigned int i = 0; i < (unsigned int)orgPoly->getNumInteriorRings(); i++)
+    {
+      std::vector<TVec3d> intRingTemp;
+      poLR = orgPoly->getInteriorRing(i);
+      for (int i = 0; i < poLR->getNumPoints(); ++i)
+      {
+        poLR->getPoint(i, &p);
+        v = TVec3d(p.getX(), p.getY(), p.getZ());
+        intRingTemp.push_back(v);
+      }
+      if (intRingTemp.size() == 0)
+        continue;
+      intRing.push_back(intRingTemp);
+
+    }
+    //build CityGML polygon
+    citygml::Polygon* GMLpoly = new citygml::Polygon("");
+    citygml::LinearRing* ring1 = new citygml::LinearRing("", true);
+    for (unsigned int j = 0; j < extRing.size(); j++)
+    {
+      ring1->addVertex(extRing[j]);
+    }
+    GMLpoly->addRing(ring1);
+    for (std::vector<TVec3d> vec : intRing)
+    {
+      citygml::LinearRing* ring2 = new citygml::LinearRing("", false);
+      for (unsigned int j = 0; j < vec.size(); j++)
+      {
+        ring2->addVertex(vec[j]);
+      }
+      GMLpoly->addRing(ring2);
+    }
+    return GMLpoly;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
   CityModel* ImporterASC::fusionResolutions(MNT* asc1, MNT* asc2)
@@ -371,7 +422,7 @@ namespace citygml
     i = 1;
     for (OGRPolygon* poly : polysMerged)
     {
-	  Polygon* GMLPoly = ConvertOGRPolytoGMLPoly(poly, "");
+      Polygon* GMLPoly = OGRPolyToGMLPoly(poly);
       if (GMLPoly != nullptr) geom->addPolygon(GMLPoly);
       std::cout << "Conversion (" << (int)(i++*100.0 / (polysMerged.size() + 1)) << "%)\r";
     }
