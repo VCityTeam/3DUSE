@@ -14,7 +14,7 @@
 namespace FloodAR
 {
   ////////////////////////////////////////////////////////////////////////////////
-  std::vector<TextureCityGML*> getTexturesList(citygml::CityModel* model, QFileInfo file, QFileInfo texturesPath)
+  std::vector<TextureCityGML*> getTexturesList(citygml::CityModel* model, QDir tiledir, QFileInfo texturesPath)
   {
     std::vector<TextureCityGML*> TexturesList;
 
@@ -60,8 +60,7 @@ namespace FloodAR
             }
           }
           //Remplissage de ListTextures
-          QDir workdir = file.dir();
-          std::string Url = workdir.relativeFilePath(texturesPath.filePath()).toStdString();
+          std::string Url = tiledir.relativeFilePath(texturesPath.filePath()).toStdString();
           citygml::Texture::WrapMode WrapMode = citygml::Texture::WM_NONE;
 
           TexturePolygonCityGML Poly;
@@ -151,12 +150,12 @@ namespace FloodAR
       citygml::CityModel* model = new citygml::CityModel();
       // TODO: explore the dir once to create the list of dates
       std::map<int, QFileInfo> fileList;
-      for (QFileInfo ff : tileDir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
+      for (QFileInfo ff : tileDir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot))
       {
         //TODO: detect the "_TX_" string in the filename
         std::string fname = ff.baseName().toStdString();
-        std::size_t pos1 = fname.find_first_of("_T");
-        std::size_t pos2 = fname.find_first_of("_", pos1 + 1);
+        std::size_t pos1 = fname.find("_T");
+        std::size_t pos2 = fname.find("_", pos1 + 1);
         int startTime;
         try
         {
@@ -212,6 +211,7 @@ namespace FloodAR
           }
         }
       }
+      model->computeEnvelope();
       //export en CityGML
       std::cout << "Export ...";
       if (model != nullptr && model->size() != 0)
@@ -256,6 +256,7 @@ namespace FloodAR
         delete asc;
       }
     }
+    model->computeEnvelope();
     //Add temporal info
     for (citygml::CityObject* obj : model->getCityObjectsRoots())
     {
@@ -275,80 +276,99 @@ namespace FloodAR
     delete model;
   }
   ////////////////////////////////////////////////////////////////////////////////
-  void ASCtoTerrain(std::string filePath1, bool fusion, std::string filePath2, bool addTextures, std::string texturesPath)
+  void ASCtoTerrain(std::string workingDir)
   {
-    citygml::CityModel* model;
-    QFileInfo file = QFileInfo(QString(filePath1.c_str()));
-    if (!fusion)
+    QDir wkDir(workingDir.c_str());
+    QDir tmpDir((workingDir + "/tmp/_MNT").c_str());
+    // check if tmp directory exists in working directory
+    if (!tmpDir.exists()) { std::cerr << "Input file not found!" << std::endl; return; }
+    // explore tmp directory for tile directories
+    for (QFileInfo f : tmpDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
-      std::cout << "CONVERTING FILE " << file.baseName().toStdString() << std::endl;
-      QString ext = file.suffix().toLower();
-      if (ext == "asc")
+      QDir tileDir(f.absoluteFilePath());
+      std::string tilenumber = f.baseName().toStdString();
+      wkDir.mkpath(("_MNT/ " + tilenumber).c_str());
+      QDir outputTileDir((wkDir.absolutePath().toStdString() + "/_MNT/" + tilenumber).c_str());
+
+      citygml::CityModel* model = new citygml::CityModel();
+      std::map<float, MNT*> fileList; //List of ASC rasters ordered by precision
+      for (QFileInfo ff : tileDir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
       {
-        //lecture du fichier
-        citygml::ImporterASC* importer = new citygml::ImporterASC();
-        MNT* asc = new MNT();
-        if (asc->charge(file.absoluteFilePath().toStdString().c_str(), "ASC"))
+        std::cout << "CONVERTING FILE " << ff.baseName().toStdString() << std::endl;
+        QString ext = ff.suffix().toLower();
+        if (ext == "asc")
         {
-          //conversion en structure CityGML
-          model = importer->reliefToCityGML(asc);
-          delete importer;
-          delete asc;
+          //lecture du fichier
+          MNT* asc = new MNT();
+          if (asc->charge(ff.absoluteFilePath().toStdString().c_str(), "ASC"))
+          {
+            fileList.insert(std::make_pair(asc->get_pas_x(), asc));
+          }
         }
       }
-    }
-    else
-    {
-      QFileInfo file2 = QFileInfo(QString(filePath2.c_str()));
-      std::cout << "MERGING FILES " << file.baseName().toStdString() << " AND " << file2.baseName().toStdString() << std::endl;
-      QString ext = file.suffix().toLower();
-      if (ext == "asc")
+      if (fileList.size() > 2) { std::cerr << "Tile " << tilenumber << ": more than two ASC raster found, conversion aborted!" << std::endl; continue; }
+      //TODO: convert into CityGML
+      citygml::CityObject* terrainSurface;
+      citygml::ImporterASC* importer = new citygml::ImporterASC();
+      switch (fileList.size())
       {
-        //lecture du fichier
-        citygml::ImporterASC* importer = new citygml::ImporterASC();
-        MNT* asc1 = new MNT();
-        MNT* asc2 = new MNT();
-        if (asc1->charge(file.absoluteFilePath().toStdString().c_str(), "ASC") && (asc2->charge(file2.absoluteFilePath().toStdString().c_str(), "ASC")))
-        {
-          //Check which MNT is the more precise one
-          MNT* morePrecise;
-          MNT* lessPrecise;
-          if (asc1->get_pas_x() >= asc2->get_pas_x())
-          {
-            lessPrecise = asc1;
-            morePrecise = asc2;
-          }
-          else
-          {
-            lessPrecise = asc2;
-            morePrecise = asc1;
-          }
-          //conversion en structure CityGML
-          model = importer->fusionResolutions(lessPrecise, morePrecise);
-          delete importer;
-          delete asc1;
-          delete asc2;
-        }
+      case 2:
+      {
+        MNT* lessPrecise = fileList.begin()->second;
+        MNT* morePrecise = std::next(fileList.begin(), 1)->second;
+        terrainSurface = importer->fusionResolutions(lessPrecise, morePrecise);
+        delete lessPrecise;
+        delete morePrecise;
       }
+      break;
+      case 1:
+        MNT* asc = fileList.begin()->second;
+        terrainSurface = importer->reliefToCityGML(asc);
+        delete asc;
+        break;
+      }
+      delete importer;
+      if (terrainSurface->getGeometries().size() > 0)
+      {
+        model->addCityObject(terrainSurface);
+        model->addCityObjectAsRoot(terrainSurface);
+        model->computeEnvelope();
+      }
+      else
+      {
+        delete terrainSurface;
+        std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
+        continue;
+      }
+      //add textures
+      std::vector<TextureCityGML*> TexturesList;
+      QDir appearanceDir((outputTileDir.path().toStdString() + "/Appearance").c_str());
+      if (appearanceDir.exists())
+      {
+        std::list<QFileInfo> texFileList;
+        for (QFileInfo ff : appearanceDir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
+        {
+          if (ff.suffix().toLower() == "jpg")
+          {
+            texFileList.push_back(ff);
+          }
+        }
+        if (texFileList.size() > 1) std::cerr << "Warning: Tile " << tilenumber << " - More than one appearance file found." << std::endl;
+        TexturesList = getTexturesList(model, outputTileDir, *(texFileList.begin()));
+      }
+      //export CityGML
+      std::cout << "Export ...";
+      if (model != nullptr && model->size() != 0)
+      {
+        std::string outfilename = outputTileDir.path().toStdString() + "/" + tilenumber + "_MNT.gml";
+        std::cout << outfilename << std::endl;
+        citygml::ExporterCityGML exporter(outfilename.c_str());
+        exporter.exportCityModelWithListTextures(*model,&TexturesList);
+        std::cout << "OK!" << std::endl;
+      }
+      else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
+      delete model;
     }
-    //add textures
-    std::vector<TextureCityGML*> TexturesList;
-    if (addTextures)
-    {
-      TexturesList = getTexturesList(model, file, QFileInfo(QString(texturesPath.c_str())));
-    }
-    //export en CityGML
-    std::cout << "Export ...";
-    if (model->size() != 0)
-    {
-      citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
-      if (addTextures) exporter.exportCityModelWithListTextures(*model, &TexturesList);
-      else exporter.exportCityModel(*model);
-      std::cout << "OK!" << std::endl;
-    }
-    else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
-    delete model;
-    for (TextureCityGML* tex : TexturesList) delete tex;
   }
   ////////////////////////////////////////////////////////////////////////////////
   void cutPicture(std::string filename, std::string workingDir, int tileSizeX, int tileSizeY)

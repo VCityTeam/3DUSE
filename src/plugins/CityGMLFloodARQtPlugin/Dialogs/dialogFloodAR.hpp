@@ -30,18 +30,10 @@ public slots:
 	void browseInputTextureCut();
 	void textureCut();
 
-	void browseInputASCtoWater();
-	void enableTemporalParams(int);
 	void ASCtoWater();
 
-	void browseInput1ASCtoTerrain();
-	void browseInput2ASCtoTerrain();
-	void browseTextureASCtoTerrain();
-	void enableASCFusion(int);
-	void enableTextures(int);
 	void ASCtoTerrain();
 
-	void browseInputDirShpExt();
 	void browseInputShpExt();
 	void ShpExtrusion();
 
