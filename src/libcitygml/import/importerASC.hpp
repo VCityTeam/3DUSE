@@ -19,10 +19,10 @@ namespace citygml
     ImporterASC(void);
     ~ImporterASC(void);
 
-    CityModel* reliefToCityGML(MNT*);
-    CityModel* waterToCityGML(MNT*);
+    CityObject* reliefToCityGML(MNT*);
+    CityObject* waterToCityGML(MNT*);
     CityObject* waterToCityGMLPolygons(MNT*, float);
-    CityModel* fusionResolutions(MNT* asc1, MNT* asc2);
+    CityObject* fusionResolutions(MNT* asc1, MNT* asc2);
 
   protected:
     Geometry* generateTriangles(MNT*);

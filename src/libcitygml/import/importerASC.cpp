@@ -15,30 +15,22 @@ namespace citygml
   {
   }
   /////////////////////////////////////////////////////////////////////////////////////////
-  CityModel* ImporterASC::reliefToCityGML(MNT* asc)
+  CityObject* ImporterASC::reliefToCityGML(MNT* asc)
   {
-    CityModel* model = new CityModel();
     CityObject* reliefTIN = new TINRelief("");
 
     reliefTIN->addGeometry(generateTriangles(asc));
 
-    model->addCityObject(reliefTIN);
-    model->addCityObjectAsRoot(reliefTIN);
-    model->computeEnvelope();
     std::cout << "Conversion OK    " << std::endl;
-    return model;
+    return reliefTIN;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
-  CityModel* ImporterASC::waterToCityGML(MNT* asc)
+  CityObject* ImporterASC::waterToCityGML(MNT* asc)
   {
-    CityModel* model = new CityModel();
     CityObject* waterbody = new WaterBody("");
     waterbody->addGeometry(generateTriangles(asc));
-    model->addCityObject(waterbody);
-    model->addCityObjectAsRoot(waterbody);
-    model->computeEnvelope();
     std::cout << "Conversion OK    " << std::endl;
-    return model;
+    return waterbody;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
   Geometry* ImporterASC::generateTriangles(MNT* asc)
@@ -253,7 +245,7 @@ namespace citygml
     return GMLpoly;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
-  CityModel* ImporterASC::fusionResolutions(MNT* asc1, MNT* asc2)
+  CityObject* ImporterASC::fusionResolutions(MNT* asc1, MNT* asc2)
   {
     const int prec = 10;
     //create OGRPloygons for both asc
@@ -426,18 +418,14 @@ namespace citygml
       if (GMLPoly != nullptr) geom->addPolygon(GMLPoly);
       std::cout << "Conversion (" << (int)(i++*100.0 / (polysMerged.size() + 1)) << "%)\r";
     }
-    //add to CityModel
-    CityModel* model = new CityModel();
+    //add to CityObject
     CityObject* reliefTIN = new TINRelief("");
 
     reliefTIN->addGeometry(geom);
 
-    model->addCityObject(reliefTIN);
-    model->addCityObjectAsRoot(reliefTIN);
-    model->computeEnvelope();
     std::cout << "Conversion (100%)" << std::endl;
 
-    return model;
+    return reliefTIN;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
 }//namespace citygml
