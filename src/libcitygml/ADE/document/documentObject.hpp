@@ -42,10 +42,10 @@ namespace documentADE
       RT_PUBLIC=0,
       RT_PRIVATE
   };
-  class DocumentObject:  public citygml::CityObject
+  class DocumentObject:  public citygml::Object
   {
   public:
-
+      DocumentObject(const std::string& id);
       void setTitle(std::string);
       void setTheme(std::string);
       void setClass(std::string );
@@ -115,6 +115,7 @@ namespace documentADE
     CurrentKnownPossessorType _currentKnownPossessorType;
     CurrentRightsHolderType _currentRightsHolderType;
     std::vector<Tag*> _tags;
+    vcity::URI _linkToCreator;
   };
 }
 #endif // DOCUMENTOBJECT_HPP

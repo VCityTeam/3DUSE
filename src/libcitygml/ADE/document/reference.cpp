@@ -3,6 +3,9 @@
 namespace documentADE
 {
 
+      Reference::Reference( const std::string& id ) : Object( id )
+      {
+      }
       QDateTime Reference::getReferringDate()
       {
           return _referringDate;

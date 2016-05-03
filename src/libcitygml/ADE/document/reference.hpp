@@ -23,6 +23,7 @@ namespace documentADE
   class Reference: public citygml::Object
   {
   public:
+      Reference(const std::string& id);
       QDateTime getReferringDate();
       std::string getReferenceText();
       std::string getPurpose();

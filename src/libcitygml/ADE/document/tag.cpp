@@ -2,6 +2,9 @@
 
 namespace documentADE
 {
+  Tag::Tag( const std::string& id ) : Object( id )
+  {
+  }
   std::string Tag::getText()
   {
       return _text;

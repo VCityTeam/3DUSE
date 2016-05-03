@@ -8,6 +8,7 @@ namespace documentADE
   class Tag: public citygml::Object
   {
   public:
+      Tag(const std::string& id);
       std::string getText();
       int getCount();
 
