@@ -6,6 +6,7 @@
 #include <QImageReader>
 #include <QDebug>
 #include <QMessageBox>
+#include <QProgressDialog>
 
 #include "src/DataStructures/DEM/osgMnt.hpp"
 #include "import/importerASC.hpp"
@@ -142,6 +143,10 @@ namespace FloodAR
     QDir tmpDir((workingDir + "/tmp/_WATER").c_str());
     // check if tmp directory exists in working directory
     if (!tmpDir.exists()) { std::cerr << "Input file not found!" << std::endl; return; }
+    //Display a progress window
+    int numSteps = (tmpDir.count() - 2) * 3;
+    QProgressDialog progress("Converting files...", QString(), 0, numSteps, nullptr);//QString() for no cancel button
+    progress.setWindowModality(Qt::WindowModal);
     // explore tmp directory for tile directories
     for (QFileInfo f : tmpDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
@@ -169,6 +174,7 @@ namespace FloodAR
         //TODO: create a list or something taht contains the dates of start, end, and filenames
         fileList.insert(std::make_pair(startTime, ff));
       }
+      progress.setValue(progress.value() + 1);
       // Do treatement (TODO: parse the lst created just before instead)
       for (std::map<int, QFileInfo>::iterator it = fileList.begin(); it != fileList.end(); it++)
       {
@@ -212,6 +218,7 @@ namespace FloodAR
         }
       }
       model->computeEnvelope();
+      progress.setValue(progress.value() + 1);
       //export en CityGML
       std::cout << "Export ...";
       if (model != nullptr && model->size() != 0)
@@ -223,7 +230,9 @@ namespace FloodAR
       }
       else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
       delete model;
+      progress.setValue(progress.value() + 1);
     }
+    progress.setValue(progress.maximum());
   }
   ////////////////////////////////////////////////////////////////////////////////
   void ASCtoWaterManual(std::string workingDir, std::string inputfilepath, std::string savefilepath, float prec, std::string creaDate, std::string termDate)
@@ -278,23 +287,28 @@ namespace FloodAR
   ////////////////////////////////////////////////////////////////////////////////
   void ASCtoTerrain(std::string workingDir)
   {
+    
     QDir wkDir(workingDir.c_str());
     QDir tmpDir((workingDir + "/tmp/_MNT").c_str());
     // check if tmp directory exists in working directory
     if (!tmpDir.exists()) { std::cerr << "Input file not found!" << std::endl; return; }
+    //Display a progress window
+    int numSteps = (tmpDir.count() - 2) * 4;
+    QProgressDialog progress("Converting files...", QString(), 0, numSteps, nullptr);//QString() for no cancel button
+    progress.setWindowModality(Qt::WindowModal);
     // explore tmp directory for tile directories
     for (QFileInfo f : tmpDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
       QDir tileDir(f.absoluteFilePath());
       std::string tilenumber = f.baseName().toStdString();
-      wkDir.mkpath(("_MNT/ " + tilenumber).c_str());
+      wkDir.mkpath(("_MNT/" + tilenumber).c_str());
       QDir outputTileDir((wkDir.absolutePath().toStdString() + "/_MNT/" + tilenumber).c_str());
 
       citygml::CityModel* model = new citygml::CityModel();
       std::map<float, MNT*> fileList; //List of ASC rasters ordered by precision
       for (QFileInfo ff : tileDir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
       {
-        std::cout << "CONVERTING FILE " << ff.baseName().toStdString() << std::endl;
+        std::cout << "Reading file " << ff.baseName().toStdString() << std::endl;
         QString ext = ff.suffix().toLower();
         if (ext == "asc")
         {
@@ -306,6 +320,7 @@ namespace FloodAR
           }
         }
       }
+      progress.setValue(progress.value() + 1);
       if (fileList.size() > 2) { std::cerr << "Tile " << tilenumber << ": more than two ASC raster found, conversion aborted!" << std::endl; continue; }
       //TODO: convert into CityGML
       citygml::CityObject* terrainSurface;
@@ -314,8 +329,8 @@ namespace FloodAR
       {
       case 2:
       {
-        MNT* lessPrecise = fileList.begin()->second;
-        MNT* morePrecise = std::next(fileList.begin(), 1)->second;
+        MNT* morePrecise = fileList.begin()->second;
+        MNT* lessPrecise = std::next(fileList.begin(), 1)->second;
         terrainSurface = importer->fusionResolutions(lessPrecise, morePrecise);
         delete lessPrecise;
         delete morePrecise;
@@ -340,6 +355,7 @@ namespace FloodAR
         std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
         continue;
       }
+      progress.setValue(progress.value() + 1);
       //add textures
       std::vector<TextureCityGML*> TexturesList;
       QDir appearanceDir((outputTileDir.path().toStdString() + "/Appearance").c_str());
@@ -356,6 +372,7 @@ namespace FloodAR
         if (texFileList.size() > 1) std::cerr << "Warning: Tile " << tilenumber << " - More than one appearance file found." << std::endl;
         TexturesList = getTexturesList(model, outputTileDir, *(texFileList.begin()));
       }
+      progress.setValue(progress.value() + 1);
       //export CityGML
       std::cout << "Export ...";
       if (model != nullptr && model->size() != 0)
@@ -368,7 +385,9 @@ namespace FloodAR
       }
       else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
       delete model;
+      progress.setValue(progress.value()+1);
     }
+    progress.setValue(progress.maximum());
   }
   ////////////////////////////////////////////////////////////////////////////////
   void cutPicture(std::string filename, std::string workingDir, int tileSizeX, int tileSizeY)
@@ -408,6 +427,11 @@ namespace FloodAR
     qDebug() << "Image size:" << reader.size();
     int origWidth = reader.size().rwidth();
     int origHeight = reader.size().rheight();
+
+    //Display progress window
+    QProgressDialog progress("Tiling texture...", QString(), 0, origHeight, nullptr);//QString() for no cancel button
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setValue(0);
 
     QDir wkDir(workingDir.c_str());
     QDir outDir;
@@ -449,6 +473,7 @@ namespace FloodAR
       croppedImage.save(QString(outputname.c_str()), "JPG", -1);
       //progress
       std::cout << "Tiling texture... (" << y * 100 / origHeight << "%)\r";
+      progress.setValue(y);
       //tile is finished, set xy for next tile
       if ((x + width) < origWidth)
       {
