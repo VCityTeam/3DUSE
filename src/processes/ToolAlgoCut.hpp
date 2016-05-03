@@ -4,7 +4,7 @@
 #define __TOOLALGOCUT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "libcitygml/citygml.hpp"
-#include "src/gui/osg/osgGDAL.hpp"
+#include "ogrsf_frmts.h"
 ////////////////////////////////////////////////////////////////////////////////
 static double Precision_Vect = 0.00001; //Précision pour les points des Wall qui ne se superposent pas parfaitement aux emprises au sol issue du Roff
 
