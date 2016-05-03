@@ -3,8 +3,6 @@
 #include <QMessageBox>
 
 #include "../FloodARTools.hpp"
-#include "AABB.hpp"
-#include "processes/ShpExtrusion.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::dialogFloodAR(QWidget *parent) :
@@ -22,11 +20,13 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	connect(ui->btn_ShpExt_exec, SIGNAL(clicked()), this, SLOT(ShpExtrusion()));
 	connect(ui->btn_texCut_in, SIGNAL(clicked()), this, SLOT(browseInputTextureCut()));
 	connect(ui->btn_texCut_exec, SIGNAL(clicked()), this, SLOT(textureCut()));
+  connect(ui->btn_shpCut_in, SIGNAL(clicked()), this, SLOT(browseInputSHPCut()));
+  connect(ui->btn_shpCut_exec, SIGNAL(clicked()), this, SLOT(SHPCut()));
   
   // Disable SHP Extrusion "SHP file" input
-  ui->btn_ShpExt_in->setEnabled(false);
-	ui->lineEdit_ShpExt_in->setEnabled(false);
-	ui->label_15->setEnabled(false);
+ // ui->btn_ShpExt_in->setEnabled(false);
+	//ui->lineEdit_ShpExt_in->setEnabled(false);
+	//ui->label_15->setEnabled(false);
 
   // init ASCCut radio group
   ui->radioBtn_ASCCut_terrain->setChecked(true);
@@ -129,6 +129,43 @@ void dialogFloodAR::textureCut()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
+void dialogFloodAR::browseInputSHPCut()
+{
+  QString filename = QFileDialog::getOpenFileName(this, "Select SHP file", "", "SHP files (*.shp)");
+  ui->lineEdit_shpCut_src->setText(filename);
+}
+////////////////////////////////////////////////////////////////////////////////
+void dialogFloodAR::SHPCut()
+{
+  QFileInfo file(ui->lineEdit_shpCut_src->text());
+  int tileSizeX = ui->spinBox_shpTileSize_x->value();
+  int tileSizeY = ui->spinBox_shpTileSize_y->value();
+  if (!file.exists())
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Input file not found!");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+  if (!(tileSizeX > 0 && tileSizeY > 0))
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Invalid Tile Size");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+
+  FloodAR::CutShapeFile(ui->lineEdit_wkingDir->text().toStdString(), tileSizeX, tileSizeY, file.absoluteFilePath().toStdString());
+
+  std::cout << "Job done!" << std::endl;
+  QMessageBox msgBox;
+  msgBox.setText("Tiling finished!");
+  msgBox.setIcon(QMessageBox::Information);
+  msgBox.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ASCtoWater()
 {
 	float prec = ui->dbSpinBox_ASCtoWater_prec->value();
@@ -165,10 +202,13 @@ void dialogFloodAR::browseInputShpExt()
 void dialogFloodAR::ShpExtrusion()
 {
 	std::string dir = ui->lineEdit_wkingDir->text().toStdString();
-	if (dir != "")
-	{
-		dir += "/";
-		BuildAABB(dir);
-		ShpExtruction(dir);
-	}
+  std::string filename = ui->lineEdit_ShpExt_in->text().toStdString();
+  if (dir == "") return;
+  FloodAR::ShapeExtrusion(dir, filename);
+
+  std::cout << "Job done!" << std::endl;
+  QMessageBox msgBox;
+  msgBox.setText("Conversion finished!");
+  msgBox.setIcon(QMessageBox::Information);
+  msgBox.exec();
 }

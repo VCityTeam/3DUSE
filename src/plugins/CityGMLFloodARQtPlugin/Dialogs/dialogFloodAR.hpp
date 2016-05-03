@@ -30,6 +30,9 @@ public slots:
 	void browseInputTextureCut();
 	void textureCut();
 
+  void browseInputSHPCut();
+  void SHPCut();
+
 	void ASCtoWater();
 
 	void ASCtoTerrain();

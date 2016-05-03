@@ -11,6 +11,8 @@
 #include "src/DataStructures/DEM/osgMnt.hpp"
 #include "import/importerASC.hpp"
 #include "libfilters/tiling/ASCCut.hpp"
+#include "AABB.hpp"
+#include "processes/ShpExtrusion.hpp"
 
 namespace FloodAR
 {
@@ -287,7 +289,7 @@ namespace FloodAR
   ////////////////////////////////////////////////////////////////////////////////
   void ASCtoTerrain(std::string workingDir)
   {
-    
+
     QDir wkDir(workingDir.c_str());
     QDir tmpDir((workingDir + "/tmp/_MNT").c_str());
     // check if tmp directory exists in working directory
@@ -380,12 +382,12 @@ namespace FloodAR
         std::string outfilename = outputTileDir.path().toStdString() + "/" + tilenumber + "_MNT.gml";
         std::cout << outfilename << std::endl;
         citygml::ExporterCityGML exporter(outfilename.c_str());
-        exporter.exportCityModelWithListTextures(*model,&TexturesList);
+        exporter.exportCityModelWithListTextures(*model, &TexturesList);
         std::cout << "OK!" << std::endl;
       }
       else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
       delete model;
-      progress.setValue(progress.value()+1);
+      progress.setValue(progress.value() + 1);
     }
     progress.setValue(progress.maximum());
   }
@@ -486,6 +488,199 @@ namespace FloodAR
       }
     }
     std::cout << "Tiling texture... (100%)" << std::endl;
+  }
+  ////////////////////////////////////////////////////////////////////////////////
+  void CutShapeFile(std::string workingDir, int tilesize_x, int tilesize_y, std::string filename)
+  {
+    QFileInfo file(filename.c_str());
+    QDir dir(workingDir.c_str());
+
+    const char * DriverName = "ESRI Shapefile";
+    OGRSFDriver * Driver;
+
+    OGRRegisterAll();
+    Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
+    if (Driver == NULL)
+    {
+      printf("%s driver not available.\n", DriverName);
+      return;
+    }
+    OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.c_str(), FALSE);
+
+    double Xmin = 100000000, Xmax = -100000000, Ymin = 100000000, Ymax = -100000000;
+
+    int nbLayers = poDS->GetLayerCount();
+    if (nbLayers > 0)
+    {
+      OGRLayer *poLayer = poDS->GetLayer(0);
+
+      OGRFeature *poFeature;
+      poLayer->ResetReading();
+
+      while ((poFeature = poLayer->GetNextFeature()) != NULL)
+      {
+        OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+        if (poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+        {
+          OGRPolygon* poPG = (OGRPolygon*)poGeometry;
+
+          OGRLinearRing* poLR = poPG->getExteriorRing();
+
+          int nbPoints = poLR->getNumPoints();
+
+          for (int i = 0; i < nbPoints; ++i)//Pour recuperer les points de l'exterior ring
+          {
+            OGRPoint p;
+            poLR->getPoint(i, &p);
+
+            if (p.getX() > Xmax)
+              Xmax = p.getX();
+            if (p.getX() < Xmin)
+              Xmin = p.getX();
+            if (p.getY() > Ymax)
+              Ymax = p.getY();
+            if (p.getY() < Ymin)
+              Ymin = p.getY();
+          }
+        }
+      }
+
+      Xmin = tilesize_x * ((int)Xmin / tilesize_x);
+      Ymin = tilesize_y * ((int)Ymin / tilesize_y);
+      Xmax = tilesize_x * ((int)Xmax / tilesize_x);
+      Ymax = tilesize_y * ((int)Ymax / tilesize_y);
+
+      //std::cout << std::setprecision(10) << "Boite englobante creee : " << Xmin << " " << Xmax << " | " << Ymin << " " << Ymax << std::endl;
+
+      std::vector<OGRPolygon*> Tuiles;
+
+      for (int x = (int)Xmin; x <= (int)Xmax; x += tilesize_x)
+      {
+        for (int y = (int)Ymin; y <= (int)Ymax; y += tilesize_y)
+        {
+          OGRLinearRing* Ring = new OGRLinearRing;
+          Ring->addPoint(x, y);
+          Ring->addPoint(x + tilesize_x, y);
+          Ring->addPoint(x + tilesize_x, y + tilesize_y);
+          Ring->addPoint(x, y + tilesize_y);
+          Ring->addPoint(x, y);
+
+          OGRPolygon* Poly = new OGRPolygon;
+          Poly->addRingDirectly(Ring);
+
+          Tuiles.push_back(Poly);
+        }
+      }
+      std::cout << Tuiles.size() << " tuiles crees" << std::endl;
+
+      int cpt = -1;
+      for (int x = (int)Xmin; x <= (int)Xmax; x += tilesize_x)
+      {
+        for (int y = (int)Ymin; y <= (int)Ymax; y += tilesize_y)
+        {
+          ++cpt;
+
+          OGRPolygon* Tuile = Tuiles.at(cpt);
+          //file.absoluteDir().mkdir(file.baseName());
+          std::string tilenumber = std::to_string((int)x / tilesize_x) + "_" + std::to_string((int)y / tilesize_y);
+          dir.mkpath(("tmp/_BATI/" + tilenumber).c_str());
+          std::string name = dir.path().toStdString() + "/tmp/_BATI/" + tilenumber + "/" + tilenumber + "_ BATI.shp";
+
+          remove(name.c_str());
+          OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
+
+          OGRLayer * Layer = DS->CreateLayer("Layer1");
+
+          poLayer->ResetReading();
+          while ((poFeature = poLayer->GetNextFeature()) != NULL)
+          {
+            OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+            if (poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
+            {
+              OGRPolygon* poPG = (OGRPolygon*)poGeometry;
+
+              if (!poPG->Intersects(Tuile))
+                continue;
+              OGRGeometry * Geometry;
+
+              OGRPoint* Centroid = new OGRPoint;
+              poPG->Centroid(Centroid);
+
+              if (!Tuile->Contains(Centroid))
+                continue;
+
+              Geometry = poPG;
+              //delete Centroid; //Memory access violation exception thrown when deleting
+
+              for (int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la premiere fois, pour la premiere poFeature
+              {
+                if (Layer->FindFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef(), 1) == -1)
+                  Layer->CreateField(new OGRFieldDefn(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldDefnRef(i)->GetType()));
+              }
+
+              OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+
+              Feature->SetGeometry(Geometry);
+
+              //Ajout des donnees semantiques du shapefile
+              for (int i = 0; i < poFeature->GetFieldCount(); ++i)
+                Feature->SetField(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldAsString(i));
+
+              Layer->CreateFeature(Feature);
+
+              OGRFeature::DestroyFeature(Feature);
+            }
+          }
+          OGRDataSource::DestroyDataSource(DS);
+          //delete Tuile; //Memory access violation exception thrown when deleting
+        }
+        std::cout << "\rTiling... (" << (int)100 * (cpt + 1) / Tuiles.size() << "%)" << std::flush;
+      }
+    }
+    std::cout << "\rTiling done     " << std::endl;
+  }
+  ////////////////////////////////////////////////////////////////////////////////
+  void ShapeExtrusion(std::string workingDir, std::string filename)
+  {
+    BuildAABB(workingDir+"/");
+    QDir wkDir(workingDir.c_str());
+    QDir tmpDir((workingDir + "/tmp/_BATI").c_str());
+    // check if tmp directory exists in working directory
+    if (!tmpDir.exists()) { std::cerr << "Input file not found!" << std::endl; return; }
+    //Display a progress window
+    int numSteps = (tmpDir.count() - 2);
+    QProgressDialog progress("Converting files...", QString(), 0, numSteps, nullptr);//QString() for no cancel button
+    progress.setWindowModality(Qt::WindowModal);
+
+    // explore tmp directory for tile directories
+    for (QFileInfo f : tmpDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
+    {
+      QDir tileDir(f.absoluteFilePath());
+      std::string tilenumber = f.baseName().toStdString();
+      wkDir.mkpath(("_BATI/" + tilenumber).c_str());
+      QDir outputTileDir((wkDir.absolutePath().toStdString() + "/_BATI/" + tilenumber).c_str());
+
+      std::list<QFileInfo> fileList;
+      for (QFileInfo ff : tileDir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
+      {
+        std::cout << "Reading file " << ff.baseName().toStdString() << std::endl;
+        QString ext = ff.suffix().toLower();
+        if (ext == "shp")
+        {
+          //lecture du fichier
+          fileList.push_back(ff);
+        }
+      }
+      if (fileList.size() != 1)continue;
+      QFileInfo file = *fileList.begin();
+      //Convert into CityGML
+      std::string outputfile = outputTileDir.path().toStdString() + "/" + tilenumber + "_BATI.gml";
+      ShpExtruction(file.absoluteFilePath().toStdString(), outputfile, workingDir + "/");
+      progress.setValue(progress.value() + 1);
+    }
+    progress.setValue(progress.maximum());
   }
   ////////////////////////////////////////////////////////////////////////////////
 } //namespace FloodAR
