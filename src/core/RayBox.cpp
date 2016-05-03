@@ -1,4 +1,4 @@
-#include "src/gui/osg/osgGDAL.hpp"
+#include "ogrsf_frmts.h"
 #include "src/processes/ExportToShape.hpp"
 
 #include "RayBox.hpp"

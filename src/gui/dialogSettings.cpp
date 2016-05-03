@@ -37,6 +37,7 @@ void DialogSettings::doSettings()
     ui->comboBoxDataProfile->addItem("None");
     ui->comboBoxDataProfile->addItem("Paris");
     ui->comboBoxDataProfile->addItem("Lyon");
+	ui->comboBoxDataProfile->addItem("Sablons");
 
     ui->comboBoxDataProfile->setCurrentIndex(vcity::app().getSettings().getDataProfile().m_id);
 
@@ -117,6 +118,9 @@ void DialogSettings::chooseDataProfileSlot(int i)
         break;
     case 2:
         m_tmpDP = vcity::createDataProfileLyon();
+        break;
+	case 3:
+		m_tmpDP = vcity::createDataProfileSablons();
         break;
     default:
         m_tmpDP = vcity::createDataProfileDefault();

@@ -7,10 +7,13 @@
 */
 citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name)
 {
+	OGRLinearRing * ExtRing = OGRPoly->getExteriorRing();
+
+	if(ExtRing == nullptr)
+		return nullptr;
+
 	citygml::Polygon * Poly = new citygml::Polygon(Name + "_Poly");
 	citygml::LinearRing * Ring = new citygml::LinearRing(Name + "_Ring", true);
-
-	OGRLinearRing * ExtRing = OGRPoly->getExteriorRing();
 
 	for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
 	{
@@ -92,10 +95,21 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 			C.y = Ring->getY(i);
 			C.z = Ring->getZ(i);
 
-			if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
+			AC = C - A;
+
+			if(AB.x == 0 && AC.x != 0)
 			{
 				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
-				AC = C - A;
+				break;
+			}
+			if(AB.y == 0 && AC.y != 0)
+			{
+				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+				break;
+			}
+			if(AB.x != 0 && AB.y != 0 && AC.x/AB.x != AC.y/AB.y)
+			{
+				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
 				break;
 			}
 		}
@@ -113,8 +127,16 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 
 	double s, t;
 
-	t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
-	s = (M.x - A.x - t * AC.x) / AB.x;
+	if(AB.x != 0)
+	{
+		t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
+		s = (M.x - A.x - t * AC.x) / AB.x;
+	}
+	else //AB.x = 0 donc AC.x ne peut pas être égal à 0 non plus (car A et B ont été choisis pour être distints)
+	{
+		t = (A.x * AB.y - A.y * AB.x + AB.x * M.y - AB.y * M.x) / (AB.x * AC.y - AB.y * AC.x);
+		s = (M.y - A.y - t * AC.y) / AB.y;
+	}
 
 	M.z = A.z + s * AB.z + t * AC.z;
 

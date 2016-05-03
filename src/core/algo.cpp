@@ -13,7 +13,7 @@
 #include "gui/moc/mainWindow.hpp"
 #include "export/exportCityGML.hpp"
 #include "src/processes/ExportToShape.hpp"
-#include "src/gui/osg/osgGDAL.hpp"
+#include "ogrsf_frmts.h"
 #include "citymodel.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /*#include <lasreader.hpp>
