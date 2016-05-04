@@ -292,6 +292,7 @@ void ShpExtruction(std::string filename, std::string outputfile, std::string dir
 
 		for(auto it = tileTriangles.begin(); it != tileTriangles.end(); it++)
 			delete it->second;
+    tileTriangles.clear();
 
 		std::cout << "Exporting citygml" << std::endl;
 		ModelOut->computeEnvelope();
