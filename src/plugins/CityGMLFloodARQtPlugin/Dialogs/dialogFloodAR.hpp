@@ -37,7 +37,7 @@ public slots:
 
 	void ASCtoTerrain();
 
-	void browseInputShpExt();
+  void buildBoundingBoxes();
 	void ShpExtrusion();
 
 };

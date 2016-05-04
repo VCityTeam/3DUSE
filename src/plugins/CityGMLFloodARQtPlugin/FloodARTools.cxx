@@ -11,7 +11,6 @@
 #include "src/DataStructures/DEM/osgMnt.hpp"
 #include "import/importerASC.hpp"
 #include "libfilters/tiling/ASCCut.hpp"
-#include "AABB.hpp"
 #include "processes/ShpExtrusion.hpp"
 
 namespace FloodAR
@@ -492,6 +491,10 @@ namespace FloodAR
   ////////////////////////////////////////////////////////////////////////////////
   void CutShapeFile(std::string workingDir, int tilesize_x, int tilesize_y, std::string filename)
   {
+    //progress window
+    QProgressDialog progress("Converting files...", QString(), 0, 1000, nullptr);//QString() for no cancel button, 1000 used as placeholer
+    progress.setWindowModality(Qt::WindowModal);
+
     QFileInfo file(filename.c_str());
     QDir dir(workingDir.c_str());
 
@@ -573,6 +576,7 @@ namespace FloodAR
         }
       }
       std::cout << Tuiles.size() << " tuiles crees" << std::endl;
+      progress.setMaximum(Tuiles.size());
 
       int cpt = -1;
       for (int x = (int)Xmin; x <= (int)Xmax; x += tilesize_x)
@@ -585,7 +589,7 @@ namespace FloodAR
           //file.absoluteDir().mkdir(file.baseName());
           std::string tilenumber = std::to_string((int)x / tilesize_x) + "_" + std::to_string((int)y / tilesize_y);
           dir.mkpath(("tmp/_BATI/" + tilenumber).c_str());
-          std::string name = dir.path().toStdString() + "/tmp/_BATI/" + tilenumber + "/" + tilenumber + "_ BATI.shp";
+          std::string name = dir.path().toStdString() + "/tmp/_BATI/" + tilenumber + "/" + tilenumber + "_" + file.baseName().toStdString() + ".shp";
 
           remove(name.c_str());
           OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
@@ -613,6 +617,7 @@ namespace FloodAR
 
               Geometry = poPG;
               //delete Centroid; //Memory access violation exception thrown when deleting
+              Centroid->empty();
 
               for (int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la premiere fois, pour la premiere poFeature
               {
@@ -635,16 +640,17 @@ namespace FloodAR
           }
           OGRDataSource::DestroyDataSource(DS);
           //delete Tuile; //Memory access violation exception thrown when deleting
+          Tuile->empty();
         }
         std::cout << "\rTiling... (" << (int)100 * (cpt + 1) / Tuiles.size() << "%)" << std::flush;
+        progress.setValue(cpt + 1);
       }
     }
     std::cout << "\rTiling done     " << std::endl;
   }
   ////////////////////////////////////////////////////////////////////////////////
-  void ShapeExtrusion(std::string workingDir, std::string filename)
+  void ShapeExtrusion(std::string workingDir)
   {
-    BuildAABB(workingDir+"/");
     QDir wkDir(workingDir.c_str());
     QDir tmpDir((workingDir + "/tmp/_BATI").c_str());
     // check if tmp directory exists in working directory
@@ -653,7 +659,7 @@ namespace FloodAR
     int numSteps = (tmpDir.count() - 2);
     QProgressDialog progress("Converting files...", QString(), 0, numSteps, nullptr);//QString() for no cancel button
     progress.setWindowModality(Qt::WindowModal);
-
+    progress.setValue(0);
     // explore tmp directory for tile directories
     for (QFileInfo f : tmpDir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
@@ -665,11 +671,11 @@ namespace FloodAR
       std::list<QFileInfo> fileList;
       for (QFileInfo ff : tileDir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot))
       {
-        std::cout << "Reading file " << ff.baseName().toStdString() << std::endl;
         QString ext = ff.suffix().toLower();
         if (ext == "shp")
         {
           //lecture du fichier
+          std::cout << "Reading file " << ff.baseName().toStdString() << std::endl;
           fileList.push_back(ff);
         }
       }
