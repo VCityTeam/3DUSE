@@ -527,6 +527,9 @@ namespace citygml
 		case citygml::COT_CeilingSurface:
             res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent, true);
 			break;
+        case citygml::COT_Document:
+            res = exportCityObjetGenericXml(obj, "doc:DocumentObject", parent, true);
+            break;
 		default:
 			break;
 		}

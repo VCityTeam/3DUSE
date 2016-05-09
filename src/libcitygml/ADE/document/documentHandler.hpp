@@ -12,6 +12,8 @@ protected :
     documentADE::DocumentObject* _currentDocument;
     documentADE::Reference* _currentReference;
     documentADE::Tag* _currentTag;
+    std::vector<documentADE::DocumentObject*> _documents;
+    std::map<std::string,documentADE::Reference> _references;
 
 public:
     DocumentHandler(void);

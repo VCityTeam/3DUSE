@@ -292,9 +292,19 @@ void CityModel::setWorkspaces(std::map<std::string,temporal::Workspace> wrkspsli
 	_workspaces=wrkspslist; 
 }
 ////////////////////////////////////////////////////////////////////////////////
+void CityModel::setDocuments(std::vector<documentADE::DocumentObject*> documentslist)
+{
+    _documents=documentslist;
+}
+////////////////////////////////////////////////////////////////////////////////
 const std::map<std::string,temporal::Workspace> CityModel::getWorkspaces() const
 {
 	return _workspaces;
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::vector<documentADE::DocumentObject*> CityModel::getDocuments() const
+{
+    return _documents;
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::map<std::string,temporal::Workspace> CityModel::getWorkspaces()

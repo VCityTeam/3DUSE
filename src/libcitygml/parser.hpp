@@ -170,6 +170,9 @@ namespace citygml
 		NODETYPE( BridgeConstructionElement ),
 		NODETYPE( BridgeInstallation ),
 		NODETYPE( BridgePart ),
+
+        //document
+        NODETYPE( Document ),
 		
 		// app
 		NODETYPE( SimpleTexture ),	

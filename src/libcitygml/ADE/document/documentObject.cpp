@@ -2,9 +2,7 @@
 
 namespace documentADE
 {
-   DocumentObject::DocumentObject( const std::string& id ) : Object( id )
-   {
-   }
+
    void DocumentObject::setTitle(std::string title)
    {
        _title = title;

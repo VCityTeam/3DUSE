@@ -66,6 +66,7 @@ void DocumentHandler::startElement(std::string name, void* attributes)
         citygml::CityModel** model = getModel();
         citygml::CityObject* cityObject = *getCurrentCityObject();
         (*model)->addCityObjectAsRoot(cityObject);
+        _documents.push_back(_currentDocument);
     }
     else if (name == "reference")
     {
@@ -94,4 +95,6 @@ void DocumentHandler::endElement(std::string name)
 /******************************************************/
 void DocumentHandler::endDocument()
 {
+        citygml::CityModel** model = getModel();
+        (*model)->setDocuments(_documents);
 }

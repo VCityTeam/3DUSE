@@ -1,11 +1,14 @@
 #ifndef DOCUMENTOBJECT_HPP
 #define DOCUMENTOBJECT_HPP
 
-#include "cityobject.hpp"
+#include "../../cityobject.hpp"
 #include "tag.hpp"
 
 namespace documentADE
 {
+
+#define MAKE_RGBA( _r_, _g_, _b_, _a_ ) TVec4f( _r_/255.f, _g_/255.f, _b_/255.f, _a_/255.f )
+#define MAKE_RGB( _r_, _g_, _b_ ) MAKE_RGBA( _r_, _g_, _b_, 255 )
 
   enum DocumentType
   {
@@ -42,10 +45,14 @@ namespace documentADE
       RT_PUBLIC=0,
       RT_PRIVATE
   };
-  class DocumentObject:  public citygml::Object
+  class DocumentObject:  public citygml::CityObject
   {
   public:
-      DocumentObject(const std::string& id);
+      DocumentObject( const std::string& id ) : citygml::CityObject( id, citygml::COT_Document ){}
+      inline TVec4f getDefaultColor( void ) const
+      {
+         return MAKE_RGB( 10, 230, 1 );
+      }
       void setTitle(std::string);
       void setTheme(std::string);
       void setClass(std::string );
