@@ -177,7 +177,7 @@ namespace citygml
   OGRPolygon* ImporterASC::createPoly(MNT* asc, int x, int y, float prec = 1)
   {
     OGRLinearRing* ring = new OGRLinearRing;
-
+    // calculate coordinates, x & y correspond to the SW point (xmin, ymin)
     float xmin = asc->get_x_noeud_NO() + x*asc->get_pas_x();
     float ymax = asc->get_y_noeud_NO() + asc->get_dim_y() * asc->get_pas_y() - y * asc->get_pas_y();
     float xmax = asc->get_x_noeud_NO() + (x + 1)*asc->get_pas_x();
@@ -250,6 +250,7 @@ namespace citygml
     const int prec = 10;
     //create OGRPloygons for both asc
     std::vector<OGRPolygon*> polys1, polys2;
+    //first asc
     for (int y = 0; y < asc1->get_dim_y() - 1; y++)
     {
       for (int x = 0; x < asc1->get_dim_x() - 1; x++)
@@ -287,6 +288,7 @@ namespace citygml
       std::cout << "Building file 1 (" << (int)(y*100.0 / asc1->get_dim_y()) << "%)\r";
     }
     std::cout << "Building file 1 (100%)" << std::endl;
+    //second asc
     for (int y = 0; y < asc2->get_dim_y() - 1; y++)
     {
       for (int x = 0; x < asc2->get_dim_x() - 1; x++)
@@ -323,36 +325,9 @@ namespace citygml
       std::cout << "Building file 2 (" << (int)(y*100.0 / asc2->get_dim_y()) << "%)\r";
     }
     std::cout << "Building file 2 (100%)" << std::endl;
+    //Merging
     std::vector<OGRPolygon*> polysMerged;
     std::cout << "Merging...\r";
-    //{ //debug: export to shp
-    //	const char * DriverName = "ESRI Shapefile";
-    //	OGRSFDriver * Driver;
-    //	OGRRegisterAll();
-    //	Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-
-    //	OGRDataSource * DS1 = Driver->CreateDataSource("MNT_25.shp", NULL);
-    //	OGRLayer * Layer1 = DS1->CreateLayer("Layer1");
-    //	for (OGRPolygon* poly1 : polys1)
-    //	{
-    //		OGRFeature * Feature1 = OGRFeature::CreateFeature(Layer1->GetLayerDefn());
-    //		Feature1->SetGeometry(poly1);
-    //		Layer1->CreateFeature(Feature1);
-    //		OGRFeature::DestroyFeature(Feature1);
-    //	}
-    //	OGRDataSource::DestroyDataSource(DS1);
-
-    //	OGRDataSource * DS2 = Driver->CreateDataSource("MNT_02.shp", NULL);
-    //	OGRLayer * Layer2 = DS2->CreateLayer("Layer1");
-    //	for (OGRPolygon* poly2 : polys2)
-    //	{
-    //		OGRFeature * Feature2 = OGRFeature::CreateFeature(Layer1->GetLayerDefn());
-    //		Feature2->SetGeometry(poly2);
-    //		Layer2->CreateFeature(Feature2);
-    //		OGRFeature::DestroyFeature(Feature2);
-    //	}
-    //	OGRDataSource::DestroyDataSource(DS2);
-    //}
     int i = 1;
     for (OGRPolygon* poly1 : polys1)
     {
@@ -360,16 +335,16 @@ namespace citygml
       OGRPolygon* pRes = new OGRPolygon(*poly1);
       for (OGRPolygon* poly2 : polys2)
       {
-        if (poly1->Intersects(poly2))
+        if (poly1->Intersects(poly2)) //for each least precise polygon, check if a more precise covers it
         {
-          OGRPolygon* ptemp = (OGRPolygon*)pRes->Difference(poly2);
+          OGRPolygon* ptemp = (OGRPolygon*)pRes->Difference(poly2); //if yes, we substract the covered part
           pRes = ptemp;
           if (pRes == NULL) break;
           intersectingPolys.push_back(poly2);
         }
       }
       if (pRes != NULL)
-      {
+      { //some polys on the seam may have a Z coordinate no corrected during the 'Difference' operation, we fix this here
         if (pRes->getExteriorRing() != nullptr)
           for (int j = 0; j < pRes->getExteriorRing()->getNumPoints(); j++)
           {
@@ -392,24 +367,7 @@ namespace citygml
     std::cout << "Merging (100%)" << std::endl;
     for (OGRPolygon* poly : polys2)
       polysMerged.push_back(poly);
-    //debug
-    //{
-    //	const char * DriverName = "ESRI Shapefile";
-    //	OGRSFDriver * Driver;
-    //	OGRRegisterAll();
-    //	Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-    //	OGRDataSource * DS = Driver->CreateDataSource("MNT_merged.shp", NULL);
-    //	OGRLayer * Layer = DS->CreateLayer("Layer1");
-    //	for (OGRPolygon* poly : polysMerged)
-    //	{
-    //		OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
-    //		Feature->SetGeometry(poly);
-    //		Layer->CreateFeature(Feature);
-    //		OGRFeature::DestroyFeature(Feature);
-    //	}
-    //	OGRDataSource::DestroyDataSource(DS);
-    //}
-    //convert all OGRpolygons to CityGML
+    //Convert OGRPolygons to CityGML Geometry
     Geometry* geom = new Geometry("", GT_Unknown, 3);
     i = 1;
     for (OGRPolygon* poly : polysMerged)
