@@ -219,6 +219,9 @@ void CityGMLHandler::initNodes( void )
 
     //Document
     INSERTNODETYPE( Document );
+    INSERTNODETYPE( title );
+    INSERTNODETYPE( creator );
+    INSERTNODETYPE( publicationDate );
 	// Set the known namespaces
 
 #define INSERTKNOWNNAMESPACE(_t_) s_knownNamespace.push_back( #_t_ );
@@ -864,6 +867,9 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( postalCode ):
 	case NODETYPE( city ):
 	case NODETYPE( measuredHeight ):
+    case NODETYPE( title ):
+    case NODETYPE( creator ):
+    case NODETYPE( publicationDate ):
 	case NODETYPE( creationDate ):
 	case NODETYPE( terminationDate ):
 		if ( _currentObject ) _currentObject->setAttribute( localname, buffer.str(), false );

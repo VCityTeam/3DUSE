@@ -173,6 +173,9 @@ namespace citygml
 
         //document
         NODETYPE( Document ),
+        NODETYPE( title ),
+        NODETYPE( creator ),
+        NODETYPE( publicationDate ),
 		
 		// app
 		NODETYPE( SimpleTexture ),	

@@ -13,7 +13,9 @@ protected :
     documentADE::Reference* _currentReference;
     documentADE::Tag* _currentTag;
     std::vector<documentADE::DocumentObject*> _documents;
-    std::map<std::string,documentADE::Reference> _references;
+    std::vector<documentADE::Reference*> _references;
+private:
+    void setAttributeValue(std::string name);
 
 public:
     DocumentHandler(void);

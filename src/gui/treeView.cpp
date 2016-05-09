@@ -297,6 +297,22 @@ QTreeWidgetItem* TreeView::addWorkspace(QTreeWidgetItem* parent, const std::stri
 	return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::addDocument(QTreeWidgetItem* parent, const std::string& name)
+{
+    QTreeWidgetItem* item = createItemGeneric(name.c_str(), "Document");
+    parent->addChild(item);
+
+    return item;
+}
+////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::addReference(QTreeWidgetItem* parent, const std::string& name)
+{
+    QTreeWidgetItem* item = createItemGeneric(name.c_str(), "Reference");
+    parent->addChild(item);
+
+    return item;
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 {
 	std::string type = (node->_isXlink==citygml::xLinkState::LINKED) ? "xLink:"+node->getTypeAsString() : node->getTypeAsString();
@@ -384,7 +400,29 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 			}
 		}
 	}
-	// VERSIONS & WORKSPACES
+    // Document
+    std::cout<<"Documents:"<<std::endl;
+   std::vector<documentADE::DocumentObject*> documents = citymodel->getDocuments();
+    for(std::vector<documentADE::DocumentObject*>::iterator it = documents.begin();it!=documents.end();it++)
+    {
+        documentADE::DocumentObject document = **it;
+        std::cout<<"Document ID: " << document.getId()<<std::endl;
+        addDocument(item, document.getId());
+
+    }
+
+    // References
+    std::cout<<"References:"<<std::endl;
+   std::vector<documentADE::Reference*> references = citymodel->getReferences();
+    for(std::vector<documentADE::Reference*>::iterator it = references.begin();it!=references.end();it++)
+    {
+        documentADE::Reference reference = **it;
+        std::cout<<"Reference ID: " << reference.getId()<<std::endl;
+        addReference(item, reference.getId());
+
+    }
+
+    // VERSIONS & WORKSPACES
 
     citygml::CityObjects& cityObjects = citymodel->getCityObjectsRoots();
     citygml::CityObjects::iterator it = cityObjects.begin();
@@ -687,7 +725,8 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
        item->text(1) == "BuildingPart" || item->text(1) == "WallSurface" ||
        item->text(1) == "RoofSurface" || item->text(1) == "GroundSurface" ||
        item->text(1) == "ClosureSurface" || item->text(1) == "FloorSurface" ||
-       item->text(1) == "InteriorWallSurface" || item->text(1) == "CeilingSurface")
+       item->text(1) == "InteriorWallSurface" || item->text(1) == "CeilingSurface"
+            ||  item->text(1) == "Document" )
     {
         m_tree->addAction(m_actionAddTag);
         m_tree->addAction(m_actionAddState);

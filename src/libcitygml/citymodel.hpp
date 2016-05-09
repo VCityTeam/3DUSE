@@ -27,6 +27,7 @@
 #include "ADE/temporal/versionTransition.hpp"
 #include "ADE/temporal/workspace.hpp"
 #include "ADE/document/documentObject.hpp"
+#include "ADE/document/reference.hpp"
 #include <vector>
 #include <map>
 #include <ostream>
@@ -101,8 +102,10 @@ public:
 	
 	void setWorkspaces(std::map<std::string,temporal::Workspace>);
     void setDocuments( std::vector<documentADE::DocumentObject*> );
+    void setReferences( std::vector<documentADE::Reference*> );
 	const std::map<std::string,temporal::Workspace> getWorkspaces() const;
     const std::vector<documentADE::DocumentObject *> getDocuments() const;
+    const std::vector<documentADE::Reference *> getReferences() const;
     std::map<std::string,temporal::Workspace> getWorkspaces();
 
 protected:
@@ -122,6 +125,7 @@ protected:
 	std::vector<temporal::VersionTransition*> _versionTransitions;
 	std::map<std::string,temporal::Workspace> _workspaces;
     std::vector<documentADE::DocumentObject*> _documents;
+    std::vector<documentADE::Reference*> _references;
 };
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream&, const citygml::CityModel & );

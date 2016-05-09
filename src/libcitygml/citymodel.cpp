@@ -297,9 +297,19 @@ void CityModel::setDocuments(std::vector<documentADE::DocumentObject*> documents
     _documents=documentslist;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void CityModel::setReferences(std::vector<documentADE::Reference*> referencelist)
+{
+    _references=referencelist;
+}
+////////////////////////////////////////////////////////////////////////////////
 const std::map<std::string,temporal::Workspace> CityModel::getWorkspaces() const
 {
 	return _workspaces;
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::vector<documentADE::Reference*> CityModel::getReferences() const
+{
+    return _references;
 }
 ////////////////////////////////////////////////////////////////////////////////
 const std::vector<documentADE::DocumentObject*> CityModel::getDocuments() const
