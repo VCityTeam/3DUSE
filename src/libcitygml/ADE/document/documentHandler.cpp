@@ -76,6 +76,17 @@ void DocumentHandler::startElement(std::string name, void* attributes)
        _currentTag = new documentADE::Tag(getGmlIdAttribute( attributes ));
         std::cout << "tag: " <<_currentTag->getId()<< std::endl;
     }
+    else if (name == "referringTo")
+    {
+        citygml::GenericCityObject* cityObject = new  citygml::GenericCityObject(getGmlIdAttribute( attributes ));
+       _currentReference->setReferencedCityObject(cityObject);
+
+    }
+    else if (name == "referredBy")
+    {
+        documentADE::DocumentObject* document = new documentADE::DocumentObject(getGmlIdAttribute( attributes ));
+       _currentReference->setReferenceDocument(document);
+    }
 }
 /******************************************************/
 void DocumentHandler::setAttributeValue(std::string name)
@@ -98,6 +109,7 @@ void DocumentHandler::endElement(std::string name)
     }
     else if (name == "reference")
     {
+       _currentReference = nullptr;
     }
     else if (name == "title" ||
              name == "identifier" ||

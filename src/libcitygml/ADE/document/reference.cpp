@@ -48,10 +48,12 @@ namespace documentADE
           this->_coveragePeriod = coveragePeriod;
       }
 
-      void Reference::setReference(citygml::CityObject *cityObject,
-                                   DocumentObject *documentObject)
+      void Reference::setReferenceDocument(DocumentObject* documentObject)
+      {
+          this->_documentObject = documentObject;
+      }
+      void Reference::setReferencedCityObject(citygml::CityObject* cityObject)
       {
           this->_cityObject = cityObject;
-          this->_documentObject = documentObject;
       }
 }

@@ -37,7 +37,8 @@ namespace documentADE
       void setPurpose(std::string purpose);
       void setPurposeType(PurposeType purpseType);
       void setCoveragePeriod(CoveragePeriod coveragePeriod);
-      void setReference(citygml::CityObject*, DocumentObject*);
+      void setReferenceDocument(DocumentObject*);
+      void setReferencedCityObject(citygml::CityObject*);
   private:
       citygml::CityObject *_cityObject;
       DocumentObject *_documentObject;
