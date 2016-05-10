@@ -621,7 +621,7 @@ namespace FloodAR
 
               for (int i = 0; i < poFeature->GetFieldCount(); ++i)//Ne servira que la premiere fois, pour la premiere poFeature
               {
-                if (Layer->FindFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef(), 1) == -1)
+                if (Layer->GetLayerDefn()->GetFieldIndex(poFeature->GetFieldDefnRef(i)->GetNameRef()) == -1)
                   Layer->CreateField(new OGRFieldDefn(poFeature->GetFieldDefnRef(i)->GetNameRef(), poFeature->GetFieldDefnRef(i)->GetType()));
               }
 
