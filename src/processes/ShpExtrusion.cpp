@@ -181,7 +181,6 @@ LRing PutLRingOnTerrain(LRing ring, std::string dir)
 
 void ShpExtruction(std::string filename, std::string outputfile, std::string dir)
 {
-	//QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
 
 	QFileInfo file(filename.c_str());
 
@@ -297,10 +296,6 @@ void ShpExtruction(std::string filename, std::string outputfile, std::string dir
 		std::cout << "Exporting citygml" << std::endl;
 		ModelOut->computeEnvelope();
 
-		//QDir dir;
-		//dir.mkdir("./ShpExtruded/");
-
-		//citygml::ExporterCityGML exporter("./ShpExtruded/"+file.baseName().toStdString()+".gml");
     citygml::ExporterCityGML exporter(outputfile);
 		exporter.exportCityModel(*ModelOut);
 		std::cout << "Done exporting" << std::endl;

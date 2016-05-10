@@ -236,56 +236,6 @@ namespace FloodAR
     progress.setValue(progress.maximum());
   }
   ////////////////////////////////////////////////////////////////////////////////
-  //void ASCtoWaterManual(std::string workingDir, std::string inputfilepath, std::string savefilepath, float prec, std::string creaDate, std::string termDate)
-  //{
-  //  QDir wkDir(workingDir.c_str());
-  //  citygml::CityModel* model = new citygml::CityModel();
-  //  QFileInfo ff(inputfilepath.c_str());
-  //  std::string tilenumber;
-  //  std::cout << "CONVERTING FILE " << ff.baseName().toStdString() << std::endl;
-  //  QString ext = ff.suffix().toLower();
-  //  if (ext == "asc")
-  //  {
-  //    //lecture du fichier
-  //    citygml::ImporterASC* importer = new citygml::ImporterASC();
-  //    MNT* asc = new MNT();
-  //    if (asc->charge(ff.absoluteFilePath().toStdString().c_str(), "ASC"))
-  //    {
-  //      //conversion en structure CityGML
-  //      citygml::CityObject* waterbody = importer->waterToCityGMLPolygons(asc, prec);
-  //      if (waterbody->getGeometries().size() > 0)
-  //      {
-  //        model->addCityObject(waterbody);
-  //        model->addCityObjectAsRoot(waterbody);
-  //      }
-  //      else
-  //      {
-  //        delete waterbody;
-  //      }
-  //      delete importer;
-  //      delete asc;
-  //    }
-  //  }
-  //  model->computeEnvelope();
-  //  //Add temporal info
-  //  for (citygml::CityObject* obj : model->getCityObjectsRoots())
-  //  {
-  //    obj->setAttribute("creationDate", creaDate);
-  //    obj->setAttribute("terminationDate", termDate);
-  //  }
-
-  //  //export en CityGML
-  //  std::cout << "Export ...";
-  //  if (model != nullptr && model->size() != 0)
-  //  {
-  //    citygml::ExporterCityGML exporter(savefilepath);
-  //    exporter.exportCityModel(*model);
-  //    std::cout << "OK!" << std::endl;
-  //  }
-  //  else std::cout << std::endl << "Export aborted: empty CityModel!" << std::endl;
-  //  delete model;
-  //}
-  ////////////////////////////////////////////////////////////////////////////////
   void ASCtoTerrain(std::string workingDir)
   {
 

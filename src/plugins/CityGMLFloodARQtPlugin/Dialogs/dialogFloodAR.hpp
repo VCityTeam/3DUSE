@@ -6,39 +6,39 @@
 #include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class dialogFloodAR;
+  class dialogFloodAR;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class dialogFloodAR : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit dialogFloodAR(QWidget *parent = 0);
-    ~dialogFloodAR();
+  explicit dialogFloodAR(QWidget *parent = 0);
+  ~dialogFloodAR();
 
 private:
-    Ui::dialogFloodAR *ui;
+  Ui::dialogFloodAR *ui;
 
-public slots:
+  public slots:
 
-  void browseWorkingDirectory();
+    void browseWorkingDirectory();
 
-	void browseInputASCCut();
-	void cutASC();
+    void browseInputASCCut();
+    void cutASC();
 
-	void browseInputTextureCut();
-	void textureCut();
+    void browseInputTextureCut();
+    void textureCut();
 
-  void browseInputSHPCut();
-  void SHPCut();
+    void browseInputSHPCut();
+    void SHPCut();
 
-	void ASCtoWater();
+    void ASCtoWater();
 
-	void ASCtoTerrain();
+    void ASCtoTerrain();
 
-  void buildBoundingBoxes();
-	void ShpExtrusion();
+    void buildBoundingBoxes();
+    void ShpExtrusion();
 
 };
 ////////////////////////////////////////////////////////////////////////////////

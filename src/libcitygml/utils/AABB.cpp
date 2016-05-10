@@ -195,13 +195,11 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 		{
       if (f.isDir())
       {
-        //std::cout << f.absoluteFilePath().toStdString() << std::endl;
         QDir fdir(f.absoluteFilePath());
         for (QFileInfo ff : fdir.entryInfoList())
         {
 			    TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
 			    TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
-          //std::cout << ff.absoluteFilePath().toStdString() << std::endl;
           if (ff.absoluteFilePath().endsWith(".gml"))
           {
             std::cout << ff.absoluteFilePath().toStdString() << std::endl;

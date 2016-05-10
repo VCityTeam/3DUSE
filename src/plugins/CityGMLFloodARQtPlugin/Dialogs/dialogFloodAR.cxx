@@ -23,11 +23,6 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	connect(ui->btn_texCut_exec, SIGNAL(clicked()), this, SLOT(textureCut()));
   connect(ui->btn_shpCut_in, SIGNAL(clicked()), this, SLOT(browseInputSHPCut()));
   connect(ui->btn_shpCut_exec, SIGNAL(clicked()), this, SLOT(SHPCut()));
-  
-  // Disable SHP Extrusion "SHP file" input
- // ui->btn_ShpExt_in->setEnabled(false);
-	//ui->lineEdit_ShpExt_in->setEnabled(false);
-	//ui->label_15->setEnabled(false);
 
   // init ASCCut radio group
   ui->radioBtn_ASCCut_terrain->setChecked(true);
