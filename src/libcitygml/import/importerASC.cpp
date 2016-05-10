@@ -42,6 +42,7 @@ namespace citygml
     {
       for (int x = 0; x < asc->get_dim_x() - incrx; x += incrx)
       {
+        //get the coordinates
         float xmin = (asc->get_x_noeud_NO()) + (x)*(asc->get_pas_x());
         float xmax = (asc->get_x_noeud_NO()) + (x + incrx)*(asc->get_pas_x());
         float ymax = (asc->get_y_noeud_NO()) + (asc->get_dim_y() - y - 1)*(asc->get_pas_y());
@@ -89,7 +90,6 @@ namespace citygml
   /////////////////////////////////////////////////////////////////////////////////////////
   CityObject* ImporterASC::waterToCityGMLPolygons(MNT* asc, float zPrec = 0.1)
   {
-    //CityModel* model = new CityModel();
     CityObject* waterbody = new WaterBody("");
 
     treated = new bool[asc->get_dim_x()*asc->get_dim_y()];
@@ -101,8 +101,6 @@ namespace citygml
         if (!treated[x + y*asc->get_dim_x()] && asc->get_altitude(x, y) != asc->get_nodata())
         {
           Geometry* geom = new Geometry("", GT_Unknown, 3);
-
-          geom_list.clear();
 
           OGRMultiPolygon* pOgrMerged = new OGRMultiPolygon;
           std::queue<std::pair<int, int>> pointsList;
