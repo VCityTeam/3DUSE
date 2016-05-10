@@ -1,4 +1,4 @@
-// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+s// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "moc/dialogEditAssimpNode.hpp"
 #include "ui_dialogEditAssimpNode.h"
@@ -34,7 +34,7 @@ void DialogEditAssimpNode::editAssimpNode(const vcity::URI& uri)
 					//std::cout << "getTrans ok" << std::endl;
 				}
 
-        if(exec() && !getName().isEmpty()) // todo : vérifier valeur x, y, z
+        if(exec() && !getName().isEmpty()) // todo : verifier valeur x, y, z
         {
             appGui().getControllerGui().setAssimpNodeName(uri, getName().toStdString());
 

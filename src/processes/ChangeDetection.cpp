@@ -13,8 +13,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 /**
 * @brief Calcule la distance de Hausdorff unidirectionnelle entre un nuage de points et un ensemble de triangles
-* @param GeoPoints Correspond à la géométrie contenant le nuage de points et que l'on va projeter sur la seconde géométrie
-* @param Geo Correspond aux triangles sur lesquels seront projetés les points
+* @param GeoPoints Correspond a la geometrie contenant le nuage de points et que l'on va projeter sur la seconde geometrie
+* @param Geo Correspond aux triangles sur lesquels seront projetes les points
 */
 double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
 {
@@ -32,7 +32,7 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
         }
     }
 
-	for(int i = 0; i < Geo->getNumGeometries(); ++i) //On parcourt tous les polygones pour transformer les éventuels rectangles (ou autres polygones convexes à 4 côtés) en deux triangles : temporaire, ne fonctionne que pour ces polygones précis
+	for(int i = 0; i < Geo->getNumGeometries(); ++i) //On parcourt tous les polygones pour transformer les eventuels rectangles (ou autres polygones convexes a 4 cates) en deux triangles : temporaire, ne fonctionne que pour ces polygones precis
 	{
 		OGRPolygon * Poly = (OGRPolygon *)Geo->getGeometryRef(i);
 		OGRLinearRing * Ring = Poly->getExteriorRing();
@@ -83,7 +83,7 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
             double D_2;
             OGRPolygon * PolyTriangle = (OGRPolygon *)Geo->getGeometryRef(j);
             OGRLinearRing * Triangle = PolyTriangle->getExteriorRing();
-            if(Triangle->getNumPoints() > 4 || Triangle->get_Area() < 0.01)//Si la géometry courante n'est pas un triangle
+            if(Triangle->getNumPoints() > 4 || Triangle->get_Area() < 0.01)//Si la geometry courante n'est pas un triangle
             {
                 continue;
             }
@@ -127,16 +127,16 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
             double cosa = (P1P0.x * Np.x + P1P0.y * Np.y + P1P0.z * Np.z)/(nP1P0 * nNp); //Calcul du cosinus de langle a entre Np et P1P0
 
             double nP0P0_ = nP1P0 * cosa;
-            TVec3d P0P0_(- nP0P0_ * Np.x / nNp, - nP0P0_ * Np.y / nNp, - nP0P0_ * Np.z / nNp); //Vecteur P0P0_, P0_ étant le projeté de P0 sur le plan du triangle
+            TVec3d P0P0_(- nP0P0_ * Np.x / nNp, - nP0P0_ * Np.y / nNp, - nP0P0_ * Np.z / nNp); //Vecteur P0P0_, P0_ etant le projete de P0 sur le plan du triangle
 
-            TVec3d P0_(P0.x + P0P0_.x, P0.y + P0P0_.y, P0.z + P0P0_.z); // Position du projeté de P0 sur le plan du triangle
+            TVec3d P0_(P0.x + P0P0_.x, P0.y + P0P0_.y, P0.z + P0P0_.z); // Position du projete de P0 sur le plan du triangle
 
-            double s, t;//Coordonnées barycentriques du point P0_ par rapport au point P1 et aux vecteurs P1P2 et P1P3
+            double s, t;//Coordonnees barycentriques du point P0_ par rapport au point P1 et aux vecteurs P1P2 et P1P3
 
             t = (P1.y * P1P2.x - P1.x * P1P2.y + P1P2.y * P0_.x - P1P2.x * P0_.y) / (P1P2.y * P1P3.x - P1P2.x * P1P3.y);
             s = (P0_.x - P1.x - t * P1P3.x) / P1P2.x;
 
-            if(t >= 0 && s >= 0 && t + s <= 1)//Le projeté est dans le triangle
+            if(t >= 0 && s >= 0 && t + s <= 1)//Le projete est dans le triangle
             {
                 D_2 = nP0P0_;
                 if(D_1 > D_2)
@@ -145,9 +145,9 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
                     D_1 = D_2;
 				}
             }
-            else//Le projeté est en dehors du triangle
+            else//Le projete est en dehors du triangle
             {
-                //On va donc le comparer aux trois arrêtes du triangle en le projetant à nouveau sur celles-ci
+                //On va donc le comparer aux trois arretes du triangle en le projetant a nouveau sur celles-ci
                 TVec3d P0_P1 = P1 - P0_;//Vecteur P0_P1
                 TVec3d P0_P2 = P2 - P0_;
                 TVec3d P0_P3 = P3 - P0_;
@@ -162,8 +162,8 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
                 double cosg = (P0_P1.x * R.x + P0_P1.y * R.y + P0_P1.z * R.z)/(nP0_P1 * nR); //Calcul du cosinus de langle g entre R et P0_P1
 
                 double nP0_P0__ = nP0_P1 * cosg;
-                TVec3d P0_P0__(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__étant le projeté de P0_ sur l'arrête courante du triangle
-                TVec3d P0__(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projeté de P0_ sur l'arrête du triangle
+                TVec3d P0_P0__(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__etant le projete de P0_ sur l'arrete courante du triangle
+                TVec3d P0__(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projete de P0_ sur l'arrete du triangle
 
                 double u = (P0__.x - P1.x) / (P1P2.x); //Position relative de P0__ sur le segment P1P2
 
@@ -188,8 +188,8 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
                 cosg = (P0_P1.x * R.x + P0_P1.y * R.y + P0_P1.z * R.z)/(nP0_P1 * nR); //Calcul du cosinus de langle g entre R et P0_P1
 
                 nP0_P0__ = nP0_P1 * cosg;
-                P0_P0__ = TVec3d(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__étant le projeté de P0_ sur l'arrête courante du triangle
-                P0__ = TVec3d(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projeté de P0_ sur l'arrête du triangle
+                P0_P0__ = TVec3d(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__etant le projete de P0_ sur l'arrete courante du triangle
+                P0__ = TVec3d(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projete de P0_ sur l'arrete du triangle
 
                 u = (P0__.x - P1.x) / (P1P3.x); //Position relative de P0__ sur le segment P1P3
 
@@ -214,8 +214,8 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
                 cosg = (P0_P2.x * R.x + P0_P2.y * R.y + P0_P2.z * R.z)/(nP0_P2 * nR); //Calcul du cosinus de langle g entre R et P0_P2
 
                 nP0_P0__ = nP0_P2 * cosg;
-                P0_P0__ = TVec3d(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__étant le projeté de P0_ sur l'arrête courante du triangle
-                P0__ = TVec3d(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projeté de P0_ sur l'arrête du triangle
+                P0_P0__ = TVec3d(nP0_P0__ * R.x / nR, nP0_P0__ * R.y / nR, nP0_P0__ * R.z / nR); //Vecteur P0_P0__, P0__etant le projete de P0_ sur l'arrete courante du triangle
+                P0__ = TVec3d(P0_.x + P0_P0__.x, P0_.y + P0_P0__.y, P0_.z + P0_P0__.z); // Position du projete de P0_ sur l'arrete du triangle
 
                 u = (P0__.x - P2.x) / (P2P3.x); //Position relative de P0__ sur le segment P2P3
 
@@ -248,14 +248,14 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
 }
 
 /**
-* @brief Calcule la distance de Hausdorff entre deux bâtiments composés de triangles : méthode basée sur "3D Distance from a Point to a Triangle", Mark W.Jones, 1995 (DistancePointTriangle.pdf).
-* @param Geo1 Geometrie correspondant au premier bâtiment
-* @param Geo2 Geometrie correspondant au second bâtiment
+* @brief Calcule la distance de Hausdorff entre deux batiments composes de triangles : methode basee sur "3D Distance from a Point to a Triangle", Mark W.Jones, 1995 (DistancePointTriangle.pdf).
+* @param Geo1 Geometrie correspondant au premier batiment
+* @param Geo2 Geometrie correspondant au second batiment
 */
 double DistanceHausdorff(OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2)
 {
-    double D12 = 0;//Distance de Geo1 à Geo2
-    double D21 = 0;//Distance de Geo2 à Geo1
+    double D12 = 0;//Distance de Geo1 a Geo2
+    double D21 = 0;//Distance de Geo2 a Geo1
 
     D12 = Hausdorff(Geo1, Geo2);
     D21 = Hausdorff(Geo2, Geo1);
@@ -264,7 +264,7 @@ double DistanceHausdorff(OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2)
 }
 
 /**
-* @brief Projette un polygone 2D Poly2D sur le plan formé par un polygone 3D Poly3D
+* @brief Projette un polygone 2D Poly2D sur le plan forme par un polygone 3D Poly3D
 * @param Poly2D Polygone 2D
 * @param Poly3D Polygone 3D
 */
@@ -273,7 +273,7 @@ OGRPolygon* ProjectPolyOn3DPlane(OGRPolygon* Poly2D, OGRPolygon * Poly3D)
 	OGRLinearRing * Ring2D = Poly2D->getExteriorRing();
 	OGRLinearRing * Ring3D = Poly3D->getExteriorRing();
 
-	//Il faut prendre trois points A,B,C non alignés de Ring3D pour pouvoir établir l'équation paramétrique du plan 3D formé par ce Polygone
+	//Il faut prendre trois points A,B,C non alignes de Ring3D pour pouvoir etablir l'equation parametrique du plan 3D forme par ce Polygone
 	OGRPoint * A = new OGRPoint;
 	OGRPoint * B = new OGRPoint;
 	OGRPoint * C = new OGRPoint;
@@ -283,7 +283,7 @@ OGRPolygon* ProjectPolyOn3DPlane(OGRPolygon* Poly2D, OGRPolygon * Poly3D)
     TVec3d AM;
 
 	Ring3D->getPoint(0, A);
-	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
+	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe a 1 tant que C n'est pas correctement rempli
 	for(int i = 1; i < Ring3D->getNumPoints(); ++i)
 	{
 		if(test == 0)
@@ -300,7 +300,7 @@ OGRPolygon* ProjectPolyOn3DPlane(OGRPolygon* Poly2D, OGRPolygon * Poly3D)
 		else if(test == 1)
 		{
 			Ring3D->getPoint(i, C);
-			if((C->getX() - A->getX()) / (B->getX() - A->getX()) != (C->getY() - A->getY()) / (B->getY() - A->getY())) //C n'est pas aligné avec A et B
+			if((C->getX() - A->getX()) / (B->getX() - A->getX()) != (C->getY() - A->getY()) / (B->getY() - A->getY())) //C n'est pas aligne avec A et B
 			{
 				AC.x = C->getX() - A->getX();
 				AC.y = C->getY() - A->getY();
@@ -351,18 +351,18 @@ OGRMultiPolygon* ProjectPolyOn3DPlane(OGRMultiPolygon* Poly2D, OGRPolygon * Poly
 }
 
 /**
-* @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve de manière identique dans les deux ensembles de geometries, dans un seul ou s'il a été modifié
-* @param Geo1 Premier ensemble de geometries qui ont été unies : deux triangles voisins sont réunis en un rectangle par exemple
-* @param Geo2 Second ensemble de geometries qui ont été unies
+* @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve de maniere identique dans les deux ensembles de geometries, dans un seul ou s'il a ete modifie
+* @param Geo1 Premier ensemble de geometries qui ont ete unies : deux triangles voisins sont reunis en un rectangle par exemple
+* @param Geo2 Second ensemble de geometries qui ont ete unies
 * @param Geo1P Premier ensemble de geometries non unies : pour un polygone de Geo1, il donne la liste des polygones non unis qui le composent
 * @param Geo2P Second ensemble de geometries non unies
 */
 std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > CompareBati(std::string Folder, OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2, std::vector<OGRMultiPolygon* > Geo1P, std::vector<OGRMultiPolygon *> Geo2P)
 {
-    std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Res; //Enregistre les liens entre les polygones. Pour un polygone donnée de Geo1, si il est en lien avec un de Geo2, l'indice sera précédé de -1 ou -2 pour inchangé/changé
+    std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Res; //Enregistre les liens entre les polygones. Pour un polygone donnee de Geo1, si il est en lien avec un de Geo2, l'indice sera precede de -1 ou -2 pour inchange/change
 
-    int NbGeo1 = Geo1->getNumGeometries(); //Nb de bâtiments de la date1
-    int NbGeo2 = Geo2->getNumGeometries(); //Nb de bâtiments de la date2
+    int NbGeo1 = Geo1->getNumGeometries(); //Nb de batiments de la date1
+    int NbGeo2 = Geo2->getNumGeometries(); //Nb de batiments de la date2
 
     Res.first.resize(NbGeo1);
     Res.second.resize(NbGeo2);
@@ -415,7 +415,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 
             if(val1 < 0.01 && val2 < 0.01 && Bati1->get_Area() - Area < 5 && Bati2->get_Area() - Area < 5)//Les polygons sont identiques
             {
-                if(DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 1)//Si la distance de Hausdorff entre les deux bâtiments est inférieure à 5m.
+                if(DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 1)//Si la distance de Hausdorff entre les deux batiments est inferieure a 5m.
                 {
                     Res.first[i].push_back(-1);
                     Res.second[j].push_back(-1);
@@ -438,7 +438,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
             }
 			//SaveGeometrytoShape(std::to_string(i) + "_Bati1.shp", Bati1);
 			//SaveGeometrytoShape(std::to_string(i) + "_Bati2.shp", Bati2);
-            /*if(val1 < 0.5 && val2 < 0.5)//Le bâtiment a été modifié car les emprises au sol restent suffisament proches
+            /*if(val1 < 0.5 && val2 < 0.5)//Le batiment a ete modifie car les emprises au sol restent suffisament proches
             {
                 Res.first[i].push_back(-2);
                 Res.second[j].push_back(-2);
@@ -448,7 +448,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 				//std::cout << "Fin 3" << std::endl;
                 continue;
             }*/
-			//// Si on arrive jusqu'ici, les premiers tests disent que les deux bâtiments sont respectivement détruit/construit. Dernier test pour extraire les bâtiments qui ont des parties identiques => bâtiment modifié
+			//// Si on arrive jusqu'ici, les premiers tests disent que les deux batiments sont respectivement detruit/construit. Dernier test pour extraire les batiments qui ont des parties identiques => batiment modifie
 			OGRMultiPolygon* ZonesCommunes = new OGRMultiPolygon;
 
 			//std::cout << "ZoneCommune Debut" << std::endl;
@@ -473,7 +473,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 					}
 
 					//std::cout << Inter->getGeometryName() <<std::endl;
-					OGRMultiPolygon* InterMP = new OGRMultiPolygon; //Intersection entre les deux polygones courants sous la forme d'un multipolygon même si il n'y qu'un seul polygone pour éviter de traiter les deux cas par la suite
+					OGRMultiPolygon* InterMP = new OGRMultiPolygon; //Intersection entre les deux polygones courants sous la forme d'un multipolygon meme si il n'y qu'un seul polygone pour eviter de traiter les deux cas par la suite
 
 					if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D)
 						InterMP->addGeometry(Inter);
@@ -559,7 +559,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 			if(ZonesCommunes->getGeometryType() == wkbPolygon || ZonesCommunes->getGeometryType() == wkbPolygon25D)
 			{
 				OGRPolygon* Poly = (OGRPolygon*) ZonesCommunes;
-				if(Poly->get_Area() > 10) //La zone commune est un polygone d'aire supérieure à 10m² -> Bâtiment modifié car une zone est restée identique
+				if(Poly->get_Area() > 10) //La zone commune est un polygone d'aire superieure a 10m² -> Batiment modifie car une zone est restee identique
 				{
 					Res.first[i].push_back(-2);
 					Res.second[j].push_back(-2);
@@ -571,13 +571,13 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 			else if(ZonesCommunes->getGeometryType() == wkbMultiPolygon || ZonesCommunes->getGeometryType() == wkbMultiPolygon25D)
 			{
 				OGRMultiPolygon* MultiPoly = (OGRMultiPolygon*) ZonesCommunes;
-				bool Modified = false; //Passe à true dès qu'un polygon a une aire supérieure au seuil pour seulement remplir PolyZonesCommunes
+				bool Modified = false; //Passe a true des qu'un polygon a une aire superieure au seuil pour seulement remplir PolyZonesCommunes
 				for(int k = 0; k < MultiPoly->getNumGeometries(); ++k)
 				{
 					OGRPolygon* Poly = (OGRPolygon*)MultiPoly->getGeometryRef(k);
-					if(Poly->get_Area() > 10) //La zone commune comporte au moins un polygone d'aire supérieure à 10m² -> Bâtiment modifié car une zone est restée identique
+					if(Poly->get_Area() > 10) //La zone commune comporte au moins un polygone d'aire superieure a 10m² -> Batiment modifie car une zone est restee identique
 					{
-						if(!Modified) //Seulement pour avoir un PolyZonesCommunes complet, inutile pour l'algo : à retirer ce test et remettre break pour gain de temps
+						if(!Modified) //Seulement pour avoir un PolyZonesCommunes complet, inutile pour l'algo : a retirer ce test et remettre break pour gain de temps
 						{
 							Res.first[i].push_back(-2);
 							Res.second[j].push_back(-2);
@@ -605,7 +605,7 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compa
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
-* @brief Compare deux fichiers CityGML d'une même zone obtenus à deux dates différentes en donnant les modifications entre leurs bâtiments
+* @brief Compare deux fichiers CityGML d'une meme zone obtenus a deux dates differentes en donnant les modifications entre leurs batiments
 */
 void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityModel* City2)//Version GDAL
 {
@@ -613,9 +613,9 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
     tiles.push_back(City1);
     tiles.push_back(City2);
 
-    //On part du principe que le plus vieux est dans le 0 et le plus récent dans le 1
-    std::vector<OGRMultiPolygon *> EnveloppeCity[2];//Version avec un ensemble de polygones pour chaque bâtiment (un bâtiment = un polygone distinct après union)
-    OGRMultiPolygon * EnveloppeCityU[2];//Version avec des polygones unis pour représenter le bâtiment (ce n'est pas l'ensemble de polygones bruts)
+    //On part du principe que le plus vieux est dans le 0 et le plus recent dans le 1
+    std::vector<OGRMultiPolygon *> EnveloppeCity[2];//Version avec un ensemble de polygones pour chaque batiment (un batiment = un polygone distinct apres union)
+    OGRMultiPolygon * EnveloppeCityU[2];//Version avec des polygones unis pour representer le batiment (ce n'est pas l'ensemble de polygones bruts)
 
     EnveloppeCityU[0] = new OGRMultiPolygon;//nullptr;
     EnveloppeCityU[1] = new OGRMultiPolygon;//nullptr;
@@ -632,13 +632,13 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
         {
             if(obj->getType() == citygml::COT_Building)
             {
-                OGRMultiPolygon* Building = new OGRMultiPolygon;//Version OGR du bâtiment qui va être remplie
+                OGRMultiPolygon* Building = new OGRMultiPolygon;//Version OGR du batiment qui va etre remplie
 
-                for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
+                for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du batiment
                 {
                     if(object->getType() == citygml::COT_RoofSurface)
                     {
-                        for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+                        for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque geometrie
                         {
                             for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
                             {
@@ -693,12 +693,12 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
 
 		//SaveGeometrytoShape("ModelInit.shp", ModelPolygons);
 
-        //Création de EnveloppeCity : pour chaque bâtiment distinct, il contient la liste des polygones qui le composent. Ces bâtiments ne correspondent pas à ceux du CityGML, mais
+        //Creation de EnveloppeCity : pour chaque batiment distinct, il contient la liste des polygones qui le composent. Ces batiments ne correspondent pas a ceux du CityGML, mais
         //aux polygones distincts apparus avec les unions successives.
 
         for(int g = 0; g < EnveloppeCityU[i]->getNumGeometries(); ++g)
         {
-            OGRPolygon * CurrBati = (OGRPolygon *)EnveloppeCityU[i]->getGeometryRef(g); //On parcourt chaque "bâtiment" (bâtiment = un polygon isolé après l'union)
+            OGRPolygon * CurrBati = (OGRPolygon *)EnveloppeCityU[i]->getGeometryRef(g); //On parcourt chaque "batiment" (batiment = un polygon isole apres l'union)
 
 			if(!CurrBati->IsValid())
 			{
@@ -707,18 +707,18 @@ void CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityMo
 				continue;
 			}
 
-			OGRMultiPolygon * Bati = new OGRMultiPolygon;//Contiendra liste des polygones pour bâtiment i
+			OGRMultiPolygon * Bati = new OGRMultiPolygon;//Contiendra liste des polygones pour batiment i
 
 			//std::cout << "G = " << g << "/" << EnveloppeCityU[i]->getNumGeometries() << std::endl;
-			for(int j = 0; j < ModelPolygons->getNumGeometries(); ++j)//Pour le bâtiment courant, on va chercher dans ModelPolygons quels sont les polygones qui le composent.
+			for(int j = 0; j < ModelPolygons->getNumGeometries(); ++j)//Pour le batiment courant, on va chercher dans ModelPolygons quels sont les polygones qui le composent.
             {
-                if(ModelPolygons->getGeometryRef(j)->Intersects(CurrBati))//Ce polygone appartient bien à CurrBati
+                if(ModelPolygons->getGeometryRef(j)->Intersects(CurrBati))//Ce polygone appartient bien a CurrBati
 				{
 					OGRGeometry * Inter = ModelPolygons->getGeometryRef(j)->Intersection(CurrBati);
 					if(Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D || Inter->getGeometryType() == wkbMultiPolygon || Inter->getGeometryType() == wkbMultiPolygon25D) //L'intersection n'est pas un simple point
 					{
 						Bati->addGeometry(ModelPolygons->getGeometryRef(j));
-						ModelPolygons->removeGeometry(j);//On le retire de ModelPolygons car il est maintenant associé à CurrBati
+						ModelPolygons->removeGeometry(j);//On le retire de ModelPolygons car il est maintenant associe a CurrBati
 						j--;
 					}
                 }

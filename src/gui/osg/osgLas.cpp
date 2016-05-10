@@ -76,8 +76,8 @@ osg::ref_ptr<osg::Geode> LAS::buildLasPoints(const vcity::URI& uriLayer, float o
 
 				switch(lasreader->point.get_classification())
 				{
-					case  1 : colors->push_back(osg::Vec4(0.0f,0.3f,0.0f,1.0f)); break; // Non classé			(vert foncé)
-					case  4 : colors->push_back(osg::Vec4(0.0f,1.0f,0.0f,1.0f)); break; // Végétation moyenne	(vert)
+					case  1 : colors->push_back(osg::Vec4(0.0f,0.3f,0.0f,1.0f)); break; // Non classe			(vert fonce)
+					case  4 : colors->push_back(osg::Vec4(0.0f,1.0f,0.0f,1.0f)); break; // Vegetation moyenne	(vert)
 					case  8 : colors->push_back(osg::Vec4(1.0f,0.0f,0.0f,1.0f)); break; // Model Key Point		(rouge)
 					case  9 : colors->push_back(osg::Vec4(0.0f,1.0f,1.0f,1.0f)); break; // Eau					(bleu clair)
 					case 10 : colors->push_back(osg::Vec4(1.0f,1.0f,0.0f,1.0f)); break; // Ponts				(jaune)
@@ -99,7 +99,7 @@ osg::ref_ptr<osg::Geode> LAS::buildLasPoints(const vcity::URI& uriLayer, float o
 		for( unsigned int j=0; j<i; j++ )
 			indices->push_back( j );
             
-        geom->getOrCreateStateSet(); // MT : rajouté par MM -> utilité ?
+        geom->getOrCreateStateSet(); // MT : rajoute par MM -> utilite ?
             
         geom->addPrimitiveSet( indices );
 		// Create geometry primitives

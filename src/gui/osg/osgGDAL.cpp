@@ -137,7 +137,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 
                     geode->addDrawable(geom);
 #else
-					//TODO : Mieux gérer les indices, pour l'instance c'est sale
+					//TODO : Mieux gerer les indices, pour l'instance c'est sale
 					osg::Geometry* geom = new osg::Geometry;
                     osg::Vec3Array* vertices = new osg::Vec3Array;
                     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES , 0);

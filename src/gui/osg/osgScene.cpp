@@ -733,13 +733,13 @@ void OsgScene::reset()
 ////////////////////////////////////////////////////////////////////////////////
 void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
 {
-	//05/11/2015 Frédéric : Fonction qui ne me semble pas bien propre. On parcourt l'arbre osg qui semble vide de sémantique, on a juste un ensemble de nodes et de sous nodes.
-	//Le CityModel est le sous node du layer CityGML, ensuite il y a les bâtiments, puis les murs, puis les géométries, puis les polygones, ...
-	//Visiblement, un objet concerné par des LODs possèdent obligatoirement 5 enfants "geodes" (1 par LoD) et on va donc chercher les objets qui ont 5 fils répertoriés comme des "geodes" (lors du chargement, je suppose qu'on doit assimiler les Lods à ça).
-	//Parmi ces 5 enfants, on va donc cacher le "lodième".
-	//Problème entre LoD1 et LoD2 : la notion de Lod apparait un cran plus haut sur un LOD1 que sur un LOD2 (car il y a un fils Wall, Roof, ... dans le LOD2 avant le Lod2multisurface).
-	//Donc quand on arrive au niveau du LOD1, finalement le Lod2 correspondant (grp->getChild(2)) ne signifie rien, il n'appaitra réellement que lorsque l'on parcourera les murs et walls par la suite. Et à ce moment, c'est grp->getChild(1) qui n'aura pas de sens.
-	//Cela oblige à tester tous les fils car on ne sait jamais à quel niveau on va trouver une notion de LOD et c'est donc très long !
+	//05/11/2015 Frederic : Fonction qui ne me semble pas bien propre. On parcourt l'arbre osg qui semble vide de semantique, on a juste un ensemble de nodes et de sous nodes.
+	//Le CityModel est le sous node du layer CityGML, ensuite il y a les batiments, puis les murs, puis les geometries, puis les polygones, ...
+	//Visiblement, un objet concerne par des LODs possedent obligatoirement 5 enfants "geodes" (1 par LoD) et on va donc chercher les objets qui ont 5 fils repertories comme des "geodes" (lors du chargement, je suppose qu'on doit assimiler les Lods a ça).
+	//Parmi ces 5 enfants, on va donc cacher le "lodieme".
+	//Probleme entre LoD1 et LoD2 : la notion de Lod apparait un cran plus haut sur un LOD1 que sur un LOD2 (car il y a un fils Wall, Roof, ... dans le LOD2 avant le Lod2multisurface).
+	//Donc quand on arrive au niveau du LOD1, finalement le Lod2 correspondant (grp->getChild(2)) ne signifie rien, il n'appaitra reellement que lorsque l'on parcourera les murs et walls par la suite. Et a ce moment, c'est grp->getChild(1) qui n'aura pas de sens.
+	//Cela oblige a tester tous les fils car on ne sait jamais a quel niveau on va trouver une notion de LOD et c'est donc tres long !
 
 	appGui().getControllerGui().resetSelection();
 	osg::ref_ptr<osg::Group> grp = node->asGroup();
@@ -763,7 +763,7 @@ void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
 		{
 			grp->getChild(lod)->setNodeMask(0xffffffff - grp->getChild(lod)->getNodeMask());
 		}
-		if(lod != 1 || numGeodes != 5) //Si on travaille sur le LOD1, pas besoin d'aller voir les enfants si le grp courant a déjà caché/montré son LOD1 -> gain de temps
+		if(lod != 1 || numGeodes != 5) //Si on travaille sur le LOD1, pas besoin d'aller voir les enfants si le grp courant a deja cache/montre son LOD1 -> gain de temps
 		{
 			for(int i=0; i<count; ++i)
 			{
