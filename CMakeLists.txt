@@ -73,6 +73,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1 -g -fsanitize=address -fno-omit-frame-pointer")
   endif( ${CMAKE_BUILD_TYPE} MATCHES "Debug" )
 endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
 #------------------------------------------------------------------------------
 # MSVC
 #------------------------------------------------------------------------------
@@ -81,19 +82,33 @@ endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #
 # /FORCE:MULTIPLE for osgDB ifstream / ofstream conflict
 if(MSVC)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /D \"NOMINMAX\"")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /D \"NOMINMAX\"")
 
-#	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE") # /FORCE:MULTIPLE should be avoided (e.g. /INCREMENTAL is disabled because of it)
+  # SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+  # /FORCE:MULTIPLE should be avoided (e.g. /INCREMENTAL is disabled because of it)
 
-	if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "19")
-		set(KIT_VS2015 YES)
-		#message("VS2015 KIT used")
-	else()
-		#message("VS2012 KIT used")
-	endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "19")
+    set(KIT_VS2015 YES)
+  endif()
 
   include( "${CMAKE_SOURCE_DIR}/cmake/msvc/kit.cmake" )
+ 
+  # For each available configuration type (refer to CMAKE_CONFIGURATION_TYPES) 
+  # gather all the binaries (executables, archives and dynamic libraries) within
+  # the same (configuration dependent) directory.
+  # The objective is to have the executables to sit side by side with the dlls
+  # on which they depend on for the loader to find them at runtime.
+  foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+    string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+    set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  endforeach()
 endif()
+
 #------------------------------------------------------------------------------
 # APPLE OS X
 #------------------------------------------------------------------------------
@@ -189,7 +204,6 @@ message(STATUS "Qt version used : ${QTDIR}")
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
-message( "DEBUG" ${OPENGL_glu_LIBRARY} )
 include_directories(${OPENGL_INCLUDE_DIR})
 
 # Find ASSIMP
