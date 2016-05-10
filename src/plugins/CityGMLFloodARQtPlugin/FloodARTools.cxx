@@ -633,7 +633,7 @@ namespace FloodAR
       QFileInfo file = *fileList.begin();
       //Convert into CityGML
       std::string outputfile = outputTileDir.path().toStdString() + "/" + tilenumber + "_BATI.gml";
-      ShpExtruction(file.absoluteFilePath().toStdString(), outputfile, workingDir + "/");
+      ShpExtrusion(file.absoluteFilePath().toStdString(), outputfile, workingDir + "/");
       progress.setValue(progress.value() + 1);
     }
     progress.setValue(progress.maximum());

@@ -397,7 +397,7 @@ void DialogVisibilite::ToolShpExtrusion()
 		dir+="/";
     QString filepath = QFileDialog::getOpenFileName(nullptr, "Load shp file");
     QString savepath = QFileDialog::getSaveFileName(nullptr, "Save CityGML file", "", "CityGML file (*.gml)");
-		ShpExtruction(filepath.toStdString(),savepath.toStdString(),dir);
+		ShpExtrusion(filepath.toStdString(),savepath.toStdString(),dir);
 	}
 }
 

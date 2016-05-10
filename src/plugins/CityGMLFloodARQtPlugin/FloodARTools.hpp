@@ -46,7 +46,7 @@ namespace FloodAR
 
   /**
    * Conversion from shapefile to CityGML Building.  
-   * The input files are tiled shapefiles from the `tmp/_BATI` directory, which means CutShapeFile must have been executed before. This methods loops through the tile directories, charge shapefiles into OSG objects, calls [ShpExtruction](https://github.com/MEPP-team/VCity/blob/master/src/processes/ShpExtrusion.hpp) to convert them to CityGML CityModels and exports the CityGML Models to the _BATI directory in the working directory.
+   * The input files are tiled shapefiles from the `tmp/_BATI` directory, which means CutShapeFile must have been executed before. This methods loops through the tile directories, charge shapefiles into OSG objects, calls [ShpExtrusion](https://github.com/MEPP-team/VCity/blob/master/src/processes/ShpExtrusion.hpp) to convert them to CityGML CityModels and exports the CityGML Models to the _BATI directory in the working directory.
    */
   void ShapeExtrusion(std::string workingDir);
 }

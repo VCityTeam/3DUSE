@@ -179,7 +179,7 @@ LRing PutLRingOnTerrain(LRing ring, std::string dir)
 }
 
 
-void ShpExtruction(std::string filename, std::string outputfile, std::string dir)
+void ShpExtrusion(std::string filename, std::string outputfile, std::string dir)
 {
 
 	QFileInfo file(filename.c_str());
