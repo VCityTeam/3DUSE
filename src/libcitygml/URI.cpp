@@ -111,11 +111,6 @@ std::string URI::getStringURI(bool includeType) const
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*bool URI::operator==(const vcity::URI& lhs) const
-{
-    return getStringURI() == lhs.getStringURI();
-}*/
-////////////////////////////////////////////////////////////////////////////////
 bool operator==(const URI& rhs, const URI& lhs)
 {
     return rhs.getStringURI() == lhs.getStringURI();

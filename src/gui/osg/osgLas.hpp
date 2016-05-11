@@ -12,7 +12,7 @@
 // mkdir build; cd build; cmake .. -DCMAKE_BUILD_TYPE=Release; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
 #include <lasreader.hpp>
 
-#include <core/URI.hpp>
+#include <libcitygml/URI.hpp>
 
 #include <osg/Geode>
 ////////////////////////////////////////////////////////////////////////////////

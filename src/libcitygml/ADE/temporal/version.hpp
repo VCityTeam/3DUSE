@@ -2,11 +2,14 @@
 #define _VERSION_HPP_
 
 #include "cityobject.hpp"
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
 
 namespace temporal
 {
 class TempHandler;
-class Version : public citygml::Object
+
+class CITYGML_EXPORT Version : public citygml::Object
 {
 	friend class TempHandler;
 public :

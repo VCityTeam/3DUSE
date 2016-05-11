@@ -25,7 +25,7 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 #include "core/tile.hpp"
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
 #include <osg/Node>
 #include <osg/Group>
 #include <osg/Geode>
