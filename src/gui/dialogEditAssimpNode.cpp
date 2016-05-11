@@ -34,7 +34,7 @@ void DialogEditAssimpNode::editAssimpNode(const vcity::URI& uri)
 					//std::cout << "getTrans ok" << std::endl;
 				}
 
-        if(exec() && !getName().isEmpty()) // todo : vérifier valeur x, y, z
+        if(exec() && !getName().isEmpty()) // todo : verifier valeur x, y, z
         {
             appGui().getControllerGui().setAssimpNodeName(uri, getName().toStdString());
 

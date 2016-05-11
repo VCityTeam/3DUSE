@@ -37,8 +37,8 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
     {
         if(obj->getType() == citygml::COT_Building && objectType == citygml::COT_Building) //We only take building or terrain
         {
-            for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
-                for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+            for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du batiment
+                for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque geometrie
                     for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
                     {
                         //Get triangle list
@@ -70,7 +70,7 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
             (obj->getType() == citygml::COT_WaterBody  && objectType == citygml::COT_WaterBody))
         {
 
-            for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque géométrie
+            for(citygml::Geometry* Geometry : obj->getGeometries()) //pour chaque geometrie
                 for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
                 {
                     //Get triangle list

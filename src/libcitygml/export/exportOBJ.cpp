@@ -185,7 +185,7 @@ void ExporterOBJ::exportMaterials(const std::string& filename)
         mat << "Ns 0.000000\n";
         mat << "map_Kd " << it.second << "\n\n";
     }
-    if(i==0)//mat est vide, il faut cependant écrire dans le mtl sinon Assimp ne peut ouvrir le fichier
+    if(i==0)//mat est vide, il faut cependant ecrire dans le mtl sinon Assimp ne peut ouvrir le fichier
     {
         mat << "newmtl No Material \n";
         mat << "Ka 1.000000 1.000000 1.000000\n";

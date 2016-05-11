@@ -48,13 +48,13 @@ namespace FloodAR
             //}
             offset_x = model->getEnvelope().getLowerBound().x;
             offset_y = model->getEnvelope().getUpperBound().y;
-            float tileSizeX = model->getEnvelope().getUpperBound().x - model->getEnvelope().getLowerBound().x; // taille de la zone en mètres
+            float tileSizeX = model->getEnvelope().getUpperBound().x - model->getEnvelope().getLowerBound().x; // taille de la zone en metres
             float tileSizeY = model->getEnvelope().getUpperBound().y - model->getEnvelope().getLowerBound().y;
             int i = 0;
             for (TVec2f UV : TexUV)
             {
               UV.x = (UV.x - offset_x) / tileSizeX;
-              UV.y = 1 + (UV.y - offset_y) / tileSizeY;//Car D est négatif
+              UV.y = 1 + (UV.y - offset_y) / tileSizeY;//Car D est negatif
               TexUV.at(i) = UV;
               ++i;
             }
@@ -69,7 +69,7 @@ namespace FloodAR
           Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
           Poly.TexUV = TexUV;
 
-          bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+          bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
           for (TextureCityGML* Tex : TexturesList)
           {
             if (Tex->Url == Url)

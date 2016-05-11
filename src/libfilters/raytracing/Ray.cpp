@@ -166,7 +166,7 @@ RayCollection::RayCollection(std::vector<Ray*> rays)
     this->rays = rays;
 }
 
-osg::Vec3 Rotation2(osg::Vec3 d, osg::Vec3 u, double angle) //Rotation d'angle de V autour de u //Renommé en Rotation2 car problème avec la même fonction dans RayBox.cpp
+osg::Vec3 Rotation2(osg::Vec3 d, osg::Vec3 u, double angle) //Rotation d'angle de V autour de u //Renomme en Rotation2 car probleme avec la meme fonction dans RayBox.cpp
 {
 	osg::Vec3 Res;
 	u.normalize();
@@ -232,7 +232,7 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 		rays->rays.push_back(ray);
 
 		/*osg::Vec3d RayTemp = RayX;
-		for(int j = 1; j < height/2; ++j)//Pour faire des rotations d'angles positifs (strictement inférieur à height/2 car il nous faut exactement "height" rayons)
+		for(int j = 1; j < height/2; ++j)//Pour faire des rotations d'angles positifs (strictement inferieur a height/2 car il nous faut exactement "height" rayons)
 		{
 		RayTemp = Rotation(RayTemp, right, fovy/height);
 		right = RayTemp ^ osg::Vec3d(0.0, 0.0, 1.0);
@@ -254,7 +254,7 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 		right = RayX ^ up;
 		RayTemp = RayX;
 
-		for(int j = - height/2; j < 0; ++j) //Pour faire des rotations d'angles négatifs
+		for(int j = - height/2; j < 0; ++j) //Pour faire des rotations d'angles negatifs
 		{
 		RayTemp = Rotation(RayTemp, right, -fovy/height);
 		right = RayTemp ^ osg::Vec3d(0.0, 0.0, 1.0);

@@ -198,7 +198,7 @@ namespace citygml
 	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportGeometryGenericXml(const citygml::Geometry& geom, const std::string& nodeType, xmlNodePtr parent)
 	{
-        //xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL); //Maxime a ajouté un Wall (Roof) après le WallSurface (RoofSurface) alors qu'il n'y est pas dans les CityGML fournis
+        //xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL); //Maxime a ajoute un Wall (Roof) apres le WallSurface (RoofSurface) alors qu'il n'y est pas dans les CityGML fournis
         //xmlNewChild(res, NULL, BAD_CAST "gml:name", BAD_CAST geom.getId().c_str());
 
        // xmlNodePtr node1 = xmlNewChild(parent, NULL, BAD_CAST (std::string("bldg:lod")+std::to_string(geom.getLOD())+"MultiSurface").c_str(), NULL);
@@ -208,7 +208,7 @@ namespace citygml
 
 		for(const citygml::Polygon* poly : geom.getPolygons())
 		{
-			//exportPolygonAppearanceXml(*poly, m_currentAppearence); ///////// EXPORT TEXTURE VERSION MAXIME -> Un appel du fichier image par Polygon. Commenté car texture gérée par exportCityModelWithListTextures.
+			//exportPolygonAppearanceXml(*poly, m_currentAppearence); ///////// EXPORT TEXTURE VERSION MAXIME -> Un appel du fichier image par Polygon. Commente car texture geree par exportCityModelWithListTextures.
 			exportPolygonXml(*poly, parent);//node3
 		}
 
@@ -270,7 +270,7 @@ namespace citygml
         if(isSurface)
         {
 			std::string ns = nodeType.substr(0,nodeType.find_first_of(":"));
-			xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST (ns+":boundedBy").c_str(), NULL);// Ajouté car présent dans les CityGML de Lyon et Paris
+			xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST (ns+":boundedBy").c_str(), NULL);// Ajoute car present dans les CityGML de Lyon et Paris
 
             xmlNodePtr res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
             xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
@@ -581,14 +581,14 @@ namespace citygml
 			}
 		}
 
-		// build apperance node for current node //// F.pedrinis 10/03/16 : Utilité d'un <app:appearance/> vide à chaque city object ? Donc retrait car bug lors de l'ouverture avec la nouvelle libcitygml.
+		// build apperance node for current node //// F.pedrinis 10/03/16 : Utilite d'un <app:appearance/> vide a chaque city object ? Donc retrait car bug lors de l'ouverture avec la nouvelle libcitygml.
 		/*if(rootLevel)
 		{
 			m_currentAppearence = xmlNewChild(res, NULL, BAD_CAST "app:appearance", NULL);
 		}*/
 
 		xmlNodePtr node;
-		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les géométries ont le même LOD. A modifier pour la gestion des différents Lods.
+		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les geometries ont le meme LOD. A modifier pour la gestion des differents Lods.
 		{
 			switch(obj.getType())
 			{
@@ -631,7 +631,7 @@ namespace citygml
 			else exportGeometryXml(*geom, parent);
 		}
 		if (obj._isXlink!=xLinkState::LINKED)
-		for(const auto& child : obj.getChildren()) //Parcourt les WallSurface, RoofSurface par exemple d'un bâtiment.
+		for(const auto& child : obj.getChildren()) //Parcourt les WallSurface, RoofSurface par exemple d'un batiment.
 		{
 			if(res) exportCityObjetXml(*child, res);
 			else exportCityObjetXml(*child, parent);

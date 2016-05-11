@@ -16,11 +16,11 @@
 #include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 /**
-* @brief Découpe le fichier CityGML en un ensemble de tuiles dont la taille est définie en entrée.
-* @param Tile Contient les données du fichier CityGML ouvert : il doit contenir un ensemble de bâtiments LOD2 ou du terrain
+* @brief Decoupe le fichier CityGML en un ensemble de tuiles dont la taille est definie en entree.
+* @param Tile Contient les donnees du fichier CityGML ouvert : il doit contenir un ensemble de batiments LOD2 ou du terrain
 * @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie;
-* @param MinTile : Coordonnée du coin bas gauche de la tuile
-* @param MaxTile : Coordonnée du coin haut droit de la tuile
+* @param MinTile : Coordonnee du coin bas gauche de la tuile
+* @param MaxTile : Coordonnee du coin haut droit de la tuile
 */
 citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList, TVec2d MinTile, TVec2d MaxTile, std::string PathFolder)
 {
@@ -78,7 +78,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 
 					bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
 
-					if(HasTexture && PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
+					if(HasTexture && PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnees georeferences qu'il faut convertir en coordonnees de texture standard
 					{
 						/*double A, B, C ,D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
 						double offset_x;
@@ -96,12 +96,12 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 						std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;*/
 
 
-						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D négatif (données de LYON)
+						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D negatif (donnees de LYON)
 						int i = 0;
 						for(TVec2f UV:TexUV)
 						{
 							UV.x = UV.x/4095; 
-							UV.y = 1 + UV.y/4095;//Car D est négatif
+							UV.y = 1 + UV.y/4095;//Car D est negatif
 							TexUV.at(i) = UV;
 							++i;
 						}
@@ -140,7 +140,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 										Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 										Poly.TexUV = TexUVout.at(0);
 
-										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+										bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 										for(TextureCityGML* Tex: *TexturesList)
 										{
 											if(Tex->Url == Url)
@@ -182,7 +182,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 											Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 											Poly.TexUV = TexUVout.at(i);
 
-											bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+											bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 											for(TextureCityGML* Tex: *TexturesList)
 											{
 												if(Tex->Url == Url)
@@ -207,7 +207,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 							}
 						}
 						delete OgrPoly;
-						// TODO : Re-trianguler les polygones du TIN découpés.
+						// TODO : Re-trianguler les polygones du TIN decoupes.
 					}
 					else
 						delete OgrRing;
@@ -230,14 +230,14 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 			citygml::CityObject* WallCO = new citygml::WallSurface(Name + "_Wall");
 			citygml::Geometry* Wall = new citygml::Geometry(Name + "_WallGeometry", citygml::GT_Wall, 2);
 
-			int cptPolyRoof = 0; //Compteur de polygones représentant un Roof du bâtiment courant (pour avoir des noms différents)
-			int cptPolyWall = 0; //Compteur de polygones représentant un Wall du bâtiment courant (pour avoir des noms différents)
+			int cptPolyRoof = 0; //Compteur de polygones representant un Roof du batiment courant (pour avoir des noms differents)
+			int cptPolyWall = 0; //Compteur de polygones representant un Wall du batiment courant (pour avoir des noms differents)
 
-			for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
+			for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du batiment
 			{
 				if(object->getType() == citygml::COT_RoofSurface)
 				{
-					for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+					for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque geometrie
 					{
 						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
 						{
@@ -271,7 +271,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 									{
 										if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
 										{
-											if(((OGRPolygon*)CutPoly)->get_Area() < Precision_Vect) //Pour éliminer les polygons plats
+											if(((OGRPolygon*)CutPoly)->get_Area() < Precision_Vect) //Pour eliminer les polygons plats
 											{
 												delete CutPoly;
 												continue;
@@ -287,7 +287,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 												Poly.IdRing = Name + "_Roof_" + std::to_string(cptPolyRoof) + "_Ring";
 												Poly.TexUV = TexUVout.at(0);
 
-												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+												bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 												for(TextureCityGML* Tex: *TexturesList)
 												{
 													if(Tex->Url == Url)
@@ -328,7 +328,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 														Poly.IdRing = Name + "_Roof_" + std::to_string(cptPolyRoof) + "_Ring";
 														Poly.TexUV = TexUVout.at(i);
 
-														bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+														bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 														for(TextureCityGML* Tex: *TexturesList)
 														{
 															if(Tex->Url == Url)
@@ -362,14 +362,14 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 				}
 				else if(object->getType() == citygml::COT_WallSurface)
 				{
-					for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+					for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque geometrie
 					{
 						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
 						{
 							OGRLinearRing * WallRing = new OGRLinearRing;
 
 							std::vector<TVec3d> PointsWall = PolygonCityGML->getExteriorRing()->getVertices();
-							for(int i = 0; i < PointsWall.size(); ++i) //Le premier point n'est pas répété à la fin
+							for(int i = 0; i < PointsWall.size(); ++i) //Le premier point n'est pas repete a la fin
 							{
 								TVec3d Point = PointsWall.at(i);
 								WallRing->addPoint(Point.x, Point.y, Point.z);
@@ -380,7 +380,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 							{
 								OGRPolygon * WallPoly = new OGRPolygon;
 								WallPoly->addRingDirectly(WallRing);
-								if(WallPoly->Distance(PolyTile) < Precision_Vect) //Le polygon du Wall semble intersecter le Roof du Shape, on va donc l'ajouter à ce bâtiment.
+								if(WallPoly->Distance(PolyTile) < Precision_Vect) //Le polygon du Wall semble intersecter le Roof du Shape, on va donc l'ajouter a ce batiment.
 								{
 									bool HasTexture = (PolygonCityGML->getTexture() != nullptr);
 
@@ -398,7 +398,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 
 									std::vector<TVec2f> TexUVWall;
 
-									OGRPolygon* WallPolyRes = new OGRPolygon; //Contiendra le polygon du Wall que l'on aura limité à la tuile
+									OGRPolygon* WallPolyRes = new OGRPolygon; //Contiendra le polygon du Wall que l'on aura limite a la tuile
 									OGRLinearRing* WallRingRes = new OGRLinearRing;
 
 									for(int i = 0; i < WallRing->getNumPoints() - 1; ++i)
@@ -406,7 +406,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 										OGRPoint* WallPoint1 = new OGRPoint(WallRing->getX(i), WallRing->getY(i), WallRing->getZ(i));
 										OGRPoint* WallPoint2 = new OGRPoint(WallRing->getX(i+1), WallRing->getY(i+1), WallRing->getZ(i+1));
 
-										if(WallPoint1->Distance(PolyTile) < Precision_Vect && WallPoint2->Distance(PolyTile) < Precision_Vect) //Les deux points de la ligne sont dans la tuile, rien à faire
+										if(WallPoint1->Distance(PolyTile) < Precision_Vect && WallPoint2->Distance(PolyTile) < Precision_Vect) //Les deux points de la ligne sont dans la tuile, rien a faire
 										{
 											WallRingRes->addPoint(WallPoint1);
 											WallRingRes->addPoint(WallPoint2);
@@ -526,8 +526,8 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 												OGRLineString* InterLine = dynamic_cast<OGRLineString*>(Line->Intersection(SouthLine));
 												if(InterLine != nullptr)
 												{
-													//double Z1 = WallPoint1->getZ() + (WallPoint2->getZ() - WallPoint1->getZ())*(InterLine->getX(0) - WallPoint1->getX())/(WallPoint2->getX() - WallPoint1->getX()); //Calcul de la coordonnée z car l'intersection de GDAL est 2D
-													//double Z2 = WallPoint1->getZ() + (WallPoint2->getZ() - WallPoint1->getZ())*(InterLine->getX(1) - WallPoint1->getX())/(WallPoint2->getX() - WallPoint1->getX()); //Calcul de la coordonnée z car l'intersection de GDAL est 2D
+													//double Z1 = WallPoint1->getZ() + (WallPoint2->getZ() - WallPoint1->getZ())*(InterLine->getX(0) - WallPoint1->getX())/(WallPoint2->getX() - WallPoint1->getX()); //Calcul de la coordonnee z car l'intersection de GDAL est 2D
+													//double Z2 = WallPoint1->getZ() + (WallPoint2->getZ() - WallPoint1->getZ())*(InterLine->getX(1) - WallPoint1->getX())/(WallPoint2->getX() - WallPoint1->getX()); //Calcul de la coordonnee z car l'intersection de GDAL est 2D
 
 													WallRingRes->addPoint(InterLine->getX(0), InterLine->getY(0), InterLine->getZ(0));
 													WallRingRes->addPoint(InterLine->getX(1), InterLine->getY(1), InterLine->getZ(1));
@@ -562,7 +562,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 											Poly.IdRing = Name + "_Wall_" + std::to_string(cptPolyWall) + "_Ring";
 											Poly.TexUV = TexUVWall;
 
-											bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+											bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 											for(TextureCityGML* Tex: *TexturesList)
 											{
 												if(Tex->Url == Url)
@@ -626,10 +626,10 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
 }
 
 /**
-* @brief Fusionne deux CityModel représentant la même tuile mais générées à partir de deux fichiers différents
-* @param OldTile Contient les données du fichier CityGML déjà existant qui modélise la tuile : il doit contenir un ensemble de bâtiments LOD2 ou du terrain
-* @param NewTile Contient les données du CityModel nouvellemeent créé que l'on souhaite enregistrer en le fusionnant avec OldTile
-* @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie, sachant qu'il est déjà rempli avec les textures de NewTile
+* @brief Fusionne deux CityModel representant la meme tuile mais generees a partir de deux fichiers differents
+* @param OldTile Contient les donnees du fichier CityGML deja existant qui modelise la tuile : il doit contenir un ensemble de batiments LOD2 ou du terrain
+* @param NewTile Contient les donnees du CityModel nouvellemeent cree que l'on souhaite enregistrer en le fusionnant avec OldTile
+* @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie, sachant qu'il est deja rempli avec les textures de NewTile
 */
 void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<TextureCityGML*>* TexturesList)
 {
@@ -661,7 +661,7 @@ void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<
 						Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 						Poly.TexUV = PolygonCityGML->getTexCoords();
 
-						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+						bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 						for(TextureCityGML* Tex: *TexturesList)
 						{
 							if(Tex->Url == Url)
@@ -705,7 +705,7 @@ void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<
 					Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 					Poly.TexUV = PolygonCityGML->getTexCoords();
 
-					bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+					bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 					for(TextureCityGML* Tex: *TexturesList)
 					{
 						if(Tex->Url == Url)
@@ -730,7 +730,7 @@ void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<
 }
 
 /**
-* @brief Ouvre un fichier .dat contenant les coordonnées de BoundingBox
+* @brief Ouvre un fichier .dat contenant les coordonnees de BoundingBox
 * @param Dir : Chemin du fichier .dat 
 */
 citygml::CityModel* CreateBoundingBox(std::string dir)

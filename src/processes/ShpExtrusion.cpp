@@ -168,7 +168,7 @@ LRing PutLRingOnTerrain(LRing ring, std::string dir)
 				break;
 			}
 		}
-		if(!Intesect) //Si un point ne peut pas se projeter sur le terrain, alors on enlève tout le bâtiment pour ne pas avoir de modèles diformes.
+		if(!Intesect) //Si un point ne peut pas se projeter sur le terrain, alors on enleve tout le batiment pour ne pas avoir de modeles diformes.
 		{
 			ptResult.clear();
 			return ptResult;
@@ -227,7 +227,7 @@ void ShpExtruction(std::string dir)
 
                     LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()), dir);
 
-					if(ptsSol.size() == 0) //La génération a posé problème, probablement parce que cette emprise au sol n'est pas complètement sur le terrain
+					if(ptsSol.size() == 0) //La generation a pose probleme, probablement parce que cette emprise au sol n'est pas completement sur le terrain
 						continue;
 
 					double H = 20;

@@ -229,7 +229,7 @@ void CityModel::computeEnvelope()
 
         obj->computeEnvelope();
 
-		if(obj->getEnvelope().getUpperBound().x > 1000000000) //Pour pas qu'un bâtiment qui bug gêne le calcul de l'enveloppe
+		if(obj->getEnvelope().getUpperBound().x > 1000000000) //Pour pas qu'un batiment qui bug gene le calcul de l'enveloppe
 			continue;
 		
 		//TVec3d Low = _envelope.getLowerBound();

@@ -333,7 +333,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                             texture = poly->getTexture()->getUrl();
                         }*/
 
-                        if(m_WorldTexCoords) //Générer les UV à partir du World File
+                        if(m_WorldTexCoords) //Generer les UV a partir du World File
                         {
                             for(const auto& vertex : poly->getVertices())
                             {
@@ -343,7 +343,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                                 tc.x = (vertex.x-offset_x)/409.5; // ATTENTION : fonctionne uniquement pour textures 4096x4096 avec ratio de 0.1 (c'est le cas sur Lyon)
                                 tc.y = (vertex.y-offset_y)/409.5;
 
-                                tc.y = 1 + tc.y; //Car D est négatif
+                                tc.y = 1 + tc.y; //Car D est negatif
 
                                 m_outFile << tc.x << "," << tc.y << ",";
                             }
