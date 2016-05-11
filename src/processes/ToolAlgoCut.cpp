@@ -7,10 +7,13 @@
 */
 citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name)
 {
+	OGRLinearRing * ExtRing = OGRPoly->getExteriorRing();
+
+	if(ExtRing == nullptr)
+		return nullptr;
+
 	citygml::Polygon * Poly = new citygml::Polygon(Name + "_Poly");
 	citygml::LinearRing * Ring = new citygml::LinearRing(Name + "_Ring", true);
-
-	OGRLinearRing * ExtRing = OGRPoly->getExteriorRing();
 
 	for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
 	{
