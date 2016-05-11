@@ -47,8 +47,6 @@ void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax
 					poly.push_back(std::make_pair(point.x, point.y)); //on recupere le point
 					if(point.z > *heightmax)
 						*heightmax = point.z;
-
-					//std::cout << " (x,y) = (" << point.x<< "," << point.y<< ")" << std::endl;
 				}
 				roofProj.insert(poly); // on recupere le polygone
 			}

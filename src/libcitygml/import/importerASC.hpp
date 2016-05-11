@@ -6,14 +6,16 @@
 #include "importer.hpp"
 #include "../citygml.hpp"
 
-
 #include "src/DataStructures/DEM/osgMnt.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
+
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
 
 namespace citygml
 {
 
-  class ImporterASC : public Importer
+  class CITYGML_EXPORT ImporterASC : public Importer
   {
   public:
     ImporterASC(void);

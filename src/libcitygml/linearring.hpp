@@ -17,17 +17,19 @@
 #ifndef __CITYGML_LINEARRING_HPP__
 #define __CITYGML_LINEARRING_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include <vector>
 #include "object.hpp"
 #include "vecs.hpp"
 #include "envelope.hpp"
-#include "citygmlcommon.hpp"
 #include "citygmltypes.hpp"
-#include <vector>
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _vertices
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
-class LinearRing : public Object
+class CITYGML_EXPORT LinearRing : public Object
 {
     friend class CityGMLHandler;
     friend class Polygon;
@@ -42,7 +44,7 @@ public:
 
     void addVertex( const TVec3d& v );
 
-    LIBCITYGML_EXPORT TVec3d computeNormal( void ) const;
+    TVec3d computeNormal( void ) const;
 
     // Return the envelope (ie. the bounding box) of the object
     const Envelope& getEnvelope( void ) const;

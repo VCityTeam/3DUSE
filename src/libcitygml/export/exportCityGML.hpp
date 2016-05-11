@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "exporter.hpp"
 #include <libxml/tree.h>
+#include "citygml_export.h"
 #include "citymodel.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 struct TexturePolygonCityGML {
@@ -51,7 +52,7 @@ namespace citygml
 /// ...
 /// exporter.endExport();
 /// \endcode
-class ExporterCityGML : public Exporter
+class CITYGML_EXPORT ExporterCityGML : public Exporter
 {
 public:
     ExporterCityGML(const std::string& filename);

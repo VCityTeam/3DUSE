@@ -5,15 +5,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "exporter.hpp"
 #include "citygml.hpp"
-//#include <fstream> // MT 05/05/2014
-#include <osgDB/fstream>
+#include "citygml_export.h"
+#include <fstream>
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterOBJ class
 /// Export OBJ
-class ExporterOBJ : public Exporter
+class CITYGML_EXPORT ExporterOBJ : public Exporter
 {
 public:
     ExporterOBJ();
