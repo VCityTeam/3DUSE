@@ -41,25 +41,17 @@ void dialogFloodAR::browseWorkingDirectory()
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::browseInputASCCut()
 {
-	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
-	ui->lineEdit_ASCcut_src->setText(filename);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Select ASC source file", "", "ASC files (*.asc)");
+	ui->lineEdit_ASCcut_src->setText(filenames.join(";"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::cutASC()
 {
-	QFileInfo file(ui->lineEdit_ASCcut_src->text());
+  QStringList files(ui->lineEdit_ASCcut_src->text().split(";"));
 	QDir dir(ui->lineEdit_wkingDir->text());
 	int tileSizeX = ui->spinBox_tileSize_x->value();
 	int tileSizeY = ui->spinBox_tileSize_y->value();
   bool isTerrain = ui->radioBtn_ASCCut_terrain->isChecked();
-	if (!file.exists())
-	{
-		QMessageBox msgBox;
-		msgBox.setText("Input file not found!");
-		msgBox.setIcon(QMessageBox::Critical);
-		msgBox.exec();
-		return;
-	}
 	if (!dir.exists() || ui->lineEdit_wkingDir->text().toStdString() == "")
 	{
 		QMessageBox msgBox;
@@ -76,11 +68,23 @@ void dialogFloodAR::cutASC()
 		msgBox.exec();
 		return;
 	}
-	QString ext = file.suffix().toLower();
-	if (ext == "asc")
-	{
-		FloodAR::cutASC(file.absoluteFilePath().toStdString(), dir.absolutePath().toStdString(), tileSizeX, tileSizeY, isTerrain);
-	}
+  for (QFileInfo file: files)
+  {
+    if (!file.exists())
+	  {
+		  QMessageBox msgBox;
+      msgBox.setText(("Input file not found! ("+file.absoluteFilePath().toStdString()+")").c_str());
+		  msgBox.setIcon(QMessageBox::Critical);
+		  msgBox.exec();
+		  continue;
+	  }
+	  QString ext = file.suffix().toLower();
+	  if (ext == "asc")
+	  {
+      std::cout<<"Tiling file "<<file.absoluteFilePath().toStdString()<<std::endl;
+		  FloodAR::cutASC(file.absoluteFilePath().toStdString(), dir.absolutePath().toStdString(), tileSizeX, tileSizeY, isTerrain);
+	  }
+  }
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Tiling finished!");
