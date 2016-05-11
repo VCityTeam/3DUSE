@@ -31,7 +31,7 @@ void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax
 	{
 		std::vector<citygml::Geometry*> geoms = obj->getGeometries();
 		std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin();
-		for(; itGeom != geoms.end(); ++itGeom) //pour toute les géométries ( /!\ gestion des LoD/LoA encore non présente)
+		for(; itGeom != geoms.end(); ++itGeom) //pour toute les geometries ( /!\ gestion des LoD/LoA encore non presente)
 		{
 			std::vector<citygml::Polygon*> polys = (*itGeom)->getPolygons();
 			std::vector<citygml::Polygon*>::iterator itPoly = polys.begin();
@@ -47,8 +47,6 @@ void projectRoof(citygml::CityObject* obj, PolySet &roofProj, double * heightmax
 					poly.push_back(std::make_pair(point.x, point.y)); //on récupere le point
 					if(point.z > *heightmax)
 						*heightmax = point.z;
-
-					//std::cout << " (x,y) = (" << point.x<< "," << point.y<< ")" << std::endl;
 				}
 				roofProj.insert(poly); // on récupere le polygone
 			}

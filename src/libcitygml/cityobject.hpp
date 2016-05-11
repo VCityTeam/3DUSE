@@ -17,11 +17,14 @@
 #ifndef __CITYGML_CITYOBJECT_HPP__
 #define __CITYGML_CITYOBJECT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include <ostream>
 #include "object.hpp"
 #include "geometry.hpp"
 #include "temporalExt.hpp"
-#include "core/URI.hpp"
-#include <ostream>
+#include "URI.hpp"
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 //forward declaration
 class ADEHandler;
@@ -67,7 +70,7 @@ enum CityObjectsType {
 typedef unsigned int CityObjectsTypeMask;
 
 ////////////////////////////////////////////////////////////////////////////////
-class CityObject : public Object
+class CITYGML_EXPORT CityObject : public Object
 {
     friend class CityGMLHandler;
 	friend class ADEHandler;
@@ -189,8 +192,8 @@ public:
     bool m_temporalUse;
 };
 ////////////////////////////////////////////////////////////////////////////////
-LIBCITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );
-LIBCITYGML_EXPORT CityObjectsTypeMask getCityObjectsTypeMaskFromString( const std::string& stringMask );
+CITYGML_EXPORT std::string getCityObjectsClassName( CityObjectsTypeMask mask );
+CITYGML_EXPORT CityObjectsTypeMask getCityObjectsTypeMaskFromString( const std::string& stringMask );
 std::ostream& operator<<( std::ostream&, const citygml::CityObject& );
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml

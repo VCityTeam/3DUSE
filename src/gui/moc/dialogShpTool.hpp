@@ -4,7 +4,7 @@
 #define DIALOGSHPTOOL_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
 
 #include "src/gui/osg/osgGDAL.hpp"
 #include <osg/MatrixTransform>

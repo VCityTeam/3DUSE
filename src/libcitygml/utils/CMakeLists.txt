@@ -1,17 +1,12 @@
-include_directories(${CMAKE_SOURCE_DIR}/src)
 
-file(
-	GLOB_RECURSE
-	source_files
-	*.cpp
+add_library( citygmlutils SHARED
+  AABB.cpp
+  Triangle.cpp
 )
+target_include_directories( citygmlutils PUBLIC ${CITYGML_INCLUDE_DIR} )
+target_include_directories( citygmlutils PUBLIC ${CMAKE_SOURCE_DIR}/src )
 
-add_library(
-	citygmlutils
-	${source_files}
+target_link_libraries( citygmlutils
+  citygml
+  ${OPENGL_glu_LIBRARY}
 )
-
-if (WITH_QT5)
-#	QT5_USE_MODULES(citygmlutils Core Widgets OpenGL)
-	QT5_USE_MODULES(citygmlutils Core)
-endif(WITH_QT5)

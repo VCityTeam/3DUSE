@@ -6,9 +6,11 @@
 #include "importer.hpp"
 #include "../citygml.hpp"
 
-
 #include "src/DataStructures/DEM/osgMnt.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
+
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
 
 namespace citygml
 {
@@ -16,7 +18,7 @@ namespace citygml
    * This class houses several public methods for converting [ASCII Esri grids](https://en.wikipedia.org/wiki/Esri_grid) to CityGML.
    * Most of these methods are given one or several `MNT*` parameters and output a `citygml::CityObject*`
    */
-  class ImporterASC : public Importer
+  class CITYGML_EXPORT ImporterASC : public Importer
   {
   public:
     ImporterASC(void);
