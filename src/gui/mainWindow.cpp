@@ -27,7 +27,6 @@
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
 #include "cpl_conv.h" // for CPLMalloc()
-#include "ogrsf_frmts.h"
 #include "osg/osgGDAL.hpp"
 
 /*#include "assimp/Importer.hpp"
@@ -50,6 +49,7 @@
 #include <QPluginLoader>
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
+#include "TiledFilesLayout.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1062,7 +1062,7 @@ void MainWindow::exportCityGML()
 							Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
 							Poly.TexUV = PolygonCityGML->getTexCoords();
 
-							bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+							bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 							for(TextureCityGML* Tex: TexturesList)
 							{
 								if(Tex->Url == Url)
@@ -1111,7 +1111,7 @@ void MainWindow::exportCityGML()
 								Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
 								Poly.TexUV = PolygonCityGML->getTexCoords();
 
-								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+								bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 								for(TextureCityGML* Tex: TexturesList)
 								{
 									if(Tex->Url == Url)
@@ -1161,7 +1161,7 @@ void MainWindow::exportCityGML()
 									Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
 									Poly.TexUV = PolygonCityGML->getTexCoords();
 
-									bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+									bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 									for(TextureCityGML* Tex: TexturesList)
 									{
 										if(Tex->Url == Url)
@@ -1219,7 +1219,7 @@ void MainWindow::exportCityGML()
 						Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
 						Poly.TexUV = PolygonCityGML->getTexCoords();
 
-						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+						bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 						for(TextureCityGML* Tex: TexturesList)
 						{
 							if(Tex->Url == Url)
@@ -1449,7 +1449,7 @@ void MainWindow::generateLOD0()
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 	// get all selected nodes (with a uri)
 	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-	if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+	if(uris.size() > 0)//Si des batiments ont ete selectionnes
 	{
 		// do all nodes selected
 		for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
@@ -1483,7 +1483,7 @@ void MainWindow::generateLOD0()
 			}
 		}
 	}
-	else//Sinon, on genere les LOD0 de tous les bâtiments de la scène
+	else//Sinon, on genere les LOD0 de tous les batiments de la scene
 	{
 		int cpt = 0;
 		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
@@ -1644,7 +1644,7 @@ void MainWindow::generateLOD1OnFile()
 	{
 	QFileInfo file(filenames[i]);
 	QString filepath = file.absoluteFilePath();
-	QFileInfo file2(filepath); //Ces deux dernières lignes servent à transformer les \ en / dans le chemin de file.
+	QFileInfo file2(filepath); //Ces deux dernieres lignes servent a transformer les \ en / dans le chemin de file.
 
 	if(!file2.exists())
 	{
@@ -1680,7 +1680,7 @@ void MainWindow::generateLOD1OnFile()
 
 	exporter.appendCityObject(*LOD1);
 	LOD1->computeEnvelope();
-	Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+	Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et a mesure pour l'exporter a la fin dans le fichier CityGML.
 
 	delete Enveloppe;
 	delete heightmax;
@@ -1717,7 +1717,7 @@ void MainWindow::generateLOD1()
 	citygml::Envelope Envelope;
 	// get all selected nodes (with a uri)
 	const std::vector<vcity::URI>& uris = vcity::app().getSelectedNodes();
-	if(uris.size() > 0)//Si des bâtiments ont été selectionnés
+	if(uris.size() > 0)//Si des batiments ont ete selectionnes
 	{
 		// do all nodes selected
 		for(std::vector<vcity::URI>::const_iterator it = uris.begin(); it < uris.end(); ++it)
@@ -1735,7 +1735,7 @@ void MainWindow::generateLOD1()
 
 				exporter.appendCityObject(*LOD1);
 				LOD1->computeEnvelope();
-				Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+				Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et a mesure pour l'exporter a la fin dans le fichier CityGML.
 				//appGui().getControllerGui().update(*it);
 
 				delete Enveloppe;
@@ -1744,7 +1744,7 @@ void MainWindow::generateLOD1()
 			}
 		}
 	}
-	else//Sinon, on génère les LOD1 de tous les bâtiments de la scène
+	else//Sinon, on genere les LOD1 de tous les batiments de la scene
 	{
 		int i = 0;
 		for(vcity::Tile * tile : dynamic_cast<vcity::LayerCityGML*>(appGui().getScene().getDefaultLayer("LayerCityGML"))->getTiles())
@@ -1771,7 +1771,7 @@ void MainWindow::generateLOD1()
 
 					exporter.appendCityObject(*LOD1);
 					LOD1->computeEnvelope();
-					Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et à mesure pour l'exporter à la fin dans le fichier CityGML.
+					Envelope.merge(LOD1->getEnvelope()); //On remplit l'envelope au fur et a mesure pour l'exporter a la fin dans le fichier CityGML.
 					//appGui().getControllerGui().update(uri);
 					++i;
 
@@ -1928,7 +1928,7 @@ void MainWindow::slotSplitCityGMLBuildings()
 	std::string Folder = w.selectedFiles().at(0).toStdString();
 
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS.gml");
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
 
 	QTime time;
@@ -2013,8 +2013,8 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
 
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
-	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
+	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
 	//vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
 
@@ -2022,7 +2022,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
 
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
-	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des bâtiments LOD2
+	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
 	//OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", FALSE);
 
 	QTime time;
@@ -2044,7 +2044,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 		delete Tex;
 
 	delete BatiLOD2CityGML;
-	//delete ModelOut; // !!!!!!!!!!!! On ne peut pas delete BatiLOD2CityGML et ModelOut car on a récupéré des bâtiments tels quels du premier pour les mettre dans le second (ceux qui n'ont pas d'équivalents dans le Shapefile). Du coup ce n'est pas propre (fuite mémoire) mais il n'y a a pas de clone() sur les Cityobject...
+	//delete ModelOut; // !!!!!!!!!!!! On ne peut pas delete BatiLOD2CityGML et ModelOut car on a recupere des batiments tels quels du premier pour les mettre dans le second (ceux qui n'ont pas d'equivalents dans le Shapefile). Du coup ce n'est pas propre (fuite memoire) mais il n'y a a pas de clone() sur les Cityobject...
 	//////////
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
@@ -2200,13 +2200,13 @@ void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int 
 				std::string FileName = OutputPath + "/" + std::to_string((int)(x / TileX)) + "_" + std::to_string((int)(y / TileY))  + ".gml";
 
 				FILE * fp = fopen(FileName.c_str(), "rb");
-				if(fp == nullptr) //Le fichier correspondant à la tuile courante n'existe pas, on peut donc le créer
+				if(fp == nullptr) //Le fichier correspondant a la tuile courante n'existe pas, on peut donc le creer
 				{
 					citygml::ExporterCityGML exporter(FileName);
 					Tuile->computeEnvelope();
 					exporter.exportCityModelWithListTextures(*Tuile, &TexturesList);
 				}
-				else // Cette tuile existe déjà, il faut donc la fusionner avec la nouvelle découpe
+				else // Cette tuile existe deja, il faut donc la fusionner avec la nouvelle decoupe
 				{
 					fclose(fp);
 					//std::cout << "Le fichier existe deja" << std::endl;
@@ -2591,8 +2591,8 @@ std::cout << std::endl;
 {
 //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
 
-//QString dataPath("/home/frederic/Telechargements/Data/Lyon03/LYON03_BATI/cut"); //Découpe Bati (attention au #if dans exportJSON.cpp)
-QString dataPath("/home/frederic/Telechargements/Data/Lyon03/LYON03_MNT/cut"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
+//QString dataPath("/home/frederic/Telechargements/Data/Lyon03/LYON03_BATI/cut"); //Decoupe Bati (attention au #if dans exportJSON.cpp)
+QString dataPath("/home/frederic/Telechargements/Data/Lyon03/LYON03_MNT/cut"); //Decoupe Terrain (attention au #if dans exportJSON.cpp)
 
 std::string basePath("/home/frederic/Documents/JSON/Lyon03/"); //Dossier de sortie
 double offsetX = 1843000.0;
@@ -2643,8 +2643,8 @@ std::cout << std::endl;
 {
 //Error ! Mismatch type: 5TVec3IdE expected. Ring/Polygon discarded!
 
-//QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_BATIS_CITYGML/cut1000"); //Découpe Bati (attention au #if dans exportJSON.cpp)
-QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_MNT_CITYGML/cut1000"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
+//QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_BATIS_CITYGML/cut1000"); //Decoupe Bati (attention au #if dans exportJSON.cpp)
+QString dataPath("/home/frederic/Telechargements/Data/VILLEURBANNE_MNT_CITYGML/cut1000"); //Decoupe Terrain (attention au #if dans exportJSON.cpp)
 
 std::string basePath("/home/frederic/Documents/JSON/Villeurbanne1000/"); //Dossier de sortie
 double offsetX = 1844500.0;
@@ -2694,9 +2694,9 @@ std::cout << std::endl;
 
 void buildJson()//GrandLyon
 {
-	//QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_BATI"); //Découpe Bati (attention au #if dans exportJSON.cpp)
-	QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_MNT"); //Découpe Terrain (attention au #if dans exportJSON.cpp)
-	//QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_BatiRemarquables"); //Découpe BatiRemarquables (attention au #if dans exportJSON.cpp)
+	//QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_BATI"); //Decoupe Bati (attention au #if dans exportJSON.cpp)
+	QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_MNT"); //Decoupe Terrain (attention au #if dans exportJSON.cpp)
+	//QString dataPath("/home/frederic/Telechargements/Data/GrandLyon/cut_500/GrandLyon_BatiRemarquables"); //Decoupe BatiRemarquables (attention au #if dans exportJSON.cpp)
 
 	std::string basePath("/home/frederic/Documents/JSON/GrandLyon/cut_500/"); //Dossier de sortie
 
@@ -2749,7 +2749,7 @@ void buildJson()//GrandLyon
 	std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*void MainWindow::test1() //Génération de stats pour étude de visibilité
+/*void MainWindow::test1() //Generation de stats pour etude de visibilite
 {
 	QTime time;
 	time.start();
@@ -2860,7 +2860,7 @@ void buildJson()//GrandLyon
 			}
 			std::cout << std::endl;
 
-			ofs << "Comparaison LoD1 à partir de " << i << "000m et LoD2 (" << max << "000m)" << std::endl;
+			ofs << "Comparaison LoD1 a partir de " << i << "000m et LoD2 (" << max << "000m)" << std::endl;
 			ofs << "LoD1 : " << ListPoints->getNumGeometries() << " points;LoD2 : " << ListPointsLod2->getNumGeometries() << " points" << std::endl;
 			ofs << "; Nombre de points" << std::endl;
 			//ofs << "Points de Lod1 qui sont dans Lod2 : " << cpt1 << ";" << cpt1/(cpt1 + cpt2) * 100.f << std::endl;
@@ -2899,7 +2899,7 @@ void MainWindow::test1()
 
 	return;
 
-	////// Récupère les ilots partages en ilot Bati et ilot non bati (terrain) découpés par les routes et les extrude en 3D grâce aux informations de hauteurs
+	////// Recupere les ilots partages en ilot Bati et ilot non bati (terrain) decoupes par les routes et les extrude en 3D grace aux informations de hauteurs
 	QApplication::setOverrideCursor(Qt::WaitCursor);
 
 	OGRDataSource* Bati = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/batiout.shp", TRUE);
@@ -2911,7 +2911,7 @@ void MainWindow::test1()
 	citygml::ExporterCityGML exporter("C:/Users/Game Trap/Downloads/Ilots.gml");
 	exporter.initExport();
 	citygml::Envelope Envelope;
-
+	
 	OGRFeature *FeatureBati;
 	LayerBati->ResetReading();
 
@@ -2975,7 +2975,7 @@ void MainWindow::test1()
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::test2() //Génération de stats pour étude de visibilité
+void MainWindow::test2() //Generation de stats pour etude de visibilite
 {
 	QTime time;
 	time.start();
@@ -3134,7 +3134,7 @@ void MainWindow::test2() //Génération de stats pour étude de visibilité
 }
 /*void MainWindow::test2()
 {
-//Création d'ilots à partir de Shapefile contenant des routes
+//Creation d'ilots a partir de Shapefile contenant des routes
 OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
 OGRLayer *LayerRoutes = Routes->GetLayer(0);
 OGRFeature *FeatureRoutes;
@@ -3169,9 +3169,9 @@ delete ReseauRoutier;
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert a fusionner les tiles donc deux fichiers du meme nom seront fusionnes en un fichier contenant tous leurs objets a la suite.
 
-	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+	//// FusionLODs : prend deux fichiers modelisant les batiments avec deux lods differents et les fusionne en un seul
 	QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
 	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
