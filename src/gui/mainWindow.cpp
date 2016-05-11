@@ -46,6 +46,7 @@
 #include "src/processes/LinkCityGMLShape.hpp"
 #include "src/processes/TilingCityGML.hpp"
 #include "src/processes/EnhanceMNT.hpp"
+#include "src/processes/SkylineComparison.hpp"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
@@ -3227,174 +3228,18 @@ void MainWindow::test3()
 
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
 
-////////////////////////////////////////////////////////////////////////////////
-/// \brief dataSourceToPointList Gets all the OGRPoints from the OGRDataSource variable and add them into a list of OGRPoint*.
-/// \param poDS OGRDataSource to get the Points from.
-/// \return a list of OGRPoint*.
-///
-std::list<OGRPoint*> dataSourceToPointList(OGRDataSource* poDS)
-{
-    std::list<OGRPoint*> vPoints;
-
-    OGRLayer *poLayer;
-    int nbLayers = poDS->GetLayerCount();
-    if(nbLayers > 0)
-    {
-        poLayer = poDS->GetLayer(0);
-        OGRFeature *poFeature;
-        poLayer->ResetReading();
-
-        while( (poFeature = poLayer->GetNextFeature()) != NULL )
-        {
-            OGRGeometry* poGeometry = poFeature->GetGeometryRef();
-
-            if(poGeometry != NULL && (poGeometry->getGeometryType() == OGRwkbGeometryType::wkbPoint25D || poGeometry->getGeometryType() == OGRwkbGeometryType::wkbPoint))
-            {
-                OGRPoint* point = dynamic_cast<OGRPoint*>(poGeometry);
-                vPoints.push_back(point);
-            }
-        }
-    }
-
-    return vPoints;
-}
-
-
-double LinearInterp(double z1, double z2, double mu)
-{
-    return (z1 * (1 - mu) + z2 * mu);
-}
-
-/***********
-Compute intersection between two segments. Returns true if the two lines intersect and fille pIntersect with the intersection coordinates.
-Only one point from the second skyline will match the other one so we compute the intersection in 2D and then add the z coordinates (by interpolation).
-p1, p2 : points of the line
-p3, p4 : points of the segment line
-*************/
-TVec3d LineLineIntersection(TVec3d p1, TVec3d p2, TVec3d p3, TVec3d p4)
-{
-    TVec3d pIntersec(0.0, 0.0, 0.0);
-
-    // Peut etre faire une fonction recursive qui teste d'abord entre droite 1 et le segment, puis si on trouve pas, on teste avec les segments à dte et à gauche,..
-    //Est ce que c'est utile ? Sinon faire une fonction qui teste avec toutes les polylignes -> permet de gérer les cas ou il y a des renfoncements avec les arbres (on garde la plus haute intersection)
-    double epsilon = 0.001;
-
-    double denominator = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
-
-    if(fabs(denominator) < epsilon) //if lines are parallel TODO: differenciate coincident and parallel)
-    {        
-        //take the point with the max y (the highest in terms of skylines)
-        //maybe to be changed by the farest point fom pov in direction of pov to point of skyline
-        if(p3.y >= p4.y)
-            pIntersec = p3;
-        else
-            pIntersec = p4;
-
-        std::cout << "parallels " << std::endl;
-    }
-
-    // else, compute intersection point
-    pIntersec.x = ((p1.x * p2.y - p1.y * p2.x) * (p3.x - p4.x) - (p1.x - p2.x) * (p3.x * p4.y - p3.y * p4.x)) / denominator;
-    pIntersec.y = ((p1.x * p2.y - p1.y * p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x * p4.y - p3.y * p4.x)) / denominator;
-
-    return pIntersec;
-
-//    std::cout << "" << std::endl;
-//    std::cout << "p3 : " << p3.x << " ; " << p3.y << std::endl;
-//    std::cout <<  "intersection point : " << (*pIntersec).x /*<< " ; " << (*pIntersec).y */<< std::endl;
-//    std::cout << "p4 : " << p4.x << " ; " << p4.y << std::endl;
-
-    //check if its inside the line segment interval or not
-    //Supposing that p3 <= p4, is that always true ?
-//    if((pIntersec.x >= p3.x && (*pIntersec).x <= p4.x) ||
-//            ((*pIntersec).y >= p3.y && (*pIntersec).y <= p4.y))
-//    {
-//        //Interpolate z value
-//        double mu = ((*pIntersec).x - p3.x) / (p4.x - p3.x);
-//        (*pIntersec).z = LinearInterp(p3.z, p4.z, mu);
-//        return true;
-//    }
-//    else
-//        return false;
-
-}
-
-TVec3d OGRPointToTVec3d(OGRPoint OGRP)
-{
-    return TVec3d(OGRP.getX(), OGRP.getY(), OGRP.getZ());
-}
-
-OGRPoint TVec3dToOGRPoint(TVec3d vec3dP)
-{
-    return OGRPoint(vec3dP.x, vec3dP.y, vec3dP.z);
-}
 
 void MainWindow::test4()
 {
-    QSettings settings("liris", "virtualcity");
-    settings.setValue("tiledir","/home/vincent/Documents/VCity_Project/Data/Tuiles");
-
-    //BATI
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3682_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3682_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3682_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3683_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3683_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3683_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3684_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3684_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3684_10351.gml");
-
-    //MNT
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3682_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3682_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3682_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3683_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3683_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3683_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3684_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3684_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_MNT/3684_10351.gml");
-
-    //WATER
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3682_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3682_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3682_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3683_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3683_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3683_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3684_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3684_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_WATER/3684_10351.gml");
-
-    //VEGET
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3682_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3682_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3682_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3683_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3683_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3683_10351.gml");
-
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3684_10349.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3684_10350.gml");
-    loadFile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_VEGET/3684_10351.gml");
-
-
-
+    CompareSkylines();
 
 #if 0
+
     //*******************Comparison of 2 skylines
 
     //Load 2 shapefiles
-    QString filepath1 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/SkylinePoints.shp";
-    QString filepath2 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_2/SkylinePoints.shp";
+    QString filepath1 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/SkylinesNewAlgo/SkylineOutputBellecour1/SkylinePoints.shp";
+    QString filepath2 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/SkylinesNewAlgo/SkylineOutputBellecour2/SkylinePoints.shp";
 
     std::cout << "load shp file : " << filepath1.toStdString() << std::endl;
     OGRDataSource* poDS1 = OGRSFDriverRegistrar::Open(filepath1.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
