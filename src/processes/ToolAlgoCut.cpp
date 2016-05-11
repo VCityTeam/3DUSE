@@ -630,6 +630,7 @@ std::vector<OGRMultiLineString*> GetLineStringsFromPolygon(OGRPolygon* Polygon)
 
 	return ListRing;
 }
+
 std::vector<OGRMultiLineString*> GetLineStringsFromMultiPolygon(OGRGeometryCollection* MultiPolygon)
 {
 	std::vector<OGRMultiLineString*> ListRing;
@@ -671,6 +672,7 @@ std::vector<OGRMultiLineString*> GetLineStringsFromMultiPolygon(OGRGeometryColle
 
 	return ListRing;
 }
+
 std::vector<OGRMultiPoint*> GetPointsFromPolygon(OGRPolygon* Polygon)
 {
 	std::vector<OGRMultiPoint*> ListPoints;
