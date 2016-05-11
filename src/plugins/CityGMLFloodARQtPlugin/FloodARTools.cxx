@@ -362,7 +362,7 @@ namespace FloodAR
       std::ifstream fichier(wPath, std::ios::in);
       fichier >> pxSize_x >> ry >> rx >> pxSize_y >> NW_x >> NW_y;
       fichier.close();
-      pxSize_y = abs(pxSize_y);
+      pxSize_y = std::abs(pxSize_y);
     }
     else
     {
