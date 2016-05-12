@@ -379,11 +379,6 @@ namespace FloodAR
     int origWidth = reader.size().rwidth();
     int origHeight = reader.size().rheight();
 
-    //Display progress window
-    QProgressDialog progress("Tiling texture...", QString(), 0, origHeight, nullptr);//QString() for no cancel button
-    progress.setWindowModality(Qt::WindowModal);
-    progress.setValue(0);
-
     QDir wkDir(workingDir.c_str());
     QDir outDir;
     wkDir.mkdir("_MNT");
@@ -392,17 +387,18 @@ namespace FloodAR
     int x, y;
     x = 0;
     y = 0;
-
+    //progress
+    std::cout << "Tiling texture... (0%)\r";
     while (x < origWidth && y < origHeight)
     {
       //get bounds of the current tile
       float cornerX = NW_x + (x*pxSize_x);
       float cornerY = NW_y - (y*pxSize_y);
       int dvX = cornerX / tileSizeX;
-      int dvY = cornerY / tileSizeY;
+      int dvY = (cornerY-1) / tileSizeY;
       float tileXmin = dvX*tileSizeX;
-      float tileXmax = (dvX + 1)*tileSizeY;
-      float tileYmin = dvY*tileSizeX;
+      float tileXmax = (dvX + 1)*tileSizeX;
+      float tileYmin = dvY*tileSizeY;
       float tileYmax = (dvY + 1)*tileSizeY;
 
       int width = ceil((tileXmax - NW_x) / pxSize_x) - x + 1;
@@ -422,9 +418,6 @@ namespace FloodAR
       reader.setClipRect(QRect(x, y, width, height));
       QImage croppedImage = reader.read();
       croppedImage.save(QString(outputname.c_str()), "JPG", -1);
-      //progress
-      std::cout << "Tiling texture... (" << y * 100 / origHeight << "%)\r";
-      progress.setValue(y);
       //tile is finished, set xy for next tile
       if ((x + width) < origWidth)
       {
@@ -434,6 +427,9 @@ namespace FloodAR
       {
         x = 0; //next row, first column
         y = y + height;
+        //progress
+        std::cout << "Tiling texture... (" << 100 * y / origHeight << "%)\r";
+        //progress.setValue(y);
       }
     }
     std::cout << "Tiling texture... (100%)" << std::endl;
