@@ -341,23 +341,23 @@ namespace citygml
           intersectingPolys.push_back(poly2);
         }
       }
-      if (pRes != NULL)
+      if (pRes != NULL && pRes->getExteriorRing() != nullptr && pRes->getExteriorRing()->getNumPoints()>2)
       { //some polys on the seam may have a Z coordinate no corrected during the 'Difference' operation, we fix this here
-        if (pRes->getExteriorRing() != nullptr)
-          for (int j = 0; j < pRes->getExteriorRing()->getNumPoints(); j++)
+        for (int j = 0; j < pRes->getExteriorRing()->getNumPoints(); j++)
+        {
+          int npts = pRes->getExteriorRing()->getNumPoints();
+          OGRPoint* pt = new OGRPoint();
+          pRes->getExteriorRing()->getPoint(j, pt);
+          for (OGRPolygon* iPoly : intersectingPolys)
           {
-            OGRPoint* pt = new OGRPoint();
-            pRes->getExteriorRing()->getPoint(j, pt);
-            for (OGRPolygon* iPoly : intersectingPolys)
+            if (pt->Touches(iPoly))
             {
-              if (pt->Touches(iPoly))
-              {
-                OGRPoint* newPt = ProjectPointOnPolygon3D(pt, iPoly);
-                pRes->getExteriorRing()->setPoint(j, newPt->getX(), newPt->getY(), newPt->getZ());
-                break;
-              }
+              OGRPoint* newPt = ProjectPointOnPolygon3D(pt, iPoly);
+              pRes->getExteriorRing()->setPoint(j, newPt->getX(), newPt->getY(), newPt->getZ());
+              break;
             }
           }
+        }
         polysMerged.push_back(pRes);
       }
       std::cout << "Merging (" << (int)(i++*100.0 / (polys1.size() + 1)) << "%)\r";
