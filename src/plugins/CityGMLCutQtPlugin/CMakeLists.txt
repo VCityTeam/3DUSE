@@ -33,7 +33,7 @@ if (BUILD_CityGMLCutQtPlugin)
     ${CMAKE_SOURCE_DIR}/src/utils/cmdline/triangulate.cxx # FIXME
     ${CityGMLCut_Qt_Plugin_HEADER}
     ${CityGMLCut_Qt_Plugin_SRC}
-    ${VCITY_GUI_SRC_WIN}
+    # FIXME ${VCITY_GUI_SRC_WIN}
   )
 
 	target_include_directories( CityGMLCutQtPlugin PUBLIC
