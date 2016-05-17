@@ -475,20 +475,23 @@ src/gui/osg/osgTools.cpp
 src/libfilters/raytracing/Hit.cpp
 src/libfilters/raytracing/Ray.cpp
 src/libfilters/raytracing/RayTracing.cpp
+
 src/libfilters/tiling/ASCCut.cpp
+src/libfilters/tiling/TilingCityGML.cpp
+
+src/libfilters/ChangeDetection/ChangeDetection.cpp
+
+src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
+src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
 
 src/DataStructures/DEM/osgMnt.cpp
 
-src/processes/ChangeDetection.cpp
-src/processes/EnhanceMNT.cpp
-src/processes/ExportToShape.cpp
-src/processes/LinkCityGMLShape.cpp
-src/processes/ShpExtrusion.cpp
-src/processes/TilingCityGML.cpp
-src/processes/ToolAlgoCut.cpp
-src/processes/lodsmanagement.cpp
-
+src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
+src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
 src/utils/CityGMLFusion.cpp
+
+src/processes/ShpExtrusion.cpp
+
 
   src/main.cpp
 
@@ -639,6 +642,8 @@ if (WITH_QT5)
   endif(WITH_QT3D)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
+
+add_subdirectory(src)
 
 ################
 # 3DUSE plugins
@@ -950,4 +955,3 @@ endif (BUILD_CityGMLFloodARQtPlugin)
 	# Now the installation stuff : end
 	#--------------------------------------------------------------------------------
 
-add_subdirectory(src)

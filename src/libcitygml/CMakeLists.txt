@@ -10,8 +10,8 @@ endif(APPLE)
 
 add_library( citygml SHARED
   # FIXME: the following are dependencies of import/importerASC.cpp
-  ${CMAKE_SOURCE_DIR}/src/processes/ToolAlgoCut.cpp       # WTF
   ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
+  ${CMAKE_SOURCE_DIR}/src/utils/OGRGDAL_Utils/OGRGDALtools.cpp 
   URI.cpp
   appearance.cpp
   appearancemanager.cpp

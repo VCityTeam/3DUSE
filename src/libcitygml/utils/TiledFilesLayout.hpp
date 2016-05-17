@@ -8,26 +8,26 @@
 
 struct TiledLayer
 {
-	std::string Name;
-	int TuileMinX;
-	int TuileMinY;
-	int TuileMaxX;
-	int TuileMaxY;
+   std::string Name;
+   int TuileMinX;
+   int TuileMinY;
+   int TuileMaxX;
+   int TuileMaxY;
 };
 
 class TiledFiles
 {
 public :
-	TiledFiles(std::string Folderpath);
+   TiledFiles(std::string Folderpath);
 
-	std::string Folder; //Main folder containing all tiled files
+   std::string Folder; //Main folder containing all tiled files
 
-	std::vector<TiledLayer> ListofLayers; //Contains all layers present in Folder
+   std::vector<TiledLayer> ListofLayers; //Contains all layers present in Folder
 
-	void BuildListofLayers();
+   void BuildListofLayers();
 
 private :
-	
+
 };
 
 #endif

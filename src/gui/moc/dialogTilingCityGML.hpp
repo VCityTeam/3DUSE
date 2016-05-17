@@ -4,24 +4,24 @@
 #include <QDialog>
 
 namespace Ui {
-class DialogTilingCityGML;
+   class DialogTilingCityGML;
 }
 
 class DialogTilingCityGML : public QDialog
 {
-    Q_OBJECT
+   Q_OBJECT
 
-private slots:
-    void chooseCityGMLPathSlot();
-    void chooseOutputPathSlot();
-    void TilingCityGMLSlot();
+      private slots:
+         void chooseCityGMLPathSlot();
+         void chooseOutputPathSlot();
+         void TilingCityGMLSlot();
 
 public:
-    explicit DialogTilingCityGML(QWidget *parent = 0);
-    ~DialogTilingCityGML();
+   explicit DialogTilingCityGML(QWidget *parent = 0);
+   ~DialogTilingCityGML();
 
 private:
-    Ui::DialogTilingCityGML *ui;
+   Ui::DialogTilingCityGML *ui;
 };
 
 #endif // DIALOGTILINGCITYGML_HPP

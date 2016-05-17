@@ -236,7 +236,7 @@ void Polygon::mergeRings( AppearanceManager &appearanceManager )
   _indices.resize( indicesSize );
   for ( size_t i = 0, p = 0; p < indicesSize - 2; i++, p += 3 )
     for ( size_t j = 0; j < 3; j++ )
-      _indices[ p + j ] = i + j;
+      _indices[ p + j ] = (int)(i + j);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void Polygon::clearRings( void )
@@ -271,7 +271,7 @@ bool Polygon::merge( Polygon* p )
     size_t pSize = p->_indices.size();
     _indices.resize( oldSize + pSize );
     for ( size_t i = 0; i < pSize; i++ )
-      _indices[ oldSize + i ] = oldVSize + p->_indices[i];
+      _indices[ oldSize + i ] = (int)(oldVSize + p->_indices[i]);
     p->_indices.clear();
   }
 
@@ -393,7 +393,7 @@ void Polygon::finish( AppearanceManager& appearanceManager, Appearance* defAppea
       //*/
 
       //std::cout << tc << std::endl; 
-      _texCoords.push_back(TVec2f(tc.x, tc.y));
+      _texCoords.push_back(TVec2f((float)tc.x, (float)tc.y));
     }
   }
   else

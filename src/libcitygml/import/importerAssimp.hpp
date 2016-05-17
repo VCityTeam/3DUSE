@@ -15,39 +15,39 @@
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
-////////////////////////////////////////////////////////////////////////////////
-/// \brief CityGML import using assimp
-///
-/// example of import obj file then export to CityGML :
-/// \code{.cpp}
-/// citygml::ImporterAssimp importer;
-/// importer.setOffset(offsetx, offsety);
-/// citygml::CityModel* model = importer.import("file.obj");
-/// citygml::ExporterCityGML exporter("file.gml");
-/// exporter.exportCityModel(*model);
-/// \endcode
-class CITYGML_EXPORT ImporterAssimp : public Importer
-{
-public:
-    ImporterAssimp();
-    virtual ~ImporterAssimp() override;
+   ////////////////////////////////////////////////////////////////////////////////
+   /// \brief CityGML import using assimp
+   ///
+   /// example of import obj file then export to CityGML :
+   /// \code{.cpp}
+   /// citygml::ImporterAssimp importer;
+   /// importer.setOffset(offsetx, offsety);
+   /// citygml::CityModel* model = importer.import("file.obj");
+   /// citygml::ExporterCityGML exporter("file.gml");
+   /// exporter.exportCityModel(*model);
+   /// \endcode
+   class CITYGML_EXPORT ImporterAssimp : public Importer
+   {
+   public:
+      ImporterAssimp();
+      virtual ~ImporterAssimp() override;
 
-    /// Read filename with assimp and converts it to CityGML
-    /// \param fileName Input file path
-    CityModel* import(const std::string& fileName, bool detectRoof = true);
+      /// Read filename with assimp and converts it to CityGML
+      /// \param fileName Input file path
+      CityModel* import(const std::string& fileName, bool detectRoof = true);
 
-private:
-    /// Interal method : CityGML converter
-    CityModel* assimpSceneToCityGML(const struct aiScene* aiScene);
+   private:
+      /// Interal method : CityGML converter
+      CityModel* assimpSceneToCityGML(const struct aiScene* aiScene);
 
-    /// Internal method : recursive method doing the conversion
-    void assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent);
+      /// Internal method : recursive method doing the conversion
+      void assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent);
 
-	bool _detectRoof;
-	
-	CityModel* m_model; ///< Result of import
-};
-////////////////////////////////////////////////////////////////////////////////
+      bool _detectRoof;
+
+      CityModel* m_model; ///< Result of import
+   };
+   ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __CITYGML_ASSIMPIMPORT_HPP__

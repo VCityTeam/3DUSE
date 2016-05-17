@@ -12,7 +12,7 @@
 #include "../VegetTool.hpp"
 #include "../AlignementTree.hpp"
 #include "AABB.hpp"
-#include "src/processes/ExportToShape.hpp"
+#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 
 #include <QSettings>
 #include <QFileDialog>

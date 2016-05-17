@@ -19,16 +19,16 @@
 class LAS
 {
 public:
-	LAS();
-	~LAS();
+   LAS();
+   ~LAS();
 
-	bool open(const char* nom_fichier);
-	void close();
-	osg::ref_ptr<osg::Geode> buildLasPoints(const vcity::URI& uriLayer, float offset_x, float offset_y, float offset_z=0.0f, int zfactor=1);
+   bool open(const char* nom_fichier);
+   void close();
+   osg::ref_ptr<osg::Geode> buildLasPoints(const vcity::URI& uriLayer, float offset_x, float offset_y, float offset_z=0.0f, int zfactor=1);
 
 private:
-	LASreadOpener lasreadopener;
-	LASreader* lasreader;
+   LASreadOpener lasreadopener;
+   LASreader* lasreader;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __OSGLAS_HPP__

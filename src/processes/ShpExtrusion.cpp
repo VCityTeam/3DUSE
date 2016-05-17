@@ -1,9 +1,8 @@
 #include "ShpExtrusion.hpp"
-
+////////////////////////////////////////////////////////////////////////////////
 #include <qstring.h>
 #include <qfiledialog.h>
 #include "ogrsf_frmts.h"
-#include "gui/osg/osgScene.hpp"
 #include "export/exportCityGML.hpp"
 
 #include <unordered_map>
@@ -11,6 +10,7 @@
 #include "AABB.hpp"
 #include "Triangle.hpp"
 #include "raytracing/Hit.hpp"
+////////////////////////////////////////////////////////////////////////////////
 
 std::map<std::string,TriangleList*> tileTriangles;
 
@@ -19,15 +19,15 @@ std::map<std::string,TriangleList*> tileTriangles;
 */
 std::vector<TVec3d>  GetLRingWidthHeight(LRing poly, double zmax)
 {
-	std::vector<TVec3d> result;
-	result.resize(poly.size());
+   std::vector<TVec3d> result;
+   result.resize(poly.size());
 
-	for(unsigned int i = 0; i < poly.size(); i++)
-	{
-		result[i] = TVec3d(poly[i].x,poly[i].y,poly[i].z + zmax);
-	}
+   for(unsigned int i = 0; i < poly.size(); i++)
+   {
+      result[i] = TVec3d(poly[i].x,poly[i].y,poly[i].z + zmax);
+   }
 
-	return result;
+   return result;
 }
 
 /**
@@ -35,12 +35,12 @@ std::vector<TVec3d>  GetLRingWidthHeight(LRing poly, double zmax)
 */
 citygml::LinearRing* LRingToCityRing(LRing polyvec, std::string name, bool exterior = true)
 {
-	citygml::LinearRing* ring = new citygml::LinearRing(name+"_ring",exterior);
-	for(unsigned int j = 0; j < polyvec.size(); j++)
-	{
-		ring->addVertex(polyvec[j]);
-	}
-	return ring;
+   citygml::LinearRing* ring = new citygml::LinearRing(name+"_ring",exterior);
+   for(unsigned int j = 0; j < polyvec.size(); j++)
+   {
+      ring->addVertex(polyvec[j]);
+   }
+   return ring;
 }
 
 /**
@@ -48,13 +48,13 @@ citygml::LinearRing* LRingToCityRing(LRing polyvec, std::string name, bool exter
 */
 citygml::Polygon* BuildPolygon(LRing ringextern, std::vector<LRing> ringintern, std::string name)
 {
-	citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
+   citygml::Polygon* poly = new citygml::Polygon(name+"_poly");
 
-	poly->addRing(LRingToCityRing(ringextern,name));
-	for(std::vector<TVec3d> vec : ringintern)
-		poly->addRing(LRingToCityRing(vec,name,false));
+   poly->addRing(LRingToCityRing(ringextern,name));
+   for(std::vector<TVec3d> vec : ringintern)
+      poly->addRing(LRingToCityRing(vec,name,false));
 
-	return poly;
+   return poly;
 }
 
 /**
@@ -62,33 +62,33 @@ citygml::Polygon* BuildPolygon(LRing ringextern, std::vector<LRing> ringintern, 
 */
 std::vector<LRing> GetWall(LRing sol, LRing toit)
 {
-	std::vector<LRing> result;
-	if(sol.size() == toit.size())
-	{
-		for(unsigned int i = 0; i < sol.size()-1; i++)
-		{
-			std::vector<TVec3d> poly;
+   std::vector<LRing> result;
+   if(sol.size() == toit.size())
+   {
+      for(unsigned int i = 0; i < sol.size()-1; i++)
+      {
+         std::vector<TVec3d> poly;
 
-			poly.push_back(sol[i]);
-			poly.push_back(sol[i+1]);
-			poly.push_back(toit[i+1]);
-			poly.push_back(toit[i]);
+         poly.push_back(sol[i]);
+         poly.push_back(sol[i+1]);
+         poly.push_back(toit[i+1]);
+         poly.push_back(toit[i]);
 
-			result.push_back(poly);
-		}
+         result.push_back(poly);
+      }
 
-		LRing polyTemp;
+      LRing polyTemp;
 
-		polyTemp.push_back(sol[sol.size()-1]);
-		polyTemp.push_back(sol[0]);
-		polyTemp.push_back(toit[0]);
-		polyTemp.push_back(toit[sol.size()-1]);
+      polyTemp.push_back(sol[sol.size()-1]);
+      polyTemp.push_back(sol[0]);
+      polyTemp.push_back(toit[0]);
+      polyTemp.push_back(toit[sol.size()-1]);
 
-		result.push_back(polyTemp);
+      result.push_back(polyTemp);
 
-	}
+   }
 
-	return result;
+   return result;
 }
 
 /**
@@ -96,214 +96,214 @@ std::vector<LRing> GetWall(LRing sol, LRing toit)
 */
 LRing OGRLinearRingToLRing(OGRLinearRing* poLR)
 {
-	OGRPoint p;
-    TVec3d v;
-	LRing ptsSol;
-    for(int i=0; i<poLR->getNumPoints(); ++i)
-    {
-        poLR->getPoint(i, &p);
-        v = TVec3d(p.getX(), p.getY(), 0);
-        ptsSol.push_back(v);
-    }
+   OGRPoint p;
+   TVec3d v;
+   LRing ptsSol;
+   for(int i=0; i<poLR->getNumPoints(); ++i)
+   {
+      poLR->getPoint(i, &p);
+      v = TVec3d(p.getX(), p.getY(), 0);
+      ptsSol.push_back(v);
+   }
 
-	return ptsSol;
+   return ptsSol;
 }
 
 
 LRing PutLRingOnTerrain(LRing ring, std::string dir)
 {
-	//Load all terrain bounding box that are abox the points
-	AABBCollection boxes = LoadAABB(dir);
+   //Load all terrain bounding box that are abox the points
+   AABBCollection boxes = LoadAABB(dir);
 
-	std::vector<AABB> ptAABB;
-	LRing ptResult;
+   std::vector<AABB> ptAABB;
+   LRing ptResult;
 
-	for(TVec3d vec : ring)
-	{
-		for(AABB box : boxes.terrain)
-		{
-			TVec3d min = box.min;
-			TVec3d max = box.max;
-			if(vec.x >= min.x && vec.x <= max.x && vec.y >= min.y && vec.y <= max.y)
-			{
-				ptAABB.push_back(box);
-				ptResult.push_back(vec);
-				break;
-			}
-		}
-	}
+   for(TVec3d vec : ring)
+   {
+      for(AABB box : boxes.terrain)
+      {
+         TVec3d min = box.min;
+         TVec3d max = box.max;
+         if(vec.x >= min.x && vec.x <= max.x && vec.y >= min.y && vec.y <= max.y)
+         {
+            ptAABB.push_back(box);
+            ptResult.push_back(vec);
+            break;
+         }
+      }
+   }
 
-	if(ptResult.size() != ring.size())
-	{
-		//std::cout << "Error some point are out of range of tiles" << std::endl;
-		ptResult.clear();
-		return ptResult;
-	}
+   if(ptResult.size() != ring.size())
+   {
+      //std::cout << "Error some point are out of range of tiles" << std::endl;
+      ptResult.clear();
+      return ptResult;
+   }
 
-	for(unsigned int i = 0; i < ptResult.size(); i++)
-	{
-		TriangleList* trianglesTemp;
-		if(tileTriangles.find(ptAABB[i].name) != tileTriangles.end())
-		{
-			trianglesTemp = tileTriangles[ptAABB[i].name];
-		}
-		else
-		{
-			std::string path = dir + ptAABB[i].name;
-			//Get the triangle list
-			trianglesTemp = BuildTriangleList(path,citygml::CityObjectsType::COT_TINRelief);
-			tileTriangles.insert(std::make_pair(ptAABB[i].name,trianglesTemp));
-		}
+   for(unsigned int i = 0; i < ptResult.size(); i++)
+   {
+      TriangleList* trianglesTemp;
+      if(tileTriangles.find(ptAABB[i].name) != tileTriangles.end())
+      {
+         trianglesTemp = tileTriangles[ptAABB[i].name];
+      }
+      else
+      {
+         std::string path = dir + ptAABB[i].name;
+         //Get the triangle list
+         trianglesTemp = BuildTriangleList(path,citygml::CityObjectsType::COT_TINRelief);
+         tileTriangles.insert(std::make_pair(ptAABB[i].name,trianglesTemp));
+      }
 
-		Ray ray(ptResult[i],TVec3d(0.0,0.0,1.0));
-		bool Intesect = false;
+      Ray ray(ptResult[i],TVec3d(0.0,0.0,1.0));
+      bool Intesect = false;
 
-		for(unsigned int j = 0; j < trianglesTemp->triangles.size(); j++)
-		{
-			Hit hit;
-			if(ray.Intersect(trianglesTemp->triangles[j], &hit)) //Check if the ray hit the triangle
-			{
-				ptResult[i].z = hit.point.z;
-				Intesect = true;
-				break;
-			}
-		}
-		if(!Intesect) //Si un point ne peut pas se projeter sur le terrain, alors on enleve tout le batiment pour ne pas avoir de modeles diformes.
-		{
-			ptResult.clear();
-			return ptResult;
-		}
-	}
+      for(unsigned int j = 0; j < trianglesTemp->triangles.size(); j++)
+      {
+         Hit hit;
+         if(ray.Intersect(trianglesTemp->triangles[j], &hit)) //Check if the ray hit the triangle
+         {
+            ptResult[i].z = hit.point.z;
+            Intesect = true;
+            break;
+         }
+      }
+      if(!Intesect) //Si un point ne peut pas se projeter sur le terrain, alors on enleve tout le batiment pour ne pas avoir de modeles diformes.
+      {
+         ptResult.clear();
+         return ptResult;
+      }
+   }
 
-	return ptResult;
+   return ptResult;
 }
 
 
 void ShpExtruction(std::string dir)
 {
-	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
+   QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
 
-	QFileInfo file(filepath);
+   QFileInfo file(filepath);
 
-    QString ext = file.suffix().toLower();
+   QString ext = file.suffix().toLower();
 
-	if(ext == "shp")
-    {
-		citygml::CityModel* ModelOut = new citygml::CityModel;
+   if(ext == "shp")
+   {
+      citygml::CityModel* ModelOut = new citygml::CityModel;
 
-		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/);
-		std::cout << "Shp loaded" << std::endl;
-		std::cout << "Processing..." << std::endl;
+      OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/);
+      std::cout << "Shp loaded" << std::endl;
+      std::cout << "Processing..." << std::endl;
 
 
-		OGRLayer *poLayer;
-        int nbLayers = poDS->GetLayerCount();
-        if(nbLayers > 0)
-        {
-			poLayer = poDS->GetLayer(0);
+      OGRLayer *poLayer;
+      int nbLayers = poDS->GetLayerCount();
+      if(nbLayers > 0)
+      {
+         poLayer = poDS->GetLayer(0);
 
-			OGRFeature *poFeature;
-            poLayer->ResetReading();
+         OGRFeature *poFeature;
+         poLayer->ResetReading();
 
-			unsigned int cpt = 0;
+         unsigned int cpt = 0;
 
-			while( (poFeature = poLayer->GetNextFeature()) != NULL )
+         while( (poFeature = poLayer->GetNextFeature()) != NULL )
+         {
+            std::string name = "test_"+std::to_string(cpt++);
+
+            OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+
+            if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
             {
-				std::string name = "test_"+std::to_string(cpt++);
+               citygml::CityObject* BuildingCO = new citygml::Building(name);
 
-				OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+               citygml::CityObject* RoofCO = new citygml::RoofSurface(name+"_Roof");
+               citygml::Geometry* Roof = new citygml::Geometry(name+"_RoofGeometry", citygml::GT_Roof, 2);
+               citygml::CityObject* WallCO = new citygml::WallSurface(name+"_Wall");
+               citygml::Geometry* Wall = new citygml::Geometry(name+"_WallGeometry", citygml::GT_Wall, 2);
 
-				if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPolygon25D || poGeometry->getGeometryType() == wkbPolygon))
-                {
-					citygml::CityObject* BuildingCO = new citygml::Building(name);
-					
-					citygml::CityObject* RoofCO = new citygml::RoofSurface(name+"_Roof");
-					citygml::Geometry* Roof = new citygml::Geometry(name+"_RoofGeometry", citygml::GT_Roof, 2);
-					citygml::CityObject* WallCO = new citygml::WallSurface(name+"_Wall");
-					citygml::Geometry* Wall = new citygml::Geometry(name+"_WallGeometry", citygml::GT_Wall, 2);
+               //Emprise au sol
+               OGRPolygon* poPG = (OGRPolygon*) poGeometry;
 
-					//Emprise au sol
-					OGRPolygon* poPG = (OGRPolygon*) poGeometry;
+               LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()), dir);
 
-                    LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()), dir);
+               if(ptsSol.size() == 0) //La generation a pose probleme, probablement parce que cette emprise au sol n'est pas completement sur le terrain
+                  continue;
 
-					if(ptsSol.size() == 0) //La generation a pose probleme, probablement parce que cette emprise au sol n'est pas completement sur le terrain
-						continue;
-
-					double H = 20;
-					double Zmin = ptsSol.front().z;
-					if(poFeature->GetFieldIndex("HAUTEUR") != -1)
-						H = poFeature->GetFieldAsDouble("HAUTEUR");
-					if(poFeature->GetFieldIndex("Z_MIN") != -1)
-						Zmin = poFeature->GetFieldAsDouble("Z_MIN");
-					double Zmax = H;
-					Zmax = Zmax > 5000 ? ptsSol.front().z + 20 : Zmax;
+               double H = 20;
+               double Zmin = ptsSol.front().z;
+               if(poFeature->GetFieldIndex("HAUTEUR") != -1)
+                  H = poFeature->GetFieldAsDouble("HAUTEUR");
+               if(poFeature->GetFieldIndex("Z_MIN") != -1)
+                  Zmin = poFeature->GetFieldAsDouble("Z_MIN");
+               double Zmax = H;
+               Zmax = Zmax > 5000 ? ptsSol.front().z + 20 : Zmax;
 
 
-					LRing ptsToit = GetLRingWidthHeight(ptsSol, Zmax);
+               LRing ptsToit = GetLRingWidthHeight(ptsSol, Zmax);
 
-					std::vector<LRing> ptsSolIntern;
-					std::vector<LRing> ptsToitIntern;
+               std::vector<LRing> ptsSolIntern;
+               std::vector<LRing> ptsToitIntern;
 
-					for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
-					{
-						LRing ptsSolTemp = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getInteriorRing(i)), dir);
-						if(ptsSolTemp.size() == 0)
-							continue;
-						LRing ptsToitTemp = GetLRingWidthHeight(ptsSolTemp, Zmax);
-						ptsSolIntern.push_back(ptsSolTemp);
-						ptsToitIntern.push_back(ptsToitTemp);
-					}
-					
-					Roof->addPolygon(BuildPolygon(ptsSol,ptsSolIntern,name));
-					Roof->addPolygon(BuildPolygon(ptsToit,ptsToitIntern,name));
+               for(unsigned int i = 0; i < (unsigned int)poPG->getNumInteriorRings();i++)
+               {
+                  LRing ptsSolTemp = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getInteriorRing(i)), dir);
+                  if(ptsSolTemp.size() == 0)
+                     continue;
+                  LRing ptsToitTemp = GetLRingWidthHeight(ptsSolTemp, Zmax);
+                  ptsSolIntern.push_back(ptsSolTemp);
+                  ptsToitIntern.push_back(ptsToitTemp);
+               }
 
-					std::vector<std::vector<TVec3d>> walls = GetWall(ptsSol, ptsToit);
-					
-					for(unsigned int i = 0; i < walls.size(); i++)
-					{
-						Wall->addPolygon(BuildPolygon(walls[i],std::vector<std::vector<TVec3d>>(),name));
-					}
+               Roof->addPolygon(BuildPolygon(ptsSol,ptsSolIntern,name));
+               Roof->addPolygon(BuildPolygon(ptsToit,ptsToitIntern,name));
 
-					for(unsigned int i = 0; i < ptsSolIntern.size(); i++)
-					{
-						std::vector<std::vector<TVec3d>> wallsTemp = GetWall(ptsSolIntern[i], ptsToitIntern[i]);
+               std::vector<std::vector<TVec3d>> walls = GetWall(ptsSol, ptsToit);
 
-						for(unsigned int j = 0; j < wallsTemp.size(); j++)
-						{
-							Wall->addPolygon(BuildPolygon(wallsTemp[j],std::vector<std::vector<TVec3d>>(),name));
-						}
-					}
+               for(unsigned int i = 0; i < walls.size(); i++)
+               {
+                  Wall->addPolygon(BuildPolygon(walls[i],std::vector<std::vector<TVec3d>>(),name));
+               }
 
-					RoofCO->addGeometry(Roof);
-					ModelOut->addCityObject(RoofCO);
-					BuildingCO->insertNode(RoofCO);
-					WallCO->addGeometry(Wall);
-					ModelOut->addCityObject(WallCO);
-					BuildingCO->insertNode(WallCO);
+               for(unsigned int i = 0; i < ptsSolIntern.size(); i++)
+               {
+                  std::vector<std::vector<TVec3d>> wallsTemp = GetWall(ptsSolIntern[i], ptsToitIntern[i]);
+
+                  for(unsigned int j = 0; j < wallsTemp.size(); j++)
+                  {
+                     Wall->addPolygon(BuildPolygon(wallsTemp[j],std::vector<std::vector<TVec3d>>(),name));
+                  }
+               }
+
+               RoofCO->addGeometry(Roof);
+               ModelOut->addCityObject(RoofCO);
+               BuildingCO->insertNode(RoofCO);
+               WallCO->addGeometry(Wall);
+               ModelOut->addCityObject(WallCO);
+               BuildingCO->insertNode(WallCO);
 
 
 
-					ModelOut->addCityObject(BuildingCO);
-					ModelOut->addCityObjectAsRoot(BuildingCO);
-				}
-			}
-		}
+               ModelOut->addCityObject(BuildingCO);
+               ModelOut->addCityObjectAsRoot(BuildingCO);
+            }
+         }
+      }
 
-		for(auto it = tileTriangles.begin(); it != tileTriangles.end(); it++)
-			delete it->second;
+      for(auto it = tileTriangles.begin(); it != tileTriangles.end(); it++)
+         delete it->second;
 
-		std::cout << "Exporting citygml" << std::endl;
-		ModelOut->computeEnvelope();
+      std::cout << "Exporting citygml" << std::endl;
+      ModelOut->computeEnvelope();
 
-		QDir dir;
-		dir.mkdir("./ShpExtruded/");
+      QDir dir;
+      dir.mkdir("./ShpExtruded/");
 
-		citygml::ExporterCityGML exporter("./ShpExtruded/"+file.baseName().toStdString()+".gml");
-		exporter.exportCityModel(*ModelOut);
-		std::cout << "Done exporting" << std::endl;
-	}
+      citygml::ExporterCityGML exporter("./ShpExtruded/"+file.baseName().toStdString()+".gml");
+      exporter.exportCityModel(*ModelOut);
+      std::cout << "Done exporting" << std::endl;
+   }
 
-	
+
 
 }

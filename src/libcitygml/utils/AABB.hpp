@@ -13,11 +13,11 @@
 */
 struct AABB
 {
-	TVec3d min;///< Min point of the box
-	TVec3d max;///< Max point of the box
-	std::string name;///< Name of the box
+   TVec3d min;///< Min point of the box
+   TVec3d max;///< Max point of the box
+   std::string name;///< Name of the box
 
-    bool operator==(AABB const& other);
+   bool operator==(AABB const& other);
 };
 
 /**
@@ -25,8 +25,8 @@ struct AABB
 */
 struct BoxOrder
 {
-	std::string box;///< Name of the bounding box
-	unsigned int order;///< Order of the box in the collection
+   std::string box;///< Name of the bounding box
+   unsigned int order;///< Order of the box in the collection
 };
 
 bool operator<(const BoxOrder& a, const BoxOrder& b);
@@ -36,9 +36,9 @@ bool operator<(const BoxOrder& a, const BoxOrder& b);
 */
 struct BoxwithRays
 {
-	AABB box; //  Box concernée
-	std::vector<int> IndicesRays; //Contient les indices des rayons qui ont intersecté cette box
-	float minDistance; //Distance minimale entre la box et la caméra
+   AABB box; //  Box concernée
+   std::vector<int> IndicesRays; //Contient les indices des rayons qui ont intersecté cette box
+   float minDistance; //Distance minimale entre la box et la caméra
 };
 
 bool operator<(const BoxwithRays& a, const BoxwithRays& b);
@@ -48,13 +48,13 @@ bool operator<(const BoxwithRays& a, const BoxwithRays& b);
 */
 struct AABBCollection
 {
-	std::vector<AABB> building;///< Bounding box of the building layer
-	std::vector<AABB> terrain;///< Bounding box of the terrain layer
-	std::vector<AABB> water;///< Bounding box of the water layer
-	std::vector<AABB> veget;///< Bounding box of the veget layer
-	// #AABBNewDataSet
-	// Uncomment next comment to add a data set (and replace myData by your data)
-	// std::vector<AABB> myData;
+   std::vector<AABB> building;///< Bounding box of the building layer
+   std::vector<AABB> terrain;///< Bounding box of the terrain layer
+   std::vector<AABB> water;///< Bounding box of the water layer
+   std::vector<AABB> veget;///< Bounding box of the veget layer
+   // #AABBNewDataSet
+   // Uncomment next comment to add a data set (and replace myData by your data)
+   // std::vector<AABB> myData;
 };
 
 /**

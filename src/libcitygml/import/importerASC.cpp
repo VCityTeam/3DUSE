@@ -1,5 +1,5 @@
 #include "importerASC.hpp"
-#include "src/processes/ToolAlgoCut.hpp"
+#include "src/utils/OGRGDAL_Utils/OGRGDALtools.hpp"
 
 #include <QInputDialog>
 #include <QDir>
@@ -393,7 +393,7 @@ namespace citygml
               }
             }
           }
-        polysMerged.push_back(pRes);
+          polysMerged.push_back(pRes);
       }
       std::cout << "Merging (" << (int)(i++*100.0 / (polys1.size() + 1)) << "%)\r";
     }
