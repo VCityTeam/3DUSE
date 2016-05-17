@@ -1,4 +1,4 @@
-#add_subdirectory(utils)
+add_subdirectory(utils)
 
 if(APPLE)
   # FIXME: instead of hiding the deprecation messages update the code ?
