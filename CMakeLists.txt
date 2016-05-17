@@ -175,7 +175,6 @@ else(WITH_QT5)
 
   # FIXME: MTO says this test is no longer usefull ant that any reference
   # to WITH_QT3D and QT3D related variables (see also below) can be cleaned out.
-  # Ditto with Qt53D  !!!!
 
   # temporary (very bad) hack for Qt4-Qt3D test (only for Qt-4.8.1-Qt3D-1.0-x86 under windows)...
   if (WITH_QT3D)
@@ -221,7 +220,7 @@ else(OPENSCENEGRAPH_FOUND)
   message(FATAL_ERROR "OpenSceneGraph not found. Please set OSG_DIR.")
 endif(OPENSCENEGRAPH_FOUND)
 
-# Find osg (which is a sub-module of OpenSceneGraph)
+# Find osg FIXME: what is the difference with the above OpenSceneGraph
 find_package(osg)
 if(OSG_FOUND)
   include_directories(${OSG_INCLUDE_DIR})
@@ -293,37 +292,7 @@ else(OSGWIDGET_FOUND)
   message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
 endif(OSGWIDGET_FOUND)
 
-# Find osgQt
-# FIXME: assert the following with MTO
-# Not surprisingly OSG-QT depends both on OSG and QT. Depending on
-# the platform/distribution the packagers choose some QT version
-# (4 or 5) to in order to package OSG-QT. 3DUse offers support for
-# both QT4 and QT5. This can produce collisions when e.g. 3DUSe is
-# build against QT5 but the OSG-QT package is against QT4. Solving
-# this is done by embedding the (various versions of) OSG-QT within
-# 3DUse (refer to src/gui/osgQt directory). Then when required (this
-# is the difficult part) either the native OSG-QT package is used or
-# the embedded version is used.
-# The trick is realised with the usage of the variables
-# - OSGQT_INCLUDE_DIR (either set by find_package or manually)
-# - VCITY_GUI_SRC_WIN that is either empty (for the native package) or points
-#   to the ad-hoc version of the sources
-# With QT4 the split goes:
-#  - Embedded code used for: 
-#     - MacOS AND TRAVIS     
-#     - Win32
-#  - Native package for:
-#     - MacOS (not on Travis) 
-#     - Linux
-# With QT5 the split goes:
-#  - Embedded code used for:  FIXME: ask MTO ?
-#  - Native package for:      FIXME: ask MTO ?
-#  
-# FIXME: why consider Travis as being special case that needs to be
-# flagged through an environement variable ? Shouldn't Travis be
-# a platform like another one i.e. indirectly specified through its
-# compiler and version of QT4 or QT5 ?
-
+# Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows, not used under Travis too)
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
 elseif(DEFINED ENV{TRAVIS})
@@ -347,7 +316,7 @@ else()
   endif(OSGQT_FOUND)
 endif()
 
-# Find OpenThreads (which is also an OSG sub-module)
+# Find OpenThreads
 find_package(OpenThreads)
 if(OPENTHREADS_FOUND)
   include_directories(${OPENTHREADS_INCLUDE_DIR})
@@ -520,13 +489,8 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_UI_CPP}
   ${VCITY_GUI_RES_H}
 )
-
-# FIXME: the following section deals with OSG-QT and should probably
-# be placed next to the find_package on OSGQT (refer above) in order
-# to clarify the flow
 if (WIN32)
-  # FIXME: the supported kit versions are KIT_VS2015 and KIT_VS2012
-  # Use KIT_VS2012 instead of "NOT DEFINED KIT_VS2015"
+  # FIXME: what are the supported KIT versions ?
   if(NOT DEFINED KIT_VS2015)
     SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
   endif()
@@ -542,7 +506,6 @@ if(DEFINED ENV{TRAVIS})
     set( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
   endif (APPLE)
 endif()
-
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
