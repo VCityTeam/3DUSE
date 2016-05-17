@@ -1,4 +1,4 @@
-add_subdirectory(utils)
+#add_subdirectory(utils)
 
 if(APPLE)
   # FIXME: instead of hiding the deprecation messages update the code ?
@@ -9,6 +9,9 @@ if(APPLE)
 endif(APPLE)
 
 add_library( citygml SHARED
+  # FIXME: the following are dependencies of import/importerASC.cpp
+  ${CMAKE_SOURCE_DIR}/src/processes/ToolAlgoCut.cpp       # WTF
+  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
   URI.cpp
   appearance.cpp
   appearancemanager.cpp
@@ -20,29 +23,26 @@ add_library( citygml SHARED
   linearring.cpp
   material.cpp
   object.cpp
+  parser.cpp
+  parserlibxml2.cpp
   parserparams.cpp
-  # FIXME: the following parserxercesc.cpp is obviously unused since we
-  # can build the project without compiling it. It came from the original
-  # IGN implementation but became deprecated within 3DUse derived work.
-  # Remove this file (there doesn't seem to be any find_package concerning
-  # xerces within any CMakeLists.txt)
+  #FIXME: remove the following empty file and the xerces dependency as well ?
   # parserxercesc.cpp 
   polygon.cpp
   temporalExt.cpp
   tesselator.cpp
   texture.cpp
 
-  # XML binders (IO native to this library)
-  parser.cpp
-  parserlibxml2.cpp
   export/exportCityGML.cpp
-
-  # Only used as base classes:
+  export/exportJSON.cpp
+  export/exportOBJ.cpp
   export/exporter.cpp
+
   import/importer.cpp
+  import/importerASC.cpp
+  import/importerAssimp.cpp
 
   # FIXME : ADE should be in separate libraries (possibly as libCityGML plugins)
-  # Note that the ADE is QT dependent on QString, QDateTime, qFree()...
   ADE/ADE.cpp
   ADE/temporal/temporalHandler.cpp
   ADE/temporal/transaction.cpp
@@ -58,20 +58,23 @@ if (WITH_QT5)
   set_target_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
 endif ()
 
+target_include_directories( citygml PUBLIC 
+ ${CMAKE_SOURCE_DIR}
+ ${CMAKE_SOURCE_DIR}/src
+ ${CMAKE_SOURCE_DIR}/src/processes     # FIXME: to be removed with ToolAlgoCut.cpp
+ ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/  # FIXME: remove with osgMnt.cpp
+)
 # Required for generated citygml_export.h
 target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
 
 target_link_libraries( citygml
+  ${ASSIMP_LIBRARY}
   ${LIBXML2_LIBRARIES}
   ${GDAL_LIBRARY}
   ${OPENGL_LIBRARIES}    # FIXME: tesselation dependency 
-  ${OPENTHREADS_LIBRARY} # FIXME: temporalExt.cpp dependency
-  ${OSG_LIBRARIES}       # FIXME: this is a weak dependency on
-                         # - osg::Referenced::signalObserversAndDelete
-                         # - setOsg(osg::ref_ptr<osg::Group>) in temporalExt.cpp
-  ${QT_LIBRARIES}        # FIXME: alas required by
-                         # - exporter.cpp 
-                         # - temporalExt.cpp 
+  ${OPENTHREADS_LIBRARY}
+  ${OSG_LIBRARIES}       # FIXME: this dependency is a nonsense
+  ${QT_LIBRARIES}        # FIXME: this dependency is a nonsense too
 )
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
