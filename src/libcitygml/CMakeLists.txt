@@ -1,4 +1,3 @@
-add_subdirectory(utils)
 
 if(APPLE)
   # FIXME: instead of hiding the deprecation messages update the code ?
@@ -77,3 +76,5 @@ target_link_libraries( citygml
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
 include (GenerateExportHeader)
 GENERATE_EXPORT_HEADER( citygml ) 
+
+add_subdirectory(utils)

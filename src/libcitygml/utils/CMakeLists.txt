@@ -17,6 +17,7 @@ add_library( citygmlutils SHARED
   ${CMAKE_SOURCE_DIR}/src/processes/ToolAlgoCut.cpp       # WTF
   ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
 )
+
 target_include_directories( citygmlutils PUBLIC
   ${CITYGML_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}       # For e.g. src/DataStructures/DEM/osgMnt.hpp
