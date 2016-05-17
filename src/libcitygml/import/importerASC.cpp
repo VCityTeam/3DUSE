@@ -15,30 +15,22 @@ namespace citygml
   {
   }
   /////////////////////////////////////////////////////////////////////////////////////////
-  CityModel* ImporterASC::reliefToCityGML(MNT* asc)
+  CityObject* ImporterASC::reliefToCityGML(MNT* asc)
   {
-    CityModel* model = new CityModel();
     CityObject* reliefTIN = new TINRelief("");
 
     reliefTIN->addGeometry(generateTriangles(asc));
 
-    model->addCityObject(reliefTIN);
-    model->addCityObjectAsRoot(reliefTIN);
-    model->computeEnvelope();
     std::cout << "Conversion OK    " << std::endl;
-    return model;
+    return reliefTIN;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
-  CityModel* ImporterASC::waterToCityGML(MNT* asc)
+  CityObject* ImporterASC::waterToCityGML(MNT* asc)
   {
-    CityModel* model = new CityModel();
     CityObject* waterbody = new WaterBody("");
     waterbody->addGeometry(generateTriangles(asc));
-    model->addCityObject(waterbody);
-    model->addCityObjectAsRoot(waterbody);
-    model->computeEnvelope();
     std::cout << "Conversion OK    " << std::endl;
-    return model;
+    return waterbody;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
   Geometry* ImporterASC::generateTriangles(MNT* asc)
@@ -50,6 +42,7 @@ namespace citygml
     {
       for (int x = 0; x < asc->get_dim_x() - incrx; x += incrx)
       {
+        //get the coordinates
         float xmin = (asc->get_x_noeud_NO()) + (x)*(asc->get_pas_x());
         float xmax = (asc->get_x_noeud_NO()) + (x + incrx)*(asc->get_pas_x());
         float ymax = (asc->get_y_noeud_NO()) + (asc->get_dim_y() - y - 1)*(asc->get_pas_y());
@@ -97,7 +90,6 @@ namespace citygml
   /////////////////////////////////////////////////////////////////////////////////////////
   CityObject* ImporterASC::waterToCityGMLPolygons(MNT* asc, float zPrec = 0.1)
   {
-    //CityModel* model = new CityModel();
     CityObject* waterbody = new WaterBody("");
 
     treated = new bool[asc->get_dim_x()*asc->get_dim_y()];
@@ -109,8 +101,6 @@ namespace citygml
         if (!treated[x + y*asc->get_dim_x()] && asc->get_altitude(x, y) != asc->get_nodata())
         {
           Geometry* geom = new Geometry("", GT_Unknown, 3);
-
-          geom_list.clear();
 
           OGRMultiPolygon* pOgrMerged = new OGRMultiPolygon;
           std::queue<std::pair<int, int>> pointsList;
@@ -160,22 +150,22 @@ namespace citygml
     //std::cout<<x<<";"<<y<<" / "<<dim_x<<";"<<dim_y<<std::endl;
 
     // If some neighbours have same altitude but no category
-    if (y > 0 && !treated[x + (y - 1)*asc->get_dim_x()] && fabs(asc->get_altitude(x, y - 1) - alt) < prec)// up
+    if (y > 0 && !treated[x + (y - 1)*asc->get_dim_x()] && std::abs(asc->get_altitude(x, y - 1) - alt) < prec)// up
     {
       pointsList->push(std::make_pair(x, y - 1));
       treated[x + (y - 1)*asc->get_dim_x()] = true;
     }
-    if (x > 0 && !treated[x - 1 + y*asc->get_dim_x()] && fabs(asc->get_altitude(x - 1, y) - alt) < prec)// left
+    if (x > 0 && !treated[x - 1 + y*asc->get_dim_x()] && std::abs(asc->get_altitude(x - 1, y) - alt) < prec)// left
     {
       pointsList->push(std::make_pair(x - 1, y));
       treated[x - 1 + y*asc->get_dim_x()] = true;
     }
-    if ((y + 1) < asc->get_dim_y() && !treated[x + (y + 1)*asc->get_dim_x()] && fabs(asc->get_altitude(x, y + 1) - alt) < prec)// down
+    if ((y + 1) < asc->get_dim_y() && !treated[x + (y + 1)*asc->get_dim_x()] && std::abs(asc->get_altitude(x, y + 1) - alt) < prec)// down
     {
       pointsList->push(std::make_pair(x, y + 1));
       treated[x + (y + 1)*asc->get_dim_x()] = true;
     }
-    if ((x + 1) < asc->get_dim_x() && !treated[x + 1 + y*asc->get_dim_x()] && fabs(asc->get_altitude(x + 1, y) - alt) < prec)// right
+    if ((x + 1) < asc->get_dim_x() && !treated[x + 1 + y*asc->get_dim_x()] && std::abs(asc->get_altitude(x + 1, y) - alt) < prec)// right
     {
       pointsList->push(std::make_pair(x + 1, y));
       treated[x + 1 + y*asc->get_dim_x()] = true;
@@ -185,7 +175,7 @@ namespace citygml
   OGRPolygon* ImporterASC::createPoly(MNT* asc, int x, int y, float prec = 1)
   {
     OGRLinearRing* ring = new OGRLinearRing;
-
+    // calculate coordinates, x & y correspond to the SW point (xmin, ymin)
     float xmin = asc->get_x_noeud_NO() + x*asc->get_pas_x();
     float ymax = asc->get_y_noeud_NO() + asc->get_dim_y() * asc->get_pas_y() - y * asc->get_pas_y();
     float xmax = asc->get_x_noeud_NO() + (x + 1)*asc->get_pas_x();
@@ -253,11 +243,12 @@ namespace citygml
     return GMLpoly;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
-  CityModel* ImporterASC::fusionResolutions(MNT* asc1, MNT* asc2)
+  CityObject* ImporterASC::fusionResolutions(MNT* asc1, MNT* asc2)
   {
     const int prec = 10;
     //create OGRPloygons for both asc
     std::vector<OGRPolygon*> polys1, polys2;
+    //first asc
     for (int y = 0; y < asc1->get_dim_y() - 1; y++)
     {
       for (int x = 0; x < asc1->get_dim_x() - 1; x++)
@@ -295,6 +286,7 @@ namespace citygml
       std::cout << "Building file 1 (" << (int)(y*100.0 / asc1->get_dim_y()) << "%)\r";
     }
     std::cout << "Building file 1 (100%)" << std::endl;
+    //second asc
     for (int y = 0; y < asc2->get_dim_y() - 1; y++)
     {
       for (int x = 0; x < asc2->get_dim_x() - 1; x++)
@@ -331,36 +323,9 @@ namespace citygml
       std::cout << "Building file 2 (" << (int)(y*100.0 / asc2->get_dim_y()) << "%)\r";
     }
     std::cout << "Building file 2 (100%)" << std::endl;
+    //Merging
     std::vector<OGRPolygon*> polysMerged;
     std::cout << "Merging...\r";
-    //{ //debug: export to shp
-    //	const char * DriverName = "ESRI Shapefile";
-    //	OGRSFDriver * Driver;
-    //	OGRRegisterAll();
-    //	Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-
-    //	OGRDataSource * DS1 = Driver->CreateDataSource("MNT_25.shp", NULL);
-    //	OGRLayer * Layer1 = DS1->CreateLayer("Layer1");
-    //	for (OGRPolygon* poly1 : polys1)
-    //	{
-    //		OGRFeature * Feature1 = OGRFeature::CreateFeature(Layer1->GetLayerDefn());
-    //		Feature1->SetGeometry(poly1);
-    //		Layer1->CreateFeature(Feature1);
-    //		OGRFeature::DestroyFeature(Feature1);
-    //	}
-    //	OGRDataSource::DestroyDataSource(DS1);
-
-    //	OGRDataSource * DS2 = Driver->CreateDataSource("MNT_02.shp", NULL);
-    //	OGRLayer * Layer2 = DS2->CreateLayer("Layer1");
-    //	for (OGRPolygon* poly2 : polys2)
-    //	{
-    //		OGRFeature * Feature2 = OGRFeature::CreateFeature(Layer1->GetLayerDefn());
-    //		Feature2->SetGeometry(poly2);
-    //		Layer2->CreateFeature(Feature2);
-    //		OGRFeature::DestroyFeature(Feature2);
-    //	}
-    //	OGRDataSource::DestroyDataSource(DS2);
-    //}
     int i = 1;
     for (OGRPolygon* poly1 : polys1)
     {
@@ -368,19 +333,19 @@ namespace citygml
       OGRPolygon* pRes = new OGRPolygon(*poly1);
       for (OGRPolygon* poly2 : polys2)
       {
-        if (poly1->Intersects(poly2))
+        if (poly1->Intersects(poly2)) //for each least precise polygon, check if a more precise covers it
         {
-          OGRPolygon* ptemp = (OGRPolygon*)pRes->Difference(poly2);
+          OGRPolygon* ptemp = (OGRPolygon*)pRes->Difference(poly2); //if yes, we substract the covered part
           pRes = ptemp;
           if (pRes == NULL) break;
           intersectingPolys.push_back(poly2);
         }
       }
-      if (pRes != NULL)
-      {
-        if (pRes->getExteriorRing() != nullptr)
+      if (pRes != NULL && pRes->getExteriorRing() != nullptr && pRes->getExteriorRing()->getNumPoints()>2)
+      { //some polys on the seam may have a Z coordinate no corrected during the 'Difference' operation, we fix this here
           for (int j = 0; j < pRes->getExteriorRing()->getNumPoints(); j++)
           {
+          int npts = pRes->getExteriorRing()->getNumPoints();
             OGRPoint* pt = new OGRPoint();
             pRes->getExteriorRing()->getPoint(j, pt);
             for (OGRPolygon* iPoly : intersectingPolys)
@@ -400,24 +365,7 @@ namespace citygml
     std::cout << "Merging (100%)" << std::endl;
     for (OGRPolygon* poly : polys2)
       polysMerged.push_back(poly);
-    //debug
-    //{
-    //	const char * DriverName = "ESRI Shapefile";
-    //	OGRSFDriver * Driver;
-    //	OGRRegisterAll();
-    //	Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-    //	OGRDataSource * DS = Driver->CreateDataSource("MNT_merged.shp", NULL);
-    //	OGRLayer * Layer = DS->CreateLayer("Layer1");
-    //	for (OGRPolygon* poly : polysMerged)
-    //	{
-    //		OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
-    //		Feature->SetGeometry(poly);
-    //		Layer->CreateFeature(Feature);
-    //		OGRFeature::DestroyFeature(Feature);
-    //	}
-    //	OGRDataSource::DestroyDataSource(DS);
-    //}
-    //convert all OGRpolygons to CityGML
+    //Convert OGRPolygons to CityGML Geometry
     Geometry* geom = new Geometry("", GT_Unknown, 3);
     i = 1;
     for (OGRPolygon* poly : polysMerged)
@@ -426,18 +374,14 @@ namespace citygml
       if (GMLPoly != nullptr) geom->addPolygon(GMLPoly);
       std::cout << "Conversion (" << (int)(i++*100.0 / (polysMerged.size() + 1)) << "%)\r";
     }
-    //add to CityModel
-    CityModel* model = new CityModel();
+    //add to CityObject
     CityObject* reliefTIN = new TINRelief("");
 
     reliefTIN->addGeometry(geom);
 
-    model->addCityObject(reliefTIN);
-    model->addCityObjectAsRoot(reliefTIN);
-    model->computeEnvelope();
     std::cout << "Conversion (100%)" << std::endl;
 
-    return model;
+    return reliefTIN;
   }
   /////////////////////////////////////////////////////////////////////////////////////////
 }//namespace citygml

@@ -179,11 +179,10 @@ LRing PutLRingOnTerrain(LRing ring, std::string dir)
 }
 
 
-void ShpExtruction(std::string dir)
+void ShpExtrusion(std::string filename, std::string outputfile, std::string dir)
 {
-   QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
 
-   QFileInfo file(filepath);
+	QFileInfo file(filename.c_str());
 
    QString ext = file.suffix().toLower();
 
@@ -191,7 +190,7 @@ void ShpExtruction(std::string dir)
    {
       citygml::CityModel* ModelOut = new citygml::CityModel;
 
-      OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/);
+		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.c_str(), TRUE/*FALSE*/);
       std::cout << "Shp loaded" << std::endl;
       std::cout << "Processing..." << std::endl;
 
@@ -292,14 +291,12 @@ void ShpExtruction(std::string dir)
 
       for(auto it = tileTriangles.begin(); it != tileTriangles.end(); it++)
          delete it->second;
+    tileTriangles.clear();
 
       std::cout << "Exporting citygml" << std::endl;
       ModelOut->computeEnvelope();
 
-      QDir dir;
-      dir.mkdir("./ShpExtruded/");
-
-      citygml::ExporterCityGML exporter("./ShpExtruded/"+file.baseName().toStdString()+".gml");
+    citygml::ExporterCityGML exporter(outputfile);
       exporter.exportCityModel(*ModelOut);
       std::cout << "Done exporting" << std::endl;
    }
