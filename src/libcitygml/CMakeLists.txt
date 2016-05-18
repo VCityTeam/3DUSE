@@ -34,7 +34,7 @@ add_library( citygml SHARED
   texture.cpp
 
   export/exportCityGML.cpp
-  export/exportJSON.cpp
+  # FIXME export/exportJSON.cpp
   export/exportOBJ.cpp
   export/exporter.cpp
 

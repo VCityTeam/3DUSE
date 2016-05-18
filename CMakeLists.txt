@@ -30,11 +30,12 @@ SET(PRJ_VERSION "${PRJ_VERSION_MAJOR}.${PRJ_VERSION_MINOR}.${PRJ_VERSION_PATCH}"
 message(STATUS "${PRJ_NAME} ${PRJ_VERSION}")
 
 project( ${PRJ_NAME} )
+# FIXME: this will override any user defined value of CMAKE_INSTALL_PREFIX
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy_${PRJ_VERSION}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-# set Release as default build target
+# Set Release as default build target
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE Release CACHE STRING
       "Choose the type of build, options are: Debug, Release."
@@ -47,32 +48,28 @@ message(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
 #------------------------------------------------------------------------------
 # GNUCXX
 #------------------------------------------------------------------------------
-if(CMAKE_COMPILER_IS_GNUCXX)
-  SET(ENABLE_CXX11 "-std=c++11")
+if( CMAKE_COMPILER_IS_GNUCXX )
+  set( ENABLE_CXX11 "-std=c++11" )
 
-  EXECUTE_PROCESS(COMMAND "${CMAKE_CXX_COMPILER} -dumpversion" OUTPUT_VARIABLE GCC_VERSION)
-  if (GCC_VERSION LESS 4.7)
-    SET(ENABLE_CXX11 "-std=c++0x")
+  execute_process( COMMAND "${CMAKE_CXX_COMPILER} -dumpversion"
+                   OUTPUT_VARIABLE GCC_VERSION )
+  if( GCC_VERSION LESS 4.7 )
+    set( ENABLE_CXX11 "-std=c++0x" )
   endif()
 
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}")
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}" )
   message(STATUS "GNUCXX compiler detected (with ${ENABLE_CXX11} activated)")
 endif()
+
 #------------------------------------------------------------------------------
 # Clang (export CXX=clang++ CC=clang)
 #------------------------------------------------------------------------------
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  SET(ENABLE_CXX11 "-std=c++11")
-
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments")
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ENABLE_CXX11} -Qunused-arguments")
-  message(STATUS "Clang compiler detected (with ${ENABLE_CXX11} activated)")
-  if ( ${CMAKE_BUILD_TYPE} MATCHES "Debug" )
-#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wdocumentation")
-#    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O1 -g -fsanitize=address -fno-omit-frame-pointer")
-#    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1 -g -fsanitize=address -fno-omit-frame-pointer")
-  endif( ${CMAKE_BUILD_TYPE} MATCHES "Debug" )
-endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
+  set( ENABLE_CXX11 "-std=c++11" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments" )
+  set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments" )
+  message( STATUS "Clang compiler detected (with ${ENABLE_CXX11} activated)" )
+endif()
 
 #------------------------------------------------------------------------------
 # MSVC
@@ -178,6 +175,10 @@ else(WITH_QT5)
     message(FATAL_ERROR "Qt4 not found. Please set QTDIR.")
   endif(QT4_FOUND)
 
+  # FIXME: MTO says this test is no longer usefull ant that any reference
+  # to WITH_QT3D and QT3D related variables (see also below) can be cleaned out.
+  # Ditto with Qt53D  !!!!
+
   # temporary (very bad) hack for Qt4-Qt3D test (only for Qt-4.8.1-Qt3D-1.0-x86 under windows)...
   if (WITH_QT3D)
     find_library(QT3D_LIBRARIES
@@ -222,7 +223,7 @@ else(OPENSCENEGRAPH_FOUND)
   message(FATAL_ERROR "OpenSceneGraph not found. Please set OSG_DIR.")
 endif(OPENSCENEGRAPH_FOUND)
 
-# Find osg
+# Find osg (which is a sub-module of OpenSceneGraph)
 find_package(osg)
 if(OSG_FOUND)
   include_directories(${OSG_INCLUDE_DIR})
@@ -294,7 +295,37 @@ else(OSGWIDGET_FOUND)
   message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
 endif(OSGWIDGET_FOUND)
 
-# Find osgQt (only for Linux and Mac OS X, not used with the "WIN32 x64 VCity binary kit" under Windows, not used under Travis too)
+# Find osgQt
+# FIXME: assert the following with MTO
+# Not surprisingly OSG-QT depends both on OSG and QT. Depending on
+# the platform/distribution the packagers choose some QT version
+# (4 or 5) to in order to package OSG-QT. 3DUse offers support for
+# both QT4 and QT5. This can produce collisions when e.g. 3DUSe is
+# build against QT5 but the OSG-QT package is against QT4. Solving
+# this is done by embedding the (various versions of) OSG-QT within
+# 3DUse (refer to src/gui/osgQt directory). Then when required (this
+# is the difficult part) either the native OSG-QT package is used or
+# the embedded version is used.
+# The trick is realised with the usage of the variables
+# - OSGQT_INCLUDE_DIR (either set by find_package or manually)
+# - VCITY_GUI_SRC_WIN that is either empty (for the native package) or points
+#   to the ad-hoc version of the sources
+# With QT4 the split goes:
+#  - Embedded code used for: 
+#     - MacOS AND TRAVIS     
+#     - Win32
+#  - Native package for:
+#     - MacOS (not on Travis) 
+#     - Linux
+# With QT5 the split goes:
+#  - Embedded code used for:  FIXME: ask MTO ?
+#  - Native package for:      FIXME: ask MTO ?
+#  
+# FIXME: why consider Travis as being special case that needs to be
+# flagged through an environement variable ? Shouldn't Travis be
+# a platform like another one i.e. indirectly specified through its
+# compiler and version of QT4 or QT5 ?
+
 if (WIN32)
   SET( OSGQT_INCLUDE_DIR "" )
 elseif(DEFINED ENV{TRAVIS})
@@ -318,7 +349,7 @@ else()
   endif(OSGQT_FOUND)
 endif()
 
-# Find OpenThreads
+# Find OpenThreads (which is also an OSG sub-module)
 find_package(OpenThreads)
 if(OPENTHREADS_FOUND)
   include_directories(${OPENTHREADS_INCLUDE_DIR})
@@ -342,22 +373,6 @@ if(LIBXML2_FOUND)
 else(LIBXML2_FOUND)
   message(FATAL_ERROR "LibXml2 not found.")
 endif(LIBXML2_FOUND)
-
-# Find Proj
-#find_package(Proj)
-#if(PROJ_FOUND)
-#  include_directories(${PROJ_INCLUDE_DIR})
-#else(PROJ_FOUND)
-#  message(FATAL_ERROR "Proj not found.")
-#endif(PROJ_FOUND)
-
-# Find GEOS
-#find_package(GEOS)
-#if(GEOS_FOUND)
-#  include_directories(${GEOS_INCLUDE_DIR})
-#else(GEOS_FOUND)
-#  message(FATAL_ERROR "GEOS not found.")
-#endif(GEOS_FOUND)
 
 # Find LASLIB
 find_package(LASLIB)
@@ -395,6 +410,7 @@ endif(WITH_QT5)
 set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
 set( FILTERS_LIBRARIES   filters )
 
+#
 set( CITYGML_INCLUDE_DIR
    ${CMAKE_SOURCE_DIR}/src                   #FIXME: should not be necessary
    ${CMAKE_SOURCE_DIR}/src/libcitygml
@@ -402,7 +418,10 @@ set( CITYGML_INCLUDE_DIR
    ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME: will become a library
    ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
 )
-set(CITYGML_LIBRARIES citygml)
+set( CITYGML_LIBRARIES citygml )
+
+#
+set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
 # FIXME: remove the following line and replace it with target_include_directories
 INCLUDE_DIRECTORIES(src
@@ -414,82 +433,82 @@ INCLUDE_DIRECTORIES(src
 file(
   GLOB_RECURSE   # FIXME: not required anymore
   VCITY_GUI_SRC
-src/core/RayBox.cpp
-src/core/abstractlayer.cpp
-src/core/algo.cpp
-src/core/algo2.cpp
-src/core/application.cpp
-src/core/cell.cpp
-src/core/controller.cpp
-src/core/dataprofile.cpp
-src/core/layerAssimp.cpp
-src/core/layerCityGML.cpp
-src/core/layerLas.cpp
-src/core/layerMnt.cpp
-src/core/layerShp.cpp
-src/core/layerTiledCityGML.cpp
-src/core/scene.cpp
-src/core/settings.cpp
-src/core/tile.cpp
-src/core/tools/log.cpp
-
-src/gui/applicationGui.cpp
-src/gui/controllerGui.cpp
-src/gui/dialogAbout.cpp
-src/gui/dialogAddBuilding.cpp
-src/gui/dialogAddLayer.cpp
-src/gui/dialogDoc.cpp
-src/gui/dialogDynState.cpp
-src/gui/dialogEditAssimpNode.cpp
-src/gui/dialogEditBldg.cpp
-src/gui/dialogEditLayer.cpp
-src/gui/dialogEditTile.cpp
-src/gui/dialogLink.cpp
-src/gui/dialogLoadBBox.cpp
-src/gui/dialogSettings.cpp
-src/gui/dialogShpTool.cpp
-src/gui/dialogState.cpp
-src/gui/dialogTag.cpp
-src/gui/dialogTilingCityGML.cpp
-src/gui/dialogYearOfConst.cpp
-src/gui/dialogYearOfDemol.cpp
-src/gui/mainWindow.cpp
-src/gui/plugindialog.cpp
-src/gui/treeView.cpp
-
-src/gui/osg/osgAssimp.cpp
-src/gui/osg/osgCityGML.cpp
-src/gui/osg/osgCompass.cpp
-src/gui/osg/osgGDAL.cpp
-src/gui/osg/osgInfoBubbles.cpp
-src/gui/osg/osgLas.cpp
-src/gui/osg/osgPicking.cpp
-src/gui/osg/osgQtWidget.cpp
-src/gui/osg/osgScene.cpp
-src/gui/osg/osgTools.cpp
-
-# Interestingly enough the following are not necessary !?
-# src/gui/osgQt/osg32/GraphicsWindowQt.cxx
-# src/gui/osgQt/osg34/GraphicsWindowQt.cxx
-# src/plugins/*.cpp
-
-src/libfilters/raytracing/Hit.cpp
-src/libfilters/raytracing/Ray.cpp
-src/libfilters/raytracing/RayTracing.cpp
-src/libfilters/tiling/ASCCut.cpp
-
-src/DataStructures/DEM/osgMnt.cpp
-
-src/processes/ChangeDetection.cpp
-src/processes/EnhanceMNT.cpp
-src/processes/ExportToShape.cpp
-src/processes/LinkCityGMLShape.cpp
-src/processes/ShpExtrusion.cpp
-src/processes/TilingCityGML.cpp
-src/processes/ToolAlgoCut.cpp
-src/processes/lodsmanagement.cpp
-
-src/utils/CityGMLFusion.cpp
+  src/core/RayBox.cpp
+  src/core/abstractlayer.cpp
+  src/core/algo.cpp
+  src/core/algo2.cpp
+  src/core/application.cpp
+  src/core/cell.cpp
+  src/core/controller.cpp
+  src/core/dataprofile.cpp
+  src/core/layerAssimp.cpp
+  src/core/layerCityGML.cpp
+  src/core/layerLas.cpp
+  src/core/layerMnt.cpp
+  src/core/layerShp.cpp
+  src/core/layerTiledCityGML.cpp
+  src/core/scene.cpp
+  src/core/settings.cpp
+  src/core/tile.cpp
+  src/core/tools/log.cpp
+  
+  src/gui/applicationGui.cpp
+  src/gui/controllerGui.cpp
+  src/gui/dialogAbout.cpp
+  src/gui/dialogAddBuilding.cpp
+  src/gui/dialogAddLayer.cpp
+  src/gui/dialogDoc.cpp
+  src/gui/dialogDynState.cpp
+  src/gui/dialogEditAssimpNode.cpp
+  src/gui/dialogEditBldg.cpp
+  src/gui/dialogEditLayer.cpp
+  src/gui/dialogEditTile.cpp
+  src/gui/dialogLink.cpp
+  src/gui/dialogLoadBBox.cpp
+  src/gui/dialogSettings.cpp
+  src/gui/dialogShpTool.cpp
+  src/gui/dialogState.cpp
+  src/gui/dialogTag.cpp
+  src/gui/dialogTilingCityGML.cpp
+  src/gui/dialogYearOfConst.cpp
+  src/gui/dialogYearOfDemol.cpp
+  src/gui/mainWindow.cpp
+  src/gui/plugindialog.cpp
+  src/gui/treeView.cpp
+  
+  src/gui/osg/osgAssimp.cpp
+  src/gui/osg/osgCityGML.cpp
+  src/gui/osg/osgCompass.cpp
+  src/gui/osg/osgGDAL.cpp
+  src/gui/osg/osgInfoBubbles.cpp
+  src/gui/osg/osgLas.cpp
+  src/gui/osg/osgPicking.cpp
+  src/gui/osg/osgQtWidget.cpp
+  src/gui/osg/osgScene.cpp
+  src/gui/osg/osgTools.cpp
+  
+  # Interestingly enough the following are not necessary !?
+  # src/gui/osgQt/osg32/GraphicsWindowQt.cxx
+  # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
+  # src/plugins/*.cpp
+  
+  src/libfilters/raytracing/Hit.cpp
+  src/libfilters/raytracing/Ray.cpp
+  src/libfilters/raytracing/RayTracing.cpp
+  src/libfilters/tiling/ASCCut.cpp
+  
+  src/DataStructures/DEM/osgMnt.cpp
+  
+  src/processes/ChangeDetection.cpp
+  src/processes/EnhanceMNT.cpp
+  src/processes/ExportToShape.cpp
+  src/processes/LinkCityGMLShape.cpp
+  src/processes/ShpExtrusion.cpp
+  src/processes/TilingCityGML.cpp
+  src/processes/ToolAlgoCut.cpp
+  src/processes/lodsmanagement.cpp
+  
+  src/utils/CityGMLFusion.cpp
 
   src/main.cpp
 
@@ -525,6 +544,7 @@ if(DEFINED ENV{TRAVIS})
     set( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
   endif (APPLE)
 endif()
+
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
@@ -545,11 +565,10 @@ SET( VCITY_GUI_LIB
   ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
-  #${PROJ_LIBRARY}
-  #${GEOS_LIBRARY}
   ${LASLIB_LIBRARY}
   ${OPENGL_LIBRARIES}
 )
+
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT_LIBRARIES} )
@@ -611,15 +630,17 @@ ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 
-target_include_directories( ${PRJ_NAME} PUBLIC ${CITYGML_INCLUDE_DIR} )
-target_include_directories( ${PRJ_NAME} PUBLIC ${FILTERS_INCLUDE_DIR} )
+target_include_directories( ${PRJ_NAME} PUBLIC
+  ${CITYGML_INCLUDE_DIR}
+  ${FILTERS_INCLUDE_DIR} 
+)
 
 target_link_libraries (${PRJ_NAME}
   ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
   ${VCITY_GUI_LIB}
   ${FILTERS_LIBRARIES}
   ${CITYGML_LIBRARIES}
-  #citygmlutils    # FIXME: make this a variable
+  ${CITYGMLUTILS_LIBRARIES}
 )
 
 if (WITH_QT5)
@@ -764,6 +785,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 	target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
     ${CITYGML_LIBRARIES}
+    ${CITYGMLUTILS_LIBRARIES}
     ${CityGMLVisibilite_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
@@ -811,6 +833,7 @@ if (BUILD_CityGMLFloodARQtPlugin)
     ${CityGMLFloodAR_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
     ${CITYGML_LIBRARIES}
+    ${CITYGMLUTILS_LIBRARIES}
   )
   if (WITH_QT5)
     QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)
