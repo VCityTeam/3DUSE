@@ -396,9 +396,10 @@ set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
 set( FILTERS_LIBRARIES   filters )
 
 set( CITYGML_INCLUDE_DIR
-   ${CMAKE_SOURCE_DIR}/src               #FIXME
+   ${CMAKE_SOURCE_DIR}/src                   #FIXME: should not be necessary
    ${CMAKE_SOURCE_DIR}/src/libcitygml
-   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/export 
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME: will become a library
    ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
 )
 set(CITYGML_LIBRARIES citygml)
@@ -411,7 +412,7 @@ INCLUDE_DIRECTORIES(src
 
 # General
 file(
-  GLOB_RECURSE
+  GLOB_RECURSE   # FIXME: not required anymore
   VCITY_GUI_SRC
 src/core/RayBox.cpp
 src/core/abstractlayer.cpp
@@ -498,7 +499,8 @@ src/utils/CityGMLFusion.cpp
   # on libcityGML and the core. Actually, if this is indeed the case
   # then those files should be compile with core, or the utils but not
   # within libcityGML that should remain "3D-Use core" free.
-  src/libcitygml/utils/*.cpp  
+  src/libcitygml/utils/AABB.cpp
+  src/libcitygml/utils/Triangle.cpp
 )
 
 SET( VCITY_GUI_SRC
