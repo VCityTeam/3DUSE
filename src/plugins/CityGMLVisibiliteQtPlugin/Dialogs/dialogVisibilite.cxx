@@ -76,7 +76,6 @@ DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
 void DialogVisibilite::SplitSkylinePoints()
 {
    QString filename = QFileDialog::getOpenFileName(nullptr, "Load shp file");
-   QString savepath = QFileDialog::getExistingDirectory(nullptr,"Set save directory");
 
    QFileInfo file(filename);
 
@@ -121,9 +120,9 @@ void DialogVisibilite::SplitSkylinePoints()
       }
    }
 
-   SaveGeometrytoShape(savepath.toStdString() + "/SkylinePointsVeget.shp", Veget);
-   SaveGeometrytoShape(savepath.toStdString() + "/SkylinePointsBuildings.shp", Buildings);
-   SaveGeometrytoShape(savepath.toStdString() + "/SkylinePointsMNT.shp", MNT);
+   SaveGeometrytoShape(file.absolutePath().toStdString() + "/" + file.baseName().toStdString() + "Veget.shp", Veget);
+   SaveGeometrytoShape(file.absolutePath().toStdString() + "/" + file.baseName().toStdString() + "Buildings.shp", Buildings);
+   SaveGeometrytoShape(file.absolutePath().toStdString() + "/" + file.baseName().toStdString() + "MNT.shp", MNT);
 
    delete Veget;
    delete Buildings;
