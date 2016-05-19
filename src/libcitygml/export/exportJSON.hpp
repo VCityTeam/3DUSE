@@ -5,16 +5,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "exporter.hpp"
 #include "citygml.hpp"
-//#include <fstream> // MT 05/05/2014
-#include <osgDB/fstream>
+#include "citygml_export.h"
+#include <fstream>
 #include <map>
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterJSON class
 /// Export JSON, mostly for webgl project, using our json format
-class ExporterJSON : public Exporter
+class CITYGML_EXPORT ExporterJSON : public Exporter
 {
 public:
     ExporterJSON();

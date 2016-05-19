@@ -19,6 +19,7 @@
 #ifdef USE_LIBXML2
 
 #include "parser.hpp"
+#include "citygml.hpp"
 
 #include <cstdarg>
 #include <cstdio>

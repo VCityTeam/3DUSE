@@ -65,9 +65,9 @@ namespace vcity
 #if 0
 	////////////////////////////////////////////////////////////////////////////////
 	/**
-	* @brief ProjectPointOnPolygon3D : prend un point 2D Point et calcule sa coordonnée Z en partant du principe qu'il est coplanaire à Polygon
+	* @brief ProjectPointOnPolygon3D : prend un point 2D Point et calcule sa coordonnee Z en partant du principe qu'il est coplanaire a Polygon
 	* @param Point : point que l'on veut extruder en 3D
-	* @param Polygon : polygon qui définit le plan sur lequel vient se poser Point
+	* @param Polygon : polygon qui definit le plan sur lequel vient se poser Point
 	* @return le point 3D correspondant
 	*/
 	OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
@@ -85,8 +85,8 @@ namespace vcity
 		TVec3d AB;
 		TVec3d AC;
 
-		int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
-		for(int i = 1; i < Ring->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+		int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe a 1 tant que C n'est pas correctement rempli
+		for(int i = 1; i < Ring->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une repetition du premier
 		{
 			if(test == 0)
 			{
@@ -96,7 +96,7 @@ namespace vcity
 
 				if(A.x != B.x || A.y != B.y)
 				{
-					++test;// A est bien différent de B
+					++test;// A est bien different de B
 					AB = B - A;
 				}
 			}
@@ -108,7 +108,7 @@ namespace vcity
 
 				if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
 				{
-					++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+					++test;// C n'est pas aligne avec A et B => A B C forment bien un plan
 					AC = C - A;
 					break;
 				}
@@ -405,9 +405,9 @@ namespace vcity
 	////////////////////////////////////////////////////////////////////////////////
 
 	/**
-	* @brief Extrait les zones composées de nombreux points proches
-	* @param cloud : nuage de points en entrée
-	* @return un nuage de point avec les zones colorées selon les regroupements
+	* @brief Extrait les zones composees de nombreux points proches
+	* @param cloud : nuage de points en entree
+	* @return un nuage de point avec les zones colorees selon les regroupements
 	*/
 	std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> SegmentationRoofs(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
 	{
@@ -484,11 +484,11 @@ namespace vcity
 	}
 
 	/**
-	* @brief Extrait les points d'un nuage de point situé à plus d'une certaine distance d'un autre nuage
-	* @param Cloud1 : Nuage de points de référence
-	* @param Cloud2 : Nuage de points que l'on va comparer à Cloud1
-	* @param Distance : Distance minimale à partir de laquelle un point de Cloud2 sera jugé comme suffisament éloigné de Cloud1, et mis de côté
-	* @return Un nuage de points contenant tous les points de Cloud2 situés à plus de Distance de Cloud1
+	* @brief Extrait les points d'un nuage de point situe a plus d'une certaine distance d'un autre nuage
+	* @param Cloud1 : Nuage de points de reference
+	* @param Cloud2 : Nuage de points que l'on va comparer a Cloud1
+	* @param Distance : Distance minimale a partir de laquelle un point de Cloud2 sera juge comme suffisament eloigne de Cloud1, et mis de cate
+	* @return Un nuage de points contenant tous les points de Cloud2 situes a plus de Distance de Cloud1
 	*/
 	pcl::PointCloud<pcl::PointXYZ>::Ptr ExtractDistantPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud1, pcl::PointCloud<pcl::PointXYZ>::Ptr Cloud2, float Distance)
 	{
@@ -521,7 +521,7 @@ namespace vcity
 				P.z = point.z;
 				P2.z = point.z;
 
-				P.r = Distances[0]*25.5; //Rouge à 10m de différence.
+				P.r = Distances[0]*25.5; //Rouge a 10m de difference.
 				P.g = Distances[0]*25.5;
 				P.b = Distances[0]*25.5;
 
@@ -574,9 +574,9 @@ namespace vcity
 	}
 	////////////////////////////////////////////////////////////////////////////////
 	/**
-	* @brief Détecte les changements sur les bâtiments entre deux fichiers LiDAR. Le plus récent est en 2.
+	* @brief Detecte les changements sur les batiments entre deux fichiers LiDAR. Le plus recent est en 2.
 	* @param Path1 : Chemin pour le fichier correspondant au fichier LiDAR le plus ancien
-	* @param Path2 : Chemin pour le fichier correspondant au fichier LiDAR le plus récent
+	* @param Path2 : Chemin pour le fichier correspondant au fichier LiDAR le plus recent
 	* @return 
 	*/
 	/*void Algo::CompareTwoLidar(std::string Path1, std::string Path2)
@@ -730,7 +730,7 @@ namespace vcity
 
 		while (LiDAR1->read_point())
 		{
-			if((LiDAR1->point).classification == 6)//Building = 6 (d'après http://www.asprs.org/a/society/committees/standards/asprs_las_format_v11.pdf)
+			if((LiDAR1->point).classification == 6)//Building = 6 (d'apres http://www.asprs.org/a/society/committees/standards/asprs_las_format_v11.pdf)
 			{
 				//laswriter1->write_point(&LiDAR1->point);
 				point.x = (LiDAR1->point).get_x() - appGui().getSettings().getDataProfile().m_offset.x;
@@ -747,7 +747,7 @@ namespace vcity
 
 		while (LiDAR2->read_point())
 		{
-			if((LiDAR2->point).classification == 6)//Building = 6 (d'après http://www.asprs.org/a/society/committees/standards/asprs_las_format_v11.pdf)
+			if((LiDAR2->point).classification == 6)//Building = 6 (d'apres http://www.asprs.org/a/society/committees/standards/asprs_las_format_v11.pdf)
 			{
 				//laswriter2->write_point(&LiDAR2->point);
 				point.x = (LiDAR2->point).get_x() - appGui().getSettings().getDataProfile().m_offset.x;

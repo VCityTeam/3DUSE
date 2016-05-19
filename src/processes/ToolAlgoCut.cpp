@@ -2,8 +2,8 @@
 
 /**
 * @brief Convertit un OGRPolygon* en citygml::Polygon*
-* @param OGRPoly OGRPolygon* à convertir.
-* @param Name Nom du Polygon CityGML à retourner.
+* @param OGRPoly OGRPolygon* a convertir.
+* @param Name Nom du Polygon CityGML a retourner.
 */
 citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name)
 {
@@ -15,7 +15,7 @@ citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name
 	citygml::Polygon * Poly = new citygml::Polygon(Name + "_Poly");
 	citygml::LinearRing * Ring = new citygml::LinearRing(Name + "_Ring", true);
 
-	for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
+	for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrete a size - 1 car le premier point est deja repete en derniere position
 	{
 		OGRPoint * point = new OGRPoint;
 		ExtRing->getPoint(j, point);
@@ -35,7 +35,7 @@ citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name
 
 		OGRLinearRing * IntRing = OGRPoly->getInteriorRing(i);
 
-		for(int j = 0; j < IntRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
+		for(int j = 0; j < IntRing->getNumPoints() - 1; ++j)//On s'arrete a size - 1 car le premier point est deja repete en derniere position
 		{
 			OGRPoint * point = new OGRPoint;
 			IntRing->getPoint(j, point);
@@ -54,9 +54,9 @@ citygml::Polygon * ConvertOGRPolytoGMLPoly(OGRPolygon* OGRPoly, std::string Name
 }
 
 /**
-* @brief ProjectPointOnPolygon3D : prend un point 2D Point et calcule sa coordonnée Z en partant du principe qu'il est coplanaire à Polygon
+* @brief ProjectPointOnPolygon3D : prend un point 2D Point et calcule sa coordonnee Z en partant du principe qu'il est coplanaire a Polygon
 * @param Point : point que l'on veut extruder en 3D
-* @param Polygon : polygon qui définit le plan sur lequel vient se poser Point
+* @param Polygon : polygon qui definit le plan sur lequel vient se poser Point
 * @return le point 3D correspondant
 */
 OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
@@ -74,8 +74,8 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 	TVec3d AB;
 	TVec3d AC;
 
-	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
-	for(int i = 1; i < Ring->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe a 1 tant que C n'est pas correctement rempli
+	for(int i = 1; i < Ring->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une repetition du premier
 	{
 		if(test == 0)
 		{
@@ -85,7 +85,7 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 
 			if(A.x != B.x || A.y != B.y)
 			{
-				++test;// A est bien différent de B
+				++test;// A est bien different de B
 				AB = B - A;
 			}
 		}
@@ -99,17 +99,17 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 
 			if(AB.x == 0 && AC.x != 0)
 			{
-				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+				++test;// C n'est pas aligne avec A et B => A B C forment bien un plan
 				break;
 			}
 			if(AB.y == 0 && AC.y != 0)
 			{
-				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+				++test;// C n'est pas aligne avec A et B => A B C forment bien un plan
 				break;
 			}
 			if(AB.x != 0 && AB.y != 0 && AC.x/AB.x != AC.y/AB.y)
 			{
-				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+				++test;// C n'est pas aligne avec A et B => A B C forment bien un plan
 				break;
 			}
 		}
@@ -132,7 +132,7 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 		t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
 		s = (M.x - A.x - t * AC.x) / AB.x;
 	}
-	else //AB.x = 0 donc AC.x ne peut pas être égal à 0 non plus (car A et B ont été choisis pour être distints)
+	else //AB.x = 0 donc AC.x ne peut pas etre egal a 0 non plus (car A et B ont ete choisis pour etre distints)
 	{
 		t = (A.x * AB.y - A.y * AB.x + AB.x * M.y - AB.y * M.x) / (AB.x * AC.y - AB.y * AC.x);
 		s = (M.y - A.y - t * AC.y) / AB.y;
@@ -144,9 +144,9 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
 }
 
 /**
-* @brief ChangePointsOrderForNormal : Modifie l'orientation du polygone pour que sa normale soit orientée vers le haut (pour MNT et Roof).
+* @brief ChangePointsOrderForNormal : Modifie l'orientation du polygone pour que sa normale soit orientee vers le haut (pour MNT et Roof).
 * @param Ring : Contient les points formant le polygone
-* @param Tex : Contient les coordonnées de textures liées aux points de Ring, il faut également modifier leur ordre si on veut conserver l'information de texture
+* @param Tex : Contient les coordonnees de textures liees aux points de Ring, il faut egalement modifier leur ordre si on veut conserver l'information de texture
 */
 void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
 {
@@ -161,8 +161,8 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
 	TVec3d AB;
 	TVec3d AC;
 
-	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
-	for(int i = 1; i < Ring->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe a 1 tant que C n'est pas correctement rempli
+	for(int i = 1; i < Ring->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une repetition du premier
 	{
 		if(test == 0)
 		{
@@ -172,7 +172,7 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
 
 			if(A.x != B.x || A.y != B.y)
 			{
-				++test;// A est bien différent de B
+				++test;// A est bien different de B
 				AB = B - A;
 			}
 		}
@@ -184,7 +184,7 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
 
 			if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
 			{
-				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+				++test;// C n'est pas aligne avec A et B => A B C forment bien un plan
 				AC = C - A;
 				break;
 			}
@@ -193,7 +193,7 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
 
 	double NormZ = AB.x * AC.y - AB.y * AC.x;
 
-	if(NormZ >= 0) //Le polygone est bien orienté pour que sa normale soit vers le haut, il n'y a donc rien à changer.
+	if(NormZ >= 0) //Le polygone est bien oriente pour que sa normale soit vers le haut, il n'y a donc rien a changer.
 		return;
 
 	OGRLinearRing* RingTmp = (OGRLinearRing*) Ring->clone();
@@ -215,11 +215,11 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
 }
 
 /**
-* @brief Découpe un polygon 3D GMLPoly suivant un second polygon 2D BuildingShp. Il faut que le polygon découpé soit encore en 3d.
-* @param GMLPoly représente le premier polygon 3D (issu du fichier CityGML)
-* @param BuildingShp représente le second polygon 2D qui va découper GMLPoly
-* @param TexUV représente les coordonnées de texture en entrée correspondant au GMLPoly
-* @param TexUVout représente les coordonnées de texture en sortie pour la Geometry résultat.
+* @brief Decoupe un polygon 3D GMLPoly suivant un second polygon 2D BuildingShp. Il faut que le polygon decoupe soit encore en 3d.
+* @param GMLPoly represente le premier polygon 3D (issu du fichier CityGML)
+* @param BuildingShp represente le second polygon 2D qui va decouper GMLPoly
+* @param TexUV represente les coordonnees de texture en entree correspondant au GMLPoly
+* @param TexUVout represente les coordonnees de texture en sortie pour la Geometry resultat.
 */
 OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, std::vector<TVec2f> *TexUV, std::vector<std::vector<TVec2f>>* TexUVout)
 {
@@ -228,8 +228,8 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 	OGRGeometry* Inter = GMLPoly->Intersection(BuildingShp);
 
-	//On va parcourir chaque point P de Inter et calculer sa position dans GMLPoly afin de calculer sa coordonnée z
-	//On commence par récupérer trois points A, B et C de GMLPoly non alignés pour obtenir l'équation paramétrique du plan formé par ce polygon
+	//On va parcourir chaque point P de Inter et calculer sa position dans GMLPoly afin de calculer sa coordonnee z
+	//On commence par recuperer trois points A, B et C de GMLPoly non alignes pour obtenir l'equation parametrique du plan forme par ce polygon
 	OGRLinearRing* GMLRing = GMLPoly->getExteriorRing();
 
 	TVec3d A;
@@ -250,8 +250,8 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 	TVec3d AB;
 	TVec3d AC;
 
-	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
-	for(int i = 1; i < GMLRing->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une répétition du premier
+	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe a 1 tant que C n'est pas correctement rempli
+	for(int i = 1; i < GMLRing->getNumPoints() - 1; ++i) //Pas besoin de regarder le dernier point qui est une repetition du premier
 	{
 		if(test == 0)
 		{
@@ -261,7 +261,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 			if(A.x != B.x || A.y != B.y)
 			{
-				++test;// A est bien différent de B
+				++test;// A est bien different de B
 				AB = B - A;
 				uvB = TexUV->at(i);
 				uvAB = uvB - uvA;
@@ -275,7 +275,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 			if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y))
 			{
-				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+				++test;// C n'est pas aligne avec A et B => A B C forment bien un plan
 				AC = C - A;
 				uvC = TexUV->at(i);
 				uvAC = uvC - uvA;
@@ -284,7 +284,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 		}
 	}
 
-	if(AB.x == 0) //Pour le calcul de s et t, cela pose problème donc on intervertit B et C pour avoir un AB.x != 0. En effet, AB.x et AC.x ne peuvent tous deux être égaux à 0 sinon le triangle serait plat.
+	if(AB.x == 0) //Pour le calcul de s et t, cela pose probleme donc on intervertit B et C pour avoir un AB.x != 0. En effet, AB.x et AC.x ne peuvent tous deux etre egaux a 0 sinon le triangle serait plat.
 	{
 		TVec2f uvTemp = uvAB;
 		TVec3d VecTemp = AB;
@@ -343,7 +343,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 			ResExtRing->addPoint(M.x, M.y, M.z);
 
-			uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
+			uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquees sans deformation.
 
 			delete P;
 		}
@@ -388,7 +388,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 		return ResPoly;
 	}
-	else //Si l'intersection ne représente pas un simple Polygon, il faut rechercher si c'est une GeometryCollection qui en contient, afin de pouvoir ensuite les récupérer.
+	else //Si l'intersection ne represente pas un simple Polygon, il faut rechercher si c'est une GeometryCollection qui en contient, afin de pouvoir ensuite les recuperer.
 	{
 		//std::cout << "Pas Polygon !! " << Inter->getGeometryName() << std::endl;
 
@@ -425,7 +425,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 						ResExtRing->addPoint(M.x, M.y, M.z);
 
-						uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
+						uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquees sans deformation.
 
 						delete P;
 					}
@@ -459,7 +459,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
 							ResIntRing->addPoint(M.x, M.y, M.z);
 
-							uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquées sans déformation.
+							uvPolyInter.push_back(TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y)); //On part du principe que les textures sont appliquees sans deformation.
 
 							delete P;
 						}
@@ -477,10 +477,10 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 }
 
 /**
-* @brief Calcul les coordonnées de texture UV d'un point par rapport à un polygone qui lui est coplanaire.
-* @param Poly Contient les coordonnées des points du polygone
-* @param UVs Contient les coordonnées de texture des points du polygone
-* @param Point Contient le point dont on désire calculer les coordonnées de texture
+* @brief Calcul les coordonnees de texture UV d'un point par rapport a un polygone qui lui est coplanaire.
+* @param Poly Contient les coordonnees des points du polygone
+* @param UVs Contient les coordonnees de texture des points du polygone
+* @param Point Contient le point dont on desire calculer les coordonnees de texture
 */
 TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Point)
 {
@@ -500,8 +500,8 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 	TVec3d AB;
 	TVec3d AC;
 
-	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe à 1 tant que C n'est pas correctement rempli
-	for(int i = 1; i < Poly->size(); ++i) //Le premier point n'est pas répété à la fin
+	int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe a 1 tant que C n'est pas correctement rempli
+	for(int i = 1; i < Poly->size(); ++i) //Le premier point n'est pas repete a la fin
 	{
 		if(test == 0)
 		{
@@ -509,7 +509,7 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 
 			if(A != B)
 			{
-				++test;// A est bien différent de B
+				++test;// A est bien different de B
 				AB = B - A;
 				uvB = UVs->at(i);
 				uvAB = uvB - uvA;
@@ -521,7 +521,7 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 
 			if((C.x - A.x)/(B.x - A.x) != (C.y - A.y)/(B.y - A.y) || (C.z - A.z)/(B.z - A.z) != (C.y - A.y)/(B.y - A.y) || (C.x - A.x)/(B.x - A.x) != (C.z - A.z)/(B.z - A.z))
 			{
-				++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
+				++test;// C n'est pas aligne avec A et B => A B C forment bien un plan
 				AC = C - A;
 				uvC = UVs->at(i);
 				uvAC = uvC - uvA;
@@ -556,7 +556,7 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 		s = (Point.z - A.z - t * AC.z) / AB.z;
 	}
 
-	if(AB.z == 0 && AC.z == 0)//Pour les bâtiments remarquables qui ne sont pas en LOD2 et qui ont des murs horizontaux, pour éviter les -1.#IND
+	if(AB.z == 0 && AC.z == 0)//Pour les batiments remarquables qui ne sont pas en LOD2 et qui ont des murs horizontaux, pour eviter les -1.#IND
 	{
 		t = (A.y * AB.x - A.x * AB.y + AB.y * Point.x - AB.x * Point.y) / (AB.y * AC.x - AB.x * AC.y);
 		s = (Point.x - A.x - t * AC.x) / AB.x;
@@ -592,9 +592,9 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
 }
 
 /**
-* @brief GetLineStringsFromPolygon lit un ou plusieurs polygons et extraits les arêtes (deux points) regroupés par Ring
+* @brief GetLineStringsFromPolygon lit un ou plusieurs polygons et extraits les aretes (deux points) regroupes par Ring
 * @param Polygon
-* @return Retourne un OGRMultiLineString par Ring : un LineString est composé de seulement deux points
+* @return Retourne un OGRMultiLineString par Ring : un LineString est compose de seulement deux points
 */
 std::vector<OGRMultiLineString*> GetLineStringsFromPolygon(OGRPolygon* Polygon)
 {

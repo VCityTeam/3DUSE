@@ -4,7 +4,6 @@
 
 #include "../FloodARTools.hpp"
 #include "AABB.hpp"
-#include "processes/ShpExtrusion.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::dialogFloodAR(QWidget *parent) :
@@ -12,28 +11,21 @@ dialogFloodAR::dialogFloodAR(QWidget *parent) :
 	ui(new Ui::dialogFloodAR)
 {
 	ui->setupUi(this);
-	connect(ui->btn_ASCcut_in, SIGNAL(clicked()), this, SLOT(browseInputDirASCCut()));
-	connect(ui->btn_ASCcut_out, SIGNAL(clicked()), this, SLOT(browseOutputDirASCCut()));
+  connect(ui->btn_exit, SIGNAL(clicked()), this, SLOT(close()));
+  connect(ui->btn_wkingDir, SIGNAL(clicked()), this, SLOT(browseWorkingDirectory()));
+  connect(ui->btn_ASCcut_in, SIGNAL(clicked()), this, SLOT(browseInputASCCut()));
 	connect(ui->btn_ASCcut_exec, SIGNAL(clicked()), this, SLOT(cutASC()));
-	connect(ui->btn_ASCtoWater_src, SIGNAL(clicked()), this, SLOT(browseInputASCtoWater()));
-	connect(ui->chkBox_ASCtoWater_simplify, SIGNAL(stateChanged(int)), this, SLOT(enablePolygonsParams(int)));
-	connect(ui->chkBox_ASCtoWater_time, SIGNAL(stateChanged(int)), this, SLOT(enableTemporalParams(int)));
 	connect(ui->btn_ASCtoWater_exec, SIGNAL(clicked()), this, SLOT(ASCtoWater()));
-	connect(ui->btn_ASCtoTerrain_src1, SIGNAL(clicked()), this, SLOT(browseInput1ASCtoTerrain()));
-	connect(ui->ben_ASCtoTerrain_src2, SIGNAL(clicked()), this, SLOT(browseInput2ASCtoTerrain()));
-	connect(ui->btn_ASCtoTerrain_tex, SIGNAL(clicked()), this, SLOT(browseTextureASCtoTerrain()));
-	connect(ui->chkBox_fusion, SIGNAL(stateChanged(int)), this, SLOT(enableASCFusion(int)));
-	connect(ui->chkBox_tex, SIGNAL(stateChanged(int)), this, SLOT(enableTextures(int)));
 	connect(ui->btn_ASCtoTerrain_exec, SIGNAL(clicked()), this, SLOT(ASCtoTerrain()));
-	connect(ui->btn_ShpExt_dir, SIGNAL(clicked()), this, SLOT(browseInputDirShpExt()));
-	connect(ui->btn_ShpExt_in, SIGNAL(clicked()), this, SLOT(browseInputShpExt()));
+	connect(ui->btn_ShpExt_buildAABB, SIGNAL(clicked()), this, SLOT(buildBoundingBoxes()));
 	connect(ui->btn_ShpExt_exec, SIGNAL(clicked()), this, SLOT(ShpExtrusion()));
 	connect(ui->btn_texCut_in, SIGNAL(clicked()), this, SLOT(browseInputTextureCut()));
 	connect(ui->btn_texCut_exec, SIGNAL(clicked()), this, SLOT(textureCut()));
+  connect(ui->btn_shpCut_in, SIGNAL(clicked()), this, SLOT(browseInputSHPCut()));
+  connect(ui->btn_shpCut_exec, SIGNAL(clicked()), this, SLOT(SHPCut()));
 
-	ui->btn_ShpExt_in->setEnabled(false);
-	ui->lineEdit_ShpExt_in->setEnabled(false);
-	ui->label_15->setEnabled(false);
+  // init ASCCut radio group
+  ui->radioBtn_ASCCut_terrain->setChecked(true);
 }
 ////////////////////////////////////////////////////////////////////////////////
 dialogFloodAR::~dialogFloodAR()
@@ -41,36 +33,29 @@ dialogFloodAR::~dialogFloodAR()
 	delete ui;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInputDirASCCut()
+void dialogFloodAR::browseWorkingDirectory()
 {
-	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
-	ui->lineEdit_ASCcut_src->setText(filename);
+  QString path = QFileDialog::getExistingDirectory(this, "Select working directory");
+  ui->lineEdit_wkingDir->setText(path);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseOutputDirASCCut()
+void dialogFloodAR::browseInputASCCut()
 {
-	QString path = QFileDialog::getExistingDirectory(this, "Select output directory");
-	ui->lineEdit_ASCcut_out->setText(path);
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Select ASC source file", "", "ASC files (*.asc)");
+	ui->lineEdit_ASCcut_src->setText(filenames.join(";"));
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::cutASC()
 {
-	QFileInfo file(ui->lineEdit_ASCcut_src->text());
-	QDir dir(ui->lineEdit_ASCcut_out->text());
+  QStringList files(ui->lineEdit_ASCcut_src->text().split(";"));
+	QDir dir(ui->lineEdit_wkingDir->text());
 	int tileSizeX = ui->spinBox_tileSize_x->value();
 	int tileSizeY = ui->spinBox_tileSize_y->value();
-	if (!file.exists())
+  bool isTerrain = ui->radioBtn_ASCCut_terrain->isChecked();
+	if (!dir.exists() || ui->lineEdit_wkingDir->text().toStdString() == "")
 	{
 		QMessageBox msgBox;
-		msgBox.setText("Input file not found!");
-		msgBox.setIcon(QMessageBox::Critical);
-		msgBox.exec();
-		return;
-	}
-	if (!dir.exists() || ui->lineEdit_ASCcut_out->text().toStdString() == "")
-	{
-		QMessageBox msgBox;
-		msgBox.setText("Output directory not found!");
+		msgBox.setText("Working directory not found!");
 		msgBox.setIcon(QMessageBox::Critical);
 		msgBox.exec();
 		return;
@@ -83,11 +68,23 @@ void dialogFloodAR::cutASC()
 		msgBox.exec();
 		return;
 	}
-	QString ext = file.suffix().toLower();
-	if (ext == "asc")
-	{
-		FloodAR::cutASC(file.absoluteFilePath().toStdString(), dir.absolutePath().toStdString(), tileSizeX, tileSizeY);
-	}
+  for (QFileInfo file: files)
+  {
+    if (!file.exists())
+	  {
+		  QMessageBox msgBox;
+      msgBox.setText(("Input file not found! ("+file.absoluteFilePath().toStdString()+")").c_str());
+		  msgBox.setIcon(QMessageBox::Critical);
+		  msgBox.exec();
+		  continue;
+	  }
+	  QString ext = file.suffix().toLower();
+	  if (ext == "asc")
+	  {
+      std::cout<<"Tiling file "<<file.absoluteFilePath().toStdString()<<std::endl;
+		  FloodAR::cutASC(file.absoluteFilePath().toStdString(), dir.absolutePath().toStdString(), tileSizeX, tileSizeY, isTerrain);
+	  }
+  }
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Tiling finished!");
@@ -104,6 +101,7 @@ void dialogFloodAR::browseInputTextureCut()
 void dialogFloodAR::textureCut()
 {
 	QFileInfo file(ui->lineEdit_texCut_src->text());
+  QDir wkDir(ui->lineEdit_wkingDir->text());
 	int tileSizeX = ui->spinBox_txTileSize_x->value();
 	int tileSizeY = ui->spinBox_txTileSize_y->value();
 	if (!file.exists())
@@ -122,8 +120,16 @@ void dialogFloodAR::textureCut()
 		msgBox.exec();
 		return;
 	}
+  if (!wkDir.exists() || ui->lineEdit_wkingDir->text().toStdString() == "")
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Working directory not found!");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
 
-	FloodAR::cutPicture(file.absoluteFilePath().toStdString(), tileSizeX, tileSizeY);
+	FloodAR::cutPicture(file.absoluteFilePath().toStdString(), ui->lineEdit_wkingDir->text().toStdString(), tileSizeX, tileSizeY);
 
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
@@ -132,158 +138,97 @@ void dialogFloodAR::textureCut()
 	msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
-
-void dialogFloodAR::browseInputASCtoWater()
+void dialogFloodAR::browseInputSHPCut()
 {
-	QStringList filenames = QFileDialog::getOpenFileNames(this, "Select ASC source file", "", "ASC files (*.asc)");
-	ui->lineEdit_ASCtoWater_src->setText(filenames.join(";"));
+  QString filename = QFileDialog::getOpenFileName(this, "Select SHP file", "", "SHP files (*.shp)");
+  ui->lineEdit_shpCut_src->setText(filename);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enablePolygonsParams(int state)
+void dialogFloodAR::SHPCut()
 {
-	switch (state)
-	{
-	case Qt::Checked:
-		ui->label_8->setEnabled(true);
-		ui->dbSpinBox_ASCtoWater_prec->setEnabled(true);
-		ui->label_9->setEnabled(true);
-		break;
-	default:
-		ui->label_8->setEnabled(false);
-		ui->dbSpinBox_ASCtoWater_prec->setEnabled(false);
-		ui->label_9->setEnabled(false);
-	}
-}
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enableTemporalParams(int state)
-{
-	switch (state)
-	{
-	case Qt::Checked:
-		ui->label_10->setEnabled(true);
-		ui->label_11->setEnabled(true);
-		ui->dtEdit_creationDate->setEnabled(true);
-		ui->dtEdit_terminationDate->setEnabled(true);
+  QFileInfo file(ui->lineEdit_shpCut_src->text());
+  QDir wkDir(ui->lineEdit_wkingDir->text());
+  int tileSizeX = ui->spinBox_shpTileSize_x->value();
+  int tileSizeY = ui->spinBox_shpTileSize_y->value();
 
-		break;
-	default:
-		ui->label_10->setEnabled(false);
-		ui->label_11->setEnabled(false);
-		ui->dtEdit_creationDate->setEnabled(false);
-		ui->dtEdit_terminationDate->setEnabled(false);
-	}
+  if (!file.exists())
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Input file not found!");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+  if (!wkDir.exists() || ui->lineEdit_wkingDir->text().toStdString() == "")
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Working directory not found!");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+  if (!(tileSizeX > 0 && tileSizeY > 0))
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Invalid Tile Size");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+
+  QMessageBox confirmBox;
+  confirmBox.setInformativeText("This operation may take time and use a lot of memory. It is recommanded that you close all other applications and don't use your computer during its execution.");
+  confirmBox.setText("Do you wish to continue?");
+  confirmBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+  confirmBox.setIcon(QMessageBox::Warning);
+  int ret = confirmBox.exec();
+  if (ret != QMessageBox::Ok) return;
+
+  FloodAR::CutShapeFile(ui->lineEdit_wkingDir->text().toStdString(), tileSizeX, tileSizeY, file.absoluteFilePath().toStdString());
+
+  std::cout << "Job done!" << std::endl;
+  QMessageBox msgBox;
+  msgBox.setText("Tiling finished!");
+  msgBox.setIcon(QMessageBox::Information);
+  msgBox.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ASCtoWater()
 {
-	bool polygonsImport = ui->chkBox_ASCtoWater_simplify->isChecked();
 	float prec = ui->dbSpinBox_ASCtoWater_prec->value();
-	bool tempImport = ui->chkBox_ASCtoWater_time->isChecked();
 	QDateTime creaDate = ui->dtEdit_creationDate->dateTime();
-	QDateTime termDate = ui->dtEdit_terminationDate->dateTime();
-	if (tempImport && !(creaDate < termDate))
-	{
-		tempImport = false;
-		QMessageBox msgBox;
-		msgBox.setText("Invalid temporal settings!");
-		msgBox.setIcon(QMessageBox::Critical);
-		msgBox.exec();
-	}
-	QStringList filenames = ui->lineEdit_ASCtoWater_src->text().split(";");
-	for (int i = 0; i < filenames.size(); i++)
-	{
-		QFileInfo file = filenames[i];
-		if (!file.exists())
-		{
-			QMessageBox msgBox;
-			msgBox.setText("Input file not found!");
-			msgBox.setIcon(QMessageBox::Critical);
-			msgBox.exec();
-			return;
-		}
-		FloodAR::ASCtoWater(file.absoluteFilePath().toStdString(), polygonsImport, prec, tempImport, creaDate.toString(Qt::ISODate).toStdString(), termDate.toString(Qt::ISODate).toStdString());
-	}
+  QDir wkDir(ui->lineEdit_wkingDir->text());
+  if (!wkDir.exists())
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Working directory not found!");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+  
+  FloodAR::ASCtoWaterAuto(wkDir.absolutePath().toStdString(), prec, creaDate.toString(Qt::ISODate).toStdString());
+	
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
 	msgBox.setText("Conversion finished!");
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.exec();
-}
-////////////////////////////////////////////////////////////////////////////////
-
-void dialogFloodAR::browseInput1ASCtoTerrain()
-{
-	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
-	ui->lineEdit_ASCtoTerrain1->setText(filename);
-}
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInput2ASCtoTerrain()
-{
-	QString filename = QFileDialog::getOpenFileName(this, "Select ASC source file", "", "ASC files (*.asc)");
-	ui->lineEdit_ASCtoTerrain2->setText(filename);
-}
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseTextureASCtoTerrain()
-{
-	QString filename = QFileDialog::getOpenFileName(this, "Select texture file file");
-	ui->lineEdit_ASCtoTerrainTex->setText(filename);
-}
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enableASCFusion(int state)
-{
-	switch (state)
-	{
-	case Qt::Checked:
-		ui->label_14->setEnabled(true);
-		ui->lineEdit_ASCtoTerrain2->setEnabled(true);
-		ui->ben_ASCtoTerrain_src2->setEnabled(true);
-		break;
-	default:
-		ui->label_14->setEnabled(false);
-		ui->lineEdit_ASCtoTerrain2->setEnabled(false);
-		ui->ben_ASCtoTerrain_src2->setEnabled(false);
-	}
-}
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::enableTextures(int state)
-{
-	switch (state)
-	{
-	case Qt::Checked:
-		ui->lineEdit_ASCtoTerrainTex->setEnabled(true);
-		ui->btn_ASCtoTerrain_tex->setEnabled(true);
-		break;
-	default:
-		ui->lineEdit_ASCtoTerrainTex->setEnabled(false);
-		ui->btn_ASCtoTerrain_tex->setEnabled(false);
-	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ASCtoTerrain()
 {
-	bool fusion = ui->chkBox_fusion->isChecked();
-	QFileInfo file(ui->lineEdit_ASCtoTerrain1->text());
-	bool addTextures = ui->chkBox_tex->isChecked();
-	QFileInfo texturesPath(ui->lineEdit_ASCtoTerrainTex->text());
-	if (!file.exists())
-	{
-		QMessageBox msgBox;
-		msgBox.setText("Input file not found!");
-		msgBox.setIcon(QMessageBox::Critical);
-		msgBox.exec();
-		return;
-	}
-	QFileInfo file2(ui->lineEdit_ASCtoTerrain2->text());
-	if (fusion && !file2.exists())
-	{
-		QMessageBox msgBox;
-		msgBox.setText("Input file not found!");
-		msgBox.setIcon(QMessageBox::Critical);
-		msgBox.exec();
-		return;
-	}
-	
-	FloodAR::ASCtoTerrain(file.absoluteFilePath().toStdString(), fusion, file2.absoluteFilePath().toStdString(), addTextures, texturesPath.absoluteFilePath().toStdString());
+  std::string dir = ui->lineEdit_wkingDir->text().toStdString();
+  QDir wkDir(dir.c_str());
+  if (!wkDir.exists() || ui->lineEdit_wkingDir->text().toStdString() == "")
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Working directory not found!");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+	FloodAR::ASCtoTerrain(dir);
 
 	std::cout << "Job done!" << std::endl;
 	QMessageBox msgBox;
@@ -291,26 +236,31 @@ void dialogFloodAR::ASCtoTerrain()
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.exec();
 }
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInputShpExt()
+//////////////////////////////////////////////////////////////////////////////
+void dialogFloodAR::buildBoundingBoxes()
 {
-	QString filename = QFileDialog::getOpenFileName(this, "Select SHP file", "", "SHP files (*.shp)");
-	ui->lineEdit_ShpExt_in->setText(filename);
-}
-////////////////////////////////////////////////////////////////////////////////
-void dialogFloodAR::browseInputDirShpExt()
-{
-	QString path = QFileDialog::getExistingDirectory(this, "Select data directory");
-	ui->lineEdit_ShpExt_dir->setText(path);
+  std::string dir = ui->lineEdit_wkingDir->text().toStdString();
+  BuildAABB(dir + "/");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ShpExtrusion()
 {
-	std::string dir = ui->lineEdit_ShpExt_dir->text().toStdString();
-	if (dir != "")
-	{
-		dir += "/";
-		BuildAABB(dir);
-		ShpExtruction(dir);
-	}
+	std::string dir = ui->lineEdit_wkingDir->text().toStdString();
+  QDir wkDir(dir.c_str());
+  if (!wkDir.exists() || ui->lineEdit_wkingDir->text().toStdString() == "")
+  {
+    QMessageBox msgBox;
+    msgBox.setText("Working directory not found!");
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
+    return;
+  }
+
+  FloodAR::ShapeExtrusion(dir);
+
+  std::cout << "Job done!" << std::endl;
+  QMessageBox msgBox;
+  msgBox.setText("Conversion finished!");
+  msgBox.setIcon(QMessageBox::Information);
+  msgBox.exec();
 }

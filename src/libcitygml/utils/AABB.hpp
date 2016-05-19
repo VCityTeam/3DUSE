@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "citygml_export.h"
 #include "vecs.hpp"
 
 

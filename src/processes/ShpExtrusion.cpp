@@ -168,7 +168,7 @@ LRing PutLRingOnTerrain(LRing ring, std::string dir)
 				break;
 			}
 		}
-		if(!Intesect) //Si un point ne peut pas se projeter sur le terrain, alors on enlève tout le bâtiment pour ne pas avoir de modèles diformes.
+		if(!Intesect) //Si un point ne peut pas se projeter sur le terrain, alors on enleve tout le batiment pour ne pas avoir de modeles diformes.
 		{
 			ptResult.clear();
 			return ptResult;
@@ -179,11 +179,10 @@ LRing PutLRingOnTerrain(LRing ring, std::string dir)
 }
 
 
-void ShpExtruction(std::string dir)
+void ShpExtrusion(std::string filename, std::string outputfile, std::string dir)
 {
-	QString filepath = QFileDialog::getOpenFileName(nullptr,"Load shp file");
 
-	QFileInfo file(filepath);
+	QFileInfo file(filename.c_str());
 
     QString ext = file.suffix().toLower();
 
@@ -191,7 +190,7 @@ void ShpExtruction(std::string dir)
     {
 		citygml::CityModel* ModelOut = new citygml::CityModel;
 
-		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/);
+		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filename.c_str(), TRUE/*FALSE*/);
 		std::cout << "Shp loaded" << std::endl;
 		std::cout << "Processing..." << std::endl;
 
@@ -227,7 +226,7 @@ void ShpExtruction(std::string dir)
 
                     LRing ptsSol = PutLRingOnTerrain(OGRLinearRingToLRing(poPG->getExteriorRing()), dir);
 
-					if(ptsSol.size() == 0) //La génération a posé problème, probablement parce que cette emprise au sol n'est pas complètement sur le terrain
+					if(ptsSol.size() == 0) //La generation a pose probleme, probablement parce que cette emprise au sol n'est pas completement sur le terrain
 						continue;
 
 					double H = 20;
@@ -292,14 +291,12 @@ void ShpExtruction(std::string dir)
 
 		for(auto it = tileTriangles.begin(); it != tileTriangles.end(); it++)
 			delete it->second;
+    tileTriangles.clear();
 
 		std::cout << "Exporting citygml" << std::endl;
 		ModelOut->computeEnvelope();
 
-		QDir dir;
-		dir.mkdir("./ShpExtruded/");
-
-		citygml::ExporterCityGML exporter("./ShpExtruded/"+file.baseName().toStdString()+".gml");
+    citygml::ExporterCityGML exporter(outputfile);
 		exporter.exportCityModel(*ModelOut);
 		std::cout << "Done exporting" << std::endl;
 	}

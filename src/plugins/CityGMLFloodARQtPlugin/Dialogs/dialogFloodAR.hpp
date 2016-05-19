@@ -6,43 +6,39 @@
 #include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class dialogFloodAR;
+  class dialogFloodAR;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class dialogFloodAR : public QDialog
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit dialogFloodAR(QWidget *parent = 0);
-    ~dialogFloodAR();
+  explicit dialogFloodAR(QWidget *parent = 0);
+  ~dialogFloodAR();
 
 private:
-    Ui::dialogFloodAR *ui;
+  Ui::dialogFloodAR *ui;
 
-public slots:
-	void browseInputDirASCCut();
-	void browseOutputDirASCCut();
-	void cutASC();
+  public slots:
 
-	void browseInputTextureCut();
-	void textureCut();
+    void browseWorkingDirectory();
 
-	void browseInputASCtoWater();
-	void enablePolygonsParams(int);
-	void enableTemporalParams(int);
-	void ASCtoWater();
+    void browseInputASCCut();
+    void cutASC();
 
-	void browseInput1ASCtoTerrain();
-	void browseInput2ASCtoTerrain();
-	void browseTextureASCtoTerrain();
-	void enableASCFusion(int);
-	void enableTextures(int);
-	void ASCtoTerrain();
+    void browseInputTextureCut();
+    void textureCut();
 
-	void browseInputDirShpExt();
-	void browseInputShpExt();
-	void ShpExtrusion();
+    void browseInputSHPCut();
+    void SHPCut();
+
+    void ASCtoWater();
+
+    void ASCtoTerrain();
+
+    void buildBoundingBoxes();
+    void ShpExtrusion();
 
 };
 ////////////////////////////////////////////////////////////////////////////////
