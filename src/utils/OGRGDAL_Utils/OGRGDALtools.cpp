@@ -1,4 +1,5 @@
 #include "OGRGDALtools.hpp"
+#include <algorithm>
 
 /**
 * @brief Recupere l'enveloppe d'une geometry en faisant une succession d'unions sur tous les polygones
