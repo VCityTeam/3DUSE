@@ -412,7 +412,8 @@ set( FILTERS_LIBRARIES   filters )
 set( CITYGML_INCLUDE_DIR
    ${CMAKE_SOURCE_DIR}/src                   #FIXME: should not be necessary
    ${CMAKE_SOURCE_DIR}/src/libcitygml
-   ${CMAKE_SOURCE_DIR}/src/libcitygml/export 
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
    ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME: will become a library
    ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
 )
@@ -833,6 +834,7 @@ if (BUILD_CityGMLFloodARQtPlugin)
 
   target_include_directories( CityGMLFloodARQtPlugin PUBLIC
     ${FILTERS_INCLUDE_DIR}
+    ${CITYGMLUTILS_INCLUDE_DIR}
   )
 
   target_link_libraries ( CityGMLFloodARQtPlugin

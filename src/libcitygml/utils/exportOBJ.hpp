@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "exporter.hpp"
 #include "citygml.hpp"
-#include "citygml_export.h"
+#include "citygmlutils_export.h"
 #include <fstream>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@ namespace citygml
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief The ExporterOBJ class
 /// Export OBJ
-class CITYGML_EXPORT ExporterOBJ : public Exporter
+class CITYGMLUTILS_EXPORT ExporterOBJ : public Exporter
 {
 public:
     ExporterOBJ();

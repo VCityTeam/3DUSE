@@ -23,8 +23,6 @@ add_library( citygml SHARED
   linearring.cpp
   material.cpp
   object.cpp
-  parser.cpp
-  parserlibxml2.cpp
   parserparams.cpp
   #FIXME: the following file dates back to the original version of CityGML that
   # suppported both libxml2 and xerces. This fork evolved the libxml2 with the
@@ -42,15 +40,17 @@ add_library( citygml SHARED
   tesselator.cpp
   texture.cpp
 
+  # XML binders (IO native to this library)
+  parser.cpp
+  parserlibxml2.cpp
   export/exportCityGML.cpp
-  export/exportOBJ.cpp
-  export/exporter.cpp
 
+  # Only used as base classes:
+  export/exporter.cpp
   import/importer.cpp
-  import/importerASC.cpp
-  import/importerAssimp.cpp
 
   # FIXME : ADE should be in separate libraries (possibly as libCityGML plugins)
+  # Note that the ADE is QT dependent on QString, QDateTime, qFree()...
   ADE/ADE.cpp
   ADE/temporal/temporalHandler.cpp
   ADE/temporal/transaction.cpp
@@ -66,6 +66,7 @@ if (WITH_QT5)
   set_target_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
 endif ()
 
+# FIXME: this instruction should and can probably be compeletely removed !
 target_include_directories( citygml PUBLIC 
  ${CMAKE_SOURCE_DIR}
  ${CMAKE_SOURCE_DIR}/src
@@ -80,9 +81,13 @@ target_link_libraries( citygml
   ${LIBXML2_LIBRARIES}
   ${GDAL_LIBRARY}
   ${OPENGL_LIBRARIES}    # FIXME: tesselation dependency 
-  ${OPENTHREADS_LIBRARY}
-  ${OSG_LIBRARIES}       # FIXME: this dependency is a nonsense
-  ${QT_LIBRARIES}        # FIXME: this dependency is a nonsense too
+  ${OPENTHREADS_LIBRARY} # FIXME: temporalExt.cpp dependency
+  ${OSG_LIBRARIES}       # FIXME: this is a weak dependency on
+                         # - osg::Referenced::signalObserversAndDelete
+                         # - setOsg(osg::ref_ptr<osg::Group>) in temporalExt.cpp 
+  ${QT_LIBRARIES}        # FIXME: alas required by
+                         # - exporter.cpp 
+                         # - temporalExt.cpp 
 )
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 

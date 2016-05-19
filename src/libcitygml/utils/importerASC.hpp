@@ -4,18 +4,18 @@
 #include <queue>
 
 #include "importer.hpp"
-#include "../citygml.hpp"
+#include "citygml.hpp"
 
 #include "src/DataStructures/DEM/osgMnt.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 
-#include "citygml_export.h"
+#include "citygmlutils_export.h"
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
 
 namespace citygml
 {
 
-  class CITYGML_EXPORT ImporterASC : public Importer
+  class CITYGMLUTILS_EXPORT ImporterASC : public Importer
   {
   public:
     ImporterASC(void);
