@@ -26,7 +26,16 @@ add_library( citygml SHARED
   parser.cpp
   parserlibxml2.cpp
   parserparams.cpp
-  #FIXME: remove the following empty file and the xerces dependency as well ?
+  #FIXME: the following file dates back to the original version of CityGML that
+  # suppported both libxml2 and xerces. This fork evolved the libxml2 with the
+  # additions of ADE but the xerces version was not maintained/evolved. 
+  # Discuss whether we should definitively give up on xerces support.
+  # Note: xerces as the reputation of having a smaller memory footprint than
+  # libxml2 that imports the whole content in memory before parsing per se. This
+  # libxml2 way of doing thins might be a strong constrain when working with huge
+  # citygml files.
+  # If xerces support is dropped then remove the following file, and allo remove
+  # the xerces dependency at the cmakefile level (Find_package( xerces )...)
   # parserxercesc.cpp 
   polygon.cpp
   temporalExt.cpp
@@ -34,7 +43,6 @@ add_library( citygml SHARED
   texture.cpp
 
   export/exportCityGML.cpp
-  # FIXME export/exportJSON.cpp
   export/exportOBJ.cpp
   export/exporter.cpp
 

@@ -134,7 +134,7 @@ bool Triangulate::Process(const MyVectorOfVertices &contour,MyVectorOfVertices &
 
 
 
-  delete V;
+  delete[] V;
 
   return true;
 }

@@ -19,7 +19,7 @@
 
 #include "citygml.hpp"
 #include "export/exportCityGML.hpp"
-#include "export/exportJSON.hpp"
+#include "exportJSON.hpp"
 #include "export/exportOBJ.hpp"
 
 #include "import/importerAssimp.hpp"

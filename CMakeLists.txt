@@ -1,24 +1,21 @@
-if (WITH_QT5)
-  cmake_minimum_required(VERSION 2.8.9) # because 2.8.8 has a bug with QT5_USE_MODULES
-else(WITH_QT5)
-  cmake_minimum_required(VERSION 2.8)
-endif(WITH_QT5)
+project( 3DUSE )
 
-if (COMMAND cmake_policy)
-  cmake_policy(SET CMP0003 NEW)
-  if(POLICY CMP0020)
-    cmake_policy(SET CMP0020 NEW)
-  endif(POLICY CMP0020)
-  if(POLICY CMP0042)
-    cmake_policy(SET CMP0042 NEW) # https://cmake.org/cmake/help/v3.0/policy/CMP0042.html
-  endif(POLICY CMP0042)
-  if(POLICY CMP0043)
-    cmake_policy(SET CMP0043 OLD)
-  endif(POLICY CMP0043)
-  if(POLICY CMP0054)
-    cmake_policy(SET CMP0054 OLD)
-  endif(POLICY CMP0054)
-endif (COMMAND cmake_policy)
+# FIXME Under construction
+# option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" OFF )
+# option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" ON )
+
+# We cannot require version 3.0 because Ubuntu 14.10 still uses 2.8.12. Yet
+# we could unifiy with the following QT5 case by requiring 2.8.9 (which
+# would agree with unbuntu, debian 7, fedora 21, OpenSUSE 13.1...
+# FIXME: discuss the above and list the supported platforms and distros.
+cmake_minimum_required(VERSION 2.8)
+
+if ( WITH_QT5 )
+  # because 2.8.8 has a bug with QT5_USE_MODULES
+  cmake_minimum_required(VERSION 2.8.9)
+endif ()
+
+include( cmake/3DusePolicies.cmake )
 
 # Project configuration
 set(PRJ_NAME 3DUSE)
@@ -29,7 +26,6 @@ SET(PRJ_VERSION_PATCH 2)
 SET(PRJ_VERSION "${PRJ_VERSION_MAJOR}.${PRJ_VERSION_MINOR}.${PRJ_VERSION_PATCH}")
 message(STATUS "${PRJ_NAME} ${PRJ_VERSION}")
 
-project( ${PRJ_NAME} )
 # FIXME: this will override any user defined value of CMAKE_INSTALL_PREFIX
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/${PRJ_NAME}_deploy_${PRJ_VERSION}")
 
@@ -407,6 +403,8 @@ endif(WITH_QT5)
 
 ### Local libraries variable definitions (to unify notations with external
 #   libraries usage when using target_include_directories() ).
+# FIXME: those definition should be deported in their respective
+# sub-directories.
 set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
 set( FILTERS_LIBRARIES   filters )
 
@@ -421,10 +419,12 @@ set( CITYGML_INCLUDE_DIR
 set( CITYGML_LIBRARIES citygml )
 
 #
+set( CITYGMLUTILS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src/libcitygml/utils )
 set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
 # FIXME: remove the following line and replace it with target_include_directories
-INCLUDE_DIRECTORIES(src
+INCLUDE_DIRECTORIES(
+  src
   ${CITYGML_INCLUDE_DIR}
 )
 
@@ -528,7 +528,13 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_UI_CPP}
   ${VCITY_GUI_RES_H}
 )
-if (WIN32)
+
+# FIXME: the following section deals with OSG-QT and should probably
+# be placed next to the find_package on OSGQT (refer above) in order
+# to clarify the flow
+if( WIN32 )
+  # FIXME: the supported kit versions are KIT_VS2015 and KIT_VS2012
+  # Use KIT_VS2012 instead of "NOT DEFINED KIT_VS2015"
   if(NOT DEFINED KIT_VS2015)
     SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
   endif()
@@ -654,6 +660,7 @@ SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_D
 
 add_executable(CityGMLCut src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx)
 target_link_libraries (CityGMLCut ${VCITY_GUI_LIB})
+
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( CityGMLCut Widgets Xml OpenGL )
@@ -771,18 +778,18 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 	endif(WITH_QT5)
 
   add_library( CityGMLVisibiliteQtPlugin SHARED
-     src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx
-     src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
-     ${CityGMLVisibilite_Qt_Plugin_HEADER}
-     ${CityGMLVisibilite_Qt_Plugin_SRC}
-     ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
+    src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx
+    src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
+    ${CityGMLVisibilite_Qt_Plugin_HEADER}
+    ${CityGMLVisibilite_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
   )
   # For raytracing:
-	target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
+  target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
     src/libfilters
     ${CITYGML_INCLUDE_DIR}
   )
-	target_link_libraries( CityGMLVisibiliteQtPlugin
+  target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
@@ -842,137 +849,144 @@ endif (BUILD_CityGMLFloodARQtPlugin)
 # --> CityGMLFloodARQtPlugin : QtPlugin [END]
 
 ################
+# END of plugins
+################
+
+#--------------------------------------------------------------------------------
+# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
+#--------------------------------------------------------------------------------
+SET(plugin_dest_dir .)
+SET(qtconf_dest_dir .)
+SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}")
+IF(APPLE)
+	SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
+	SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
+	SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
+ENDIF(APPLE)
+IF(WIN32)
+	SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
+ENDIF(WIN32)
+
+#--------------------------------------------------------------------------------
+# Install the application, on Apple, the bundle is at the root of the
+# install tree, and on other platforms it'll go to the same directory.
+################
+# 3DUSE plugins
+################
+if (BUILD_CityGMLCutQtPlugin)
+	set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
+endif (BUILD_CityGMLCutQtPlugin)
+if (BUILD_CityGMLEmptyQtPlugin)
+	set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
+endif (BUILD_CityGMLEmptyQtPlugin)
+if (BUILD_CityGMLVisibiliteQtPlugin)
+	set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
+endif (BUILD_CityGMLVisibiliteQtPlugin)
+if (BUILD_CityGMLFloodARQtPlugin)
+  set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
+endif (BUILD_CityGMLFloodARQtPlugin)
+################
 # 3DUSE plugins
 ################
 
-	#--------------------------------------------------------------------------------
-	# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
-	#--------------------------------------------------------------------------------
-	SET(plugin_dest_dir .)
-	SET(qtconf_dest_dir .)
-	SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}")
-	IF(APPLE)
-		SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
-		SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
-		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
-	ENDIF(APPLE)
-	IF(WIN32)
-		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
-	ENDIF(WIN32)
+INSTALL(TARGETS ${PRJ_NAME}
+  CityGMLCut
+  ${CityGMLCutQtPlugin}
+  ${CityGMLEmptyQtPlugin}
+  ${CityGMLVisibiliteQtPlugin}
+  ${CityGMLFloodARQtPlugin}
+  # add your plugin installation here
+	BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
+	RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
+	LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
+)
 
-	#--------------------------------------------------------------------------------
-	# Install the application, on Apple, the bundle is at the root of the
-	# install tree, and on other platforms it'll go to the same directory.
-	################
-	# 3DUSE plugins
-	################
-	if (BUILD_CityGMLCutQtPlugin)
-		set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
-	endif (BUILD_CityGMLCutQtPlugin)
-	if (BUILD_CityGMLEmptyQtPlugin)
-		set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
-	endif (BUILD_CityGMLEmptyQtPlugin)
-	if (BUILD_CityGMLVisibiliteQtPlugin)
-		set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
-	endif (BUILD_CityGMLVisibiliteQtPlugin)
-  if (BUILD_CityGMLFloodARQtPlugin)
-    set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
-  endif (BUILD_CityGMLFloodARQtPlugin)
-	################
-	# 3DUSE plugins
-	################
-	INSTALL(TARGETS ${PRJ_NAME} CityGMLCut ${CityGMLCutQtPlugin} ${CityGMLEmptyQtPlugin} ${CityGMLVisibiliteQtPlugin} ${CityGMLFloodARQtPlugin} # add your plugin installation here
-		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
-		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
-		LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
-	)
+#--------------------------------------------------------------------------------
+# Install needed Qt plugins by copying directories from the qt installation
+# One can cull what gets copied by using 'REGEX "..." EXCLUDE'
+INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
+if (WITH_QT5)
+	INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
+endif(WITH_QT5)
 
-	#--------------------------------------------------------------------------------
-	# Install needed Qt plugins by copying directories from the qt installation
-	# One can cull what gets copied by using 'REGEX "..." EXCLUDE'
-	INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
-	if (WITH_QT5)
-		INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
-	endif(WITH_QT5)
+# OSG plugins
+if(OPENSCENEGRAPH_FOUND)
+	INCLUDE(BundleOSGPlugins)
+	install_osg_plugins( osg_plugins )
+	MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
+endif(OPENSCENEGRAPH_FOUND)
 
-	# OSG plugins
-	if(OPENSCENEGRAPH_FOUND)
-		INCLUDE(BundleOSGPlugins)
-		install_osg_plugins( osg_plugins )
-		MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
-	endif(OPENSCENEGRAPH_FOUND)
-
-	#--------------------------------------------------------------------------------
-	# install a qt.conf file
-	# this inserts some cmake code into the install script to write the file
+#--------------------------------------------------------------------------------
+# install a qt.conf file
+# this inserts some cmake code into the install script to write the file
+INSTALL(CODE "
+	file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = plugins\")
+	" COMPONENT ${PRJ_NAME})
+IF(APPLE)
 	INSTALL(CODE "
-		file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = plugins\")
+		file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = MacOS/plugins\")
 		" COMPONENT ${PRJ_NAME})
-	IF(APPLE)
-		INSTALL(CODE "
-			file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = MacOS/plugins\")
-			" COMPONENT ${PRJ_NAME})
-	ENDIF(APPLE)
+ENDIF(APPLE)
 
-	# install qt_menu.nib (APPLE)
-	IF(APPLE)
-		IF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
-			INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+# install qt_menu.nib (APPLE)
+IF(APPLE)
+	IF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+		INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+			 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
+	ELSE(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+		IF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+			INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
 				 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
-		ELSE(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
-			IF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
-				INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
-					 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
-			ENDIF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
-		ENDIF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
-	ENDIF(APPLE)
+		ENDIF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+	ENDIF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+ENDIF(APPLE)
 
-	#--------------------------------------------------------------------------------
-	# Use BundleUtilities to get all other dependencies for the application to work.
-	# It takes a bundle or executable along with possible plugins and inspects it
-	# for dependencies.  If they are not system dependencies, they are copied.
+#--------------------------------------------------------------------------------
+# Use BundleUtilities to get all other dependencies for the application to work.
+# It takes a bundle or executable along with possible plugins and inspects it
+# for dependencies.  If they are not system dependencies, they are copied.
 
-	# directories to look for dependencies
-	SET(DIRS ${QT_LIBRARY_DIRS})
+# directories to look for dependencies
+SET(DIRS ${QT_LIBRARY_DIRS})
 
-	# Now the work of copying dependencies into the bundle/package
-	# The quotes are escaped and variables to use at install time have their $ escaped
-	# An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
-	# Note that the image plugins depend on QtSvg and QtXml, and it got those copied
-	# over.
-	INSTALL(CODE "
-		file(GLOB_RECURSE PLUGINS
-		\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/osgPlugins-${OPENSCENEGRAPH_VERSION}/osgdb_*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*component_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-		include(BundleUtilities)
-		fixup_bundle(\"${APPS}\" \"\${PLUGINS}\" \"${DIRS}\")
-		" COMPONENT ${PRJ_NAME})
+# Now the work of copying dependencies into the bundle/package
+# The quotes are escaped and variables to use at install time have their $ escaped
+# An alternative is the do a configure_file() on a script and use install(SCRIPT  ...).
+# Note that the image plugins depend on QtSvg and QtXml, and it got those copied
+# over.
+INSTALL(CODE "
+	file(GLOB_RECURSE PLUGINS
+	\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/osgPlugins-${OPENSCENEGRAPH_VERSION}/osgdb_*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*component_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+	include(BundleUtilities)
+	fixup_bundle(\"${APPS}\" \"\${PLUGINS}\" \"${DIRS}\")
+	" COMPONENT ${PRJ_NAME})
 
-	# CPack Configuration
-	set(CPACK_PACKAGE_NAME ${PRJ_NAME})
-	set(CPACK_PACKAGE_VERSION ${PRJ_VERSION})
-	set(CPACK_PACKAGE_VENDOR "Liris / CNRS")
-	#set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/README)
-	#set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/licence_gpl_v3.txt)
+# CPack Configuration
+set(CPACK_PACKAGE_NAME ${PRJ_NAME})
+set(CPACK_PACKAGE_VERSION ${PRJ_VERSION})
+set(CPACK_PACKAGE_VENDOR "Liris / CNRS")
+#set(CPACK_PACKAGE_DESCRIPTION_FILE ${CMAKE_CURRENT_SOURCE_DIR}/README)
+#set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_SOURCE_DIR}/licence_gpl_v3.txt)
 
-	# To Create a package, one can run "cpack -G DragNDrop CPackConfig.cmake" on Mac OS X
-	# where CPackConfig.cmake is created by including CPack
-	# And then there's ways to customize this as well
-	IF(APPLE)
-		set(CPACK_BINARY_DRAGNDROP ON)
-		set(CPACK_BINARY_TGZ "OFF")
-		set(CPACK_BINARY_STGZ "OFF")
-		set(CPACK_BINARY_PACKAGEMAKER "OFF")
-		include(CPack)
-	ENDIF(APPLE)
+# To Create a package, one can run "cpack -G DragNDrop CPackConfig.cmake" on Mac OS X
+# where CPackConfig.cmake is created by including CPack
+# And then there's ways to customize this as well
+IF(APPLE)
+	set(CPACK_BINARY_DRAGNDROP ON)
+	set(CPACK_BINARY_TGZ "OFF")
+	set(CPACK_BINARY_STGZ "OFF")
+	set(CPACK_BINARY_PACKAGEMAKER "OFF")
+	include(CPack)
+ENDIF(APPLE)
 
-	IF(WIN32)
-		set(CPACK_GENERATOR "NSIS64")
-		set(CPACK_NSIS_MENU_LINKS "${PRJ_NAME}" "${PRJ_NAME}")
-		#MESSAGE( STATUS "PRJ_NAME: " ${PRJ_NAME} )
-		include(CPack)
-	ENDIF(WIN32)
-	#--------------------------------------------------------------------------------
-	# Now the installation stuff : end
-	#--------------------------------------------------------------------------------
+IF(WIN32)
+	set(CPACK_GENERATOR "NSIS64")
+	set(CPACK_NSIS_MENU_LINKS "${PRJ_NAME}" "${PRJ_NAME}")
+	#MESSAGE( STATUS "PRJ_NAME: " ${PRJ_NAME} )
+	include(CPack)
+ENDIF(WIN32)
+#--------------------------------------------------------------------------------
+# Now the installation stuff : end
+#--------------------------------------------------------------------------------
 
 add_subdirectory(src)

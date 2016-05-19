@@ -1,9 +1,9 @@
 
 add_library( citygmlutils SHARED
-  # FIXME: compiled with a GLOB within the project CMakeLists.txt
+  # FIXME: compiled at the project CMakeLists.txt level. Refer there for comment.
   # FIXME AABB.cpp
   # FIXME Triangle.cpp
-  exportJSONTest.cpp
+  exportJSON.cpp
 )
 
 target_include_directories( citygmlutils PUBLIC

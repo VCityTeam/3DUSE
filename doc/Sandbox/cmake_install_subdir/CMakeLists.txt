@@ -28,7 +28,11 @@ install(TARGETS mytest RUNTIME DESTINATION .)
 set(APPS    mytest)
 set(PLUGINS "")
 set(DIRS    "${CMAKE_BINARY_DIR}/subdir" "${CMAKE_BINARY_DIR}")
-install(CODE "
+
+if( true )
+  install( CODE "
     include(BundleUtilities)
     fixup_bundle(\"${APPS}\" \"\${PLUGINS}\" \"${DIRS}\")
-    " COMPONENT Runtime )
+    " COMPONENT Runtime
+   )
+endif()
