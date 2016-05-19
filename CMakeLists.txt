@@ -417,11 +417,11 @@ set( CITYGML_INCLUDE_DIR
    ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME: will become a library
    ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
 )
-set( CITYGML_LIBRARIES citygml )
+#FAILURE set( CITYGML_LIBRARIES citygml )
 
 #
 set( CITYGMLUTILS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src/libcitygml/utils )
-set( CITYGMLUTILS_LIBRARIES citygmlutils )
+#FAILURE set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
 # FIXME: remove the following line and replace it with target_include_directories
 INCLUDE_DIRECTORIES(
@@ -434,6 +434,7 @@ INCLUDE_DIRECTORIES(
 file(
   GLOB_RECURSE   # FIXME: not required anymore
   VCITY_GUI_SRC
+### The core
   src/core/RayBox.cpp
   src/core/abstractlayer.cpp
   src/core/algo.cpp
@@ -493,6 +494,7 @@ file(
   # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
   # src/plugins/*.cpp
   
+### The filters
   src/libfilters/raytracing/Hit.cpp
   src/libfilters/raytracing/Ray.cpp
   src/libfilters/raytracing/RayTracing.cpp
@@ -509,11 +511,53 @@ file(
   src/processes/ToolAlgoCut.cpp
   src/processes/lodsmanagement.cpp
   
+### Utilities
   src/utils/CityGMLFusion.cpp
 
+### The main
   src/main.cpp
 
-  ## FIXME: the following should be dealt with within src/libcitygml.
+############## FAILURE (to libify section)
+### CityGML:
+  src/processes/ToolAlgoCut.cpp       # WTF
+  src/DataStructures/DEM/osgMnt.cpp   # WTF
+  src/libcitygml/URI.cpp
+  src/libcitygml/appearance.cpp
+  src/libcitygml/appearancemanager.cpp
+  src/libcitygml/citymodel.cpp
+  src/libcitygml/cityobject.cpp
+  src/libcitygml/envelope.cpp
+  src/libcitygml/geometry.cpp
+  src/libcitygml/georeferencedtexture.cpp
+  src/libcitygml/linearring.cpp
+  src/libcitygml/material.cpp
+  src/libcitygml/object.cpp
+  src/libcitygml/parserparams.cpp
+  src/libcitygml/polygon.cpp
+  src/libcitygml/temporalExt.cpp
+  src/libcitygml/tesselator.cpp
+  src/libcitygml/texture.cpp
+
+  src/libcitygml/parser.cpp
+  src/libcitygml/parserlibxml2.cpp
+  src/libcitygml/export/exportCityGML.cpp
+
+  src/libcitygml/export/exporter.cpp
+  src/libcitygml/import/importer.cpp
+
+  src/libcitygml/ADE/ADE.cpp
+  src/libcitygml/ADE/temporal/temporalHandler.cpp
+  src/libcitygml/ADE/temporal/transaction.cpp
+  src/libcitygml/ADE/temporal/version.cpp
+  src/libcitygml/ADE/temporal/versionTransition.cpp
+
+### CityGMLUtils:
+  src/libcitygml/utils/exportJSON.cpp
+  src/libcitygml/utils/exportOBJ.cpp
+  src/libcitygml/utils/importerASC.cpp
+  src/libcitygml/utils/importerAssimp.cpp
+
+  ## FIXME: the following should be dealt within libcitygmlutils.
   # Yet finishing this job implies the availability of a core library
   # since some of the libcitygml/utils content seems to depend both
   # on libcityGML and the core. Actually, if this is indeed the case
@@ -521,6 +565,7 @@ file(
   # within libcityGML that should remain "3D-Use core" free.
   src/libcitygml/utils/AABB.cpp
   src/libcitygml/utils/Triangle.cpp
+
 )
 
 SET( VCITY_GUI_SRC

@@ -1,0 +1,2 @@
+// FAILURE
+#define CITYGML_EXPORT
