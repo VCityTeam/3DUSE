@@ -4,9 +4,11 @@
 #define __TILINGCITYGML_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "ogrsf_frmts.h"
-#include "gui/moc/mainWindow.hpp"
+#include "core/tile.hpp"
 #include "export/exportCityGML.hpp"
 #include <stdlib.h>
+
+#include <QDir>
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList, TVec2d MinTile, TVec2d MaxTile, std::string PathFolder);
 void MergingTile(vcity::Tile* OldTile, citygml::CityModel* NewTile, std::vector<TextureCityGML*>* TexturesList);

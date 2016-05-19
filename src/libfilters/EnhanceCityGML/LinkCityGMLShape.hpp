@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <stdlib.h>
 #include "ogrsf_frmts.h"
-#include "gui/moc/mainWindow.hpp"
+#include "core/tile.hpp"
 #include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList);
