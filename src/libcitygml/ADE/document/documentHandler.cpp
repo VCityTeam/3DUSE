@@ -119,6 +119,23 @@ void DocumentHandler::endElement(std::string name)
     {
         setAttributeValue(name);
     }
+    else if (name == "text")
+    {
+        std::stringstream buffer;
+        buffer << trim(getBuff()->str());
+        std::cout << name << ": " << buffer.str() << std::endl;
+        _currentTag->setText(buffer.str());
+    }
+    else if (name == "count")
+    {
+        std::stringstream buffer;
+        buffer << trim(getBuff()->str());
+        std::cout << name << ": " << buffer.str() << std::endl;
+        int count;
+        std::stringstream s_str( buffer.str() );
+        s_str>>count;
+        _currentTag->setCount(count);
+    }
 }
 /******************************************************/
 void DocumentHandler::endDocument()
