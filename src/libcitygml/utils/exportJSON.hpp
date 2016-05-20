@@ -1,23 +1,35 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
-////////////////////////////////////////////////////////////////////////////////
-#ifndef __JSON_EXPORT_HPP_
-#define __JSON_EXPORT_HPP_
-////////////////////////////////////////////////////////////////////////////////
-#include "exporter.hpp"
-#include "citygml.hpp"
-#include "citygml_export.h"
-#include <fstream>
-#include <map>
 
 ////////////////////////////////////////////////////////////////////////////////
+
+#ifndef __JSON_EXPORT_HPP_
+#define __JSON_EXPORT_HPP_
+
+#include "exporter.hpp"
+#include "citygml.hpp"
+#include "citygmlutils_export.h"
+
+#include <map>
+#ifdef WIN32
+// Because of some "difficulties" a link time against the osgDB library (that
+// seems to export some of its internal symbols, refer to
+//  http://forum.openscenegraph.org/viewtopic.php?t=8099 )
+// replace STL fstream with OSG fstream
+#include <osgDB/fstream>
+#else
+#include <fstream>
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
+
 namespace citygml
 {
-   ////////////////////////////////////////////////////////////////////////////////
-   /// \brief The ExporterJSON class
-   /// Export JSON, mostly for webgl project, using our json format
-   class CITYGML_EXPORT ExporterJSON : public Exporter
-   {
-   public:
+
+/// \brief The ExporterJSON class
+/// Export JSON, mostly for webgl project, using our json format
+class CITYGMLUTILS_EXPORT ExporterJSON : public Exporter
+{
+public:
       ExporterJSON();
 
       /// Set file Path
@@ -25,7 +37,6 @@ namespace citygml
 
       /// Set exporter base path
       void setBasePath(const std::string& basePath);
-
       void setOffset(double offsetX, double offsetY);
       void setTileSize(double tileSizeX, double tileSizeY);
 
@@ -37,7 +48,9 @@ namespace citygml
       /// \brief exportCityObject
       /// \param model
       /// \param fileName
+
       void exportCityObject(CityObject& obj);
+
 
       /// Add a filter on a type of object to produce an out file prepended with name containing only filter features
       /// \param filter Type to filter
@@ -73,8 +86,9 @@ namespace citygml
       std::map<CityObjectsType, std::string> m_filters;   ///< filters list
 
       bool m_needComma;               ///< flag used to handle commas
-   };
-   ////////////////////////////////////////////////////////////////////////////////
+};
+
 } // namespace citygml
-////////////////////////////////////////////////////////////////////////////////
+
 #endif // __JSON_EXPORT_HPP_
+

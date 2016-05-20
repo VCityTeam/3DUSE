@@ -9,7 +9,7 @@
 #include <QProgressDialog>
 
 #include "src/DataStructures/DEM/osgMnt.hpp"
-#include "import/importerASC.hpp"
+#include "importerASC.hpp"
 #include "libfilters/tiling/ASCCut.hpp"
 #include "libfilters/ShpExtrusion/ShpExtrusion.hpp"
 

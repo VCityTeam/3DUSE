@@ -2,8 +2,17 @@
  * Temporal addons */
 ////////////////////////////////////////////////////////////////////////////////
 #include <iostream>
-#include <fstream>
 #include <sstream>
+#ifdef WIN32
+// Because of some "difficulties" a link time against the osgDB library (that
+// seems to export some of its internal symbols, refer to
+//  http://forum.openscenegraph.org/viewtopic.php?t=8099 )
+// replace STL fstream with OSG fstream
+#include <osgDB/fstream>
+#else
+#include <fstream>
+#endif
+
 #include "temporalExt.hpp"
 #include "cityobject.hpp"
 

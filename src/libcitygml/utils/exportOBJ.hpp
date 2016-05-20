@@ -5,18 +5,27 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "exporter.hpp"
 #include "citygml.hpp"
-#include "citygml_export.h"
+#include "citygmlutils_export.h"
+
+#ifdef WIN32
+// Because of some "difficulties" a link time against the osgDB library (that
+// seems to export some of its internal symbols, refer to
+//  http://forum.openscenegraph.org/viewtopic.php?t=8099 )
+// replace STL fstream with OSG fstream
+#include <osgDB/fstream>
+#else
 #include <fstream>
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
-   ////////////////////////////////////////////////////////////////////////////////
-   /// \brief The ExporterOBJ class
-   /// Export OBJ
-   class CITYGML_EXPORT ExporterOBJ : public Exporter
-   {
-   public:
+////////////////////////////////////////////////////////////////////////////////
+/// \brief The ExporterOBJ class
+/// Export OBJ
+class CITYGMLUTILS_EXPORT ExporterOBJ : public Exporter
+{
+public:
       ExporterOBJ();
 
       /// Add a filter on a type of object to produce an out file prepended with name containing only filter features

@@ -4,8 +4,8 @@
 #define __CITYGML_ASSIMPIMPORT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "importer.hpp"
-#include "../citygml.hpp"
-#include "citygml_export.h"
+#include "citygml.hpp"
+#include "citygmlutils_export.h"
 
 #include <assimp/ai_assert.h>
 #include <assimp/scene.h>
@@ -15,20 +15,20 @@
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
-   ////////////////////////////////////////////////////////////////////////////////
-   /// \brief CityGML import using assimp
-   ///
-   /// example of import obj file then export to CityGML :
-   /// \code{.cpp}
-   /// citygml::ImporterAssimp importer;
-   /// importer.setOffset(offsetx, offsety);
-   /// citygml::CityModel* model = importer.import("file.obj");
-   /// citygml::ExporterCityGML exporter("file.gml");
-   /// exporter.exportCityModel(*model);
-   /// \endcode
-   class CITYGML_EXPORT ImporterAssimp : public Importer
-   {
-   public:
+////////////////////////////////////////////////////////////////////////////////
+/// \brief CityGML import using assimp
+///
+/// example of import obj file then export to CityGML :
+/// \code{.cpp}
+/// citygml::ImporterAssimp importer;
+/// importer.setOffset(offsetx, offsety);
+/// citygml::CityModel* model = importer.import("file.obj");
+/// citygml::ExporterCityGML exporter("file.gml");
+/// exporter.exportCityModel(*model);
+/// \endcode
+class CITYGMLUTILS_EXPORT ImporterAssimp : public Importer
+{
+public:
       ImporterAssimp();
       virtual ~ImporterAssimp() override;
 
