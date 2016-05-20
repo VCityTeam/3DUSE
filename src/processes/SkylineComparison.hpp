@@ -3,6 +3,23 @@
 
 #include <vector>
 
+enum Compo
+{
+    Building,
+    TIN,
+    Veget,
+    Water,
+    Other
+};
+
+//struct CompResult
+//{
+//    int order;
+//    double angle;
+//    double dist;
+//    std::pair<Compo,Compo> compoSkylines;
+//};
+
 void CompareSkylines();
 
 
