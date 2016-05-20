@@ -76,7 +76,7 @@ namespace vcity
         citygml::CityObjects::iterator itObj = cityObjects.begin();
         for(; itObj != cityObjects.end(); ++itObj)
         {
-            stockeForme(*itObj,val); //Appel récursif
+            stockeForme(*itObj,val); //Appel recursif
         }
     }
 
@@ -131,7 +131,7 @@ namespace vcity
         citygml::CityObjects::iterator itObj = cityObjects2.begin();
         for(; itObj != cityObjects2.end(); ++itObj)
         {
-            recupTerrainBat(*itObj, s); //Appel récursif
+            recupTerrainBat(*itObj, s); //Appel recursif
         }
     }
 
@@ -173,7 +173,7 @@ namespace vcity
         citygml::CityObjects::iterator itObj = fils.begin();
         for(; itObj != fils.end(); ++itObj)
         {
-            recup(*itObj, i); //Appel récursif
+            recup(*itObj, i); //Appel recursif
         }
 
     }
@@ -245,7 +245,7 @@ namespace vcity
 
 
             /**********************************************************************************
-                              Si besoin, on déplace le terrain et le batiment
+                              Si besoin, on deplace le terrain et le batiment
             **********************************************************************************/
             //Si le terrain est bien sous le batiment
             if(sol->size() != 0)
@@ -254,7 +254,7 @@ namespace vcity
                 recup(terrain, 1);
                 int max = *std::max_element(hauteurTerrainSousBat.begin(),hauteurTerrainSousBat.end());
 
-                /* On déplace les points du sol situes sous le batiment
+                /* On deplace les points du sol situes sous le batiment
                  * au niveau du point le plus haut du sol
                  */
                 stockeForme(terrain,max);

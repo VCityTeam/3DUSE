@@ -35,7 +35,7 @@
 #include "assimp/Scene.h"*/
 
 #include "osg/osgAssimp.hpp"
-#include "osg/osgMnt.hpp"
+#include "src/DataStructures/DEM/osgMnt.hpp"
 
 #include "utils/CityGMLFusion.h"
 #include "osg/osgLas.hpp"
@@ -50,8 +50,6 @@
 #include <QPluginLoader>
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
-
-#include "core/dateTime.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -148,7 +146,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionFix_building, SIGNAL(triggered()), this, SLOT(slotFixBuilding()));
 
 	connect(m_ui->actionChange_Detection, SIGNAL(triggered()), this, SLOT(slotChangeDetection()));
-	connect(m_ui->actionCityGML_cut, SIGNAL(triggered()), this, SLOT(slotCityGML_cut()));
 	connect(m_ui->actionOBJ_to_CityGML, SIGNAL(triggered()), this, SLOT(slotObjToCityGML()));
 	connect(m_ui->actionSplit_CityGML_Buildings, SIGNAL(triggered()), this, SLOT(slotSplitCityGMLBuildings()));
 	connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
@@ -462,7 +459,7 @@ bool MainWindow::loadFile(const QString& filepath)
 			vcity::URI uriLayer = m_app.getScene().getDefaultLayer("LayerLas")->getURI();
 			vcity::log() << uriLayer.getStringURI() << "\n";
 
-			osg::ref_ptr<osg::Node> node = las.buildLasPoints(uriLayer, -m_app.getSettings().getDataProfile().m_offset.x, -m_app.getSettings().getDataProfile().m_offset.y);
+			osg::ref_ptr<osg::Node> node = las.buildLasPoints(uriLayer, - m_app.getSettings().getDataProfile().m_offset.x, - m_app.getSettings().getDataProfile().m_offset.y);
 
 			// set lasNode name
 			static int id = 0;
@@ -759,7 +756,6 @@ void MainWindow::unlockFeatures(const QString& pass)
 		m_ui->actionLoad_bbox->setVisible(true);
 		m_ui->actionShow_advanced_tools->setVisible(true);
 		m_ui->actionHelp->setVisible(true);
-		m_ui->actionCityGML_cut->setVisible(true);
 		m_ui->actionLOD0->setVisible(true);
 		m_ui->actionLOD2->setVisible(true);
 		m_ui->actionLOD3->setVisible(true);
@@ -774,8 +770,8 @@ void MainWindow::unlockFeatures(const QString& pass)
 		break;
 	case 0:
 		m_ui->menuDebug->menuAction()->setVisible(false);
-		m_ui->menuTest->menuAction()->setVisible(true); //A cacher
-		m_ui->menuPlugins->menuAction()->setVisible(true); //A cacher
+		m_ui->menuTest->menuAction()->setVisible(false); //A cacher
+		m_ui->menuPlugins->menuAction()->setVisible(false); //A cacher
 		m_ui->actionFix_building->setVisible(false);
 		m_ui->actionShadows->setVisible(false);
 		m_ui->actionExport_osg->setVisible(false);
@@ -786,10 +782,9 @@ void MainWindow::unlockFeatures(const QString& pass)
 		m_ui->actionHelp->setVisible(false);
 		m_ui->tab_16->setVisible(false);
 		m_ui->tabWidget->removeTab(1);
-		m_ui->widgetTemporal->setVisible(true);//A cacher
-		m_ui->hsplitter_bottom->setVisible(true);//A cacher
-		m_ui->actionShow_temporal_tools->setVisible(true); //A cacher
-		m_ui->actionCityGML_cut->setVisible(false);
+		m_ui->widgetTemporal->setVisible(false); //A cacher
+		m_ui->hsplitter_bottom->setVisible(false); //A cacher
+		m_ui->actionShow_temporal_tools->setVisible(false); //A cacher
 		m_ui->actionLOD0->setVisible(false);
 		m_ui->actionLOD2->setVisible(false);
 		m_ui->actionLOD3->setVisible(false);
@@ -810,12 +805,12 @@ QLineEdit* MainWindow::getFilter()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::reset()
 {
-    // reset text box
-    m_ui->textBrowser->clear();
-    //unlockFeatures("pass2");
-    unlockFeatures("");
-    m_ui->mainToolBar->hide();
-    //m_ui->statusBar->hide();
+	// reset text box
+	m_ui->textBrowser->clear();
+	unlockFeatures("pass2");
+	//unlockFeatures("");
+	m_ui->mainToolBar->hide();
+	//m_ui->statusBar->hide();
 
 	// TODO : need to be adjusted manually if we had other dataprofiles, should do something better
 
@@ -833,6 +828,10 @@ void MainWindow::reset()
 	else if(dpName == "Lyon")
 	{
 		m_app.getSettings().getDataProfile() = vcity::createDataProfileLyon();
+	}
+	else if (dpName == "Sablons")
+	{
+		m_app.getSettings().getDataProfile() = vcity::createDataProfileSablons();
 	}
 	else
 	{
@@ -935,6 +934,7 @@ void MainWindow::initTemporalTools()
 	m_ui->dateTimeEdit->setDateTime(startDate);
 	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
 	m_ui->dateTimeEdit->setMaximumDateTime(endDate);
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
@@ -1046,52 +1046,55 @@ void MainWindow::exportCityGML()
 		{
 			uri.resetCursor();
 			std::cout << "export cityobject : " << uri.getStringURI() << std::endl;
-			const citygml::CityObject* object = m_app.getScene().getCityObjectNode(uri); // use getNode
 
-			if(object) objs.push_back(object);
-			for(citygml::CityObject* object : object->getChildren())
+			if(uri.getType() == "Building")
 			{
-				for(citygml::Geometry* Geometry : object->getGeometries())
+				const citygml::CityObject* obj = m_app.getScene().getCityObjectNode(uri); // use getNode
+				if(obj) objs.push_back(obj);
+
+				for(citygml::CityObject* object : obj->getChildren())
 				{
-					for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
+					for(citygml::Geometry* Geometry : object->getGeometries())
 					{
-						if(PolygonCityGML->getTexture() == nullptr)
+						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 						{
-							continue;
-						}
-
-						//Remplissage de ListTextures
-						std::string Url = PolygonCityGML->getTexture()->getUrl();
-						citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
-
-						TexturePolygonCityGML Poly;
-						Poly.Id = PolygonCityGML->getId();
-						Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
-						Poly.TexUV = PolygonCityGML->getTexCoords();
-
-						bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
-						for(TextureCityGML* Tex: TexturesList)
-						{
-							if(Tex->Url == Url)
+							if(PolygonCityGML->getTexture() == nullptr)
 							{
-								URLTest = true;
-								Tex->ListPolygons.push_back(Poly);
-								break;
+								continue;
 							}
-						}
-						if(!URLTest)
-						{
-							TextureCityGML* Texture = new TextureCityGML;
-							Texture->Wrap = WrapMode;
-							Texture->Url = Url;
-							Texture->ListPolygons.push_back(Poly);
-							TexturesList.push_back(Texture);
+
+							//Remplissage de ListTextures
+							std::string Url = PolygonCityGML->getTexture()->getUrl();
+							citygml::Texture::WrapMode WrapMode = PolygonCityGML->getTexture()->getWrapMode();
+
+							TexturePolygonCityGML Poly;
+							Poly.Id = PolygonCityGML->getId();
+							Poly.IdRing =  PolygonCityGML->getExteriorRing()->getId();
+							Poly.TexUV = PolygonCityGML->getTexCoords();
+
+							bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+							for(TextureCityGML* Tex: TexturesList)
+							{
+								if(Tex->Url == Url)
+								{
+									URLTest = true;
+									Tex->ListPolygons.push_back(Poly);
+									break;
+								}
+							}
+							if(!URLTest)
+							{
+								TextureCityGML* Texture = new TextureCityGML;
+								Texture->Wrap = WrapMode;
+								Texture->Url = Url;
+								Texture->ListPolygons.push_back(Poly);
+								TexturesList.push_back(Texture);
+							}
 						}
 					}
 				}
 			}
-
-			if(uri.getType() == "Tile")
+			else if(uri.getType() == "Tile")
 			{
 				citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
 				for(const citygml::CityObject* obj : model->getCityObjectsRoots())
@@ -1141,7 +1144,7 @@ void MainWindow::exportCityGML()
 					}
 				}
 			}
-			if(uri.getType() == "LayerCityGML")
+			else if(uri.getType() == "LayerCityGML")
 			{
 				vcity::LayerCityGML* layer = static_cast<vcity::LayerCityGML*>(m_app.getScene().getLayer(uri));
 
@@ -1833,13 +1836,81 @@ void MainWindow::slotFixBuilding()
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::slotCityGML_cut()
-{
-}
-////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotSplitCityGMLBuildings()
 {
+	m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
+
+	std::cout<<"Load Scene"<<std::endl;
+
 	QSettings settings("liris", "virtualcity");
+	QString lastdir = settings.value("lastdir").toString();
+	QStringList filenames = QFileDialog::getOpenFileNames(this, "Selectionner les fichiers a traiter", lastdir);
+
+	QFileDialog w;
+	w.setWindowTitle("Selectionner le dossier de sortie");
+	w.setFileMode(QFileDialog::Directory);
+
+	if(w.exec() == 0)
+	{
+		std::cout << "Annulation : Dossier non valide." << std::endl;
+		return;
+	}
+
+	std::string Folder = w.selectedFiles().at(0).toStdString();
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+
+	QTime time;
+	time.start();
+
+	for(int i = 0; i < filenames.count(); ++i)
+	{
+		QFileInfo file(filenames[i]);
+		QString filepath = file.absoluteFilePath();
+		QFileInfo file2(filepath);
+
+		if(!file2.exists())
+		{
+			std::cout << "Erreur : Le fichier " << filepath.toStdString() <<" n'existe plus." << std::endl;
+			continue;
+		}
+		settings.setValue("lastdir", file.dir().absolutePath());
+
+		QString ext = file2.suffix().toLower();
+		if(ext == "citygml" || ext == "gml")
+		{
+			std::cout << "Debut du traitement sur : " << file.baseName().toStdString() << std::endl;
+			vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath.toStdString());
+
+			std::vector<TextureCityGML*> ListTextures;
+
+			citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML, &ListTextures);
+
+			delete BatiLOD2CityGML;
+
+			ModelOut->computeEnvelope();
+			citygml::ExporterCityGML exporter(Folder + "/" + file.baseName().toStdString()  + "_SplitBuildings.gml");
+
+			exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
+
+			std::cout << Folder + "/" + file.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;
+
+			delete ModelOut;
+
+			for(TextureCityGML* Tex:ListTextures)
+				delete Tex;
+		}
+	}
+
+	int millisecondes = time.elapsed();
+	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+
+	QApplication::restoreOverrideCursor();
+	m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
+
+
+	/*QSettings settings("liris", "virtualcity");
 	QString lastdir = settings.value("lastdir").toString();
 	QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
 	QFileInfo file1(filename1);
@@ -1890,12 +1961,12 @@ void MainWindow::slotSplitCityGMLBuildings()
 	delete ModelOut;
 
 	for(TextureCityGML* Tex:ListTextures)
-		delete Tex;
+	delete Tex;
 
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 
-	std::cout << Folder + "/" + file1.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;
+	std::cout << Folder + "/" + file1.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;*/
 
 	return;
 }
@@ -1983,7 +2054,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 		delete Tex;
 
 	delete BatiLOD2CityGML;
-	//delete ModelOut; //On ne peut pas delete BatiLOD2CityGML et ModelOut car on a récupéré des bâtiments tels quels du premier pour les mettre dans le second (ceux qui n'ont pas d'équivalents dans le Shapefile). Du coup ce n'est pas propre (fuite mémoire) mais il n'y a a pas de clone() sur les Cityobject...
+	//delete ModelOut; // !!!!!!!!!!!! On ne peut pas delete BatiLOD2CityGML et ModelOut car on a récupéré des bâtiments tels quels du premier pour les mettre dans le second (ceux qui n'ont pas d'équivalents dans le Shapefile). Du coup ce n'est pas propre (fuite mémoire) mais il n'y a a pas de clone() sur les Cityobject...
 	//////////
 	int millisecondes = time.elapsed();
 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
@@ -2085,8 +2156,8 @@ void MainWindow::slotChangeDetection()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::TilingCityGML(QString CityGMLPath, std::string OutputPath, int TileX, int TileY) //BIEN PENSER A METTRE LES DOSSIER DE TEXTURE AVEC LES CITYGML POUR LES MNT AVEC DES TEXTURE WORLD
 {
-	//CityGMLPath = "C:/Users/FredLiris/Downloads/TestTiling/Lyon";
-	//OutputPath = "C:/Users/FredLiris/Downloads/TestTiling";
+	//CityGMLPath = "D:/Donnees/Data/CityGML Grand Lyon/2012_DonneesVisibilite/Test";
+	//OutputPath = "D:/Donnees/Data/CityGML Grand Lyon/2012_DonneesVisibilite/Test2";
 
 	CPLPushErrorHandler( CPLQuietErrorHandler ); //POUR CACHER LES WARNING DE GDAL
 
@@ -2186,7 +2257,11 @@ void MainWindow::slotRenderLOD0()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotRenderLOD1()
 {
+	//QTime time;
+	//time.start();
 	appGui().getOsgScene()->forceLOD(1);
+	//int millisecondes = time.elapsed();
+	//std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotRenderLOD2()
@@ -2606,7 +2681,7 @@ id = id.substr(id.find("Villeurbanne_")+13);
 id = id.substr(0, id.find_first_of("."));
 int idX = std::stoi(id.substr(0,id.find('_')));
 int idY = std::stoi(id.substr(id.find('_')+1));
-std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);void DisplaySun(TVec3d sunPos);
+std::string f = "tile_" + std::to_string(idX) + '-' + std::to_string(idY);
 std::cout << filename.toStdString() << " -> " << basePath+f << "\n";
 
 id = std::to_string(idX) + "_" + std::to_string(idY);
@@ -2684,10 +2759,143 @@ void buildJson()//GrandLyon
 	std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
+/*void MainWindow::test1() //Génération de stats pour étude de visibilité
+{
+	QTime time;
+	time.start();
+
+	for(int cam = 1; cam <= 10; ++cam)
+	{
+		QString filepath = QString::fromStdString("D:/Dropbox/ResultatsVisibilite/"+std::to_string(cam)+"_Comparaison.csv");
+
+		QFileInfo file(filepath);
+
+		if(file.exists())
+		{
+			continue;
+		}
+
+		std::ofstream ofs;
+		ofs.open("D:/Dropbox/ResultatsVisibilite/"+std::to_string(cam)+"_Comparaison.csv", std::ofstream::out);
+		std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
+
+		int min = -1;
+		int max = -1;
+
+		for(int i = 0; i <= 20; ++i)
+		{
+			std::string dist = std::to_string(i);
+
+			filepath = QString::fromStdString(Folder+dist) + "_Result.shp";
+
+			QFileInfo file(filepath);
+
+			if(file.exists())
+			{
+				if(min == -1)
+					min = i;
+				max = i;
+			}
+			else if(min != -1)
+				break;
+		}
+
+		std::cout << cam << " : " << min << "   " << max << std::endl;
+
+		filepath = QString::fromStdString(Folder+std::to_string(max)) + "_Result.shp";
+
+		OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+		OGRLayer* Layer = DataSource->GetLayer(0);
+
+		OGRMultiPoint* ListPointsLod2 = new OGRMultiPoint;
+		OGRFeature *Feature;
+		Layer->ResetReading();
+		while((Feature = Layer->GetNextFeature()) != NULL)
+		{
+			OGRGeometry* Point = Feature->GetGeometryRef();
+			if(Point->getGeometryType() == wkbPoint || Point->getGeometryType() == wkbPoint25D)
+				ListPointsLod2->addGeometry(Point);
+		}
+
+		delete DataSource;
+
+		for(int i = min; i < max; ++i)
+		{
+			std::cout << "Avancement LoD1 : " << i << "/" << max << std::endl;
+			int cpt1 = 0; //Points de Lod1 qui sont dans Lod2
+			int cpt2 = 0; //Points de Lod1 qui ne sont pas dans Lod2
+			int cpt3 = 0; //Points de Lod2 qui sont dans Lod1
+			int cpt4 = 0; //Points de Lod2 qui ne sont pas dans Lod1
+
+			std::string dist = std::to_string(i);
+
+			filepath = QString::fromStdString(Folder+dist) + "_Result.shp";
+
+			OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+			OGRLayer* Layer2 = DataSource2->GetLayer(0);
+
+			OGRMultiPoint* ListPoints = new OGRMultiPoint;
+			OGRFeature *Feature2;
+			Layer2->ResetReading();
+			while((Feature2 = Layer2->GetNextFeature()) != NULL)
+			{
+				OGRGeometry* Point = Feature2->GetGeometryRef();
+				if(Point->getGeometryType() == wkbPoint || Point->getGeometryType() == wkbPoint25D)
+				{
+					ListPoints->addGeometry(Point);
+					//if(Point->Distance(ListPointsLod2) < 1.0)
+					//cpt1++;
+					//else
+					//cpt2++;
+				}
+			}
+			delete DataSource2;
+
+			for(int j = 0; j < ListPointsLod2->getNumGeometries(); ++j)
+			{
+				double distance = 1000;
+				std::cout << "Avancement Comparaison Points : " << j << " / " << ListPointsLod2->getNumGeometries() << ".\r" << std::flush;
+				OGRPoint* Point1 = (OGRPoint*)ListPointsLod2->getGeometryRef(j);
+				for(int k = 0; k < ListPoints->getNumGeometries(); ++k)
+				{
+					OGRPoint* Point2 = (OGRPoint*)ListPoints->getGeometryRef(k);
+					float tempdist = sqrt((Point2->getX()-Point1->getX())*(Point2->getX()-Point1->getX()) + (Point2->getY()-Point1->getY())*(Point2->getY()-Point1->getY()) + (Point2->getZ()-Point1->getZ())*(Point2->getZ()-Point1->getZ()));
+					if(tempdist < distance)
+						distance = tempdist;
+				}
+				if(distance < 1.0)
+					cpt3++;
+				else
+					cpt4++;
+			}
+			std::cout << std::endl;
+
+			ofs << "Comparaison LoD1 à partir de " << i << "000m et LoD2 (" << max << "000m)" << std::endl;
+			ofs << "LoD1 : " << ListPoints->getNumGeometries() << " points;LoD2 : " << ListPointsLod2->getNumGeometries() << " points" << std::endl;
+			ofs << "; Nombre de points" << std::endl;
+			//ofs << "Points de Lod1 qui sont dans Lod2 : " << cpt1 << ";" << cpt1/(cpt1 + cpt2) * 100.f << std::endl;
+			//ofs << "Points de Lod1 qui ne sont pas dans Lod2 : " << cpt2 << ";" << cpt2/(cpt1 + cpt2) * 100.f << std::endl;
+			ofs << "Points de Lod2 qui sont dans Lod1 : ;" << cpt3 << std::endl;
+			ofs << "Points de Lod2 qui ne sont pas dans Lod1 : ;" << cpt4 << std::endl << std::endl;
+
+			delete ListPoints;
+		}
+		delete ListPointsLod2;
+		ofs.close();
+	}
+
+	int millisecondes = time.elapsed();
+	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+}*/
 void MainWindow::test1()
 {
 	QTime time;
 	time.start();
+
+	std::string LiDAR2012 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2012//1833_5173_1_1_1.laz";
+	std::string LiDAR2015 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2015//1833_5173_2015_1_1_1.las";
+
+	vcity::app().getAlgo().CompareTwoLidar(LiDAR2012, LiDAR2015);
 
 	//vcity::app().getAlgo().ConvertLasToPCD();
 	//vcity::app().getAlgo().ExtractGround();
@@ -2777,352 +2985,258 @@ void MainWindow::test1()
 	QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::test2()
+void MainWindow::test2() //Génération de stats pour étude de visibilité
 {
-//    //Création d'ilots à partir de Shapefile contenant des routes
-//    OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-//    OGRLayer *LayerRoutes = Routes->GetLayer(0);
-//    OGRFeature *FeatureRoutes;
-//    LayerRoutes->ResetReading();
+	QTime time;
+	time.start();
 
-//    OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-//    while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-//    {
-//        OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+	for(int cam = 1; cam <= 10; ++cam)
+	{
+		std::ofstream ofs;
+		ofs.open("D:/3DUSE 0.2.5/"+std::to_string(cam)+"_Skyline.csv", std::ofstream::out);
+		std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
 
-//        if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-//        {
-//            ReseauRoutier->addGeometry(Route);
-//        }
-//    }
+		int min = -1;
+		int max = -1;
 
-//    OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+		QString filepath;
 
-//    OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+		for(int i = 0; i <= 20; ++i)
+		{
+			std::string dist = std::to_string(i);
 
-//    for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-//    {
-//        OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-//        if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-//            ReseauMP->addGeometry(temp);
-//    }
+			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
 
-//    SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+			QFileInfo file(filepath);
 
-//    delete ReseauRoutier;
+			if(file.exists())
+			{
+				if(min == -1)
+					min = i;
+				max = i;
+			}
+			else if(min != -1)
+				break;
+		}
 
+		OGRDataSource* DS = OGRSFDriverRegistrar::Open((Folder + std::to_string(max)+ "_Viewpoint.shp").c_str(), FALSE);
+		OGRLayer* L = DS->GetLayer(0);
+		OGRFeature *F;
+		L->ResetReading();
+		F = L->GetNextFeature();
+		OGRPoint* Camera = (OGRPoint*)F->GetGeometryRef()->clone();
+
+		delete DS;
+
+		std::cout << cam << " : " << min << "   " << max << std::endl;
+
+		filepath = QString::fromStdString(Folder+std::to_string(max)) + "_SkylineLine.shp";
+
+		OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+		OGRLayer* Layer = DataSource->GetLayer(0);
+
+		OGRLineString * LineLoD2;
+		OGRFeature *Feature;
+		Layer->ResetReading();
+		Feature = Layer->GetNextFeature();
+		LineLoD2 = (OGRLineString*)Feature->GetGeometryRef()->clone();
+
+		delete DataSource;
+
+		for(int i = min; i < max; ++i)
+		{
+			std::cout << "Avancement : " << i << std::endl;
+
+			std::string dist = std::to_string(i);
+
+			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
+
+			OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+			OGRLayer* Layer2 = DataSource2->GetLayer(0);
+
+			OGRLineString * Line;
+			OGRFeature *Feature2;
+			Layer2->ResetReading();
+			Feature2 = Layer2->GetNextFeature();
+			Line = (OGRLineString*)Feature2->GetGeometryRef()->clone();
+
+			delete DataSource2;
+
+			//std::cout << Line->getNumPoints() << " - " << LineLoD2->getNumPoints() << std::endl;
+
+			std::vector<float> Dist;
+
+			ofs << "LoD2 a une distance de " << max << std::endl;
+			ofs << "Comparaison LoD1 a partir de " << i << "000m et LoD2" << std::endl;
+
+			//OGRMultiLineString* MLS = new OGRMultiLineString;
+
+			for(int k = 0; k < LineLoD2->getNumPoints(); ++k)
+			{
+				OGRPoint* Point1 = new OGRPoint;
+				LineLoD2->getPoint(k, Point1);
+
+				double DistMin = 100000;
+
+				for(int j = 0; j < Line->getNumPoints(); ++j)
+				{
+					OGRPoint* Point2 = new OGRPoint;
+					Line->getPoint(j, Point2);
+
+					TVec2d AB(Point1->getX() - Camera->getX(), Point1->getY() - Camera->getY());
+					TVec2d AC(Point2->getX() - Camera->getX(), Point2->getY() - Camera->getY());
+
+					/*std::cout << Point1->getX() << " " << Point1->getY() << " " << Point1->getZ() << std::endl;
+					std::cout << Point2->getX() << " " << Point2->getY() << " " << Point2->getZ() << std::endl;
+
+					std::cout << Camera->getX() << " " << Camera->getY() << " " << Camera->getZ() << std::endl;
+
+					std::cout << AB << std::endl;
+					std::cout << AC << std::endl;
+
+					std::cout << AB.x * AC.y - AB.y * AC.x << std::endl;
+
+					int a;
+					std::cin >> a;*/
+
+
+					if(AB.x * AC.y - AB.y * AC.x < 0.01)
+					{
+						double Distance = sqrt((Point2->getX()-Point1->getX())*(Point2->getX()-Point1->getX()) + (Point2->getY()-Point1->getY())*(Point2->getY()-Point1->getY()) + (Point2->getZ()-Point1->getZ())*(Point2->getZ()-Point1->getZ()));
+						if(DistMin > Distance)
+							DistMin = Distance;
+					}
+
+					//delete Point1;
+					//delete Point2;
+					//OGRLineString* LS = new OGRLineString;
+					//LS->addPoint(Point1);
+					//LS->addPoint(Point2);
+					//MLS->addGeometryDirectly(LS);
+					delete Point2;
+
+				}
+				if(DistMin == 100000)
+				{
+					std::cout << k << " Erreur DistMin" << std::endl;
+					DistMin = Point1->Distance(Line);
+					//int a;
+					//std::cin >> a;
+				}
+				ofs << DistMin << ";";
+				Dist.push_back(DistMin);
+
+				delete Point1;
+			}
+
+			ofs << std::endl << std::endl;
+
+			delete Line;
+
+			//SaveGeometrytoShape("MLS.shp", MLS);
+		}
+		delete LineLoD2;
+		ofs.close();
+	}
+
+	int millisecondes = time.elapsed();
+	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+}
+/*void MainWindow::test2()
+{
+//Création d'ilots à partir de Shapefile contenant des routes
+OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+OGRLayer *LayerRoutes = Routes->GetLayer(0);
+OGRFeature *FeatureRoutes;
+LayerRoutes->ResetReading();
+
+OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
+while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
+{
+OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+
+if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
+{
+ReseauRoutier->addGeometry(Route);
+}
 }
 
-////////////////////////////////////////////////////////////////////////////////
+OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
 
+OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+
+for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
+{
+OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
+if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
+ReseauMP->addGeometry(temp);
+}
+
+SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+
+delete ReseauRoutier;
+}*/
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-    m_ui->checkBoxTemporalTools->setChecked(true);
-    //this->repaint();
-
-   // SunlightDetection();
-
-
-//	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
-
-//	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
-//	QSettings settings("liris", "virtualcity");
-//	QString lastdir = settings.value("lastdir").toString();
-//	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
-
-//	QFileInfo file1temp(File1[0]);
-//	QString file1path = file1temp.absoluteFilePath();
-//	QFileInfo file1(file1path);
-
-//	QString ext = file1.suffix().toLower();
-//	if(ext != "citygml" && ext != "gml")
-//	{
-//		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-//		return;
-//	}
-
-//	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
-
-//	QFileInfo file2temp(File2[0]);
-//	QString file2path = file2temp.absoluteFilePath();
-//	QFileInfo file2(file2path);
-
-//	ext = file2.suffix().toLower();
-//	if(ext != "citygml" && ext != "gml")
-//	{
-//		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-//		return;
-//	}
-
-//	QFileDialog w;
-//	w.setWindowTitle("Selectionner le dossier de sortie");
-//	w.setFileMode(QFileDialog::Directory);
-
-//	if(w.exec() == 0)
-//	{
-//		std::cout << "Annulation : Dossier non valide." << std::endl;
-//		return;
-//	}
-//	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
-
-//	QApplication::setOverrideCursor(Qt::WaitCursor);
-//	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
-//	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
-//	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
-//	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
-
-//	citygml::CityModel * City1 = tile1->getCityModel();
-//	citygml::CityModel * City2 = tile2->getCityModel();
-
-//	FusionLODs(City1, City2);
-
-//	citygml::ExporterCityGML exporter(Folder);
-
-//	exporter.exportCityModel(*City2);
-
-//	QApplication::restoreOverrideCursor();
-
-
-
-//    // ************* Lightning Measure ******************************//
-
-//    std::string date = "2016-11-25";
-
-//    std::vector<double> elevationAngle;
-//    std::vector<double> azimutAngle;
-
-//    bool found = false;
-
-//    // *** CSV Load
-//    std::ifstream file( "/home/vincent/Documents/VCity_Project/Data/AnnualSunPath_Lyon.csv" );
-//    std::string line;
-
-//    while(std::getline(file,line) && found == false) // For all lines of csv file
-//    {
-//        std::stringstream  lineStream(line);
-//        std::string        cell;
-
-//        std::getline(lineStream,cell,';'); //Get first cell of line
-
-//        if(cell.find(date) != std::string::npos) //If it's the right line, get all cells
-//        {
-//            found = true;
-//            std::getline(lineStream,cell,';'); //jump second cell of line
-
-//            while(std::getline(lineStream,cell,';'))
-//            {
-//                //Add azimuthAngle (corresponding to current hour)
-//                if(cell == "--" || cell == "")
-//                    azimutAngle.push_back(0.0);
-//                else
-//                    azimutAngle.push_back(std::stod(cell) * M_PI / 180); //Conversion to radian
-
-//                //Get next cell (azimuth angle of current hour)
-//                std::getline(lineStream,cell,';');
-
-//                //Add Elevation angle
-//                if(cell == "--" || cell == "")
-//                    elevationAngle.push_back(0.0);
-//                else
-//                    elevationAngle.push_back(std::stod(cell) * M_PI / 180);
-
-//            }
-//        }
-//    }
-
-//    //*** Computation of beam directions
-//    // North : y axis
-//    // South : -y axis
-//    // Est : x axis
-//    // Ouest : -x axis
-
-//    TVec3d origin = TVec3d(1843927.29, 5173886.65, 0.0); //Lambert 93 Coordinates
-//    TVec3d sunPos = origin + TVec3d(0.0,9000.0,0.0); //Lambert 93 coordinates
-//    TVec3d newSunPos = origin + TVec3d(0.0,9000.0,0.0); //Lambert 93 coordinates
-
-//    TVec3d ARotAxis = TVec3d(0.0,0.0,1.0);
-//    TVec3d ERotAxis = TVec3d(-1.0,0.0,0.0);
-
-//    std::vector<TVec3d> beamsDirections;
-
-//    for(int i = 0 ; i < elevationAngle.size() ; ++i)
-//    {
-//        //Compute new position of sun
-//        if (elevationAngle.at(i) <= 0.01 || azimutAngle.at(i) <= 0.01) //if sun to low (angle < 1°), go to next iteration
-//        {
-//            beamsDirections.push_back(TVec3d(0.0,0.0,0.0)); //Add nul beam direction
-//            continue;
-//        }
-
-//        //Azimut rotation quaternion
-//        citygml::quaternion qA = citygml::quaternion();
-//        qA.set_axis_angle(ARotAxis,azimutAngle.at(i));
-
-//        //Elevation rotation quaternion
-//        citygml::quaternion qE = citygml::quaternion();
-//        qE.set_axis_angle(ERotAxis,elevationAngle.at(i));
-
-//        //Total rotation quaternion
-//        citygml::quaternion q = qE*qA;
-
-//        sunPos = sunPos - origin;
-//        newSunPos = q*sunPos;
-//        newSunPos = newSunPos + origin;
-//        sunPos = sunPos + origin;
-
-//        //Display Sun
-//        //DisplaySun(newSunPos);
-
-//        //Compute sun's beams direction
-//        TVec3d tmpDirection = (origin - newSunPos);
-//        beamsDirections.push_back(tmpDirection.normal());
-//    }
-
-//    //***** MultiTileAnalysis
-
-//    //TODO: Load list of all tiles from specified folder and loop on this list
-
-//    //vcity::Tile* tile = new vcity::Tile("/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml");
-
-//    std::string path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10382.gml";
-//    std::string dirTile = "/home/vincent/Documents/VCity_Project/Data/Tuiles/";
-//    citygml::CityObjectsType objectType = citygml::CityObjectsType::COT_Building; //TODO:ADD Terrain
-
-//    TriangleList* trianglesTile1;
-//    trianglesTile1 = BuildTriangleList(path,objectType);
-
-//    AABBCollection boxes = LoadAABB(dirTile);
-//    std::vector<AABB> buildingBB = boxes.building; //TODO:ADD Terrain
-
-//    //Build year map
-//    //std::map<std::string,bool> yearMap = buildYearMap(2016);
-//    std::map<std::string,bool> yearMap;
-
-//    for(int hour = 0 ; hour < 24 ; ++hour)
-//    {
-//        std::string hour_str;
-//        if (hour < 10)
-//            hour_str = "0" + std::to_string(hour) + "00";
-//        else
-//            hour_str = std::to_string(hour) + "00";
-
-//        std::string code_str = "25112016:" + hour_str;
-//        yearMap[code_str] = false;
-//    }
-
-//    std::vector<TriangleLightInfo*> vSunInfoTriangle;
-
-//    for(Triangle* t : trianglesTile1->triangles) //Loop through each triangle
-//    {
-//        //Initialize sunInfo
-//        //t->sunInfo = yearMap;
-//        TriangleLightInfo* sunInfoTri = new TriangleLightInfo();
-//        sunInfoTri->triangle = t;
-//        sunInfoTri->yearSunInfo = yearMap;
-
-//        //Compute Barycenter
-//        TVec3d barycenter = TVec3d();
-//        barycenter.x = (t->a.x + t->b.x + t->c.x) / 3;
-//        barycenter.y = (t->a.y + t->b.y + t->c.y) / 3;
-//        barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;
-
-//        //Create rayCollection (All the rays for this triangle)
-//        RayBoxCollection* raysboxes = new RayBoxCollection();
-
-//        int hour = 0;
-//        for(TVec3d beamDir : beamsDirections)
-//        {
-//            //Construct id
-//            std::string hour_str;
-//            if(hour<10)
-//                hour_str = "0"+ std::to_string(hour) + "00";
-//            else
-//                hour_str = std::to_string(hour) + "00";
-
-//            std::string id = "25112016:" + hour_str;
-
-//            RayBox* raybox = new RayBox(barycenter,beamDir,id);
-//            raysboxes->raysBB.push_back(raybox);
-
-//            hour++;
-//        }
-
-//        //Setup and get the tile's boxes in the right intersection order
-//        std::queue<RayBoxHit> tileOrder = SetupTileOrder(buildingBB,raysboxes); //TODO: Add terrain
-
-//        //While we have boxes, tiles
-//        while(tileOrder.size() != 0)
-//        {
-//            RayBoxHit myRayBoxHit = tileOrder.front();
-//            std::string tileName = myRayBoxHit.box.name;
-//            tileOrder.pop();
-
-
-////            tileName = tileName.substr(0, tileName.size() - 1);
-////            std::cout<< "tilename : " << tileName.size() << std::endl;
-
-
-////            myRayBoxHit.box.name = myRayBoxHit.box.name.substr(0, myRayBoxHit.box.name.size() - 1);
-////            std::cout<< "box name : " << myRayBoxHit.box.name.size() << std::endl;
-
-//            RayCollection raysTemp;//Not all rays intersect the box
-//            //raysTemp.viewpoint = viewpoint;
-
-//            //We get only the rays that intersect the box
-//            for(unsigned int i = 0; i < raysboxes->raysBB.size(); i++)
-//            {
-//                RayBox* raybox = raysboxes->raysBB[i];//Get the ray
-
-//                //Check if triangle is already sunny for this ray (i.e. this hour)
-//                bool sunny = sunInfoTri->yearSunInfo[raybox->id];
-////                bool sunny = t->sunInfo[ray->id];
-//                bool found = false;
-
-//                for(RayBoxHit& rbh : raybox->boxes)//Go through all the box that the ray intersect to see if the current box is one of them
-//                    found = found || rbh.box.name == tileName;
-
-//                if(found && !sunny)
-//                {
-//                    raysTemp.rays.push_back(raybox);
-//                }
-//            }
-
-//            if(raysTemp.rays.size() == 0)
-//            {
-//                std::cout << "Skipping." << std::endl;
-//                raysTemp.rays.clear();
-//                continue;
-//            }
-
-//            //Load triangles and perform analysis
-//            std::string path = dirTile + tileName;
-//            //std::string pathWithPrefix = dirTile + GetTilePrefixFromDistance(myRayBoxHit.minDistance) + tileName; /// MultiResolution
-
-//            //Get the triangle list
-//            TriangleList* trianglesTemp;
-
-//            trianglesTemp = BuildTriangleList(path,objectType);
-
-//            std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,raysTemp.rays);
-
-//            for(Hit* h : *tmpHits)
-//            {
-//                sunInfoTri->yearSunInfo[h->ray.id] = true;
-//            }
-
-//            raysTemp.rays.clear();
-//            delete tmpHits;
-
-//        }
-
-//        vSunInfoTriangle.push_back(sunInfoTri);
-
-//    }
-
-//    //Export to csv (one per tile)
-//    std::string tilename = "3670_10382";
-//    exportLightningToCSV(vSunInfoTriangle, tilename);
-
+	//FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+
+	//// FusionLODs : prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+	QSettings settings("liris", "virtualcity");
+	QString lastdir = settings.value("lastdir").toString();
+	QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
+
+	QFileInfo file1temp(File1[0]);
+	QString file1path = file1temp.absoluteFilePath();
+	QFileInfo file1(file1path);
+
+	QString ext = file1.suffix().toLower();
+	if(ext != "citygml" && ext != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+		return;
+	}
+
+	QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
+
+	QFileInfo file2temp(File2[0]);
+	QString file2path = file2temp.absoluteFilePath();
+	QFileInfo file2(file2path);
+
+	ext = file2.suffix().toLower();
+	if(ext != "citygml" && ext != "gml")
+	{
+		std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
+		return;
+	}
+
+	QFileDialog w;
+	w.setWindowTitle("Selectionner le dossier de sortie");
+	w.setFileMode(QFileDialog::Directory);
+
+	if(w.exec() == 0)
+	{
+		std::cout << "Annulation : Dossier non valide." << std::endl;
+		return;
+	}
+	std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
+
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
+	vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
+	std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
+	vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
+
+	citygml::CityModel * City1 = tile1->getCityModel();
+	citygml::CityModel * City2 = tile2->getCityModel();
+
+	FusionLODs(City1, City2);
+
+	citygml::ExporterCityGML exporter(Folder);
+
+	exporter.exportCityModel(*City2);
+
+	QApplication::restoreOverrideCursor();
 }
 
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
@@ -3178,38 +3292,38 @@ void MainWindow::test4()
 	OGRPoint* point = new OGRPoint;
 	mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
 	}*/
-	
-    std::cout<<std::endl;
-    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-    std::vector<temporal::Version*> versions = model->getVersions();
-    for (temporal::Version* version : versions)
-    {
-        std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-        std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-        for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-        {
-            std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-        }
-    }
-    std::cout<<std::endl;
-    std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-    for (temporal::VersionTransition* transition : transitions)
-    {
-        std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-        std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-        std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-    }
-    std::cout<<std::endl;
 
-    std::cout<<"Workspaces:"<<std::endl;
-    std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-    for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-        std::cout<<it->second.name<<std::endl;
-        for(temporal::Version* v : it->second.versions){
-            std::cout<<"    - "<<v->getId()<<std::endl;
-        }
-    }
+	std::cout<<std::endl;
+	vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
+	citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
+	std::vector<temporal::Version*> versions = model->getVersions();
+	for (temporal::Version* version : versions)
+	{
+		std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
+		std::vector<citygml::CityObject*>* members = version->getVersionMembers();
+		for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
+		{
+			std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
+		}
+	}
+	std::cout<<std::endl;
+	std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
+	for (temporal::VersionTransition* transition : transitions)
+	{
+		std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
+		std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
+		std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
+	}
+	std::cout<<std::endl;
+
+	std::cout<<"Workspaces:"<<std::endl;
+	std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
+	for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
+		std::cout<<it->second.name<<std::endl;
+		for(temporal::Version* v : it->second.versions){
+			std::cout<<"    - "<<v->getId()<<std::endl;
+		}
+	}
 
 }
 ////////////////////////////////////////////////////////////////////////////////

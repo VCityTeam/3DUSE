@@ -5,6 +5,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <vector>
 #include <string>
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
@@ -13,7 +16,7 @@ namespace vcity
 ///
 /// It is like a file path, to navigate in the data tree
 ///
-class URI
+class CITYGML_EXPORT URI
 {
 public:
     URI();
@@ -82,8 +85,6 @@ public:
     /// \return The URI converted into a string
     std::string getStringURI(bool includeType = true) const;
 
-    //bool operator==(const URI& lhs) const;
-
 private:
     int m_depth;                    ///< Depth of the uri
 	mutable int m_cursor;					///< cursor position, start at 0
@@ -92,7 +93,8 @@ private:
     std::vector<std::string> m_types; ///< String array. One string per node types, one per depth level.
 };
 ////////////////////////////////////////////////////////////////////////////////
-bool operator==(const URI& rhs, const URI& lhs);
+bool CITYGML_EXPORT operator==(const URI& rhs, const URI& lhs);
+
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////

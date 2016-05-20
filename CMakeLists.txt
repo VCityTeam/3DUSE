@@ -40,7 +40,7 @@ if (NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: Debug, Release."
       FORCE)
 endif ()
-message("Build type : ${CMAKE_BUILD_TYPE}")
+message(STATUS "Build type : ${CMAKE_BUILD_TYPE}")
 
 #------------------------------------------------------------------------------
 # Specific compiler options
@@ -73,6 +73,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O1 -g -fsanitize=address -fno-omit-frame-pointer")
   endif( ${CMAKE_BUILD_TYPE} MATCHES "Debug" )
 endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
 #------------------------------------------------------------------------------
 # MSVC
 #------------------------------------------------------------------------------
@@ -81,19 +82,33 @@ endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 #
 # /FORCE:MULTIPLE for osgDB ifstream / ofstream conflict
 if(MSVC)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /D \"NOMINMAX\"")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /D \"NOMINMAX\"")
 
-#	SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE") # /FORCE:MULTIPLE should be avoided (e.g. /INCREMENTAL is disabled because of it)
+  # SET (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /FORCE:MULTIPLE")
+  # /FORCE:MULTIPLE should be avoided (e.g. /INCREMENTAL is disabled because of it)
 
-	if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "19")
-		set(KIT_VS2015 YES)
-		#message("VS2015 KIT used")
-	else()
-		#message("VS2012 KIT used")
-	endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "19")
+    set(KIT_VS2015 YES)
+  endif()
 
   include( "${CMAKE_SOURCE_DIR}/cmake/msvc/kit.cmake" )
+ 
+  # For each available configuration type (refer to CMAKE_CONFIGURATION_TYPES) 
+  # gather all the binaries (executables, archives and dynamic libraries) within
+  # the same (configuration dependent) directory.
+  # The objective is to have the executables to sit side by side with the dlls
+  # on which they depend on for the loader to find them at runtime.
+  foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+    string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+    set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  endforeach()
 endif()
+
 #------------------------------------------------------------------------------
 # APPLE OS X
 #------------------------------------------------------------------------------
@@ -185,15 +200,11 @@ else(WITH_QT5)
     endif(QT3D_LIBRARIES)
   endif(WITH_QT3D)
 endif(WITH_QT5)
-message("Qt version used : ${QTDIR}")
+message(STATUS "Qt version used : ${QTDIR}")
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
-
-#if (APPLE) # for OpenGL and maybe other things
-#  INCLUDE_DIRECTORIES(/usr/X11/include)
-#endif (APPLE)
 
 # Find ASSIMP
 find_package(ASSIMP)
@@ -379,20 +390,117 @@ else(WITH_QT5)
   QT4_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 endif(WITH_QT5)
 
-INCLUDE_DIRECTORIES(src src/libcitygml)
+### Local libraries variable definitions (to unify notations with external
+#   libraries usage when using target_include_directories() ).
+set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
+set( FILTERS_LIBRARIES   filters )
 
-# Local libraries
-set(FILTERS_INCLUDE_DIR	${PROJECT_SOURCE_DIR}/src/libfilters)
-set(FILTERS_LIBRARIES	filters)
+set( CITYGML_INCLUDE_DIR
+   ${CMAKE_SOURCE_DIR}/src               #FIXME
+   ${CMAKE_SOURCE_DIR}/src/libcitygml
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME
+   ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
+)
+set(CITYGML_LIBRARIES citygml)
 
-include_directories(${FILTERS_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src/libcitygml/utils)
+# FIXME: remove the following line and replace it with target_include_directories
+INCLUDE_DIRECTORIES(src
+  ${CITYGML_INCLUDE_DIR}
+)
+
 
 # General
 file(
   GLOB_RECURSE
   VCITY_GUI_SRC
-  src/*.cpp
+src/core/RayBox.cpp
+src/core/abstractlayer.cpp
+src/core/algo.cpp
+src/core/algo2.cpp
+src/core/application.cpp
+src/core/cell.cpp
+src/core/controller.cpp
+src/core/dataprofile.cpp
+src/core/layerAssimp.cpp
+src/core/layerCityGML.cpp
+src/core/layerLas.cpp
+src/core/layerMnt.cpp
+src/core/layerShp.cpp
+src/core/layerTiledCityGML.cpp
+src/core/scene.cpp
+src/core/settings.cpp
+src/core/tile.cpp
+src/core/tools/log.cpp
+
+src/gui/applicationGui.cpp
+src/gui/controllerGui.cpp
+src/gui/dialogAbout.cpp
+src/gui/dialogAddBuilding.cpp
+src/gui/dialogAddLayer.cpp
+src/gui/dialogDoc.cpp
+src/gui/dialogDynState.cpp
+src/gui/dialogEditAssimpNode.cpp
+src/gui/dialogEditBldg.cpp
+src/gui/dialogEditLayer.cpp
+src/gui/dialogEditTile.cpp
+src/gui/dialogLink.cpp
+src/gui/dialogLoadBBox.cpp
+src/gui/dialogSettings.cpp
+src/gui/dialogShpTool.cpp
+src/gui/dialogState.cpp
+src/gui/dialogTag.cpp
+src/gui/dialogTilingCityGML.cpp
+src/gui/dialogYearOfConst.cpp
+src/gui/dialogYearOfDemol.cpp
+src/gui/mainWindow.cpp
+src/gui/plugindialog.cpp
+src/gui/treeView.cpp
+
+src/gui/osg/osgAssimp.cpp
+src/gui/osg/osgCityGML.cpp
+src/gui/osg/osgCompass.cpp
+src/gui/osg/osgGDAL.cpp
+src/gui/osg/osgInfoBubbles.cpp
+src/gui/osg/osgLas.cpp
+src/gui/osg/osgPicking.cpp
+src/gui/osg/osgQtWidget.cpp
+src/gui/osg/osgScene.cpp
+src/gui/osg/osgTools.cpp
+
+# Interestingly enough the following are not necessary !?
+# src/gui/osgQt/osg32/GraphicsWindowQt.cxx
+# src/gui/osgQt/osg34/GraphicsWindowQt.cxx
+# src/plugins/*.cpp
+
+src/libfilters/raytracing/Hit.cpp
+src/libfilters/raytracing/Ray.cpp
+src/libfilters/raytracing/RayTracing.cpp
+src/libfilters/tiling/ASCCut.cpp
+
+src/DataStructures/DEM/osgMnt.cpp
+
+src/processes/ChangeDetection.cpp
+src/processes/EnhanceMNT.cpp
+src/processes/ExportToShape.cpp
+src/processes/LinkCityGMLShape.cpp
+src/processes/ShpExtrusion.cpp
+src/processes/TilingCityGML.cpp
+src/processes/ToolAlgoCut.cpp
+src/processes/lodsmanagement.cpp
+
+src/utils/CityGMLFusion.cpp
+
+  src/main.cpp
+
+  ## FIXME: the following should be dealt with within src/libcitygml.
+  # Yet finishing this job implies the availability of a core library
+  # since some of the libcitygml/utils content seems to depend both
+  # on libcityGML and the core. Actually, if this is indeed the case
+  # then those files should be compile with core, or the utils but not
+  # within libcityGML that should remain "3D-Use core" free.
+  src/libcitygml/utils/*.cpp  
 )
+
 SET( VCITY_GUI_SRC
   ${VCITY_GUI_SRC}
   ${VCITY_GUI_Qt_SRC}
@@ -419,10 +527,6 @@ if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
 endif(WITH_QT5)
-
-if (APPLE)
-  set_source_files_properties(src/libcitygml/tesselator.cpp PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations") # for warnings: 'glu*' is deprecated...
-endif (APPLE)
 
 SET( VCITY_GUI_LIB
   ${ASSIMP_LIBRARY}
@@ -504,7 +608,18 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
-target_link_libraries (${PRJ_NAME} ${LINUX_FLAGS} ${VCITY_GUI_LIB} ${FILTERS_LIBRARIES} citygmlutils)
+
+target_include_directories( ${PRJ_NAME} PUBLIC ${CITYGML_INCLUDE_DIR} )
+target_include_directories( ${PRJ_NAME} PUBLIC ${FILTERS_INCLUDE_DIR} )
+
+target_link_libraries (${PRJ_NAME}
+  ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
+  ${VCITY_GUI_LIB}
+  ${FILTERS_LIBRARIES}
+  ${CITYGML_LIBRARIES}
+  #citygmlutils    # FIXME: make this a variable
+)
+
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
@@ -552,10 +667,21 @@ if (BUILD_CityGMLCutQtPlugin)
 	  set(CityGMLCut_Qt_Plugin_LIB ${CityGMLCut_Qt_Plugin_LIB} ${QT_LIBRARIES})
 	endif(WITH_QT5)
 
-	add_library(CityGMLCutQtPlugin SHARED src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.cxx
-				${CityGMLCut_Qt_Plugin_HEADER} ${CityGMLCut_Qt_Plugin_SRC}
-				${VCITY_GUI_SRC_WIN} src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx) # if need, add cxx files here before the ')'
-	target_link_libraries (CityGMLCutQtPlugin ${CityGMLCut_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  add_library( CityGMLCutQtPlugin SHARED
+    src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx
+    src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.cxx
+    src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx
+    ${CityGMLCut_Qt_Plugin_HEADER}
+    ${CityGMLCut_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC_WIN}
+  )
+	target_include_directories( CityGMLCutQtPlugin PUBLIC
+    ${CITYGML_INCLUDE_DIR}
+  )
+	target_link_libraries( CityGMLCutQtPlugin
+    ${CityGMLCut_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+  )
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLCutQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)
@@ -579,10 +705,20 @@ if (BUILD_CityGMLEmptyQtPlugin)
 	  set(CityGMLEmpty_Qt_Plugin_LIB ${CityGMLEmpty_Qt_Plugin_LIB} ${QT_LIBRARIES})
 	endif(WITH_QT5)
 
-	add_library(CityGMLEmptyQtPlugin SHARED src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.cxx
-				${CityGMLEmpty_Qt_Plugin_HEADER} ${CityGMLEmpty_Qt_Plugin_SRC}
-				${VCITY_GUI_SRC_WIN}) # if need, add cxx files here before the ')'
-	target_link_libraries (CityGMLEmptyQtPlugin ${CityGMLEmpty_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  add_library( CityGMLEmptyQtPlugin SHARED
+    src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx
+    src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.cxx
+    ${CityGMLEmpty_Qt_Plugin_HEADER}
+    ${CityGMLEmpty_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC_WIN}
+  )
+	target_include_directories( CityGMLEmptyQtPlugin PUBLIC
+    ${CITYGML_INCLUDE_DIR}
+  )
+  target_link_libraries( CityGMLEmptyQtPlugin
+    ${CityGMLEmpty_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+  )
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)
@@ -590,7 +726,7 @@ endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLEmptyQtPlugin : QtPlugin [END]
 
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [BEGIN]
-OPTION(BUILD_CityGMLVisibiliteQtPlugin "BUILD CityGMLVisibiliteQtPlugin " ON)
+OPTION(BUILD_CityGMLVisibiliteQtPlugin "BUILD CityGMLVisibiliteQtPlugin " OFF)
 if (BUILD_CityGMLVisibiliteQtPlugin)
   file(
     GLOB_RECURSE
@@ -611,15 +747,74 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 	  set(CityGMLVisibilite_Qt_Plugin_LIB ${CityGMLVisibilite_Qt_Plugin_LIB} ${QT_LIBRARIES})
 	endif(WITH_QT5)
 
-	add_library(CityGMLVisibiliteQtPlugin SHARED src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
-				${CityGMLVisibilite_Qt_Plugin_HEADER} ${CityGMLVisibilite_Qt_Plugin_SRC}
-				${VCITY_GUI_SRC}) # if need, add cxx files here before the ')'
-	target_link_libraries (CityGMLVisibiliteQtPlugin ${LINUX_FLAGS} ${CityGMLVisibilite_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+  add_library( CityGMLVisibiliteQtPlugin SHARED
+     src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx
+     src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
+     ${CityGMLVisibilite_Qt_Plugin_HEADER}
+     ${CityGMLVisibilite_Qt_Plugin_SRC}
+     ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
+  )
+  # For raytracing:
+	target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
+    src/libfilters
+    ${CITYGML_INCLUDE_DIR}
+  )
+	target_link_libraries( CityGMLVisibiliteQtPlugin
+    ${LINUX_FLAGS}
+    ${CITYGML_LIBRARIES}
+    ${CityGMLVisibilite_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+  )
+
 	if (WITH_QT5)
 	  QT5_USE_MODULES(CityGMLVisibiliteQtPlugin Core Widgets OpenGL)
 	endif(WITH_QT5)
+
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [END]
+
+# --> CityGMLFloodARQtPlugin : QtPlugin [BEGIN]
+OPTION(BUILD_CityGMLFloodARQtPlugin "BUILD CityGMLFloodARQtPlugin " OFF)
+if (BUILD_CityGMLFloodARQtPlugin) 
+  set(CityGMLFloodAR_Qt_Plugin_HEADER src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.h src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.hpp src/plugins/CityGMLFloodARQtPlugin/FloodARTools.hpp)
+  set(CityGMLFloodAR_Qt_Plugin_UI src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.ui)
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
+    QT5_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
+    set(CityGMLFloodAR_Qt_Plugin_SRC ${CityGMLFloodAR_Qt_Plugin_SRC} ${CityGMLFloodAR_Qt_Plugin_MOC_CPP} ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
+  else(WITH_QT5) 
+    QT4_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
+    QT4_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
+    set(CityGMLFloodAR_Qt_Plugin_SRC ${CityGMLFloodAR_Qt_Plugin_SRC} ${CityGMLFloodAR_Qt_Plugin_MOC_CPP} ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
+    set(CityGMLFloodAR_Qt_Plugin_LIB ${CityGMLFloodAR_Qt_Plugin_LIB} ${QT_LIBRARIES})
+  endif(WITH_QT5)
+
+  add_library( CityGMLFloodARQtPlugin SHARED
+    src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.cxx
+    src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.cxx
+    src/plugins/CityGMLFloodARQtPlugin/FloodARTools.cxx
+    ${CityGMLFloodAR_Qt_Plugin_HEADER}
+    ${CityGMLFloodAR_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC}
+    # if needed, add cxx files here
+  )
+
+  target_include_directories( CityGMLFloodARQtPlugin PUBLIC
+    ${FILTERS_INCLUDE_DIR}
+  )
+
+  target_link_libraries ( CityGMLFloodARQtPlugin
+    ${LINUX_FLAGS}
+    ${CityGMLFloodAR_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+    ${CITYGML_LIBRARIES}
+  )
+  if (WITH_QT5)
+    QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)
+  endif(WITH_QT5)
+endif (BUILD_CityGMLFloodARQtPlugin)
+# --> CityGMLFloodARQtPlugin : QtPlugin [END]
 
 # --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " ON)
@@ -652,7 +847,6 @@ if (BUILD_CityGMLSunlightQtPlugin)
 	endif(WITH_QT5)
 endif (BUILD_CityGMLSunlightQtPlugin)
 # --> CityGMLSunlightQtPlugin : QtPlugin [END]
-
 ################
 # 3DUSE plugins
 ################
@@ -687,13 +881,16 @@ endif (BUILD_CityGMLSunlightQtPlugin)
 	if (BUILD_CityGMLVisibiliteQtPlugin)
 		set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
 	endif (BUILD_CityGMLVisibiliteQtPlugin)
-        if (BUILD_CityGMLSunlightQtPlugin)
-                set(CityGMLSunlightQtPlugin "CityGMLSunlightQtPlugin")
-        endif (BUILD_CityGMLSunlightQtPlugin)
+	if (BUILD_CityGMLFloodARQtPlugin)
+		set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
+	endif (BUILD_CityGMLFloodARQtPlugin)
+	if (BUILD_CityGMLSunlightQtPlugin)
+	    set(CityGMLSunlightQtPlugin "CityGMLSunlightQtPlugin")
+	endif (BUILD_CityGMLSunlightQtPlugin)
 	################
 	# 3DUSE plugins
 	################
-        INSTALL(TARGETS ${PRJ_NAME} CityGMLCut ${CityGMLCutQtPlugin} ${CityGMLEmptyQtPlugin} ${CityGMLVisibiliteQtPlugin} ${CityGMLSunlightQtPlugin} # add your plugin installation here
+	INSTALL(TARGETS ${PRJ_NAME} CityGMLCut ${CityGMLCutQtPlugin} ${CityGMLEmptyQtPlugin} ${CityGMLVisibiliteQtPlugin} ${CityGMLFloodARQtPlugin} ${CityGMLSunlightQtPlugin} # add your plugin installation here
 		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
 		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
 		LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}

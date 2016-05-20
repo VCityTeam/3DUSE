@@ -2,7 +2,7 @@
 #define _DIALOGLINK_HPP_
 
 #include <QDialog>
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
 #include "cityobject.hpp"
 
 namespace Ui

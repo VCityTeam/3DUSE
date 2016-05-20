@@ -137,7 +137,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 
                     geode->addDrawable(geom);
 #else
-					//TODO : Mieux gérer les indices, pour l'instance c'est sale
+					//TODO : Mieux gerer les indices, pour l'instance c'est sale
 					osg::Geometry* geom = new osg::Geometry;
                     osg::Vec3Array* vertices = new osg::Vec3Array;
                     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES , 0);
@@ -213,11 +213,12 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 #endif
 
                 }
-				else if(poGeometry != NULL && poGeometry->getGeometryType() == wkbPoint)
+				else if(poGeometry != NULL && (poGeometry->getGeometryType() == wkbPoint || poGeometry->getGeometryType() == wkbPoint25D))
 				{
 					osg::Geometry* geom = new osg::Geometry;
                     osg::Vec3Array* vertices = new osg::Vec3Array;
                     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::POINTS, 0);
+					osg::Vec3Array* colors = new osg::Vec3Array;
 
                     OGRPoint* poP = (OGRPoint*) poGeometry;
                     
@@ -225,9 +226,13 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS)
 					vertices->push_back(point - offset);
                     indices->push_back(0);
 
+					colors->push_back(osg::Vec3d(243.0/255.0, 214.0/255.0, 23.0/255.0));
 
                     geom->setVertexArray(vertices);
                     geom->addPrimitiveSet(indices);
+					geom->setColorArray(colors);
+					geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+
                     geode->addDrawable(geom);
 
 					osg::Point* pointsize = new osg::Point(3.0f); 

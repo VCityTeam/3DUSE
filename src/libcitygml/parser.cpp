@@ -43,8 +43,10 @@ m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr), _use
 { 
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
 	initNodes();
-	ADEHandlerFactory* _adeFactory = new ADEHandlerFactory();
-	_adeFactory->getInstances(&_ADEHandlers);
+//	ADEHandlerFactory* _adeFactory = new ADEHandlerFactory();
+//	_adeFactory->getInstances(&_ADEHandlers);
+    ADEHandlerFactory _adeFactory;
+    _adeFactory.getInstances(&_ADEHandlers);
 	for (std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++) it->second->setGMLHandler(this); 
 }
 
@@ -642,7 +644,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					try{tHandler->startElement(name, attributes);}
-					catch (...) {}
+					catch (...) { std::cerr << "Method startElement() does not exist for " << nspace << " ADE Handler" << std::endl; }
 				}
 			}
 		}
@@ -1076,7 +1078,7 @@ void CityGMLHandler::endElement( const std::string& name )
 				{
 					ADEHandler* tHandler = (_ADEHandlers.find(nspace))->second;
 					try{tHandler->endElement(name);}
-					catch (...) {}
+					catch (...) { std::cerr << "Method endElement() does not exist for " << nspace << " ADE Handler" << std::endl; }
 				}
 			}
 		}

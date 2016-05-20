@@ -9,11 +9,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
-* @brief Projette les toits du CityObject sélectionné sur le plan (xy)
-* @param obj CityObject sélectionné
-* @param FootPrint un multiPolygon, le résultat de la projection
-* @param heightmax Enregistre le Zmax des murs du bâtiment
-* @param heightmin Enregistre le Zmin des murs du bâtiment
+* @brief Projette les toits du CityObject selectionne sur le plan (xy)
+* @param obj CityObject selectionne
+* @param FootPrint un multiPolygon, le resultat de la projection
+* @param heightmax Enregistre le Zmax des murs du batiment
+* @param heightmin Enregistre le Zmin des murs du batiment
 */
 void GetFootprint(citygml::CityObject* obj, OGRMultiPolygon * FootPrint, double * heightmax, double * heightmin)
 {
@@ -34,16 +34,16 @@ void GetFootprint(citygml::CityObject* obj, OGRMultiPolygon * FootPrint, double 
                     //std::cout << " (x,y) = (" << Vertices.x<< "," << Vertices.y<< ")" << std::endl;
                 }
                 OgrRing->closeRings();
-                if(OgrRing->getNumPoints() > 3)//Le polygone ne sera créé qu'à partir de 4 points
+                if(OgrRing->getNumPoints() > 3)//Le polygone ne sera cree qu'a partir de 4 points
                 {
                     OgrPoly->addRingDirectly(OgrRing);
                     if(OgrPoly->IsValid())
-                        FootPrint->addGeometryDirectly(OgrPoly); // on récupere le polygone
+                        FootPrint->addGeometryDirectly(OgrPoly); // on recupere le polygone
                 }
             }
         }
     }
-    else if(obj->getType() == citygml::COT_WallSurface)//Remplissage de la hauteur min des murs (correspondant au "sol" du bâtiment)
+    else if(obj->getType() == citygml::COT_WallSurface)//Remplissage de la hauteur min des murs (correspondant au "sol" du batiment)
     {
         for(citygml::Geometry* Geom : obj->getGeometries())
         {
@@ -57,7 +57,7 @@ void GetFootprint(citygml::CityObject* obj, OGRMultiPolygon * FootPrint, double 
             }
         }
     }
-    for(citygml::CityObject* Obj : obj->getChildren())//Pour descendre dans le bâtiment jusqu'à arriver aux Wall/Roofs
+    for(citygml::CityObject* Obj : obj->getChildren())//Pour descendre dans le batiment jusqu'a arriver aux Wall/Roofs
     {
         GetFootprint(Obj, FootPrint, heightmax, heightmin);
     }
@@ -65,8 +65,8 @@ void GetFootprint(citygml::CityObject* obj, OGRMultiPolygon * FootPrint, double 
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
-* @brief Récupère l'enveloppe d'une geometry en faisant une succession d'unions sur tous les polygones
-* @param MP Ensemble de polygones sur lequel on va générer une enveloppe
+* @brief Recupere l'enveloppe d'une geometry en faisant une succession d'unions sur tous les polygones
+* @param MP Ensemble de polygones sur lequel on va generer une enveloppe
 */
 OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
 {
@@ -78,7 +78,7 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
     ResUnion = MP->UnionCascaded();
 
     //On travaille avec des OGRMultiPolygon pour avoir un format universel, il faut donc transformer la geometry en collection.
-    if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de polygons : plusieurs bâitments
+    if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbMultiPolygon25D)//La geometry est en fait un ensemble de polygons : plusieurs baitments
     {
         OGRMultiPolygon * GeoCollection = (OGRMultiPolygon*)(ResUnion);
 
@@ -86,7 +86,7 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
 
         OGRMultiPolygon * MultiPolygonRes = new OGRMultiPolygon;
 
-        for(int i = 0; i < GeoCollection->getNumGeometries(); ++i)//Pour enlever les arêtes parasites formant des interior ring "plats"
+        for(int i = 0; i < GeoCollection->getNumGeometries(); ++i)//Pour enlever les aretes parasites formant des interior ring "plats"
         {
             OGRGeometry * Geometry = GeoCollection->getGeometryRef(i);
 
@@ -101,7 +101,7 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
                 {
                     const OGRLinearRing * IntRing = Poly->getInteriorRing(j);
 
-                    if(IntRing->get_Area() > 0.1) //Pour enlever les arêtes parasites formant des interior ring "plats"
+                    if(IntRing->get_Area() > 0.1) //Pour enlever les aretes parasites formant des interior ring "plats"
                         PolyRes->addRingDirectly(dynamic_cast<OGRLinearRing*>(IntRing->clone()));
                 }
 
@@ -111,7 +111,7 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
 
         return MultiPolygonRes;
     }
-    else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul bâtiment
+    else if(ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon || ResUnion->getGeometryType() == OGRwkbGeometryType::wkbPolygon25D)//La geometry est en fait un seul polygon : un seul batiment
     {
         OGRMultiPolygon * GeoCollection = new OGRMultiPolygon;
         GeoCollection->addGeometryDirectly(ResUnion);
@@ -123,8 +123,8 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
 
 /**
 * @brief Convertit un LOD1 contenu dans un MultiPolygon en Cityobject CityGML.
-* @param name Nom du Cityobject CityGML créée
-* @param Geometry MultiPolygon contient les emprises au sol à convertir
+* @param name Nom du Cityobject CityGML creee
+* @param Geometry MultiPolygon contient les emprises au sol a convertir
 * @param heightmin Donne la valeur de z minimale pour le LOD1
 * @param heightmax Donne la valeur de z maximale pour le LOD1
 */
@@ -149,7 +149,7 @@ citygml::CityObject* ConvertLOD1ToCityGML(std::string name, OGRMultiPolygon * En
 
         const OGRLinearRing * ExtRing = Poly->getExteriorRing();
 
-        for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrête à size - 1 car le premier point est déjà répété en dernière position
+        for(int j = 0; j < ExtRing->getNumPoints() - 1; ++j)//On s'arrete a size - 1 car le premier point est deja repete en derniere position
         {
             citygml::Polygon * PolyWall = new citygml::Polygon(name + "_PolyWall_" + std::to_string(i) + "_" + std::to_string(j));
             citygml::LinearRing * RingWall = new citygml::LinearRing(name + "_RingWall_" + std::to_string(i) + "_" + std::to_string(j), true);
@@ -193,8 +193,8 @@ citygml::CityObject* ConvertLOD1ToCityGML(std::string name, OGRMultiPolygon * En
 
 /**
 * @brief Convertit un LOD0 contenu dans un MultiPolygon en geometry CityGML.
-* @param name Nom de la geometry CityGML créée
-* @param Geometry MultiPolygon contient les emprises au sol à convertir en objet CityGML
+* @param name Nom de la geometry CityGML creee
+* @param Geometry MultiPolygon contient les emprises au sol a convertir en objet CityGML
 * @param heightmin Permet de situer les LOD0 dans l'espace
 */
 citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geometry, double * heightmin)
@@ -221,7 +221,7 @@ citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geom
         Poly->addRing(Ring);
         for(int k = 0; k < Polygon->getNumInteriorRings(); ++k)
         {
-            citygml::LinearRing * IntRingCityGML = new citygml::LinearRing("InteriorRing", false);//False pour signifier que le linearring correspond à un interior ring
+            citygml::LinearRing * IntRingCityGML = new citygml::LinearRing("InteriorRing", false);//False pour signifier que le linearring correspond a un interior ring
             OGRLinearRing * IntRing = Polygon->getInteriorRing(k);
 
             for(int j = 0; j < IntRing->getNumPoints(); ++j)
@@ -240,11 +240,11 @@ citygml::Geometry* ConvertLOD0ToCityGML(std::string name, OGRMultiPolygon * Geom
 }
 
 /**
-* @brief Génère le LOD0 du bâtiment contenu dans obj
-* @param obj bâtiment courant
-* @param Enveloppe résultat de la fonction : un multipolygon correspondant au footprint de obj
-* @param heightmax Hauteur max des murs du bâtiment
-* @param heightmin Hauteur min des murs du bâtiment
+* @brief Genere le LOD0 du batiment contenu dans obj
+* @param obj batiment courant
+* @param Enveloppe resultat de la fonction : un multipolygon correspondant au footprint de obj
+* @param heightmax Hauteur max des murs du batiment
+* @param heightmin Hauteur min des murs du batiment
 */
 void generateLOD0fromLOD2(citygml::CityObject* obj, OGRMultiPolygon ** Enveloppe, double * heightmax, double * heightmin)
 {

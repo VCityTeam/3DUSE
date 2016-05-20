@@ -27,6 +27,11 @@ bool operator<(const BoxOrder& a, const BoxOrder& b)
 	return a.order < b.order;
 }
 
+bool operator<(const BoxwithRays& a, const BoxwithRays& b)
+{
+	return a.minDistance < b.minDistance;
+}
+
 
 // AABBCollection
 
@@ -50,9 +55,9 @@ std::vector<AABB> DoLoadAABB(std::string path)
 	for(unsigned int i = 0; i < count; i++)
 	{
 		AABB box;
-        ifs.getline(line,256);
+		ifs.getline(line,256);
 
-        box.name = std::string(line);
+		box.name = std::string(line);
 
         //To avoid problems with files from Windows used on UNIX (Windows uses '/r/n' as 'new line' escape sequence and Unix systems use '/n' only).
         //In order to erase '\r' character if present.
@@ -73,7 +78,7 @@ std::vector<AABB> DoLoadAABB(std::string path)
 		ifs.getline(line,256);maxy = atof(line);
 		ifs.getline(line,256);maxz = atof(line);
 
-		if(minx < maxx && miny < maxy && minz < maxz)
+		if(minx < maxx && miny < maxy && minz <= maxz)
 		{
 			box.min = TVec3d(minx,miny,minz);
 			box.max = TVec3d(maxx,maxy,maxz);
@@ -188,30 +193,37 @@ std::map<std::string,std::pair<TVec3d,TVec3d>> DoBuildAABB(std::vector<QDir> dir
 	{
 		for(QFileInfo f : bDir.entryInfoList())
 		{
-			TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
-			TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
+      if (f.isDir())
+      {
+        QDir fdir(f.absoluteFilePath());
+        for (QFileInfo ff : fdir.entryInfoList())
+        {
+			    TVec3d min(FLT_MAX,FLT_MAX,FLT_MAX);
+			    TVec3d max(-FLT_MAX,-FLT_MAX,-FLT_MAX);
+          if (ff.absoluteFilePath().endsWith(".gml"))
+          {
+            std::cout << ff.absoluteFilePath().toStdString() << std::endl;
+            vcity::Tile* tile = new vcity::Tile(ff.absoluteFilePath().toLatin1().data()); // MT: no more toAscii with qt5
 
-			if(f.absoluteFilePath().endsWith(".gml"))
-			{
-				vcity::Tile* tile = new vcity::Tile(f.absoluteFilePath().toLatin1().data()); // MT: no more toAscii with qt5
+            TriangleList* list = BuildTriangleList(ff.absoluteFilePath().toLatin1().data(), type); // MT: no more toAscii with qt5
 
-				TriangleList* list = BuildTriangleList(f.absoluteFilePath().toLatin1().data(),type); // MT: no more toAscii with qt5
+            for (Triangle* t : list->triangles) //Pour éliminer les points anormaux (qui ont des coordonnées z absurdes), on fait un petit filtre en vérifiant ces valeurs de z.
+            {
+              min.x = std::min(t->a.x, min.x); min.y = std::min(t->a.y, min.y); if (t->a.z > -500) min.z = std::min(t->a.z, min.z);
+              min.x = std::min(t->b.x, min.x); min.y = std::min(t->b.y, min.y); if (t->b.z > -500) min.z = std::min(t->b.z, min.z);
+              min.x = std::min(t->c.x, min.x); min.y = std::min(t->c.y, min.y); if (t->b.z > -500) min.z = std::min(t->c.z, min.z);
+              max.x = std::max(t->a.x, max.x); max.y = std::max(t->a.y, max.y); if (t->a.z < 1000) max.z = std::max(t->a.z, max.z);
+              max.x = std::max(t->b.x, max.x); max.y = std::max(t->b.y, max.y); if (t->b.z < 1000) max.z = std::max(t->b.z, max.z);
+              max.x = std::max(t->c.x, max.x); max.y = std::max(t->c.y, max.y); if (t->c.z < 1000) max.z = std::max(t->c.z, max.z);
+            }
 
-				for(Triangle* t : list->triangles) //Pour éliminer les points anormaux (qui ont des coordonnées z absurdes), on fait un petit filtre en vérifiant ces valeurs de z.
-				{
-					min.x = std::min(t->a.x,min.x);min.y = std::min(t->a.y,min.y);if(t->a.z > -500) min.z = std::min(t->a.z,min.z);
-					min.x = std::min(t->b.x,min.x);min.y = std::min(t->b.y,min.y);if(t->b.z > -500) min.z = std::min(t->b.z,min.z);
-					min.x = std::min(t->c.x,min.x);min.y = std::min(t->c.y,min.y);if(t->b.z > -500) min.z = std::min(t->c.z,min.z);
-					max.x = std::max(t->a.x,max.x);max.y = std::max(t->a.y,max.y);if(t->a.z < 1000) max.z = std::max(t->a.z,max.z);
-					max.x = std::max(t->b.x,max.x);max.y = std::max(t->b.y,max.y);if(t->b.z < 1000) max.z = std::max(t->b.z,max.z);
-					max.x = std::max(t->c.x,max.x);max.y = std::max(t->c.y,max.y);if(t->c.z < 1000) max.z = std::max(t->c.z,max.z);
-				}
+            AABBs.insert(std::make_pair((bDir.dirName() + "/" + fdir.dirName() +"/" + ff.fileName()).toLatin1().data(), std::make_pair(min, max))); // MT: no more toAscii with qt5
+            std::cout << (bDir.dirName() + "/" + ff.fileName()).toLatin1().data() << std::endl; // MT: no more toAscii with qt5
 
-				AABBs.insert(std::make_pair((bDir.dirName()+"/"+f.fileName()).toLatin1().data(),std::make_pair(min,max))); // MT: no more toAscii with qt5
-				std::cout << (bDir.dirName()+"/"+f.fileName()).toLatin1().data() << std::endl; // MT: no more toAscii with qt5
-				
-				delete list;
-				delete tile;
+            delete list;
+            delete tile;
+          }
+        }
 			}
 		}
 	}

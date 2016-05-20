@@ -22,6 +22,31 @@ MNT::MNT()
 	normales = 0;
 }
 ////////////////////////////////////////////////////////////////////////////////
+MNT::MNT(int p_dim_x, int p_dim_y, float p_NODATA_value)
+{
+	dim_x = p_dim_x;
+	dim_y = p_dim_y;
+	altitudes = new float[dim_x*dim_y];
+	NODATA_value = p_NODATA_value;
+	for (int i = 0; i < (dim_x*dim_y); i++) altitudes[i] = NODATA_value;
+
+	image = 0;
+	mnt_charge = false;
+
+	normales = 0;
+}
+////////////////////////////////////////////////////////////////////////////////
+bool MNT::set_altitude(int x, int y, float alt)
+{
+	if (x < dim_x && y < dim_y && altitudes)
+	{
+		altitudes[x + y*dim_x] = alt;
+		return true;
+	}
+	else 
+		return false;
+}
+////////////////////////////////////////////////////////////////////////////////
 MNT::~MNT()
 {
 	if( altitudes )
@@ -32,6 +57,13 @@ MNT::~MNT()
 
 	if( normales )
 		delete[] normales;
+}
+////////////////////////////////////////////////////////////////////////////////
+float  MNT::get_altitude(const int x, const int y) 
+{
+	if (x<dim_x && y<dim_y)
+		return altitudes[x + y*dim_x];
+	else return NODATA_value;
 }
 ////////////////////////////////////////////////////////////////////////////////
 bool MNT::charge( const char* nom_fichier, const char* type_fichier )
@@ -64,18 +96,18 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 		if( strcmp( chaine, "MNT" ) != 0 )
 			return false;
 
-		r = fscanf( fp, "%s", chaine );				// Numéro de version
+		r = fscanf( fp, "%s", chaine );				// Numero de version
 		r = fscanf( fp, "%s", nom_chantier );			// Nom du chantier
-		r = fscanf( fp, "%s", unites_xy );			// Unité des xy
-		r = fscanf( fp, "%f", &precision_xy );			// Précision de l'unité
+		r = fscanf( fp, "%s", unites_xy );			// Unite des xy
+		r = fscanf( fp, "%f", &precision_xy );			// Precision de l'unite
 		r = fscanf( fp, "%f", &x_noeud_NO );			// x du noeud Nord-Ouest
 		r = fscanf( fp, "%f", &y_noeud_NO );			// y du noeud Nord-Ouest
 		r = fscanf( fp, "%f", &pas_x );				// pas en x
 		r = fscanf( fp, "%f", &pas_y );				// pas en y
 		r = fscanf( fp, "%d", &dim_y );				// nombre de lignes
 		r = fscanf( fp, "%d", &dim_x );				// nombre de colonnes
-		r = fscanf( fp, "%s", unites_z );			// Unité des z
-		r = fscanf( fp, "%f", &precision_z );			// Précision de l'unité
+		r = fscanf( fp, "%s", unites_z );			// Unite des z
+		r = fscanf( fp, "%f", &precision_z );			// Precision de l'unite
 
 		y_noeud_NO -= 3000000;
 	}
@@ -117,10 +149,10 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 			pas_y = pas_x;						// pas en y
 		}
 		r = fscanf( fp, "%s", chaine );
-		if( strcmp( chaine, "NODATA_value" ) == 0 )
+		if( strcmp( chaine, "NODATA_value" ) == 0 || strcmp( chaine, "nodata_value" ) == 0 )
 		{
-			r = fscanf( fp, "%d", &NODATA_value );			// NODATA_value
-			printf("NODATA_value: %d\n", NODATA_value);
+			r = fscanf( fp, "%f", &NODATA_value );			// NODATA_value
+			printf("NODATA_value: %f\n", NODATA_value);
 		}
 		else
 		{
@@ -136,7 +168,7 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 
 	printf( "origine = (%f, %f)\n", x_noeud_NO, y_noeud_NO );
 
-	altitudes = new int[dim_x*dim_y];
+	altitudes = new float[dim_x*dim_y];
 	normales = new osg::Vec3[dim_x*dim_y];
 
 	// Lecture des altitudes
@@ -146,9 +178,11 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 	{
 		for( int x=0; x<dim_x; x++ )
 		{
-			r = fscanf( fp, "%d", &altitudes[offset] );
+			float a = NODATA_value;
+			r = fscanf( fp, "%f", &a );
+			altitudes[offset] = a;
 			normales[offset] = osg::Vec3(0.0, 0.0, 0.0);
-
+			//printf("%d \n", altitudes[offset]);
 			offset++;
 		}
 		printf( "Chargement (%d%%)\r", (int)(y*100.0/dim_y) );
@@ -251,6 +285,29 @@ bool MNT::charge( const char* nom_fichier, const char* type_fichier )
 	return true;
 }
 ////////////////////////////////////////////////////////////////////////////////
+bool MNT::write(const char* nom_fichier)
+{
+	FILE* out;
+	out = fopen(nom_fichier,"wt");
+	fprintf(out, "ncols         %d\n", dim_x);
+	fprintf(out, "nrows         %d\n", dim_y);
+	fprintf(out, "xllcorner     %.3f\n", x_noeud_NO);
+	fprintf(out, "yllcorner     %.3f\n", y_noeud_NO);
+	fprintf(out, "cellsize      %.3f\n", pas_x);
+	fprintf(out, "nodata_value  %.3f\n", NODATA_value);
+	for (int y = 0; y<dim_y; y++)
+	{
+		for (int x = 0; x<dim_x; x++)
+		{
+			fprintf(out, "%.3f ", get_altitude(x,y));
+		}
+		fprintf(out, "\n");
+	}
+
+	fclose(out);
+	return true;
+}
+////////////////////////////////////////////////////////////////////////////////
 osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(float offset_x, float offset_y, float offset_z, int zfactor)
 {
     osg::ref_ptr<osg::Geode> geode;
@@ -296,93 +353,11 @@ osg::ref_ptr<osg::Geode> MNT::buildAltitudesGrid(float offset_x, float offset_y,
 				indices->push_back( (y+1)*get_dim_x()+x );
 			}
 
-        geom->getOrCreateStateSet(); // MT : rajouté par MM -> utilité ?
+        geom->getOrCreateStateSet(); // MT : rajoute par MM -> utilite ?
             
         geom->addPrimitiveSet( indices );
 		// Create geometry primitives
 
     return geode;
-}
-////////////////////////////////////////////////////////////////////////////////
-void MNT::sauve_log( const char* nom_fichier_log, const char* nom_fichier_tga )
-{
-	FILE	*fp;
-
-	fp = fopen( nom_fichier_log, "wt" );
-
-	fprintf( fp, "nom_chantier : %s\n", nom_chantier );
-	fprintf( fp, "x_noeud_NO   : %f\n", x_noeud_NO );
-	fprintf( fp, "y_noeud_NO   : %f\n", y_noeud_NO );
-	fprintf( fp, "pas_x        : %f\n", pas_x );
-	fprintf( fp, "pas_y        : %f\n", pas_y );
-	fprintf( fp, "dim_x        : %d\n", dim_x );
-	fprintf( fp, "dim_y        : %d\n", dim_y );
-
-	fclose( fp );
-
-	//save_tga( nom_fichier_tga, dim_x, dim_y, image );
-}
-////////////////////////////////////////////////////////////////////////////////
-bool MNT::sauve_partie( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y )
-{
-	FILE	*fp;
-
-	fp = fopen( nom_fichier, "wt" );
-	if( !fp )
-		return false;
-
-	printf( "Decoupe partie (%d,%d) de (%d x %d)\n", xpos, ypos, nb_pt_x, nb_pt_y );
-
-	fprintf( fp, "%d %d\n", nb_pt_x, nb_pt_y );
-
-	for( int y=ypos; y<ypos+nb_pt_y; y++ )
-	{
-		for( int x=xpos; x<xpos+nb_pt_x; x++ )
-		{
-			fprintf( fp, "%d ", altitudes[x+y*dim_x] );
-		}
-		fprintf( fp, "\n" );
-	}
-
-	fclose( fp );
-
-	return true;
-}
-////////////////////////////////////////////////////////////////////////////////
-bool MNT::sauve_partie_XML( const char* nom_fichier, int xpos, int ypos, int nb_pt_x, int nb_pt_y )
-{
-	FILE	*fp;
-
-	fp = fopen( nom_fichier, "wt" );
-	if( !fp )
-		return false;
-	printf( "origine du XML= (%f, %f)\n", x_noeud_NO, y_noeud_NO );
-	printf( "Decoupe partie (%d,%d) de (%d x %d)\n", xpos, ypos, nb_pt_x, nb_pt_y );
-
-	//
-	/* Début de création du fichier XML
-	<TERRAIN>
-		<ORIGINE> Lon Lat </ORIGINE>
-		<VALX> nb_Pt_x </VALX>
-		<VALY> nb_Pt_y </VALY>
-		<ALTITUDE> x y z </POINT>
-		...
-    </TERRAIN>
-	*/
-
-	fprintf( fp, "<origine> %f \t %f </origine> \n", x_noeud_NO+(pas_x * xpos), y_noeud_NO+(pas_y * ypos) );
-	fprintf( fp, "<valx> %d </valx> \n <valy> %d </valy> \n", nb_pt_x, nb_pt_y );
-	for( int y=ypos; y<ypos+nb_pt_y; y++ )
-	{
-		for( int x=xpos; x<xpos+nb_pt_x; x++ )
-		{
-			fprintf( fp, "<POINT> %f %f %d </POINT>\n", x_noeud_NO+(pas_x * x), y_noeud_NO+(pas_y * y), altitudes[x+y*dim_x] );
-		}
-		//fprintf( fp, "\n" );
-	}
-
-	fclose( fp );
-
-	return true;
 }
 ////////////////////////////////////////////////////////////////////////////////

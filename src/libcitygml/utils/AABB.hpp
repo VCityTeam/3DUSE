@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "citygml_export.h"
 #include "vecs.hpp"
 
 
@@ -30,6 +31,17 @@ struct BoxOrder
 
 bool operator<(const BoxOrder& a, const BoxOrder& b);
 
+/**
+*	@brief Pour une box, contient un certain nombre d'informations liés aux rayons que l'on aura tenté d'intersecter avec celle ci.
+*/
+struct BoxwithRays
+{
+	AABB box; //  Box concernée
+	std::vector<int> IndicesRays; //Contient les indices des rayons qui ont intersecté cette box
+	float minDistance; //Distance minimale entre la box et la caméra
+};
+
+bool operator<(const BoxwithRays& a, const BoxwithRays& b);
 
 /**
 *	Used to store a bounding box collection of different layer

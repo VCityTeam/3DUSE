@@ -14,8 +14,8 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
-* @brief A partir d'un ensemble de lignes définissant des routes, crée des polygones en lisant leur largeur
-* @param OGRLayer* Layer Contient les données du fichier CityGML MNT
+* @brief A partir d'un ensemble de lignes definissant des routes, cree des polygones en lisant leur largeur
+* @param OGRLayer* Layer Contient les donnees du fichier CityGML MNT
 */
 OGRGeometry* BuildRoads(OGRLayer* Layer)
 {
@@ -68,8 +68,8 @@ OGRGeometry* BuildRoads(OGRLayer* Layer)
 
 ////////////////////////////////////////////////////////////////////////////////
 /**
-* @brief A partir d'un MNT Citygml et d'une shapefile de routes linéaires, crée un MNT typé avec des polygones TIN et de routes.
-* @param MNT : Contient les données du fichier CityGML MNT
+* @brief A partir d'un MNT Citygml et d'une shapefile de routes lineaires, cree un MNT type avec des polygones TIN et de routes.
+* @param MNT : Contient les donnees du fichier CityGML MNT
 * @param Roads : Contient les routes du shapefile
 * @param MNT_roads : Contiendra le CityModel de sortie avec les routes
 * @param TexturesList_roads : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_roads
@@ -78,6 +78,8 @@ OGRGeometry* BuildRoads(OGRLayer* Layer)
 */
 void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel* MNT_roads, std::vector<TextureCityGML*>* TexturesList_roads, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground)
 {
+	///// TODO : ne pas prendre en comptes les tunnels !!!! /////
+
 	OGRLayer* Layer = Roads->GetLayer(0);
 
 	OGRGeometry* ListRoads = BuildRoads(Layer);
@@ -129,7 +131,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 					for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 						OgrRing->addPoint(Point.x, Point.y, Point.z);
 
-					if(PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
+					if(PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnees georeferences qu'il faut convertir en coordonnees de texture standard
 					{
 						/*double A, B, C ,D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
 						double offset_x;
@@ -147,12 +149,12 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 						std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;*/
 
 
-						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D négatif (données de LYON)
+						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D negatif (donnees de LYON)
 						int i = 0;
 						for(TVec2f UV:TexUV)
 						{
 							UV.x = UV.x/4095; 
-							UV.y = 1 + UV.y/4095;//Car D est négatif
+							UV.y = 1 + UV.y/4095;//Car D est negatif
 							TexUV.at(i) = UV;
 							++i;
 						}
@@ -177,11 +179,11 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 							//double A2 = 0;
 							//double A3 = 0;
 
-							//Création des polygones de route
+							//Creation des polygones de route
 
 							if(Intersection->getGeometryType() == wkbPolygon || Intersection->getGeometryType() == wkbPolygon25D)
 							{
-								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection, &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection, &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 
 								//Inter = CutPoly->clone();
 
@@ -200,7 +202,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 										Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 										Poly.TexUV = TexUVout.at(0);
 
-										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+										bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 										for(TextureCityGML* Tex: *TexturesList_roads)
 										{
 											if(Tex->Url == Url)
@@ -234,7 +236,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 								{
 									if(Intersection_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon || Intersection_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon25D)
 									{
-										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 										if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
 										{
 											//MP->addGeometry(CutPoly);//
@@ -251,7 +253,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 												Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 												Poly.TexUV = TexUVout.at(0);
 
-												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+												bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 												for(TextureCityGML* Tex: *TexturesList_roads)
 												{
 													if(Tex->Url == Url)
@@ -291,7 +293,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 													Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 													Poly.TexUV = TexUVout.at(0);
 
-													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+													bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 													for(TextureCityGML* Tex: *TexturesList_roads)
 													{
 														if(Tex->Url == Url)
@@ -320,11 +322,11 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 								//Inter = MP;
 							}
 
-							//Création des polygones de MNT (ou Water)
+							//Creation des polygones de MNT (ou Water)
 
 							if(Difference->getGeometryType() == wkbPolygon || Difference->getGeometryType() == wkbPolygon25D)
 							{
-								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference, &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference, &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 
 								//Diff = CutPoly->clone();
 
@@ -343,7 +345,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 										Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 										Poly.TexUV = TexUVout.at(0);
 
-										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+										bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 										for(TextureCityGML* Tex: *TexturesList_ground)
 										{
 											if(Tex->Url == Url)
@@ -377,7 +379,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 								{
 									if(Difference_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon || Difference_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon25D)
 									{
-										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 										if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
 										{
 											//MP->addGeometry(CutPoly);//
@@ -394,7 +396,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 												Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 												Poly.TexUV = TexUVout.at(0);
 
-												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+												bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 												for(TextureCityGML* Tex: *TexturesList_ground)
 												{
 													if(Tex->Url == Url)
@@ -434,7 +436,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 													Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 													Poly.TexUV = TexUVout.at(0);
 
-													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+													bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 													for(TextureCityGML* Tex: *TexturesList_ground)
 													{
 														if(Tex->Url == Url)
@@ -495,7 +497,7 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 								Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 								Poly.TexUV = TexUV;
 
-								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+								bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 								for(TextureCityGML* Tex: *TexturesList_ground)
 								{
 									if(Tex->Url == Url)
@@ -547,10 +549,10 @@ void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel
 
 
 /**
-* @brief A partir d'un MNT Citygml et d'une shapefile d'espaces boisés, crée un MNT typé avec des polygones TIN et de vegetation.
-* @param MNT : Contient les données du fichier CityGML MNT
-* @param Vegetation : Contient les polygones des zones de végétation
-* @param MNT_vegetation : Contiendra le CityModel de sortie avec la végétation
+* @brief A partir d'un MNT Citygml et d'une shapefile d'espaces boises, cree un MNT type avec des polygones TIN et de vegetation.
+* @param MNT : Contient les donnees du fichier CityGML MNT
+* @param Vegetation : Contient les polygones des zones de vegetation
+* @param MNT_vegetation : Contiendra le CityModel de sortie avec la vegetation
 * @param TexturesList_vegetation : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_vegetation
 * @param MNT_ground : Contiendra le CityModel de sortie avec les autres polygones du terrain
 * @param TexturesList_ground : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_ground
@@ -628,7 +630,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 					for(TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
 						OgrRing->addPoint(Point.x, Point.y, Point.z);
 
-					if(PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnées géoréférences qu'il faut convertir en coordonnées de texture standard
+					if(PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture") //Ce sont des coordonnees georeferences qu'il faut convertir en coordonnees de texture standard
 					{
 						/*double A, B, C ,D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
 						double offset_x;
@@ -646,12 +648,12 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 						std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;*/
 
 
-						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D négatif (données de LYON)
+						//////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D negatif (donnees de LYON)
 						int i = 0;
 						for(TVec2f UV:TexUV)
 						{
 							UV.x = UV.x/4095; 
-							UV.y = 1 + UV.y/4095;//Car D est négatif
+							UV.y = 1 + UV.y/4095;//Car D est negatif
 							TexUV.at(i) = UV;
 							++i;
 						}
@@ -676,11 +678,11 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 							//double A2 = 0;
 							//double A3 = 0;
 
-							//Création des polygones de route
+							//Creation des polygones de route
 
 							if(Intersection->getGeometryType() == wkbPolygon || Intersection->getGeometryType() == wkbPolygon25D)
 							{
-								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection, &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection, &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 
 								//Inter = CutPoly->clone();
 
@@ -699,7 +701,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 										Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 										Poly.TexUV = TexUVout.at(0);
 
-										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+										bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 										for(TextureCityGML* Tex: *TexturesList_vegetation)
 										{
 											if(Tex->Url == Url)
@@ -733,7 +735,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 								{
 									if(Intersection_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon || Intersection_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon25D)
 									{
-										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Intersection_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 										if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
 										{
 											//MP->addGeometry(CutPoly);//
@@ -750,7 +752,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 												Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 												Poly.TexUV = TexUVout.at(0);
 
-												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+												bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 												for(TextureCityGML* Tex: *TexturesList_vegetation)
 												{
 													if(Tex->Url == Url)
@@ -790,7 +792,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 													Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 													Poly.TexUV = TexUVout.at(0);
 
-													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+													bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 													for(TextureCityGML* Tex: *TexturesList_vegetation)
 													{
 														if(Tex->Url == Url)
@@ -819,11 +821,11 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 								//Inter = MP;
 							}
 
-							//Création des polygones de MNT (ou Water)
+							//Creation des polygones de MNT (ou Water)
 
 							if(Difference->getGeometryType() == wkbPolygon || Difference->getGeometryType() == wkbPolygon25D)
 							{
-								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference, &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+								OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference, &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 
 								//Diff = CutPoly->clone();
 
@@ -842,7 +844,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 										Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 										Poly.TexUV = TexUVout.at(0);
 
-										bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+										bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 										for(TextureCityGML* Tex: *TexturesList_ground)
 										{
 											if(Tex->Url == Url)
@@ -876,7 +878,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 								{
 									if(Difference_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon || Difference_GC->getGeometryRef(i)->getGeometryType() == wkbPolygon25D)
 									{
-										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnées z et de textures
+										OGRGeometry * CutPoly = CutPolyGMLwithShape(OgrPoly, (OGRPolygon*)Difference_GC->getGeometryRef(i), &TexUV, &TexUVout); //Pour calculer les coordonnees z et de textures
 										if(CutPoly->getGeometryType() == wkbPolygon || CutPoly->getGeometryType() == wkbPolygon25D)
 										{
 											//MP->addGeometry(CutPoly);//
@@ -893,7 +895,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 												Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 												Poly.TexUV = TexUVout.at(0);
 
-												bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+												bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 												for(TextureCityGML* Tex: *TexturesList_ground)
 												{
 													if(Tex->Url == Url)
@@ -933,7 +935,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 													Poly.IdRing = Name + "_" + std::to_string(cptPolyTIN) + "_Ring";
 													Poly.TexUV = TexUVout.at(0);
 
-													bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+													bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 													for(TextureCityGML* Tex: *TexturesList_ground)
 													{
 														if(Tex->Url == Url)
@@ -994,7 +996,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
 								Poly.IdRing = PolygonCityGML->getExteriorRing()->getId();
 								Poly.TexUV = TexUV;
 
-								bool URLTest = false;//Permet de dire si l'URL existe déjà dans TexturesList ou non. Si elle n'existe pas, il faut créer un nouveau TextureCityGML pour la stocker.
+								bool URLTest = false;//Permet de dire si l'URL existe deja dans TexturesList ou non. Si elle n'existe pas, il faut creer un nouveau TextureCityGML pour la stocker.
 								for(TextureCityGML* Tex: *TexturesList_ground)
 								{
 									if(Tex->Url == Url)

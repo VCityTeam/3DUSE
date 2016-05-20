@@ -3,7 +3,7 @@
 #ifndef __EXPORTTOSHAPE_HPP__
 #define __EXPORTTOSHAPE_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "src/core/URI.hpp"
+#include "src/libcitygml/URI.hpp"
 #include "libcitygml/citygml.hpp"
 #include "src/gui/osg/osgGDAL.hpp"
 #include <stdlib.h>

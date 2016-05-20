@@ -10,8 +10,8 @@
 
 /**
 * @brief Sauvegarde la geometry dans un fichier shape
-* @param name Nom du shape à enregistrer
-* @param G Geometry à enregistrer (MultiPolygon)
+* @param name Nom du shape a enregistrer
+* @param G Geometry a enregistrer (MultiPolygon)
 */
 void SaveGeometrytoShape(std::string name, const OGRGeometryCollection* G)
 {

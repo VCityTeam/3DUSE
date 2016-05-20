@@ -1,7 +1,6 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "exportOBJ.hpp"
-//#include "core/application.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -129,7 +128,6 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
                 for(const TVec3d& v : poly->getVertices())
                 {
                     m_outFile << "v " << v.x-m_offsetX << " " << v.y-m_offsetY << " " << v.z << "\n";
-                    //m_outFile << "v " << (v.x - vcity::app().getSettings().getDataProfile().m_offset.x) << " " << (v.y - vcity::app().getSettings().getDataProfile().m_offset.x) << " " << v.z << "\n"; // MT 24/02/15
                 }
                 for(const TVec3f& vn : poly->getNormals())
                 {
@@ -187,7 +185,7 @@ void ExporterOBJ::exportMaterials(const std::string& filename)
         mat << "Ns 0.000000\n";
         mat << "map_Kd " << it.second << "\n\n";
     }
-    if(i==0)//mat est vide, il faut cependant écrire dans le mtl sinon Assimp ne peut ouvrir le fichier
+    if(i==0)//mat est vide, il faut cependant ecrire dans le mtl sinon Assimp ne peut ouvrir le fichier
     {
         mat << "newmtl No Material \n";
         mat << "Ka 1.000000 1.000000 1.000000\n";

@@ -35,27 +35,27 @@
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
 {
-    public:
-        MyUserDataContainer() {}
-        MyUserDataContainer(const MyUserDataContainer& udc, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY):
-            DefaultUserDataContainer(udc, copyop) {}
+public:
+	MyUserDataContainer() {}
+	MyUserDataContainer(const MyUserDataContainer& udc, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY):
+		DefaultUserDataContainer(udc, copyop) {}
 
-        META_Object(MyNamespace, MyUserDataContainer)
+	META_Object(MyNamespace, MyUserDataContainer)
 
-        virtual Object* getUserObject(unsigned int i)
-        {
-            OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<")"<<std::endl;
-            return  osg::DefaultUserDataContainer::getUserObject(i);
-        }
+		virtual Object* getUserObject(unsigned int i)
+	{
+		OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<")"<<std::endl;
+		return  osg::DefaultUserDataContainer::getUserObject(i);
+	}
 
-        virtual const Object* getUserObject(unsigned int i) const
-        {
-            OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<") const"<<std::endl;
-            return osg::DefaultUserDataContainer::getUserObject(i);
-        }
+	virtual const Object* getUserObject(unsigned int i) const
+	{
+		OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<") const"<<std::endl;
+		return osg::DefaultUserDataContainer::getUserObject(i);
+	}
 
-    protected:
-        virtual ~MyUserDataContainer() {}
+protected:
+	virtual ~MyUserDataContainer() {}
 };
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -63,32 +63,32 @@ class MyUserDataContainer : public osg::DefaultUserDataContainer
 class FindNamedNode : public osg::NodeVisitor
 {
 public:
-    FindNamedNode( const std::string& name )
-      : osg::NodeVisitor( // Traverse all children.
-                osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ),
-        _name( name )
-    {
-        setTraversalMask(0xffffffff);
-        setNodeMaskOverride(0xffffffff);
-    }
+	FindNamedNode( const std::string& name )
+		: osg::NodeVisitor( // Traverse all children.
+		osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ),
+		_name( name )
+	{
+		setTraversalMask(0xffffffff);
+		setNodeMaskOverride(0xffffffff);
+	}
 
-    // This method gets called for every node in the scene
-    //   graph. Check each node to see if its name matches
-    //   out target. If so, save the node's address.
-    virtual void apply( osg::Node& node )
-    {
-        if (node.getName() == _name)
-            _node = &node;
+	// This method gets called for every node in the scene
+	//   graph. Check each node to see if its name matches
+	//   out target. If so, save the node's address.
+	virtual void apply( osg::Node& node )
+	{
+		if (node.getName() == _name)
+			_node = &node;
 
-        // Keep traversing the rest of the scene graph.
-        traverse( node );
-    }
+		// Keep traversing the rest of the scene graph.
+		traverse( node );
+	}
 
-    osg::ref_ptr<osg::Node> getNode() { return _node; }
+	osg::ref_ptr<osg::Node> getNode() { return _node; }
 
 protected:
-    std::string _name;
-    osg::ref_ptr<osg::Node> _node;
+	std::string _name;
+	osg::ref_ptr<osg::Node> _node;
 };
 
 
@@ -928,33 +928,45 @@ void OsgScene::reset()
 ////////////////////////////////////////////////////////////////////////////////
 void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
 {
+	//05/11/2015 Frederic : Fonction qui ne me semble pas bien propre. On parcourt l'arbre osg qui semble vide de semantique, on a juste un ensemble de nodes et de sous nodes.
+	//Le CityModel est le sous node du layer CityGML, ensuite il y a les batiments, puis les murs, puis les geometries, puis les polygones, ...
+	//Visiblement, un objet concerne par des LODs possedent obligatoirement 5 enfants "geodes" (1 par LoD) et on va donc chercher les objets qui ont 5 fils repertories comme des "geodes" (lors du chargement, je suppose qu'on doit assimiler les Lods a ça).
+	//Parmi ces 5 enfants, on va donc cacher le "lodieme".
+	//Probleme entre LoD1 et LoD2 : la notion de Lod apparait un cran plus haut sur un LOD1 que sur un LOD2 (car il y a un fils Wall, Roof, ... dans le LOD2 avant le Lod2multisurface).
+	//Donc quand on arrive au niveau du LOD1, finalement le Lod2 correspondant (grp->getChild(2)) ne signifie rien, il n'appaitra reellement que lorsque l'on parcourera les murs et walls par la suite. Et a ce moment, c'est grp->getChild(1) qui n'aura pas de sens.
+	//Cela oblige a tester tous les fils car on ne sait jamais a quel niveau on va trouver une notion de LOD et c'est donc tres long !
+
 	appGui().getControllerGui().resetSelection();
-    osg::ref_ptr<osg::Group> grp = node->asGroup();
-    if(grp)
-    {
-        int count = grp->getNumChildren();
+	osg::ref_ptr<osg::Group> grp = node->asGroup();
 
-        // check if we had 5 LODs geodes
-        int numGeodes = 0;
-        for(int i=0; i<count; ++i)
-        {
-            osg::ref_ptr<osg::Node> child = grp->getChild(i);
-            if(child->asGeode())
-            {
-                ++numGeodes;
-            }
-        }
-        if(numGeodes == 5) // yes, enable or disable the good lods
-        {
-            grp->getChild(lod)->setNodeMask(0xffffffff - grp->getChild(lod)->getNodeMask());
-        }
+	if(grp)
+	{
+		int count = grp->getNumChildren();
 
-        for(int i=0; i<count; ++i)
-        {
-            osg::ref_ptr<osg::Node> child = grp->getChild(i);
-            forceLODrec(lod, child);
-        }
-    }
+		// check if we had 5 LODs geodes
+		int numGeodes = 0;
+		for(int i=0; i<count; ++i)
+		{
+			osg::ref_ptr<osg::Node> child = grp->getChild(i);
+			if(child->asGeode())
+			{
+				++numGeodes;
+			}
+		}
+
+		if(numGeodes == 5) // yes, enable or disable the good lods
+		{
+			grp->getChild(lod)->setNodeMask(0xffffffff - grp->getChild(lod)->getNodeMask());
+		}
+		if(lod != 1 || numGeodes != 5) //Si on travaille sur le LOD1, pas besoin d'aller voir les enfants si le grp courant a deja cache/montre son LOD1 -> gain de temps
+		{
+			for(int i=0; i<count; ++i)
+			{
+				osg::ref_ptr<osg::Node> child = grp->getChild(i);
+				forceLODrec(lod, child);
+			}
+		}
+	}
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::forceLOD(int lod)
@@ -1374,35 +1386,35 @@ osg::ref_ptr<osg::Geode> OsgScene::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
     osg::Vec3Array* vertices = new osg::Vec3Array;
     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
-    for(int x=0; x<=1; ++x)
-    {
-        for(int y=0; y<=1; ++y)
-        {
-            for(int z=0; z<=1; ++z)
-            {
-                vertices->push_back(osg::Vec3(lowerBound.x()+ x*step.x(), lowerBound.y() + y*step.y(), lowerBound.z() + z*step.z()));
-               
-            }
-        }
-    }
+	for(int x=0; x<=1; ++x)
+	{
+		for(int y=0; y<=1; ++y)
+		{
+			for(int z=0; z<=1; ++z)
+			{
+				vertices->push_back(osg::Vec3(lowerBound.x()+ x*step.x(), lowerBound.y() + y*step.y(), lowerBound.z() + z*step.z()));
 
-    indices->push_back(0); indices->push_back(1);
-    indices->push_back(0); indices->push_back(2);
-    indices->push_back(0); indices->push_back(4);
-    indices->push_back(3); indices->push_back(1);
-    indices->push_back(3); indices->push_back(2);
-    indices->push_back(3); indices->push_back(7);
-    indices->push_back(5); indices->push_back(1);
-    indices->push_back(5); indices->push_back(4);
-    indices->push_back(5); indices->push_back(7);
-    indices->push_back(6); indices->push_back(2);
-    indices->push_back(6); indices->push_back(4);
-    indices->push_back(6); indices->push_back(7);
+			}
+		}
+	}
 
-    geom->setVertexArray(vertices);
-    geom->addPrimitiveSet(indices);
-    geode->addDrawable(geom);
+	indices->push_back(0); indices->push_back(1);
+	indices->push_back(0); indices->push_back(2);
+	indices->push_back(0); indices->push_back(4);
+	indices->push_back(3); indices->push_back(1);
+	indices->push_back(3); indices->push_back(2);
+	indices->push_back(3); indices->push_back(7);
+	indices->push_back(5); indices->push_back(1);
+	indices->push_back(5); indices->push_back(4);
+	indices->push_back(5); indices->push_back(7);
+	indices->push_back(6); indices->push_back(2);
+	indices->push_back(6); indices->push_back(4);
+	indices->push_back(6); indices->push_back(7);
 
-    return geode;
+	geom->setVertexArray(vertices);
+	geom->addPrimitiveSet(indices);
+	geode->addDrawable(geom);
+
+	return geode;
 }
 ////////////////////////////////////////////////////////////////////////////////

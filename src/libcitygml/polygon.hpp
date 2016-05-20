@@ -17,6 +17,7 @@
 #ifndef __CITYGML_POLYGON_HPP__
 #define __CITYGML_POLYGON_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include <vector>
 #include "object.hpp"
 #include "vecs.hpp"
 #include "appearance.hpp"
@@ -26,15 +27,16 @@
 #include "linearring.hpp"
 #include "geometry.hpp"
 #include "envelope.hpp"
-#include "citygmlcommon.hpp"
 #include "citygmltypes.hpp"
-#include <vector>
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 class Geometry;
-class Polygon : public Object
+class CITYGML_EXPORT Polygon : public Object
 {
     friend class CityGMLHandler;
     friend class Geometry;
@@ -49,7 +51,9 @@ public:
 
     Polygon( const std::string& id );
 
-    LIBCITYGML_EXPORT virtual ~Polygon( void ) override;
+    virtual ~Polygon( void ) override;
+
+	Polygon* Clone();
 
     // Get the vertices
     const std::vector<TVec3d>& getVertices( void ) const;

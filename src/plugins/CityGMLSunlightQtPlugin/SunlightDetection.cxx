@@ -7,8 +7,8 @@
 
 #include "AABB.hpp"
 #include "Triangle.hpp"
-#include "raytracing/RayTracing.hpp"
-#include "raytracing/Hit.hpp"
+#include "libfilters/raytracing/RayTracing.hpp"
+#include "libfilters/raytracing/Hit.hpp"
 #include "src/core/RayBox.hpp"
 #include "quaternion.hpp"
 #include "core/dateTime.hpp"
