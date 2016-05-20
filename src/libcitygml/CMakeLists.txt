@@ -29,6 +29,7 @@ add_library( citygml SHARED
   #FIXME: remove the following empty file and the xerces dependency as well ?
   # parserxercesc.cpp 
   polygon.cpp
+  quaternion.cpp
   temporalExt.cpp
   tesselator.cpp
   texture.cpp

@@ -421,6 +421,7 @@ src/core/application.cpp
 src/core/cell.cpp
 src/core/controller.cpp
 src/core/dataprofile.cpp
+src/core/dateTime.cpp
 src/core/layerAssimp.cpp
 src/core/layerCityGML.cpp
 src/core/layerLas.cpp

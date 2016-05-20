@@ -792,6 +792,7 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
 std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datetime, std::map<std::string,bool>* sunlightInfo)
 {
+
 //    std::map<std::string,bool>* sunlightInfo = new std::map<std::string,bool>();
 
     QFile file(filepath);
