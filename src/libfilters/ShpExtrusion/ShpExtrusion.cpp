@@ -1,7 +1,5 @@
 #include "ShpExtrusion.hpp"
 ////////////////////////////////////////////////////////////////////////////////
-#include <qstring.h>
-#include <qfiledialog.h>
 #include "ogrsf_frmts.h"
 #include "export/exportCityGML.hpp"
 
