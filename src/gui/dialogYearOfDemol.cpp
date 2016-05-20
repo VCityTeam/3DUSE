@@ -22,7 +22,7 @@ DialogYearOfDemol::~DialogYearOfDemol()
 
 void DialogYearOfDemol::editDates(const vcity::URI& uri)
 {
-    if (uri.getType() == "Tile")
+    if (uri.getType() == "File")
     {
         editTileDates(uri);
     }

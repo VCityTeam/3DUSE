@@ -626,7 +626,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
     }
     else if (item->text(1) == "File")
     {
-        //std::cout << "Tile" << std::endl;
+        //std::cout << "File" << std::endl;
         m_tree->addAction(m_actionDeleteTile);
         m_tree->addAction(m_actionEditTile);
         m_tree->addAction(m_actionAddBuilding);

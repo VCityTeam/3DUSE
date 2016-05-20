@@ -1083,7 +1083,7 @@ void MainWindow::exportCityGML()
                     }
                 }
             }
-            else if (uri.getType() == "Tile")
+            else if (uri.getType() == "File")
             {
                 citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
                 for (const citygml::CityObject* obj : model->getCityObjectsRoots())
@@ -1292,7 +1292,7 @@ void MainWindow::exportJSON()
     const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
     if (uris.size() > 0)
     {
-        if (uris[0].getType() == "Tile")
+        if (uris[0].getType() == "File")
         {
             citygml::CityModel* model = m_app.getScene().getTile(uris[0])->getCityModel();
             if (model) exporter.exportCityModel(*model, filename.toStdString(), "test");
@@ -1323,7 +1323,7 @@ void MainWindow::exportOBJ()
         for (const vcity::URI& uri : uris)
         {
             uri.resetCursor();
-            if (uri.getType() == "Tile")
+            if (uri.getType() == "File")
             {
                 citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
                 for (citygml::CityObject* obj : model->getCityObjectsRoots())
@@ -1372,7 +1372,7 @@ void MainWindow::exportOBJsplit()
         for (const vcity::URI& uri : uris)
         {
             uri.resetCursor();
-            if (uri.getType() == "Tile")
+            if (uri.getType() == "File")
             {
                 citygml::CityModel* model = m_app.getScene().getTile(uri)->getCityModel();
                 for (citygml::CityObject* obj : model->getCityObjectsRoots())
@@ -1493,7 +1493,7 @@ void MainWindow::generateLOD0()
 
                 vcity::URI uri;
                 uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
-                uri.append(tile->getName(), "Tile");
+                uri.append(tile->getName(), "File");
                 uri.append(obj->getId(), "Building");
                 uri.setType("Building");
 
@@ -1752,7 +1752,7 @@ void MainWindow::generateLOD1()
             {
                 vcity::URI uri;
                 uri.append(appGui().getScene().getDefaultLayer("LayerCityGML")->getName(), "LayerCityGML");
-                uri.append(tile->getName(), "Tile");
+                uri.append(tile->getName(), "File");
                 uri.append(obj->getId(), "Building");
                 uri.setType("Building");
 

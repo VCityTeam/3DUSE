@@ -362,7 +362,7 @@ void ControllerGui::update(const vcity::URI& uri_)
     {
         uriTile.popBack();
     }
-    uriTile.setType("Tile");
+    uriTile.setType("File");
     //std::cout << uriTile.getStringURI() << std::endl;
 
     uriTile.resetCursor();

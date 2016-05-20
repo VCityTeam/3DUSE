@@ -207,7 +207,7 @@ void DialogTag::addTag(const vcity::URI& uri)
             //{
             //    uriTile.pop();
             //}
-            //uriTile.setType("Tile");
+            //uriTile.setType("File");
             //vcity::Tile* tile = vcity::app().getScene().getTile(uriTile);
 
             size_t pos = geom->m_path.find_last_of("/\\");

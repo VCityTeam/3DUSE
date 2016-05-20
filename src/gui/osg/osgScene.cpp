@@ -362,7 +362,7 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
         if (layerGroup)
         {
             vcity::URI uri = uriLayer;
-            uri.append(tile.getName(), "Tile");
+            uri.append(tile.getName(), "File");
             uri.setType("Building");
             uri.resetCursor();
             osg::ref_ptr<osg::Node> osgTile = buildTile(uri, tile);
