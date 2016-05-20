@@ -10,7 +10,7 @@
 #include <osg/MatrixTransform>
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogShpTool;
+    class DialogShpTool;
 }
 
 class MainWindow;
@@ -24,17 +24,17 @@ public:
     explicit DialogShpTool(QWidget *parent, MainWindow* mainwindow);
     ~DialogShpTool();
 
-	void Setup(const vcity::URI& uri);
+    void Setup(const vcity::URI& uri);
 
 private:
     Ui::DialogShpTool *ui;
-	MainWindow* mainwindow;
-	osg::ref_ptr<osg::Node> node;
+    MainWindow* mainwindow;
+    osg::ref_ptr<osg::Node> node;
 
-	osg::MatrixTransform* GetMatrixTransform();
+    osg::MatrixTransform* GetMatrixTransform();
 
-private slots:
-	void HeightValueChanged(double d);
+    private slots:
+    void HeightValueChanged(double d);
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGEDITTILE_HPP

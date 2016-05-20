@@ -484,14 +484,13 @@ src/libfilters/ChangeDetection/ChangeDetection.cpp
 src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
 src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
 
+src/libfilters/ShpExtrusion/ShpExtrusion.cpp
+
 src/DataStructures/DEM/osgMnt.cpp
 
 src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
 src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
 src/utils/CityGMLFusion.cpp
-
-src/processes/ShpExtrusion.cpp
-
 
   src/main.cpp
 

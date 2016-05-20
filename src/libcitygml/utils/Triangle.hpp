@@ -9,25 +9,25 @@
 */
 struct Triangle
 {
-   /**
-   *	@brief Build a new triangle
-   *	@param a First point of the triangle
-   *	@param b Second point of the triangle
-   *	@param c Third point of the triangle
-   */
-   Triangle(TVec3d a = TVec3d(0.0,0.0,0.0),TVec3d b = TVec3d(0.0,0.0,0.0),TVec3d c = TVec3d(0.0,0.0,0.0));
+    /**
+    *	@brief Build a new triangle
+    *	@param a First point of the triangle
+    *	@param b Second point of the triangle
+    *	@param c Third point of the triangle
+    */
+    Triangle(TVec3d a = TVec3d(0.0, 0.0, 0.0), TVec3d b = TVec3d(0.0, 0.0, 0.0), TVec3d c = TVec3d(0.0, 0.0, 0.0));
 
-   TVec3d GetNormal();
+    TVec3d GetNormal();
 
-   TVec3d a; ///< First point of the triangle
-   TVec3d b; ///< Second point of the triangle
-   TVec3d c; ///< Third point of the triangle
+    TVec3d a; ///< First point of the triangle
+    TVec3d b; ///< Second point of the triangle
+    TVec3d c; ///< Third point of the triangle
 
-   citygml::CityObjectsType objectType;
-   citygml::CityObjectsType subObjectType;
-   std::string objectId;
-   std::string polygonId;
-   std::string tileFile;
+    citygml::CityObjectsType objectType;
+    citygml::CityObjectsType subObjectType;
+    std::string objectId;
+    std::string polygonId;
+    std::string tileFile;
 };
 
 /**
@@ -36,12 +36,12 @@ struct Triangle
 */
 struct TriangleList
 {
-   /**
-   *	@brief Build a new collection of triangle
-   */
-   TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>());
+    /**
+    *	@brief Build a new collection of triangle
+    */
+    TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>());
 
-   std::vector<Triangle*> triangles;///< Triangles of the list
+    std::vector<Triangle*> triangles;///< Triangles of the list
 };
 
 /**

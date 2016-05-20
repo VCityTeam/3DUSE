@@ -6,19 +6,19 @@
 #include <QDialog>
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-   class DialogLoadBBox;
+    class DialogLoadBBox;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class DialogLoadBBox : public QDialog
 {
-   Q_OBJECT
+    Q_OBJECT
 
 public:
-   explicit DialogLoadBBox(QWidget *parent = 0);
-   ~DialogLoadBBox();
+    explicit DialogLoadBBox(QWidget *parent = 0);
+    ~DialogLoadBBox();
 
 private:
-   Ui::DialogLoadBBox *ui;
+    Ui::DialogLoadBBox *ui;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGLOADBBOX_HPP

@@ -16,20 +16,20 @@ DialogShpTool::DialogShpTool(QWidget *parent, MainWindow* mainwindow) :
     ui(new Ui::DialogShpTool)
 {
     ui->setupUi(this);
-	this->mainwindow = mainwindow;
+    this->mainwindow = mainwindow;
 
-	connect(ui->heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(HeightValueChanged(double)));
+    connect(ui->heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(HeightValueChanged(double)));
 }
 ////////////////////////////////////////////////////////////////////////////////
 
 void DialogShpTool::Setup(const vcity::URI& uri)
 {
-	std::cout << "Setup Shp : " << std::endl;
-	node = mainwindow->m_osgScene->getNode(uri);
-	std::cout << node->getName() << std::endl;
-	osg::Vec3d translate = GetMatrixTransform()->getMatrix().getTrans();
-	ui->heightSpinBox->setValue(translate.z());
-	ui->labelNode->setText(("Shp : "+node->getName()).c_str());
+    std::cout << "Setup Shp : " << std::endl;
+    node = mainwindow->m_osgScene->getNode(uri);
+    std::cout << node->getName() << std::endl;
+    osg::Vec3d translate = GetMatrixTransform()->getMatrix().getTrans();
+    ui->heightSpinBox->setValue(translate.z());
+    ui->labelNode->setText(("Shp : " + node->getName()).c_str());
 }
 
 
@@ -40,36 +40,36 @@ DialogShpTool::~DialogShpTool()
 
 void DialogShpTool::HeightValueChanged(double d)
 {
-	osg::Matrixd mat;
-	mat.makeTranslate(0.0,0.0,d);
-	GetMatrixTransform()->setMatrix(mat);
+    osg::Matrixd mat;
+    mat.makeTranslate(0.0, 0.0, d);
+    GetMatrixTransform()->setMatrix(mat);
 }
 
 osg::MatrixTransform* DialogShpTool::GetMatrixTransform()
 {
-	osg::Group* group = node->asGroup();
+    osg::Group* group = node->asGroup();
 
-	if(group == nullptr)
-	{
-		std::cout << "Shp Node is not a group, abording operation." << std::endl;
-		return nullptr;
-	}
+    if (group == nullptr)
+    {
+        std::cout << "Shp Node is not a group, abording operation." << std::endl;
+        return nullptr;
+    }
 
-	osg::Transform* transform = group->asTransform();
+    osg::Transform* transform = group->asTransform();
 
-	if(transform == nullptr)
-	{
-		std::cout << "Shp Group is not a Transform, abording operation." << std::endl;
-		return nullptr;
-	}
+    if (transform == nullptr)
+    {
+        std::cout << "Shp Group is not a Transform, abording operation." << std::endl;
+        return nullptr;
+    }
 
-	osg::MatrixTransform* matrixTransform = transform->asMatrixTransform();
+    osg::MatrixTransform* matrixTransform = transform->asMatrixTransform();
 
-	if(transform == nullptr)
-	{
-		std::cout << "Shp Transform is not a MatrixTransform, abording operation." << std::endl;
-		return nullptr;
-	}
+    if (transform == nullptr)
+    {
+        std::cout << "Shp Transform is not a MatrixTransform, abording operation." << std::endl;
+        return nullptr;
+    }
 
-	return matrixTransform;
+    return matrixTransform;
 }

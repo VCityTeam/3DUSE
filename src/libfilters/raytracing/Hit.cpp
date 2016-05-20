@@ -3,5 +3,5 @@
 
 Hit::Hit()
 {
-   intersect = false;
+    intersect = false;
 }

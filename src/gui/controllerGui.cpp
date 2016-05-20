@@ -124,10 +124,10 @@ void ControllerGui::setTileName(const vcity::URI& uri, const std::string& name)
 
     //appGui().getTreeView()->getCurrentItem()->setText(0, name.c_str()); // MT
     uri.resetCursor();
-	appGui().getTreeView()->setTileName(uri, name); // MT
+    appGui().getTreeView()->setTileName(uri, name); // MT
 
     uri.resetCursor();
-	appGui().getOsgScene()->setTileName(uri, name); // MT
+    appGui().getOsgScene()->setTileName(uri, name); // MT
 
     // restore selection MM
     uri.resetCursor();
@@ -140,7 +140,7 @@ void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, Rea
     parent->addChild(grp);
     citygml::CityObjects& cityObjects = node->getChildren();
     citygml::CityObjects::iterator it = cityObjects.begin();
-    for( ; it != cityObjects.end(); ++it)
+    for (; it != cityObjects.end(); ++it)
     {
         loadRecTest(*it, grp, reader);
     }
@@ -149,7 +149,7 @@ void loadRecTest(citygml::CityObject* node, osg::ref_ptr<osg::Group> parent, Rea
 void ControllerGui::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
 {
     // add in osg
-    if(tag->getGeom())
+    if (tag->getGeom())
     {
         // get parent osg geom
         uri.resetCursor();
@@ -175,13 +175,13 @@ void ControllerGui::addTag(const vcity::URI& uri, citygml::CityObjectTag* tag)
 
         citygml::CityObjects& cityObjects = tag->getGeom()->getChildren();
         citygml::CityObjects::iterator it = cityObjects.begin();
-        for( ; it != cityObjects.end(); ++it)
+        for (; it != cityObjects.end(); ++it)
         {
             loadRecTest(*it, grp, readerOsgGml);
         }
 
-        grp->setName(tag->getStringId()+tag->getGeom()->getId());
-        grp->getChild(0)->setName(tag->getStringId()+tag->getGeom()->getId());
+        grp->setName(tag->getStringId() + tag->getGeom()->getId());
+        grp->getChild(0)->setName(tag->getStringId() + tag->getGeom()->getId());
         grp->setUserValue("TAG", 1);
         double ptr;
         memcpy(&ptr, &tag, sizeof(tag));
@@ -245,10 +245,10 @@ void ControllerGui::setAssimpNodeName(const vcity::URI& uri, const std::string& 
     //Controller::setAssimpNodeName(uri, name);
 
     uri.resetCursor();
-	appGui().getTreeView()->setAssimpNodeName(uri, name);
+    appGui().getTreeView()->setAssimpNodeName(uri, name);
 
     uri.resetCursor();
-	appGui().getOsgScene()->setAssimpNodeName(uri, name);
+    appGui().getOsgScene()->setAssimpNodeName(uri, name);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node)
@@ -282,7 +282,7 @@ void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
     Controller::addShpNode(uriLayer, poDS);
 
     std::string name = poDS->GetName();
-    name = name.substr(name.rfind('/')+1);
+    name = name.substr(name.rfind('/') + 1);
 
     // fill treeview
     uriLayer.resetCursor();
@@ -292,7 +292,7 @@ void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
     uriLayer.resetCursor();
     osg::ref_ptr<osg::Node> osgNode = buildOsgGDAL(poDS);
 
-	//We use a MatrixTransform instead of a basic group to be able to move the shp in the scene
+    //We use a MatrixTransform instead of a basic group to be able to move the shp in the scene
     osg::ref_ptr<osg::Group> grp = new osg::MatrixTransform();
     grp->addChild(osgNode);
     grp->setName(name);
@@ -314,7 +314,7 @@ void ControllerGui::resetSelection()
 ////////////////////////////////////////////////////////////////////////////////
 bool ControllerGui::addSelection(const vcity::URI& uri)
 {
-    if(Controller::addSelection(uri))
+    if (Controller::addSelection(uri))
     {
         // select in treeview
         uri.resetCursor();
@@ -336,7 +336,7 @@ void finish(citygml::CityModel* model, citygml::ParserParams &params, citygml::C
     obj->finish(*model->getAppearanceManager(), params);
 
     std::vector<citygml::CityObject*> objs = obj->getChildren();
-    for(std::vector<citygml::CityObject*>::iterator it = objs.begin(); it < objs.end(); ++it)
+    for (std::vector<citygml::CityObject*>::iterator it = objs.begin(); it < objs.end(); ++it)
     {
         finish(model, params, *it);
     }
@@ -358,7 +358,7 @@ void ControllerGui::update(const vcity::URI& uri_)
     // refill treeview
     uri.resetCursor();
     vcity::URI uriTile = uri;
-    while(uriTile.getDepth() > 2)
+    while (uriTile.getDepth() > 2)
     {
         uriTile.popBack();
     }

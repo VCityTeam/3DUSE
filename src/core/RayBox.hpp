@@ -15,7 +15,7 @@ struct RayBoxHit
 {
     AABB box;///< Box hitted
     float minDistance;///< Distance between the ray origin and the bounding box
-	std::vector<unsigned int> ListRays; //Contient la liste des rayons intersectant cette box.
+    std::vector<unsigned int> ListRays; //Contient la liste des rayons intersectant cette box.
 };
 
 bool operator<(const RayBoxHit& a, const RayBoxHit& b);
@@ -35,7 +35,7 @@ public:
     *	@param dir Direction of the rayBox
     *   @param id oh the rayBox
     */
-    RayBox(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0),std::string id = "" );
+    RayBox(TVec3d ori = TVec3d(0.0, 0.0, 0.0), TVec3d dir = TVec3d(1.0, 1.0, 1.0), std::string id = "");
 
     /**
     *	@brief To know if the ray instersects a given box

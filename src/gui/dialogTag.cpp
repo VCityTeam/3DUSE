@@ -12,65 +12,65 @@
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
 {
-    public:
-        MyUserDataContainer() {}
-        MyUserDataContainer(const MyUserDataContainer& udc, const osg::CopyOp& copyop=osg::CopyOp::SHALLOW_COPY):
-            DefaultUserDataContainer(udc, copyop) {}
+public:
+    MyUserDataContainer() {}
+    MyUserDataContainer(const MyUserDataContainer& udc, const osg::CopyOp& copyop = osg::CopyOp::SHALLOW_COPY) :
+        DefaultUserDataContainer(udc, copyop) {}
 
-        META_Object(MyNamespace, MyUserDataContainer)
+    META_Object(MyNamespace, MyUserDataContainer)
 
         virtual Object* getUserObject(unsigned int i)
-        {
-            OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<")"<<std::endl;
-            return osg::DefaultUserDataContainer::getUserObject(i);
-        }
+    {
+        OSG_NOTICE << "MyUserDataContainer::getUserObject(" << i << ")" << std::endl;
+        return osg::DefaultUserDataContainer::getUserObject(i);
+    }
 
-        virtual const Object* getUserObject(unsigned int i) const
-        {
-            OSG_NOTICE<<"MyUserDataContainer::getUserObject("<<i<<") const"<<std::endl;
-            return osg::DefaultUserDataContainer::getUserObject(i);
-        }
-        
-        virtual DescriptionList& getDescriptions() // MT : for Clang Linux, strange...
-	{
-	    return getDescriptions();
-	};
-	
-	virtual const DescriptionList& getDescriptions() const // MT : for Clang Linux, strange...
-	{
-	    return getDescriptions();
-	};
+    virtual const Object* getUserObject(unsigned int i) const
+    {
+        OSG_NOTICE << "MyUserDataContainer::getUserObject(" << i << ") const" << std::endl;
+        return osg::DefaultUserDataContainer::getUserObject(i);
+    }
+
+    virtual DescriptionList& getDescriptions() // MT : for Clang Linux, strange...
+    {
+        return getDescriptions();
+    };
+
+    virtual const DescriptionList& getDescriptions() const // MT : for Clang Linux, strange...
+    {
+        return getDescriptions();
+    };
 
 
-    protected:
-        virtual ~MyUserDataContainer() {}
+protected:
+    virtual ~MyUserDataContainer() {}
 };
 ////////////////////////////////////////////////////////////////////////////////
-REGISTER_OBJECT_WRAPPER( MyUserDataContainer,
-                         new MyUserDataContainer,
-                         MyUserDataContainer,
-                         "osg::Object osg::UserDataContainer osg::DefaultUserDataContainer MyUserDataContainer" )
+REGISTER_OBJECT_WRAPPER(MyUserDataContainer,
+    new MyUserDataContainer,
+    MyUserDataContainer,
+    "osg::Object osg::UserDataContainer osg::DefaultUserDataContainer MyUserDataContainer")
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
 class MyGetValueVisitor : public osg::ValueObject::GetValueVisitor
 {
-    public:
-        virtual void apply(void* value) { OSG_NOTICE<<" void* "<<value; }
+public:
+    virtual void apply(void* value) { OSG_NOTICE << " void* " << value; }
 };
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 class GetNumeric : public osg::ValueObject::GetValueVisitor
 {
-    public:
-        GetNumeric():
-            _set(false),
-            _value(0) {}
+public:
+    GetNumeric() :
+        _set(false),
+        _value(0) {}
 
-        virtual void apply(void* value) { _value = value; _set = true; }
+    virtual void apply(void* value) { _value = value; _set = true; }
 
-        bool _set;
-        T _value;
+    bool _set;
+    T _value;
 };
 ////////////////////////////////////////////////////////////////////////////////
 template<typename T>
@@ -123,11 +123,11 @@ void DialogTag::addTag(const vcity::URI& uri)
         uri.resetCursor();
         obj = vcity::app().getScene().getCityObjectNode(uri);
 
-        if(obj)
+        if (obj)
         {
             // add states
             std::vector<citygml::CityObjectState*>::const_iterator it = obj->getStates().begin();
-            for(; it < obj->getStates().end(); ++it)
+            for (; it < obj->getStates().end(); ++it)
             {
                 ui->comboBox->addItem(QString(((*it)->getStringId()).c_str()));
                 geoms[(*it)->getStringId()] = (*it)->getGeom();
@@ -146,7 +146,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         // auto adjust combobox
         ui->comboBox->setCurrentIndex(obj->getTags().size());
         QDate date(2000, 1, 1);
-        date = date.addYears(obj->getTags().size()*10);
+        date = date.addYears(obj->getTags().size() * 10);
         ui->dateTimeEdit->setDate(date);
     }
 
@@ -154,19 +154,19 @@ void DialogTag::addTag(const vcity::URI& uri)
 
     //std::cout << "diag res : " << res << std::endl;
 
-    if(res && obj) // && m_ui->treeWidget->currentItem())
+    if (res && obj) // && m_ui->treeWidget->currentItem())
     {
         citygml::CityObject* geom = nullptr;
         citygml::CityObjectState* state = nullptr;
-        if((ui->comboBox->currentText().size() > 5 && ui->comboBox->currentText().left(5) == "STATE") ||
-           (ui->comboBox->currentText().size() > 8 && ui->comboBox->currentText().left(8) == "DYNSTATE"))
+        if ((ui->comboBox->currentText().size() > 5 && ui->comboBox->currentText().left(5) == "STATE") ||
+            (ui->comboBox->currentText().size() > 8 && ui->comboBox->currentText().left(8) == "DYNSTATE"))
         {
             // get geom from state
             state = obj->getState(ui->comboBox->currentText().toStdString());
-            if(state) geom = state->getGeom();
+            if (state) geom = state->getGeom();
             std::cout << "use state geom : " << ui->comboBox->currentText().toStdString() << " : " << state << " : " << geom << std::endl;
         }
-        else if(ui->comboBox->currentText() != "NULL")
+        else if (ui->comboBox->currentText() != "NULL")
         {
             // use existing
             uri.resetCursor();
@@ -175,7 +175,7 @@ void DialogTag::addTag(const vcity::URI& uri)
         }
 
         citygml::CityObjectTag* tag = new citygml::CityObjectTag(ui->dateTimeEdit->date().year(), geom);
-        if(state) tag->m_state = state; // set state
+        if (state) tag->m_state = state; // set state
         tag->m_date = ui->dateTimeEdit->dateTime();
         tag->m_name = ui->lineEdit->text().toStdString();
         tag->m_parent = obj;
@@ -254,8 +254,8 @@ void DialogTag::addTag(const vcity::URI& uri)
         appGui().getTreeView()->addItemGeneric(uri, tag->getStringId().c_str(), "Tag");
         appGui().getControllerGui().addTag(uri, tag);
 
-		//add yearOfConstruction and yearOfDemolition to tags geom
-		obj->checkTags();
+        //add yearOfConstruction and yearOfDemolition to tags geom
+        obj->checkTags();
     }
 
     appGui().getMainWindow()->m_osgView->setActive(true);

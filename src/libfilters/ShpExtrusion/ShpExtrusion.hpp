@@ -11,7 +11,7 @@ typedef std::vector<TVec3d> LRing;
 /**
 *	@brief Extrude a chosen Shp file
 */
-void ShpExtrusion(std::string filename, std::string outputfile, std::string dir);
+citygml::CityModel* ShpExtrusion(OGRDataSource* poDS, std::string dir);
 
 /**
 *	@brief Put a set of point a the height of the terrain
