@@ -344,15 +344,10 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     //Activate sunlight visualisation
     appGui().getMainWindow()->m_sunlightVisu = true;
 
-    //Enable time in mainwindow
-    appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
-//    QString widgetName = "checkBoxTemporalTools";
-//    QCheckBox* checkBoxTemporalTools = appGui().getMainWindow()->findChild<QCheckBox*>(widgetName);
-
-//    checkBoxTemporalTools->setChecked(true);
 
     //PROBLEM : FIRST TIME THAT WE CHANGE DATE, WRONG DATE DISPLAYED (ONLY DISPLAY)
     //Change start date and end date in mainwindow
+
     QSettings settings ("liris","virtualcity");
 
     QDateTime startDate = ui->VisuStartDate->dateTime();
@@ -364,6 +359,9 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     settings.setValue("endDate",endDate.toString(Qt::ISODate));
 
     appGui().getMainWindow()->initTemporalTools();
+
+    //Enable time in mainwindow
+    appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
 
     //load files sunlight info on specified period
 

@@ -927,7 +927,9 @@ void MainWindow::initTemporalTools()
 	QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
 	QDateTime endDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_endDate),Qt::ISODate);
 
-	int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
+    int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
+    std::cout << max << std::endl;
+
 	m_ui->horizontalSlider->setMaximum(max);
 	
 	m_ui->dateTimeEdit->setDisplayFormat("dd/MM/yyyy hh:mm:ss");
@@ -935,7 +937,18 @@ void MainWindow::initTemporalTools()
 	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
 	m_ui->dateTimeEdit->setMaximumDateTime(endDate);
 
+    //std::cout << "StartDate: " << m_ui->dateTimeEdit->minimumDateTime().toString("dd/MM/yyyy hh:mm:ss").toStdString() << std::endl;
+    //std::cout << "EndDate: " << m_ui->dateTimeEdit->maximumDateTime().toString("dd/MM/yyyy hh:mm:ss").toStdString() << std::endl;
+
+//    m_ui->dateTimeEdit->update();
+//    m_ui->dateTimeEdit->repaint();
+
 }
+////////////////////////////////////////////////////////////////////////////////
+//void MainWindow::updateTemporalTools()
+//{
+
+//}
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalParams(int value)
 {
