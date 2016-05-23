@@ -19,10 +19,10 @@
 
 #include "citygml.hpp"
 #include "export/exportCityGML.hpp"
-#include "export/exportJSON.hpp"
-#include "export/exportOBJ.hpp"
+#include "exportJSON.hpp"
+#include "exportOBJ.hpp"
 
-#include "import/importerAssimp.hpp"
+#include "importerAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
