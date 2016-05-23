@@ -355,6 +355,7 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     settings.setValue("startDate",startDate.toString(Qt::ISODate));
 
     QDateTime endDate = ui->VisuEndDate->dateTime();
+    endDate = endDate.addDays(1); //In plug-in, endDateTime is displayed with time at 23:59 which match endDateTime+1 at 00:00 in settings, so we need to add one day to the displayed day to update settings the right way
     vcity::app().getSettings().m_endDate = endDate.toString(Qt::ISODate).toStdString();
     settings.setValue("endDate",endDate.toString(Qt::ISODate));
 
