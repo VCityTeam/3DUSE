@@ -551,6 +551,11 @@ file(
   src/libcitygml/ADE/temporal/version.cpp
   src/libcitygml/ADE/temporal/versionTransition.cpp
 
+  src/libcitygml/ADE/document/documentHandler.cpp
+  src/libcitygml/ADE/document/documentObject.cpp
+  src/libcitygml/ADE/document/reference.cpp
+  src/libcitygml/ADE/document/tag.cpp
+
 ### CityGMLUtils:
   src/libcitygml/utils/exportJSON.cpp
   src/libcitygml/utils/exportOBJ.cpp
