@@ -217,6 +217,11 @@ void CityGMLHandler::initNodes( void )
 	INSERTNODETYPE( ambientIntensity );
 	INSERTNODETYPE( isFront );
 
+    //Document
+    INSERTNODETYPE( Document );
+    INSERTNODETYPE( title );
+    INSERTNODETYPE( creator );
+    INSERTNODETYPE( publicationDate );
 	// Set the known namespaces
 
 #define INSERTKNOWNNAMESPACE(_t_) s_knownNamespace.push_back( #_t_ );
@@ -457,6 +462,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		MANAGE_OBJECT( BridgeConstructionElement );
 		MANAGE_OBJECT( BridgeInstallation );
 		MANAGE_OBJECT( BridgePart );
+        MANAGE_OBJECT( Document );
 #undef MANAGE_OBJECT
 
 		// BoundarySurfaceType
@@ -736,6 +742,7 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( FloorSurface ):
 	case NODETYPE( InteriorWallSurface ):
 	case NODETYPE( CeilingSurface ):
+    case NODETYPE( Document ):
 		MODEL_FILTER();
 		if ( _currentCityObject && ( _currentCityObject->size() > 0 || _currentCityObject->getChildCount() > 0 || !_params.pruneEmptyObjects ) ) 
         {	// Prune empty objects
@@ -860,6 +867,9 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( postalCode ):
 	case NODETYPE( city ):
 	case NODETYPE( measuredHeight ):
+    case NODETYPE( title ):
+    case NODETYPE( creator ):
+    case NODETYPE( publicationDate ):
 	case NODETYPE( creationDate ):
 	case NODETYPE( terminationDate ):
 		if ( _currentObject ) _currentObject->setAttribute( localname, buffer.str(), false );

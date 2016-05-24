@@ -55,17 +55,19 @@ public:
     void setTileName(const vcity::URI& uri, const std::string& name);
     void deleteTile(const vcity::URI& uri);
 
-    void addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
-    void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
-    void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
+	void addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
+	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+	void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
     void deleteAssimpNode(const vcity::URI& uri);
 
-    void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
-    void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+	void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     void addShpNode(const vcity::URI& uriLayer, const std::string& nodeName);
 
-    QTreeWidgetItem* addVersion(QTreeWidgetItem* parent, const std::string& name);
-    QTreeWidgetItem* addWorkspace(QTreeWidgetItem* parent, const std::string& name);
+	QTreeWidgetItem* addVersion(QTreeWidgetItem* parent, const std::string& name);
+	QTreeWidgetItem* addWorkspace(QTreeWidgetItem* parent, const std::string& name);
+    QTreeWidgetItem* addDocument(QTreeWidgetItem* parent, const std::string& name);
+    QTreeWidgetItem* addReference(QTreeWidgetItem* parent, const std::string& name);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 
@@ -81,7 +83,7 @@ public:
     /// \return QTreeWidgetItem corresponding to uri
     QTreeWidgetItem* getNode(const vcity::URI& uri);
 
-    private slots:
+private slots:
     void slotAddTile();
     void slotEditTile();
     void slotDeleteTile();
@@ -105,17 +107,17 @@ public:
     void slotCheckAll();
     void slotUnCheckAll();
     void slotAddDoc();
-    void slotExportJSON();
-    void slotEditShp();
-    //ajout yearOfConstruction/yearOfDemolition
-    void slotAddYearOfConst();
-    void slotAddYearOfDemol();
-    void slotAddLink();
+	void slotExportJSON();
+	void slotEditShp();
+	//ajout yearOfConstruction/yearOfDemolition
+	void slotAddYearOfConst();
+	void slotAddYearOfDemol();
+	void slotAddLink();
 
     void slotSelectNode(QTreeWidgetItem* item, int column);
     void slotItemChanged(QTreeWidgetItem* item, int column);
-    void slotItemClicked(QTreeWidgetItem* item, int column);
-    void slotItemDoubleClicked(QTreeWidgetItem* item, int column);
+    void slotItemClicked(QTreeWidgetItem* item,int column);
+    void slotItemDoubleClicked(QTreeWidgetItem* item,int column);
     //void slotItemActivated(QTreeWidgetItem* item, int column);
 
     void slotFilter();
@@ -125,7 +127,7 @@ private:
 
     QTreeWidget* m_tree;
     MainWindow* m_mainWindow;
-    DialogShpTool* dialogShpTool;
+	DialogShpTool* dialogShpTool;
 
     // all registered actions
     QAction* m_actionAddTile;
@@ -151,12 +153,12 @@ private:
     QAction* m_actionSelectAll;
     QAction* m_actionDeSelectAll;
     QAction* m_actionAddDoc;
-    QAction* m_actionExportJSON;
-    QAction* m_actionEditShp;
-    //ajout yearOfConstruction/yearOfDemolition
-    QAction* m_actionAddYearOfConst;
-    QAction* m_actionAddYearOfDemol;
-    QAction* m_actionAddLink;
+	QAction* m_actionExportJSON;
+	QAction* m_actionEditShp;
+	//ajout yearOfConstruction/yearOfDemolition
+	QAction* m_actionAddYearOfConst;
+	QAction* m_actionAddYearOfDemol;
+	QAction* m_actionAddLink;
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __TREEVIEW_HPP__

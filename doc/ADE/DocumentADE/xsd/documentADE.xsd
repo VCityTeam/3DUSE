@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:core="http://www.opengis.net/citygml/2.0" xmlns:gml="http://www.opengis.net/gml" xmlns:doc="Document" elementFormDefault="qualified" targetNamespace="Document" version="1.0">
+  <import namespace="http://www.opengis.net/citygml/2.0" schemaLocation="http://schemas.opengis.net/citygml/2.0/cityGMLBase.xsd"/>
+  <import namespace="http://www.opengis.net/gml" schemaLocation="http://schemas.opengis.net/gml/3.1.1/base/gml.xsd"/>
+  <import namespace="temporal" schemaLocation="temporal.xsd"/>
+
+  <element name="Document" substitutionGroup="core:_CityObject" type="doc:DocumentType"/>
+  
+  <complexType name="DocumentType">
+    <sequence>
+      <element name="title" type="string"/>
+      <element name="purpose" type="string"/>
+      <element name="producer" type="string"/>
+      <element name="currentHolder" type="string"/>
+      <element name="publicationDate" type="date"/>
+      <element name="recoveredOn" type="date"/>
+      <element name="purposeType" type="gml:CodeType"/>
+      <element name="documentType" type="gml:CodeType"/>
+      <element name="currentHolderType" type="gml:CodeType"/>
+      <element name="producerType" type="gml:CodeType"/>
+      <element name="tag" type="TagType" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="TagType">
+    <sequence>
+      <element name="name" type="string"/>
+      <element name="count" type="integer" minOccurs="0"/>
+    </sequence>
+  </complexType>
+
+  <element name="Reference" type="doc:ReferenceType"/>
+
+  <complexType name="ReferenceType">
+    <sequence minOccurs="0">
+      <element ref="core:_CityObject"/>
+    </sequence>
+    <sequence minOccurs="0">
+      <element ref="doc:Document"/>
+    </sequence>
+    <attribute name="referringDate" type="gml:TimeInstant"/>
+    <attribute name="referringPeriod" type="gml:TimePeriod"/>
+    <attribute name="purpose" type="string"/>
+    <attribute name="purposeType" type="gml:CodeType"/>
+    <attributeGroup ref="gml:AssociationAttributeGroup"/>
+  </complexType>
+
+</schema>

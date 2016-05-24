@@ -553,6 +553,11 @@ file(
   src/libcitygml/export/exporter.cpp
   src/libcitygml/import/importer.cpp
 
+  src/libcitygml/ADE/document/documentHandler.cpp
+  src/libcitygml/ADE/document/documentObject.cpp
+  src/libcitygml/ADE/document/reference.cpp
+  src/libcitygml/ADE/document/tag.cpp
+
 ### CityGMLUtils:
   src/libcitygml/utils/exportJSON.cpp
   src/libcitygml/utils/exportOBJ.cpp

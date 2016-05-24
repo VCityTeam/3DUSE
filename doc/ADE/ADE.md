@@ -21,6 +21,10 @@ Following extensions are possible through ADE.
 - Existing feature types are extended by application specific properties. 
   These properties may have simple or complex data types. 
 
+## Programming an ADE
+- Import ADE.hpp
+- Create a new ADE class inheriting ADEHandler and implement the functions startElement, endElement, endDocument (these three functions concern parsing new ADE related features and attributes.
+
 ## Example ADE
 - [Document ADE](DocumentADE/documentADE.md)
 - [Temporal ADE](Temporel/temporalADE.md)
