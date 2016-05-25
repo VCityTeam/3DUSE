@@ -84,6 +84,10 @@ void CityGMLHandler::initNodes( void )
 	INSERTNODETYPE( dateAttribute );
 	INSERTNODETYPE( uriAttribute );
 	INSERTNODETYPE( value );
+    INSERTNODETYPE( externalReference );
+    INSERTNODETYPE( externalObject);
+    INSERTNODETYPE( informationSystem);
+    INSERTNODETYPE( uri);
 
 	// gml
 	INSERTNODETYPE( name );
@@ -870,7 +874,11 @@ void CityGMLHandler::endElement( const std::string& name )
     case NODETYPE( title ):
     case NODETYPE( creator ):
     case NODETYPE( publicationDate ):
+    case NODETYPE( externalObject):
+    case NODETYPE( informationSystem):
+    case NODETYPE( uri):
 	case NODETYPE( creationDate ):
+    case NODETYPE( externalReference ):
 	case NODETYPE( terminationDate ):
 		if ( _currentObject ) _currentObject->setAttribute( localname, buffer.str(), false );
 		break;

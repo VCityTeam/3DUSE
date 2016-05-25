@@ -63,6 +63,10 @@ namespace citygml
 		NODETYPE( intAttribute ),
 		NODETYPE( dateAttribute ),
 		NODETYPE( uriAttribute ),
+        NODETYPE( externalReference ),
+        NODETYPE( informationSystem ),
+        NODETYPE( externalObject ),
+        NODETYPE( uri ),
 		NODETYPE( value ),
 
 		// gml
