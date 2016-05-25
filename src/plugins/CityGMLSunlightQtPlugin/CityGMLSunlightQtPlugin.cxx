@@ -3,13 +3,12 @@
 #include <QtPlugin>
 #include <QMessageBox>
 
-// add your object header here if you call code...
 #include "Dialogs/DialogCityGMLSunlight1.h"
 
-int CityGMLSunlightQtPlugin::your_code_here(void)
+int CityGMLSunlightQtPlugin::init(void)
 {
-    // add your code (or call your object) here...
     DialogCityGMLSunlight1* dialSunlight = new DialogCityGMLSunlight1(mw);
+
     dialSunlight->show();
 
     int res = 0;

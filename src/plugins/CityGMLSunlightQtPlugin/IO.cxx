@@ -54,9 +54,10 @@ void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* fil
         {
             ofs << decodeDateTime(iDate + i) << ";" << t->polygonId << ";" << std::to_string(sunInfo[iDate + i]) << std::endl;
         }
+
+        ofs.close();
     }
 }
-
 
 TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
 {

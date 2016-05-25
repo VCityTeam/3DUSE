@@ -43,10 +43,10 @@ public:
     bool m_useTemporal;     ///< use temporal slider (also used for citygml temporal export)
     bool m_temporalAnim;    ///< temporal animation ? (play button clicked ?)
     int m_unlockLevel;      ///< admin mode (to hide dev menus)
-    bool m_sunlightVisu;    ///< if start visualisation is pressed in sunlight plugin
 
     QTimer m_timer;         ///< anim timer
 	QDateTime m_currentDate;	///< current date on the temporal slider
+    void (*m_sunlightPluginVisu)(QDateTime sliderDateTime); ///< NULL when Sunlight plugin is not used, set to a function of the sunlight plugin which manage display of sunlight when the plugin is used
 
 	void initTemporalTools();
 

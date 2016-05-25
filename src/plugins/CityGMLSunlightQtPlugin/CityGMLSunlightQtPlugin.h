@@ -23,13 +23,12 @@ class CityGMLSunlightQtPlugin :
 
     bool Generic_plugin(const QString &plugin)
     {
-        your_code_here();
-
+        init();
         return true;
     }
 
 private:
-    int your_code_here(void);
+    int init(void);
 };
 
 #endif // CITYGMLSunlightQTPLUGIN_H

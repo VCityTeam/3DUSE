@@ -23,13 +23,19 @@ int encodeDateTime(int y, int m, int d, int h);
 ///
 int encodeDateTime(std::string date, int hour);
 
+///
+/// \brief encodeDateTime Compute number of hours since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+/// \param datetime datetime as string. Must be given in the following format : yyyy-MM-dd:hh00
+/// \return Number of hours since civil 1970-01-01.  Negative values indicate days prior to 1970-01-01.
+///
+int encodeDateTime(std::string datetime);
 
 int encodeDateTime(const QDateTime& date);
 
 ///
 /// \brief decodeDateTime Generates a string representing the datetime embedded in an integer. The integer represents the number of hours since civil 1970-01-01.
 /// \param dDateTime An integer representing the number of hours since civil 1970-01-01.
-/// \return A string representing datetime in the following format : ddmmyyyy:hh00 (Example: 16h00, 2016-10-08 -> 08102016:1600)
+/// \return A string representing datetime in the following format : yyyy-mm-dd:hh00 (Example: 16h00, 2016-10-08 -> 08102016:1600)
 ///
 std::string decodeDateTime(int dateTime);
 

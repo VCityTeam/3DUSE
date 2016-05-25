@@ -719,8 +719,10 @@ void OsgScene::setDate(const QDateTime& date)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+#if 0
 void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node, std::map<std::string,bool>* polySunlightInfo)
 {
+
     //get node uri
     //vcity::URI uriNode = osgTools::getURI(node);
 
@@ -789,65 +791,11 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
     }
 
 }
-
-std::map<std::string,bool>* loadTileSunlightInfo(QString filepath, QString datetime, std::map<std::string,bool>* sunlightInfo)
-{
-
-//    std::map<std::string,bool>* sunlightInfo = new std::map<std::string,bool>();
-
-    QFile file(filepath);
-
-//    std::cout << filepath.toStdString() << std::endl;
-
-    //TO BE REMOVED : SHIFT DATETIME OF 2 HOURS
-    std::string dt = datetime.toStdString();
-    //std::cout << "original dt : " << std::endl;
-
-    int day = std::stoi(dt.substr(0,2));
-    int month = std::stoi(dt.substr(2,2));
-    int year = std::stoi(dt.substr(4,4));
-    int hour = std::stoi(dt.substr(9,2));
-
-    int idt = encodeDateTime(year,month,day,hour);
-    idt-=2;
-    std::string ndt = decodeDateTime(idt);
-    //std::cout << "newdt : " << ndt << std::endl;
-    datetime = QString::fromStdString(ndt);
-
-    if(file.open(QIODevice::ReadOnly)) //If file opens succesfully
-    {
-        while(!file.atEnd())
-        {
-            QString line = file.readLine(); //Get current line
-            QStringList cells = line.split(';');
-
-            QString tmpDatetime = cells.first(); //Get first column
-
-            if(tmpDatetime == datetime) //if it's the right datetime
-            {
-                std::string polygonId = cells.at(1).toStdString(); //Get PolygonId
-                std::string sSunlight = cells.at(2).toStdString(); //Get sunlight information as string
-
-                // cast string to boolean value
-                bool bSunlight;
-                std::istringstream(sSunlight) >> bSunlight;
-
-                //Add value to map
-                (*sunlightInfo)[polygonId] = bSunlight;
-            }
-        }
-    }
-
-    return sunlightInfo;
-}
-
-
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setPolyColor(const QDateTime& date)
 {
 
 //    encodeDateTime(date);
-//#if 0
     //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)
     QString format = "ddMMyyyy:hhmm";
     QString datetime = date.toString(format);
@@ -906,9 +854,8 @@ void OsgScene::setPolyColor(const QDateTime& date)
         }
     }
 
-//#endif
-
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::reset()

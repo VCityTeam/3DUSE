@@ -2,6 +2,7 @@
 #include "ui_DialogCityGMLSunlight1.h"
 #include "../SunlightDetection.h"
 #include "../FileInfo.h"
+#include "../SunlightVisu.h"
 
 #include <iostream>
 
@@ -322,6 +323,8 @@ void DialogCityGMLSunlight1::VisuDirFilesButtonClicked()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::StartVisuButtonClicked()
 {
+    // ** GUI management
+
     //Disable all buttons and enables stop visualisation button
     ui->InputDirectory_B->setEnabled(false);
     ui->InputDirectory_LE->setEnabled(false);
@@ -340,14 +343,7 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
 
     ui->StopVisu_B->setEnabled(true);
 
-
-    //Activate sunlight visualisation
-    appGui().getMainWindow()->m_sunlightVisu = true;
-
-
-    //PROBLEM : FIRST TIME THAT WE CHANGE DATE, WRONG DATE DISPLAYED (ONLY DISPLAY)
     //Change start date and end date in mainwindow
-
     QSettings settings ("liris","virtualcity");
 
     QDateTime startDate = ui->VisuStartDate->dateTime();
@@ -355,7 +351,7 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     settings.setValue("startDate",startDate.toString(Qt::ISODate));
 
     QDateTime endDate = ui->VisuEndDate->dateTime();
-    endDate = endDate.addDays(1); //In plug-in, endDateTime is displayed with time at 23:59 which match endDateTime+1 at 00:00 in settings, so we need to add one day to the displayed day to update settings the right way
+    endDate = endDate.addDays(1); //In plugin, endDateTime is displayed with time at 23:59 which match endDateTime+1 at 00:00 in settings, so we need to add one day to the displayed day to update settings the right way
     vcity::app().getSettings().m_endDate = endDate.toString(Qt::ISODate).toStdString();
     settings.setValue("endDate",endDate.toString(Qt::ISODate));
 
@@ -364,36 +360,24 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     //Enable time in mainwindow
     appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
 
-    //load files sunlight info on specified period
 
-    /*
-    appGui().getMainWindow()->toggleUseTemporal();
+    //*** Load Selected files and their sunlight info  
+    QStringList filepaths;
 
-    vcity::app().getSettings().m_startDate = ui->VisuStartDate->text().toStdString();
-
-    QSettings settings ("liris","virtualcity");
-    settings.setValue("startDate",ui->VisuStartDate->dateTime().toString(Qt::ISODate));
-    settings.setValue("endDate",ui->VisuEndDate->dateTime().toString(Qt::ISODate));
-
-    appGui().getMainWindow()->initTemporalTools();
-
-    //Load selected files
     for(int i = 0; i < ui->VisuSelectedFiles_List->count(); ++i)
     {
-        QString filepath = ui->VisudirFiles_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text() + ".gml";
+        QString fp = ui->VisudirFiles_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text() + ".gml";
 
         //TODO: CHECK IF NOT ALREADY LOADED
-        appGui().getMainWindow()->loadFile(filepath);
+        appGui().getMainWindow()->loadFile(fp);
+
+        filepaths.append(ui->InputDirectory_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text());
     }
 
-    //Enable visualisation
-    appGui().getMainWindow()->m_sunlightVisu = true;*/
+    std::map<int,std::map<std::string,bool>>* sunlightInfo = loadSunlightFiles(filepaths, startDate, endDate);
 
-
-
-   // appGui().getMainWindow()->m_ui->checkBoxTemporalTools->setChecked(true);
-
-
+    //*** Hook Visualisation function in MainWindow
+    appGui().getMainWindow()->m_sunlightPluginVisu = VisualiseSunlight;
 
     // Tests to bring mainwindow foreground and send Sunlight background
     //appGui()->->setWindowState(Qt::WindowActive);
@@ -412,9 +396,6 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::StopVisuButtonClicked()
 {
-    //Disable sunlight visu
-    appGui().getMainWindow()->m_sunlightVisu = false;
-
     //Enable all buttons and disables stop visualisation
     ui->InputDirectory_B->setEnabled(true);
     ui->InputDirectory_LE->setEnabled(true);
@@ -436,6 +417,8 @@ void DialogCityGMLSunlight1::StopVisuButtonClicked()
     //Disable time in mainwindow
     appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
 
+    //*** Un-Hook Visualisation function in MainWindow
+    appGui().getMainWindow()->m_sunlightPluginVisu = NULL;
 
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -37,6 +37,24 @@ int encodeDateTime(std::string date, int hour)
     return encodeDateTime(year,month,day,hour);
 }
 
+int encodeDateTime(std::string datetime)
+{
+    //Split string
+    std::string sYear = datetime.substr(0,4);
+    int year = std::stoi(sYear);
+
+    std::string sMonth = datetime.substr(5,2);
+    int month = std::stoi(sMonth);
+
+    std::string sDay = datetime.substr(8,2);
+    int day = std::stoi(sDay);
+
+    std::string sHour = datetime.substr(11,2);
+    int hour = std::stoi(sHour);
+
+    return encodeDateTime(year,month,day,hour);
+}
+
 int encodeDateTime(const QDateTime& date)
 {
     QString format = "yyyy-MM-dd:hh";
@@ -92,7 +110,7 @@ std::string decodeDateTime(int dateTime)
         sHour = "0";
     sHour += std::to_string(time);
 
-    sDateTime = sDay + sMonth + std::to_string(y) + ":" + sHour + "00";
+    sDateTime = std::to_string(y) + "-" + sMonth + "-" + sDay + ":" + sHour + "00";
 
     return sDateTime;
 }

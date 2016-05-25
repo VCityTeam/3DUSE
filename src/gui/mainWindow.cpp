@@ -56,7 +56,7 @@
 std::vector<std::pair<double, double>> Hauteurs;
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0), m_sunlightVisu(false)
+    QMainWindow(parent), m_ui(new Ui::MainWindow), m_useTemporal(false), m_temporalAnim(false), m_unlockLevel(0), m_sunlightPluginVisu(NULL)
 {
 	m_ui->setupUi(this);
 
@@ -927,10 +927,7 @@ void MainWindow::initTemporalTools()
 	QDateTime startDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_startDate),Qt::ISODate);
 	QDateTime endDate = QDateTime::fromString(QString::fromStdString(appGui().getSettings().m_endDate),Qt::ISODate);
 
-//    std::cout <<
-
     int max = appGui().getSettings().m_incIsDay?startDate.daysTo(endDate):startDate.secsTo(endDate);
-    std::cout << max << std::endl;
 
 	m_ui->horizontalSlider->setMaximum(max);
 	
@@ -938,12 +935,6 @@ void MainWindow::initTemporalTools()
 	m_ui->dateTimeEdit->setDateTime(startDate);
 	m_ui->dateTimeEdit->setMinimumDateTime(startDate);
 	m_ui->dateTimeEdit->setMaximumDateTime(endDate);
-
-    //std::cout << "StartDate: " << m_ui->dateTimeEdit->minimumDateTime().toString("dd/MM/yyyy hh:mm:ss").toStdString() << std::endl;
-    //std::cout << "EndDate: " << m_ui->dateTimeEdit->maximumDateTime().toString("dd/MM/yyyy hh:mm:ss").toStdString() << std::endl;
-
-//    m_ui->dateTimeEdit->update();
-//    m_ui->dateTimeEdit->repaint();
 
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -972,8 +963,11 @@ void MainWindow::updateTemporalParams(int value)
     {
         m_osgScene->setDate(datetime);
 
-        //if(m_sunlightVisu) //If start visu button pressed in sunlight plugin
-            m_osgScene->setPolyColor(datetime);
+        //Hook of SunlightPlugin for visualisation purposes
+        if(m_sunlightPluginVisu != NULL)
+            (*m_sunlightPluginVisu)(m_currentDate);
+
+        //m_osgScene->setPolyColor(datetime);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
