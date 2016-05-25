@@ -98,6 +98,14 @@ void DocumentHandler::setAttributeValue(std::string name)
     if ( *currentObject ) (*currentObject)->setAttribute( name, buffer.str(), false );
 }
 /******************************************************/
+void DocumentHandler::setDocumentAttributeValue(std::string name)
+{
+    std::stringstream buffer;
+    buffer << trim(getBuff()->str());
+    std::cout << name << ": " << buffer.str() << std::endl;
+    _currentDocument->setAttribute( name, buffer.str(), false );
+}
+/******************************************************/
 
 void DocumentHandler::endElement(std::string name)
 {
@@ -119,7 +127,7 @@ void DocumentHandler::endElement(std::string name)
              name == "publicationDate"
              )
     {
-        setAttributeValue(name);
+        setDocumentAttributeValue(name);
     }
     else if (name == "text")
     {
