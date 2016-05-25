@@ -64,6 +64,7 @@ void DocumentHandler::startElement(std::string name, void* attributes)
        _currentDocument = new documentADE::DocumentObject(getGmlIdAttribute( attributes ));
         std::cout << "document object: " <<_currentDocument->getId()<< std::endl;
         _documents.push_back(_currentDocument);
+        pushObject(_currentDocument);
     }
     else if (name == "reference")
     {
