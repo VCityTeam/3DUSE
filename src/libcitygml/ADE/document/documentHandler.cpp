@@ -64,6 +64,7 @@ void DocumentHandler::startElement(std::string name, void* attributes)
        _currentDocument = new documentADE::DocumentObject(getGmlIdAttribute( attributes ));
         std::cout << "document object: " <<_currentDocument->getId()<< std::endl;
         _documents.push_back(_currentDocument);
+        pushObject(_currentDocument);
     }
     else if (name == "reference")
     {
@@ -98,6 +99,14 @@ void DocumentHandler::setAttributeValue(std::string name)
     if ( *currentObject ) (*currentObject)->setAttribute( name, buffer.str(), false );
 }
 /******************************************************/
+void DocumentHandler::setDocumentAttributeValue(std::string name)
+{
+    std::stringstream buffer;
+    buffer << trim(getBuff()->str());
+    std::cout << name << ": " << buffer.str() << std::endl;
+    _currentDocument->setAttribute( name, buffer.str(), false );
+}
+/******************************************************/
 
 void DocumentHandler::endElement(std::string name)
 {
@@ -106,6 +115,8 @@ void DocumentHandler::endElement(std::string name)
 
     if (name == "documentobject")
     {
+        citygml::CityModel** model = getModel();
+        (*model)->addCityObjectAsRoot(_currentDocument);
     }
     else if (name == "reference")
     {
@@ -117,7 +128,7 @@ void DocumentHandler::endElement(std::string name)
              name == "publicationDate"
              )
     {
-        setAttributeValue(name);
+        setDocumentAttributeValue(name);
     }
     else if (name == "text")
     {

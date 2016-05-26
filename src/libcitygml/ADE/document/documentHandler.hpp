@@ -16,6 +16,7 @@ protected :
     std::vector<documentADE::Reference*> _references;
 private:
     void setAttributeValue(std::string name);
+    void setDocumentAttributeValue(std::string name);
 
 public:
     DocumentHandler(void);
