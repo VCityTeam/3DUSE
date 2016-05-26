@@ -42,7 +42,7 @@ Dependencies under discussion (open questions for MTO):
 
 ### Building from sources
  * `git clone https://github.com/MEPP-team/VCity.git`
- * `cd VCity``
+ * `cd VCity`
  * `Build && cd Build`
  * `cmake ..`
  * `make`
