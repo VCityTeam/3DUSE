@@ -15,31 +15,31 @@
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
-////////////////////////////////////////////////////////////////////////////////
-/// \brief LayerShp class : it holds shp objects
-class LayerShp : public abstractLayer
-{
-public:
-    /// \brief Layer Build empty layer
-    /// \param name Layer name
-    LayerShp(const std::string& name);
+    ////////////////////////////////////////////////////////////////////////////////
+    /// \brief LayerShp class : it holds shp objects
+    class LayerShp : public abstractLayer
+    {
+    public:
+        /// \brief Layer Build empty layer
+        /// \param name Layer name
+        LayerShp(const std::string& name);
 
-    virtual ~LayerShp() override;
+        virtual ~LayerShp() override;
 
-    /// Get layer type as string
-	const std::string getType() const override;
+        /// Get layer type as string
+        const std::string getType() const override;
 
-    /// Get Layer URI
-	URI getURI() const override;
+        /// Get Layer URI
+        URI getURI() const override;
 
-    void dump() override;
+        void dump() override;
 
-public:
-    OGRDataSource* m_shp;
-};
-////////////////////////////////////////////////////////////////////////////////
-typedef std::shared_ptr<LayerShp> LayerShpPtr;
-////////////////////////////////////////////////////////////////////////////////
+    public:
+        OGRDataSource* m_shp;
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+    typedef std::shared_ptr<LayerShp> LayerShpPtr;
+    ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LAYERSHP_HPP__

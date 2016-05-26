@@ -5,7 +5,6 @@
 #include "gdal_priv.h"
 #include "cpl_conv.h" // for CPLMalloc()
 #include "ogrsf_frmts.h"
-#include "src/gui/osg/osgGDAL.hpp"
 
 #include <thread>
 #include <queue>

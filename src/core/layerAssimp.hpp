@@ -11,30 +11,30 @@
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
-////////////////////////////////////////////////////////////////////////////////
-/// \brief LayerAssimp class : it holds all the assimp objects
-class LayerAssimp : public abstractLayer
-{
-public:
-    /// \brief Layer Build empty layer
-    /// \param name Layer name
-    LayerAssimp(const std::string& name);
+    ////////////////////////////////////////////////////////////////////////////////
+    /// \brief LayerAssimp class : it holds all the assimp objects
+    class LayerAssimp : public abstractLayer
+    {
+    public:
+        /// \brief Layer Build empty layer
+        /// \param name Layer name
+        LayerAssimp(const std::string& name);
 
-    virtual ~LayerAssimp()override;
+        virtual ~LayerAssimp()override;
 
-    /// Get layer type as string
-    const std::string getType() const override;
+        /// Get layer type as string
+        const std::string getType() const override;
 
-    /// Get Layer URI
-	URI getURI() const override;
+        /// Get Layer URI
+        URI getURI() const override;
 
-    void dump() override;
+        void dump() override;
 
-private:
-};
-////////////////////////////////////////////////////////////////////////////////
-typedef std::shared_ptr<LayerAssimp> LayerAssimpPtr;
-////////////////////////////////////////////////////////////////////////////////
+    private:
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+    typedef std::shared_ptr<LayerAssimp> LayerAssimpPtr;
+    ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LAYERASSIMP_HPP__

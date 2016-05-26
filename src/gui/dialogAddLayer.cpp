@@ -18,7 +18,7 @@ DialogAddLayer::~DialogAddLayer()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogAddLayer::addLayer()
 {
-    if(exec() && !ui->lineEdit->text().isEmpty())
+    if (exec() && !ui->lineEdit->text().isEmpty())
     {
         appGui().getControllerGui().addLayer(ui->lineEdit->text().toStdString());
     }

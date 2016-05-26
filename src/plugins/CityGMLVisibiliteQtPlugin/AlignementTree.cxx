@@ -4,8 +4,7 @@
 #include <qfiledialog.h>
 
 #include "core/application.hpp"
-#include "gui/osg/osgGDAL.hpp"
-#include "gui/osg/osgScene.hpp"
+#include "ogrsf_frmts.h"
 #include "export/exportCityGML.hpp"
 
 #include "raytracing/Hit.hpp"

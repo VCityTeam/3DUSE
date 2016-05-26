@@ -2,7 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src  ${CMAKE_SOURCE_DIR}/src/libcitygml/
 
 file(
 	GLOB_RECURSE
-	source_files
+	source_files	
 	*.cpp
 )
 

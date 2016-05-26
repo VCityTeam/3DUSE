@@ -4,11 +4,9 @@
 #define __LINKCITYGMLSHAPE_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <stdlib.h>
-#include "libcitygml/citygml.hpp"
-#include "src/gui/osg/osgGDAL.hpp"
-#include "gui/moc/mainWindow.hpp"
+#include "ogrsf_frmts.h"
+#include "core/tile.hpp"
 #include "export/exportCityGML.hpp"
-
 ////////////////////////////////////////////////////////////////////////////////
 citygml::CityModel* SplitBuildingsFromCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>* TexturesList);
 citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML*>* TexturesList);

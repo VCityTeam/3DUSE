@@ -36,7 +36,7 @@ void DialogDynState::addDynState(const vcity::URI& uri)
         uri.resetCursor();
         obj = vcity::app().getScene().getCityObjectNode(uri);
 
-        if(obj)
+        if (obj)
         {
             // add lod
             ui->comboBox->addItem(uri.getLastNode().c_str());
@@ -49,14 +49,14 @@ void DialogDynState::addDynState(const vcity::URI& uri)
 
     //std::cout << "diag res : " << res << std::endl;
 
-    if(res && obj) // && m_ui->treeWidget->currentItem())
+    if (res && obj) // && m_ui->treeWidget->currentItem())
     {
         citygml::CityObject* geom = 0;
         //std::cout << ui.comboBox->currentText().toStdString() << std::endl;
 
         QString item2text;
 
-        if(ui->comboBox->currentText() == "NEW")
+        if (ui->comboBox->currentText() == "NEW")
         {
             // load
             std::cout << "load new" << std::endl;
@@ -69,7 +69,7 @@ void DialogDynState::addDynState(const vcity::URI& uri)
             citygml::CityObject* bldg = mdl->getCityObjectsRoots()[0];
             geom = bldg;
             geom->m_path = filename.toStdString();
-            std::cout << "nb : " << mdl->getCityObjectsRoots().size()<< std::endl;
+            std::cout << "nb : " << mdl->getCityObjectsRoots().size() << std::endl;
 
             // create osg geometry
             /*size_t pos = filename.toStdString().find_last_of("/\\");
@@ -93,7 +93,7 @@ void DialogDynState::addDynState(const vcity::URI& uri)
             bldg->setOsgNode(grp);*/
             item2text = bldg->getId().c_str();
         }
-        else if(ui->comboBox->currentText() == "NULL")
+        else if (ui->comboBox->currentText() == "NULL")
         {
             geom = NULL;
             item2text = "NULL";
@@ -112,12 +112,12 @@ void DialogDynState::addDynState(const vcity::URI& uri)
         state->m_parent = obj;
 
         // parse features
-        for(size_t i=0; i<m_featureArrayNames.size(); ++i)
+        for (size_t i = 0; i < m_featureArrayNames.size(); ++i)
         {
             citygml::DataSourceArray* ds = new citygml::DataSourceArray(m_featureArrayNames[i]->text().toStdString(), m_featureArrayValues[i]->text().toStdString());
             state->addDataSource(ds);
         }
-        for(size_t i=0; i<m_featureFileNames.size(); ++i)
+        for (size_t i = 0; i < m_featureFileNames.size(); ++i)
         {
             citygml::DataSourceFile* ds = new citygml::DataSourceFile(m_featureFileNames[i]->text().toStdString(), m_featureFilePaths[i]->text().toStdString());
             state->addDataSource(ds);

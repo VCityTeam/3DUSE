@@ -18,13 +18,13 @@ class PluginDialog : public QDialog
 
 public:
     PluginDialog(const QString &path, const QStringList &fileNames,
-                 QWidget *parent = 0);
+        QWidget *parent = 0);
 
 private:
     void findPlugins(const QString &path, const QStringList &fileNames);
     void populateTreeWidget(QObject *plugin, const QString &text);
     void addItems(QTreeWidgetItem *pluginItem, const char *interfaceName,
-                  const QStringList &features);
+        const QStringList &features);
 
     QLabel *label;
     QTreeWidget *treeWidget;
