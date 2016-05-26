@@ -6,21 +6,21 @@
 #include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-  class dialogFloodAR;
+    class dialogFloodAR;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class dialogFloodAR : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
-  explicit dialogFloodAR(QWidget *parent = 0);
-  ~dialogFloodAR();
+    explicit dialogFloodAR(QWidget *parent = 0);
+    ~dialogFloodAR();
 
 private:
-  Ui::dialogFloodAR *ui;
+    Ui::dialogFloodAR *ui;
 
-  public slots:
+    public slots:
 
     void browseWorkingDirectory();
 

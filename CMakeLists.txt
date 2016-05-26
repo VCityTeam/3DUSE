@@ -489,6 +489,8 @@ file(
   src/gui/osg/osgScene.cpp
   src/gui/osg/osgTools.cpp
   
+  src/DataStructures/DEM/osgMnt.cpp
+  
   # Interestingly enough the following are not necessary !?
   # src/gui/osgQt/osg32/GraphicsWindowQt.cxx
   # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
@@ -499,27 +501,27 @@ file(
   src/libfilters/raytracing/Ray.cpp
   src/libfilters/raytracing/RayTracing.cpp
   src/libfilters/tiling/ASCCut.cpp
+  src/libfilters/tiling/TilingCityGML.cpp
+
+  src/libfilters/ChangeDetection/ChangeDetection.cpp
+
+  src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
+  src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
+
+  src/libfilters/ShpExtrusion/ShpExtrusion.cpp
   
   src/DataStructures/DEM/osgMnt.cpp
   
-  src/processes/ChangeDetection.cpp
-  src/processes/EnhanceMNT.cpp
-  src/processes/ExportToShape.cpp
-  src/processes/LinkCityGMLShape.cpp
-  src/processes/ShpExtrusion.cpp
-  src/processes/TilingCityGML.cpp
-  src/processes/ToolAlgoCut.cpp
-  src/processes/lodsmanagement.cpp
-  
 ### Utilities
   src/utils/CityGMLFusion.cpp
+  src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
+  src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
 
 ### The main
   src/main.cpp
 
 ############## FAILURE (to libify section)
 ### CityGML:
-  src/processes/ToolAlgoCut.cpp       # WTF
   src/DataStructures/DEM/osgMnt.cpp   # WTF
   src/libcitygml/URI.cpp
   src/libcitygml/appearance.cpp
@@ -537,19 +539,19 @@ file(
   src/libcitygml/temporalExt.cpp
   src/libcitygml/tesselator.cpp
   src/libcitygml/texture.cpp
-
+  
   src/libcitygml/parser.cpp
   src/libcitygml/parserlibxml2.cpp
   src/libcitygml/export/exportCityGML.cpp
-
-  src/libcitygml/export/exporter.cpp
-  src/libcitygml/import/importer.cpp
 
   src/libcitygml/ADE/ADE.cpp
   src/libcitygml/ADE/temporal/temporalHandler.cpp
   src/libcitygml/ADE/temporal/transaction.cpp
   src/libcitygml/ADE/temporal/version.cpp
   src/libcitygml/ADE/temporal/versionTransition.cpp
+  
+  src/libcitygml/export/exporter.cpp
+  src/libcitygml/import/importer.cpp
 
   src/libcitygml/ADE/document/documentHandler.cpp
   src/libcitygml/ADE/document/documentObject.cpp
@@ -561,13 +563,16 @@ file(
   src/libcitygml/utils/exportOBJ.cpp
   src/libcitygml/utils/importerASC.cpp
   src/libcitygml/utils/importerAssimp.cpp
-
-  ## FIXME: the following should be dealt within libcitygmlutils.
-  # Yet finishing this job implies the availability of a core library
-  # since some of the libcitygml/utils content seems to depend both
-  # on libcityGML and the core. Actually, if this is indeed the case
-  # then those files should be compile with core, or the utils but not
-  # within libcityGML that should remain "3D-Use core" free.
+  
+  src/libcitygml/utils/TiledFilesLayout.cpp
+  src/libcitygml/utils/CityGMLtools.cpp
+  
+## FIXME: the following should be dealt within libcitygmlutils.
+# Yet finishing this job implies the availability of a core library
+# since some of the libcitygml/utils content seems to depend both
+# on libcityGML and the core. Actually, if this is indeed the case
+# then those files should be compile with core, or the utils but not
+# within libcityGML that should remain "3D-Use core" free.
   src/libcitygml/utils/AABB.cpp
   src/libcitygml/utils/Triangle.cpp
 
@@ -721,6 +726,8 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
+add_subdirectory(src)
+
 ################
 # 3DUSE plugins
 ################
@@ -829,18 +836,18 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 	endif(WITH_QT5)
 
   add_library( CityGMLVisibiliteQtPlugin SHARED
-    src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx
-    src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
-    ${CityGMLVisibilite_Qt_Plugin_HEADER}
-    ${CityGMLVisibilite_Qt_Plugin_SRC}
-    ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
+     src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx
+     src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
+     ${CityGMLVisibilite_Qt_Plugin_HEADER}
+     ${CityGMLVisibilite_Qt_Plugin_SRC}
+     ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
   )
   # For raytracing:
-  target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
+	target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
     src/libfilters
     ${CITYGML_INCLUDE_DIR}
   )
-  target_link_libraries( CityGMLVisibiliteQtPlugin
+	target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
@@ -911,12 +918,12 @@ SET(plugin_dest_dir .)
 SET(qtconf_dest_dir .)
 SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}")
 IF(APPLE)
-	SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
-	SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
-	SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
+		SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
+		SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
+		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
 ENDIF(APPLE)
 IF(WIN32)
-	SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
+		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
 ENDIF(WIN32)
 
 #--------------------------------------------------------------------------------
@@ -926,16 +933,16 @@ ENDIF(WIN32)
 # 3DUSE plugins
 ################
 if (BUILD_CityGMLCutQtPlugin)
-	set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
+		set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
 endif (BUILD_CityGMLCutQtPlugin)
 if (BUILD_CityGMLEmptyQtPlugin)
-	set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
+		set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
 endif (BUILD_CityGMLEmptyQtPlugin)
 if (BUILD_CityGMLVisibiliteQtPlugin)
-	set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
+		set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 if (BUILD_CityGMLFloodARQtPlugin)
-  set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
+    set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
 endif (BUILD_CityGMLFloodARQtPlugin)
 ################
 # 3DUSE plugins
@@ -948,9 +955,9 @@ INSTALL(TARGETS ${PRJ_NAME}
   ${CityGMLVisibiliteQtPlugin}
   ${CityGMLFloodARQtPlugin}
   # add your plugin installation here
-	BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
-	RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
-	LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
+		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
+		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
+		LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
 )
 
 #--------------------------------------------------------------------------------
@@ -958,39 +965,39 @@ INSTALL(TARGETS ${PRJ_NAME}
 # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
 INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
 if (WITH_QT5)
-	INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
+		INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
 endif(WITH_QT5)
 
 # OSG plugins
 if(OPENSCENEGRAPH_FOUND)
-	INCLUDE(BundleOSGPlugins)
-	install_osg_plugins( osg_plugins )
-	MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
+		INCLUDE(BundleOSGPlugins)
+		install_osg_plugins( osg_plugins )
+		MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
 endif(OPENSCENEGRAPH_FOUND)
 
 #--------------------------------------------------------------------------------
 # install a qt.conf file
 # this inserts some cmake code into the install script to write the file
 INSTALL(CODE "
-	file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = plugins\")
-	" COMPONENT ${PRJ_NAME})
-IF(APPLE)
-	INSTALL(CODE "
-		file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = MacOS/plugins\")
+		file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = plugins\")
 		" COMPONENT ${PRJ_NAME})
+IF(APPLE)
+		INSTALL(CODE "
+			file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]\nPlugins = MacOS/plugins\")
+			" COMPONENT ${PRJ_NAME})
 ENDIF(APPLE)
 
 # install qt_menu.nib (APPLE)
 IF(APPLE)
-	IF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
-		INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
-			 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
-	ELSE(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
-		IF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
-			INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+		IF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+			INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
 				 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
-		ENDIF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
-	ENDIF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+		ELSE(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
+			IF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+				INSTALL(CODE "execute_process(COMMAND cp -R \"${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib\" \"${qtconf_dest_dir}\"
+					 WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX})")
+			ENDIF(EXISTS ${QT_LIBRARY_DIR}/QtGui.framework/Resources/qt_menu.nib)
+		ENDIF(EXISTS ${QT_LIBRARY_DIR}/Resources/qt_menu.nib)
 ENDIF(APPLE)
 
 #--------------------------------------------------------------------------------
@@ -1007,11 +1014,11 @@ SET(DIRS ${QT_LIBRARY_DIRS})
 # Note that the image plugins depend on QtSvg and QtXml, and it got those copied
 # over.
 INSTALL(CODE "
-	file(GLOB_RECURSE PLUGINS
-	\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/osgPlugins-${OPENSCENEGRAPH_VERSION}/osgdb_*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*component_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
-	include(BundleUtilities)
-	fixup_bundle(\"${APPS}\" \"\${PLUGINS}\" \"${DIRS}\")
-	" COMPONENT ${PRJ_NAME})
+		file(GLOB_RECURSE PLUGINS
+		\"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/osgPlugins-${OPENSCENEGRAPH_VERSION}/osgdb_*${CMAKE_SHARED_LIBRARY_SUFFIX}\" \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*component_*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+		include(BundleUtilities)
+		fixup_bundle(\"${APPS}\" \"\${PLUGINS}\" \"${DIRS}\")
+		" COMPONENT ${PRJ_NAME})
 
 # CPack Configuration
 set(CPACK_PACKAGE_NAME ${PRJ_NAME})
@@ -1024,21 +1031,20 @@ set(CPACK_PACKAGE_VENDOR "Liris / CNRS")
 # where CPackConfig.cmake is created by including CPack
 # And then there's ways to customize this as well
 IF(APPLE)
-	set(CPACK_BINARY_DRAGNDROP ON)
-	set(CPACK_BINARY_TGZ "OFF")
-	set(CPACK_BINARY_STGZ "OFF")
-	set(CPACK_BINARY_PACKAGEMAKER "OFF")
-	include(CPack)
+		set(CPACK_BINARY_DRAGNDROP ON)
+		set(CPACK_BINARY_TGZ "OFF")
+		set(CPACK_BINARY_STGZ "OFF")
+		set(CPACK_BINARY_PACKAGEMAKER "OFF")
+		include(CPack)
 ENDIF(APPLE)
 
 IF(WIN32)
-	set(CPACK_GENERATOR "NSIS64")
-	set(CPACK_NSIS_MENU_LINKS "${PRJ_NAME}" "${PRJ_NAME}")
-	#MESSAGE( STATUS "PRJ_NAME: " ${PRJ_NAME} )
-	include(CPack)
+		set(CPACK_GENERATOR "NSIS64")
+		set(CPACK_NSIS_MENU_LINKS "${PRJ_NAME}" "${PRJ_NAME}")
+		#MESSAGE( STATUS "PRJ_NAME: " ${PRJ_NAME} )
+		include(CPack)
 ENDIF(WIN32)
 #--------------------------------------------------------------------------------
 # Now the installation stuff : end
 #--------------------------------------------------------------------------------
 
-add_subdirectory(src)

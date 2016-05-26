@@ -7,7 +7,7 @@
 #include "citygml.hpp"
 
 #include "src/DataStructures/DEM/osgMnt.hpp"
-#include "src/gui/osg/osgGDAL.hpp"
+#include "ogrsf_frmts.h"
 
 #include "citygmlutils_export.h"
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member

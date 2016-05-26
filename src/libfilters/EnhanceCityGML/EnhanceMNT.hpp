@@ -3,11 +3,10 @@
 #ifndef __ENHANCEMNT_HPP__
 #define __ENHANCEMNT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "libcitygml/citygml.hpp"
-#include "src/gui/osg/osgGDAL.hpp"
-#include "gui/moc/mainWindow.hpp"
-#include "export/exportCityGML.hpp"
+#include "ogrsf_frmts.h"
+#include "core/tile.hpp"
 #include <stdlib.h>
+#include "export/exportCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 void CreateRoadsOnMNT(vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel* MNT_roads, std::vector<TextureCityGML*>* TexturesList_roads, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground);
 void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml::CityModel* MNT_vegetation, std::vector<TextureCityGML*>* TexturesList_vegetation, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground);

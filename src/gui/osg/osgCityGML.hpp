@@ -34,7 +34,7 @@ public:
 
     static unsigned int getHighestLodForObject(const citygml::CityObject * object);
 
-//private:
+    //private:
     osg::ref_ptr<osg::Node> readCity(const citygml::CityModel*);
     osg::ref_ptr<osg::Group> createCityObject(const citygml::CityObject*, unsigned int minimumLODToConsider = 0);
 

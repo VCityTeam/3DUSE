@@ -8,7 +8,7 @@
 class QLineEdit;
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogDynState;
+    class DialogDynState;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class DialogDynState : public QDialog
@@ -21,7 +21,7 @@ public:
 
     void addDynState(const vcity::URI& uri);
 
-private slots:
+    private slots:
     void addFeatureArray();
     void addFeatureFile();
 
