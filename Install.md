@@ -30,7 +30,6 @@ Dependencies under discussion (open questions for MTO):
      * `cd VCity/externals/laslib`
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_BUILD_TYPE=Release && make`
-     * `cmake .. -DCMAKE_BUILD_TYPE=Debug && make`
      * `sudo make install`
      * Proceed with building of Vcity
    * Without access rights to `/usr/local/`:
