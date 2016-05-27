@@ -22,21 +22,24 @@ class osgInfo : public osg::Group
 {
 public:
     osgInfo();
-    osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod, float anchor);
+    osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type, std::string source, std::string lod, float anchor, int priority);
 
     void BillboardOFF();///use geode
     void BillboardON();///use billboard
+    void setBBAxis(osg::Vec3 newAxis);
     void Scaling(float scale);
+    void UpdateTetra(osg::Vec3f normale, osg::Vec3f axis, osg::Vec3f ortho);
+    void UpdateAnchoringLine(float newZ);
+    void UpdatePosition(osg::Vec3 newPos);
 
     // Setters
-    void setPosition(osg::Vec3 newPos);
     void setAxis(osg::Vec3 newAxis);
 
     void setAngle(float newAngle);
     void setHeight(float newHeight);
     void setWidth(float newWidth);
-    void setDistancetoCam(float newDist);
-    void setDistancetoSC(float newScreenDist);
+    void setDCAM(float newDist);
+    void setDSC(float newScreenDist);
     void setAnchoringPoint(float altitude);
 
     void setTexture(std::string filepath);
@@ -45,12 +48,14 @@ public:
     void setRequested(bool statut);
     void setonScreen(bool statut);
 
+    void setDa(float area);
+
     // Getters
     osg::Vec3 getPosition();
-    float getDistancetoCam();
-    float getDistancetoSC();
+    float getDCAM();
+    float getDSC();
 
-    osg::Group *getPAT();
+    osg::Group *getGroup();
 
     std::string getInfoName();
     std::string getType();
@@ -63,8 +68,6 @@ public:
 
 private:
 
-    float m_distancetocam ; ///distance between doc and cam
-    float m_distancetoSC ; /// distance between doc and screen center
 
 
     unsigned int m_date_deb ;
@@ -81,14 +84,14 @@ private:
     osg::Geometry  *m_geom; ///geometry instance for the node
     osg::Geode *m_geode; ///geometry node
     osg::Group *m_group; ///group node
-    osg::Billboard *m_billboard; ///billboard
     osg::PositionAttitudeTransform *m_pat; ///position attitude transforme of the node
 
 public :
     float m_height; ///height of the doc
     float m_width; ///width of the doc
 
-    osg::Vec3 m_position ; ///position of the node
+    osg::Vec3 m_initposition ; ///initial position of the node
+    osg::Vec3 m_currentposition ; ///current position of the node
     double m_angle ; ///rotation angle of the node
     osg::Vec3 m_axe ; ///rotation axis of the node
 
@@ -100,7 +103,19 @@ public :
     std::string m_LOD ; ///level of detail to display (street, building, district, city)
 
     float m_anchoring ;
+    int m_priority;
 
+    float m_DCAM ; ///distance between doc and cam
+    float m_DSC ; /// distance between doc and screen center
+    float m_Da; ///document area on screen
+    float m_OVa; ///total area of document overlapped by others in front of it
+
+    osg::Billboard *m_billboard; ///billboard
+
+    osg::Vec3 m_sCornerMax;
+    osg::Vec3 m_sCornerMin;
+
+    osg::Geode *m_tetra; ///geometry node
 
 };
 ////////////////////////////////////////////////////////////////////////////////

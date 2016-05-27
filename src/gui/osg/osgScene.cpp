@@ -1,4 +1,4 @@
-// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgScene.hpp"
 #include <osg/PositionAttitudeTransform>
@@ -29,8 +29,11 @@
 #include "../controllerGui.hpp"
 
 #include "osgInfo.hpp"
+#include <osg/Point>
 #include <osg/MatrixTransform>
 #include <osg/NodeCallback>
+#include <cmath>
+#include <map>
 
 #include <string>
 
@@ -192,7 +195,7 @@ public:
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-OsgScene::OsgScene()
+OsgScene:: OsgScene()
     : osg::Group(), m_shadow(false), m_shadowVec(-1,-1,0.1,0)
 {
     init();
@@ -203,14 +206,14 @@ class InfoDataType : public osg::Referenced
 public:
 
     InfoDataType(osg::Node*n);
-    void computeDistancestoCam(osg::Camera *cam);
-    void computeDistancestoSC(osg::Camera *cam);
-    int getNumberofObjectonScreen();
-    void setDisplayability();
-    void forceDisplayability();
-    void updateScale();
+    osg::ref_ptr<osg::Switch> getSwitchRoot();
+    void computeDCAM(osg::Camera *cam, osgInfo *info);
+    void computeDSC(osg::Camera *cam, int screenX, int screenY, osgInfo *info);
+    void computeOVa(int screenX, int screenY, std::map<float, osgInfo *> m_info);
+    void updateScale(osgInfo *info, int screenX, int screenY);
+    void setDisplayability(osgInfo *info);
+    void stairedDisplay(std::map<float, osgInfo*> m_info);
     void display();
-    void filterLOD(float distance);
 
 protected:
     osg::ref_ptr<osg::Switch> switchRoot;
@@ -222,238 +225,306 @@ InfoDataType::InfoDataType(osg::Node* n)
     switchRoot = n->asSwitch();
 }
 
-void InfoDataType::computeDistancestoCam(osg::Camera *cam)
+osg::ref_ptr<osg::Switch> InfoDataType::getSwitchRoot()
 {
-    cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
+    return switchRoot;
+}
+
+void InfoDataType::computeDCAM(osg::Camera *cam, osgInfo* info)
+{
     osg::Vec3d pos;
     osg::Vec3d target;
     osg::Vec3d up;
     cam->getViewMatrixAsLookAt(pos,target,up);
+    float DCAM;
 
-//std::cout<<"[osgScene > computeDistances]...target vector : ["<<target.x()<<","<<target.y()<<","<<target.z()<<"]"<<std::endl;
-
-    float distancetoCam;
-
-    for(int i=0; i<switchRoot->getNumChildren(); i++)
-    {
-        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-        if(subSwitch)
-        {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                float infoX = info->getPosition().x();
-                float infoY = info->getPosition().y();
-                float infoZ = info->getPosition().z();
-                float camX=pos.x();
-                float camY=pos.y();
-                float camZ=pos.z();
+    float infoX = info->getPosition().x();
+    float infoY = info->getPosition().y();
+    float infoZ = info->getPosition().z();
+    float camX=pos.x();
+    float camY=pos.y();
+    float camZ=pos.z();
 
 
-                distancetoCam = sqrt((infoX-camX)*(infoX-camX)+(infoY-camY)*(infoY-camY)+(infoZ-camZ)*(infoZ-camZ));
-                info->setDistancetoCam(distancetoCam);
-                //std::cout<<"[osgScene > computeDistances].....doc : "<<info->getInfoName()<<" distance to cam : "<<distancetoCam<<std::endl;
-            }
-        }
-    }
+    DCAM = sqrt((infoX-camX)*(infoX-camX)+(infoY-camY)*(infoY-camY)+(infoZ-camZ)*(infoZ-camZ));
+    info->setDCAM(DCAM);
 }
 
-void InfoDataType::computeDistancestoSC(osg::Camera *cam)
+void InfoDataType::computeDSC(osg::Camera *cam, int screenX, int screenY, osgInfo* info)
 {
-    int screenX = appGui().getMainWindow()->m_osgView->m_widget->width();
-    int screenY = appGui().getMainWindow()->m_osgView->m_widget->height();
-    //std::cout<<"[osgScene > computeDistancestoSC].....screensize : ["<<screenX<<","<<screenY<<"]"<<std::endl;
 
-    osg::Matrix Mwin = cam->getViewport()->computeWindowMatrix();
+    osg::Vec3d pos;
+    osg::Vec3d target;
+    osg::Vec3d up;
+    cam->getViewMatrixAsLookAt(pos,target,up);
+//    std::cout<<"Cam pos : ["<<pos.x()<<","<<pos.y()<<","<<pos.z()<<"]"<<std::endl;
+//    std::cout<<"Cam target : ["<<target.x()<<","<<target.y()<<","<<target.z()<<"]"<<std::endl;
+//    std::cout<<"Cam up : ["<<up.x()<<","<<up.y()<<","<<up.z()<<"]"<<std::endl;
+
     osg::Matrix Mview = cam->getViewMatrix();
+    osg::Matrix Mwin = cam->getViewport()->computeWindowMatrix();
     osg::Matrix Mproj = cam->getProjectionMatrix();
 
-    for(int i=0; i<switchRoot->getNumChildren(); i++)
-    {
-        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-        if(subSwitch)
-        {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                osg::Vec3 worldcoord = info->getPosition();
+    osg::Vec3 worldcoord = info->getPosition();
+    osg::Vec3 screencoord = worldcoord*Mview*Mproj*Mwin;
 
-                osg::Vec3 screencoord = worldcoord*Mview*Mproj*Mwin;
+    int Ds = sqrt((screencoord.x()-screenX/2)*(screencoord.x()-screenX/2)+(screencoord.y()-screenY/2)*(screencoord.y()-screenY/2));
+    info->setDSC(Ds);
 
-                int Ds = sqrt((screencoord.x()-screenX/2)*(screencoord.x()-screenX/2)+(screencoord.y()-screenY/2)*(screencoord.y()-screenY/2));
-                //std::cout<<"[osgScene > computeDistancestoSC].....doc : "<<info->getInfoName()<<" Ds : "<<Ds<<std::endl;
+    TVec3d dirLookAt(target.x() - pos.x(),target.y() - pos.y(),target.z() - pos.z());
+    TVec3d dirDoc(info->m_currentposition.x() - pos.x(), info->m_currentposition.y() - pos.y(), info->m_currentposition.z() - pos.z());
 
-                info->setDistancetoSC(Ds);
-              if(screencoord.x()+info->m_width/2>0 && screencoord.x()-info->m_width/2<screenX && screencoord.y()+info->m_height/2>0 && screencoord.y()-info->m_height/2<screenY)
-                  info->setonScreen(true);
-              else
-                  info->setonScreen(false);
+    float scalaire = dirLookAt.dot(dirDoc);
+    float angle = acos(scalaire/(dirLookAt.length()*dirDoc.length()));
+    angle=angle*180/3.1415;
 
-            }
-        }
-    }
+    osg::Vec3f normale(-dirDoc.x, -dirDoc.y, -dirDoc.z);
+    osg::Vec3f axis = info->m_billboard->getAxis();
+    osg::Vec3f ortho = axis.operator ^(normale);
+    osg::Vec3f wCornerMax = info->m_currentposition + (ortho/ortho.length())*(info->m_width/2.0f) + (axis/axis.length())*(info->m_height/2.0f);
+    osg::Vec3f wCornerMin = info->m_currentposition - (ortho/ortho.length())*(info->m_width/2.0f) - (axis/axis.length())*(info->m_height/2.0f);
+
+    osg::Vec3 sCornerMax = wCornerMax*Mview*Mproj*Mwin;
+    osg::Vec3 sCornerMin = wCornerMin*Mview*Mproj*Mwin;
+
+    /********** RED POINTS TO WITNESS CORNERS ************/
+    //                osg::Geode* cornersGeode = new osg::Geode;
+    //                osg::Geometry* cornersGeom = new osg::Geometry;
+    //                osg::Vec3Array* verticesPoints = new osg::Vec3Array;
+
+    //                verticesPoints->push_back(wCornerMax);
+    //                verticesPoints->push_back(wCornerMin);
+
+    //                osg::ref_ptr<osg::Vec4Array> colorpoints = new osg::Vec4Array;
+    //                colorpoints->push_back(osg::Vec4(1.0,0.0,0.0,1.0));
+
+    //                cornersGeom->setVertexArray(verticesPoints);
+    //                cornersGeom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS,0,verticesPoints->size()));
+    //                cornersGeom->getOrCreateStateSet()->setAttribute(new osg::Point(5.0f), osg::StateAttribute::ON);
+
+    //                cornersGeom->setColorArray(colorpoints, osg::Array::BIND_OVERALL);
+    //                cornersGeode->addDrawable(cornersGeom);
+
+    //                if(info->getGroup()->getNumChildren()>3)
+    //                {
+    //                    info->getGroup()->removeChild(info->getGroup()->getNumChildren()-1);
+    //                    info->getGroup()->addChild(cornersGeode);
+    //                }
+    //                else
+    //                    info->getGroup()->addChild(cornersGeode);
+
+    /* Determine if document on screen or not according to the borders of the screen */
+    if(sCornerMax.x()>0.0 && sCornerMin.x()<screenX && sCornerMax.y()>0.0 && sCornerMin.y()<screenY && angle < 90.0)
+        info->setonScreen(true);
+    else if(sCornerMax.x()<0.0 && sCornerMin.x()>screenX && sCornerMax.y()<0.0 && sCornerMin.y()>screenY && angle < 90.0)
+        info->setonScreen(true);
+    else
+        info->setonScreen(false);
+
+
+    /* Crop document coordinates to tell the exact surface inside the screen */
+    if(sCornerMax.x()>screenX)
+        sCornerMax.x()=screenX;
+    if(sCornerMax.x()<0.0)
+        sCornerMax.x()=0.0;
+    if(sCornerMax.y()>screenY)
+        sCornerMax.y()=screenY;
+    if(sCornerMax.y()<0.0)
+        sCornerMax.y()=0.0;
+    if(sCornerMin.x()<0.0)
+        sCornerMin.x()=0.0;
+    if(sCornerMin.x()>screenX)
+        sCornerMin.x()=screenX;
+    if(sCornerMin.y()<0.0)
+        sCornerMin.y()=0.0;
+    if(sCornerMin.y()>screenY)
+        sCornerMin.y()=screenY;
+
+    float screenwidth = sCornerMax.x()-sCornerMin.x();
+    float screenheight = sCornerMax.y()-sCornerMin.y();
+    float Da = abs(screenwidth*screenheight);
+
+    info->m_sCornerMax=sCornerMax;
+    info->m_sCornerMin=sCornerMin;
+
+    info->setDa(Da);
+
+
+    //info->UpdateTetra(normale/normale.length(), axis/axis.length(), ortho/ortho.length());
+
+
 }
 
-int InfoDataType::getNumberofObjectonScreen()
+void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*> m_info)
 {
-    int obj=0;
+    float screen[screenX][screenY];
+    bool found;
 
-    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    for(int i = 0; i<screenX; i++)
     {
-        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-        if(subSwitch)
+        for(int j=0; j<screenY; j++)
         {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-
-                if(info->isonScreen())
-                    obj++;
-            }
+            found=false;
+                for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+                {
+                    if(i>=(int)it->second->m_sCornerMin.x() && i<=(int)it->second->m_sCornerMax.x() && j>=(int)it->second->m_sCornerMin.y() && j<(int)it->second->m_sCornerMax.y())
+                    {
+                        screen[i][j]=it->first;
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found)
+                    screen[i][j]=0;
         }
     }
-    return obj;
+
+    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+    {
+        it->second->m_OVa=0;
+        for(int i = (int)it->second->m_sCornerMin.x(); i<(int)it->second->m_sCornerMax.x(); i++)
+        {
+            for(int j=(int)it->second->m_sCornerMin.y(); j<(int)it->second->m_sCornerMax.y(); j++)
+            {
+                if(screen[i][j]!=it->first && screen[i][j]!=0)
+                {
+                    it->second->m_OVa+=1;
+                }
+            }
+        }
+        if(it->second->m_OVa>it->second->m_Da)
+            it->second->m_OVa=it->second->m_Da;
+
+    }
+
+
+//    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+//        std::cout << it->first << " => " << it->second->m_name << " => ROVa=" << it->second->m_OVa/it->second->m_Da << std::endl;
+
+// std::cout << std::endl;
+
 }
 
-
-void InfoDataType::setDisplayability()
+void InfoDataType::setDisplayability(osgInfo* info)
 {
-    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    if(info->getInfoLOD()=="street")
     {
-        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-        if(subSwitch->getName()=="street")
+        if(info->m_DCAM<=500)
         {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                if(info->getDistancetoCam()<=500)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(1.0f);
-                }
-                else if (info->getDistancetoCam()>500 && info->getDistancetoCam()<1500)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(0.2f);
-                }
-                else
-                {
-                    info->setDisplayable(false);
-                }
-            }
+            info->setDisplayable(true);
+            info->setTransparency(1.0f);
         }
-        if(subSwitch->getName()=="building")
+        else if (info->m_DCAM>500 && info->m_DCAM<1500)
         {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                if(info->getDistancetoCam()<=1500 && info->getDistancetoCam()>=500)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(1.0f);
-                }
-                else if(info->getDistancetoCam()>1500 &&  info->getDistancetoCam() < 6000)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(0.2f);
-                }
-                else
-                {
-                    info->setDisplayable(false);
-                    info->setTransparency(0.2f);
-                }
-            }
+            info->setDisplayable(true);
+            info->setTransparency(0.2f);
         }
-        if(subSwitch->getName()=="district")
+        else
         {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                float dist=info->getDistancetoCam();
-                if(dist<=6000 && dist>=1500)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(1.0f);
-                }
-                else if(info->getDistancetoCam()>6000 && info->getDistancetoCam() < 30000)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(0.2f);
-                }
-                else
-                {
-                    info->setDisplayable(false);
-                    info->setTransparency(0.2f);
-                }
-            }
-        }
-        if(subSwitch->getName()=="city")
-        {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                if(info->getDistancetoCam()<=30000 && info->getDistancetoCam()>=6000)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(1.0f);
-                }
-                else if(info->getDistancetoCam()>30000)
-                {
-                    info->setDisplayable(true);
-                    info->setTransparency(0.2f);
-                }
-                else
-                {
-                    info->setDisplayable(false);
-                    info->setTransparency(0.2f);
-                }
-            }
+            info->setDisplayable(false);
         }
     }
+
+    if(info->getInfoLOD()=="building")
+    {
+        if(info->m_DCAM<=1500 && info->m_DCAM>=500)
+        {
+            info->setDisplayable(true);
+            info->setTransparency(1.0f);
+        }
+        else if(info->m_DCAM>1500 &&  info->m_DCAM<6000)
+        {
+            info->setDisplayable(true);
+            info->setTransparency(0.2f);
+        }
+        else
+        {
+            info->setDisplayable(false);
+            info->setTransparency(0.2f);
+        }
+    }
+
+    if(info->getInfoLOD()=="district")
+    {
+        if(info->m_DCAM<=6000 && info->m_DCAM>=1500)
+        {
+            info->setDisplayable(true);
+            info->setTransparency(1.0f);
+        }
+        else if(info->m_DCAM>6000 && info->m_DCAM<30000)
+        {
+            info->setDisplayable(true);
+            info->setTransparency(0.2f);
+        }
+        else
+        {
+            info->setDisplayable(false);
+            info->setTransparency(0.2f);
+        }
+
+    }
+    if(info->getInfoLOD()=="city")
+    {
+        if(info->m_DCAM<=30000 && info->m_DCAM>=6000)
+        {
+            info->setDisplayable(true);
+            info->setTransparency(1.0f);
+        }
+        else if(info->m_DCAM>30000)
+        {
+            info->setDisplayable(true);
+            info->setTransparency(0.2f);
+        }
+        else
+        {
+            info->setDisplayable(false);
+            info->setTransparency(0.2f);
+        }
+
+    }
+
 }
 
-void InfoDataType::forceDisplayability()
+void InfoDataType::updateScale(osgInfo* info, int screenX, int screenY)
 {
-    for(int i=0; i<switchRoot->getNumChildren(); i++)
-    {
-        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-        if(subSwitch)
-        {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                info->setDisplayable(true);
-            }
-        }
+    //According to DCAM
+    //float scale = info->m_DCAM/50450.1;
 
-    }
+    //According to DSC
+    float scale;
+    float maxscale = std::sqrt(screenX*screenX+screenY*screenY);
+    if(info->m_DSC)
+        scale = info->m_DSC/maxscale;
+    info->Scaling(scale);
+
 }
 
-void InfoDataType::updateScale()
+void InfoDataType::stairedDisplay(std::map<float, osgInfo *> m_info)
 {
-    for(int i=0; i<switchRoot->getNumChildren(); i++)
+    std::vector<osgInfo*> tmp_info;
+    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
     {
-        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-        if(subSwitch)
-        {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                float scale = info->getDistancetoCam()/50450.1;
-                info->Scaling(scale);
-            }
-        }
-
+        tmp_info.push_back(it->second);
     }
+    for(int i=0; i<tmp_info.size(); i++)
+    {
+       osgInfo* info = tmp_info[0];
+       info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(info->m_initposition);
+       info->UpdatePosition(info->m_initposition);
+//       if(i==0)
+//           std::cout<<"[stairsDisplay].... image("<<i<<") : "<<info->m_name<<" z value = "<<info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->getPosition().z()<<std::endl;
+       if(i>0)
+       {
+           osgInfo* c_info = tmp_info[i];
+           osgInfo* p_info = tmp_info[i-1];
+           osg::Vec3 newPos = osg::Vec3(c_info->m_currentposition.x(), c_info->m_currentposition.y(),p_info->m_currentposition.z()+p_info->m_height/2+c_info->m_height/2);
+           c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
+           c_info->UpdatePosition(newPos);
+           c_info->UpdateAnchoringLine(newPos.z());
+//           std::cout<<"[stairsDisplay].... image("<<i<<") : "<<c_info->m_name<<" z value = "<<c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->getPosition().z()<<std::endl;
+       }
+    }
+//    std::cout<<std::endl;
 }
 
 void InfoDataType::display()
@@ -467,166 +538,18 @@ void InfoDataType::display()
             {
                 osg::Node* node = subSwitch->getChild(j);
                 osgInfo* info = dynamic_cast<osgInfo*>(node);
-//                std::cout<<std::endl<<"[Callback > display].....document : "<<info->getInfoName()<<std::endl;
-//                std::cout<<"[Callback > display].............isDisplayable : "<<info->isDisplayable()<<std::endl;
-//                std::cout<<"[Callback > display].............isRequested : "<<info->isRequested()<<std::endl;
                 if(info->isDisplayable() && info->isRequested())
                 {
                     subSwitch->setValue(j,true);
-//                    std::cout<<"[Callback > display]........switched on"<<std::endl;
                 }
                 else
                 {
                     subSwitch->setValue(j,false);
-//                    std::cout<<"[Callback > display]........switched off"<<std::endl;
                 }
-//                std::cout<<"[Callback > display]........ => switched : "<<subSwitch->getValue(j)<<std::endl;
-
             }
         }
 
     }
-}
-
-void InfoDataType:: filterLOD(float distance)
-{
-  if(distance<=500)
-  {
-      for(int i=0; i<switchRoot->getNumChildren(); i++)
-      {
-          if(switchRoot->getChild(i)->getName()=="street")
-          {
-              switchRoot->setValue(i,true);
-              osg::ref_ptr<osg::Switch> switchStreet = switchRoot->getChild(i)->asSwitch();
-              if(switchStreet)
-              {
-                  for(int j=0; j<switchStreet->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchStreet->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      if(info->isRequested())
-                      {
-                          switchStreet->setValue(j,true);
-                      }
-                      else
-                      {
-                          switchStreet->setValue(j,false);
-                      }
-                  }
-              }
-          }
-          else
-          {
-              switchRoot->setValue(i,false);
-          }
-
-      }
-  }
-  else if(distance<=1500)
-  {
-      for(int i=0; i<switchRoot->getNumChildren(); i++)
-      {
-          if(switchRoot->getChild(i)->getName()=="building")
-          {
-              switchRoot->setValue(i,true);
-              osg::ref_ptr<osg::Switch> switchBuilding = switchRoot->getChild(i)->asSwitch();
-              if(switchBuilding)
-              {
-                  for(int j=0; j<switchBuilding->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchBuilding->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      //std::cout<<"[Callback > filterLOD > building].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
-                      if(info->isRequested())
-                      {
-                          switchBuilding->setValue(j,true);
-                      }
-                      else
-                      {
-                          switchBuilding->setValue(j,false);
-                      }
-                  }
-              }
-          }
-          else
-          {
-              switchRoot->setValue(i,false);
-          }
-      }
-  }
-  else if(distance<=6000)
-  {
-      //std::cout<<"[Callback > filterLOD].....LOD : district"<<std::endl;
-      for(int i=0; i<switchRoot->getNumChildren(); i++)
-      {
-          if(switchRoot->getChild(i)->getName()=="district")
-          {
-              switchRoot->setValue(i,true);
-              osg::ref_ptr<osg::Switch> switchDistrict = switchRoot->getChild(i)->asSwitch();
-              if(switchDistrict)
-              {
-                  for(int j=0; j<switchDistrict->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchDistrict->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      if(info->isRequested())
-                      {
-                          switchDistrict->setValue(j,true);
-                      }
-                      else
-                      {
-                          switchDistrict->setValue(j,false);
-                      }
-                  }
-              }
-          }
-          else
-          {
-              switchRoot->setValue(i,false);
-          }
-      }
-  }
-  else if(distance<=50000)
-  {
-      for(int i=0; i<switchRoot->getNumChildren(); i++)
-      {
-          if(switchRoot->getChild(i)->getName()=="city")
-          {
-              switchRoot->setValue(i,true);
-              osg::ref_ptr<osg::Switch> switchCity = switchRoot->getChild(i)->asSwitch();
-              if(switchCity)
-              {
-                  for(int j=0; j<switchCity->getNumChildren();j++)
-                  {
-                      osg::Node* node = switchCity->getChild(j);
-                      osgInfo* info = dynamic_cast<osgInfo*>(node);
-                      //std::cout<<"[Callback > filterLOD > city].....document : "<<info->getInfoName()<<" isRequested : "<<info->isRequested()<<std::endl;
-                      if(info->isRequested())
-                      {
-                          switchCity->setValue(j,true);
-                      }
-                      else
-                      {
-                          switchCity->setValue(j,false);
-                      }
-
-                  }
-              }
-          }
-          else
-          {
-              switchRoot->setValue(i,false);
-          }
-      }
-  }
-  else
-  {
-      for(int i=0; i<switchRoot->getNumChildren(); i++)
-      {
-          switchRoot->setValue(i,false);
-      }
-  }
-
 }
 
 class UpdateInfo : public osg::NodeCallback
@@ -646,19 +569,98 @@ public :
 
             osg::Camera* cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
 
+            int screenX = appGui().getMainWindow()->m_osgView->m_widget->width();
+            int screenY = appGui().getMainWindow()->m_osgView->m_widget->height();
+            float Sa = screenX*screenY; //total screen area
+
+            int ND = 0; //number of document
+            int NDs = 0; //number of document on screen
+            int NDh = 0; //number of docment hidden (>50% overlapped)
+            float TDa = 0.0f; //total document area on screen
+            float TOVa = 0.0f; //total document overlapped area
 
 
-            layerInfo->computeDistancestoCam(cam);
-            layerInfo->computeDistancestoSC(cam);
-            layerInfo->setDisplayability();
-            std::cout<<"Number of object on screen : "<<layerInfo->getNumberofObjectonScreen()<<std::endl;
+            std::map<float,osgInfo*> map_info ;
+            std::map<float,osgInfo*> map_street ;
+            std::map<float,osgInfo*> map_building ;
+            std::map<float,osgInfo*> map_district ;
+            std::map<float,osgInfo*> map_city ;
 
-            //layerInfo->forceDisplayability();
-            //layerInfo->updateScale();
 
+            osg::ref_ptr<osg::Switch> switchRoot=layerInfo->getSwitchRoot();
+
+            for(int i=0; i<switchRoot->getNumChildren(); i++)
+            {
+                osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
+                if(subSwitch)
+                {
+                    for(int j=0; j<subSwitch->getNumChildren();j++)
+                    {
+                        osg::Node* node = subSwitch->getChild(j);
+                        osgInfo* info = dynamic_cast<osgInfo*>(node);
+
+                        layerInfo->computeDCAM(cam, info);
+                        layerInfo->computeDSC(cam, screenX, screenY, info);
+
+                        //layerInfo->updateScale(info, screenX, screenY);
+                        //layerInfo->setDisplayability(info);
+                        info->setDisplayable(true);
+
+                        if(info->isonScreen())
+                        {
+                            map_info[info->m_DCAM]=info;
+
+                            if(info->getInfoLOD()=="street")
+                                map_street[info->m_DCAM]=info;
+                            if(info->getInfoLOD()=="building")
+                                map_building[info->m_DCAM]=info;
+                            if(info->getInfoLOD()=="district")
+                                map_district[info->m_DCAM]=info;
+                            if(info->getInfoLOD()=="city")
+                                map_city[info->m_DCAM]=info;
+
+                            if(info->m_OVa/info->m_Da>0.5)
+                                NDh++;
+
+                            TDa+=info->m_Da;
+                            TOVa+=info->m_OVa;
+                            NDs++;
+                        }
+                        ND++;
+                    }
+                }
+            }
+
+            layerInfo->computeOVa(screenX, screenY, map_info);
+
+            osg::Vec3d pos;
+            osg::Vec3d target;
+            osg::Vec3d up;
+            cam->getViewMatrixAsLookAt(pos,target,up);
+            std::cout<<"Cam pos : ["<<pos.x()<<","<<pos.y()<<","<<pos.z()<<"]"<<std::endl;
+            std::cout<<"Cam target : ["<<target.x()<<","<<target.y()<<","<<target.z()<<"]"<<std::endl;
+            std::cout<<"Cam up : ["<<up.x()<<","<<up.y()<<","<<up.z()<<"]"<<std::endl;
+            std::cout<<std::endl;
+
+
+            float RDS = (TDa-TOVa)/Sa ; //ratio of all document area to screen area
+            float RNDs = (float)NDs/ND; //ratio of all document displayed
+            float RNDh = (float)NDh/NDs; //ratio of document hidden
+
+
+            std::cout<<"RNDs = "<<RNDs*100<<"%"<<std::endl;
+            std::cout<<"RNDh = "<<RNDh*100<<"%"<<std::endl;
+            std::cout<<"RTDa = "<<TDa/Sa*100<<"%"<<std::endl;
+            std::cout<<"ROVa = "<<TOVa/Sa*100<<"%"<<std::endl;
+            std::cout<<"RDS = "<<RDS*100<<"%"<<std::endl;
+            std::cout<<std::endl;
+
+//            layerInfo->stairedDisplay(map_info);
+//            layerInfo->stairedDisplay(map_street);
+//            layerInfo->stairedDisplay(map_building);
+//            layerInfo->stairedDisplay(map_district);
+//            layerInfo->stairedDisplay(map_city);
             layerInfo->display();
-
-
 
         }
         traverse( node, nv );
@@ -894,14 +896,6 @@ void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
             switchRoot->setUserData(infoData);
             switchRoot->setUpdateCallback(new UpdateInfo);
 
-
-//            osg::ref_ptr<osg::Switch> fillInfo(info);
-
-//            InfoDataType* infoData = new InfoDataType(SwitchNodeInfo);
-//            SwitchNodeInfo->setUserData(infoData);
-//            SwitchNodeInfo->setUpdateCallback(new UpdateInfo);
-//            layerGroup->addChild(SwitchNodeInfo);
-
         }
     }
 }
@@ -924,7 +918,7 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     cityGroup->setName(v_info[i]->getInfoName());
                     if(cityGroup)
                     {
-                        cityGroup->addChild(v_info[i]->getPAT());
+                        cityGroup->addChild(v_info[i]->getGroup());
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -942,7 +936,7 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     districtGroup->setName(v_info[i]->getInfoName());
                     if(districtGroup)
                     {
-                        districtGroup->addChild(v_info[i]->getPAT());
+                        districtGroup->addChild(v_info[i]->getGroup());
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -961,7 +955,7 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     if(buildingGroup)
                     {
                         //std::cout<<"[osgScene > fillSwitches].....if(buildingGroup)"<<std::endl;
-                        buildingGroup->addChild(v_info[i]->getPAT());
+                        buildingGroup->addChild(v_info[i]->getGroup());
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
@@ -977,35 +971,13 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     streetGroup->setName(v_info[i]->getInfoName());
                     if(streetGroup)
                     {
-                        streetGroup->addChild(v_info[i]->getPAT());
+                        streetGroup->addChild(v_info[i]->getGroup());
                         std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
             }
 
         }
-        std::cout<<"[osgScene > fillSwitches].....nb info in district : "<<cpt<<std::endl;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Switch> OsgScene::fillInfo(std::vector<osgInfo*> v_info)
-{
-    osg::Switch* SwitchNode = new osg::Switch();
-
-        for (int i=0; i<v_info.size(); i++)
-        {
-            SwitchNode->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
-            osg::ref_ptr<osg::Group> layerGroup = SwitchNode->getChild(i)->asGroup();
-            if(layerGroup)
-            {
-                //std::cout<<"[osgScene > fillInfo].....if(layerGroup)"<<std::endl;
-                layerGroup->addChild(v_info[i]->getPAT());
-                std::cout<<"[osgScene > fillInfo].....info PAT added"<<std::endl;
-            }
-
-        }
-
-        return SwitchNode ;
 }
 
 void OsgScene:: filterInfo(const QString& filter)
@@ -1032,8 +1004,6 @@ void OsgScene:: filterInfo(const QString& filter)
                         {
                             osg::Node* node = switchChild->getChild(j);
                             osgInfo* info = dynamic_cast<osgInfo*>(node);
-        //                    found = filter.toStdString().find(info->getInfoName());
-        //                    std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found = "<< found <<std::endl;
                                 if(filter.toStdString()==info->getType())
                                 {
                                     //std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found filetype : "<< info->getType() <<std::endl;

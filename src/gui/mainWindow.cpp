@@ -2992,7 +2992,7 @@ void MainWindow::test1()
 
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test.csv";
+    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
 
     std::vector<osgInfo*> v_info;
@@ -3000,6 +3000,8 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
     std::vector<float> v_width;
     std::vector<double> v_angle;
     std::vector<float> v_anchoring;
+
+    std::vector<int> v_priority;
 
     std::vector<osg::Vec3> v_position;
     std::vector<osg::Vec3> v_axis;
@@ -3066,6 +3068,9 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
                 if (cpt==12)
                     v_anchoring.push_back(std::stod(cell));
 
+                if(cpt==13)
+                    v_priority.push_back(std::stod(cell));
+
                 cpt++;
              }
             v_position.push_back(osg::Vec3(x,y,z));
@@ -3075,7 +3080,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
         for (int i=0; i<v_filepath.size(); i++)
         {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i]));
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
         }
         std::cout<<"[MainWindow > test2 > loadCSV].....v_info filled"<<std::endl;
 
@@ -3130,11 +3135,11 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
          std::ofstream ofs;
          ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
 
-         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage"<<std::endl;
+         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
          for(osgInfo* i : v_info)
          {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_position.x()<<","<<i->m_position.y()<<","<<i->m_position.z()<<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<std::endl;
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
          }
          ofs.close();
          std::cout<<"CSV written"<<std::endl;
