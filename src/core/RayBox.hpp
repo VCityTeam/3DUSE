@@ -5,7 +5,7 @@
 
 #include "osg/Camera"
 
-#include "raytracing/RayTracing.hpp"
+#include "libfilters/raytracing/RayTracing.hpp"
 #include "AABB.hpp"
 
 /**

@@ -45,7 +45,7 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
     time.start();
 
 	unsigned int tCount = std::thread::hardware_concurrency() - 1;//Get how many thread we have
-	unsigned int rayPerThread = rays.size() / tCount + tCount;
+    unsigned int rayPerThread = rays.size() / tCount;
 
     //List of rays and their frag coord
     std::vector<Ray*>* toDo = new std::vector<Ray*>[tCount];//List of rays for each threads

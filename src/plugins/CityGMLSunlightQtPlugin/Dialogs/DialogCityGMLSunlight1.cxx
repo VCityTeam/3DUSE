@@ -2,7 +2,6 @@
 #include "ui_DialogCityGMLSunlight1.h"
 #include "../SunlightDetection.h"
 #include "../FileInfo.h"
-#include "../SunlightVisu.h"
 
 #include <iostream>
 
@@ -374,18 +373,7 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
         filepaths.append(ui->InputDirectory_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text());
     }
 
-    emit activateVisu(filepaths, startDate, endDate);
-
-    //std::map<int,std::map<std::string,bool>>* sunlightInfo = loadSunlightFiles(filepaths, startDate, endDate);
-
-    //*** Hook Visualisation function in MainWindow
-    //appGui().getMainWindow()->m_sunlightPluginVisu = VisualiseSunlight;
-//    SunlightVisu plg;
-//    plg.loadSunlightFiles(filepaths, startDate, endDate);
-
-//    connect(appGui().getMainWindow(),SIGNAL(activatePlugin(QDateTime)),&plg,SLOT(activate(QDateTime)));
-
-
+    emit startVisu(filepaths, startDate, endDate);
 
     // Tests to bring mainwindow foreground and send Sunlight background
     //appGui()->->setWindowState(Qt::WindowActive);
@@ -425,8 +413,7 @@ void DialogCityGMLSunlight1::StopVisuButtonClicked()
     //Disable time in mainwindow
     appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
 
-    //*** Un-Hook Visualisation function in MainWindow
-    appGui().getMainWindow()->m_sunlightPluginVisu = NULL;
+    emit stopVisu();
 
 }
 ////////////////////////////////////////////////////////////////////////////////

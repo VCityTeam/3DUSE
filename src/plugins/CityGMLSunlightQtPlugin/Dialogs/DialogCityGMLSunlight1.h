@@ -23,7 +23,8 @@ private:
     void AddCalculatedFilesToList(QString dirpath);
 
 signals:
-    void activateVisu(QStringList filepaths, QDateTime startDate, QDateTime endDate);
+    void startVisu(QStringList filepaths, QDateTime startDate, QDateTime endDate);
+    void stopVisu();
 
 private slots:
     //Calculation

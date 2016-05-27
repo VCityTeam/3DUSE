@@ -17,7 +17,8 @@ int CityGMLSunlightQtPlugin::init(void)
     m_visu = false;
 
     connect(appGui().getMainWindow(),SIGNAL(activateVisuSunlightPlugin(QDateTime)),this,SLOT(ChangePolyColor(QDateTime)));
-    connect(dialSunlight,SIGNAL(activateVisu(QStringList, QDateTime, QDateTime)),this,SLOT(initVisu(QStringList, QDateTime, QDateTime)));
+    connect(dialSunlight,SIGNAL(startVisu(QStringList, QDateTime, QDateTime)),this,SLOT(startVisuAction(QStringList, QDateTime, QDateTime)));
+    connect(dialSunlight,SIGNAL(stopVisu()),this,SLOT(stopVisuAction()));
 
     dialSunlight->show();
 
@@ -36,10 +37,16 @@ void CityGMLSunlightQtPlugin::ChangePolyColor(QDateTime datetime)
     }
 }
 
-void CityGMLSunlightQtPlugin::initVisu(QStringList filepaths, QDateTime startDate, QDateTime endDate)
+void CityGMLSunlightQtPlugin::startVisuAction(QStringList filepaths, QDateTime startDate, QDateTime endDate)
 {
     loadSunlightFiles(filepaths,startDate,endDate);
     m_visu = true;
+}
+
+void CityGMLSunlightQtPlugin::stopVisuAction()
+{
+    m_sunlightInfo.clear();
+    m_visu = false;
 }
 
 void CityGMLSunlightQtPlugin::loadFile(QString filepath)

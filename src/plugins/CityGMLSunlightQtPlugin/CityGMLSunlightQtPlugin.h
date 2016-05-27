@@ -32,7 +32,8 @@ class CityGMLSunlightQtPlugin :
 
 public slots:
     void ChangePolyColor(QDateTime datetime);
-    void initVisu(QStringList filepaths, QDateTime startDate, QDateTime endDate);
+    void startVisuAction(QStringList filepaths, QDateTime startDate, QDateTime endDate);
+    void stopVisuAction();
 
 private:
     int init(void);
