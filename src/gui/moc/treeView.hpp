@@ -4,7 +4,7 @@
 #define __TREEVIEW_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <QTreeWidget>
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
 #include "core/application.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -69,6 +69,8 @@ public:
 
 	QTreeWidgetItem* addVersion(QTreeWidgetItem* parent, const std::string& name);
 	QTreeWidgetItem* addWorkspace(QTreeWidgetItem* parent, const std::string& name);
+    QTreeWidgetItem* addDocument(QTreeWidgetItem* parent, const std::string& name);
+    QTreeWidgetItem* addReference(QTreeWidgetItem* parent, const std::string& name);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 

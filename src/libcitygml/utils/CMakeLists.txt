@@ -1,17 +1,21 @@
-include_directories(${CMAKE_SOURCE_DIR}/src)
 
-file(
-	GLOB_RECURSE
-	source_files
-	*.cpp
+add_library( citygmlutils SHARED
+  # FIXME: compiled at the project CMakeLists.txt level. Refer there for comment.
+  # FIXME AABB.cpp
+  # FIXME Triangle.cpp
+  exportJSON.cpp
+  exportOBJ.cpp
+  importerASC.cpp
+  importerAssimp.cpp
 )
 
-add_library(
-	citygmlutils
-	${source_files}
+target_include_directories( citygmlutils PUBLIC
+  ${CITYGML_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR} # for generated citygmlutils_export.h
 )
 
-if (WITH_QT5)
-#	QT5_USE_MODULES(citygmlutils Core Widgets OpenGL)
-	QT5_USE_MODULES(citygmlutils Core)
-endif(WITH_QT5)
+target_link_libraries( citygmlutils citygml )
+
+# Dealing with VC++ oddities: generates the export header citygmlutils_exports.h 
+include (GenerateExportHeader)
+GENERATE_EXPORT_HEADER( citygmlutils )

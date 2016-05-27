@@ -16,17 +16,17 @@ void MergeTiles(std::string Path, citygml::CityModel* GML1, citygml::CityModel* 
 
     std::vector<const citygml::CityObject*> Objs;
 
-    if(!GML1 || !GML2)
+    if (!GML1 || !GML2)
         return;
 
-    for(citygml::CityObject * obj : GML1->getCityObjectsRoots())
+    for (citygml::CityObject * obj : GML1->getCityObjectsRoots())
     {
-        if(obj)
+        if (obj)
             Objs.push_back(obj);
     }
-    for(citygml::CityObject * obj : GML2->getCityObjectsRoots())
+    for (citygml::CityObject * obj : GML2->getCityObjectsRoots())
     {
-        if(obj)
+        if (obj)
             Objs.push_back(obj);
     }
     exporter.exportCityObject(Objs);
@@ -113,7 +113,7 @@ void MergeTiles(std::string Path, xmlNodePtr GML1, xmlNodePtr GML2)
             }
             else if (xmlStrEqual(n2->name, BAD_CAST "boundedBy"))
             {
-                xmlNodePtr copy_node2 = xmlCopyNode(n2, 1);// ? Je ne comprends pas comment ça fonctionne, comment copy_node2 se met à jour avec les nouveaux corners ?
+                xmlNodePtr copy_node2 = xmlCopyNode(n2, 1);// ? Je ne comprends pas comment ça fonctionne, comment copy_node2 se met a jour avec les nouveaux corners ?
                 xmlNodePtr n3;
                 for (n3 = n2->children->children; n3 != NULL; n3 = n3->next)
                 {
@@ -156,7 +156,7 @@ void MergeTiles(std::string Path, xmlNodePtr GML1, xmlNodePtr GML2)
                         Zmax = std::max(Zmax, z);
 
                         std::stringstream ss;
-                        ss << std::setprecision(10) << Xmax << " " << Ymax << " " << Zmax; //Pour ne pas perdre des chiffres après la virgule
+                        ss << std::setprecision(10) << Xmax << " " << Ymax << " " << Zmax; //Pour ne pas perdre des chiffres apres la virgule
 
                         n3->children->content = BAD_CAST ss.str().c_str();
                         std::cout << "Lower Corner N2 = " << n3->children->content << std::endl;
@@ -179,16 +179,16 @@ void MergeTiles(std::string Path, xmlNodePtr GML1, xmlNodePtr GML2)
     xmlFreeDoc(out_doc);
 }
 /**
-* @brief Fusion des fichiers CityGML contenus dans deux dossiers : sert à fusionner les tiles donc deux fichiers du même nom seront fusionnés en un fichier contenant tous leurs objets à la suite.
+* @brief Fusion des fichiers CityGML contenus dans deux dossiers : sert a fusionner les tiles donc deux fichiers du meme nom seront fusionnes en un fichier contenant tous leurs objets a la suite.
 */
 void FusionTiles()
 {
-    ///// Ouverture des fichiers CityGML de la première zone
+    ///// Ouverture des fichiers CityGML de la premiere zone
     QFileDialog w;
     w.setWindowTitle("Selectionner le dossier contenant les CityGML de la premiere zone.");
     w.setFileMode(QFileDialog::Directory);
 
-    if(w.exec() == 0)
+    if (w.exec() == 0)
     {
         std::cout << "Annulation : Dossier non valide." << std::endl;
         return;
@@ -197,32 +197,32 @@ void FusionTiles()
     std::vector<std::string> ListGML1;
 
     QStringList fileGML1 = w.selectedFiles();
-    foreach (QString s, fileGML1)
+    foreach(QString s, fileGML1)
     {
         QFileInfo file(s);
-        if(file.isDir())
+        if (file.isDir())
         {
             QDir dir(s);
             QStringList files;
 
             QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
-            while(iterator.hasNext())
+            while (iterator.hasNext())
             {
                 iterator.next();
-                if(!iterator.fileInfo().isDir())
+                if (!iterator.fileInfo().isDir())
                 {
                     QString filename = iterator.filePath();
-                    if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+                    if (filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
                         files.append(filename);
                 }
             }
 
-            for(int i = 0; i < files.count(); ++i)
+            for (int i = 0; i < files.count(); ++i)
             {
                 ListGML1.push_back(files[i].toStdString());
             }
         }
-        else if(file.isFile())
+        else if (file.isFile())
         {
             ListGML1.push_back(s.toStdString());
         }
@@ -234,7 +234,7 @@ void FusionTiles()
     w1.setWindowTitle("Selectionner le dossier contenant les CityGML de la seconde zone.");
     w1.setFileMode(QFileDialog::Directory);
 
-    if(w1.exec() == 0)
+    if (w1.exec() == 0)
     {
         std::cout << "Annulation : Dossier non valide." << std::endl;
         return;
@@ -243,44 +243,44 @@ void FusionTiles()
     std::vector<std::string> ListGML2;
 
     QStringList fileGML2 = w1.selectedFiles();
-    foreach (QString s, fileGML2)
+    foreach(QString s, fileGML2)
     {
         QFileInfo file(s);
-        if(file.isDir())
+        if (file.isDir())
         {
             QDir dir(s);
             QStringList files;
 
             QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
-            while(iterator.hasNext())
+            while (iterator.hasNext())
             {
                 iterator.next();
-                if(!iterator.fileInfo().isDir())
+                if (!iterator.fileInfo().isDir())
                 {
                     QString filename = iterator.filePath();
-                    if(filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
+                    if (filename.endsWith(".citygml", Qt::CaseInsensitive) || filename.endsWith(".gml", Qt::CaseInsensitive))
                         files.append(filename);
                 }
             }
 
-            for(int i = 0; i < files.count(); ++i)
+            for (int i = 0; i < files.count(); ++i)
             {
                 ListGML2.push_back(files[i].toStdString());
             }
         }
-        else if(file.isFile())
+        else if (file.isFile())
         {
             ListGML2.push_back(s.toStdString());
         }
     }
 
-    ///// Sélection du dossier de sortie
+    ///// Selection du dossier de sortie
 
     QFileDialog w2;
     w2.setWindowTitle("Selectionner le dossier de sortie pour la fusion de CityGML.");
     w2.setFileMode(QFileDialog::Directory);
 
-    if(w2.exec() == 0)
+    if (w2.exec() == 0)
     {
         std::cout << "Annulation : Dossier non valide." << std::endl;
         return;
@@ -288,9 +288,9 @@ void FusionTiles()
 
     std::string FolderOut = w2.selectedFiles().at(0).toStdString();
 
-    ///// Détection des fichiers CityGML à lier et copie dans le dossier de sortie
+    ///// Detection des fichiers CityGML a lier et copie dans le dossier de sortie
 
-    foreach(std::string GML1, ListGML1)//On parcourt tous les fichiers CityGML de la première zone
+    foreach(std::string GML1, ListGML1)//On parcourt tous les fichiers CityGML de la premiere zone
     {
         std::string Tile1 = GML1.substr(GML1.find_last_of("/") + 1);
         Tile1 = Tile1.substr(Tile1.find_first_of("_") + 1, Tile1.find(".") - (Tile1.find_first_of("_") + 1));
@@ -303,7 +303,7 @@ void FusionTiles()
             std::string Tile2 = GML2.substr(GML2.find_last_of("/") + 1);
             Tile2 = Tile2.substr(Tile2.find_first_of("_") + 1, Tile2.find(".") - (Tile2.find_first_of("_") + 1));
 
-            if(Tile1 == Tile2)//Si deux fichiers ont le même nom, cela signifie qu'ils sont sur la même tuile et qu'il faut les fusionner
+            if (Tile1 == Tile2)//Si deux fichiers ont le meme nom, cela signifie qu'ils sont sur la meme tuile et qu'il faut les fusionner
             {
                 xmlDocPtr doc1;
 
@@ -354,9 +354,9 @@ void FusionTiles()
 
             ++i;
         }
-        if(Erase)
-            ListGML2.erase(ListGML2.begin()+i); //On supprime le CityGML de la seconde zone qui a été fusionné pour ne conserver que les CityGML propres à la seconde zone
-        else //Le fichier CityGML courant de la première zone ne se retrouve pas dans la seconde zone donc il faut le dupliquer tel quel
+        if (Erase)
+            ListGML2.erase(ListGML2.begin() + i); //On supprime le CityGML de la seconde zone qui a ete fusionne pour ne conserver que les CityGML propres a la seconde zone
+        else //Le fichier CityGML courant de la premiere zone ne se retrouve pas dans la seconde zone donc il faut le dupliquer tel quel
         {
             std::cout << "Copie de " << Tile1 << std::endl;
 
@@ -371,9 +371,9 @@ void FusionTiles()
         }
     }
 
-    foreach(std::string GML2, ListGML2) //On duplique les fichiers CityGML de la seconde zone qui n'ont pas été retrouvé dans la première
+    foreach(std::string GML2, ListGML2) //On duplique les fichiers CityGML de la seconde zone qui n'ont pas ete retrouve dans la premiere
     {
-        std::string Tile2 = GML2.substr(GML2.find_last_of("/")+1);
+        std::string Tile2 = GML2.substr(GML2.find_last_of("/") + 1);
         Tile2 = Tile2.substr(Tile2.find_first_of("_") + 1, Tile2.find(".") - (Tile2.find_first_of("_") + 1));
 
         std::cout << "Copie de " << Tile2 << std::endl;
@@ -384,37 +384,37 @@ void FusionTiles()
     }
 }
 
-void FusionLODs(citygml::CityModel * City1, citygml::CityModel * City2) //// Prend deux fichiers modélisant les bâtiments avec deux lods différents et les fusionne en un seul
+void FusionLODs(citygml::CityModel * City1, citygml::CityModel * City2) //// Prend deux fichiers modelisant les batiments avec deux lods differents et les fusionne en un seul
 {
-	citygml::CityObjects City1Obj = City1->getCityObjectsRoots();
-	citygml::CityObjects City2Obj = City2->getCityObjectsRoots();
+    citygml::CityObjects City1Obj = City1->getCityObjectsRoots();
+    citygml::CityObjects City2Obj = City2->getCityObjectsRoots();
 
-	for(citygml::CityObject * obj1 : City1Obj)
-	{
-		if(obj1)
-		{
-			bool test = false; //Passera à true si obj1 trouve son équivalent dans City2
-			for(citygml::CityObject * obj2 : City2Obj)
-			{
-				if(obj2)
-				{
-					if(obj1->getId() == obj2->getId()) //Fusion des geometries de obj1 et obj2 dans obj2
-					{
-						const std::vector<citygml::CityObject *> Surfaces = obj1->getChildren();
-						for(citygml::CityObject * Surface : Surfaces)
-						{
-							obj2->insertNode(Surface);
-						}
+    for (citygml::CityObject * obj1 : City1Obj)
+    {
+        if (obj1)
+        {
+            bool test = false; //Passera a true si obj1 trouve son equivalent dans City2
+            for (citygml::CityObject * obj2 : City2Obj)
+            {
+                if (obj2)
+                {
+                    if (obj1->getId() == obj2->getId()) //Fusion des geometries de obj1 et obj2 dans obj2
+                    {
+                        const std::vector<citygml::CityObject *> Surfaces = obj1->getChildren();
+                        for (citygml::CityObject * Surface : Surfaces)
+                        {
+                            obj2->insertNode(Surface);
+                        }
 
-						test = true;
-						break;
-					}
-				}
-			}
-			if(!test) //Ajout de l'obj1 dans City2
-			{
-				City2->addCityObject(obj1);
-			}
-		}
-	}
+                        test = true;
+                        break;
+                    }
+                }
+            }
+            if (!test) //Ajout de l'obj1 dans City2
+            {
+                City2->addCityObject(obj1);
+            }
+        }
+    }
 }

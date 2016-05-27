@@ -1,12 +1,21 @@
 /* -*-c++-*- libcitygml - VCity project, 3DUSE, Liris
  * Temporal addons */
 ////////////////////////////////////////////////////////////////////////////////
-#include "temporalExt.hpp"
 #include <iostream>
-//#include <fstream> // MT 19/03/2014
-#include <osgDB/fstream>
 #include <sstream>
+#ifdef WIN32
+// Because of some "difficulties" a link time against the osgDB library (that
+// seems to export some of its internal symbols, refer to
+//  http://forum.openscenegraph.org/viewtopic.php?t=8099 )
+// replace STL fstream with OSG fstream
+#include <osgDB/fstream>
+#else
+#include <fstream>
+#endif
+
+#include "temporalExt.hpp"
 #include "cityobject.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 std::string none("none");
 ////////////////////////////////////////////////////////////////////////////////

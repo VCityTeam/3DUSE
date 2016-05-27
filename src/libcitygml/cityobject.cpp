@@ -14,8 +14,10 @@
 * GNU Lesser General Public License for more details.
 */
 ////////////////////////////////////////////////////////////////////////////////
+#include <iostream>
 #include "cityobject.hpp"
 #include "utils.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -335,6 +337,15 @@ void CityObject::computeCentroid()
 ////////////////////////////////////////////////////////////////////////////////
 void CityObject::checkTags()
 {
+  std::cout
+    << "CityObject::checkTags code is currently inactivated. "       << std::endl
+    << "In theory you shouldn't be reading this since the checkTags" << std::endl
+    << "method is related to the old version of the temporal"        << std::endl
+    << "extention. This method is thus waiting for removal. Yet if"  << std::endl
+    << "you are reading this, chances are that this deprecation is"  << std::endl
+    << "breaking an unexpectedly still active function..."           << std::endl
+    << "Sorry for that."                                             << std::endl;
+  /*
     // reorder tags
     std::sort(m_tags.begin(), m_tags.end(), cmpTag);
 
@@ -359,6 +370,7 @@ void CityObject::checkTags()
             }
         }
     }
+  */
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream& os, const CityObject& o )
@@ -417,6 +429,7 @@ std::string getCityObjectsClassName( CityObjectsTypeMask mask )
     GETCITYNAME( FloorSurface );
     GETCITYNAME( InteriorWallSurface );
     GETCITYNAME( CeilingSurface );
+    GETCITYNAME( Document );
 #undef GETCITYNAME
     std::string s = ss.str();
     if ( s != "" ) s.erase( s.length() - 1, 1 ); // remove the last | char
@@ -470,6 +483,7 @@ if ( ci_string_compare( #_t_, neg ? tokens[i].substr(1) : tokens[i] ) ) { mask =
         COMPARECITYNAMEMASK( FloorSurface );
         COMPARECITYNAMEMASK( InteriorWallSurface );
         COMPARECITYNAMEMASK( CeilingSurface );
+        COMPARECITYNAMEMASK( Document );
         COMPARECITYNAMEMASK( All );
     }
 #undef COMPARECITYNAMEMASK

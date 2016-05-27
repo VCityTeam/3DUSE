@@ -4,10 +4,11 @@
 #define DIALOGSTATE_H
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogState;
+    class DialogState;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class DialogState : public QDialog
@@ -20,7 +21,7 @@ public:
 
     void addState(const vcity::URI& uri);
 
-private slots:
+    private slots:
     void addFeatureBox();
 
 private:

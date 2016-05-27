@@ -14,13 +14,13 @@ osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
     osg::Vec3Array* vertices = new osg::Vec3Array;
     osg::DrawElementsUInt* indices = new osg::DrawElementsUInt(osg::PrimitiveSet::LINES, 0);
 
-    for(int x=0; x<=1; ++x)
+    for (int x = 0; x <= 1; ++x)
     {
-        for(int y=0; y<=1; ++y)
+        for (int y = 0; y <= 1; ++y)
         {
-            for(int z=0; z<=1; ++z)
+            for (int z = 0; z <= 1; ++z)
             {
-                vertices->push_back(osg::Vec3(lowerBound.x()+ x*step.x(), lowerBound.y() + y*step.y(), lowerBound.z() + z*step.z()));
+                vertices->push_back(osg::Vec3(lowerBound.x() + x*step.x(), lowerBound.y() + y*step.y(), lowerBound.z() + z*step.z()));
                 //std::cout << lowerBound.x()+ x*step.x() << " " << lowerBound.y() + y*step.y() << " " << lowerBound.z() + z*step.z() << std::endl;
             }
         }
@@ -48,7 +48,7 @@ osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
 ////////////////////////////////////////////////////////////////////////////////
 vcity::URI osgTools::getURI(osg::Node* node)
 {
-	std::string strType;
+    std::string strType;
 
     osg::Node* parent = node;
     vcity::URI uri;// = node->getName();
@@ -56,24 +56,24 @@ vcity::URI osgTools::getURI(osg::Node* node)
     std::cout<<"[osgTools > getURI]..... node name : "<<node->getName()<<std::endl;
     std::cout<<"[osgTools > getURI]..... uri : "<<uri.getStringURI()<<std::endl;
     //while((parent = (osg::Node*)(parent->getParent(0))) != NULL)
-    while(parent->getNumParents() > 0 && (parent = (osg::Node*)(parent->getParent(0))) != NULL)
+    while (parent->getNumParents() > 0 && (parent = (osg::Node*)(parent->getParent(0))) != NULL)
     {
-        if(parent->getName() == "layers")
+        if (parent->getName() == "layers")
             break;
 
-		strType = "";
-		bool bType = parent->getUserValue("type", strType);
- 		if (bType)
-		{			
-			if (strType=="Workspace")
-			{
-				//std::cout << "---> WORKSPACE " << std::endl;
-			}
-			if (strType=="Version")
-			{
-				//std::cout << "---> VERSION " << std::endl;
-			}
-		}
+        strType = "";
+        bool bType = parent->getUserValue("type", strType);
+        if (bType)
+        {
+            if (strType == "Workspace")
+            {
+                //std::cout << "---> WORKSPACE " << std::endl;
+            }
+            if (strType == "Version")
+            {
+                //std::cout << "---> VERSION " << std::endl;
+            }
+        }
 
         //URI.insert(0, parent->getName());
         uri.prepend(parent->getName(), strType);
