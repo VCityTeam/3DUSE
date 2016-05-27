@@ -27,8 +27,19 @@ class CityGMLSunlightQtPlugin :
         return true;
     }
 
+    void loadSunlightFiles(QStringList filepaths, QDateTime startDate, QDateTime endDate);
+    void VisualiseSunlight(QDateTime dateTime);
+
+public slots:
+    void ChangePolyColor(QDateTime datetime);
+    void initVisu(QStringList filepaths, QDateTime startDate, QDateTime endDate);
+
 private:
     int init(void);
+    void loadFile(QString filepath);
+
+    std::map<int,std::map<std::string,bool>> m_sunlightInfo; // int: dateTime ; string : idPolygon ; bool : sunny
+    bool m_visu; // true if visu start button clicked, false otherwise
 };
 
 #endif // CITYGMLSunlightQTPLUGIN_H

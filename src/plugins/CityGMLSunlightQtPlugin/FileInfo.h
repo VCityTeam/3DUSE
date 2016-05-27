@@ -23,6 +23,7 @@ public:
     std::string m_filename;
     std::string m_filepath;
     fileType m_type;
+
 };
 
 #endif // FILEINFO_H

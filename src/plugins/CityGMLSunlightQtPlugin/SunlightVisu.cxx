@@ -10,7 +10,7 @@ SunlightVisu::SunlightVisu()
 {
 }
 
-void loadFile(QString filepath, std::map<int,std::map<std::string,bool>>* sunlightInfo)
+void SunlightVisu::loadFile(QString filepath)
 {
     QFile file(filepath);
 
@@ -32,17 +32,15 @@ void loadFile(QString filepath, std::map<int,std::map<std::string,bool>>* sunlig
             std::istringstream(sSunlight) >> bSunlight;
 
             //Add value to map
-            (*sunlightInfo)[idatetime][polygonId] = bSunlight;
+            m_sunlightInfo[idatetime][polygonId] = bSunlight;
 
         }
     }
 
 }
 
-std::map<int,std::map<std::string,bool>>* loadSunlightFiles(QStringList filepaths, QDateTime startDate, QDateTime endDate)
+void SunlightVisu::loadSunlightFiles(QStringList filepaths, QDateTime startDate, QDateTime endDate)
 {
-    std::map<int,std::map<std::string,bool>>* sunlightInfo = new std::map<int,std::map<std::string,bool>>();
-
     int iStartDate = encodeDateTime(startDate);
     int iEndDate = encodeDateTime(endDate);
 
@@ -68,7 +66,7 @@ std::map<int,std::map<std::string,bool>>* loadSunlightFiles(QStringList filepath
                 if(iF_date >= iStartDate && iF_date < iEndDate)
                 {
                     std::cout << "Load Sunlight infos from file : " << dir.absoluteFilePath(f.fileName()).toStdString() << std::endl;
-                    loadFile(dir.absoluteFilePath(f.fileName()), sunlightInfo);
+                    loadFile(dir.absoluteFilePath(f.fileName()));
 
                     ++loadedFileNb;
                 }
@@ -85,11 +83,16 @@ std::map<int,std::map<std::string,bool>>* loadSunlightFiles(QStringList filepath
             std::cout << "Warning : Sunlight is not computed for file : " << filepaths.at(i).toStdString() << std::endl;
         }
     }
-
-    return sunlightInfo;
 }
 
-void VisualiseSunlight(QDateTime dateTime)
+void SunlightVisu::VisualiseSunlight(QDateTime dateTime)
 {
 
+
+
+}
+
+void SunlightVisu::activate(QDateTime d)
+{
+    std::cout << "bah " << std::endl;
 }

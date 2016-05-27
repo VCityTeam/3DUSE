@@ -2,18 +2,26 @@
 #define SUNLIGHTVISU_H
 
 #include <map>
-
 #include <QDateTime>
 
-class SunlightVisu
+class SunlightVisu : public QObject
 {
+//Q_OBJECT
+
 public:
     SunlightVisu();
+    void loadSunlightFiles(QStringList filepaths, QDateTime startDate, QDateTime endDate);
 
-    std::map<int,std::map<std::string,bool>> sunlightInfo; // int: dateTime ; string : idPolygon ; bool : sunny
+    void VisualiseSunlight(QDateTime dateTime);
+
+public slots:
+    void activate(QDateTime d);
+
+private:
+    void loadFile(QString filepath);
+    std::map<int,std::map<std::string,bool>> m_sunlightInfo; // int: dateTime ; string : idPolygon ; bool : sunny
 };
 
-std::map<int,std::map<std::string,bool>>* loadSunlightFiles(QStringList filepaths, QDateTime startDate, QDateTime endDate);
-void VisualiseSunlight(QDateTime dateTime);
+
 
 #endif // SUNLIGHTVISU_H

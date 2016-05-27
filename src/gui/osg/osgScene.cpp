@@ -719,13 +719,8 @@ void OsgScene::setDate(const QDateTime& date)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-#if 0
-void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> node, std::map<std::string,bool>* polySunlightInfo)
+void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool> sunlightInfo)
 {
-
-    //get node uri
-    //vcity::URI uriNode = osgTools::getURI(node);
-
     //get node as group in order to navigate through structure
     osg::ref_ptr<osg::Group> grp = node->asGroup();
 
@@ -733,32 +728,23 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
 
     if(geode)
     {
-
-//        osg::Node::DescriptionList Type = geode->getDescriptions();
-
-//        std::cout << "Type size : " << std::endl;
-
-//        for(unsigned int i = 0 ; i < Type.size(); ++i)
-//            std::cout << "Geode name : " << geode->getName() << "Type : " << Type.at(i) << std::endl;
-
         for(osg::ref_ptr<osg::Drawable> drawableChild : geode->getDrawableList())
         {
             std::string drawableName = drawableChild->getName();
 
-           // std::cout << "drawable name : " << drawableName << std::endl;
-
-            if(polySunlightInfo->count(drawableName) > 0) //If there is a value for this polygon in the map
+            if(sunlightInfo.count(drawableName) > 0) //If there is a value for this polygon in the map
             {
                 osg::Geometry* geom =  drawableChild->asGeometry();
+
+                //Change color
                 osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
 
                 osg::Material* material = new osg::Material;
                 material->setColorMode( osg::Material::OFF );
 
                 osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
-                //float shininess = 1.f;
 
-                if((*polySunlightInfo)[drawableName] == true) //If sunny
+                if(sunlightInfo[drawableName] == true) //If sunny
                 {
                     ambiantColor = osg::Vec4(1.f,1.f,0.f,1.f); //change polygon color to yellow
                 }
@@ -768,12 +754,9 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
                 }
 
                 material->setAmbient( osg::Material::FRONT_AND_BACK, ambiantColor );
-                //material->setShininess(osg::Material::FRONT_AND_BACK, shininess);
 
                 stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
                 stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
-
-                //std::cout << "DrawableId : " << drawableChild->getName() << std::endl;
             }
 
         }
@@ -785,77 +768,33 @@ void OsgScene::setPolyColorRec(const QDateTime& date, osg::ref_ptr<osg::Node> no
         {
             for(unsigned int i = 0 ; i < grp->getNumChildren() ; ++i)
             {
-                setPolyColorRec(date,grp->getChild(i), polySunlightInfo);
+                changePolyColorRec(grp->getChild(i), sunlightInfo);
             }
         }
     }
-
 }
+
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::setPolyColor(const QDateTime& date)
+void OsgScene::changePolyColor(std::map<std::string,bool> sunlightInfo)
 {
-
-//    encodeDateTime(date);
-    //Convert date to ddMMyyyy:hhmm format (d = day ; M = month ; y = year ; h = hour ; m = minutes)
-    QString format = "ddMMyyyy:hhmm";
-    QString datetime = date.toString(format);
-
     //Get URI of CityGML Layer
     vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerCityGML")->getURI();
 
     //Get node of CityGML Layer
     osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
 
-    if(layer) // If layer exists (if at least one citygml file has been loaded) (DOESNT SEEMS TO WORK)
+    if(layer) // If layer exists
     {
         osg::ref_ptr<osg::Group> layerGrp = layer->asGroup();
 
-        for(unsigned int i = 0 ; i < layerGrp->getNumChildren() ; ++i)
+        for(unsigned int i = 0 ; i < layerGrp->getNumChildren() ; ++i) //For all files
         {
             osg::ref_ptr<osg::Node> tileNode = layerGrp->getChild(i);
-
-            int pos_ = tileNode->getName().find("_");
-            int posExtension = tileNode->getName().find(".");
-
-            std::string nodeTileName = tileNode->getName().substr(pos_ + 1, posExtension - pos_ - 1);
-
-            //Check if sunlight is computed for this tile
-            std::map<std::string,bool>* polygonSunlightInfo = new std::map<std::string,bool>();
-
-            QDir dirMNT("./SunlightOutput/_MNT");
-            if(dirMNT.exists())
-            {
-                for(QFileInfo f : dirMNT.entryInfoList())
-                {
-                    if(f.fileName().toStdString() == nodeTileName + ".csv")
-                    {
-                        //If yes Load file infos into a map (info for each polygon of tile for the given datetime)
-                        loadTileSunlightInfo(f.filePath(), datetime, polygonSunlightInfo);
-                    }
-                }
-            }
-            QDir dirBATI("./SunlightOutput/_BATI");
-            if(dirBATI.exists())
-            {
-                for(QFileInfo f : dirBATI.entryInfoList())
-                {
-                    //std::cout << "bah" << std::endl;
-                    if(f.fileName().toStdString() == nodeTileName + ".csv")
-                    {
-                        //std::cout << "bah 2 " << std::endl;
-                        //If yes Load file infos into a map (info for each polygon of tile for the given datetime)
-                        loadTileSunlightInfo(f.filePath(), datetime, polygonSunlightInfo);
-                    }
-                }
-            }
-
-            setPolyColorRec(date, tileNode, polygonSunlightInfo);
-            delete polygonSunlightInfo;
+            changePolyColorRec(tileNode, sunlightInfo);
         }
     }
 
 }
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::reset()

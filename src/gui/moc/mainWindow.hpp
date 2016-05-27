@@ -69,6 +69,10 @@ public:
 
     QLineEdit* getFilter();
 
+
+signals:
+   void activateVisuSunlightPlugin(QDateTime d); //Signal used for Sunlight Plugin (visualisation part)
+
 private:
 	// plugins
 	QDir pluginsDir;

@@ -374,10 +374,18 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
         filepaths.append(ui->InputDirectory_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text());
     }
 
-    std::map<int,std::map<std::string,bool>>* sunlightInfo = loadSunlightFiles(filepaths, startDate, endDate);
+    emit activateVisu(filepaths, startDate, endDate);
+
+    //std::map<int,std::map<std::string,bool>>* sunlightInfo = loadSunlightFiles(filepaths, startDate, endDate);
 
     //*** Hook Visualisation function in MainWindow
-    appGui().getMainWindow()->m_sunlightPluginVisu = VisualiseSunlight;
+    //appGui().getMainWindow()->m_sunlightPluginVisu = VisualiseSunlight;
+//    SunlightVisu plg;
+//    plg.loadSunlightFiles(filepaths, startDate, endDate);
+
+//    connect(appGui().getMainWindow(),SIGNAL(activatePlugin(QDateTime)),&plg,SLOT(activate(QDateTime)));
+
+
 
     // Tests to bring mainwindow foreground and send Sunlight background
     //appGui()->->setWindowState(Qt::WindowActive);

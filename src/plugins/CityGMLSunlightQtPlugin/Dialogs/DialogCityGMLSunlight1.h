@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
 #include <QListWidget>
+#include <QDateTime>
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
 class DialogCityGMLSunlight1;
@@ -20,6 +21,9 @@ private:
     bool ListContains(QListWidget* list, QString item);
     void AddItemsFromDirToList(QString dirpath);
     void AddCalculatedFilesToList(QString dirpath);
+
+signals:
+    void activateVisu(QStringList filepaths, QDateTime startDate, QDateTime endDate);
 
 private slots:
     //Calculation

@@ -964,8 +964,11 @@ void MainWindow::updateTemporalParams(int value)
         m_osgScene->setDate(datetime);
 
         //Hook of SunlightPlugin for visualisation purposes
-        if(m_sunlightPluginVisu != NULL)
-            (*m_sunlightPluginVisu)(m_currentDate);
+//        if(m_sunlightPluginVisu != NULL)
+//            (*m_sunlightPluginVisu)(m_currentDate);
+
+        //Send signal to Sunlight Plugin which will trap it if visu is activated
+        emit activateVisuSunlightPlugin(m_currentDate);
 
         //m_osgScene->setPolyColor(datetime);
     }
