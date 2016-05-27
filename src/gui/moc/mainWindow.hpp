@@ -17,17 +17,17 @@
 #include <QActionGroup>
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class MainWindow;
+    class MainWindow;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     explicit MainWindow(QWidget* parent = 0);
     ~MainWindow();
-    
+
 private:
 public:
     Ui::MainWindow* m_ui;   ///< Qt ui
@@ -45,10 +45,9 @@ public:
     int m_unlockLevel;      ///< admin mode (to hide dev menus)
 
     QTimer m_timer;         ///< anim timer
-	QDateTime m_currentDate;	///< current date on the temporal slider
-    void (*m_sunlightPluginVisu)(QDateTime sliderDateTime); ///< NULL when Sunlight plugin is not used, set to a function of the sunlight plugin which manage display of sunlight when the plugin is used
+    QDateTime m_currentDate;	///< current date on the temporal slider
 
-	void initTemporalTools();
+    void initTemporalTools();
 
     void addRecentFile(const QString& filepath);
     void removeRecentFile(const QString& filepath);
@@ -74,21 +73,21 @@ signals:
    void activateVisuSunlightPlugin(QDateTime d); //Signal used for Sunlight Plugin (visualisation part)
 
 private:
-	// plugins
-	QDir pluginsDir;
-	QStringList pluginFileNames;
-	QMenu *pluginMenu;
-	QAction *aboutPluginsAct;
+    // plugins
+    QDir pluginsDir;
+    QStringList pluginFileNames;
+    QMenu *pluginMenu;
+    QAction *aboutPluginsAct;
 
     void loadPlugins();
     void populateMenus(QObject *plugin);
     void addToMenu(QObject *plugin, const QStringList &texts, QMenu *menu,
-                   const char *member, QActionGroup *actionGroup = 0);
+        const char *member, QActionGroup *actionGroup = 0);
 
-	void loadShpFile(const QString& filepath);
-	// plugins
+    void loadShpFile(const QString& filepath);
+    // plugins
 
-public slots:
+    public slots:
     void loadScene();
     void loadSceneRecursive();
     void loadSceneBBox();
@@ -102,9 +101,9 @@ public slots:
     void optionShowTemporalTools();
     void optionShowAdvancedTools();
     void clearRecentFiles(bool removeAll = true);
-    void updateTemporalParams(int value=-1);
+    void updateTemporalParams(int value = -1);
     void toggleUseTemporal();
-	void updateTemporalSlider();
+    void updateTemporalSlider();
     void exportCityGML();
     void exportOsg();
     void exportOsga();
@@ -117,9 +116,9 @@ public slots:
     void slotCutCityGMLwithShapefile();
     void slotSplitCityGMLBuildings();
     void slotTilingCityGML();
-	void slotCutMNTwithShapefile();
-	void slotCreateRoadOnMNT();
-	void slotCreateVegetationOnMNT();
+    void slotCutMNTwithShapefile();
+    void slotCreateRoadOnMNT();
+    void slotCreateVegetationOnMNT();
     void TilingCityGML(QString CityGMLPath, std::string OutputPath, int TileX, int TileY);
 
     void about();
@@ -130,7 +129,7 @@ public slots:
     void test4();
     void test5();
 
-private slots:
+    private slots:
     void openRecentFile();
 
     void generateAllLODs();
@@ -145,7 +144,7 @@ private slots:
     void slotFixBuilding();
     void slotObjToCityGML();
 
-	void slotChangeDetection();
+    void slotChangeDetection();
 
     void slotOptimOSG();
 
@@ -158,10 +157,10 @@ private slots:
     void slotTemporalAnim();
     void slotTemporalAnimUpdate();
 
-	// plugins
-	void applyPlugin();
-	void aboutPlugins();
-	// plugins
+    // plugins
+    void applyPlugin();
+    void aboutPlugins();
+    // plugins
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // MAINWINDOW_HPP

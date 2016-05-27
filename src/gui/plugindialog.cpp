@@ -15,11 +15,11 @@
 #include <iostream>
 
 PluginDialog::PluginDialog(const QString &path, const QStringList &fileNames,
-                           QWidget *parent) :
+    QWidget *parent) :
     QDialog(parent),
     label(new QLabel),
     treeWidget(new QTreeWidget),
-    okButton(new QPushButton(tr("OK")))    
+    okButton(new QPushButton(tr("OK")))
 {
     treeWidget->setAlternatingRowColors(false);
     treeWidget->setSelectionMode(QAbstractItemView::NoSelection);
@@ -39,9 +39,9 @@ PluginDialog::PluginDialog(const QString &path, const QStringList &fileNames,
     setLayout(mainLayout);
 
     interfaceIcon.addPixmap(style()->standardPixmap(QStyle::SP_DirOpenIcon),
-                            QIcon::Normal, QIcon::On);
+        QIcon::Normal, QIcon::On);
     interfaceIcon.addPixmap(style()->standardPixmap(QStyle::SP_DirClosedIcon),
-                            QIcon::Normal, QIcon::Off);
+        QIcon::Normal, QIcon::Off);
     featureIcon.addPixmap(style()->standardPixmap(QStyle::SP_FileIcon));
 
     setWindowTitle(tr("Plugins information"));
@@ -49,19 +49,19 @@ PluginDialog::PluginDialog(const QString &path, const QStringList &fileNames,
 }
 
 void PluginDialog::findPlugins(const QString &path,
-                               const QStringList &fileNames)
+    const QStringList &fileNames)
 {
     label->setText(tr("Found the following plugins\n"
-                      "(looked in %1):")
-                   .arg(QDir::toNativeSeparators(path)));
+        "(looked in %1):")
+        .arg(QDir::toNativeSeparators(path)));
 
     const QDir dir(path);
-    foreach (QObject *plugin, QPluginLoader::staticInstances())
+    foreach(QObject *plugin, QPluginLoader::staticInstances())
         populateTreeWidget(plugin, tr("%1 (Static Plugin)")
-                                   .arg(plugin->metaObject()->className()));
+            .arg(plugin->metaObject()->className()));
 
-    foreach (QString fileName, fileNames) {
-      std::cout << fileName.toStdString() << std::endl;
+    foreach(QString fileName, fileNames) {
+        std::cout << fileName.toStdString() << std::endl;
         QPluginLoader loader(dir.absoluteFilePath(fileName));
         QObject *plugin = loader.instance();
         if (plugin)
@@ -81,26 +81,26 @@ void PluginDialog::populateTreeWidget(QObject *plugin, const QString &text)
 
     if (plugin)
     {
-      Generic_PluginInterface *iGeneric_Filter 
-        = qobject_cast<Generic_PluginInterface *>(plugin);
-      if (iGeneric_Filter)
-        addItems(pluginItem, "Generic_PluginInterface", iGeneric_Filter->Generic_plugins());
+        Generic_PluginInterface *iGeneric_Filter
+            = qobject_cast<Generic_PluginInterface *>(plugin);
+        if (iGeneric_Filter)
+            addItems(pluginItem, "Generic_PluginInterface", iGeneric_Filter->Generic_plugins());
     }
 }
 
 void PluginDialog::addItems(QTreeWidgetItem *pluginItem,
-                            const char *interfaceName,
-                            const QStringList &features)
+    const char *interfaceName,
+    const QStringList &features)
 {
     QTreeWidgetItem *interfaceItem = new QTreeWidgetItem(pluginItem);
     interfaceItem->setText(0, interfaceName);
     interfaceItem->setIcon(0, interfaceIcon);
-    
-    foreach (QString feature, features) {
-      if (feature.endsWith("..."))
-        feature.chop(3);
-      QTreeWidgetItem *featureItem = new QTreeWidgetItem(interfaceItem);
-      featureItem->setText(0, feature);
-      featureItem->setIcon(0, featureIcon);
+
+    foreach(QString feature, features) {
+        if (feature.endsWith("..."))
+            feature.chop(3);
+        QTreeWidgetItem *featureItem = new QTreeWidgetItem(interfaceItem);
+        featureItem->setText(0, feature);
+        featureItem->setIcon(0, featureIcon);
     }
 }

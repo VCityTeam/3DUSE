@@ -29,6 +29,11 @@
 #include "ADE/temporal/version.hpp"
 #include "ADE/temporal/versionTransition.hpp"
 #include "ADE/temporal/workspace.hpp"
+#include "ADE/document/documentObject.hpp"
+#include "ADE/document/reference.hpp"
+#include <vector>
+#include <map>
+#include <ostream>
 #include "citygml_export.h"
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
 
@@ -102,8 +107,12 @@ public:
 	std::vector<temporal::VersionTransition*> getTransitions();
 	
 	void setWorkspaces(std::map<std::string,temporal::Workspace>);
+    void setDocuments( std::vector<documentADE::DocumentObject*> );
+    void setReferences( std::vector<documentADE::Reference*> );
 	const std::map<std::string,temporal::Workspace> getWorkspaces() const;
-	std::map<std::string,temporal::Workspace> getWorkspaces();
+    const std::vector<documentADE::DocumentObject *> getDocuments() const;
+    const std::vector<documentADE::Reference *> getReferences() const;
+    std::map<std::string,temporal::Workspace> getWorkspaces();
 
 protected:
     Envelope _envelope;
@@ -121,6 +130,8 @@ protected:
 	std::vector<temporal::Version*> _versions;
 	std::vector<temporal::VersionTransition*> _versionTransitions;
 	std::map<std::string,temporal::Workspace> _workspaces;
+    std::vector<documentADE::DocumentObject*> _documents;
+    std::vector<documentADE::Reference*> _references;
 };
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream&, const citygml::CityModel & );

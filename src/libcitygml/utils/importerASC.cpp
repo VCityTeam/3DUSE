@@ -1,5 +1,5 @@
 #include "importerASC.hpp"
-#include "src/processes/ToolAlgoCut.hpp"
+#include "src/utils/OGRGDAL_Utils/OGRGDALtools.hpp"
 
 #include <QInputDialog>
 #include <QDir>
@@ -343,22 +343,22 @@ namespace citygml
       }
       if (pRes != NULL && pRes->getExteriorRing() != nullptr && pRes->getExteriorRing()->getNumPoints()>2)
       { //some polys on the seam may have a Z coordinate no corrected during the 'Difference' operation, we fix this here
-        for (int j = 0; j < pRes->getExteriorRing()->getNumPoints(); j++)
-        {
-          int npts = pRes->getExteriorRing()->getNumPoints();
-          OGRPoint* pt = new OGRPoint();
-          pRes->getExteriorRing()->getPoint(j, pt);
-          for (OGRPolygon* iPoly : intersectingPolys)
+          for (int j = 0; j < pRes->getExteriorRing()->getNumPoints(); j++)
           {
-            if (pt->Touches(iPoly))
+          int npts = pRes->getExteriorRing()->getNumPoints();
+            OGRPoint* pt = new OGRPoint();
+            pRes->getExteriorRing()->getPoint(j, pt);
+            for (OGRPolygon* iPoly : intersectingPolys)
             {
-              OGRPoint* newPt = ProjectPointOnPolygon3D(pt, iPoly);
-              pRes->getExteriorRing()->setPoint(j, newPt->getX(), newPt->getY(), newPt->getZ());
-              break;
+              if (pt->Touches(iPoly))
+              {
+                OGRPoint* newPt = ProjectPointOnPolygon3D(pt, iPoly);
+                pRes->getExteriorRing()->setPoint(j, newPt->getX(), newPt->getY(), newPt->getZ());
+                break;
+              }
             }
           }
-        }
-        polysMerged.push_back(pRes);
+          polysMerged.push_back(pRes);
       }
       std::cout << "Merging (" << (int)(i++*100.0 / (polys1.size() + 1)) << "%)\r";
     }

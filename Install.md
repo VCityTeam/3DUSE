@@ -21,16 +21,15 @@ Dependencies under discussion (open questions for MTO):
    * Python: really needed ? Sub-dependency ? Not needed at all ?
    * xerces-c: really needed ? Sub-dependency ? Not needed at all ?
 
-## Ubuntu install
+## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
-    * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev libproj-dev libgeos++-dev`
+    * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
  * Manual installation of LASlib
    * With access rigths to `/usr/local/`:
      * `cd VCity/externals/laslib`
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_BUILD_TYPE=Release && make`
-     * `cmake .. -DCMAKE_BUILD_TYPE=Debug && make`
      * `sudo make install`
      * Proceed with building of Vcity
    * Without access rights to `/usr/local/`:
@@ -43,7 +42,7 @@ Dependencies under discussion (open questions for MTO):
 
 ### Building from sources
  * `git clone https://github.com/MEPP-team/VCity.git`
- * `cd VCity``
+ * `cd VCity`
  * `Build && cd Build`
  * `cmake ..`
  * `make`

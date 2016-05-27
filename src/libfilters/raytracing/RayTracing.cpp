@@ -17,16 +17,16 @@ struct RayTracingData
 //Loop through all triangles and check if any rays intersect with triangles
 void RayLoop(RayTracingData data)
 {
-    for(unsigned int k = 0; k < data.rowToDo->size(); k++)
+    for (unsigned int k = 0; k < data.rowToDo->size(); k++)
     {
         Ray* ray = data.rowToDo->at(k);
 
-        for(unsigned int l = 0; l < data.triangles->triangles.size(); l++)
+        for (unsigned int l = 0; l < data.triangles->triangles.size(); l++)
         {
             Triangle* tri = data.triangles->triangles.at(l);
 
             Hit* hit = new Hit();
-            if(ray->Intersect(tri,hit))//Check if the ray hit the triangle and
+            if (ray->Intersect(tri, hit))//Check if the ray hit the triangle and
             {
                 data.Hits->push_back(hit);
             }
@@ -44,8 +44,8 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
     QTime time;
     time.start();
 
-    unsigned int tCount = std::thread::hardware_concurrency() - 1;//Get how many thread we have
-    unsigned int rayPerThread = rays.size() / tCount;
+	unsigned int tCount = std::thread::hardware_concurrency() - 1;//Get how many thread we have
+	unsigned int rayPerThread = rays.size() / tCount + tCount;
 
     //List of rays and their frag coord
     std::vector<Ray*>* toDo = new std::vector<Ray*>[tCount];//List of rays for each threads

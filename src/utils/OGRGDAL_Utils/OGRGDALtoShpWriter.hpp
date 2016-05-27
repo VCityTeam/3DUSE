@@ -1,15 +1,12 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014, 2015
 ////////////////////////////////////////////////////////////////////////////////
-#ifndef __EXPORTTOSHAPE_HPP__
-#define __EXPORTTOSHAPE_HPP__
+#ifndef __OGRGDALTOSHPWRITER_HPP__
+#define __OGRGDALTOSHPWRITER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
-#include "src/libcitygml/URI.hpp"
-#include "libcitygml/citygml.hpp"
-#include "src/gui/osg/osgGDAL.hpp"
+#include "ogrsf_frmts.h"
 #include <stdlib.h>
 ////////////////////////////////////////////////////////////////////////////////
-//void SaveGeometrytoShape(std::string name, const OGRMultiPolygon* G);
 void SaveGeometrytoShape(std::string name, const OGRGeometryCollection* G);
 void SaveGeometrytoShape(std::string name, const OGRGeometry* G);
 ////////////////////////////////////////////////////////////////////////////////
-#endif // __EXPORTTOSHAPE_HPP__
+#endif // __OGRGDALTOSHPWRITER_HPP__

@@ -19,11 +19,11 @@ DialogEditLayer::~DialogEditLayer()
 void DialogEditLayer::editLayer(const vcity::URI& uri)
 {
     vcity::abstractLayer* abstractlayer = vcity::app().getScene().getLayer(uri);
-    if(abstractlayer)
+    if (abstractlayer)
     {
         setName(abstractlayer->getName().c_str());
 
-        if(exec() && !getName().isEmpty())
+        if (exec() && !getName().isEmpty())
         {
             appGui().getControllerGui().setLayerName(uri, getName().toStdString());
         }

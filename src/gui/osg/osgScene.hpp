@@ -57,12 +57,12 @@ public:
     /// \param uriTile URI pointing to the tile
     void deleteTile(const vcity::URI& uriTile);
 
-	/// \brief addAssimpNode Add a node in a layer of the osg scene
+    /// \brief addAssimpNode Add a node in a layer of the osg scene
     /// \param uriLayer URI pointing to the layer
     /// \param node Node to add
-	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
-	/// \brief setAssimpNodeName Set the name of an assimpNode
+    /// \brief setAssimpNodeName Set the name of an assimpNode
     /// \param uri URI pointing to the assimpNode
     /// \param name AssimpNode name
     void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
@@ -71,8 +71,8 @@ public:
     /// \param uri URI pointing to the assimpNode
     void deleteAssimpNode(const vcity::URI& uri);
 
-	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
-	void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     void addShpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     /// \brief addLayer Add a layer to the osg scene
@@ -120,7 +120,7 @@ public:
     /// \param uri URI pointing to the node
     void centerOn(const vcity::URI& uri);
 
-    void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth=0);
+    void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth = 0);
 
     /// OSG optimizer test (destroy tree topology and picking does not work after)
     void optim();
@@ -139,7 +139,7 @@ public:
 public:
     /// Build osg node from CityGML data
     osg::ref_ptr<osg::Node> buildTile(const vcity::URI& uri, const vcity::Tile& tile);
-    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0, osg::ref_ptr<osg::Group> nodeVersion=NULL, osg::ref_ptr<osg::Group> nodeWorkspace=NULL);
+    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth = 0, osg::ref_ptr<osg::Group> nodeVersion = NULL, osg::ref_ptr<osg::Group> nodeWorkspace = NULL);
 
     /// Build osg node from CityGML temporal data
     void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);

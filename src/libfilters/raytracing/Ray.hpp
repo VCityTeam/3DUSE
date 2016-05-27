@@ -22,23 +22,23 @@ struct Ray
     */
     Ray(TVec3d ori = TVec3d(0.0,0.0,0.0),TVec3d dir = TVec3d(1.0,1.0,1.0), int id = -1);
 
-	/**
-	*	@brief To know if the ray instersect a given triangle
-	*	@param triangle The triangle to intersect
+    /**
+    *	@brief To know if the ray instersect a given triangle
+    *	@param triangle The triangle to intersect
     *	@param hit Information about the intersection will be stored in it
     *	@return True if this ray intersect with the triangle, false otherwise
-	*/
-	bool Intersect(Triangle* triangle, Hit* hit = nullptr);
+    */
+    bool Intersect(Triangle* triangle, Hit* hit = nullptr);
 
     /**
     *	@brief Build a ray from a camera and a fragment coordinate
     *	@param fragCoord Coordinate on screen of the ray
     *	@param cam Camera used to build the ray
     */
-    void BuildRd(TVec2d fragCoord,osg::Camera* cam);
+    void BuildRd(TVec2d fragCoord, osg::Camera* cam);
 
-    static float DotCross(TVec3d v0, TVec3d v1,TVec3d v2);
-	static TVec3d Normalized(TVec3d vec);
+    static float DotCross(TVec3d v0, TVec3d v1, TVec3d v2);
+    static TVec3d Normalized(TVec3d vec);
 
     int id;///< Id of the ray
 	TVec2d fragCoord;///< Fragment coordinate of the ray

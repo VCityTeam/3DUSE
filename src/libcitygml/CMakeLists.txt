@@ -10,8 +10,8 @@ endif(APPLE)
 
 add_library( citygml SHARED
   # FIXME: the following are dependencies of import/importerASC.cpp
-  ${CMAKE_SOURCE_DIR}/src/processes/ToolAlgoCut.cpp       # WTF
   ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
+  ${CMAKE_SOURCE_DIR}/src/utils/OGRGDAL_Utils/OGRGDALtools.cpp 
   URI.cpp
   appearance.cpp
   appearancemanager.cpp
@@ -57,6 +57,11 @@ add_library( citygml SHARED
   ADE/temporal/transaction.cpp
   ADE/temporal/version.cpp
   ADE/temporal/versionTransition.cpp
+
+  ADE/document/documentHandler.cpp
+  ADE/document/documentObject.cpp
+  ADE/document/reference.cpp
+  ADE/document/tag.cpp
 )
 
 # The dependence of this library towards QT both undue and a drag:

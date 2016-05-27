@@ -6,7 +6,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogYearOfDemol;
+    class DialogYearOfDemol;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class DialogYearOfDemol : public QDialog
@@ -17,18 +17,18 @@ public:
     explicit DialogYearOfDemol(QWidget *parent = 0);
     ~DialogYearOfDemol();
 
-	void editDates(const vcity::URI& uri);
+    void editDates(const vcity::URI& uri);
 
 private:
     Ui::DialogYearOfDemol *ui;
-	std::string terminationDate;
-	int yearOfDemolition;
-		
-	void editTileDates(const vcity::URI& uri);
-	void editObjectDates(const vcity::URI& uri);
+    std::string terminationDate;
+    int yearOfDemolition;
 
-	private	slots:
-		void indexChanged(int);
+    void editTileDates(const vcity::URI& uri);
+    void editObjectDates(const vcity::URI& uri);
+
+    private	slots:
+    void indexChanged(int);
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGYEAROFDEMOL_HPP

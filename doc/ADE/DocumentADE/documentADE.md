@@ -1,22 +1,15 @@
 # Document ADE
 
 # Current Proposition
-#### Publication Date: March 21, 2016
 
-![Image Alt](DocumentADE.png)
-
-## Open Problems
-- What's the precise definition of a referring date?
-- Shouldn't there be many referring dates for a particular city object in a document? 
-- Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
-
+![Image Alt](evolution/DocumentADE-Alaric2v7.png)
 
 ## Evolution of Document ADE
-### First proposition 
+### First proposition (Model ADE-Alaric 1)
 #### Publication Date: March 3, 2016
-After understanding the requirements specified by Clémentine Périnaud, the following UML diagram was proposed.
+After understanding the requirements specified by Clémentine Périnaud, the following UML diagram was proposed with Sylvie Servigne.
 
-![Image Alt](evolution/HistoricalDocuments-classdiagram.png)
+![Image Alt](evolution/DocumentADE-Alaric1.png)
 
 #### Open Problems
 Following the discussion with Clémentine Périnaud, further questions were raised and following are the open problems.
@@ -32,7 +25,7 @@ Following the discussion with Clémentine Périnaud, further questions were rais
 - Some documents may or may not be accessible, in the sense that we may not have the complete text. For such non-accessible documents, we may only have the keywords (key-phrases) and the associated count of their occurrences in the document.
 - A document may have a purpose: related to the construction, demolition. But an exhuastive list of purposes need to be discussed.
 
-### Second Proposition 
+### Second Proposition (Model ADE-Alaric 2v1)
 #### Publication Date: March 15, 2016
 After considering CityGML ADE, the above requirements have been incorporated to the CityGML model.
 - A document may or may not have an associated shapefile.
@@ -48,13 +41,13 @@ Another attribute called purpose have been added with a type 'PurposeType' to sp
 - A separate class called 'AbstractLocation' has been added to associate a document to abstract locations like city, quarter which cannot be specified in CityGML.
 
 
-![Image Alt](evolution/DocumentADE.png)
+![Image Alt](evolution/DocumentADE-Alaric2v1.png)
 
 #### Open Problems
 - Why do we need to create a class called Agent or Agent Group, instead of giving a reference to the external data source which may have all the details?
 - Is there really need for the AbstractLocation class? 
 
-### Third proposition
+### Third proposition (Model ADE-Alaric 2v2)
 #### Publication Date: March 18, 2016
 AbstractLocation, Agent, AgentGroup have been removed.
 New attribute called producer have been added to specify the producer of the document.
@@ -63,10 +56,51 @@ DocumentType has been replaced by gml:codeType (considering CityGML 2.0 changes)
 referringDate and referringPeriod makes use of gml:TimeInstant and gml:TimePeriod respectively.
 purpose is now a string to support various possibilities.
 
-![Image Alt](evolution/DocumentADEv1.png)
+![Image Alt](evolution/DocumentADE-Alaric2v2.png)
 
 #### Open Problems
 - What's the precise definition of a referring date?
 - Shouldn't there be many referring dates for a particular city object in a document? 
 - Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
 - Do we need to specify producerType, heldByType (to specify whether they are official/non official/private sources)?
+
+### Fourth proposition (Model ADE-Alaric 2v3)
+#### Publication Date: March 25, 2016
+- Considering the Dublin core metadata
+
+![Image Alt](evolution/DocumentADE-Alaric2v3.png)
+
+### Fifth proposition (Model ADE-Alaric 2v4)
+#### Publication Date: March 31, 2016
+- Additional of new attributes
+
+## Open Problems
+- What's the precise definition of a referring date?
+- Shouldn't there be many referring dates for a particular city object in a document? 
+- Do we require any other attributes to describe a reference? What is the purpose of the reference? Is it an imaginary project or date?
+- Should Reference or Document have attributes like address like core:AbstractBuilding?
+- Do we need a separate attribute publicationDate (use creationDate instead?)
+
+
+![Image Alt](evolution/DocumentADE-Alaric2v4.png)
+
+### Fifth proposition (Model ADE-Alaric 2v5)
+#### Publication Date: April 4, 2016
+- Additional of new attributes
+- Rename attributes
+
+![Image Alt](evolution/DocumentADE-Alaric2v5.png)
+
+### Sixth proposition (Model ADE-Alaric 2v6)
+#### Publication Date: April 11, 2016
+- Additional of new attributes
+- Rename attributes
+- Add association to VersionTransition (to describe the provenance of an information related to change in the value of attributes.
+
+![Image Alt](evolution/DocumentADE-Alaric2v6.png)
+
+### Seventh proposition (Model ADE-Alaric 2v7)
+#### Publication Date: April 13, 2016
+- Ordering of attributes
+
+![Image Alt](evolution/DocumentADE-Alaric2v7.png)
