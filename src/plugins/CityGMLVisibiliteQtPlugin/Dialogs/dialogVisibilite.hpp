@@ -8,7 +8,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogVisibilite;
+   class DialogVisibilite;
 }
 
 class MainWindow;
@@ -16,39 +16,40 @@ class MainWindow;
 ////////////////////////////////////////////////////////////////////////////////
 class DialogVisibilite : public QDialog
 {
-    Q_OBJECT
+   Q_OBJECT
 
 public:
-    explicit DialogVisibilite(QWidget *parent, MainWindow* mainwindow);
-    ~DialogVisibilite();
+   explicit DialogVisibilite(QWidget *parent, MainWindow* mainwindow);
+   ~DialogVisibilite();
 
 private:
-    Ui::DialogVisibilite *ui;
-	MainWindow* mainwindow;
+   Ui::DialogVisibilite *ui;
+   MainWindow* mainwindow;
 
-	void SetupEmblematicViewExportParameter();
+   void SetupEmblematicViewExportParameter();
 
-	osg::ref_ptr<osg::Camera> SetupRenderingCamera();
+   osg::ref_ptr<osg::Camera> SetupRenderingCamera();
 
-private slots:
-	void DirButtonClicked();
-	void GetCamParam();
-	void SetCamParam();
-	void BasicMultiTile();
-	void BatchMultiTile();
-	void BasicMonoTile();
-	void BasicPanorama();
-	void CascadeMultiTile();
-	void CascadeMonoTile();
-	void CascadePanorama();
-	void ResetCategory();
-	void ToolAlignementTree();
-	void ToolLidarToGML();
-	void ToolShpExtrusion();
-	void ToolFlatRoof();
-	void ToolAABBReconstruction();
-	void CopyPointToBatch();
-	void GetTopPolygon();
+   private slots:
+      void DirButtonClicked();
+      void GetCamParam();
+      void SetCamParam();
+      void BasicMultiTile();
+      void BatchMultiTile();
+      void BasicMonoTile();
+      void BasicPanorama();
+      void CascadeMultiTile();
+      void CascadeMonoTile();
+      void CascadePanorama();
+      void ResetCategory();
+      void ToolAlignementTree();
+      void ToolLidarToGML();
+      void ToolShpExtrusion();
+      void ToolFlatRoof();
+      void ToolAABBReconstruction();
+      void CopyPointToBatch();
+      void GetTopPolygon();
+      void SplitSkylinePoints();
 };
 ////////////////////////////////////////////////////////////////////////////////
 #endif // DIALOGEDITTILE_HPP

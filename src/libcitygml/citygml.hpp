@@ -19,12 +19,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "citymodel.hpp"
 #include "cityobject.hpp"
+#include "citygml_export.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml 
 {
 ////////////////////////////////////////////////////////////////////////////////
-LIBCITYGML_EXPORT CityModel* load( std::istream& stream, const ParserParams& params );
-LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& params );
+CITYGML_EXPORT CityModel* load( std::istream& stream, const ParserParams& params );
+CITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& params );
 ////////////////////////////////////////////////////////////////////////////////
 #define MAKE_RGBA( _r_, _g_, _b_, _a_ ) TVec4f( _r_/255.f, _g_/255.f, _b_/255.f, _a_/255.f )
 #define MAKE_RGB( _r_, _g_, _b_ ) MAKE_RGBA( _r_, _g_, _b_, 255 )
@@ -98,6 +100,7 @@ LIBCITYGML_EXPORT CityModel* load( const std::string& fileName, ParserParams& pa
 
 	DECLARE_SIMPLE_OBJECT_CLASS( CeilingSurface, MAKE_RGB( 186, 184, 135 ) );
 
+    DECLARE_SIMPLE_OBJECT_CLASS( Document, MAKE_RGB( 186, 184, 135 ) );
     //DECLARE_SIMPLE_OBJECT_CLASS( TrafficArea, MAKE_RGB( 159, 159, 159 ) );
 ////////////////////////////////////////////////////////////////////////////////
 class LandUse : public CityObject

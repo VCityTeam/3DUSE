@@ -63,6 +63,10 @@ namespace citygml
 		NODETYPE( intAttribute ),
 		NODETYPE( dateAttribute ),
 		NODETYPE( uriAttribute ),
+        NODETYPE( externalReference ),
+        NODETYPE( informationSystem ),
+        NODETYPE( externalObject ),
+        NODETYPE( uri ),
 		NODETYPE( value ),
 
 		// gml
@@ -170,6 +174,12 @@ namespace citygml
 		NODETYPE( BridgeConstructionElement ),
 		NODETYPE( BridgeInstallation ),
 		NODETYPE( BridgePart ),
+
+        //document
+        NODETYPE( Document ),
+        NODETYPE( title ),
+        NODETYPE( creator ),
+        NODETYPE( publicationDate ),
 		
 		// app
 		NODETYPE( SimpleTexture ),	

@@ -24,7 +24,7 @@ void DialogDoc::addDoc(const vcity::URI& uri)
     uri.resetCursor();
     citygml::CityObject* obj = vcity::app().getScene().getCityObjectNode(uri);
 
-    if(obj && exec())
+    if (obj && exec())
     {
 
     }

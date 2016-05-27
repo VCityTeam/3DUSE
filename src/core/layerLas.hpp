@@ -21,46 +21,46 @@
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
-struct LayerLas_LASpoint
-{
-  I32 X;
-  I32 Y;
-  I32 Z;
+    struct LayerLas_LASpoint
+    {
+        I32 X;
+        I32 Y;
+        I32 Z;
 
-  U8 classification : 5;
-};
+        U8 classification : 5;
+    };
 
-////////////////////////////////////////////////////////////////////////////////
-/// \brief LayerLas class : it holds LAS points cloud
-class LayerLas : public abstractLayer
-{
-public:
-    /// \brief Layer Build empty layer
-    /// \param name Layer name
-    LayerLas(const std::string& name);
+    ////////////////////////////////////////////////////////////////////////////////
+    /// \brief LayerLas class : it holds LAS points cloud
+    class LayerLas : public abstractLayer
+    {
+    public:
+        /// \brief Layer Build empty layer
+        /// \param name Layer name
+        LayerLas(const std::string& name);
 
-    virtual ~LayerLas() override;
+        virtual ~LayerLas() override;
 
-    /// \brief addLASpoint Add a laspoint in a layer
-    /// \param laspoint The laspoint to add
-    void addLASpoint(const LASpoint& laspoint);
+        /// \brief addLASpoint Add a laspoint in a layer
+        /// \param laspoint The laspoint to add
+        void addLASpoint(const LASpoint& laspoint);
 
-    /// Get layer type as string
-    const std::string getType() const override;
+        /// Get layer type as string
+        const std::string getType() const override;
 
-    /// Get Layer URI
-    URI getURI() const override;
+        /// Get Layer URI
+        URI getURI() const override;
 
-    void dump() override;
+        void dump() override;
 
-    void exportJSON();
+        void exportJSON();
 
-private:
-    std::vector<LayerLas_LASpoint> m_LASpoints;
-};
-////////////////////////////////////////////////////////////////////////////////
-typedef std::shared_ptr<LayerLas> LayerLasPtr;
-////////////////////////////////////////////////////////////////////////////////
+    private:
+        std::vector<LayerLas_LASpoint> m_LASpoints;
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+    typedef std::shared_ptr<LayerLas> LayerLasPtr;
+    ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
 #endif // __LAYERLAS_HPP__

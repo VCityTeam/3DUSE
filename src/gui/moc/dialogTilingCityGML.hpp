@@ -4,14 +4,14 @@
 #include <QDialog>
 
 namespace Ui {
-class DialogTilingCityGML;
+    class DialogTilingCityGML;
 }
 
 class DialogTilingCityGML : public QDialog
 {
     Q_OBJECT
 
-private slots:
+        private slots:
     void chooseCityGMLPathSlot();
     void chooseOutputPathSlot();
     void TilingCityGMLSlot();

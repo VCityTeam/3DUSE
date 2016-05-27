@@ -20,11 +20,11 @@ void DialogEditTile::editTile(const vcity::URI& uri)
 {
     uri.resetCursor();
     vcity::Tile* tile = vcity::app().getScene().getTile(uri);
-    if(tile)
+    if (tile)
     {
         setName(tile->getName().c_str());
 
-        if(exec() && !getName().isEmpty())
+        if (exec() && !getName().isEmpty())
         {
             appGui().getControllerGui().setTileName(uri, getName().toStdString());
         }

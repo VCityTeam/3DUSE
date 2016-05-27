@@ -19,6 +19,7 @@
 #ifdef USE_LIBXML2
 
 #include "parser.hpp"
+#include "citygml.hpp"
 
 #include <cstdarg>
 #include <cstdio>
@@ -37,7 +38,7 @@ class CityGMLHandlerLibXml2 : public CityGMLHandler
 {
 public:
 	CityGMLHandlerLibXml2( const ParserParams& params ) : CityGMLHandler( params ) {}
-    virtual ~CityGMLHandlerLibXml2() {}
+    virtual ~CityGMLHandlerLibXml2() { xmlCleanupParser(); }
 
 	void startElement( const xmlChar* name, const xmlChar** attrs ) 
 	{
@@ -203,6 +204,8 @@ namespace citygml
 		}
 
         xmlFreeParserCtxt(context);
+
+        //inputBuffer generates memory leaks. Hopelessly tried to fix it with the following line, without succes.. Good luck!
         //xmlFreeParserInputBuffer(inputBuffer);
 
 		CityModel* model = handler->getModel();

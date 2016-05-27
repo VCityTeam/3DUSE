@@ -12,7 +12,7 @@ DialogState::DialogState(QWidget *parent) :
     ui(new Ui::DialogState)
 {
     ui->setupUi(this);
-    connect(ui->toolButton,SIGNAL(clicked()), this, SLOT(addFeatureBox()));
+    connect(ui->toolButton, SIGNAL(clicked()), this, SLOT(addFeatureBox()));
 }
 ////////////////////////////////////////////////////////////////////////////////
 DialogState::~DialogState()
@@ -33,7 +33,7 @@ void DialogState::addState(const vcity::URI& uri)
         obj = vcity::app().getScene().getCityObjectNode(uri);
 
         ui->comboBox->addItem("NEW");
-        if(obj)
+        if (obj)
         {
             // add lod
             ui->comboBox->addItem(uri.getLastNode().c_str());
@@ -47,14 +47,14 @@ void DialogState::addState(const vcity::URI& uri)
 
     bool newGeom = false;
 
-    if(res && obj) // && m_ui->treeWidget->currentItem())
+    if (res && obj) // && m_ui->treeWidget->currentItem())
     {
         citygml::CityObject* geom = nullptr;
         //std::cout << ui.comboBox->currentText().toStdString() << std::endl;
 
         QString item2text;
 
-        if(ui->comboBox->currentText() == "NEW")
+        if (ui->comboBox->currentText() == "NEW")
         {
             newGeom = true;
 
@@ -65,9 +65,9 @@ void DialogState::addState(const vcity::URI& uri)
             QString lastdir = settings.value("lastdir").toString();
             QStringList filenames = QFileDialog::getOpenFileNames(this, "Load scene files", lastdir);
             //QString filename = QFileDialog::getOpenFileName(0, "Load scene file", lastdir);
-            for(const QString& filename : filenames)
+            for (const QString& filename : filenames)
             {
-                if(!filename.isEmpty())
+                if (!filename.isEmpty())
                 {
                     citygml::ParserParams params;
                     citygml::CityModel* mdl = citygml::load(filename.toStdString(), params);
@@ -91,7 +91,7 @@ void DialogState::addState(const vcity::URI& uri)
                 }
             }
         }
-        else if(ui->comboBox->currentText() == "NULL")
+        else if (ui->comboBox->currentText() == "NULL")
         {
             geom = nullptr;
             item2text = "NULL";
@@ -105,7 +105,7 @@ void DialogState::addState(const vcity::URI& uri)
             item2text = ui->comboBox->currentText();
         }
 
-        if(!newGeom)
+        if (!newGeom)
         {
             // create state using geom
             citygml::CityObjectState* state = new citygml::CityObjectState(geom);

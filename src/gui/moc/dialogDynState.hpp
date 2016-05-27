@@ -4,11 +4,11 @@
 #define DIALOGDYNSTATE_HPP
 ////////////////////////////////////////////////////////////////////////////////
 #include <QDialog>
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
 class QLineEdit;
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogDynState;
+    class DialogDynState;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class DialogDynState : public QDialog
@@ -21,7 +21,7 @@ public:
 
     void addDynState(const vcity::URI& uri);
 
-private slots:
+    private slots:
     void addFeatureArray();
     void addFeatureFile();
 

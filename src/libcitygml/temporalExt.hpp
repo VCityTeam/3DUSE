@@ -4,6 +4,8 @@
 #ifndef __TEMPORALEXT_HPP__
 #define __TEMPORALEXT_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
 #include <QDateTime>
 #include <map>
 #include <string>
@@ -25,7 +27,7 @@ enum State {
 /// \brief The CityObjectTag class
 ///
 ///
-class CityObjectTag
+class CITYGML_EXPORT CityObjectTag
 {
 public:
     /// Build a Tag and assign it a geometry
@@ -74,7 +76,8 @@ private:
 };
 bool cmpTag(CityObjectTag* a, CityObjectTag* b);
 ////////////////////////////////////////////////////////////////////////////////
-class CityObjectState
+
+class CITYGML_EXPORT CityObjectState
 {
 public:
     /// Build a State and assign it a geometry
@@ -118,7 +121,7 @@ private:
 /// Store temporal attributes for DynStates
 ///
 /// m_dates and m_values are coupled. eg, value m_values[3] is related to date m_dates[3] for the attribute m_attribute
-class DataSource
+class CITYGML_EXPORT DataSource
 {
 public:
     /// Build a datasource for a specific attribute
@@ -144,7 +147,7 @@ public:
 /// This is a datasource initialised from a block of text
 ///
 /// format : date(format : yyyy/MM/dd-HH:mm:ss) | value (separator : |)
-class DataSourceArray : public DataSource
+class CITYGML_EXPORT DataSourceArray : public DataSource
 {
 public:
     /// Build a datasource for a specific attribute
@@ -158,7 +161,7 @@ public:
     void parse(const std::string& data);
 };
 ////////////////////////////////////////////////////////////////////////////////
-class DataSourceFile : public DataSource
+class CITYGML_EXPORT DataSourceFile : public DataSource
 {
 public:
     /// Build a datasource for a specific attribute
@@ -189,7 +192,7 @@ public:
 /// \brief The CityObjectDynState class
 ///
 /// Dynamic State having the possibility to store array of dated values for attributes
-class CityObjectDynState : public CityObjectState
+class CITYGML_EXPORT CityObjectDynState : public CityObjectState
 {
 public:
     /// Build a State and assign it a geometry
