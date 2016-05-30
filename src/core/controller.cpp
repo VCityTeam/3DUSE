@@ -29,11 +29,13 @@ namespace vcity
     void Controller::deleteNode(const URI& URI)
     {
 
-////////////////////////////////////////////////////////////////////////////////
-void Controller::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
-{
-    app().getScene().addInfo(uriLayer, info);
-}
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    void Controller::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
+    {
+        //app().getScene().addInfo(uriLayer, info);
+    }
     ////////////////////////////////////////////////////////////////////////////////
     void Controller::addLayer(const std::string& name)
     {
