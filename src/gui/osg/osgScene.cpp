@@ -357,27 +357,31 @@ void InfoDataType::computeDSC(osg::Camera *cam, int screenX, int screenY, osgInf
 
 void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*> m_info)
 {
-    float screen[screenX][screenY];
-    bool found;
+   std::vector< std::vector<float> > screen;
+   bool found;
 
     for(int i = 0; i<screenX; i++)
     {
+        std::vector<float> col;
         for(int j=0; j<screenY; j++)
         {
             found=false;
-                for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+            for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+            {
+                if(i>=(int)it->second->m_sCornerMin.x() && i<=(int)it->second->m_sCornerMax.x() && j>=(int)it->second->m_sCornerMin.y() && j<(int)it->second->m_sCornerMax.y())
                 {
-                    if(i>=(int)it->second->m_sCornerMin.x() && i<=(int)it->second->m_sCornerMax.x() && j>=(int)it->second->m_sCornerMin.y() && j<(int)it->second->m_sCornerMax.y())
-                    {
-                        screen[i][j]=it->first;
-                        found = true;
-                        break;
-                    }
+                    col.push_back(it->first);
+                    found = true;
+                    break;
                 }
-                if(!found)
-                    screen[i][j]=0;
+            }
+            if(!found)
+                col.push_back(0.0f);
+
         }
+        screen.push_back(col);
     }
+
 
     for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
     {
@@ -397,12 +401,7 @@ void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*
 
     }
 
-
-//    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
-//        std::cout << it->first << " => " << it->second->m_name << " => ROVa=" << it->second->m_OVa/it->second->m_Da << std::endl;
-
-// std::cout << std::endl;
-
+    screen.clear();
 }
 
 void InfoDataType::setDisplayability(osgInfo* info)
