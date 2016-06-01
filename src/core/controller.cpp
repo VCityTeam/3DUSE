@@ -32,11 +32,6 @@ namespace vcity
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    void Controller::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
-    {
-        //app().getScene().addInfo(uriLayer, info);
-    }
-    ////////////////////////////////////////////////////////////////////////////////
     void Controller::addLayer(const std::string& name)
     {
         //app().getScene().addLayer(name); // MT TODO

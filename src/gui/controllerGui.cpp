@@ -103,8 +103,6 @@ void ControllerGui::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 ////////////////////////////////////////////////////////////////////////////////
 void ControllerGui::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo *> info)
 {
-    Controller::addInfo(uriLayer, info);
-
     // fill osg scene
     uriLayer.resetCursor();
     appGui().getOsgScene()->initInfo(uriLayer, info);

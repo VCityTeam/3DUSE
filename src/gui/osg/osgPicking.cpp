@@ -159,8 +159,6 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         //node = (nodePath.size()>=1)?nodePath[nodePath.size()-1]:0;
 
         osg::Node* node = nodePath.back();
-        std::cout<<"[osgPicking > pickPoint ].....selected node name : "<<node->getName()<<std::endl;
-
         //osg::notify(osg::NOTICE) << "Picked: " << node->getName() << std::endl;
 
 
@@ -192,7 +190,6 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                 if (node->getNumParents() > 0)
                 {
                     node = node->getParent(0);
-                    //std::cout << "parent node " << node->getName() << std::endl;
                 }
                 else
                     break;
@@ -379,7 +376,6 @@ void PickHandler::selectNode(const vcity::URI& uri)
 {
     uri.resetCursor();
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
-    std::cout<<"[osgPicking > selectNode]...... uri selected : "<<uri.getStringURI()<<std::endl;
     if (node)
     {
         //osg::ref_ptr<osg::PolygonMode> pm = new osg::PolygonMode;

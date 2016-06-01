@@ -55,6 +55,10 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_width = width;
 
     m_anchoring = anchor ;
+
+
+
+
     m_priority = priority;
 
     osg::Vec3Array* qVertices = new osg::Vec3Array;
@@ -95,7 +99,7 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     blend->setFunction(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_DST_ALPHA);
 
 
-    //// ANCHORING LINE
+    // ANCHORING LINE
     osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 
     osg::Geometry* geom = new osg::Geometry;
@@ -121,7 +125,7 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
 
     m_tetra = new osg::Geode;
 
-        //// TETRA LINE 1
+            // TETRA LINE 1
 
     osg::Geometry* line1 = new osg::Geometry;
     osg::Vec3Array* verticesL1 = new osg::Vec3Array;
@@ -140,7 +144,7 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     line1->addPrimitiveSet(indicesL1);
     line1->setColorArray(color1, osg::Array::BIND_OVERALL);
 
-        //// TETRA LINE 2
+            // TETRA LINE 2
 
     osg::Geometry* line2 = new osg::Geometry;
     osg::Vec3Array* verticesL2 = new osg::Vec3Array;
@@ -159,7 +163,7 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     line2->addPrimitiveSet(indicesL2);
     line2->setColorArray(color2, osg::Array::BIND_OVERALL);
 
-        //// TETRA LINE 3
+            // TETRA LINE 3
 
     osg::Geometry* line3 = new osg::Geometry;
     osg::Vec3Array* verticesL3 = new osg::Vec3Array;
@@ -498,13 +502,13 @@ void osgInfo::setAnchoringPoint(float altitude)
     m_group->removeChild(1);
 
     if(m_LOD=="street")
-        m_initposition.z()=m_anchoring+20;
+        m_initposition.z()=m_anchoring+streetZ;
     if(m_LOD=="building")
-        m_initposition.z()=m_anchoring+100;
+        m_initposition.z()=m_anchoring+buildingZ;
     if(m_LOD=="district")
-        m_initposition.z()=m_anchoring+200;
+        m_initposition.z()=m_anchoring+districtZ;
     if(m_LOD=="city")
-        m_initposition.z()=m_anchoring+500;
+        m_initposition.z()=m_anchoring+cityZ;
 
     m_pat->setPosition(m_initposition);
 
@@ -569,14 +573,8 @@ void osgInfo::setTransparency(float alpha)
 
 void osgInfo::Scaling(float scale)
 {
-   //m_width*=scale;
-   //m_height*=scale;
-
-
-   scale = /*2**/(1-scale);
+   scale = 2*(1-scale);
    m_pat->setScale(osg::Vec3(scale, 1, scale));
-
-
 }
 
 

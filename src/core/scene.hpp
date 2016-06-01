@@ -84,7 +84,10 @@ namespace vcity
         /// \return A const vector of Tile
         const std::vector<Tile*>* getTiles(const URI& uriLayer) const;
 
-	std::vector<osgInfo*> getInfo(const URI& uri);
+        /// \brief getInfo Get all info in a layer
+        /// \param uriLayer URI pointing to the layer
+        /// \return A const vector of infos
+        const std::vector<osgInfo*>* getInfo(const URI& uri);
 
         /// \brief deleteTile Delete a tile in a layer
         /// \param uri URI pointing to the tile

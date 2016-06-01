@@ -443,11 +443,8 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info)
 {
-    //uriLayer.resetCursor();
-    //std::cout<<"[treeView > addInfo]"<<std::endl;
-    m_tree->blockSignals(true);
 
-    //std::vector<QTreeWidgetItem*> v_item;
+    m_tree->blockSignals(true);
 
     QTreeWidgetItem* layer = getNode(uriLayer);
     QTreeWidgetItem* itemStreet = createItemGeneric("street", "LOD");
@@ -460,12 +457,9 @@ void TreeView::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info)
     layer->addChild(itemDistrict);
     layer->addChild(itemCity);
 
-    //layer->addChild(item);
-
 
     if(layer)
     {
-        //std::cout<<"[treeView > addInfo].....if(layer)"<<std::endl;
         for(int i=0; i<v_info.size(); i++)
         {
             if(v_info[i]->getInfoLOD()=="street")

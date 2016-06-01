@@ -123,18 +123,18 @@ namespace vcity
         }
     }
 
-////////////////////////////////////////////////////////////////////////////////
-void Scene::addInfo(const URI& uriLayer, std::vector<osgInfo*> info)
-{
-    abstractLayer* abstractlayer = getLayer(uriLayer);
-    if(abstractlayer)
+    ////////////////////////////////////////////////////////////////////////////////
+    void Scene::addInfo(const URI& uriLayer, std::vector<osgInfo*> info)
     {
-        LayerInfo* layer = dynamic_cast<LayerInfo*>(abstractlayer);
-        if (layer)
-            layer->setInfo(info);
-        else std::cout << "layer is NULL in Scene::addInfo" << std::endl;
+        abstractLayer* abstractlayer = getLayer(uriLayer);
+        if(abstractlayer)
+        {
+            LayerInfo* layer = dynamic_cast<LayerInfo*>(abstractlayer);
+            if (layer)
+                layer->setInfo(info);
+            else std::cout << "layer is NULL in Scene::addInfo" << std::endl;
+        }
     }
-}
 
     ////////////////////////////////////////////////////////////////////////////////
     Tile* Scene::getTile(const URI& uri)
@@ -179,18 +179,19 @@ void Scene::addInfo(const URI& uriLayer, std::vector<osgInfo*> info)
         return nullptr;
     }
 
-////////////////////////////////////////////////////////////////////////////////
-std::vector<osgInfo*> Scene::getInfo(const URI& uri)
-{
-    abstractLayer* abstractlayer = getLayer(uri);
-    if(abstractlayer)
+    ////////////////////////////////////////////////////////////////////////////////
+    const std::vector<osgInfo*>* Scene::getInfo(const URI& uri)
     {
-        LayerInfo* layer = dynamic_cast<LayerInfo*>(abstractlayer);
-        if (layer)
-            return layer->getInfo();
-        else std::cout << "layer is NULL in Scene::getInfo" << std::endl;
+        abstractLayer* abstractlayer = getLayer(uri);
+        if(abstractlayer)
+        {
+            LayerInfo* layer = dynamic_cast<LayerInfo*>(abstractlayer);
+            if (layer)
+                return &layer->getInfo();
+            else std::cout << "layer is NULL in Scene::getInfo" << std::endl;
+        }
+        return nullptr;
     }
-}
 
     ////////////////////////////////////////////////////////////////////////////////
     void Scene::deleteTile(const URI& uri)

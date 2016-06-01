@@ -490,6 +490,8 @@ file(
   src/gui/osg/osgScene.cpp
   src/gui/osg/osgTools.cpp
   src/gui/osg/osgInfo.cpp
+  src/gui/osg/osgInfoDataType.cpp
+  src/gui/osg/osgUpdateInfo.cpp
   
   src/DataStructures/DEM/osgMnt.cpp
   

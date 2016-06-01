@@ -67,23 +67,23 @@ public:
     bool isonScreen();
 
 private:
+    ///Document altitude according to their LOD
+    unsigned int streetZ = 30;
+    unsigned int buildingZ = 100;
+    unsigned int districtZ = 200;
+    unsigned int cityZ = 500;
 
-
-
-    unsigned int m_date_deb ;
-    unsigned int m_date_fin ;
-
-    bool m_displayable;
-    bool m_requested;
-    bool m_onscreen;
+    bool m_displayable; /// is this document displayable
+    bool m_requested; /// is this document requested by the filter bar
+    bool m_onscreen; /// is this document on screen
 
 
     osg::Texture2D *m_texture ; ///texture of the doc
-    osg::Material *m_material ; ///material
+    osg::Material *m_material ; ///material of the doc
     osg::StateSet *m_state; ///state of the doc
     osg::Geometry  *m_geom; ///geometry instance for the node
     osg::Geode *m_geode; ///geometry node
-    osg::Group *m_group; ///group node
+    osg::Group *m_group; ///group node where quad and line are stored
     osg::PositionAttitudeTransform *m_pat; ///position attitude transforme of the node
 
 public :
@@ -102,20 +102,20 @@ public :
     std::string m_sourcetype; ///source of file (official, user..)
     std::string m_LOD ; ///level of detail to display (street, building, district, city)
 
-    float m_anchoring ;
-    int m_priority;
+    float m_anchoring ; ///highest point on the map underneath the document
+    int m_priority; /// level of importance of the document
 
     float m_DCAM ; ///distance between doc and cam
     float m_DSC ; /// distance between doc and screen center
     float m_Da; ///document area on screen
     float m_OVa; ///total area of document overlapped by others in front of it
 
-    osg::Billboard *m_billboard; ///billboard
+    osg::Billboard *m_billboard; ///billboard object is needed
 
-    osg::Vec3 m_sCornerMax;
-    osg::Vec3 m_sCornerMin;
+    osg::Vec3 m_sCornerMax; ///screen coordinates of max corner
+    osg::Vec3 m_sCornerMin; /// screen coordinates of min corner
 
-    osg::Geode *m_tetra; ///geometry node
+    osg::Geode *m_tetra; ///geometry node to display local vector
 
 };
 ////////////////////////////////////////////////////////////////////////////////

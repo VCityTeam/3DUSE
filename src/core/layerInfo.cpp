@@ -44,7 +44,7 @@ void LayerInfo::setInfo(std::vector<osgInfo*> info)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-std::vector<osgInfo*> LayerInfo::getInfo()
+std::vector<osgInfo*>& LayerInfo::getInfo()
 {
     return m_info;
 }

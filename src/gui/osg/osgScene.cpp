@@ -29,11 +29,8 @@
 #include "../controllerGui.hpp"
 
 #include "osgInfo.hpp"
-#include <osg/Point>
-#include <osg/MatrixTransform>
-#include <osg/NodeCallback>
-#include <cmath>
-#include <map>
+#include "osgInfoDataType.hpp"
+#include "osgUpdateInfo.hpp"
 
 #include <string>
 
@@ -201,473 +198,6 @@ OsgScene::OsgScene()
     init();
 }
 
-class InfoDataType : public osg::Referenced
-{
-public:
-
-    InfoDataType(osg::Node*n);
-    osg::ref_ptr<osg::Switch> getSwitchRoot();
-    void computeDCAM(osg::Camera *cam, osgInfo *info);
-    void computeDSC(osg::Camera *cam, int screenX, int screenY, osgInfo *info);
-    void computeOVa(int screenX, int screenY, std::map<float, osgInfo *> m_info);
-    void updateScale(osgInfo *info, int screenX, int screenY);
-    void setDisplayability(osgInfo *info);
-    void stairedDisplay(std::map<float, osgInfo*> m_info);
-    void display();
-
-protected:
-    osg::ref_ptr<osg::Switch> switchRoot;
-
-};
-
-InfoDataType::InfoDataType(osg::Node* n)
-{
-    switchRoot = n->asSwitch();
-}
-
-osg::ref_ptr<osg::Switch> InfoDataType::getSwitchRoot()
-{
-    return switchRoot;
-}
-
-void InfoDataType::computeDCAM(osg::Camera *cam, osgInfo* info)
-{
-    osg::Vec3d pos;
-    osg::Vec3d target;
-    osg::Vec3d up;
-    cam->getViewMatrixAsLookAt(pos,target,up);
-    float DCAM;
-
-    float infoX = info->getPosition().x();
-    float infoY = info->getPosition().y();
-    float infoZ = info->getPosition().z();
-    float camX=pos.x();
-    float camY=pos.y();
-    float camZ=pos.z();
-
-
-    DCAM = sqrt((infoX-camX)*(infoX-camX)+(infoY-camY)*(infoY-camY)+(infoZ-camZ)*(infoZ-camZ));
-    info->setDCAM(DCAM);
-}
-
-void InfoDataType::computeDSC(osg::Camera *cam, int screenX, int screenY, osgInfo* info)
-{
-
-    osg::Vec3d pos;
-    osg::Vec3d target;
-    osg::Vec3d up;
-    cam->getViewMatrixAsLookAt(pos,target,up);
-//    std::cout<<"Cam pos : ["<<pos.x()<<","<<pos.y()<<","<<pos.z()<<"]"<<std::endl;
-//    std::cout<<"Cam target : ["<<target.x()<<","<<target.y()<<","<<target.z()<<"]"<<std::endl;
-//    std::cout<<"Cam up : ["<<up.x()<<","<<up.y()<<","<<up.z()<<"]"<<std::endl;
-
-    osg::Matrix Mview = cam->getViewMatrix();
-    osg::Matrix Mwin = cam->getViewport()->computeWindowMatrix();
-    osg::Matrix Mproj = cam->getProjectionMatrix();
-
-    osg::Vec3 worldcoord = info->getPosition();
-    osg::Vec3 screencoord = worldcoord*Mview*Mproj*Mwin;
-
-    int Ds = sqrt((screencoord.x()-screenX/2)*(screencoord.x()-screenX/2)+(screencoord.y()-screenY/2)*(screencoord.y()-screenY/2));
-    info->setDSC(Ds);
-
-    TVec3d dirLookAt(target.x() - pos.x(),target.y() - pos.y(),target.z() - pos.z());
-    TVec3d dirDoc(info->m_currentposition.x() - pos.x(), info->m_currentposition.y() - pos.y(), info->m_currentposition.z() - pos.z());
-
-    float scalaire = dirLookAt.dot(dirDoc);
-    float angle = acos(scalaire/(dirLookAt.length()*dirDoc.length()));
-    angle=angle*180/3.1415;
-
-    osg::Vec3f normale(-dirDoc.x, -dirDoc.y, -dirDoc.z);
-    osg::Vec3f axis = info->m_billboard->getAxis();
-    osg::Vec3f ortho = axis.operator ^(normale);
-    osg::Vec3f wCornerMax = info->m_currentposition + (ortho/ortho.length())*(info->m_width/2.0f) + (axis/axis.length())*(info->m_height/2.0f);
-    osg::Vec3f wCornerMin = info->m_currentposition - (ortho/ortho.length())*(info->m_width/2.0f) - (axis/axis.length())*(info->m_height/2.0f);
-
-    osg::Vec3 sCornerMax = wCornerMax*Mview*Mproj*Mwin;
-    osg::Vec3 sCornerMin = wCornerMin*Mview*Mproj*Mwin;
-
-    /********** RED POINTS TO WITNESS CORNERS ************/
-    //                osg::Geode* cornersGeode = new osg::Geode;
-    //                osg::Geometry* cornersGeom = new osg::Geometry;
-    //                osg::Vec3Array* verticesPoints = new osg::Vec3Array;
-
-    //                verticesPoints->push_back(wCornerMax);
-    //                verticesPoints->push_back(wCornerMin);
-
-    //                osg::ref_ptr<osg::Vec4Array> colorpoints = new osg::Vec4Array;
-    //                colorpoints->push_back(osg::Vec4(1.0,0.0,0.0,1.0));
-
-    //                cornersGeom->setVertexArray(verticesPoints);
-    //                cornersGeom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS,0,verticesPoints->size()));
-    //                cornersGeom->getOrCreateStateSet()->setAttribute(new osg::Point(5.0f), osg::StateAttribute::ON);
-
-    //                cornersGeom->setColorArray(colorpoints, osg::Array::BIND_OVERALL);
-    //                cornersGeode->addDrawable(cornersGeom);
-
-    //                if(info->getGroup()->getNumChildren()>3)
-    //                {
-    //                    info->getGroup()->removeChild(info->getGroup()->getNumChildren()-1);
-    //                    info->getGroup()->addChild(cornersGeode);
-    //                }
-    //                else
-    //                    info->getGroup()->addChild(cornersGeode);
-
-    /* Determine if document on screen or not according to the borders of the screen */
-    if(sCornerMax.x()>0.0 && sCornerMin.x()<screenX && sCornerMax.y()>0.0 && sCornerMin.y()<screenY && angle < 90.0)
-        info->setonScreen(true);
-    else if(sCornerMax.x()<0.0 && sCornerMin.x()>screenX && sCornerMax.y()<0.0 && sCornerMin.y()>screenY && angle < 90.0)
-        info->setonScreen(true);
-    else
-        info->setonScreen(false);
-
-
-    /* Crop document coordinates to tell the exact surface inside the screen */
-    if(sCornerMax.x()>screenX)
-        sCornerMax.x()=screenX;
-    if(sCornerMax.x()<0.0)
-        sCornerMax.x()=0.0;
-    if(sCornerMax.y()>screenY)
-        sCornerMax.y()=screenY;
-    if(sCornerMax.y()<0.0)
-        sCornerMax.y()=0.0;
-    if(sCornerMin.x()<0.0)
-        sCornerMin.x()=0.0;
-    if(sCornerMin.x()>screenX)
-        sCornerMin.x()=screenX;
-    if(sCornerMin.y()<0.0)
-        sCornerMin.y()=0.0;
-    if(sCornerMin.y()>screenY)
-        sCornerMin.y()=screenY;
-
-    float screenwidth = sCornerMax.x()-sCornerMin.x();
-    float screenheight = sCornerMax.y()-sCornerMin.y();
-    float Da = abs(screenwidth*screenheight);
-
-    info->m_sCornerMax=sCornerMax;
-    info->m_sCornerMin=sCornerMin;
-
-    info->setDa(Da);
-
-
-    //info->UpdateTetra(normale/normale.length(), axis/axis.length(), ortho/ortho.length());
-
-
-}
-
-void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*> m_info)
-{
-   std::vector< std::vector<float> > screen;
-   bool found;
-
-    for(int i = 0; i<screenX; i++)
-    {
-        std::vector<float> col;
-        for(int j=0; j<screenY; j++)
-        {
-            found=false;
-            for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
-            {
-                if(i>=(int)it->second->m_sCornerMin.x() && i<=(int)it->second->m_sCornerMax.x() && j>=(int)it->second->m_sCornerMin.y() && j<(int)it->second->m_sCornerMax.y())
-                {
-                    col.push_back(it->first);
-                    found = true;
-                    break;
-                }
-            }
-            if(!found)
-                col.push_back(0.0f);
-
-        }
-        screen.push_back(col);
-    }
-
-
-    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
-    {
-        it->second->m_OVa=0;
-        for(int i = (int)it->second->m_sCornerMin.x(); i<(int)it->second->m_sCornerMax.x(); i++)
-        {
-            for(int j=(int)it->second->m_sCornerMin.y(); j<(int)it->second->m_sCornerMax.y(); j++)
-            {
-                if(screen[i][j]!=it->first && screen[i][j]!=0)
-                {
-                    it->second->m_OVa+=1;
-                }
-            }
-        }
-        if(it->second->m_OVa>it->second->m_Da)
-            it->second->m_OVa=it->second->m_Da;
-
-    }
-
-    screen.clear();
-}
-
-void InfoDataType::setDisplayability(osgInfo* info)
-{
-    if(info->getInfoLOD()=="street")
-    {
-        if(info->m_DCAM<=500)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(1.0f);
-        }
-        else if (info->m_DCAM>500 && info->m_DCAM<1500)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(0.2f);
-        }
-        else
-        {
-            info->setDisplayable(false);
-        }
-    }
-
-    if(info->getInfoLOD()=="building")
-    {
-        if(info->m_DCAM<=1500 && info->m_DCAM>=500)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(1.0f);
-        }
-        else if(info->m_DCAM>1500 &&  info->m_DCAM<6000)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(0.2f);
-        }
-        else
-        {
-            info->setDisplayable(false);
-            info->setTransparency(0.2f);
-        }
-    }
-
-    if(info->getInfoLOD()=="district")
-    {
-        if(info->m_DCAM<=6000 && info->m_DCAM>=1500)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(1.0f);
-        }
-        else if(info->m_DCAM>6000 && info->m_DCAM<30000)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(0.2f);
-        }
-        else
-        {
-            info->setDisplayable(false);
-            info->setTransparency(0.2f);
-        }
-
-    }
-    if(info->getInfoLOD()=="city")
-    {
-        if(info->m_DCAM<=30000 && info->m_DCAM>=6000)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(1.0f);
-        }
-        else if(info->m_DCAM>30000)
-        {
-            info->setDisplayable(true);
-            info->setTransparency(0.2f);
-        }
-        else
-        {
-            info->setDisplayable(false);
-            info->setTransparency(0.2f);
-        }
-
-    }
-
-}
-
-void InfoDataType::updateScale(osgInfo* info, int screenX, int screenY)
-{
-    //According to DCAM
-    //float scale = info->m_DCAM/50450.1;
-
-    //According to DSC
-    float scale;
-    float maxscale = std::sqrt(screenX*screenX+screenY*screenY);
-    if(info->m_DSC)
-        scale = info->m_DSC/maxscale;
-    info->Scaling(scale);
-
-}
-
-void InfoDataType::stairedDisplay(std::map<float, osgInfo *> m_info)
-{
-    std::vector<osgInfo*> tmp_info;
-    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
-    {
-        tmp_info.push_back(it->second);
-    }
-    for(int i=0; i<tmp_info.size(); i++)
-    {
-       osgInfo* info = tmp_info[0];
-       info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(info->m_initposition);
-       info->UpdatePosition(info->m_initposition);
-//       if(i==0)
-//           std::cout<<"[stairsDisplay].... image("<<i<<") : "<<info->m_name<<" z value = "<<info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->getPosition().z()<<std::endl;
-       if(i>0)
-       {
-           osgInfo* c_info = tmp_info[i];
-           osgInfo* p_info = tmp_info[i-1];
-           osg::Vec3 newPos = osg::Vec3(c_info->m_currentposition.x(), c_info->m_currentposition.y(),p_info->m_currentposition.z()+p_info->m_height/2+c_info->m_height/2);
-           c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
-           c_info->UpdatePosition(newPos);
-           c_info->UpdateAnchoringLine(newPos.z());
-//           std::cout<<"[stairsDisplay].... image("<<i<<") : "<<c_info->m_name<<" z value = "<<c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->getPosition().z()<<std::endl;
-       }
-    }
-//    std::cout<<std::endl;
-}
-
-void InfoDataType::display()
-{
-    for(int i=0; i<switchRoot->getNumChildren(); i++)
-    {
-        osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-        if(subSwitch)
-        {
-            for(int j=0; j<subSwitch->getNumChildren();j++)
-            {
-                osg::Node* node = subSwitch->getChild(j);
-                osgInfo* info = dynamic_cast<osgInfo*>(node);
-                if(info->isDisplayable() && info->isRequested())
-                {
-                    subSwitch->setValue(j,true);
-                }
-                else
-                {
-                    subSwitch->setValue(j,false);
-                }
-            }
-        }
-
-    }
-}
-
-class UpdateInfo : public osg::NodeCallback
-{
-public :
-    UpdateInfo()
-    {
-        std::cout<<"[osgScene > UpdateInfo].....created"<<std::endl;
-    }
-    virtual void operator()( osg::Node* node, osg::NodeVisitor* nv )
-    {
-
-        osg::ref_ptr<InfoDataType> layerInfo = dynamic_cast<InfoDataType*> (node->getUserData() );
-
-        if(layerInfo)
-        {
-
-            osg::Camera* cam = appGui().getMainWindow()->m_osgView->m_osgView->getCamera();
-
-            int screenX = appGui().getMainWindow()->m_osgView->m_widget->width();
-            int screenY = appGui().getMainWindow()->m_osgView->m_widget->height();
-            float Sa = screenX*screenY; //total screen area
-
-            int ND = 0; //number of document
-            int NDs = 0; //number of document on screen
-            int NDh = 0; //number of docment hidden (>50% overlapped)
-            float TDa = 0.0f; //total document area on screen
-            float TOVa = 0.0f; //total document overlapped area
-
-
-            std::map<float,osgInfo*> map_info ;
-            std::map<float,osgInfo*> map_street ;
-            std::map<float,osgInfo*> map_building ;
-            std::map<float,osgInfo*> map_district ;
-            std::map<float,osgInfo*> map_city ;
-
-
-            osg::ref_ptr<osg::Switch> switchRoot=layerInfo->getSwitchRoot();
-
-            for(int i=0; i<switchRoot->getNumChildren(); i++)
-            {
-                osg::ref_ptr<osg::Switch> subSwitch = switchRoot->getChild(i)->asSwitch();
-                if(subSwitch)
-                {
-                    for(int j=0; j<subSwitch->getNumChildren();j++)
-                    {
-                        osg::Node* node = subSwitch->getChild(j);
-                        osgInfo* info = dynamic_cast<osgInfo*>(node);
-
-                        layerInfo->computeDCAM(cam, info);
-                        layerInfo->computeDSC(cam, screenX, screenY, info);
-
-                        //layerInfo->updateScale(info, screenX, screenY);
-                        //layerInfo->setDisplayability(info);
-                        info->setDisplayable(true);
-
-                        if(info->isonScreen())
-                        {
-                            map_info[info->m_DCAM]=info;
-
-                            if(info->getInfoLOD()=="street")
-                                map_street[info->m_DCAM]=info;
-                            if(info->getInfoLOD()=="building")
-                                map_building[info->m_DCAM]=info;
-                            if(info->getInfoLOD()=="district")
-                                map_district[info->m_DCAM]=info;
-                            if(info->getInfoLOD()=="city")
-                                map_city[info->m_DCAM]=info;
-
-                            if(info->m_OVa/info->m_Da>0.5)
-                                NDh++;
-
-                            TDa+=info->m_Da;
-                            TOVa+=info->m_OVa;
-                            NDs++;
-                        }
-                        ND++;
-                    }
-                }
-            }
-
-            layerInfo->computeOVa(screenX, screenY, map_info);
-
-            osg::Vec3d pos;
-            osg::Vec3d target;
-            osg::Vec3d up;
-            cam->getViewMatrixAsLookAt(pos,target,up);
-            std::cout<<"Cam pos : ["<<pos.x()<<","<<pos.y()<<","<<pos.z()<<"]"<<std::endl;
-            std::cout<<"Cam target : ["<<target.x()<<","<<target.y()<<","<<target.z()<<"]"<<std::endl;
-            std::cout<<"Cam up : ["<<up.x()<<","<<up.y()<<","<<up.z()<<"]"<<std::endl;
-            std::cout<<std::endl;
-
-
-            float RDS = (TDa-TOVa)/Sa ; //ratio of all document area to screen area
-            float RNDs = (float)NDs/ND; //ratio of all document displayed
-            float RNDh = (float)NDh/NDs; //ratio of document hidden
-
-
-            std::cout<<"RNDs = "<<RNDs*100<<"%"<<std::endl;
-            std::cout<<"RNDh = "<<RNDh*100<<"%"<<std::endl;
-            std::cout<<"RTDa = "<<TDa/Sa*100<<"%"<<std::endl;
-            std::cout<<"ROVa = "<<TOVa/Sa*100<<"%"<<std::endl;
-            std::cout<<"RDS = "<<RDS*100<<"%"<<std::endl;
-            std::cout<<std::endl;
-
-//            layerInfo->stairedDisplay(map_info);
-//            layerInfo->stairedDisplay(map_street);
-//            layerInfo->stairedDisplay(map_building);
-//            layerInfo->stairedDisplay(map_district);
-//            layerInfo->stairedDisplay(map_city);
-            layerInfo->display();
-
-        }
-        traverse( node, nv );
-    }
-
-
-};
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //**** Skybox Creation ***//
@@ -829,10 +359,10 @@ void OsgScene::init()
     layer4->setName("layer_Shp");
     m_layers->addChild(layer4);
 
-	// build sixth default layer
-    	osg::ref_ptr<osg::Group> layer5 = new osg::Group();
-    	layer5->setName("layer_Info");
-    	m_layers->addChild(layer5);
+    // build sixth default layer
+    osg::ref_ptr<osg::Group> layer5 = new osg::Group();
+    layer5->setName("layer_Info");
+    m_layers->addChild(layer5);
 
     updateGrid();
 }
@@ -859,8 +389,6 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
 {
-    //uriLayer.resetCursor();
-
     osg::ref_ptr<osg::Node> layerNode = getNode(uriLayer);
     if(layerNode)
     {
@@ -903,12 +431,10 @@ void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
 void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info)
 {
     int cpt = 0;
-    std::cout<<"[osgScene > fillSwitches] "<<std::endl;
         for (int i=0; i<v_info.size(); i++)
         {
             if(v_info[i]->getInfoLOD()=="city")
             {
-                //std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is LOD : "<<v_info[i]->getInfoLOD()<<std::endl;
                 osg::ref_ptr<osg::Switch> citySwitch = switchRoot->getChild(0)->asSwitch();
                 if(citySwitch)
                 {
@@ -918,7 +444,6 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     if(cityGroup)
                     {
                         cityGroup->addChild(v_info[i]->getGroup());
-                        std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
 
@@ -926,7 +451,6 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
             if(v_info[i]->getInfoLOD()=="district")
             {
                 cpt++;
-                //std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is LOD : "<<v_info[i]->getInfoLOD()<<std::endl;
                 osg::ref_ptr<osg::Switch> districtSwitch = switchRoot->getChild(1)->asSwitch();
                 if(districtSwitch)
                 {
@@ -936,32 +460,25 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     if(districtGroup)
                     {
                         districtGroup->addChild(v_info[i]->getGroup());
-                        std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
             }
             if(v_info[i]->getInfoLOD()=="building")
             {
-                //std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is LOD : "<<v_info[i]->getInfoLOD()<<std::endl;
                 osg::ref_ptr<osg::Switch> buildingSwitch = switchRoot->getChild(2)->asSwitch();
                 if(buildingSwitch)
                 {
-                    //std::cout<<"[osgScene > fillSwitches].....if(buildingSwitch)"<<std::endl;
                     buildingSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]));
-                    //std::cout<<"[osgScene > fillSwitches].....if(buildingSwitch).....dynamic_cast"<<std::endl;
                     osg::ref_ptr<osg::Group> buildingGroup = buildingSwitch->getChild(buildingSwitch->getNumChildren()-1)->asGroup();
                     buildingGroup->setName(v_info[i]->getInfoName());
                     if(buildingGroup)
                     {
-                        //std::cout<<"[osgScene > fillSwitches].....if(buildingGroup)"<<std::endl;
                         buildingGroup->addChild(v_info[i]->getGroup());
-                        std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
             }
             if(v_info[i]->getInfoLOD()=="street")
             {
-                //std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getName()<<" is LOD : "<<v_info[i]->getInfoLOD()<<std::endl;
                 osg::ref_ptr<osg::Switch> streetSwitch = switchRoot->getChild(3)->asSwitch();
                 if(streetSwitch)
                 {
@@ -971,7 +488,6 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
                     if(streetGroup)
                     {
                         streetGroup->addChild(v_info[i]->getGroup());
-                        std::cout<<"[osgScene > fillSwitches].....info "<<v_info[i]->getInfoName()<<" is added to "<<v_info[i]->getInfoLOD()<<std::endl;
                     }
                 }
             }
@@ -981,55 +497,39 @@ void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<os
 
 void OsgScene:: filterInfo(const QString& filter)
 {
-    std::cout<<"[osgScene > filterInfo]"<<std::endl;
     osg::ref_ptr<osg::Node> layer = m_layers->getChild(5);
     if(layer)
     {
-        //std::cout<<"[osgScene > filterInfo].....if(layer)"<<std::endl;
         osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
         if(layerGroup)
         {
-            //std::cout<<"[osgScene > filterInfo].....if(layerGroup)"<<std::endl;
             osg::ref_ptr<osg::Switch> switchRoot = layerGroup->getChild(0)->asSwitch();
             if(switchRoot)
             {
-                //std::cout<<"[osgScene > filterInfo].....if(layerSwitch)"<<std::endl;
-                for(int i=0;i<switchRoot->getNumChildren();++i)
+                for(unsigned int i=0;i<switchRoot->getNumChildren();++i)
                 {
                     osg::ref_ptr<osg::Switch> switchChild = switchRoot->getChild(i)->asSwitch();
                     if(switchChild)
                     {
-                        for(int j=0;j<switchChild->getNumChildren();j++)
+                        for(unsigned int j=0;j<switchChild->getNumChildren();j++)
                         {
                             osg::Node* node = switchChild->getChild(j);
                             osgInfo* info = dynamic_cast<osgInfo*>(node);
-        //                    found = filter.toStdString().find(info->getInfoName());
-        //                    std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found = "<< found <<std::endl;
                                 if(filter.toStdString()==info->getType())
-                                {
-                                    //std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found filetype : "<< info->getType() <<std::endl;
                                     info->setRequested(true);
-                                }
+
                                 else if(filter.toStdString()==info->getSourceType())
-                                {
                                     info->setRequested(true);
-                                    //std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found sourcetype : "<< info->getSourceType() <<std::endl;
-                                }
+
                                 else if(info->getInfoName().find(filter.toStdString())<=100)
-                                {
-                                    //std::cout<<"[osgScene > filterInfo].....in doc "<<info->getInfoName()<<" found word : "<< filter.toStdString() <<std::endl;
                                     info->setRequested(true);
-                                }
+
                                 else if(filter.toStdString()=="")
-                                {
                                     info->setRequested(true);
-                                }
+
                                 else
-                                {
                                     info->setRequested(false);
-                                }
-                                std::cout<<"[osgScene > filterInfo].....document : "<<info->getInfoName()<<std::endl;
-                                std::cout<<"[osgScene > filterInfo]...........isRequested : "<<info->isRequested()<<std::endl;
+
                         }
                     }
                 }
@@ -1414,7 +914,7 @@ void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
 
     if (grp)
     {
-        int count = grp->getNumChildren();
+        unsigned int count = grp->getNumChildren();
 
         // check if we had 5 LODs geodes
         int numGeodes = 0;
@@ -1735,7 +1235,7 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
 
     while (uri.getCursor() < uri.getDepth())
     {
-        int count = current->getNumChildren();
+        unsigned int count = current->getNumChildren();
         for (int i = 0; i < count; ++i)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);

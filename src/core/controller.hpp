@@ -38,9 +38,6 @@ namespace vcity
         virtual void deleteTile(const vcity::URI& uri);
         virtual void setTileName(const vcity::URI& uri, const std::string& name);
 
-	// tile
-    	virtual void addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
-
         // temporal
         virtual void addTag(const vcity::URI& uri, citygml::CityObjectTag* tag);
         virtual void addState(const vcity::URI& uri, citygml::CityObjectState* state);

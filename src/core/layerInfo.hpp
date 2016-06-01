@@ -30,7 +30,7 @@ public:
 	URI getURI() const override;
 
     void setInfo(std::vector<osgInfo*> info);
-    std::vector<osgInfo*> getInfo();
+    std::vector<osgInfo*>& getInfo();
 
     /// \brief getCityObjectNode Get a CityGML node
     /// \param uri URI pointing to the CityGML node
