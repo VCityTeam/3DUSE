@@ -1,7 +1,5 @@
 #include "FileInfo.h"
 
-#include <iostream>
-
 FileInfo::FileInfo(std::string filepath)
 {
     m_filepath = filepath;
@@ -31,6 +29,8 @@ std::string FileInfo::WithPrevFolder()
         return "_BATI/" + m_filename;
     else if(m_type == fileType::_MNT)
         return "_MNT/" + m_filename;
+    else
+        return "";
 }
 
 std::string FileInfo::WithPrevFolderAndGMLExtension()

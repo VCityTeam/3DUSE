@@ -3,6 +3,7 @@
 #include <QtPlugin>
 #include <QMessageBox>
 #include <QDir>
+
 #include <iostream>
 #include <sstream>
 
@@ -16,9 +17,9 @@ int CityGMLSunlightQtPlugin::init(void)
 
     m_visu = false;
 
-    connect(appGui().getMainWindow(),SIGNAL(activateVisuSunlightPlugin(QDateTime)),this,SLOT(ChangePolyColor(QDateTime)));
-    connect(dialSunlight,SIGNAL(startVisu(QStringList, QDateTime, QDateTime)),this,SLOT(startVisuAction(QStringList, QDateTime, QDateTime)));
-    connect(dialSunlight,SIGNAL(stopVisu()),this,SLOT(stopVisuAction()));
+    connect(appGui().getMainWindow(),SIGNAL(activateVisuSunlightPlugin(QDateTime)),this,SLOT(ChangePolyColor(QDateTime))); //when current datetime changes in mainwindow
+    connect(dialSunlight,SIGNAL(startVisu(QStringList, QDateTime, QDateTime)),this,SLOT(startVisuAction(QStringList, QDateTime, QDateTime))); //when click on start visu button
+    connect(dialSunlight,SIGNAL(stopVisu()),this,SLOT(stopVisuAction())); //when click on stop visu button
 
     dialSunlight->show();
 
@@ -29,11 +30,10 @@ int CityGMLSunlightQtPlugin::init(void)
 
 void CityGMLSunlightQtPlugin::ChangePolyColor(QDateTime datetime)
 {
-    if(m_visu)
+    if(m_visu) //If visualization started
     {
-        int idatetime = encodeDateTime(datetime);
-        std::map<std::string,bool> tmp_sunlightInfo = m_sunlightInfo[idatetime];
-        appGui().getOsgScene()->changePolyColor(tmp_sunlightInfo);
+        int idatetime = encodeDateTime(datetime); //encode datetime into int value
+        appGui().getOsgScene()->changePolyColor(m_sunlightInfo[idatetime]);
     }
 }
 
@@ -60,7 +60,7 @@ void CityGMLSunlightQtPlugin::loadFile(QString filepath)
             QString line = file.readLine(); //Get current line
             QStringList cells = line.split(';');
 
-            QString datetime = cells.first(); //Get first column
+            QString datetime = cells.first(); //Get cell of first column
             int idatetime = encodeDateTime(datetime.toStdString());
 
             std::string polygonId = cells.at(1).toStdString(); //Get PolygonId
@@ -83,26 +83,26 @@ void CityGMLSunlightQtPlugin::loadSunlightFiles(QStringList filepaths, QDateTime
     int iStartDate = encodeDateTime(startDate);
     int iEndDate = encodeDateTime(endDate);
 
-    for(int i = 0 ; i < filepaths.size() ; ++i)
+    for(int i = 0 ; i < filepaths.size() ; ++i) //For all selected files to load
     {
         QDir dir(filepaths.at(i));
 
         if(dir.exists())
         {
             int loadedFileNb = 0;
-            for(QFileInfo f : dir.entryInfoList())
+            for(QFileInfo f : dir.entryInfoList()) // Each f is a file containing all sunlight infos for a given day and tile
             {
                 std::string sf = f.fileName().toStdString();
 
-                if(sf.size() < 3)
+                if(sf.size() < 3) //for an unknown reason, entryInfoList() returns files named ' ', '.', '..'. This is to skip this cases
                     continue;
 
                 int pos = sf.find(".csv");
-                std::string f_date = sf.substr(0,pos);
+                std::string f_date = sf.substr(0,pos); //get the date from the name of the file
 
-                int iF_date = encodeDateTime(f_date,0);
+                int iF_date = encodeDateTime(f_date,0); //Date represented by the file encoded into int
 
-                if(iF_date >= iStartDate && iF_date < iEndDate)
+                if(iF_date >= iStartDate && iF_date < iEndDate) //if the file contains sunlight info in the interval of visualization
                 {
                     std::cout << "Load Sunlight infos from file : " << dir.absoluteFilePath(f.fileName()).toStdString() << std::endl;
                     loadFile(dir.absoluteFilePath(f.fileName()));
@@ -111,9 +111,9 @@ void CityGMLSunlightQtPlugin::loadSunlightFiles(QStringList filepaths, QDateTime
                 }
             }
 
+            //Check if all needed sunlight infos for visu have been loaded
             int daysNb = (iEndDate - iStartDate) / 24;
-//            std::cout << "daysNB : " << daysNb << std::endl;
-//            std::cout << "Computed files : " << loadedFileNb << std::endl;
+
             if(loadedFileNb < daysNb)
                 std::cout << "Warning : Sunlight is not computed for all days of the period for file : " << filepaths.at(i).toStdString() << std::endl;
         }
@@ -122,10 +122,6 @@ void CityGMLSunlightQtPlugin::loadSunlightFiles(QStringList filepaths, QDateTime
             std::cout << "Warning : Sunlight is not computed for file : " << filepaths.at(i).toStdString() << std::endl;
         }
     }
-}
-
-void CityGMLSunlightQtPlugin::VisualiseSunlight(QDateTime dateTime)
-{
 }
 
 #if QT_VERSION < 0x050000 // (for QT4)

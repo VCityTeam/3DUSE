@@ -33,8 +33,6 @@ void createFileFolder(FileInfo* file, QString sOutputDir)
         outputDir.mkpath(outputDir.absolutePath());
 }
 
-
-
 void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* file, int iStartDate, int iEndDate, QString outputDir)
 {
     int nb_days = (iEndDate - iStartDate + 1) / 24;
@@ -50,7 +48,7 @@ void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* fil
         std::ofstream ofs;
         ofs.open (outputDir.toStdString() + "/SunlightOutput/" + file->WithPrevFolder() + "/" + day + ".csv", std::ofstream::app);
 
-        for(int i = 0 ; i < 24 ; ++i)
+        for(int i = 0 ; i < 24 ; ++i) //For each hour
         {
             ofs << decodeDateTime(iDate + i) << ";" << t->polygonId << ";" << std::to_string(sunInfo[iDate + i]) << std::endl;
         }
@@ -59,6 +57,12 @@ void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* fil
     }
 }
 
+///
+/// \brief computeBeamDir Computes sun's beam direction depending on its position
+/// \param azimutAngle Azimut angle of the sun
+/// \param elevationAngle Elevation angle of the sun
+/// \return Beam normalized direction vector
+///
 TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
 {
 
@@ -72,8 +76,6 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
     //if sun to low (angle < 1°), return nul beam direction
     if (elevationAngle <= 0.01 || azimutAngle <= 0.01)
         return TVec3d(0.0,0.0,0.0);
-
-    //Else, compute direction
 
     //Azimut rotation quaternion
     citygml::quaternion qA = citygml::quaternion();
@@ -91,13 +93,11 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
     newSunPos = newSunPos + origin;
     sunPos = sunPos + origin;
 
-    //Compute sun beams direction
+    //Compute sun beam direction
     TVec3d tmpDirection = (newSunPos - origin);
 
     return tmpDirection.normal();
 }
-
-
 
 std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, int iStartDate, int iEndDate)
 {
@@ -143,7 +143,7 @@ std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, int iStartDate, in
             int hour = 0;
             while(std::getline(lineStream,cell,';'))
             {
-                //Add azimuthAngle
+                //Get azimutAngle
                 double azimutAngle;
 
                 if(cell == "--" || cell == "")

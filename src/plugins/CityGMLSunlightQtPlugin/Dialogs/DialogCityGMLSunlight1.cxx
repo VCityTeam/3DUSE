@@ -3,12 +3,9 @@
 #include "../SunlightDetection.h"
 #include "../FileInfo.h"
 
-#include <iostream>
-
 #include <QDir>
 #include <QSettings>
 #include <QFileDialog>
-#include <QCheckBox>
 
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
@@ -89,7 +86,7 @@ DialogCityGMLSunlight1::DialogCityGMLSunlight1(QWidget *parent) :
     ui->InputDirectory_LE->setText(inputDir);
 
     //Add files from this input directory into VisuNonSelectedFiles List
-    AddCalculatedFilesToList(inputDir);
+    AddComputedFilesToList(inputDir);
 
     //Fill visu files dir
     QString filesdir = settings.value("dirfilessunlightvisu").toString();
@@ -133,12 +130,12 @@ void DialogCityGMLSunlight1::DirFilesButtonClicked()
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::AddFileButtonClicked()
 {
-    for(QListWidgetItem* item : ui->NonSelectedFiles_List->selectedItems())
+    for(QListWidgetItem* item : ui->NonSelectedFiles_List->selectedItems()) //For all selected items
     {
         ui->SelectedFiles_List->addItem(item->text());
     }
 
-    qDeleteAll(ui->NonSelectedFiles_List->selectedItems());
+    qDeleteAll(ui->NonSelectedFiles_List->selectedItems()); //Delete selected items from non-selected list
 }
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::RemoveFileButtonClicked()
@@ -241,7 +238,7 @@ void DialogCityGMLSunlight1::CreateSunlightFilesButtonClicked()
 
     //After calculation, change Visu inputdir to Calculation output dir and rerun the input dir scan in visualise tab
     ui->InputDirectory_LE->setText(ui->OutputDirectory_LE->text());
-    AddCalculatedFilesToList(ui->InputDirectory_LE->text());
+    AddComputedFilesToList(ui->InputDirectory_LE->text());
 }
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::StartDateChanged()
@@ -263,7 +260,7 @@ void DialogCityGMLSunlight1::InputDirButtonClicked()
     //Add files to VisuNonSelectedFiles list
     ui->VisuNonSelectedFiles_List->clear();
     ui->VisuSelectedFiles_List->clear();
-    AddCalculatedFilesToList(dirpath);
+    AddComputedFilesToList(dirpath);
 
     //Add path to directory in LineEdit
     ui->InputDirectory_LE->setText(dirpath);
@@ -345,6 +342,7 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     //Change start date and end date in mainwindow
     QSettings settings ("liris","virtualcity");
 
+    //Add dates to settings
     QDateTime startDate = ui->VisuStartDate->dateTime();
     vcity::app().getSettings().m_startDate = startDate.toString(Qt::ISODate).toStdString();
     settings.setValue("startDate",startDate.toString(Qt::ISODate));
@@ -354,25 +352,26 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     vcity::app().getSettings().m_endDate = endDate.toString(Qt::ISODate).toStdString();
     settings.setValue("endDate",endDate.toString(Qt::ISODate));
 
+    //Change dates in MainWindow
     appGui().getMainWindow()->initTemporalTools();
 
     //Enable time in mainwindow
     appGui().getMainWindow()->ChangecheckBoxTemporalToolsState();
 
 
-    //*** Load Selected files and their sunlight info  
+    //*** Load Selected files
     QStringList filepaths;
 
     for(int i = 0; i < ui->VisuSelectedFiles_List->count(); ++i)
     {
-        QString fp = ui->VisudirFiles_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text() + ".gml";
+        QString fp = ui->VisudirFiles_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text() + ".gml"; //filepath
 
-        //TODO: CHECK IF NOT ALREADY LOADED
         appGui().getMainWindow()->loadFile(fp);
 
         filepaths.append(ui->InputDirectory_LE->text() + "/" + ui->VisuSelectedFiles_List->item(i)->text());
     }
 
+    //Signal to notify CityGMLSunlightQtPlugin that visualization is activated
     emit startVisu(filepaths, startDate, endDate);
 
     // Tests to bring mainwindow foreground and send Sunlight background
@@ -436,20 +435,19 @@ bool DialogCityGMLSunlight1::ListContains(QListWidget* list, QString item)
 void DialogCityGMLSunlight1::AddItemsFromDirToList(QString dirpath)
 {
     QDir dirfiles(dirpath);
-    for(QFileInfo f : dirfiles.entryInfoList())
+    for(QFileInfo f : dirfiles.entryInfoList()) //for each file/folder in dirfiles
     {
-        if(f.isDir() == true && (f.fileName() == "_BATI" || f.fileName() == "_MNT"))
+        if(f.isDir() == true && (f.fileName() == "_BATI" || f.fileName() == "_MNT")) //we only compute sunlight for _BATI and _MNT
         {
             QDir dir(f.filePath());
 
-            for(QString file : dir.entryList())
+            for(QString file : dir.entryList()) //for all files
             {
                 if(file.contains(".gml"))
                 {
-                    QString filename = f.fileName() + "/" + file;
+                    QString filename = f.fileName() + "/" + file; // filename ex : _BATI/3070_10383
 
-                    //if not already in selected list
-                    if(!ListContains(ui->SelectedFiles_List,filename))
+                    if(!ListContains(ui->SelectedFiles_List,filename))  //if not already in selected list
                         ui->NonSelectedFiles_List->addItem(filename);
                 }
             }
@@ -457,7 +455,7 @@ void DialogCityGMLSunlight1::AddItemsFromDirToList(QString dirpath)
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
-void DialogCityGMLSunlight1::AddCalculatedFilesToList(QString dirpath)
+void DialogCityGMLSunlight1::AddComputedFilesToList(QString dirpath)
 {
     QDir dirfiles(dirpath);
     for(QFileInfo f : dirfiles.entryInfoList())

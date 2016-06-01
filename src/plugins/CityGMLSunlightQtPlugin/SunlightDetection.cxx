@@ -3,8 +3,6 @@
 #include <fstream>
 #include <queue>
 
-#include <QDir>
-
 #include "AABB.hpp"
 #include "Triangle.hpp"
 #include "libfilters/raytracing/RayTracing.hpp"
@@ -16,28 +14,30 @@
 #include "IO.h"
 #include "FileInfo.h"
 
+
 ///
 /// \brief SetupFileOrder create a std::queue queueing the files intersected by a given RayBoxCollection and sorted by intersection distance
 /// \param boxes Vector of files' bounding boxes to check intersection with
-/// \param rays Rays to throw to see if they intersect with boxes
-/// \return a std::queue of RayboxHit (struct which holds a bounding box (AABB) and minDistance intersection) sorted by intersection distance (min first)
+/// \param rays Rays for intersection with bounding boxes testing
+/// \return a std::queue of RayboxHit sorted by intersection distance (min first)
 ///
 std::queue<RayBoxHit> SetupFileOrder(std::vector<AABB> boxes,RayBoxCollection* rays)
 {
-    std::map<std::string,int> boxToMaxOrder;//We keep record the maximum order the box has be traverse
+    std::map<std::string,int> boxToMaxOrder; //The order in which the box has been crossed : if a ray cross multiple AABB, we record the order of crossing in each one
     std::map<std::string,RayBoxHit> boxToRayBoxHit;//We keep record of the smallest rayboxhit of a box /// MultiResolution
 
     for(unsigned int i = 0; i < boxes.size(); i++)
     {
         boxToMaxOrder[boxes[i].name] = -1;
     }
-    //For each rays
+
+    //For each ray
     for(unsigned int i = 0; i < rays->raysBB.size(); i++)
     {
         RayBox* rayBox = rays->raysBB[i];
         rayBox->boxes.clear();
 
-        //For each boxes we check if the ray intersect the box and store it in the box list of the array
+        //For each box we check if the ray intersect it
         for(unsigned int j = 0; j < boxes.size(); j++)
         {
             float hit0,hit1;
@@ -46,11 +46,11 @@ std::queue<RayBoxHit> SetupFileOrder(std::vector<AABB> boxes,RayBoxCollection* r
                 RayBoxHit hTemp;
                 hTemp.box = boxes[j];
                 hTemp.minDistance = hit0;
-                rayBox->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
+                rayBox->boxes.push_back(hTemp); //Add this box to list of intersected boxes by this ray
             }
         }
 
-        std::sort(rayBox->boxes.begin(),rayBox->boxes.end());//Sort the boxes depending on the intersection distance
+        std::sort(rayBox->boxes.begin(),rayBox->boxes.end());//Sort the boxes depending on their intersection distance
 
         for(int j = 0; j < rayBox->boxes.size(); j++)//We update the order of each boxes
         {
@@ -94,12 +94,6 @@ std::queue<RayBoxHit> SetupFileOrder(std::vector<AABB> boxes,RayBoxCollection* r
 }
 
 
-///
-/// \brief SunlightDetection Function to compute sunlight on a given set of file on a predefine period.
-/// \param fileDir Directory holding the files to analyse.
-/// \param sunpathFile File containing the azimut and elevation angles of the sun for a given year/period.
-/// \param date Date of the day when the sunlight should be computed.
-///
 void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, std::string sunpathFile, std::string startDate, std::string endDate, QString outputDir)
 {
 
@@ -118,15 +112,16 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
     // *** Compute sun's beam direction from sunpathFile and associate them to an hour encoded as an int. *** //
     std::map<int,TVec3d> SunsBeamsDir = loadSunpathFile(sunpathFile, iStartDate, iEndDate);
 
-    // *** Build year map *** //
-    std::map<int,bool> yearMap;
+    // *** Build datetime_sunnyMap : result map associating a datetime to sunny info *** //
+    //This map is created once as the sun beams are always the same in one simulation and will be associated with each triangle
+    std::map<int,bool> datetime_sunnyMap;
 
-    for(auto const& beamdir : SunsBeamsDir)
+    for(auto const& beamdir : SunsBeamsDir) //For all sun beams
     {
-        if(beamdir.second == TVec3d(0.0,0.0,0.0))
-            yearMap[beamdir.first] = false;
+        if(beamdir.second == TVec3d(0.0,0.0,0.0)) //If beam direction is nul, i.e. sun is down
+            datetime_sunnyMap[beamdir.first] = false; //sunny = false
         else
-            yearMap[beamdir.first] = true;
+            datetime_sunnyMap[beamdir.first] = true; // sunny = true
     }
 
 
@@ -153,7 +148,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
         std::cout << "Computation of file " << f->WithPrevFolderAndGMLExtension() << "..." << std::endl;
         std::cout << "===================================================" << std::endl;
 
-        //Load TriangleList of file to treat
+        //Load TriangleList of file to compute sunlight for
         TriangleList* trianglesfile;
 
         if(f->m_type == fileType::_BATI)
@@ -163,30 +158,30 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
         else
             trianglesfile = new TriangleList();
 
-        //Create csv file where results will be exported
+        //Create csv file where results will be written
         createFileFolder(f, outputDir);
 
-        int cpt_tri = 1;//Output purpose
+        int cpt_tri = 1;//output print purpose
 
         for(Triangle* t : trianglesfile->triangles) //Loop through each triangle
         {
             std::cout << "Triangle " << cpt_tri << " of " << trianglesfile->triangles.size() << "..." << std::endl;
 
-            //Initialize sunInfo
-            std::map<int,bool> yearSunInfo = yearMap;
+            //Initialize sunlight Info results
+            std::map<int,bool> datetimeSunInfo = datetime_sunnyMap;
 
-            //Compute Barycenter
+            //Compute Barycenter of triangle
             TVec3d barycenter = TVec3d();
             barycenter.x = (t->a.x + t->b.x + t->c.x) / 3;
             barycenter.y = (t->a.y + t->b.y + t->c.y) / 3;
             barycenter.z = (t->a.z + t->b.z + t->c.z) / 3;
 
-            //Create rayCollection (All the rays for this triangle)
+            //Create rayBoxCollection (All the rays for this triangle)
             RayBoxCollection* raysboxes = new RayBoxCollection();
 
             for(auto const& beamdir : SunsBeamsDir)
             {
-                //If direction is null (ie sun is too low) leave every triangle in the shadow and go to next iteration
+                //If direction is null (ie sun is too low) leave triangle in the shadow and go to next iteration
                 if(beamdir.second == TVec3d(0.0,0.0,0.0))
                     continue;
 
@@ -196,6 +191,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 tmpBarycenter.y = barycenter.y + 0.01f*beamdir.second.y;
                 tmpBarycenter.z = barycenter.z + 0.01f*beamdir.second.z;
 
+                //Add ray to list
                 RayBox* raybox = new RayBox(tmpBarycenter,beamdir.second,beamdir.first);
                 raysboxes->raysBB.push_back(raybox);
             }
@@ -212,7 +208,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
 
                 RayCollection raysTemp;//Not all rays intersect the box
 
-                //We get only the rays that intersect the box
+                //We only get the rays that intersect the box
                 for(unsigned int i = 0; i < raysboxes->raysBB.size(); i++)
                 {
                     RayBox* raybox = raysboxes->raysBB[i];//Get the ray
@@ -234,12 +230,13 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                     continue;
                 }
 
-                //Load triangles and perform analysis
+                //*** Load triangles and perform analysis ***//
+
                 std::string path_boxhit = fileDir + fileName_boxhit;
 
                 FileInfo fBoxHit = FileInfo(path_boxhit);
 
-                //Get the triangle list
+                //Get the triangle list of files matching intersected AABB
                 TriangleList* trianglesTemp;
 
                 if(fBoxHit.m_type == fileType::_BATI)
@@ -254,7 +251,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 //Change sunlight information according to hits found
                 for(Hit* h : *tmpHits)
                 {
-                    yearSunInfo[h->ray.id] = false;
+                    datetimeSunInfo[h->ray.id] = false;
                 }
 
                 //Delete triangles
@@ -270,7 +267,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 delete tmpHits;
             }
 
-            exportLightningToCSV(yearSunInfo,t,f, iStartDate, iEndDate, outputDir); //Export result for this triangle in a csv file
+            exportLightningToCSV(datetimeSunInfo,t,f, iStartDate, iEndDate, outputDir); //Export result for this triangle in csv files
 
             //Delete RayBoxes
             delete raysboxes;
@@ -296,61 +293,4 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
         delete filenames[i];
 
     std::cout << "Total time : " << (double)time_tot/60000.0 << " min" << std::endl;
-
-
-    //Create vector of files to analyse
-//    std::vector<std::string> tiles;
-
-    //Test rapide
-//    tiles.push_back("_BATI/3670_10383");
-//    tiles.push_back("_BATI/3670_10382");
-//    tiles.push_back("_MNT/3670_10383");
-//    tiles.push_back("_MNT/3670_10382");
-
-
-    //Test part dieu
-//    tiles.push_back("_BATI/3686_10349");
-//    tiles.push_back("_BATI/3686_10350");
-//    tiles.push_back("_BATI/3686_10351");
-
-//    tiles.push_back("_MNT/3686_10349");
-//    tiles.push_back("_MNT/3686_10350");
-//    tiles.push_back("_MNT/3686_10351");
-
-
-//    tiles.push_back("_BATI/3687_10349");
-//    tiles.push_back("_BATI/3687_10350");
-//    tiles.push_back("_BATI/3687_10351");
-
-//    tiles.push_back("_MNT/3687_10349");
-//    tiles.push_back("_MNT/3687_10350");
-//    tiles.push_back("_MNT/3687_10351");
-
-
-//    tiles.push_back("_BATI/3688_10349");
-//    tiles.push_back("_BATI/3688_10350");
-//    tiles.push_back("_BATI/3688_10351");
-
-//    tiles.push_back("_MNT/3688_10349");
-//    tiles.push_back("_MNT/3688_10350");
-//    tiles.push_back("_MNT/3688_10351");
-
-
-//    tiles.push_back("_BATI/3689_10349");
-//    tiles.push_back("_BATI/3689_10350");
-//    tiles.push_back("_BATI/3689_10351");
-
-//    tiles.push_back("_MNT/3689_10349");
-//    tiles.push_back("_MNT/3689_10350");
-//    tiles.push_back("_MNT/3689_10351");
-
-
-//    tiles.push_back("_BATI/3690_10349");
-//    tiles.push_back("_BATI/3690_10350");
-//    tiles.push_back("_BATI/3690_10351");
-
-//    tiles.push_back("_MNT/3690_10349");
-//    tiles.push_back("_MNT/3690_10350");
-//    tiles.push_back("_MNT/3690_10351");
-
 }

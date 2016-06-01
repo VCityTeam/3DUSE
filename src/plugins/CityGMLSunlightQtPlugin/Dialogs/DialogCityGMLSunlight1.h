@@ -18,16 +18,42 @@ public:
     ~DialogCityGMLSunlight1();
 
 private:
+    ///
+    /// \brief ListContains Check if a given item is in a list (QListWidget)
+    /// \param list List of items
+    /// \param item item to find
+    /// \return true if item is in list, false either
+    ///
     bool ListContains(QListWidget* list, QString item);
+
+    ///
+    /// \brief AddItemsFromDirToList Get all filenames from a specified directory and add them to a QListWidget (Non selected files list in computation tab)
+    /// \param dirpath Full path to directory to scan
+    ///
     void AddItemsFromDirToList(QString dirpath);
-    void AddCalculatedFilesToList(QString dirpath);
+
+    ///
+    /// \brief AddCalculatedFilesToList Get name of all files for which sunlight has been computed and add them to a QListWidget (Non selected files list in visualization tab)
+    /// \param dirpath Full path to directory to scan
+    ///
+    void AddComputedFilesToList(QString dirpath);
 
 signals:
+    ///
+    /// \brief startVisu signal sent when startVisu Button is clicked and trapped by CityGMLSunlightQTPlugin
+    /// \param filepaths paths of files to visualize
+    /// \param startDate Start date of visualization
+    /// \param endDate End date of visualization
+    ///
     void startVisu(QStringList filepaths, QDateTime startDate, QDateTime endDate);
+
+    ///
+    /// \brief stopVisu signal sent when stopVisu Button is clicked and trapped by CityGMLSunlightQTPlugin
+    ///
     void stopVisu();
 
 private slots:
-    //Calculation
+    //Computation
     void DirFilesButtonClicked();
     void AddFileButtonClicked();
     void RemoveFileButtonClicked();
