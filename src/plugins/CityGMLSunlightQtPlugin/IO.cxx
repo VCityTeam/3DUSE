@@ -74,7 +74,7 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
     TVec3d ERotAxis = TVec3d(-1.0,0.0,0.0);
 
     //if sun to low (angle < 1°), return nul beam direction
-    if (elevationAngle <= 0.01 || azimutAngle <= 0.01)
+    if (elevationAngle <= 0.01 && azimutAngle <= 0.01)
         return TVec3d(0.0,0.0,0.0);
 
     //Azimut rotation quaternion

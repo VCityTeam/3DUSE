@@ -186,7 +186,6 @@ void DialogCityGMLSunlight1::OutpoutDirButtonClicked()
 
     //Add path to directory in LineEdit
     ui->OutputDirectory_LE->setText(dirpath);
-    ui->InputDirectory_LE->setText(dirpath);
 }
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::CreateSunlightFilesButtonClicked()
@@ -237,7 +236,10 @@ void DialogCityGMLSunlight1::CreateSunlightFilesButtonClicked()
     }   
 
     //After calculation, change Visu inputdir to Calculation output dir and rerun the input dir scan in visualise tab
-    ui->InputDirectory_LE->setText(ui->OutputDirectory_LE->text());
+    ui->InputDirectory_LE->setText(ui->OutputDirectory_LE->text() + "/SunlightOutput");
+
+    ui->VisuNonSelectedFiles_List->clear();
+    ui->VisuSelectedFiles_List->clear();
     AddComputedFilesToList(ui->InputDirectory_LE->text());
 }
 ////////////////////////////////////////////////////////////////////////////////

@@ -9,6 +9,7 @@ project( 3DUSE )
 # would agree with unbuntu, debian 7, fedora 21, OpenSUSE 13.1...
 # FIXME: discuss the above and list the supported platforms and distros.
 cmake_minimum_required(VERSION 2.8)
+enable_testing()
 
 if ( WITH_QT5 )
   # because 2.8.8 has a bug with QT5_USE_MODULES
@@ -912,33 +913,81 @@ endif (BUILD_CityGMLFloodARQtPlugin)
 # --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " ON)
 if (BUILD_CityGMLSunlightQtPlugin)
-  file(
-    GLOB_RECURSE
-    CityGMLSunlight_Qt_Plugin_SRC
-    src/plugins/CityGMLSunlightQtPlugin/*.cxx
-  )
-        set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h)
-        set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)
-	if (WITH_QT5)
-	  ADD_DEFINITIONS("-DWITH_QT5")
-          QT5_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
-          QT5_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
-          set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
-	else(WITH_QT5) 
-          QT4_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
-          QT4_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
-          set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
-          set(CityGMLSunlight_Qt_Plugin_LIB ${CityGMLSunlight_Qt_Plugin_LIB} ${QT_LIBRARIES})
-	endif(WITH_QT5)
+  set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h src/plugins/CityGMLSunlightQtPlugin/FileInfo.h
+                                       src/plugins/CityGMLSunlightQtPlugin/FileInfo.h src/plugins/CityGMLSunlightQtPlugin/IO.h src/plugins/CityGMLSunlightQtPlugin/SunlightDetection.h)
+  set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
+    QT5_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
+    set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
+  else(WITH_QT5)
+    QT4_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
+    QT4_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
+    set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
+    set(CityGMLSunlight_Qt_Plugin_LIB ${CityGMLSunlight_Qt_Plugin_LIB} ${QT_LIBRARIES})
+  endif(WITH_QT5)
 
-        add_library(CityGMLSunlightQtPlugin SHARED src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.cxx src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.cxx
-                                ${CityGMLSunlight_Qt_Plugin_HEADER} ${CityGMLSunlight_Qt_Plugin_SRC}
-				${VCITY_GUI_SRC_WIN}) # if need, add cxx files here before the ')'
-        target_link_libraries (CityGMLSunlightQtPlugin ${CityGMLSunlight_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
-	if (WITH_QT5)
-          QT5_USE_MODULES(CityGMLSunlightQtPlugin Core Widgets OpenGL)
-	endif(WITH_QT5)
+  add_library( CityGMLSunlightQtPlugin SHARED
+    src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.cxx
+    src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.cxx
+    src/plugins/CityGMLSunlightQtPlugin/FileInfo.cxx
+    src/plugins/CityGMLSunlightQtPlugin/IO.cxx
+    src/plugins/CityGMLSunlightQtPlugin/SunlightDetection.cxx
+    ${CityGMLSunlight_Qt_Plugin_HEADER}
+    ${CityGMLSunlight_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC}
+    # if needed, add cxx files here
+  )
+
+  target_include_directories( CityGMLSunlightQtPlugin PUBLIC
+    ${FILTERS_INCLUDE_DIR}
+    ${CITYGMLUTILS_INCLUDE_DIR}
+  )
+
+  target_link_libraries ( CityGMLSunlightQtPlugin
+    ${LINUX_FLAGS}
+    ${CityGMLSunlight_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+    ${CITYGML_LIBRARIES}
+    ${CITYGMLUTILS_LIBRARIES}
+  )
+  if (WITH_QT5)
+    QT5_USE_MODULES(CityGMLSunlightQtPlugin Core Widgets OpenGL)
+  endif(WITH_QT5)
 endif (BUILD_CityGMLSunlightQtPlugin)
+# --> CityGMLSunlightQtPlugin : QtPlugin [END]
+
+# --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
+#OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " ON)
+#if (BUILD_CityGMLSunlightQtPlugin)
+#  file(
+#    GLOB_RECURSE
+#    CityGMLSunlight_Qt_Plugin_SRC
+#    src/plugins/CityGMLSunlightQtPlugin/*.cxx
+#  )
+#        set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h)
+#        set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)
+#        if (WITH_QT5)
+#          ADD_DEFINITIONS("-DWITH_QT5")
+#          QT5_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
+#          QT5_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
+#          set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
+#        else(WITH_QT5)
+#          QT4_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
+#          QT4_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
+#          set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
+#          set(CityGMLSunlight_Qt_Plugin_LIB ${CityGMLSunlight_Qt_Plugin_LIB} ${QT_LIBRARIES})
+#        endif(WITH_QT5)
+
+#        add_library(CityGMLSunlightQtPlugin SHARED src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.cxx src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.cxx
+#                                ${CityGMLSunlight_Qt_Plugin_HEADER} ${CityGMLSunlight_Qt_Plugin_SRC}
+#                                ${VCITY_GUI_SRC_WIN}) # if need, add cxx files here before the ')'
+#        target_link_libraries (CityGMLSunlightQtPlugin ${CityGMLSunlight_Qt_Plugin_LIB} ${VCITY_GUI_LIB})
+#        if (WITH_QT5)
+#          QT5_USE_MODULES(CityGMLSunlightQtPlugin Core Widgets OpenGL)
+#        endif(WITH_QT5)
+#endif (BUILD_CityGMLSunlightQtPlugin)
 # --> CityGMLSunlightQtPlugin : QtPlugin [END]
 
 ################
