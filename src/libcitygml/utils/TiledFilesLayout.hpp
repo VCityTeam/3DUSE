@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "vecs.hpp"
+#include "citygmlutils_export.h"
 
 struct TiledLayer
 {
@@ -15,7 +16,7 @@ struct TiledLayer
     int TuileMaxY;
 };
 
-class TiledFiles
+class CITYGMLUTILS_EXPORT TiledFiles
 {
 public:
     TiledFiles(std::string Folderpath);
