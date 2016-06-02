@@ -4,8 +4,9 @@
 #define __OSGMNT_HPP__
 
 #include <osg/Geode>
-////////////////////////////////////////////////////////////////////////////////
-class MNT
+#include "vcitycore_export.h"
+
+class VCITYCORE_EXPORT MNT
 {
 public:
     typedef unsigned char byte;

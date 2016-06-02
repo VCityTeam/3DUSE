@@ -408,20 +408,27 @@ endif(WITH_QT5)
 set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
 set( FILTERS_LIBRARIES   filters )
 
-#
+# CITYGML
 set( CITYGML_INCLUDE_DIR
    ${CMAKE_SOURCE_DIR}/src                   #FIXME: should not be necessary
    ${CMAKE_SOURCE_DIR}/src/libcitygml
    ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
    ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
-   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  #FIXME: will become a library
-   ${CMAKE_BINARY_DIR}/src/libcitygml    # for generated citygml_export.h
+   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  # FIXME: will become a library
+   ${CMAKE_BINARY_DIR}/src/libcitygml        # for generated citygml_export.h
 )
 set( CITYGML_LIBRARIES citygml )
 
-#
+# CITYGML UTILS
 set( CITYGMLUTILS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src/libcitygml/utils )
 set( CITYGMLUTILS_LIBRARIES citygmlutils )
+
+# CORE
+set( VCITYCORE_INCLUDE_DIR
+  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
+  ${CMAKE_BINARY_DIR}/src                     # for generated vcitycore_export.h
+)
+set( VCITYCORE_LIBRARY vcitycore )
 
 # FIXME: remove the following line and replace it with target_include_directories
 INCLUDE_DIRECTORIES(
@@ -429,11 +436,9 @@ INCLUDE_DIRECTORIES(
   ${CITYGML_INCLUDE_DIR}
 )
 
-
-# General
-file(
-  GLOB_RECURSE   # FIXME: not required anymore
-  VCITY_GUI_SRC
+################### General
+set( VCITY_GUI_SRC
+### The core
   src/core/RayBox.cpp
   src/core/abstractlayer.cpp
   src/core/algo.cpp
@@ -452,7 +457,7 @@ file(
   src/core/settings.cpp
   src/core/tile.cpp
   src/core/tools/log.cpp
-  
+### The gui  
   src/gui/applicationGui.cpp
   src/gui/controllerGui.cpp
   src/gui/dialogAbout.cpp
@@ -488,46 +493,34 @@ file(
   src/gui/osg/osgScene.cpp
   src/gui/osg/osgTools.cpp
   
-  src/DataStructures/DEM/osgMnt.cpp
+### Filters
+  src/libfilters/ChangeDetection/ChangeDetection.cpp
+  src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
+  src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
+  src/libfilters/raytracing/Hit.cpp
+  src/libfilters/raytracing/Ray.cpp
+  src/libfilters/raytracing/RayTracing.cpp
+  src/libfilters/ShpExtrusion/ShpExtrusion.cpp
+  src/libfilters/tiling/ASCCut.cpp
+  src/libfilters/tiling/TilingCityGML.cpp
   
+### Now part of "Core" library
+  # src/DataStructures/DEM/osgMnt.cpp
+  # src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+  
+### Utilities
+  # Depends on citygml/exportCityGML.hpp
+  src/utils/CityGMLFusion.cpp
+  src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
+
+  src/main.cpp
+
+### FIXME section
   # Interestingly enough the following are not necessary !?
   # src/gui/osgQt/osg32/GraphicsWindowQt.cxx
   # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
   # src/plugins/*.cpp
   
-### Filters
-  src/libfilters/raytracing/Hit.cpp
-  src/libfilters/raytracing/Ray.cpp
-  src/libfilters/raytracing/RayTracing.cpp
-  src/libfilters/tiling/ASCCut.cpp
-  src/libfilters/tiling/TilingCityGML.cpp
-
-  src/libfilters/ChangeDetection/ChangeDetection.cpp
-
-  src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
-  src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
-
-  src/libfilters/ShpExtrusion/ShpExtrusion.cpp
-  
-  src/DataStructures/DEM/osgMnt.cpp
-  
-### Processes
-  src/processes/ChangeDetection.cpp
-  src/processes/EnhanceMNT.cpp
-  src/processes/ExportToShape.cpp
-  src/processes/LinkCityGMLShape.cpp
-  src/processes/ShpExtrusion.cpp
-  src/processes/TilingCityGML.cpp
-  src/processes/ToolAlgoCut.cpp
-  src/processes/lodsmanagement.cpp
-  
-### Utilities
-  src/utils/CityGMLFusion.cpp
-  src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
-  src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
-
-  src/main.cpp
-
   ## FIXME: the following should be dealt within libcitygmlutils.
   # Yet finishing this job implies the availability of a core library
   # since some of the libcitygml/utils content seems to depend both
@@ -536,6 +529,14 @@ file(
   # within libcityGML that should remain "3D-Use core" free.
   src/libcitygml/utils/AABB.cpp
   src/libcitygml/utils/Triangle.cpp
+  # ...and the following depends on ProjectPointOnPolygon3D() defined in 
+  #                             src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+#  src/libcitygml/utils/importerASC.cpp 
+  # ...and the following depends on GetEnveloppe() also defined in 
+  #                             src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+#  src/libcitygml/utils/CityGMLtools.cpp
+  # Didn't check this one's dependencies though...
+#  src/libcitygml/utils/TiledFilesLayout.cpp
 )
 
 SET( VCITY_GUI_SRC
@@ -660,6 +661,7 @@ target_include_directories( ${PRJ_NAME} PUBLIC
 target_link_libraries (${PRJ_NAME}
   ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
   ${VCITY_GUI_LIB}
+  ${VCITYCORE_LIBRARY}
   ${FILTERS_LIBRARIES}
   ${CITYGML_LIBRARIES}
   ${CITYGMLUTILS_LIBRARIES}
