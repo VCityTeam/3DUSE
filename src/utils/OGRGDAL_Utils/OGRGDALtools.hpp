@@ -12,10 +12,10 @@
 /// aux emprises au sol issue du Roff
 static double Precision_Vect = 0.00001;
 
-OGRPoint* VCITYCORE_EXPORT ProjectPointOnPolygon3D( OGRPoint* Point,
+VCITYCORE_EXPORT OGRPoint* ProjectPointOnPolygon3D( OGRPoint* Point,
                                                     OGRPolygon* Polygon);
 
-OGRMultiPolygon* VCITYCORE_EXPORT GetEnveloppe(OGRMultiPolygon * MP);
+VCITYCORE_EXPORT OGRMultiPolygon* GetEnveloppe(OGRMultiPolygon * MP);
 
 // FIXME: the following declarations don't seem to be part of the API.
 // Remove them (the declarations not the defenitions within the cpp of course).
