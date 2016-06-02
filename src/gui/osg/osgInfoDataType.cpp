@@ -303,7 +303,6 @@ void InfoDataType::stairedDisplay(std::map<float, osgInfo *> m_info)
            osg::Vec3 newPos = osg::Vec3(c_info->m_currentposition.x(), c_info->m_currentposition.y(),p_info->m_currentposition.z()+p_info->m_height/2+c_info->m_height/2);
            c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
            c_info->UpdatePosition(newPos);
-           c_info->UpdateAnchoringLine(newPos.z());
        }
     }
 }

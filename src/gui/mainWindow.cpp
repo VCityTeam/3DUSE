@@ -3168,7 +3168,7 @@ void MainWindow::test2()
 
     for (int i=0; i<v_info.size(); i++)
     {
-        v_info[i]->BillboardON();
+        v_info[i]->setBillboarding(true);
     }
 
 	//Création d'ilots à partir de Shapefile contenant des routes

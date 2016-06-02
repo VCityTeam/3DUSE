@@ -224,16 +224,18 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
 
 }
 
-void osgInfo::BillboardOFF()
+void osgInfo::setBillboarding(bool option)
 {
-    m_pat->removeChild(m_billboard);
-    m_pat->addChild(m_geode);
-}
-
-void osgInfo::BillboardON()
-{
-    m_pat->removeChild(m_geode);
-    m_pat->addChild(m_billboard);
+    if(option)
+    {
+        m_pat->removeChild(m_geode);
+        m_pat->addChild(m_billboard);
+    }
+    else
+    {
+        m_pat->removeChild(m_billboard);
+        m_pat->addChild(m_geode);
+    }
 }
 
 void osgInfo::UpdateTetra(osg::Vec3f normale, osg::Vec3f axis, osg::Vec3f ortho)
@@ -331,111 +333,65 @@ void osgInfo::UpdateAnchoringLine(float newZ)
 void osgInfo::UpdatePosition(osg::Vec3 newPos)
 {
     m_currentposition=newPos;
+    UpdateAnchoringLine(newPos.z());
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief Position getter
-/// \return
-///
 osg::Vec3 osgInfo::getPosition()
 {
     return m_currentposition;
 }
-////////////////////////////////////////////////////////////////////////
-/// \brief Distance to cam getter
-/// \return
-///
+
 float osgInfo::getDCAM()
 {
     return m_DCAM;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief Distance to SC getter
-/// \return
-///
 float osgInfo::getDSC()
 {
     return m_DSC;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief pat getter
-/// \return
-///
 osg::Group* osgInfo::getGroup()
 {
     return m_group;
     //return m_pat;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief name getter
-/// \return
-///
 std::string osgInfo::getInfoName()
 {
     return m_name;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief type getter
-/// \return
-///
 std::string osgInfo::getType()
 {
     return m_filetype;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief source getter
-/// \return
-///
 std::string osgInfo::getSourceType()
 {
     return m_sourcetype;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief source getter
-/// \return
-///
 std::string osgInfo::getInfoLOD()
 {
     return m_LOD;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief displayable getter
-/// \return
-///
 bool osgInfo::isDisplayable()
 {
     return m_displayable;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief requested getter
-/// \return
-///
 bool osgInfo::isRequested()
 {
     return m_requested;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief requested getter
-/// \return
-///
 bool osgInfo::isonScreen()
 {
     return m_onscreen;
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief Axis setter
-/// \param newAxis
-///
 void osgInfo::setAxis(osg::Vec3 newAxis)
 {
     m_axe=newAxis;
@@ -443,20 +399,13 @@ void osgInfo::setAxis(osg::Vec3 newAxis)
 
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief Angle setter
-/// \param newAngle
-///
 void osgInfo::setAngle(float newAngle)
 {
     m_angle=newAngle;
     //TODO : void update pat
 
 }
-////////////////////////////////////////////////////////////////////////
-/// \brief Height setter
-/// \param newHeight
-///
+
 void osgInfo::setHeight(float newHeight)
 {
     m_height=newHeight;
@@ -464,10 +413,6 @@ void osgInfo::setHeight(float newHeight)
 
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief Width setter
-/// \param newWidth
-///
 void osgInfo::setWidth(float newWidth)
 {
     m_width=newWidth;
@@ -475,21 +420,12 @@ void osgInfo::setWidth(float newWidth)
 
 }
 
-
-////////////////////////////////////////////////////////////////////////
-/// \brief Distance to cam setter
-/// \param newDist
-///
 void osgInfo::setDCAM(float newDist)
 {
     m_DCAM=newDist;
 
 }
 
-////////////////////////////////////////////////////////////////////////
-/// \brief Distance to SC setter
-/// \param newScreenDist
-///
 void osgInfo::setDSC(float newScreenDist)
 {
     m_DSC=newScreenDist;
@@ -564,12 +500,10 @@ void osgInfo::setDa(float area)
     m_Da=area;
 }
 
-
 void osgInfo::setTransparency(float alpha)
 {
    m_material->setAlpha(osg::Material::FRONT_AND_BACK, alpha);
 }
-
 
 void osgInfo::Scaling(float scale)
 {
