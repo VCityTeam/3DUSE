@@ -8,13 +8,10 @@ project( 3DUSE )
 # we could unifiy with the following QT5 case by requiring 2.8.9 (which
 # would agree with unbuntu, debian 7, fedora 21, OpenSUSE 13.1...
 # FIXME: discuss the above and list the supported platforms and distros.
-# but requiring a minimum of 2.8.12 looks recommendable.
 cmake_minimum_required(VERSION 2.8)
 
 if ( WITH_QT5 )
-  # Because 2.8.8 has a bug with QT5_USE_MODULES
-  # QT recommends minimum version of 2.8.11 (refer to
-  #   http://doc.qt.io/qt-5/cmake-manual.html )
+  # because 2.8.8 has a bug with QT5_USE_MODULES
   cmake_minimum_required(VERSION 2.8.9)
 endif ()
 
@@ -139,6 +136,14 @@ if (WITH_QT5)
 	FIND_PACKAGE(Qt5OpenGL)
 	if(${Qt5OpenGL_FOUND})
 	  message(STATUS "--> Qt5OpenGL found.")
+	  if (WITH_QT3D)
+	    FIND_PACKAGE(Qt53D)
+	    if(${Qt53D_FOUND})
+	      message(STATUS "--> Qt53D found.")
+	    else(${Qt53D_FOUND})
+	      message(FATAL_ERROR "Qt53D not found.")
+	    endif(${Qt53D_FOUND})
+	  endif(WITH_QT3D)
 	else(${Qt5OpenGL_FOUND})
 	  message(FATAL_ERROR "Qt5OpenGL not found.")
 	endif(${Qt5OpenGL_FOUND})
@@ -166,6 +171,31 @@ else(WITH_QT5)
     message(FATAL_ERROR "Qt4 not found. Please set QTDIR.")
   endif(QT4_FOUND)
 
+  # FIXME: MTO says this test is no longer usefull ant that any reference
+  # to WITH_QT3D and QT3D related variables (see also below) can be cleaned out.
+  # Ditto with Qt53D  !!!!
+
+  # temporary (very bad) hack for Qt4-Qt3D test (only for Qt-4.8.1-Qt3D-1.0-x86 under windows)...
+  if (WITH_QT3D)
+    find_library(QT3D_LIBRARIES
+		NAMES Qt3D
+		PATHS
+		/usr/lib
+		/usr/local/lib
+		/sw/lib
+		/opt/local/lib
+		${QTDIR}/lib
+		ENV LD_LIBRARY_PATH
+		ENV LIBRARY_PATH
+		PATH_SUFFIXES Qt3D
+		)
+
+    if(QT3D_LIBRARIES)
+      MESSAGE(STATUS "Qt3D (for Qt4) libraries found: ${QT3D_LIBRARIES}")
+    else(QT3D_LIBRARIES)
+      MESSAGE(FATAL_ERROR "Qt3D (for Qt4) libraries not found.")
+    endif(QT3D_LIBRARIES)
+  endif(WITH_QT3D)
 endif(WITH_QT5)
 message(STATUS "Qt version used : ${QTDIR}")
 
@@ -363,12 +393,12 @@ SET( VCITY_GUI_Qt_RES
 )
 
 if (WITH_QT5)
-  QT5_WRAP_UI(       VCITY_GUI_UI_CPP  ${VCITY_GUI_Qt_UI}  )
-  QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES} )
+  QT5_WRAP_UI(VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
+  QT5_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 else(WITH_QT5)
-  QT4_WRAP_CPP(      VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC} )
-  QT4_WRAP_UI(       VCITY_GUI_UI_CPP  ${VCITY_GUI_Qt_UI}  )
-  QT4_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES} )
+  QT4_WRAP_CPP(VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC})
+  QT4_WRAP_UI(VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
+  QT4_ADD_RESOURCES(VCITY_GUI_RES_H ${VCITY_GUI_Qt_RES})
 endif(WITH_QT5)
 
 ### Local libraries variable definitions (to unify notations with external
@@ -402,6 +432,12 @@ set( VCITYCORE_INCLUDE_DIR
   ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
 )
 set( VCITYCORE_LIBRARY vcitycore )
+
+# FIXME: remove the following line and replace it with target_include_directories
+INCLUDE_DIRECTORIES(
+  src
+  ${CITYGML_INCLUDE_DIR}
+)
 
 ################### General
 set( VCITY_GUI_SRC
@@ -471,6 +507,10 @@ set( VCITY_GUI_SRC
   src/libfilters/tiling/ASCCut.cpp
   src/libfilters/tiling/TilingCityGML.cpp
   
+### Now part of "Core" library
+  # src/DataStructures/DEM/osgMnt.cpp
+  # src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+  
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
@@ -479,7 +519,7 @@ set( VCITY_GUI_SRC
   src/main.cpp
 
 ### FIXME section
-  # FIXME Interestingly enough the following are not necessary !?
+  # Interestingly enough the following are not necessary !?
   # src/gui/osgQt/osg32/GraphicsWindowQt.cxx
   # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
   # src/plugins/*.cpp
@@ -492,12 +532,21 @@ set( VCITY_GUI_SRC
   # within libcityGML that should remain "3D-Use core" free.
   src/libcitygml/utils/AABB.cpp
   src/libcitygml/utils/Triangle.cpp
+  # ...and the following depends on ProjectPointOnPolygon3D() defined in 
+  #                             src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+#  src/libcitygml/utils/importerASC.cpp 
+  # ...and the following depends on GetEnveloppe() also defined in 
+  #                             src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+#  src/libcitygml/utils/CityGMLtools.cpp
+  # Didn't check this one's dependencies though...
+#  src/libcitygml/utils/TiledFilesLayout.cpp
 )
 
 SET( VCITY_GUI_SRC
   ${VCITY_GUI_SRC}
+  ${VCITY_GUI_Qt_SRC}
   ${VCITY_GUI_UI_CPP}
-  ${VCITY_GUI_RES_CPP}
+  ${VCITY_GUI_RES_H}
 )
 
 # FIXME: the following section deals with OSG-QT and should probably
@@ -549,12 +598,18 @@ SET( VCITY_GUI_LIB
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT_LIBRARIES} )
+  if (WITH_QT3D)
+    SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT3D_LIBRARIES} )
+  endif(WITH_QT3D)
 endif(WITH_QT5)
 
 set(my_COMPILE_DEFINITIONS "")
 if (WITH_QT5)
   set(my_COMPILE_DEFINITIONS ${my_COMPILE_DEFINITIONS} ";WITH_QT5")
 endif(WITH_QT5)
+if (WITH_QT3D)
+  set(my_COMPILE_DEFINITIONS ${my_COMPILE_DEFINITIONS} ";WITH_QT3D")
+endif(WITH_QT3D)
 
 # --- EXECUTABLE ---
 
@@ -618,19 +673,21 @@ target_link_libraries (${PRJ_NAME}
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
+  if (WITH_QT3D)
+    QT5_USE_MODULES( ${PRJ_NAME} 3D )
+  endif(WITH_QT3D)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-add_executable( CityGMLCut
-  src/utils/cmdline/cityGMLCut.cxx
-  src/utils/cmdline/triangulate.cxx
-)
-target_include_directories( CityGMLCut PUBLIC ${CITYGML_INCLUDE_DIR} )
-target_link_libraries ( CityGMLCut ${VCITY_GUI_LIB})
+add_executable(CityGMLCut src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx)
+target_link_libraries (CityGMLCut ${VCITY_GUI_LIB})
 
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
   QT5_USE_MODULES( CityGMLCut Widgets Xml OpenGL )
+  if (WITH_QT3D)
+    QT5_USE_MODULES( CityGMLCut 3D )
+  endif(WITH_QT3D)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
@@ -649,35 +706,17 @@ endif(WITH_QT5)
 # --> CityGMLCutQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLCutQtPlugin "BUILD CityGMLCutQtPlugin " ON)
 if (BUILD_CityGMLCutQtPlugin)
-	set( CityGMLCut_Qt_Plugin_HEADER
-    src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.h
-    src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.h )
-	set( CityGMLCut_Qt_Plugin_UI
-    src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui
-  )
+	set(CityGMLCut_Qt_Plugin_HEADER src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.h src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.h)
+	set(CityGMLCut_Qt_Plugin_UI src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui)
 	if (WITH_QT5)
 	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
-      ${CityGMLCut_Qt_Plugin_HEADER}
-      TARGET CityGMLCutQtPlugin
-    )
-	  QT5_WRAP_UI( CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI} )
-	  set( CityGMLCut_Qt_Plugin_SRC
-      ${CityGMLCut_Qt_Plugin_SRC}
-      ${CityGMLCut_Qt_Plugin_MOC_CPP}
-      ${CityGMLCut_Qt_Plugin_UI_CPP}
-    )
+	  QT5_WRAP_CPP(CityGMLCut_Qt_Plugin_MOC_CPP ${CityGMLCut_Qt_Plugin_HEADER})
+	  QT5_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
+	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
 	else(WITH_QT5) 
-	  QT4_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
-      ${CityGMLCut_Qt_Plugin_HEADER}
-      TARGET CityGMLCutQtPlugin
-    )
-	  QT4_WRAP_UI( CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI} )
-	  set( CityGMLCut_Qt_Plugin_SRC
-      ${CityGMLCut_Qt_Plugin_SRC}
-      ${CityGMLCut_Qt_Plugin_MOC_CPP}
-      ${CityGMLCut_Qt_Plugin_UI_CPP}
-    )
+	  QT4_WRAP_CPP(CityGMLCut_Qt_Plugin_MOC_CPP ${CityGMLCut_Qt_Plugin_HEADER})
+	  QT4_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
+	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
 	  set(CityGMLCut_Qt_Plugin_LIB ${CityGMLCut_Qt_Plugin_LIB} ${QT_LIBRARIES})
 	endif(WITH_QT5)
 
