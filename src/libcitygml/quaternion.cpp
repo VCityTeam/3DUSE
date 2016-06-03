@@ -61,7 +61,7 @@ namespace citygml
     }
 
 
-    float dot(quaternion const& q0,quaternion const& q1)
+    double dot(quaternion const& q0,quaternion const& q1)
     {
         return q0.x()*q1.x()+q0.y()*q1.y()+q0.z()*q1.z()+q0.w()*q1.w();
     }
@@ -164,7 +164,7 @@ namespace citygml
         return temp;
     }
 
-    float norm(quaternion const& q)
+    double norm(quaternion const& q)
     {
         return std::sqrt(q.x()*q.x()+q.y()*q.y()+q.z()*q.z()+q.w()*q.w());
     }
@@ -211,15 +211,15 @@ namespace citygml
 
     std::array<double,9> quaternion::to_rotation_matrix() const
     {
-        float const x2=x()*x();
-        float const y2=y()*y();
-        float const z2=z()*z();
-        float const xy=x()*y();
-        float const xz=x()*z();
-        float const yz=y()*z();
-        float const wx=w()*x();
-        float const wy=w()*y();
-        float const wz=w()*z();
+        double const x2=x()*x();
+        double const y2=y()*y();
+        double const z2=z()*z();
+        double const xy=x()*y();
+        double const xz=x()*z();
+        double const yz=y()*z();
+        double const wx=w()*x();
+        double const wy=w()*y();
+        double const wz=w()*z();
 
         std::array<double,9> rotation_matrix = {1.0-2.0*(y2+z2), 2.0*(xy-wz),     2.0*(xz+wy),
                                                 2.0f*(xy+wz),    1.0-2.0*(x2+z2), 2.0*(yz-wx),

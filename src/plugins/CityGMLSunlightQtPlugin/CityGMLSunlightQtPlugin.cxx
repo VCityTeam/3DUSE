@@ -97,7 +97,7 @@ void CityGMLSunlightQtPlugin::loadSunlightFiles(QStringList filepaths, QDateTime
                 if(sf.size() < 3) //for an unknown reason, entryInfoList() returns files named ' ', '.', '..'. This is to skip this cases
                     continue;
 
-                int pos = sf.find(".csv");
+                size_t pos = sf.find(".csv");
                 std::string f_date = sf.substr(0,pos); //get the date from the name of the file
 
                 int iF_date = encodeDateTime(f_date,0); //Date represented by the file encoded into int

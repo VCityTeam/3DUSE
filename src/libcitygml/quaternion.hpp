@@ -65,11 +65,11 @@ public:
 // ********************************************* //
 
 /** Scalar product between quaternion */
-float dot(quaternion const& lhs,quaternion const& rhs);
+double dot(quaternion const& lhs,quaternion const& rhs);
 /** Quaternion interpolation */
 quaternion slerp(quaternion const& q0,quaternion const& q1,float alpha);
 /** Quaternion norm */
-float norm(quaternion const& q);
+double norm(quaternion const& q);
 /** Normalization of the quaternion */
 quaternion normalized(quaternion const& q);
 /** Conjugate of the quaternion (-v,w) */

@@ -3,6 +3,8 @@
 
 #include "vecs.hpp"
 
+#include <vector>
+#include <string>
 #include <QString>
 
 class FileInfo;

@@ -20,7 +20,7 @@
 #include "tesselator.hpp"
 #include "citygml.hpp"
 #include "utils.hpp"
-#include <string.h>
+#include <string>
 #include <limits>
 #include <iterator>
 #include <set>

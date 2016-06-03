@@ -60,7 +60,7 @@ int encodeDateTime(const QDateTime& date)
     QString format = "yyyy-MM-dd:hh";
     std::string sDatetime = date.toString(format).toStdString();
 
-    int pos = sDatetime.find(":");
+    size_t pos = sDatetime.find(":");
     std::string sDate = sDatetime.substr(0,pos);
     std::string sHour = sDatetime.substr(pos + 1, std::string::npos);
 

@@ -42,20 +42,10 @@ public:
     ///
     std::string WithPrevFolderAndGMLExtension();
 
-    ///
-    /// \brief m_filename name of the file
-    ///
-    std::string m_filename;
 
-    ///
-    /// \brief m_filepath full path of the file
-    ///
-    std::string m_filepath;
-
-    ///
-    /// \brief m_type Type of the file (_BATI or _MNT)
-    ///
-    fileType m_type;
+    std::string m_filename; /// \brief m_filename name of the file
+    std::string m_filepath; /// \brief m_filepath full path to the file
+    fileType m_type; /// \brief m_type Type of the file (_BATI or _MNT)
 
 };
 

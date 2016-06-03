@@ -2,7 +2,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include <cstdio>
 #include "osgMnt.hpp"
-#include <string.h>
+#include <string>
 //#include "tga.h"
 
 #include <osg/Geometry>

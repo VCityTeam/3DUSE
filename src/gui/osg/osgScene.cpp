@@ -728,8 +728,10 @@ void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::st
 
     if(geode)
     {
-        for(osg::ref_ptr<osg::Drawable> drawableChild : geode->getDrawableList())
+        for(int i = 0 ; i < geode->getNumDrawables(); ++i)
         {
+            osg::ref_ptr<osg::Drawable> drawableChild = geode->getDrawable(i);
+
             std::string drawableName = drawableChild->getName();
 
             if(sunlightInfo.count(drawableName) > 0) //If there is a value for this polygon in the map

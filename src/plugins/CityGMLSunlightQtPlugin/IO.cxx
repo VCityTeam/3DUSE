@@ -6,6 +6,7 @@
 
 #include <QDir>
 #include <fstream>
+#include <cmath>
 
 
 void createOutputFolders(QString sOutputDir)
