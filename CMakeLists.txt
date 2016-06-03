@@ -410,23 +410,26 @@ set( FILTERS_LIBRARIES   filters )
 
 # CITYGML
 set( CITYGML_INCLUDE_DIR
-   ${CMAKE_SOURCE_DIR}/src                   #FIXME: should not be necessary
-   ${CMAKE_SOURCE_DIR}/src/libcitygml
-   ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
-   ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
-   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  # FIXME: will become a library
-   ${CMAKE_BINARY_DIR}/src/libcitygml        # for generated citygml_export.h
+  ${CMAKE_SOURCE_DIR}/src                   #FIXME: should not be necessary
+  ${CMAKE_SOURCE_DIR}/src/libcitygml
+  ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
+  ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
+  ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  # FIXME: will become a library
+  ${CMAKE_BINARY_DIR}/src/libcitygml        # for generated citygml_export.h
 )
 set( CITYGML_LIBRARIES citygml )
 
 # CITYGML UTILS
-set( CITYGMLUTILS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/src/libcitygml/utils )
+set( CITYGMLUTILS_INCLUDE_DIR
+  ${CMAKE_SOURCE_DIR}/src/libcitygml/utils
+  ${CMAKE_BINARY_DIR}/src/libcitygml/utils  # generated citygmlutils_export.h
+)
 set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
 # CORE
 set( VCITYCORE_INCLUDE_DIR
   ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
-  ${CMAKE_BINARY_DIR}/src                     # for generated vcitycore_export.h
+  ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
 )
 set( VCITYCORE_LIBRARY vcitycore )
 

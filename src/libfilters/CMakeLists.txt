@@ -12,11 +12,13 @@ add_library( filters
 
 target_include_directories( filters PUBLIC
   ${VCITYCORE_INCLUDE_DIR}
+  ${CITYGMLUTILS_INCLUDE_DIR}
 )
 
 target_link_libraries(filters
   ${OSG_LIBRARIES}
   ${VCITYCORE_LIBRARY}
+  ${CITYGMLUTILS_LIBRARIES}
 )
 
 if (WITH_QT5)
