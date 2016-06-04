@@ -10,17 +10,19 @@ add_library( vcitycore SHARED
 target_link_libraries( vcitycore
   ${OSG_LIBRARIES}
   ${OPENTHREADS_LIBRARIES}      # FIXME osgMnt.cpp depends on osg::BufferData
-                     # which in turn depends on OpenThreads::Atomic::operator++
-                     # and operator--. If this is an undirect dependency of
-                     # of the OSG_LIBRARIES then change this project's definition
-                     # of this variable by extending it systematically with
-                     # ${OPENTHREADS_LIBRARIES} and remove this line (and
-                     # other of its occurences). 
+                 # which in turn depends on OpenThreads::Atomic::operator++
+                 # and operator--. If this is an undirect dependency of
+                 # of the OSG_LIBRARIES then change this project's definition
+                 # of this variable by extending it systematically with
+                 # ${OPENTHREADS_LIBRARIES} and remove this line (and
+                 # other of its occurences). 
   ${GDAL_LIBRARY}
 )
 
-# Required for generated vcitycore_export.h
-target_include_directories( vcitycore PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
+target_include_directories( vcitycore PUBLIC
+  ${CITYGML_INCLUDE_DIR}         # FIXME: OGRGDALtools.hpp includes vecs.hpp !
+  ${CMAKE_CURRENT_BINARY_DIR}    # For generated vcitycore_export.h
+)
 
 # Dealing with VC++ oddities: generates the export header core_exports.h 
 include (GenerateExportHeader)
