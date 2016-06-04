@@ -11,7 +11,7 @@ project( 3DUSE )
 #     OpenSUSE 13.1...
 # FIXME: establish cmake minimum version with the following constraints:
 #  * Ubuntu 14.04 (current Travis image) still uses 2.8.12 (cmake 3.0 is
-     thus too high)
+#    thus too high)
 #  * QT5_USE_MODULES has a bug for cmake version 2.8.8
 # Proposed version: requiring anything in the range 2.8.9 to 2.8.12 would
 # make the job. Go for the higher version within this range i.e. 2.8.12 ?
