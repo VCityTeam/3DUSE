@@ -379,7 +379,7 @@ set( FILTERS_LIBRARIES   filters )
 
 # CITYGML
 set( CITYGML_INCLUDE_DIR
-  ${CMAKE_SOURCE_DIR}/src                   #FIXME: should not be necessary
+  # CLEAN ME ${CMAKE_SOURCE_DIR}/src        #FIXME: should not be necessary
   ${CMAKE_SOURCE_DIR}/src/libcitygml
   ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
   ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
@@ -401,13 +401,6 @@ set( VCITYCORE_INCLUDE_DIR
   ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
 )
 set( VCITYCORE_LIBRARY vcitycore )
-
-# FIXME: remove the following line and replace it with the ad-hoc
-# (i.e. for the targets requiring it) target_include_directories() 
-INCLUDE_DIRECTORIES(
-  src
-  ${CITYGML_INCLUDE_DIR}
-)
 
 # FIXME: inquire on the necessity of the following line
 # Find includes in corresponding build directories
@@ -637,8 +630,12 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-add_executable(CityGMLCut src/utils/cmdline/cityGMLCut.cxx src/utils/cmdline/triangulate.cxx)
-target_link_libraries (CityGMLCut ${VCITY_GUI_LIB})
+add_executable( CityGMLCut
+  src/utils/cmdline/cityGMLCut.cxx
+  src/utils/cmdline/triangulate.cxx
+)
+target_include_directories( CityGMLCut PUBLIC src/libcitygml ) # For vecs.hpp
+target_link_libraries(CityGMLCut ${VCITY_GUI_LIB})
 
 if (WITH_QT5)
   ADD_DEFINITIONS("-DWITH_QT5")
@@ -668,11 +665,21 @@ if (BUILD_CityGMLCutQtPlugin)
      src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui)
 	if (WITH_QT5)
 	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP(CityGMLCut_Qt_Plugin_MOC_CPP ${CityGMLCut_Qt_Plugin_HEADER})
+	  QT5_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
+      ${CityGMLCut_Qt_Plugin_HEADER}
+      TARGET CityGMLCutQtPlugin
+    )
 	  QT5_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
-	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
+	  set( CityGMLCut_Qt_Plugin_SRC
+      ${CityGMLCut_Qt_Plugin_SRC}
+      ${CityGMLCut_Qt_Plugin_MOC_CPP}
+      ${CityGMLCut_Qt_Plugin_UI_CPP}
+    )
 	else(WITH_QT5) 
-	  QT4_WRAP_CPP(CityGMLCut_Qt_Plugin_MOC_CPP ${CityGMLCut_Qt_Plugin_HEADER})
+	  QT4_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
+      ${CityGMLCut_Qt_Plugin_HEADER}
+      TARGET CityGMLCutQtPlugin
+    )
 	  QT4_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
 	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
 	  set(CityGMLCut_Qt_Plugin_LIB ${CityGMLCut_Qt_Plugin_LIB} ${QT_LIBRARIES})
@@ -686,10 +693,11 @@ if (BUILD_CityGMLCutQtPlugin)
     ${CityGMLCut_Qt_Plugin_SRC}
     ${VCITY_GUI_SRC_WIN}
   )
-	target_include_directories( CityGMLCutQtPlugin PUBLIC
+  target_include_directories( CityGMLCutQtPlugin PUBLIC
+    src                            # For moc on Generic_PluginInterface
     ${CITYGML_INCLUDE_DIR}
   )
-	target_link_libraries( CityGMLCutQtPlugin
+  target_link_libraries( CityGMLCutQtPlugin
     ${CityGMLCut_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
@@ -702,11 +710,19 @@ endif (BUILD_CityGMLCutQtPlugin)
 # --> CityGMLEmptyQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLEmptyQtPlugin "BUILD CityGMLEmptyQtPlugin " ON)
 if (BUILD_CityGMLEmptyQtPlugin)
-	set(CityGMLEmpty_Qt_Plugin_HEADER src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.h src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.h)
-	set(CityGMLEmpty_Qt_Plugin_UI src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.ui)
+	set( CityGMLEmpty_Qt_Plugin_HEADER
+    src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.h
+    src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.h
+  )
+	set( CityGMLEmpty_Qt_Plugin_UI
+    src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.ui
+  )
 	if (WITH_QT5)
 	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP(CityGMLEmpty_Qt_Plugin_MOC_CPP ${CityGMLEmpty_Qt_Plugin_HEADER})
+	  QT5_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
+      ${CityGMLEmpty_Qt_Plugin_HEADER}
+      TARGET CityGMLEmptyQtPlugin
+    )
 	  QT5_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
 	  set(CityGMLEmpty_Qt_Plugin_SRC ${CityGMLEmpty_Qt_Plugin_SRC} ${CityGMLEmpty_Qt_Plugin_MOC_CPP} ${CityGMLEmpty_Qt_Plugin_UI_CPP})
 	else(WITH_QT5) 
@@ -723,16 +739,17 @@ if (BUILD_CityGMLEmptyQtPlugin)
     ${CityGMLEmpty_Qt_Plugin_SRC}
     ${VCITY_GUI_SRC_WIN}
   )
-	target_include_directories( CityGMLEmptyQtPlugin PUBLIC
+  target_include_directories( CityGMLEmptyQtPlugin PUBLIC
+    src                            # For moc on Generic_PluginInterface
     ${CITYGML_INCLUDE_DIR}
   )
   target_link_libraries( CityGMLEmptyQtPlugin
     ${CityGMLEmpty_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
-	if (WITH_QT5)
-	  QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets OpenGL)
-	endif(WITH_QT5)
+  if (WITH_QT5)
+    QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets OpenGL)
+  endif(WITH_QT5)
 endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLEmptyQtPlugin : QtPlugin [END]
 
@@ -744,13 +761,27 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     CityGMLVisibilite_Qt_Plugin_SRC
     src/plugins/CityGMLVisibiliteQtPlugin/*.cxx
   )
-	set(CityGMLVisibilite_Qt_Plugin_HEADER src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.h src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.hpp)
-	set(CityGMLVisibilite_Qt_Plugin_UI src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.ui)
+  set( CityGMLVisibilite_Qt_Plugin_HEADER
+    src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.h
+    src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.hpp
+  )
+	set( CityGMLVisibilite_Qt_Plugin_UI
+    src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.ui
+  )
 	if (WITH_QT5)
 	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP(CityGMLVisibilite_Qt_Plugin_MOC_CPP ${CityGMLVisibilite_Qt_Plugin_HEADER})
-	  QT5_WRAP_UI(CityGMLVisibilite_Qt_Plugin_UI_CPP ${CityGMLVisibilite_Qt_Plugin_UI})
-	  set(CityGMLVisibilite_Qt_Plugin_SRC ${CityGMLVisibilite_Qt_Plugin_SRC} ${CityGMLVisibilite_Qt_Plugin_MOC_CPP} ${CityGMLVisibilite_Qt_Plugin_UI_CPP})
+	  QT5_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
+      ${CityGMLVisibilite_Qt_Plugin_HEADER}
+      TARGET CityGMLVisibiliteQtPlugin
+    )
+	  QT5_WRAP_UI( CityGMLVisibilite_Qt_Plugin_UI_CPP
+      ${CityGMLVisibilite_Qt_Plugin_UI}
+    )
+	  set( CityGMLVisibilite_Qt_Plugin_SRC
+      ${CityGMLVisibilite_Qt_Plugin_SRC}
+      ${CityGMLVisibilite_Qt_Plugin_MOC_CPP}
+      ${CityGMLVisibilite_Qt_Plugin_UI_CPP}
+    )
 	else(WITH_QT5) 
 	  QT4_WRAP_CPP(CityGMLVisibilite_Qt_Plugin_MOC_CPP ${CityGMLVisibilite_Qt_Plugin_HEADER})
 	  QT4_WRAP_UI(CityGMLVisibilite_Qt_Plugin_UI_CPP ${CityGMLVisibilite_Qt_Plugin_UI})
@@ -766,11 +797,12 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
      ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
   )
   # For raytracing:
-	target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
+  target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
+    src                            # For moc on Generic_PluginInterface
     src/libfilters
     ${CITYGML_INCLUDE_DIR}
   )
-	target_link_libraries( CityGMLVisibiliteQtPlugin
+  target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
@@ -788,13 +820,27 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLFloodARQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLFloodARQtPlugin "BUILD CityGMLFloodARQtPlugin " OFF)
 if (BUILD_CityGMLFloodARQtPlugin) 
-  set(CityGMLFloodAR_Qt_Plugin_HEADER src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.h src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.hpp src/plugins/CityGMLFloodARQtPlugin/FloodARTools.hpp)
-  set(CityGMLFloodAR_Qt_Plugin_UI src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.ui)
+  set( CityGMLFloodAR_Qt_Plugin_HEADER
+    src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.h
+    src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.hpp
+    src/plugins/CityGMLFloodARQtPlugin/FloodARTools.hpp
+  )
+  set( CityGMLFloodAR_Qt_Plugin_UI
+    src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.ui
+  )
   if (WITH_QT5)
     ADD_DEFINITIONS("-DWITH_QT5")
-    QT5_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
-    QT5_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
-    set(CityGMLFloodAR_Qt_Plugin_SRC ${CityGMLFloodAR_Qt_Plugin_SRC} ${CityGMLFloodAR_Qt_Plugin_MOC_CPP} ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
+    QT5_WRAP_CPP( CityGMLFloodAR_Qt_Plugin_MOC_CPP
+      ${CityGMLFloodAR_Qt_Plugin_HEADER}
+      TARGET CityGMLFloodARQtPlugin
+    )
+    QT5_WRAP_UI( CityGMLFloodAR_Qt_Plugin_UI_CPP
+      ${CityGMLFloodAR_Qt_Plugin_UI}
+    )
+    set( CityGMLFloodAR_Qt_Plugin_SRC
+      ${CityGMLFloodAR_Qt_Plugin_SRC}
+      ${CityGMLFloodAR_Qt_Plugin_MOC_CPP}
+      ${CityGMLFloodAR_Qt_Plugin_UI_CPP})
   else(WITH_QT5) 
     QT4_WRAP_CPP(CityGMLFloodAR_Qt_Plugin_MOC_CPP ${CityGMLFloodAR_Qt_Plugin_HEADER})
     QT4_WRAP_UI(CityGMLFloodAR_Qt_Plugin_UI_CPP ${CityGMLFloodAR_Qt_Plugin_UI})
@@ -813,6 +859,7 @@ if (BUILD_CityGMLFloodARQtPlugin)
   )
 
   target_include_directories( CityGMLFloodARQtPlugin PUBLIC
+    src                            # For moc on Generic_PluginInterface
     ${FILTERS_INCLUDE_DIR}
     ${CITYGMLUTILS_INCLUDE_DIR}
   )

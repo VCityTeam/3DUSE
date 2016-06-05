@@ -1,7 +1,7 @@
 #ifndef CITYGMLEmptyQTPLUGIN_H
 #define CITYGMLEmptyQTPLUGIN_H
 
-#include "../gui/pluginInterface.h"
+#include "gui/pluginInterface.h"
 
 #include <QStringList>
 #include "Dialogs/DialogCityGMLEmpty1.h"
