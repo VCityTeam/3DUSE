@@ -1,14 +1,19 @@
 
 add_library( citygmlutils SHARED
-  # FIXME: compiled at the project CMakeLists.txt level. Refer there for comment.
-  # FIXME AABB.cpp
-  # FIXME Triangle.cpp
+  AABB.cpp
   CityGMLtools.cpp
   exportJSON.cpp
   exportOBJ.cpp
   importerASC.cpp
   importerAssimp.cpp
   TiledFilesLayout.cpp
+
+  # FIXME: Triangle.cpp depends on core/tile.hpp, that in turn depends
+  # on citygml. Hence we can import core/tile.cpp without adding further
+  # dependency to this citygmlutils lib.
+  # Yet one must move tile.cpp to this directory
+  ../../core/tile.cpp
+  Triangle.cpp
 )
 
 target_include_directories( citygmlutils PUBLIC

@@ -8,8 +8,6 @@
 #include <osgDB/fstream>
 #include <map>
 
-#include "libcitygml/citygml.hpp"
-#include "core/tile.hpp"
 #include "Triangle.hpp"
 #include "TiledFilesLayout.hpp"
 

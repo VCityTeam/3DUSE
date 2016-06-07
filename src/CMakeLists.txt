@@ -1,10 +1,11 @@
 # add_subdirectory(core)
-add_subdirectory(libfilters)
-add_subdirectory(libcitygml)
+add_subdirectory( libfilters )
+add_subdirectory( libcitygml )
 
 add_library( vcitycore SHARED
   DataStructures/DEM/osgMnt.cpp 
   utils/OGRGDAL_Utils/OGRGDALtools.cpp
+  utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
 )
 
 target_link_libraries( vcitycore
@@ -17,6 +18,8 @@ target_link_libraries( vcitycore
                  # ${OPENTHREADS_LIBRARIES} and remove this line (and
                  # other of its occurences). 
   ${GDAL_LIBRARY}
+  ${QT_LIBRARIES}   # FIXME: required by SaveGeometrytoShape from
+                    # OGRGDALtoShpWriter.cpp on QDIR and QString.
 )
 
 target_include_directories( vcitycore PUBLIC

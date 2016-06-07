@@ -372,14 +372,18 @@ endif(WITH_QT5)
 # The following variable definitions add syntactic sugat in an attempt
 # to unify notations between external libraries and internal (defined
 # within this project) libraries. 
-# FIXME: those definition should be deported in their respective
+# FIXME: those definition should be deported to their respective
 # sub-directories.
-set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
-set( FILTERS_LIBRARIES   filters )
 
-# CITYGML
+# CORE
+set( VCITYCORE_INCLUDE_DIR
+  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
+  ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
+)
+set( VCITYCORE_LIBRARY vcitycore )
+
+# CITYGML--> CORE
 set( CITYGML_INCLUDE_DIR
-  # CLEAN ME ${CMAKE_SOURCE_DIR}/src        #FIXME: should not be necessary
   ${CMAKE_SOURCE_DIR}/src/libcitygml
   ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
   ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
@@ -388,19 +392,17 @@ set( CITYGML_INCLUDE_DIR
 )
 set( CITYGML_LIBRARIES citygml )
 
-# CITYGML UTILS
+# CITYGML UTILS--> CITYGML
 set( CITYGMLUTILS_INCLUDE_DIR
   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils
   ${CMAKE_BINARY_DIR}/src/libcitygml/utils  # generated citygmlutils_export.h
 )
 set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
-# CORE
-set( VCITYCORE_INCLUDE_DIR
-  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
-  ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
-)
-set( VCITYCORE_LIBRARY vcitycore )
+# FILTERS--> CORE, CITYGML, CITYGMLUTILS
+set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
+set( FILTERS_LIBRARIES   filters )
+
 
 # FIXME: inquire on the necessity of the following line
 # Find includes in corresponding build directories
@@ -426,7 +428,6 @@ set( VCITY_GUI_SRC
   src/core/layerTiledCityGML.cpp
   src/core/scene.cpp
   src/core/settings.cpp
-  src/core/tile.cpp
   src/core/tools/log.cpp
 ### The gui  
   src/gui/applicationGui.cpp
@@ -465,24 +466,27 @@ set( VCITY_GUI_SRC
   src/gui/osg/osgTools.cpp
   
 ### Filters
-  src/libfilters/ChangeDetection/ChangeDetection.cpp
-  src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
-  src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
-  src/libfilters/raytracing/Hit.cpp
-  src/libfilters/raytracing/Ray.cpp
-  src/libfilters/raytracing/RayTracing.cpp
-  src/libfilters/ShpExtrusion/ShpExtrusion.cpp
-  src/libfilters/tiling/ASCCut.cpp
-  src/libfilters/tiling/TilingCityGML.cpp
+  # src/libfilters/ChangeDetection/ChangeDetection.cpp
+  # src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
+  # src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
+  # src/libfilters/raytracing/Hit.cpp
+  # src/libfilters/raytracing/Ray.cpp
+  # src/libfilters/raytracing/RayTracing.cpp
+  # src/libfilters/ShpExtrusion/ShpExtrusion.cpp
+  # src/libfilters/tiling/ASCCut.cpp
+  # src/libfilters/tiling/TilingCityGML.cpp
   
 ### Now part of "Core" library
-  # src/DataStructures/DEM/osgMnt.cpp
-  # src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+  # FIXME src/DataStructures/DEM/osgMnt.cpp
+  # FIXME src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
+  # FIXME src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
+
+### Now part of "citygmlutils" library
+  # FIXME src/core/tile.cpp MOVE THE FILE THERE
   
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
-  src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
 
   src/main.cpp
 
@@ -491,15 +495,6 @@ set( VCITY_GUI_SRC
   # src/gui/osgQt/osg32/GraphicsWindowQt.cxx
   # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
   # src/plugins/*.cpp
-  
-  ## FIXME: the following should be dealt within libcitygmlutils.
-  # Yet finishing this job implies the availability of a core library
-  # since some of the libcitygml/utils content seems to depend both
-  # on libcityGML and the core. Actually, if this is indeed the case
-  # then those files should be compile with core, or the utils but not
-  # within libcityGML that should remain "3D-Use core" free.
-  src/libcitygml/utils/AABB.cpp
-  src/libcitygml/utils/Triangle.cpp
 )
 
 SET( VCITY_GUI_SRC
@@ -806,6 +801,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     ${LINUX_FLAGS}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
+    ${FILTERS_LIBRARIES}
     ${CityGMLVisibilite_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
@@ -870,6 +866,7 @@ if (BUILD_CityGMLFloodARQtPlugin)
     ${VCITY_GUI_LIB}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
+    ${FILTERS_LIBRARIES}
   )
   if (WITH_QT5)
     QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)

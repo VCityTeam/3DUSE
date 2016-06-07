@@ -1,4 +1,4 @@
-add_library( filters
+add_library( filters SHARED
   ChangeDetection/ChangeDetection.cpp
   EnhanceCityGML/EnhanceMNT.cpp
   EnhanceCityGML/LinkCityGMLShape.cpp
