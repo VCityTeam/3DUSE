@@ -7,8 +7,10 @@
 #include <QDir>
 #include <fstream>
 
-#define _USE_MATH_DEFINES //For pi constant. Needs to be above #include <cmath> to avoid error on windows
-#include <cmath>
+//#define _USE_MATH_DEFINES //For pi constant. Needs to be above #include <cmath> to avoid error on windows
+//#include <cmath>
+
+#define M_PI 3.14159265358979323846
 
 
 void createOutputFolders(QString sOutputDir)

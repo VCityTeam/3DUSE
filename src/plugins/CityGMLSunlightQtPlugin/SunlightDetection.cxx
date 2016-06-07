@@ -52,10 +52,10 @@ std::queue<RayBoxHit> SetupFileOrder(std::vector<AABB> boxes,RayBoxCollection* r
 
         std::sort(rayBox->boxes.begin(),rayBox->boxes.end());//Sort the boxes depending on their intersection distance
 
-        for(int j = 0; j < rayBox->boxes.size(); j++)//We update the order of each boxes
+        for(std::size_t j = 0; j < rayBox->boxes.size(); j++)//We update the order of each boxes
         {
             int current = boxToMaxOrder[rayBox->boxes[j].box.name];
-            boxToMaxOrder[rayBox->boxes[j].box.name] = std::max(j,current);
+            boxToMaxOrder[rayBox->boxes[j].box.name] = std::max(static_cast<int>(j),current);
 
             if(boxToRayBoxHit.find(rayBox->boxes[j].box.name) != boxToRayBoxHit.end())//= Si rayBox->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution
             {

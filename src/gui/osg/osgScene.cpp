@@ -728,7 +728,7 @@ void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::st
 
     if(geode)
     {
-        for(int i = 0 ; i < geode->getNumDrawables(); ++i)
+        for(std::size_t i = 0 ; i < geode->getNumDrawables(); ++i)
         {
             osg::ref_ptr<osg::Drawable> drawableChild = geode->getDrawable(i);
 
