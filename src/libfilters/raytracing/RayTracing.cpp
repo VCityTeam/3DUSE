@@ -50,9 +50,9 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
     //List of rays and their frag coord
     std::vector<Ray*>* toDo = new std::vector<Ray*>[tCount];//List of rays for each threads
 
-    int cpt = 0;
+    unsigned int cpt = 0;
     int NumThread = 0;
-    for (int i = 0; i < rays.size(); ++i)
+    for (unsigned int i = 0; i < rays.size(); ++i)
     {
         toDo[NumThread].push_back(rays.at(i));
         ++cpt;

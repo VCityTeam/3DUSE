@@ -291,7 +291,7 @@ void InfoDataType::stairedDisplay(std::map<float, osgInfo *> m_info)
     {
         tmp_info.push_back(it->second);
     }
-    for(int i=0; i<tmp_info.size(); i++)
+    for(size_t i=0; i<tmp_info.size(); ++i)
     {
        osgInfo* info = tmp_info[0];
        info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(info->m_initposition);

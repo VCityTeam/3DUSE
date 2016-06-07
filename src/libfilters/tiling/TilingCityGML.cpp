@@ -358,7 +358,7 @@ citygml::CityModel* TileCityGML(vcity::Tile* Tile, std::vector<TextureCityGML*>*
                             OGRLinearRing * WallRing = new OGRLinearRing;
 
                             std::vector<TVec3d> PointsWall = PolygonCityGML->getExteriorRing()->getVertices();
-                            for (int i = 0; i < PointsWall.size(); ++i) //Le premier point n'est pas repete a la fin
+                            for (std::size_t i = 0; i < PointsWall.size(); ++i) //Le premier point n'est pas repete a la fin
                             {
                                 TVec3d Point = PointsWall.at(i);
                                 WallRing->addPoint(Point.x, Point.y, Point.z);

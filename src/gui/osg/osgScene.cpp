@@ -431,7 +431,7 @@ void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
 void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info)
 {
     int cpt = 0;
-        for (int i=0; i<v_info.size(); i++)
+        for (size_t i=0; i<v_info.size(); ++i)
         {
             if(v_info[i]->getInfoLOD()=="city")
             {
@@ -918,7 +918,7 @@ void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
 
         // check if we had 5 LODs geodes
         int numGeodes = 0;
-        for (int i = 0; i < count; ++i)
+        for (unsigned int i = 0; i < count; ++i)
         {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
             if (child->asGeode())
@@ -933,7 +933,7 @@ void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
         }
         if (lod != 1 || numGeodes != 5) //Si on travaille sur le LOD1, pas besoin d'aller voir les enfants si le grp courant a deja cache/montre son LOD1 -> gain de temps
         {
-            for (int i = 0; i < count; ++i)
+            for (unsigned int i = 0; i < count; ++i)
             {
                 osg::ref_ptr<osg::Node> child = grp->getChild(i);
                 forceLODrec(lod, child);
@@ -1236,7 +1236,7 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
     while (uri.getCursor() < uri.getDepth())
     {
         unsigned int count = current->getNumChildren();
-        for (int i = 0; i < count; ++i)
+        for (unsigned int i = 0; i < count; ++i)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);
             if (child->getName() == uri.getCurrentNode())

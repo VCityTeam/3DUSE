@@ -636,7 +636,7 @@ void process_Building_ReliefFeature_boundingbox(xmlNodePtr noeud, bool *first_po
 
 								//printf("point %2d - (%lf %lf %lf - uv: %lf %lf)\n", ii, pp.x, pp.y, pp.z, pp.U, pp.V);
 								bool pfound=false;
-								for (int dd=0; dd<vv.size(); dd++)
+                                for (std::size_t dd=0; dd<vv.size(); dd++)
 								{
 									if ( (vv[dd].x == pp.x) && (vv[dd].y == pp.y) && (vv[dd].z == pp.z) )
 									{
