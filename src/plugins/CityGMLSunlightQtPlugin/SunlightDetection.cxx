@@ -1,6 +1,6 @@
 #include "SunlightDetection.h"
 
-#include <fstream>
+#include <osgDB/fstream>
 #include <queue>
 
 #include "AABB.hpp"

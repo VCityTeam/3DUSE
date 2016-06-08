@@ -5,12 +5,11 @@
 #include "libcitygml/quaternion.hpp"
 
 #include <QDir>
-#include <fstream>
+#include <osgDB/fstream>
 
-//#define _USE_MATH_DEFINES //For pi constant. Needs to be above #include <cmath> to avoid error on windows
-//#include <cmath>
-
-#define M_PI 3.14159265358979323846
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
 
 
 void createOutputFolders(QString sOutputDir)
