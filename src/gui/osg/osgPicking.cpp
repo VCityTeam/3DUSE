@@ -159,7 +159,6 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         //node = (nodePath.size()>=1)?nodePath[nodePath.size()-1]:0;
 
         osg::Node* node = nodePath.back();
-
         //osg::notify(osg::NOTICE) << "Picked: " << node->getName() << std::endl;
 
 
@@ -191,7 +190,6 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                 if (node->getNumParents() > 0)
                 {
                     node = node->getParent(0);
-                    //std::cout << "parent node " << node->getName() << std::endl;
                 }
                 else
                     break;
@@ -399,6 +397,7 @@ void PickHandler::selectNode(const vcity::URI& uri)
         node->getStateSet()->setAttributeAndModes(mat, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
 
         appGui().getOsgScene()->createInfoBubble(node);
+        //appGui().getOsgScene()->createInfo(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////

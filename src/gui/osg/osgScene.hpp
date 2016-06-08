@@ -32,7 +32,7 @@
 #include <osg/Geometry>
 #include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"
-
+#include "osgInfo.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 class OsgScene : public osg::Group
@@ -135,6 +135,21 @@ public:
 
     /// Insert info bubble for a node
     osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
+
+
+    /// \brief Fill layer with all info objects
+    /// \param URI pointing to the appropriate layer
+    /// \param stdd:vector with all infos
+    void initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
+
+    /// \brief Fill switches LOD structure with all infos
+    /// \param osg::ref_ptr<osg::Switch> pointer to switch root node
+    /// \param stdd:vector with all infos
+    void fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info);
+
+    /// \brief Update is_requested members of all infos
+    /// \param const QString& word from the filter search bar
+    void filterInfo(const QString& filter);
 
 public:
     /// Build osg node from CityGML data

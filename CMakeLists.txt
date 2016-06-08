@@ -425,6 +425,7 @@ set( VCITY_GUI_SRC
   src/core/layerLas.cpp
   src/core/layerMnt.cpp
   src/core/layerShp.cpp
+  src/core/layerInfo.cpp
   src/core/layerTiledCityGML.cpp
   src/core/scene.cpp
   src/core/settings.cpp
@@ -465,6 +466,9 @@ set( VCITY_GUI_SRC
   src/gui/osg/osgQtWidget.cpp
   src/gui/osg/osgScene.cpp
   src/gui/osg/osgTools.cpp
+  src/gui/osg/osgInfo.cpp
+  src/gui/osg/osgInfoDataType.cpp
+  src/gui/osg/osgUpdateInfo.cpp
   
 ### Filters
   src/libfilters/ChangeDetection/ChangeDetection.cpp

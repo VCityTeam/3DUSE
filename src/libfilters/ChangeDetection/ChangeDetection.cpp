@@ -349,7 +349,7 @@ ChangeDetectionRes CompareTiles(std::string Folder, citygml::CityModel* City1, c
         else
         {
             bool modifie = false;
-            for (int j = 0; j < Compare.first[i].size(); j += 2)
+            for (std::size_t j = 0; j < Compare.first[i].size(); j += 2)
             {
                 if (Compare.first[i][j] == -2)
                 {
