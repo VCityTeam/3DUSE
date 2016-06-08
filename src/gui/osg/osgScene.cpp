@@ -27,6 +27,13 @@
 #include "core/dataprofile.hpp"
 #include "osgTools.hpp"
 #include "../controllerGui.hpp"
+
+#include "osgInfo.hpp"
+#include "osgInfoDataType.hpp"
+#include "osgUpdateInfo.hpp"
+
+#include <string>
+
 //#include <typeinfo>
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
@@ -191,7 +198,6 @@ OsgScene::OsgScene()
     init();
 }
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //**** Skybox Creation ***//
@@ -255,6 +261,9 @@ osg::Node* OsgScene::createSkybox()
 //**** End of Skybox Creation ***//
 
 ////////////////////////////////////////////////////////////////////////////////
+
+
+
 void OsgScene::init()
 {
     setName("root");
@@ -350,6 +359,11 @@ void OsgScene::init()
     layer4->setName("layer_Shp");
     m_layers->addChild(layer4);
 
+    // build sixth default layer
+    osg::ref_ptr<osg::Group> layer5 = new osg::Group();
+    layer5->setName("layer_Info");
+    m_layers->addChild(layer5);
+
     updateGrid();
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -371,6 +385,159 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
         }
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
+{
+    osg::ref_ptr<osg::Node> layerNode = getNode(uriLayer);
+    if(layerNode)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layerNode->asGroup();
+        if(layerGroup)
+        {
+            std::cout<<"[osgScene > initInfo].....if(layerGroup)"<<std::endl;
+            osg::ref_ptr<osg::Switch> switchRoot = new osg::Switch;
+            switchRoot->setName("switch_root");
+            layerGroup->addChild(switchRoot);
+
+            osg::ref_ptr<osg::Switch> switch0 = new osg::Switch;
+            switch0->setName("city");
+            switchRoot->addChild(switch0);
+
+            osg::ref_ptr<osg::Switch> switch1 = new osg::Switch;
+            switch1->setName("district");
+            switchRoot->addChild(switch1);
+
+            osg::ref_ptr<osg::Switch> switch2 = new osg::Switch;
+            switch2->setName("building");
+            switchRoot->addChild(switch2);
+
+            osg::ref_ptr<osg::Switch> switch3 = new osg::Switch;
+            switch3->setName("street");
+            switchRoot->addChild(switch3);
+
+            fillSwitches(switchRoot, info);
+
+
+            InfoDataType* infoData = new InfoDataType(switchRoot);
+            switchRoot->setUserData(infoData);
+            switchRoot->setUpdateCallback(new UpdateInfo);
+
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info)
+{
+    int cpt = 0;
+        for (size_t i=0; i<v_info.size(); ++i)
+        {
+            if(v_info[i]->getInfoLOD()=="city")
+            {
+                osg::ref_ptr<osg::Switch> citySwitch = switchRoot->getChild(0)->asSwitch();
+                if(citySwitch)
+                {
+                    citySwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
+                    osg::ref_ptr<osg::Group> cityGroup = citySwitch->getChild(citySwitch->getNumChildren()-1)->asGroup();
+                    cityGroup->setName(v_info[i]->getInfoName());
+                    if(cityGroup)
+                    {
+                        cityGroup->addChild(v_info[i]->getGroup());
+                    }
+                }
+
+            }
+            if(v_info[i]->getInfoLOD()=="district")
+            {
+                cpt++;
+                osg::ref_ptr<osg::Switch> districtSwitch = switchRoot->getChild(1)->asSwitch();
+                if(districtSwitch)
+                {
+                    districtSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
+                    osg::ref_ptr<osg::Group> districtGroup = districtSwitch->getChild(districtSwitch->getNumChildren()-1)->asGroup();
+                    districtGroup->setName(v_info[i]->getInfoName());
+                    if(districtGroup)
+                    {
+                        districtGroup->addChild(v_info[i]->getGroup());
+                    }
+                }
+            }
+            if(v_info[i]->getInfoLOD()=="building")
+            {
+                osg::ref_ptr<osg::Switch> buildingSwitch = switchRoot->getChild(2)->asSwitch();
+                if(buildingSwitch)
+                {
+                    buildingSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]));
+                    osg::ref_ptr<osg::Group> buildingGroup = buildingSwitch->getChild(buildingSwitch->getNumChildren()-1)->asGroup();
+                    buildingGroup->setName(v_info[i]->getInfoName());
+                    if(buildingGroup)
+                    {
+                        buildingGroup->addChild(v_info[i]->getGroup());
+                    }
+                }
+            }
+            if(v_info[i]->getInfoLOD()=="street")
+            {
+                osg::ref_ptr<osg::Switch> streetSwitch = switchRoot->getChild(3)->asSwitch();
+                if(streetSwitch)
+                {
+                    streetSwitch->addChild(dynamic_cast<osg::Group*>(v_info[i]),true);
+                    osg::ref_ptr<osg::Group> streetGroup = streetSwitch->getChild(streetSwitch->getNumChildren()-1)->asGroup();
+                    streetGroup->setName(v_info[i]->getInfoName());
+                    if(streetGroup)
+                    {
+                        streetGroup->addChild(v_info[i]->getGroup());
+                    }
+                }
+            }
+
+        }
+}
+
+void OsgScene:: filterInfo(const QString& filter)
+{
+    osg::ref_ptr<osg::Node> layer = m_layers->getChild(5);
+    if(layer)
+    {
+        osg::ref_ptr<osg::Group> layerGroup = layer->asGroup();
+        if(layerGroup)
+        {
+            osg::ref_ptr<osg::Switch> switchRoot = layerGroup->getChild(0)->asSwitch();
+            if(switchRoot)
+            {
+                for(unsigned int i=0;i<switchRoot->getNumChildren();++i)
+                {
+                    osg::ref_ptr<osg::Switch> switchChild = switchRoot->getChild(i)->asSwitch();
+                    if(switchChild)
+                    {
+                        for(unsigned int j=0;j<switchChild->getNumChildren();j++)
+                        {
+                            osg::Node* node = switchChild->getChild(j);
+                            osgInfo* info = dynamic_cast<osgInfo*>(node);
+                                if(filter.toStdString()==info->getType())
+                                    info->setRequested(true);
+
+                                else if(filter.toStdString()==info->getSourceType())
+                                    info->setRequested(true);
+
+                                else if(info->getInfoName().find(filter.toStdString())<=100)
+                                    info->setRequested(true);
+
+                                else if(filter.toStdString()=="")
+                                    info->setRequested(true);
+
+                                else
+                                    info->setRequested(false);
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setTileName(const vcity::URI& uriTile, const std::string& name)
 {
@@ -747,11 +914,11 @@ void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
 
     if (grp)
     {
-        int count = grp->getNumChildren();
+        unsigned int count = grp->getNumChildren();
 
         // check if we had 5 LODs geodes
         int numGeodes = 0;
-        for (int i = 0; i < count; ++i)
+        for (unsigned int i = 0; i < count; ++i)
         {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
             if (child->asGeode())
@@ -766,7 +933,7 @@ void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
         }
         if (lod != 1 || numGeodes != 5) //Si on travaille sur le LOD1, pas besoin d'aller voir les enfants si le grp courant a deja cache/montre son LOD1 -> gain de temps
         {
-            for (int i = 0; i < count; ++i)
+            for (unsigned int i = 0; i < count; ++i)
             {
                 osg::ref_ptr<osg::Node> child = grp->getChild(i);
                 forceLODrec(lod, child);
@@ -1068,8 +1235,8 @@ osg::ref_ptr<osg::Node> OsgScene::getNode(const vcity::URI& uri)
 
     while (uri.getCursor() < uri.getDepth())
     {
-        int count = current->getNumChildren();
-        for (int i = 0; i < count; ++i)
+        unsigned int count = current->getNumChildren();
+        for (unsigned int i = 0; i < count; ++i)
         {
             osg::ref_ptr<osg::Node> child = current->getChild(i);
             if (child->getName() == uri.getCurrentNode())

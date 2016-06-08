@@ -53,6 +53,8 @@ vcity::URI osgTools::getURI(osg::Node* node)
     osg::Node* parent = node;
     vcity::URI uri;// = node->getName();
     uri.append(node->getName());
+    std::cout<<"[osgTools > getURI]..... node name : "<<node->getName()<<std::endl;
+    std::cout<<"[osgTools > getURI]..... uri : "<<uri.getStringURI()<<std::endl;
     //while((parent = (osg::Node*)(parent->getParent(0))) != NULL)
     while (parent->getNumParents() > 0 && (parent = (osg::Node*)(parent->getParent(0))) != NULL)
     {
@@ -75,6 +77,8 @@ vcity::URI osgTools::getURI(osg::Node* node)
 
         //URI.insert(0, parent->getName());
         uri.prepend(parent->getName(), strType);
+        std::cout<<"[osgTools > getURI]..... node name : "<<node->getName()<<std::endl;
+        std::cout<<"[osgTools > getURI]..... uri : "<<uri.getStringURI()<<std::endl;
     }
 
     return uri;

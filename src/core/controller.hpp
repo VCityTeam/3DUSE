@@ -7,6 +7,7 @@
 #include "URI.hpp"
 #include "application.hpp"
 #include "ogrsf_frmts.h"
+#include "gui/osg/osgInfo.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {

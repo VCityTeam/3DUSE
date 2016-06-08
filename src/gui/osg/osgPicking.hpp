@@ -1,4 +1,4 @@
-// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
+ // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef __OSGPICKING_HPP__
 #define __OSGPICKING_HPP__
