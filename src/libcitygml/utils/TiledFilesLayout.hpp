@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "vecs.hpp"
+#include "citygmlutils_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
 
 struct TiledLayer
 {
@@ -15,19 +17,17 @@ struct TiledLayer
     int TuileMaxY;
 };
 
-class TiledFiles
+class CITYGMLUTILS_EXPORT TiledFiles
 {
 public:
-    TiledFiles(std::string Folderpath);
+  TiledFiles(std::string Folderpath);
+  void BuildListofLayers();
 
-    std::string Folder; //Main folder containing all tiled files
+  /// Main folder containing all tiled files
+  std::string Folder;
 
-    std::vector<TiledLayer> ListofLayers; //Contains all layers present in Folder
-
-    void BuildListofLayers();
-
-private:
-
+  /// Contains all layers present in Folder
+  std::vector<TiledLayer> ListofLayers;
 };
 
 #endif
