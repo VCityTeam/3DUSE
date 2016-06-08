@@ -73,7 +73,7 @@ namespace citygml
         if(alpha >= 1)
             return q1_param;
 
-        float cos_omega=dot(q0,q1_param);
+        double cos_omega=dot(q0,q1_param);
         quaternion q1=q1_param;
 
         if(cos_omega < 0)
@@ -85,12 +85,12 @@ namespace citygml
         if(cos_omega>0.9999f)
             return (1.0f-alpha)*q0+alpha*q1;
 
-        float const sin_omega=std::sqrt(1.0f-cos_omega*cos_omega);
-        float const omega=std::atan2(sin_omega,cos_omega);
-        float const one_over_sin_omega=1.0f/sin_omega;
+        double const sin_omega=std::sqrt(1.0f-cos_omega*cos_omega);
+        double const omega=std::atan2(sin_omega,cos_omega);
+        double const one_over_sin_omega=1.0f/sin_omega;
 
-        float const k0 = sin((1.0f-alpha)*omega)*one_over_sin_omega;
-        float const k1 = sin(alpha*omega)*one_over_sin_omega;
+        double const k0 = sin((1.0f-alpha)*omega)*one_over_sin_omega;
+        double const k1 = sin(alpha*omega)*one_over_sin_omega;
 
         return k0*q0+k1*q1;
     }

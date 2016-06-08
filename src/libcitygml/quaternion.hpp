@@ -1,14 +1,15 @@
 #ifndef QUATERNION_HPP
 #define QUATERNION_HPP
 
-#include "vecs.hpp"
-
 #include <array>
+#include "vecs.hpp"
+#include "citygml_export.h"
+
 
 namespace citygml
 {
 
-class quaternion
+class CITYGML_EXPORT quaternion
 {
 
 public:
