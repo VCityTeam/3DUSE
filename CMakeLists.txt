@@ -885,7 +885,7 @@ endif (BUILD_CityGMLFloodARQtPlugin)
 # --> CityGMLFloodARQtPlugin : QtPlugin [END]
 
 # --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
-OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " ON)
+OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " OFF)
 if (BUILD_CityGMLSunlightQtPlugin)
   set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h)
   set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)

@@ -3111,6 +3111,8 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 
         std::vector<Ray*> v_ray;
         int cpt2=0;
+        int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
+        bool raytracing = false;
 
         for(osgInfo* i : v_info)
         {
@@ -3118,14 +3120,17 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
             {
                 osg::Vec3 osgvec3 = i->getPosition();
                 TVec3d ori = TVec3d(osgvec3.x()+offsetx,osgvec3.y()+offsety,osgvec3.z());
-                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), i->getInfoName());
+                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), id);
                 v_ray.push_back(tmp_ray);
+                raytracing = true;
                 cpt2++;
             }
+            ++id;
         }
+
         std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
 
-        if(cpt2!=0)
+        if(raytracing)
         {
             TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
             TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
@@ -3137,17 +3142,10 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
             triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
 
             std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
-            cpt2=0;
+
             for(Hit* h : *(v_hit))
             {
-                for(osgInfo* i : v_info)
-                {
-                    if (i->getInfoName()==h->ray.id)
-                    {
-                        i->setAnchoringPoint(h->point.z);
-                        cpt2++;
-                    }
-                }
+                v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
             }
 
         }
