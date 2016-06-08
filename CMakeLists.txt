@@ -771,16 +771,16 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 	set( CityGMLVisibilite_Qt_Plugin_UI
     src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.ui
   )
-	if (WITH_QT5)
-	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
       ${CityGMLVisibilite_Qt_Plugin_HEADER}
       TARGET CityGMLVisibiliteQtPlugin
     )
-	  QT5_WRAP_UI( CityGMLVisibilite_Qt_Plugin_UI_CPP
+    QT5_WRAP_UI( CityGMLVisibilite_Qt_Plugin_UI_CPP
       ${CityGMLVisibilite_Qt_Plugin_UI}
     )
-	  set( CityGMLVisibilite_Qt_Plugin_SRC
+    set( CityGMLVisibilite_Qt_Plugin_SRC
       ${CityGMLVisibilite_Qt_Plugin_SRC}
       ${CityGMLVisibilite_Qt_Plugin_MOC_CPP}
       ${CityGMLVisibilite_Qt_Plugin_UI_CPP}
@@ -887,7 +887,10 @@ if (BUILD_CityGMLSunlightQtPlugin)
   set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)
   if (WITH_QT5)
     ADD_DEFINITIONS("-DWITH_QT5")
-    QT5_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
+    QT5_WRAP_CPP( CityGMLSunlight_Qt_Plugin_MOC_CPP
+      ${CityGMLSunlight_Qt_Plugin_HEADER}
+      TARGET CityGMLSunlightQtPlugin
+    )
     QT5_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
     set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
   else(WITH_QT5)
@@ -910,6 +913,7 @@ if (BUILD_CityGMLSunlightQtPlugin)
   )
 
   target_include_directories( CityGMLSunlightQtPlugin PUBLIC
+    src                            # For moc on Generic_PluginInterface
     ${FILTERS_INCLUDE_DIR}
     ${CITYGMLUTILS_INCLUDE_DIR}
   )

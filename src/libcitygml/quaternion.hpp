@@ -5,6 +5,9 @@
 #include "vecs.hpp"
 #include "citygml_export.h"
 
+#ifdef _MSVC_VER
+    #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+#endif
 
 namespace citygml
 {
@@ -53,7 +56,7 @@ public:
     //  convert to other type
     // ********************************************* //
 
-    /** Convert the quaternion to rotation matrix stored as an array of 9 floats */
+    /** Convert the quaternion to rotation matrix stored as an array of 9 doubles */
     std::array<double,9> to_rotation_matrix() const;
 
 public:
@@ -68,7 +71,7 @@ public:
 /** Scalar product between quaternion */
 CITYGML_EXPORT double dot(quaternion const& lhs,quaternion const& rhs);
 /** Quaternion interpolation */
-CITYGML_EXPORT quaternion slerp(quaternion const& q0,quaternion const& q1,float alpha);
+CITYGML_EXPORT quaternion slerp(quaternion const& q0,quaternion const& q1,double alpha);
 /** Quaternion norm */
 CITYGML_EXPORT double norm(quaternion const& q);
 /** Normalization of the quaternion */
@@ -87,20 +90,20 @@ CITYGML_EXPORT quaternion& operator-=(quaternion& lhs,quaternion const& rhs);
 /** Quaternion multiplication (v1 w2 + v2 w1 - v1xv2 , w1 w2 - v1.v2) */
 CITYGML_EXPORT quaternion& operator*=(quaternion& lhs,quaternion const& rhs);
 /** Quaternion multiplication by a scalar */
-CITYGML_EXPORT quaternion& operator*=(quaternion& q,float s);
+CITYGML_EXPORT quaternion& operator*=(quaternion& q,double s);
 /** Quaternion division by a scalar */
-CITYGML_EXPORT quaternion& operator/=(quaternion& q,float s);
+CITYGML_EXPORT quaternion& operator/=(quaternion& q,double s);
 
 /** Quaternion addition */
 CITYGML_EXPORT quaternion operator+(quaternion const& lhs,quaternion const& rhs);
 /** Quaternion substraction */
 CITYGML_EXPORT quaternion operator-(quaternion const& lhs,quaternion const& rhs);
 /** Quaternion multiplication by a scalar */
-CITYGML_EXPORT quaternion operator*(quaternion const& q,float s);
+CITYGML_EXPORT quaternion operator*(quaternion const& q,double s);
 /** Quaternion multiplication by a scalar */
-CITYGML_EXPORT quaternion operator*(float s,quaternion const& q);
+CITYGML_EXPORT quaternion operator*(double s,quaternion const& q);
 /** Quaternion division by a scalar */
-CITYGML_EXPORT quaternion operator/(quaternion const& q,float s);
+CITYGML_EXPORT quaternion operator/(quaternion const& q,double s);
 
 /** Unary negation */
 CITYGML_EXPORT quaternion operator-(quaternion const& q);

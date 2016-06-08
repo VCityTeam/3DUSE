@@ -66,7 +66,7 @@ namespace citygml
         return q0.x()*q1.x()+q0.y()*q1.y()+q0.z()*q1.z()+q0.w()*q1.w();
     }
 
-    quaternion slerp(quaternion const& q0,quaternion const& q1_param,float const alpha)
+    quaternion slerp(quaternion const& q0,quaternion const& q1_param,double const alpha)
     {
         if(alpha <= 0)
             return q0;
@@ -85,11 +85,11 @@ namespace citygml
         if(cos_omega>0.9999f)
             return (1.0f-alpha)*q0+alpha*q1;
 
-        double const sin_omega=std::sqrt(1.0f-cos_omega*cos_omega);
+        double const sin_omega=std::sqrt(1.0-cos_omega*cos_omega);
         double const omega=std::atan2(sin_omega,cos_omega);
-        double const one_over_sin_omega=1.0f/sin_omega;
+        double const one_over_sin_omega=1.0/sin_omega;
 
-        double const k0 = sin((1.0f-alpha)*omega)*one_over_sin_omega;
+        double const k0 = sin((1.0-alpha)*omega)*one_over_sin_omega;
         double const k1 = sin(alpha*omega)*one_over_sin_omega;
 
         return k0*q0+k1*q1;
@@ -113,7 +113,7 @@ namespace citygml
         return lhs;
     }
 
-    quaternion& operator*=(quaternion& q,float s)
+    quaternion& operator*=(quaternion& q,double s)
     {
         q.x() *= s;
         q.y() *= s;
@@ -122,7 +122,7 @@ namespace citygml
         return q;
     }
 
-    quaternion& operator/=(quaternion& q,float s)
+    quaternion& operator/=(quaternion& q,double s)
     {
         q.x() /= s;
         q.y() /= s;
@@ -145,19 +145,19 @@ namespace citygml
         return temp;
     }
 
-    quaternion operator*(quaternion const& q,float s)
+    quaternion operator*(quaternion const& q,double s)
     {
         quaternion temp=q;
         temp *= s;
         return temp;
     }
 
-    quaternion operator*(float const s,quaternion const& q)
+    quaternion operator*(double const s,quaternion const& q)
     {
         return q*s;
     }
 
-    quaternion operator/(quaternion const& q,float s)
+    quaternion operator/(quaternion const& q,double s)
     {
         quaternion temp=q;
         temp /= s;
@@ -171,7 +171,7 @@ namespace citygml
 
     quaternion normalized(quaternion const& q)
     {
-        float const n=norm(q);
+        double const n=norm(q);
         if(std::abs(n)<1e-6f)
             return quaternion(1,0,0,0);
         else
