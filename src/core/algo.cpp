@@ -15,7 +15,8 @@
 #include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 #include "ogrsf_frmts.h"
 #include "citymodel.hpp"
-////////////////////////////////////////////////////////////////////////////////
+
+//FIXME: remove the following commented out code
 /*#include <lasreader.hpp>
 #include <laswriter.hpp>
 
@@ -62,6 +63,7 @@ namespace vcity
     {
     }
 
+//FIXME: remove the following commented out code
 #if 0
     ////////////////////////////////////////////////////////////////////////////////
     /**
@@ -709,6 +711,7 @@ namespace vcity
     */
 #endif
 
+    // FIXME: remove the following empty method
     void Algo::CompareTwoLidar(std::string Path1, std::string Path2)
     {
         /*LASreadOpener lasreadopener;
