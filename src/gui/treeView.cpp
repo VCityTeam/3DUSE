@@ -460,7 +460,7 @@ void TreeView::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info)
 
     if(layer)
     {
-        for(int i=0; i<v_info.size(); i++)
+        for(std::size_t i=0; i<v_info.size(); i++)
         {
             if(v_info[i]->getInfoLOD()=="street")
             {

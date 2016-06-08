@@ -3093,7 +3093,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
             v_position.push_back(osg::Vec3(x,y,z));
         }
         std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
-        for (int i=0; i<v_filepath.size(); i++)
+        for (std::size_t i=0; i<v_filepath.size(); ++i)
         {
             v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
         }
@@ -3165,8 +3165,7 @@ void MainWindow::test2()
     vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
     appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 
-
-    for (int i=0; i<v_info.size(); i++)
+    for (std::size_t i=0; i<v_info.size() ; ++i)
     {
         v_info[i]->setBillboarding(true);
     }
