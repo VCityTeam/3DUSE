@@ -1,11 +1,9 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include <cstdio>
-#include "osgMnt.hpp"
 #include <string>
-//#include "tga.h"
-
 #include <osg/Geometry>
+#include "osgMnt.hpp"
 
 #ifdef _MSC_VER
 #pragma warning(disable : 4996) // TEMP MT

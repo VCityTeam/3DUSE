@@ -1,9 +1,7 @@
 #include "EnhanceMNT.hpp"
-////////////////////////////////////////////////////////////////////////////////
 #include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtools.hpp"
 #include "libcitygml/utils/CityGMLtools.hpp"
-////////////////////////////////////////////////////////////////////////////////
 
 /**
 * @brief A partir d'un ensemble de lignes definissant des routes, cree des polygones en lisant leur largeur
