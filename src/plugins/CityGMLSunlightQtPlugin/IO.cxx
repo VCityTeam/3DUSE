@@ -5,6 +5,9 @@
 #include "libcitygml/quaternion.hpp"
 
 #include <QDir>
+//This is not a real dependency towards osgDB/fstream, but towards fstream.
+//This is a kludge to be compatible with other files including osgDB/fstream
+//in order to avoid multiple definitions of stream related symbols on Windows.
 #include <osgDB/fstream>
 
 #ifndef M_PI

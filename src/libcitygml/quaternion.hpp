@@ -66,54 +66,54 @@ public:
 // ********************************************* //
 
 /** Scalar product between quaternion */
-double dot(quaternion const& lhs,quaternion const& rhs);
+CITYGML_EXPORT double dot(quaternion const& lhs,quaternion const& rhs);
 /** Quaternion interpolation */
-quaternion slerp(quaternion const& q0,quaternion const& q1,float alpha);
+CITYGML_EXPORT quaternion slerp(quaternion const& q0,quaternion const& q1,float alpha);
 /** Quaternion norm */
-double norm(quaternion const& q);
+CITYGML_EXPORT double norm(quaternion const& q);
 /** Normalization of the quaternion */
-quaternion normalized(quaternion const& q);
+CITYGML_EXPORT quaternion normalized(quaternion const& q);
 /** Conjugate of the quaternion (-v,w) */
-quaternion conjugated(quaternion const& q);
+CITYGML_EXPORT quaternion conjugated(quaternion const& q);
 
 // ********************************************* //
 //  Math operator
 // ********************************************* //
 
 /** Quaternion addition */
-quaternion& operator+=(quaternion& lhs,quaternion const& rhs);
+CITYGML_EXPORT quaternion& operator+=(quaternion& lhs,quaternion const& rhs);
 /** Quaternion substraction */
-quaternion& operator-=(quaternion& lhs,quaternion const& rhs);
+CITYGML_EXPORT quaternion& operator-=(quaternion& lhs,quaternion const& rhs);
 /** Quaternion multiplication (v1 w2 + v2 w1 - v1xv2 , w1 w2 - v1.v2) */
-quaternion& operator*=(quaternion& lhs,quaternion const& rhs);
+CITYGML_EXPORT quaternion& operator*=(quaternion& lhs,quaternion const& rhs);
 /** Quaternion multiplication by a scalar */
-quaternion& operator*=(quaternion& q,float s);
+CITYGML_EXPORT quaternion& operator*=(quaternion& q,float s);
 /** Quaternion division by a scalar */
-quaternion& operator/=(quaternion& q,float s);
+CITYGML_EXPORT quaternion& operator/=(quaternion& q,float s);
 
 /** Quaternion addition */
-quaternion operator+(quaternion const& lhs,quaternion const& rhs);
+CITYGML_EXPORT quaternion operator+(quaternion const& lhs,quaternion const& rhs);
 /** Quaternion substraction */
-quaternion operator-(quaternion const& lhs,quaternion const& rhs);
+CITYGML_EXPORT quaternion operator-(quaternion const& lhs,quaternion const& rhs);
 /** Quaternion multiplication by a scalar */
-quaternion operator*(quaternion const& q,float s);
+CITYGML_EXPORT quaternion operator*(quaternion const& q,float s);
 /** Quaternion multiplication by a scalar */
-quaternion operator*(float s,quaternion const& q);
+CITYGML_EXPORT quaternion operator*(float s,quaternion const& q);
 /** Quaternion division by a scalar */
-quaternion operator/(quaternion const& q,float s);
+CITYGML_EXPORT quaternion operator/(quaternion const& q,float s);
 
 /** Unary negation */
-quaternion operator-(quaternion const& q);
+CITYGML_EXPORT quaternion operator-(quaternion const& q);
 
 /** Quaternion multiplication (v1 w2 + v2 w1 - v1xv2 , w1 w2 - v1.v2) */
-quaternion operator*(quaternion const& lhs,quaternion const& rhs);
+CITYGML_EXPORT quaternion operator*(quaternion const& lhs,quaternion const& rhs);
 
 /** Applying quaternion to vec3 (rotation): q^bar v q */
-TVec3d operator*(quaternion const& lhs,TVec3d const& rhs);
+CITYGML_EXPORT TVec3d operator*(quaternion const& lhs,TVec3d const& rhs);
 
 
 /** Output the quaternion in ostream as (x,y,z,w) */
-std::ostream& operator<<(std::ostream& stream,quaternion const& q);
+CITYGML_EXPORT std::ostream& operator<<(std::ostream& stream,quaternion const& q);
 
 }
 
