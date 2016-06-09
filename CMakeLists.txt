@@ -598,10 +598,9 @@ IF(APPLE)
   SET(VCITY_GUI_ICON resources/vcity.icns)
 ENDIF(APPLE)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    # Linux specific code
-    SET(LINUX_FLAGS -lpthread)
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+  set(LINUX_FLAGS -lpthread)   # FIXME: assert this is needed
+endif()
 
 add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 
@@ -610,7 +609,7 @@ target_include_directories( ${PRJ_NAME} PUBLIC
   ${FILTERS_INCLUDE_DIR} 
 )
 
-target_link_libraries (${PRJ_NAME}
+target_link_libraries( 3DUSE
   ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
   ${VCITY_GUI_LIB}
   ${VCITYCORE_LIBRARY}
@@ -620,8 +619,9 @@ target_link_libraries (${PRJ_NAME}
 )
 
 if (WITH_QT5)
-  ADD_DEFINITIONS("-DWITH_QT5")
-  QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
+  # FIXME: refer to src/CMakeLists.txt to get rid of QT5_USE_MODULES
+  add_definitions( "-DWITH_QT5" )
+  QT5_USE_MODULES( 3DUSE Widgets Xml OpenGL )
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 

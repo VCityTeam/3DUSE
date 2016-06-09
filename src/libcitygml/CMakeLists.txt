@@ -68,6 +68,7 @@ if (WITH_QT5)
   QT5_USE_MODULES( citygml Core Widgets Xml OpenGL )
   # FIXME: assert the following two lines are indeed required
   add_definitions("-DWITH_QT5")
+  # FIXME: if this line were to be kept remove the semi-colon from last argument
   set_target_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
 endif ()
 
