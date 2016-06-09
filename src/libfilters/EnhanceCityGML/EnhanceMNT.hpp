@@ -11,19 +11,24 @@
 
 #include "libcitygml/utils/tile.hpp"
 #include "export/exportCityGML.hpp"
+#include "filters_export.h"
 
-void CreateRoadsOnMNT( vcity::Tile* MNT,
-                       OGRDataSource* Roads,
-                       citygml::CityModel* MNT_roads,
-                       std::vector<TextureCityGML*>* TexturesList_roads,
-                       citygml::CityModel* MNT_ground,
-                       std::vector<TextureCityGML*>* TexturesList_ground );
+FILTERS_EXPORT void CreateRoadsOnMNT(
+  vcity::Tile* MNT,
+  OGRDataSource* Roads,
+  citygml::CityModel* MNT_roads,
+  std::vector<TextureCityGML*>* TexturesList_roads,
+  citygml::CityModel* MNT_ground,
+  std::vector<TextureCityGML*>* TexturesList_ground
+);
 
-void CreateVegetationOnMNT( vcity::Tile* MNT,
-                            OGRDataSource* Vegetation,
-                            citygml::CityModel* MNT_vegetation,
-                            std::vector<TextureCityGML*>* TexturesList_vegetation,
-                            citygml::CityModel* MNT_ground,
-                            std::vector<TextureCityGML*>* TexturesList_ground );
+CITYGML_EXPORT void CreateVegetationOnMNT(
+  vcity::Tile* MNT,
+  OGRDataSource* Vegetation,
+  citygml::CityModel* MNT_vegetation,
+  std::vector<TextureCityGML*>* TexturesList_vegetation,
+  citygml::CityModel* MNT_ground,
+  std::vector<TextureCityGML*>* TexturesList_ground
+);
 
 #endif // __ENHANCEMNT_HPP__

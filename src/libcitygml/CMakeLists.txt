@@ -99,5 +99,4 @@ target_link_libraries( citygml
 )
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
-include (GenerateExportHeader)
 GENERATE_EXPORT_HEADER( citygml ) 

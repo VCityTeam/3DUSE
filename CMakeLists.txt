@@ -1,11 +1,18 @@
 project( 3DUSE )
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required( VERSION 2.8.12 )
 include( cmake/3DusePolicies.cmake )
+include( GenerateExportHeader )  # For dll export header of VC++ shared lib
 
 # FIXME Under construction
-# option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" OFF )
+option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" ON )
 # option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" ON )
+if( BUILD_GUI_QT4 AND WITH_QT5 )
+  # In case of simultaneous demand, Qt5 has preference overs Qt4
+  set( BUILD_GUI_QT4 OFF  CACHE BOOL
+      "Build the Graphical User Interface with QT4."
+      FORCE)
+endif()
 
 enable_testing()
 
@@ -100,9 +107,8 @@ if(APPLE)
 endif(APPLE)
 
 ############################## Package (dependencies) detection
-# Find Qt
-if (WITH_QT5)
-  # QT5 Handling
+##### Find Qt5
+if( WITH_QT5 )
   if(DEFINED ENV{QT5_DIR})
     set( QT5_DIR $ENV{QT5_DIR} )
   endif()
@@ -111,7 +117,7 @@ if (WITH_QT5)
   # Instruct CMake to run moc automatically when needed
   set(CMAKE_AUTOMOC ON)
 
-  FIND_PACKAGE(Qt5Core)
+  FIND_PACKAGE( Qt5Core )
   if(${Qt5Core_FOUND})
     message(STATUS "--> Qt5Core found.")
     FIND_PACKAGE(Qt5Widgets)
@@ -135,22 +141,20 @@ if (WITH_QT5)
   else(${Qt5Core_FOUND})
     message(FATAL_ERROR "Qt5Core not found. Please set QT5_DIR.")
   endif(${Qt5Core_FOUND})
-else(WITH_QT5)
-  # QT4 Handling
+endif()
+
+##### Find Qt4 
+if( BUILD_GUI_QT4 )
+  # FIXME: ask MTO but this looks like the opposite of what Qt5 does above
   if (QTDIR)
     set( ENV{QTDIR} ${QTDIR} )
   endif()
-  set( QT_USE_QTMAIN	TRUE )
-  set( QT_USE_QTXML		TRUE )
-  set( QT_USE_QTOPENGL	TRUE )
-  FIND_PACKAGE(Qt4)
-  if(QT4_FOUND)
-    INCLUDE(${QT_USE_FILE})
-  else(QT4_FOUND)
-    message(FATAL_ERROR "Qt4 not found. Please set QTDIR.")
-  endif(QT4_FOUND)
-endif(WITH_QT5)
-message(STATUS "Qt version used : ${QTDIR}")
+  set( QT_USE_QTMAIN   TRUE )
+  set( QT_USE_QTXML    TRUE )
+  set( QT_USE_QTOPENGL TRUE )
+  find_package( Qt4 REQUIRED )
+  include( ${QT_USE_FILE} )
+endif()
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -345,14 +349,17 @@ SET( VCITY_GUI_Qt_RES
   resources/vcity.qrc
 )
 
-if (WITH_QT5)
-  QT5_WRAP_UI(       VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
-  QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
-else(WITH_QT5)
+if( BUILD_GUI_QT4 )
   QT4_WRAP_CPP(      VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC})
   QT4_WRAP_UI(       VCITY_GUI_UI_CPP  ${VCITY_GUI_Qt_UI})
   QT4_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
-endif(WITH_QT5)
+endif()
+
+if( WITH_QT5 )
+  QT5_WRAP_UI(       VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
+  QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
+endif()
+
 
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt
@@ -386,7 +393,10 @@ set( CITYGMLUTILS_INCLUDE_DIR
 set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
 # FILTERS--> CORE, CITYGML, CITYGMLUTILS
-set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
+set( FILTERS_INCLUDE_DIR
+  ${PROJECT_SOURCE_DIR}/src/libfilters
+  ${PROJECT_BINARY_DIR}/src/libfilters      # for  generated filters_export.h
+)
 set( FILTERS_LIBRARIES   filters )
 
 
@@ -455,9 +465,8 @@ set( VCITY_GUI_SRC
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
 
+  ### FIXME: is the main recompiled with every plugin !?
   src/main.cpp
-
-### FIXME section
 )
 
 SET( VCITY_GUI_SRC

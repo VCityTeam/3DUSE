@@ -33,7 +33,7 @@ struct CITYGMLUTILS_EXPORT BoxOrder
     unsigned int order;///< Order of the box in the collection
 };
 
-bool operator<(const BoxOrder& a, const BoxOrder& b);
+CITYGMLUTILS_EXPORT bool operator<(const BoxOrder& a, const BoxOrder& b);
 
 /**
 *	@brief Pour une box, contient un certain nombre d'informations liés aux rayons que l'on aura tenté d'intersecter avec celle ci.
@@ -45,7 +45,7 @@ struct CITYGMLUTILS_EXPORT BoxwithRays
     float minDistance; //Distance minimale entre la box et la caméra
 };
 
-bool operator<(const BoxwithRays& a, const BoxwithRays& b);
+CITYGMLUTILS_EXPORT bool operator<(const BoxwithRays& a, const BoxwithRays& b);
 
 /**
 *	Used to store a bounding box collection of different layer

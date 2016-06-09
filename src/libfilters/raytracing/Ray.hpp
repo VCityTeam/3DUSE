@@ -3,6 +3,7 @@
 
 #include "osg/Camera"
 #include "libcitygml/vecs.hpp"
+#include "filters_export.h"
 
 struct Hit;
 struct RayCollection;
@@ -12,7 +13,7 @@ struct Triangle;
 /**
 *	@brief A simple ray
 */
-struct Ray
+struct FILTERS_EXPORT Ray
 {
     /**
     *	@brief Build a new ray
@@ -51,7 +52,7 @@ struct Ray
 /**
 *	@brief A collection of rays
 */
-struct RayCollection
+struct FILTERS_EXPORT RayCollection
 {
     /**
     *	@brief Build a new collection

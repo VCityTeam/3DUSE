@@ -22,6 +22,8 @@ target_link_libraries(filters
 )
 
 if (WITH_QT5)
+  # FIXME: refer to src/CMakeLists.txt to remove usage of QT5_USE_MODULES
 	QT5_USE_MODULES(filters Core)
 endif(WITH_QT5)
 
+GENERATE_EXPORT_HEADER( filters )

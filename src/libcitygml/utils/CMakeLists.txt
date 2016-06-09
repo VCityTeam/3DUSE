@@ -23,5 +23,4 @@ target_link_libraries( citygmlutils
 )
 
 # Dealing with VC++ oddities: generates the export header citygmlutils_exports.h 
-include (GenerateExportHeader)
 GENERATE_EXPORT_HEADER( citygmlutils )
