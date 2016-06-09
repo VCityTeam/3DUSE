@@ -62,7 +62,7 @@ script:
   - cd .. && cd .. && cd ..
   - mkdir build && cd build && cmake .. $BTYPE
   - make
-#  - make test
+  - make test
 #
 # osx only (add qt5 after qt4 in the same job) :
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi # ---> now unlink qt4

@@ -15,7 +15,7 @@ project( 3DUSE )
 #  * QT5_USE_MODULES has a bug for cmake version 2.8.8
 # Proposed version: requiring anything in the range 2.8.9 to 2.8.12 would
 # make the job. Go for the higher version within this range i.e. 2.8.12 ?
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 
 if ( WITH_QT5 )
   cmake_minimum_required(VERSION 2.8.9)
