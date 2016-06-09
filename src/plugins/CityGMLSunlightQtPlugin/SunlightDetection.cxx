@@ -185,7 +185,8 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 if(beamdir.second == TVec3d(0.0,0.0,0.0))
                     continue;
 
-                //Add an offset for raytracing
+                //Add an offset for raytracing. Without this offset, origin of the ray might be behind the barycenter,
+                //which will result in a collision between the ray its origin triangle
                 TVec3d tmpBarycenter = TVec3d(0.0,0.0,0.0);
                 tmpBarycenter.x = barycenter.x + 0.01f*beamdir.second.x;
                 tmpBarycenter.y = barycenter.y + 0.01f*beamdir.second.y;
