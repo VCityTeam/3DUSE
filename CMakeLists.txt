@@ -23,6 +23,8 @@ endif ()
 
 include( cmake/3DusePolicies.cmake )
 
+enable_testing()
+
 # Project configuration
 set(PRJ_NAME 3DUSE)
 

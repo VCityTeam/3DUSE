@@ -4,8 +4,8 @@
 #include <QFile>
 
 #include <iostream>
-//#include <fstream> // MT 09/03/2016
-#include <osgDB/fstream>
+#include <fstream>
+//FIXME #include <osgDB/fstream> // MT 09/03/2016
 #include <map>
 
 #include "Triangle.hpp"
