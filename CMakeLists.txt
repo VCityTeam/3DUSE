@@ -1,27 +1,11 @@
 project( 3DUSE )
 
+cmake_minimum_required(VERSION 2.8.12)
+include( cmake/3DusePolicies.cmake )
+
 # FIXME Under construction
 # option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" OFF )
 # option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" ON )
-
-# FIXME: a pre-requisite of discussion on cmake version (below) is to discuss
-# the supported platforms and distros (which constrains the cmake available/
-# possible versions. Availabilty:
-#  *  cmake 2.8.9 is available for Ubuntu 14.04, debian 7, fedora 21,
-#     OpenSUSE 13.1...
-# FIXME: establish cmake minimum version with the following constraints:
-#  * Ubuntu 14.04 (current Travis image) still uses 2.8.12 (cmake 3.0 is
-#    thus too high)
-#  * QT5_USE_MODULES has a bug for cmake version 2.8.8
-# Proposed version: requiring anything in the range 2.8.9 to 2.8.12 would
-# make the job. Go for the higher version within this range i.e. 2.8.12 ?
-cmake_minimum_required(VERSION 2.8.12)
-
-if ( WITH_QT5 )
-  cmake_minimum_required(VERSION 2.8.9)
-endif ()
-
-include( cmake/3DusePolicies.cmake )
 
 enable_testing()
 
@@ -467,25 +451,6 @@ set( VCITY_GUI_SRC
   src/gui/osg/osgScene.cpp
   src/gui/osg/osgTools.cpp
   
-### Filters
-  # src/libfilters/ChangeDetection/ChangeDetection.cpp
-  # src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
-  # src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
-  # src/libfilters/raytracing/Hit.cpp
-  # src/libfilters/raytracing/Ray.cpp
-  # src/libfilters/raytracing/RayTracing.cpp
-  # src/libfilters/ShpExtrusion/ShpExtrusion.cpp
-  # src/libfilters/tiling/ASCCut.cpp
-  # src/libfilters/tiling/TilingCityGML.cpp
-  
-### Now part of "Core" library
-  # FIXME src/DataStructures/DEM/osgMnt.cpp
-  # FIXME src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
-  # FIXME src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
-
-### Now part of "citygmlutils" library
-  # FIXME src/core/tile.cpp MOVE THE FILE THERE
-  
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
@@ -493,10 +458,6 @@ set( VCITY_GUI_SRC
   src/main.cpp
 
 ### FIXME section
-  # FIXME: Interestingly enough the following are not necessary !?
-  # src/gui/osgQt/osg32/GraphicsWindowQt.cxx
-  # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
-  # src/plugins/*.cpp
 )
 
 SET( VCITY_GUI_SRC
@@ -509,6 +470,10 @@ SET( VCITY_GUI_SRC
 # FIXME: the following section deals with OSG-QT and should probably
 # be placed next to the find_package on OSGQT (refer above) in order
 # to clarify the flow
+# The following section embarks a stable component making the connection
+# between OSG and QT. They are alas two versions:
+# src/gui/osgQt/osg32/GraphicsWindowQt.cxx
+# src/gui/osgQt/osg34/GraphicsWindowQt.cxx
 if( WIN32 )
   # FIXME: the supported kit versions are KIT_VS2015 and KIT_VS2012
   # Use KIT_VS2012 instead of "NOT DEFINED KIT_VS2015"
@@ -660,6 +625,7 @@ if (BUILD_CityGMLCutQtPlugin)
     src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.h)
 	set( CityGMLCut_Qt_Plugin_UI
      src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui)
+
 	if (WITH_QT5)
 	  ADD_DEFINITIONS("-DWITH_QT5")
 	  QT5_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
@@ -677,9 +643,16 @@ if (BUILD_CityGMLCutQtPlugin)
       ${CityGMLCut_Qt_Plugin_HEADER}
       TARGET CityGMLCutQtPlugin
     )
-	  QT4_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
-	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
-	  set(CityGMLCut_Qt_Plugin_LIB ${CityGMLCut_Qt_Plugin_LIB} ${QT_LIBRARIES})
+	  QT4_WRAP_UI( CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI} )
+	  set( CityGMLCut_Qt_Plugin_SRC
+      ${CityGMLCut_Qt_Plugin_SRC}
+      ${CityGMLCut_Qt_Plugin_MOC_CPP}
+      ${CityGMLCut_Qt_Plugin_UI_CPP}
+    )
+	  set( CityGMLCut_Qt_Plugin_LIB
+      ${CityGMLCut_Qt_Plugin_LIB}
+      ${QT_LIBRARIES}
+    )
 	endif(WITH_QT5)
 
   add_library( CityGMLCutQtPlugin SHARED
@@ -693,6 +666,7 @@ if (BUILD_CityGMLCutQtPlugin)
   target_include_directories( CityGMLCutQtPlugin PUBLIC
     src                            # For moc on Generic_PluginInterface
     ${CITYGML_INCLUDE_DIR}
+    ${CITYGMLUTILS_INCLUDE_DIR}
   )
   target_link_libraries( CityGMLCutQtPlugin
     ${CityGMLCut_Qt_Plugin_LIB}
@@ -720,13 +694,26 @@ if (BUILD_CityGMLEmptyQtPlugin)
       ${CityGMLEmpty_Qt_Plugin_HEADER}
       TARGET CityGMLEmptyQtPlugin
     )
-	  QT5_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
-	  set(CityGMLEmpty_Qt_Plugin_SRC ${CityGMLEmpty_Qt_Plugin_SRC} ${CityGMLEmpty_Qt_Plugin_MOC_CPP} ${CityGMLEmpty_Qt_Plugin_UI_CPP})
+	  QT5_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
+	  set( CityGMLEmpty_Qt_Plugin_SRC
+      ${CityGMLEmpty_Qt_Plugin_SRC}
+      ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
+      ${CityGMLEmpty_Qt_Plugin_UI_CPP}
+    )
 	else(WITH_QT5) 
-	  QT4_WRAP_CPP(CityGMLEmpty_Qt_Plugin_MOC_CPP ${CityGMLEmpty_Qt_Plugin_HEADER})
-	  QT4_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
-	  set(CityGMLEmpty_Qt_Plugin_SRC ${CityGMLEmpty_Qt_Plugin_SRC} ${CityGMLEmpty_Qt_Plugin_MOC_CPP} ${CityGMLEmpty_Qt_Plugin_UI_CPP})
-	  set(CityGMLEmpty_Qt_Plugin_LIB ${CityGMLEmpty_Qt_Plugin_LIB} ${QT_LIBRARIES})
+	  QT4_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
+      ${CityGMLEmpty_Qt_Plugin_HEADER}
+    )
+	  QT4_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
+	  set( CityGMLEmpty_Qt_Plugin_SRC
+      ${CityGMLEmpty_Qt_Plugin_SRC}
+      ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
+      ${CityGMLEmpty_Qt_Plugin_UI_CPP}
+    )
+	  set( CityGMLEmpty_Qt_Plugin_LIB
+      ${CityGMLEmpty_Qt_Plugin_LIB}
+      ${QT_LIBRARIES}
+    )
 	endif(WITH_QT5)
 
   add_library( CityGMLEmptyQtPlugin SHARED
@@ -739,6 +726,7 @@ if (BUILD_CityGMLEmptyQtPlugin)
   target_include_directories( CityGMLEmptyQtPlugin PUBLIC
     src                            # For moc on Generic_PluginInterface
     ${CITYGML_INCLUDE_DIR}
+    ${CITYGMLUTILS_INCLUDE_DIR}
   )
   target_link_libraries( CityGMLEmptyQtPlugin
     ${CityGMLEmpty_Qt_Plugin_LIB}

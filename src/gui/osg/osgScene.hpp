@@ -24,8 +24,8 @@
 /// Tile child  osg::Group - Tile0  osg::Group - Tile1 ...
 ///
 ////////////////////////////////////////////////////////////////////////////////
-#include "core/tile.hpp"
 #include "libcitygml/URI.hpp"
+#include "libcitygml/utils/tile.hpp"
 #include <osg/Node>
 #include <osg/Group>
 #include <osg/Geode>

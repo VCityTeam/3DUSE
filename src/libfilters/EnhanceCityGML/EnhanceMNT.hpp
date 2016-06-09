@@ -9,7 +9,7 @@
 #endif                         // including ogrsf_frmts.h on VCC++
 #include <ogrsf_frmts.h>
 
-#include "core/tile.hpp"
+#include "libcitygml/utils/tile.hpp"
 #include "export/exportCityGML.hpp"
 
 void CreateRoadsOnMNT( vcity::Tile* MNT,

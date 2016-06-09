@@ -11,7 +11,7 @@
 #include <ogrsf_frmts.h>
 #include <QDir>
 
-#include "core/tile.hpp"
+#include "libcitygml/utils/tile.hpp"
 #include "export/exportCityGML.hpp"
 
 citygml::CityModel* TileCityGML( vcity::Tile* Tile,

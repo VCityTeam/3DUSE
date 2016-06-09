@@ -6,13 +6,8 @@ add_library( citygmlutils SHARED
   exportOBJ.cpp
   importerASC.cpp
   importerAssimp.cpp
+  tile.cpp
   TiledFilesLayout.cpp
-
-  # FIXME: Triangle.cpp depends on core/tile.hpp, that in turn depends
-  # on citygml. Hence we can import core/tile.cpp without adding further
-  # dependency to this citygmlutils lib.
-  # Yet one must move tile.cpp to this directory
-  ../../core/tile.cpp
   Triangle.cpp
 )
 
