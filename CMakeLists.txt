@@ -650,7 +650,7 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-add_subdirectory(src)
+#add_subdirectory(src)
 
 ################
 # 3DUSE plugins
@@ -1081,3 +1081,6 @@ ENDIF(WIN32)
 # Now the installation stuff : end
 #--------------------------------------------------------------------------------
 
+# Moved to the end because BUILD_CityGMLSunlightQtPlugin variable needs to be set
+# because it is needed in src/plugins/CMakeLists.txt
+add_subdirectory(src)

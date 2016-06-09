@@ -2,4 +2,7 @@ add_executable(testSunlightComputation testSunlightComputation.cxx)
 target_link_libraries(testSunlightComputation CityGMLSunlightQtPlugin)
 
 add_test( SUNLIGHT_COMPUTATION
-  testSunlightComputation)
+          testSunlightComputation
+        )
+
+
