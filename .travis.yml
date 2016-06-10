@@ -29,8 +29,8 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
 
 matrix:
   fast_finish: true

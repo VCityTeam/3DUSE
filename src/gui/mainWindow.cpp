@@ -46,6 +46,23 @@
 #include "moc/plugindialog.hpp"
 #include "TiledFilesLayout.hpp"
 
+//CLEMENT LIB ADDING
+#include <osg/PositionAttitudeTransform>
+#include "osg/osgInfo.hpp"
+#include "osg/osgQtWidget.hpp"
+#include <osg/LineWidth>
+#include <math.h>
+#include <osg/MatrixTransform>
+#include <core/layerInfo.hpp>
+#include "raytracing/RayTracing.hpp"
+#include "Triangle.hpp"
+#include "raytracing/Hit.hpp"
+#include <fstream>
+#include <string>
+#include "gui/applicationGui.hpp"
+#include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::pair<double, double>> Hauteurs;
@@ -84,40 +101,40 @@ MainWindow::MainWindow(QWidget *parent) :
     GDALAllRegister();
     OGRRegisterAll();
 
-    // connect slots
-    connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
-    connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
-    //connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
-    connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
-    connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
-    connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
-    connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
-    connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
-    connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
-    //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
-    connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
-    connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
-    connect(m_ui->actionBuilding, SIGNAL(triggered()), this, SLOT(optionPickBuiling()));
-    connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
-    connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
-    connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
-    connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
-    //connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
-    //connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
-    connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
-    connect(m_ui->checkBoxTemporalTools, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
-    connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
-    //connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
-    connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
-    connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
-    connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
-    //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
-    connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
-    connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
-    connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
-    connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
-    connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
+	// connect slots
+	connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+	connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
+	connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
+	//connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
+	connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
+	connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
+	connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
+	connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
+	connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
+	connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
+	//connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
+	connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
+	connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
+	connect(m_ui->actionBuilding, SIGNAL(triggered()), this, SLOT(optionPickBuiling()));
+	connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
+	connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
+	connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
+	connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
+	//connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
+	//connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
+	connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
+    connect(m_ui->checkBoxTemporalTools, SIGNAL(stateChanged(int)), this, SLOT(toggleUseTemporal()));
+	connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
+	//connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
+	connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
+	connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
+	connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
+	//connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
+	connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
+	connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
+	connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
+	connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
+	connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
 
     connect(m_ui->toolButton, SIGNAL(clicked()), this, SLOT(slotTemporalAnim()));
 
@@ -946,10 +963,15 @@ void MainWindow::updateTemporalParams(int value)
 
     //std::cout << "set year : " << date.year() << std::endl;
 
-    QDateTime datetime(date);
-    m_currentDate = datetime;
-    if (m_useTemporal)   m_osgScene->setDate(datetime);
+	QDateTime datetime(date);
+	m_currentDate = datetime;
+    if(m_useTemporal)
+    {
+        m_osgScene->setDate(datetime);
 
+        //Send signal to Sunlight Plugin which will trap it if visu is activated
+        emit activateVisuSunlightPlugin(m_currentDate);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalSlider()
@@ -1001,7 +1023,12 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    //std::cout << "toggle temporal tool" << std::endl;
+	//std::cout << "toggle temporal tool" << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::ChangecheckBoxTemporalToolsState()
+{
+     m_ui->checkBoxTemporalTools->setChecked(!m_useTemporal); //This will trigger a signal and call toggleUseTemporal function
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
@@ -2986,198 +3013,361 @@ void MainWindow::test1()
 
     QApplication::restoreOverrideCursor();
 }
-////////////////////////////////////////////////////////////////////////////////
-void MainWindow::test2() //Generation de stats pour etude de visibilite
+std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-    QTime time;
-    time.start();
+    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
-    for (int cam = 1; cam <= 10; ++cam)
+
+    std::vector<osgInfo*> v_info;
+    std::vector<float> v_height;
+    std::vector<float> v_width;
+    std::vector<double> v_angle;
+    std::vector<float> v_anchoring;
+
+    std::vector<int> v_priority;
+
+    std::vector<osg::Vec3> v_position;
+    std::vector<osg::Vec3> v_axis;
+
+
+    std::vector<std::string> v_filepath;
+    std::vector<std::string> v_name;
+    std::vector<std::string> v_filetype;
+    std::vector<std::string> v_sourcetype;
+    std::vector<std::string> v_LOD;
+
+    // *** CSV Load
+        std::ifstream file(sourcepath);
+        std::string line;
+        std::getline(file,line); //get the first line
+        int cpt = 0 ;
+        float x=0;
+        float y=0;
+        float z=0;
+        while(std::getline(file,line)) // For all lines of csv file
+        {
+            std::stringstream  lineStream(line);
+            std::string        cell;
+            cpt=0;
+            x=0;
+            y=0;
+            z=0;
+            while(std::getline(lineStream,cell,','))
+            {
+                if (cpt==0)
+                        v_height.push_back(std::stod(cell));
+                if (cpt==1)
+                        v_width.push_back(std::stod(cell));
+                if (cpt==2)
+                        x=std::stod(cell);
+
+                if (cpt==3)
+                        y=std::stod(cell);
+
+                if (cpt==4)
+                        z=std::stod(cell);
+
+                if (cpt==5)
+                        v_angle.push_back(std::stod(cell));
+                if (cpt==6)
+                {
+                    if(cell=="z")
+                        v_axis.push_back(osg::Vec3(0,0,1));
+                }
+                if (cpt==7)
+                        v_filepath.push_back(cell);
+
+                if (cpt==8)
+                        v_name.push_back(cell);
+
+                if (cpt==9)
+                        v_filetype.push_back(cell);
+
+                if (cpt==10)
+                        v_sourcetype.push_back(cell);
+
+                if (cpt==11)
+                    v_LOD.push_back(cell);
+                if (cpt==12)
+                    v_anchoring.push_back(std::stod(cell));
+
+                if(cpt==13)
+                    v_priority.push_back(std::stod(cell));
+
+                cpt++;
+             }
+            v_position.push_back(osg::Vec3(x,y,z));
+        }
+        std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
+        for (std::size_t i=0; i<v_filepath.size(); ++i)
+        {
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
+        }
+
+
+        std::vector<Ray*> v_ray;
+        int cpt2=0;
+        int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
+        bool raytracing = false;
+
+        for(osgInfo* i : v_info)
+        {
+            if(i->m_anchoring==0)
+            {
+                osg::Vec3 osgvec3 = i->getPosition();
+                TVec3d ori = TVec3d(osgvec3.x()+offsetx,osgvec3.y()+offsety,osgvec3.z());
+                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), id);
+                v_ray.push_back(tmp_ray);
+                raytracing = true;
+                cpt2++;
+            }
+            ++id;
+        }
+
+        std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
+
+        if(raytracing)
+        {
+            TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
+            TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
+
+            TriangleList* triangles = new TriangleList();
+            triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
+
+            triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
+            triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
+
+            std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
+
+            for(Hit* h : *(v_hit))
+            {
+                v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
+            }
+
+        }
+
+
+         std::ofstream ofs;
+         ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
+
+         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
+         for(osgInfo* i : v_info)
+         {
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
+         }
+         ofs.close();
+
+        return v_info;
+}
+
+void MainWindow::test2()
+{
+
+    std::vector<osgInfo*> v_info;
+    v_info = loadCSV(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+    vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
+    appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
+
+    for (std::size_t i=0; i<v_info.size() ; ++i)
     {
-        std::ofstream ofs;
-        ofs.open("D:/3DUSE 0.2.5/" + std::to_string(cam) + "_Skyline.csv", std::ofstream::out);
-        std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
-
-        int min = -1;
-        int max = -1;
-
-        QString filepath;
-
-        for (int i = 0; i <= 20; ++i)
-        {
-            std::string dist = std::to_string(i);
-
-            filepath = QString::fromStdString(Folder + dist) + "_SkylineLine.shp";
-
-            QFileInfo file(filepath);
-
-            if (file.exists())
-            {
-                if (min == -1)
-                    min = i;
-                max = i;
-            }
-            else if (min != -1)
-                break;
-        }
-
-        OGRDataSource* DS = OGRSFDriverRegistrar::Open((Folder + std::to_string(max) + "_Viewpoint.shp").c_str(), FALSE);
-        OGRLayer* L = DS->GetLayer(0);
-        OGRFeature *F;
-        L->ResetReading();
-        F = L->GetNextFeature();
-        OGRPoint* Camera = (OGRPoint*)F->GetGeometryRef()->clone();
-
-        delete DS;
-
-        std::cout << cam << " : " << min << "   " << max << std::endl;
-
-        filepath = QString::fromStdString(Folder + std::to_string(max)) + "_SkylineLine.shp";
-
-        OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
-        OGRLayer* Layer = DataSource->GetLayer(0);
-
-        OGRLineString * LineLoD2;
-        OGRFeature *Feature;
-        Layer->ResetReading();
-        Feature = Layer->GetNextFeature();
-        LineLoD2 = (OGRLineString*)Feature->GetGeometryRef()->clone();
-
-        delete DataSource;
-
-        for (int i = min; i < max; ++i)
-        {
-            std::cout << "Avancement : " << i << std::endl;
-
-            std::string dist = std::to_string(i);
-
-            filepath = QString::fromStdString(Folder + dist) + "_SkylineLine.shp";
-
-            OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
-            OGRLayer* Layer2 = DataSource2->GetLayer(0);
-
-            OGRLineString * Line;
-            OGRFeature *Feature2;
-            Layer2->ResetReading();
-            Feature2 = Layer2->GetNextFeature();
-            Line = (OGRLineString*)Feature2->GetGeometryRef()->clone();
-
-            delete DataSource2;
-
-            //std::cout << Line->getNumPoints() << " - " << LineLoD2->getNumPoints() << std::endl;
-
-            std::vector<float> Dist;
-
-            ofs << "LoD2 a une distance de " << max << std::endl;
-            ofs << "Comparaison LoD1 a partir de " << i << "000m et LoD2" << std::endl;
-
-            //OGRMultiLineString* MLS = new OGRMultiLineString;
-
-            for (int k = 0; k < LineLoD2->getNumPoints(); ++k)
-            {
-                OGRPoint* Point1 = new OGRPoint;
-                LineLoD2->getPoint(k, Point1);
-
-                double DistMin = 100000;
-
-                for (int j = 0; j < Line->getNumPoints(); ++j)
-                {
-                    OGRPoint* Point2 = new OGRPoint;
-                    Line->getPoint(j, Point2);
-
-                    TVec2d AB(Point1->getX() - Camera->getX(), Point1->getY() - Camera->getY());
-                    TVec2d AC(Point2->getX() - Camera->getX(), Point2->getY() - Camera->getY());
-
-                    /*std::cout << Point1->getX() << " " << Point1->getY() << " " << Point1->getZ() << std::endl;
-                    std::cout << Point2->getX() << " " << Point2->getY() << " " << Point2->getZ() << std::endl;
-
-                    std::cout << Camera->getX() << " " << Camera->getY() << " " << Camera->getZ() << std::endl;
-
-                    std::cout << AB << std::endl;
-                    std::cout << AC << std::endl;
-
-                    std::cout << AB.x * AC.y - AB.y * AC.x << std::endl;
-
-                    int a;
-                    std::cin >> a;*/
-
-
-                    if (AB.x * AC.y - AB.y * AC.x < 0.01)
-                    {
-                        double Distance = sqrt((Point2->getX() - Point1->getX())*(Point2->getX() - Point1->getX()) + (Point2->getY() - Point1->getY())*(Point2->getY() - Point1->getY()) + (Point2->getZ() - Point1->getZ())*(Point2->getZ() - Point1->getZ()));
-                        if (DistMin > Distance)
-                            DistMin = Distance;
-                    }
-
-                    //delete Point1;
-                    //delete Point2;
-                    //OGRLineString* LS = new OGRLineString;
-                    //LS->addPoint(Point1);
-                    //LS->addPoint(Point2);
-                    //MLS->addGeometryDirectly(LS);
-                    delete Point2;
-
-                }
-                if (DistMin == 100000)
-                {
-                    std::cout << k << " Erreur DistMin" << std::endl;
-                    DistMin = Point1->Distance(Line);
-                    //int a;
-                    //std::cin >> a;
-                }
-                ofs << DistMin << ";";
-                Dist.push_back(DistMin);
-
-                delete Point1;
-            }
-
-            ofs << std::endl << std::endl;
-
-            delete Line;
-
-            //SaveGeometrytoShape("MLS.shp", MLS);
-        }
-        delete LineLoD2;
-        ofs.close();
+        v_info[i]->setBillboarding(true);
     }
 
-    int millisecondes = time.elapsed();
-    std::cout << "Execution time : " << millisecondes / 1000.0 << std::endl;
+	//Création d'ilots à partir de Shapefile contenant des routes
+//	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
+//	OGRLayer *LayerRoutes = Routes->GetLayer(0);
+//	OGRFeature *FeatureRoutes;
+//	LayerRoutes->ResetReading();
+
+//	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
+//	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
+//	{
+//		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
+
+//		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
+//		{
+//			ReseauRoutier->addGeometry(Route);
+//		}
+//	}
+
+
+//	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
+
+//	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
+//    std::cout<<"[MainWindow > test2].....CSV loaded"<<std::endl;
+
+//	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
+//	{
+//		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
+//		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
+//			ReseauMP->addGeometry(temp);
+//	}
+
+//	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
+
+//	delete ReseauRoutier;
 }
-/*void MainWindow::test2()
-{
-//Creation d'ilots a partir de Shapefile contenant des routes
-OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-OGRLayer *LayerRoutes = Routes->GetLayer(0);
-OGRFeature *FeatureRoutes;
-LayerRoutes->ResetReading();
 
-OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-{
-OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
 
-if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-{
-ReseauRoutier->addGeometry(Route);
-}
-}
+// void MainWindow::test2() //Génération de stats pour étude de visibilité
+// {
+// 	QTime time;
+// 	time.start();
+// 
+// 	for(int cam = 1; cam <= 10; ++cam)
+// 	{
+// 		std::ofstream ofs;
+// 		ofs.open("D:/3DUSE 0.2.5/"+std::to_string(cam)+"_Skyline.csv", std::ofstream::out);
+// 		std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
+// 
+// 		int min = -1;
+// 		int max = -1;
+// 
+// 		QString filepath;
+// 
+// 		for(int i = 0; i <= 20; ++i)
+// 		{
+// 			std::string dist = std::to_string(i);
+// 
+// 			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
+// 
+// 			QFileInfo file(filepath);
+// 
+// 			if(file.exists())
+// 			{
+// 				if(min == -1)
+// 					min = i;
+// 				max = i;
+// 			}
+// 			else if(min != -1)
+// 				break;
+// 		}
+// 
+// 		OGRDataSource* DS = OGRSFDriverRegistrar::Open((Folder + std::to_string(max)+ "_Viewpoint.shp").c_str(), FALSE);
+// 		OGRLayer* L = DS->GetLayer(0);
+// 		OGRFeature *F;
+// 		L->ResetReading();
+// 		F = L->GetNextFeature();
+// 		OGRPoint* Camera = (OGRPoint*)F->GetGeometryRef()->clone();
+// 
+// 		delete DS;
+// 
+// 		std::cout << cam << " : " << min << "   " << max << std::endl;
+// 
+// 		filepath = QString::fromStdString(Folder+std::to_string(max)) + "_SkylineLine.shp";
+// 
+// 		OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+// 		OGRLayer* Layer = DataSource->GetLayer(0);
+// 
+// 		OGRLineString * LineLoD2;
+// 		OGRFeature *Feature;
+// 		Layer->ResetReading();
+// 		Feature = Layer->GetNextFeature();
+// 		LineLoD2 = (OGRLineString*)Feature->GetGeometryRef()->clone();
+// 
+// 		delete DataSource;
+// 
+// 		for(int i = min; i < max; ++i)
+// 		{
+// 			std::cout << "Avancement : " << i << std::endl;
+// 
+// 			std::string dist = std::to_string(i);
+// 
+// 			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
+// 
+// 			OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
+// 			OGRLayer* Layer2 = DataSource2->GetLayer(0);
+// 
+// 			OGRLineString * Line;
+// 			OGRFeature *Feature2;
+// 			Layer2->ResetReading();
+// 			Feature2 = Layer2->GetNextFeature();
+// 			Line = (OGRLineString*)Feature2->GetGeometryRef()->clone();
+// 
+// 			delete DataSource2;
+// 
+// 			//std::cout << Line->getNumPoints() << " - " << LineLoD2->getNumPoints() << std::endl;
+// 
+// 			std::vector<float> Dist;
+// 
+// 			ofs << "LoD2 a une distance de " << max << std::endl;
+// 			ofs << "Comparaison LoD1 a partir de " << i << "000m et LoD2" << std::endl;
+// 
+// 			//OGRMultiLineString* MLS = new OGRMultiLineString;
+// 
+// 			for(int k = 0; k < LineLoD2->getNumPoints(); ++k)
+// 			{
+// 				OGRPoint* Point1 = new OGRPoint;
+// 				LineLoD2->getPoint(k, Point1);
+// 
+// 				double DistMin = 100000;
+// 
+// 				for(int j = 0; j < Line->getNumPoints(); ++j)
+// 				{
+// 					OGRPoint* Point2 = new OGRPoint;
+// 					Line->getPoint(j, Point2);
+// 
+// 					TVec2d AB(Point1->getX() - Camera->getX(), Point1->getY() - Camera->getY());
+// 					TVec2d AC(Point2->getX() - Camera->getX(), Point2->getY() - Camera->getY());
+// 
+// 					/*std::cout << Point1->getX() << " " << Point1->getY() << " " << Point1->getZ() << std::endl;
+// 					std::cout << Point2->getX() << " " << Point2->getY() << " " << Point2->getZ() << std::endl;
+// 
+// 					std::cout << Camera->getX() << " " << Camera->getY() << " " << Camera->getZ() << std::endl;
+// 
+// 					std::cout << AB << std::endl;
+// 					std::cout << AC << std::endl;
+// 
+// 					std::cout << AB.x * AC.y - AB.y * AC.x << std::endl;
+// 
+// 					int a;
+// 					std::cin >> a;*/
+// 
+// 
+// 					if(AB.x * AC.y - AB.y * AC.x < 0.01)
+// 					{
+// 						double Distance = sqrt((Point2->getX()-Point1->getX())*(Point2->getX()-Point1->getX()) + (Point2->getY()-Point1->getY())*(Point2->getY()-Point1->getY()) + (Point2->getZ()-Point1->getZ())*(Point2->getZ()-Point1->getZ()));
+// 						if(DistMin > Distance)
+// 							DistMin = Distance;
+// 					}
+// 
+// 					//delete Point1;
+// 					//delete Point2;
+// 					//OGRLineString* LS = new OGRLineString;
+// 					//LS->addPoint(Point1);
+// 					//LS->addPoint(Point2);
+// 					//MLS->addGeometryDirectly(LS);
+// 					delete Point2;
+// 
+// 				}
+// 				if(DistMin == 100000)
+// 				{
+// 					std::cout << k << " Erreur DistMin" << std::endl;
+// 					DistMin = Point1->Distance(Line);
+// 					//int a;
+// 					//std::cin >> a;
+// 				}
+// 				ofs << DistMin << ";";
+// 				Dist.push_back(DistMin);
+// 
+// 				delete Point1;
+// 			}
+// 
+// 			ofs << std::endl << std::endl;
+// 
+// 			delete Line;
+// 
+// 			//SaveGeometrytoShape("MLS.shp", MLS);
+// 		}
+// 		delete LineLoD2;
+// 		ofs.close();
+// 	}
+// 
+// 	int millisecondes = time.elapsed();
+// 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
+// }
 
-OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
-
-OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
-
-for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-{
-OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-ReseauMP->addGeometry(temp);
-}
-
-SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
-
-delete ReseauRoutier;
-}*/
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {

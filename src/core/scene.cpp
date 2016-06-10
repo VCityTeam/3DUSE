@@ -122,6 +122,20 @@ namespace vcity
             else std::cout << "layer is NULL in addTile" << std::endl;
         }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    void Scene::addInfo(const URI& uriLayer, std::vector<osgInfo*> info)
+    {
+        abstractLayer* abstractlayer = getLayer(uriLayer);
+        if(abstractlayer)
+        {
+            LayerInfo* layer = dynamic_cast<LayerInfo*>(abstractlayer);
+            if (layer)
+                layer->setInfo(info);
+            else std::cout << "layer is NULL in Scene::addInfo" << std::endl;
+        }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     Tile* Scene::getTile(const URI& uri)
     {
@@ -164,6 +178,21 @@ namespace vcity
 
         return nullptr;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    const std::vector<osgInfo*>* Scene::getInfo(const URI& uri)
+    {
+        abstractLayer* abstractlayer = getLayer(uri);
+        if(abstractlayer)
+        {
+            LayerInfo* layer = dynamic_cast<LayerInfo*>(abstractlayer);
+            if (layer)
+                return &layer->getInfo();
+            else std::cout << "layer is NULL in Scene::getInfo" << std::endl;
+        }
+        return nullptr;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     void Scene::deleteTile(const URI& uri)
     {
@@ -212,6 +241,7 @@ namespace vcity
         addLayer(new LayerMnt("layer_Mnt"));
         addLayer(new LayerLas("layer_Las"));
         addLayer(new LayerShp("layer_Shp"));
+	addLayer(new LayerInfo("layer_Info"));
     }
     ////////////////////////////////////////////////////////////////////////////////
     void Scene::dump()

@@ -550,7 +550,7 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
     delete Ring;
     Ring = new OGRLinearRing;
 
-    for (int i = 0; i < TexTmp.size(); ++i)
+    for (std::size_t i = 0; i < TexTmp.size(); ++i)
     {
         Tex->push_back(TexTmp.at(TexTmp.size() - 1 - i));
         // FIXME: VC++ warning C4267 on next line:
@@ -851,7 +851,7 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
     TVec3d AC;
 
     int test = 0;//Vaut 0 tant que B n'est pas correctement rempli, puis passe a 1 tant que C n'est pas correctement rempli
-    for (int i = 1; i < Poly->size(); ++i) //Le premier point n'est pas repete a la fin
+    for (std::size_t i = 1; i < Poly->size(); ++i) //Le premier point n'est pas repete a la fin
     {
         if (test == 0)
         {
