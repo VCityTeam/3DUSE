@@ -128,7 +128,7 @@ void InfoDataType::computeDSC(osg::Camera *cam, int screenX, int screenY, osgInf
 
     float screenwidth = sCornerMax.x()-sCornerMin.x();
     float screenheight = sCornerMax.y()-sCornerMin.y();
-    float Da = abs(screenwidth*screenheight);
+    float Da = fabs(screenwidth*screenheight);
 
     info->m_sCornerMax=sCornerMax;
     info->m_sCornerMin=sCornerMin;
