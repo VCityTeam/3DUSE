@@ -795,6 +795,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     src                            # For moc on Generic_PluginInterface
     src/libfilters
     ${CITYGML_INCLUDE_DIR}
+    ${FILTERS_INCLUDE_DIR} 
   )
   target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
