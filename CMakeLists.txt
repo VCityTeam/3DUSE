@@ -16,6 +16,7 @@ project( 3DUSE )
 # Proposed version: requiring anything in the range 2.8.9 to 2.8.12 would
 # make the job. Go for the higher version within this range i.e. 2.8.12 ?
 cmake_minimum_required(VERSION 2.8)
+enable_testing()
 
 if ( WITH_QT5 )
   cmake_minimum_required(VERSION 2.8.9)
@@ -418,6 +419,7 @@ set( VCITY_GUI_SRC
   src/core/cell.cpp
   src/core/controller.cpp
   src/core/dataprofile.cpp
+  src/core/dateTime.cpp
   src/core/layerAssimp.cpp
   src/core/layerCityGML.cpp
   src/core/layerLas.cpp
@@ -488,6 +490,7 @@ set( VCITY_GUI_SRC
   src/utils/CityGMLFusion.cpp
   src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
 
+### The main
   src/main.cpp
 
 ### FIXME section
@@ -647,8 +650,6 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-add_subdirectory(src)
-
 ################
 # 3DUSE plugins
 ################
@@ -772,16 +773,16 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
 	set( CityGMLVisibilite_Qt_Plugin_UI
     src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.ui
   )
-	if (WITH_QT5)
-	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
       ${CityGMLVisibilite_Qt_Plugin_HEADER}
       TARGET CityGMLVisibiliteQtPlugin
     )
-	  QT5_WRAP_UI( CityGMLVisibilite_Qt_Plugin_UI_CPP
+    QT5_WRAP_UI( CityGMLVisibilite_Qt_Plugin_UI_CPP
       ${CityGMLVisibilite_Qt_Plugin_UI}
     )
-	  set( CityGMLVisibilite_Qt_Plugin_SRC
+    set( CityGMLVisibilite_Qt_Plugin_SRC
       ${CityGMLVisibilite_Qt_Plugin_SRC}
       ${CityGMLVisibilite_Qt_Plugin_MOC_CPP}
       ${CityGMLVisibilite_Qt_Plugin_UI_CPP}
@@ -881,9 +882,64 @@ if (BUILD_CityGMLFloodARQtPlugin)
 endif (BUILD_CityGMLFloodARQtPlugin)
 # --> CityGMLFloodARQtPlugin : QtPlugin [END]
 
+# --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
+OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " OFF)
+if (BUILD_CityGMLSunlightQtPlugin)
+  set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h)
+  set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP( CityGMLSunlight_Qt_Plugin_MOC_CPP
+      ${CityGMLSunlight_Qt_Plugin_HEADER}
+      TARGET CityGMLSunlightQtPlugin
+    )
+    QT5_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
+    set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
+  else(WITH_QT5)
+    QT4_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
+    QT4_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
+    set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
+    set(CityGMLSunlight_Qt_Plugin_LIB ${CityGMLSunlight_Qt_Plugin_LIB} ${QT_LIBRARIES})
+  endif(WITH_QT5)
+
+  add_library( CityGMLSunlightQtPlugin SHARED
+    src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.cxx
+    src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.cxx
+    src/plugins/CityGMLSunlightQtPlugin/FileInfo.cxx
+    src/plugins/CityGMLSunlightQtPlugin/IO.cxx
+    src/plugins/CityGMLSunlightQtPlugin/SunlightDetection.cxx
+    ${CityGMLSunlight_Qt_Plugin_HEADER}
+    ${CityGMLSunlight_Qt_Plugin_SRC}
+    ${VCITY_GUI_SRC}
+    # if needed, add cxx files here
+  )
+
+  target_include_directories( CityGMLSunlightQtPlugin PUBLIC
+    src                            # For moc on Generic_PluginInterface
+    ${FILTERS_INCLUDE_DIR}
+    ${CITYGMLUTILS_INCLUDE_DIR}
+  )
+
+  target_link_libraries ( CityGMLSunlightQtPlugin
+    ${LINUX_FLAGS}
+    ${CityGMLSunlight_Qt_Plugin_LIB}
+    ${VCITY_GUI_LIB}
+    ${CITYGML_LIBRARIES}
+    ${CITYGMLUTILS_LIBRARIES}
+  )
+  if (WITH_QT5)
+    QT5_USE_MODULES(CityGMLSunlightQtPlugin Core Widgets OpenGL)
+  endif(WITH_QT5)
+endif (BUILD_CityGMLSunlightQtPlugin)
+# --> CityGMLSunlightQtPlugin : QtPlugin [END]
+
 ################
 # END of plugins
 ################
+
+# Placed here because BUILD_CityGMLSunlightQtPlugin variable needs to be set
+# because it is needed in src/plugins/CMakeLists.txt
+add_subdirectory(src)
 
 #--------------------------------------------------------------------------------
 # Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
@@ -918,6 +974,10 @@ endif (BUILD_CityGMLVisibiliteQtPlugin)
 if (BUILD_CityGMLFloodARQtPlugin)
     set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
 endif (BUILD_CityGMLFloodARQtPlugin)
+if (BUILD_CityGMLSunlightQtPlugin)
+    set(CityGMLSunlightQtPlugin "CityGMLSunlightQtPlugin")
+endif (BUILD_CityGMLSunlightQtPlugin)
+
 ################
 # 3DUSE plugins
 ################
@@ -928,6 +988,7 @@ INSTALL(TARGETS ${PRJ_NAME}
   ${CityGMLEmptyQtPlugin}
   ${CityGMLVisibiliteQtPlugin}
   ${CityGMLFloodARQtPlugin}
+  ${CityGMLSunlightQtPlugin}
   # add your plugin installation here
 		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
 		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
@@ -1021,4 +1082,3 @@ ENDIF(WIN32)
 #--------------------------------------------------------------------------------
 # Now the installation stuff : end
 #--------------------------------------------------------------------------------
-

@@ -1,5 +1,6 @@
 # add_subdirectory(core)
 add_subdirectory(libfilters)
+add_subdirectory(plugins)
 add_subdirectory(libcitygml)
 
 add_library( vcitycore SHARED

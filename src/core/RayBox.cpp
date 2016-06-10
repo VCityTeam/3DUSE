@@ -20,14 +20,20 @@ RayBoxCollection::RayBoxCollection(std::vector<RayBox*> raysBoxes)
     this->raysBB = raysBoxes;
 }
 
+RayBoxCollection::~RayBoxCollection()
+{
+    for(unsigned int i = 0; i < raysBB.size(); ++i)
+       delete raysBB[i];
+}
+
 //RayBox
 
-RayBox::RayBox(TVec3d ori, TVec3d dir, std::string id)
+RayBox::RayBox(TVec3d ori, TVec3d dir, int id)
 {
     this->id = id;
     this->ori = ori;
     this->dir = dir;
-    inv_dir = TVec3d(1 / dir.x, 1 / dir.y, 1 / dir.z);
+    inv_dir = TVec3d(1/dir.x, 1/dir.y, 1/dir.z);
     sign[0] = (inv_dir.x < 0);
     sign[1] = (inv_dir.y < 0);
     sign[2] = (inv_dir.z < 0);

@@ -64,7 +64,13 @@ public:
     // admin mode (show all menus)
     void unlockFeatures(const QString& pass);
 
+    void ChangecheckBoxTemporalToolsState();
+
     QLineEdit* getFilter();
+
+
+signals:
+   void activateVisuSunlightPlugin(QDateTime d); //Signal used for Sunlight Plugin (visualisation part)
 
 private:
     // plugins
