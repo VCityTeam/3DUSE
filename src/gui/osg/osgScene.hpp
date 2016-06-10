@@ -32,7 +32,7 @@
 #include <osg/Geometry>
 #include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"
-
+#include "osgInfo.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 class OsgScene : public osg::Group
@@ -101,6 +101,9 @@ public:
     /// Set date for temporal use, use -4000 as year to disable temporal
     void setDate(const QDateTime& date);
 
+    /// Set Color (yellow or black, depending on sunlight)
+    void changePolyColor(std::map<std::string,bool> sunlightInfo);
+
     /// reset osg scene
     void reset();
 
@@ -133,6 +136,21 @@ public:
     /// Insert info bubble for a node
     osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
 
+
+    /// \brief Fill layer with all info objects
+    /// \param URI pointing to the appropriate layer
+    /// \param stdd:vector with all infos
+    void initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
+
+    /// \brief Fill switches LOD structure with all infos
+    /// \param osg::ref_ptr<osg::Switch> pointer to switch root node
+    /// \param stdd:vector with all infos
+    void fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info);
+
+    /// \brief Update is_requested members of all infos
+    /// \param const QString& word from the filter search bar
+    void filterInfo(const QString& filter);
+
 public:
     /// Build osg node from CityGML data
     osg::ref_ptr<osg::Node> buildTile(const vcity::URI& uri, const vcity::Tile& tile);
@@ -152,6 +170,7 @@ public:
 
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
+    void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool> sunlightInfo);
 
     osg::TextureCubeMap* readCubeMap();
     osg::Node* createSkybox();

@@ -20,13 +20,13 @@
 #include "tesselator.hpp"
 #include "citygml.hpp"
 #include "utils.hpp"
-#include <string.h>
+#include <string>
 #include <limits>
 #include <iterator>
 #include <set>
 #include <algorithm>
 
-#include "gui/applicationGui.hpp"
+//#include "gui/applicationGui.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////

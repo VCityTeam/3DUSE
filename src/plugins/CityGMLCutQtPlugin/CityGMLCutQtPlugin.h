@@ -1,7 +1,7 @@
 #ifndef CITYGMLCUTQTPLUGIN_H
 #define CITYGMLCUTQTPLUGIN_H
 
-#include "../gui/pluginInterface.h"
+#include "gui/pluginInterface.h"
 
 #include <QStringList>
 #include "Dialogs/DialogCityGMLCut1.h"

@@ -40,6 +40,7 @@ struct TriangleList
     *	@brief Build a new collection of triangle
     */
     TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>());
+    ~TriangleList();
 
     std::vector<Triangle*> triangles;///< Triangles of the list
 };

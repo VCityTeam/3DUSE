@@ -4,7 +4,7 @@
 
 //Ray
 
-Ray::Ray(TVec3d ori, TVec3d dir, std::string id)
+Ray::Ray(TVec3d ori, TVec3d dir, int id)
 {
     this->id = id;
     this->ori = ori;
@@ -166,6 +166,12 @@ RayCollection::RayCollection(std::vector<Ray*> rays)
     this->rays = rays;
 }
 
+RayCollection::~RayCollection()
+{
+    for(unsigned int i = 0; i < rays.size(); ++i)
+       delete rays[i];
+}
+
 osg::Vec3 Rotation2(osg::Vec3 d, osg::Vec3 u, double angle) //Rotation d'angle de V autour de u //Renomme en Rotation2 car probleme avec la meme fonction dans RayBox.cpp
 {
     osg::Vec3 Res;
@@ -291,3 +297,4 @@ RayCollection* RayCollection::BuildCollection(osg::Camera* cam)
 
     return rays;
 }
+

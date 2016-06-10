@@ -87,7 +87,7 @@ public:
 
 private:
     int m_depth;                    ///< Depth of the uri
-	mutable int m_cursor;					///< cursor position, start at 0
+    mutable int m_cursor;           ///< cursor position, start at 0
     std::string m_type;             ///< Pointed node type
     std::vector<std::string> m_uri; ///< String array. One string per node name, one per depth level.
     std::vector<std::string> m_types; ///< String array. One string per node types, one per depth level.

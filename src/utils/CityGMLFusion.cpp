@@ -10,6 +10,7 @@
 #include <iomanip>
 
 
+// FIXME: to be removed ?
 void MergeTiles(std::string Path, citygml::CityModel* GML1, citygml::CityModel* GML2) //A SUPPRIMER ?
 {
     citygml::ExporterCityGML exporter(Path);

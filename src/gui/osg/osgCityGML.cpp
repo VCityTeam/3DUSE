@@ -160,7 +160,7 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
 
         const unsigned int currentLOD = geometry.getLOD();
 
-        if (m_settings._useMaxLODOnly && (currentLOD < highestLOD || currentLOD < minimumLODToConsider))
+        if(m_settings._useMaxLODOnly && (currentLOD < highestLOD || currentLOD < minimumLODToConsider ))
         {
             continue;
         }
@@ -174,6 +174,9 @@ osg::ref_ptr<osg::Group> ReaderOsgCityGML::createCityObject(const citygml::CityO
             // Geometry management
 
             osg::Geometry* geom = new osg::Geometry;
+
+            //Name
+            geom->setName(p->getId());
 
             // Vertices
             osg::Vec3Array* vertices = new osg::Vec3Array;

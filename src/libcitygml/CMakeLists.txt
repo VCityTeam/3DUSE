@@ -10,8 +10,8 @@ endif(APPLE)
 
 add_library( citygml SHARED
   # FIXME: the following are dependencies of import/importerASC.cpp
-  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
-  ${CMAKE_SOURCE_DIR}/src/utils/OGRGDAL_Utils/OGRGDALtools.cpp 
+  # FIXME ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
+  # FIXME ${CMAKE_SOURCE_DIR}/src/utils/OGRGDAL_Utils/OGRGDALtools.cpp 
   URI.cpp
   appearance.cpp
   appearancemanager.cpp
@@ -36,6 +36,7 @@ add_library( citygml SHARED
   # the xerces dependency at the cmakefile level (Find_package( xerces )...)
   # parserxercesc.cpp 
   polygon.cpp
+  quaternion.cpp
   temporalExt.cpp
   tesselator.cpp
   texture.cpp
@@ -78,8 +79,11 @@ target_include_directories( citygml PUBLIC
  ${CMAKE_SOURCE_DIR}/src/processes     # FIXME: to be removed with ToolAlgoCut.cpp
  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/  # FIXME: remove with osgMnt.cpp
 )
-# Required for generated citygml_export.h
-target_include_directories( citygml PUBLIC ${CMAKE_CURRENT_BINARY_DIR} )
+
+target_include_directories( citygml PUBLIC
+  ${CMAKE_CURRENT_BINARY_DIR}       # Required for generated citygml_export.h
+  ${VCITYCORE_INCLUDE_DIR}
+)
 
 target_link_libraries( citygml
   ${ASSIMP_LIBRARY}
@@ -93,6 +97,7 @@ target_link_libraries( citygml
   ${QT_LIBRARIES}        # FIXME: alas required by
                          # - exporter.cpp 
                          # - temporalExt.cpp 
+  ${VCITYCORE_LIBRARY}
 )
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
