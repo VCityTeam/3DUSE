@@ -109,6 +109,8 @@ endif(APPLE)
 ############################## Package (dependencies) detection
 ##### Find Qt5
 if( WITH_QT5 )
+  # FIXME: Refer to comments in .travis.yml but this can
+  # probably be cleaned up.
   if(DEFINED ENV{QT5_DIR})
     set( QT5_DIR $ENV{QT5_DIR} )
   endif()
