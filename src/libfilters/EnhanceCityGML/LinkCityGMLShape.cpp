@@ -1171,7 +1171,11 @@ std::vector<OGRPolygon*> FusionEnvelopes(std::vector<OGRPolygon*>* VecGML, std::
                             break;
 
                         if (PointIsModified)
-                            ListAProjetesModifies.push_back((OGRPoint*)Point->clone());
+                        {
+                            OGRPoint* PointTemp = new OGRPoint(*Point);
+                            ListAProjetesModifies.push_back(PointTemp);
+                            //ListAProjetesModifies.push_back((OGRPoint*)Point->clone());
+                        }
 
                         ListAProjetes.push_back(Point);
                         ListProjetes.push_back(Projete);
