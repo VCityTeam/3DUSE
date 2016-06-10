@@ -1,36 +1,42 @@
 language: cpp
+sudo: required # need by trusty
+dist: trusty   # Ubuntu 14.04 Trusty Tahr
+
+cache: apt     # feature available only for private repositories
+
+##### Matrix definition
+# For C++ projects, the env, compiler and os (provided as arrays)
+# multiply to construct the build matrix. The shallow (refer to 
+# excluded configurations) resulting matrix yields 6 jobs:
+# - linux:
+#   - gcc:   Debug and Release
+#   - clang: Debug and Release
+# - osx:
+#   - clang: Debug and Release
+# NOTE: under the hood OSX does in fact tow sub-jobs per job, since
+# two Qt versions are tested: Qt4 and Qt5.
 
 os:
-  - linux
-  - osx
-
-sudo: required # need by trusty
-dist: trusty
+  - linux      # Ubuntu 14.04 Trusty Tahr
+  - osx        # Default is OSX 10.9 (2013). Other versions are
+               # available, including OSX 10.11 (2015), refer to
+               # https://docs.travis-ci.com/user/osx-ci-environment/ 
 
 compiler:
   - gcc
-  - clang
-
-cache: apt # this feature is available only for private repositories
+  - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON"
   - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON"
 
-#-------------------------------------------------------------------
-# matrix details :
-#
-#   - 2x gcc    under Linux trusty 14.04 LTS    (debug and release)
-#   - 2x clang  under Linux trusty 14.04 LTS    (debug and release)
-#
-#   - 2x clang  under OS X with Apple LLVM      (debug and release)
-#-------------------------------------------------------------------
 matrix:
   fast_finish: true
   exclude:
     - os: osx
       compiler: gcc
 
+##### 
 addons:
   apt:
     packages:
@@ -57,17 +63,22 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
 
 script:
+  - pwd && echo aaaaaaaaaaaaaaaaaaaaaaaaa Starting script $TRAVIS_BUILD_DIR
   - cd externals/laslib
   - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF; make; sudo make install
+  # FIXME: try cd $HOME might be clearer
+  - pwd && echo aaaaaaaaaaaaaaaaaaaaaaaaa Before triple cd $TRAVIS_BUILD_DIR
   - cd .. && cd .. && cd ..
+  - pwd && echo aaaaaaaaaaaaaaaaaaaaaaaaa After triple cd $TRAVIS_BUILD_DIR
   - mkdir build && cd build && cmake .. $BTYPE
   - make
   - make test
 #
-# osx only (add qt5 after qt4 in the same job) :
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi # ---> now unlink qt4
+# osx only: previous test was against qt4. Try the same but against qt5:
+  # Unlinking qt4 suffices to avoid collisions with upcoming install of qt5
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd ..; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DWITH_QT5=YES -DQT5_DIR=/usr/local/opt/qt5; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make test; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make test; fi
