@@ -566,10 +566,11 @@ IF(WIN32)
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/qt.conf" "[Paths]\nPlugins = QtPlugins")
 ENDIF(WIN32)
 
+##### 3DUSE executable
 # For Windows set the ico file with the rc file
 IF(WIN32)
   SET(VCITY_GUI_ICON resources/vcity.rc)
-ENDIF(WIN32)
+ENDIF()
 
 # For Apple set the icns file containing icons
 IF(APPLE)
@@ -585,9 +586,9 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
   set(LINUX_FLAGS -lpthread)   # FIXME: assert this is needed
 endif()
 
-add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
+add_executable( 3DUSE MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 
-target_include_directories( ${PRJ_NAME} PUBLIC
+target_include_directories( 3DUSE PUBLIC
   ${CITYGML_INCLUDE_DIR}
   ${FILTERS_INCLUDE_DIR} 
 )
@@ -608,6 +609,7 @@ if (WITH_QT5)
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
+##### CityGMLCut executable
 add_executable( CityGMLCut
   src/utils/cmdline/cityGMLCut.cxx
   src/utils/cmdline/triangulate.cxx
@@ -624,6 +626,11 @@ SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DE
 ################
 # 3DUSE plugins
 ################
+# FIXME: all the variable names of the plugin related stuff
+# is way too long. One could get git of the CityGML systematic
+# prefix as well as the Qt infix. For example we could use
+# BUILD_CUTPLUGIN  instead of the current BUILD_CityGMLCutQtPlugin
+# or CutPlugin_HEADER instead of CityGMLCut_Qt_Plugin_HEADER.
 
 if (WITH_QT5) # For the plugins, instruct CMake to not run moc automatically when needed
  set(CMAKE_AUTOMOC OFF)
@@ -923,6 +930,7 @@ if (BUILD_CityGMLSunlightQtPlugin)
     ${VCITY_GUI_LIB}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
+    ${FILTERS_LIBRARIES}
   )
   if (WITH_QT5)
     QT5_USE_MODULES(CityGMLSunlightQtPlugin Core Widgets OpenGL)
