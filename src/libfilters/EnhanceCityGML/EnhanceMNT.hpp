@@ -22,7 +22,7 @@ FILTERS_EXPORT void CreateRoadsOnMNT(
   std::vector<TextureCityGML*>* TexturesList_ground
 );
 
-CITYGML_EXPORT void CreateVegetationOnMNT(
+FILTERS_EXPORT void CreateVegetationOnMNT(
   vcity::Tile* MNT,
   OGRDataSource* Vegetation,
   citygml::CityModel* MNT_vegetation,

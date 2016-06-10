@@ -1,7 +1,6 @@
 #include "ChangeDetection.hpp"
-////////////////////////////////////////////////////////////////////////////////
 #include "utils/OGRGDAL_Utils/OGRGDALtools.hpp"
-////////////////////////////////////////////////////////////////////////////////
+
 /**
 * @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve de maniere identique dans les deux ensembles de geometries, dans un seul ou s'il a ete modifie
 * @param Geo1 Premier ensemble de geometries qui ont ete unies : deux triangles voisins sont reunis en un rectangle par exemple
@@ -9,7 +8,12 @@
 * @param Geo1P Premier ensemble de geometries non unies : pour un polygone de Geo1, il donne la liste des polygones non unis qui le composent
 * @param Geo2P Second ensemble de geometries non unies
 */
-std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > CompareBati(std::string Folder, OGRMultiPolygon * Geo1, OGRMultiPolygon * Geo2, std::vector<OGRMultiPolygon* > Geo1P, std::vector<OGRMultiPolygon *> Geo2P)
+std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
+  CompareBati( std::string Folder,
+               OGRMultiPolygon * Geo1,
+               OGRMultiPolygon * Geo2,
+               std::vector<OGRMultiPolygon* > Geo1P,
+               std::vector<OGRMultiPolygon *> Geo2P )
 {
     std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Res; //Enregistre les liens entre les polygones. Pour un polygone donnee de Geo1, si il est en lien avec un de Geo2, l'indice sera precede de -1 ou -2 pour inchange/change
 

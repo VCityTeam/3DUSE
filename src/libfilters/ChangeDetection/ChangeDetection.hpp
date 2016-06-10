@@ -2,9 +2,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef __CHANGEDETECTION_HPP__
 #define __CHANGEDETECTION_HPP__
-////////////////////////////////////////////////////////////////////////////////
+
 #include <stdlib.h>
-#include "ogrsf_frmts.h"
+#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
+# pragma warning(disable:4251) // gdal-1.11.4 internals (cpl_string.h) when
+#endif                         // including ogrsf_frmts.h on VCC++
+#include <ogrsf_frmts.h>
 #include "libcitygml/citygml.hpp"
 #include "filters_export.h"
 

@@ -1,5 +1,14 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
+#include <QFileDialog>
+#include <QCheckBox>
+#include <QDirIterator>
+#include <QSettings>
+#include <QListView>
+#include <QMessageBox>
+#include <QDate>
+#include <QPluginLoader>
+
 #include "moc/mainWindow.hpp"
 #include "ui_mainWindow.h"
 #include "moc/dialogLoadBBox.hpp"
@@ -8,14 +17,6 @@
 #include "moc/dialogTilingCityGML.hpp"
 
 #include "controllerGui.hpp"
-
-#include <QFileDialog>
-#include <QCheckBox>
-#include <QDirIterator>
-#include <QSettings>
-#include <QListView>
-#include <QMessageBox>
-#include <QDate>
 
 #include "citygml.hpp"
 #include "export/exportCityGML.hpp"
@@ -27,10 +28,6 @@
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
 #include "osg/osgGDAL.hpp"
-
-/*#include "assimp/Importer.hpp"
-#include "assimp/PostProcess.h"
-#include "assimp/Scene.h"*/
 
 #include "osg/osgAssimp.hpp"
 #include "src/DataStructures/DEM/osgMnt.hpp"
@@ -45,7 +42,6 @@
 #include "src/libfilters/tiling/TilingCityGML.hpp"
 #include "src/libfilters/EnhanceCityGML/EnhanceMNT.hpp"
 
-#include <QPluginLoader>
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 #include "TiledFilesLayout.hpp"
