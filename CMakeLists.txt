@@ -56,7 +56,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 endif()
 
 ##### Clang compiler specifics (export CXX=clang++ CC=clang)
-if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
+if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" )
   set( ENABLE_CXX11 "-std=c++11" )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments" )
   set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments" )
