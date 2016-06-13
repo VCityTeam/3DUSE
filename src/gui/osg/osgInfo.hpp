@@ -16,6 +16,7 @@
 #include <osgDB/ReadFile>
 #include <osg/BlendFunc>
 #include <osg/Material>
+#include "vecs.hpp"
 
 
 class osgInfo : public osg::Group
@@ -32,9 +33,13 @@ public:
     /// \param osg Vec3 new rotation for billboard
     void setBBAxis(osg::Vec3 newAxis);
 
-    /// \brief Scale document
-    /// \param new scale
-    void Scaling(float scale);
+    /// \brief Update scale of current document
+    /// \param int screenX width of screen (in pixels)
+    /// \param int screenY height of screen (in pixels)
+    void updateScale( int screenX, int screenY);
+
+    /// \brief Compute displayability of current info
+    void updateDisplayability();
 
     /// \brief Update the 3 local vectors
     /// \param osg::Vec3f normale of the document
@@ -49,6 +54,16 @@ public:
     /// \brief Update current document position
     /// \param osg::Vec3 new coordinates
     void UpdatePosition(osg::Vec3 newPos);
+
+    /// \brief Compute and update DSC value for current document
+    /// \param osg::Camera* pointer to camera to get camera current position
+    /// \param int screenX width of screen (in pixels)
+    /// \param int screenY height of screen (in pixels)
+    void computeDSC(osg::Camera *cam, int screenX, int screenY);
+
+    /// \brief Compute and update DCAM value for current document
+    /// \param osg::Camera* pointer to camera to get camera current position
+    void computeDCAM(osg::Camera *cam);
 
     // Setters
 
@@ -169,7 +184,7 @@ private:
     osg::Texture2D *m_texture ; ///texture of the doc
     osg::Material *m_material ; ///material of the doc
     osg::StateSet *m_state; ///state of the doc
-    osg::Geometry  *m_geom; ///geometry to store drawables
+    osg::Geometry  *m_quad; ///geometry to store quad drawable
     osg::Geode *m_geode; ///geometry node
     osg::Group *m_group; ///group node to store quad and line
     osg::PositionAttitudeTransform *m_pat; ///position attitude transforme of the node
@@ -195,7 +210,7 @@ public :
 
     float m_DCAM ; ///distance between doc and cam
     float m_DSC ; /// distance between doc and screen center
-    float m_Da; ///document area on screen
+    int m_Da; ///document area on screen
     float m_OVa; ///total area of document overlapped by others in front of it
 
     osg::Billboard *m_billboard; ///billboard object is needed

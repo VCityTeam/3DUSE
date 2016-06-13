@@ -871,11 +871,8 @@ void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotFilter()
 {
-    //std::cout << "[treeView > slotFilter ].....filtre : -" << appGui().getMainWindow()->getFilter()->text().toStdString() <<"-"<<std::endl;
-
     appGui().getControllerGui().resetSelection();
     searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
-    //appGui().getOsgScene()->filterInfo(appGui().getMainWindow()->getFilter()->text());
 
 }
 ////////////////////////////////////////////////////////////////////////////////
