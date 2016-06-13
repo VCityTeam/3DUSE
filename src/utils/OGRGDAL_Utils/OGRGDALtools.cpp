@@ -552,7 +552,7 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
     for (std::size_t i = 0; i < TexTmp.size(); ++i)
     {
         Tex->push_back(TexTmp.at(TexTmp.size() - 1 - i));
-        Ring->addPoint(RingTmp->getX(TexTmp.size() - 1 - i), RingTmp->getY(TexTmp.size() - 1 - i), RingTmp->getZ(TexTmp.size() - 1 - i));
+        Ring->addPoint(RingTmp->getX((int)(TexTmp.size() - 1 - i)), RingTmp->getY((int)(TexTmp.size() - 1 - i)), RingTmp->getZ((int)(TexTmp.size() - 1 - i)));
     }
 
     delete RingTmp;
