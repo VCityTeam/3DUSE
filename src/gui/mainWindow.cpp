@@ -3009,7 +3009,7 @@ void MainWindow::test1()
 }
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
+    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test3.csv";
 
 
     std::vector<osgInfo*> v_info;

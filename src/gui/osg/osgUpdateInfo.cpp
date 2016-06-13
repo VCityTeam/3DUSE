@@ -50,10 +50,11 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                         osg::Node* node = subSwitch->getChild(j);
                         osgInfo* info = dynamic_cast<osgInfo*>(node);
 
-                        layerInfo->computeDCAM(cam, info);
-                        layerInfo->computeDSC(cam, screenX, screenY, info);
+                        info->computeDCAM(cam);
+                        info->computeDSC(cam, screenX, screenY);
 
                         info->setDisplayable(true);
+                        //info->updateDisplayability();
 
                         if(info->isonScreen())
                         {
@@ -91,7 +92,7 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
 
             float RDS = (TDa-TOVa)/Sa ; //ratio of all document area to screen area
             float RNDs = (float)NDs/ND; //ratio of all document displayed
-            float RNDh = (float)NDh/NDs; //ratio of document hidden
+            float RNDh = (float)NDh/ND; //ratio of document hidden
 
 
             std::cout<<"RNDs = "<<RNDs*100<<"%"<<std::endl;
@@ -102,10 +103,10 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
             std::cout<<std::endl;
 
 //            layerInfo->stairedDisplay(map_info);
-//            layerInfo->stairedDisplay(map_street);
-//            layerInfo->stairedDisplay(map_building);
-//            layerInfo->stairedDisplay(map_district);
-//            layerInfo->stairedDisplay(map_city);
+            layerInfo->stairedDisplay(map_street);
+            layerInfo->stairedDisplay(map_building);
+            layerInfo->stairedDisplay(map_district);
+            layerInfo->stairedDisplay(map_city);
             layerInfo->display();
 
         }
