@@ -11,19 +11,24 @@
 #include <ogrsf_frmts.h>
 #include <QDir>
 
-#include "core/tile.hpp"
+#include "libcitygml/utils/tile.hpp"
 #include "export/exportCityGML.hpp"
+#include "filters_export.h"
 
-citygml::CityModel* TileCityGML( vcity::Tile* Tile,
-                                 std::vector<TextureCityGML*>* TexturesList,
-                                 TVec2d MinTile,
-                                 TVec2d MaxTile,
-                                 std::string PathFolder );
+FILTERS_EXPORT citygml::CityModel* TileCityGML(
+  vcity::Tile* Tile,
+  std::vector<TextureCityGML*>* TexturesList,
+  TVec2d MinTile,
+  TVec2d MaxTile,
+  std::string PathFolder
+);
 
-void MergingTile( vcity::Tile* OldTile,
-                  citygml::CityModel* NewTile,
-                  std::vector<TextureCityGML*>* TexturesList );
+FILTERS_EXPORT void MergingTile(
+  vcity::Tile* OldTile,
+  citygml::CityModel* NewTile,
+  std::vector<TextureCityGML*>* TexturesList
+);
 
-citygml::CityModel* CreateBoundingBox( std::string dir );
+FILTERS_EXPORT citygml::CityModel* CreateBoundingBox( std::string dir );
 
 #endif // __LINKCITYGMLSHAPE_HPP__

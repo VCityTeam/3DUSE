@@ -43,15 +43,15 @@ public:
       void exportMaterials(const std::string& filename);
 
       std::ofstream m_outFile;
-      //std::vector<TVec3d> m_vertices;
-      //std::vector<TVec3f> m_normals;
-      //std::vector<unsigned int> m_indices;
-      //int m_indexOffset;
+      // FIXME: std::vector<TVec3d> m_vertices;
+      // FIXME: std::vector<TVec3f> m_normals;
+      // FIXME: std::vector<unsigned int> m_indices;
+      // FIXME: int m_indexOffset;
 
-      //std::vector<TVec3d> m_verticesWall, m_verticesRoof, m_verticesTerrain;
-      //std::vector<TVec3f> m_normalsWall, m_normalsRoof, m_normalsTerrain;
-      //std::vector<unsigned int> m_indicesWall, m_indicesRoof, m_indicesTerrain;
-      //int m_indexOffsetWall, m_indexOffsetRoof, m_indexOffsetTerrain;
+      // FIXME: std::vector<TVec3d> m_verticesWall, m_verticesRoof, m_verticesTerrain;
+      // FIXME: std::vector<TVec3f> m_normalsWall, m_normalsRoof, m_normalsTerrain;
+      // FIXME: std::vector<unsigned int> m_indicesWall, m_indicesRoof, m_indicesTerrain;
+      // FIXME: int m_indexOffsetWall, m_indexOffsetRoof, m_indexOffsetTerrain;
 
       std::vector<citygml::CityObjectsType> m_filters;    ///< filters list
       std::vector<std::string> m_filterNames;             ///< filters name

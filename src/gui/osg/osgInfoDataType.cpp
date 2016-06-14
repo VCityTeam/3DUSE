@@ -1,8 +1,7 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
+#include <cmath>
 #include "osgInfoDataType.hpp"
-////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
 
 InfoDataType::InfoDataType()
 {
@@ -128,7 +127,7 @@ void InfoDataType::computeDSC(osg::Camera *cam, int screenX, int screenY, osgInf
 
     float screenwidth = sCornerMax.x()-sCornerMin.x();
     float screenheight = sCornerMax.y()-sCornerMin.y();
-    float Da = abs(screenwidth*screenheight);
+    float Da = std::fabs(screenwidth*screenheight);
 
     info->m_sCornerMax=sCornerMax;
     info->m_sCornerMin=sCornerMin;
