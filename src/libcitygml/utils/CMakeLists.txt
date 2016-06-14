@@ -1,14 +1,14 @@
 
 add_library( citygmlutils SHARED
-  # FIXME: compiled at the project CMakeLists.txt level. Refer there for comment.
-  # FIXME AABB.cpp
-  # FIXME Triangle.cpp
+  AABB.cpp
   CityGMLtools.cpp
   exportJSON.cpp
   exportOBJ.cpp
   importerASC.cpp
   importerAssimp.cpp
+  tile.cpp
   TiledFilesLayout.cpp
+  Triangle.cpp
 )
 
 target_include_directories( citygmlutils PUBLIC
@@ -23,5 +23,4 @@ target_link_libraries( citygmlutils
 )
 
 # Dealing with VC++ oddities: generates the export header citygmlutils_exports.h 
-include (GenerateExportHeader)
 GENERATE_EXPORT_HEADER( citygmlutils )

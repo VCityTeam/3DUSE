@@ -1,11 +1,12 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#include "osgTools.hpp"
-#include <osg/Geometry>
 #include <iostream>
+#include <osg/Geometry>
 #include <osg/ValueObject>
-////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
+#include "osgTools.hpp"
+
+osg::ref_ptr<osg::Geode> osgTools::buildBBox( osg::Vec3 lowerBound,
+                                              osg::Vec3 upperBound)
 {
     osg::Vec3 step = upperBound - lowerBound;
 
@@ -20,8 +21,9 @@ osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
         {
             for (int z = 0; z <= 1; ++z)
             {
-                vertices->push_back(osg::Vec3(lowerBound.x() + x*step.x(), lowerBound.y() + y*step.y(), lowerBound.z() + z*step.z()));
-                //std::cout << lowerBound.x()+ x*step.x() << " " << lowerBound.y() + y*step.y() << " " << lowerBound.z() + z*step.z() << std::endl;
+                vertices->push_back( osg::Vec3( lowerBound.x() + x*step.x(),
+                                                lowerBound.y() + y*step.y(),
+                                                lowerBound.z() + z*step.z() ));
             }
         }
     }

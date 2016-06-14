@@ -15,5 +15,5 @@ add_library( core SHARED
   scene.cpp
   settings.cpp
   RayBox.cpp
-  tile.cpp
+  # tile.cpp is part of citygmlutils
 )
