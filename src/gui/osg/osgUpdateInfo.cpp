@@ -83,6 +83,8 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
 
             layerInfo->computeOVa(screenX, screenY, map_info);
 
+            layerInfo->OVaDisplay(map_info);
+
             osg::Vec3d pos;
             osg::Vec3d target;
             osg::Vec3d up;
@@ -90,23 +92,25 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
             std::cout<<std::endl;
 
 
+
+
             float RDS = (TDa-TOVa)/Sa ; //ratio of all document area to screen area
             float RNDs = (float)NDs/ND; //ratio of all document displayed
             float RNDh = (float)NDh/ND; //ratio of document hidden
 
 
-            std::cout<<"RNDs = "<<RNDs*100<<"%"<<std::endl;
-            std::cout<<"RNDh = "<<RNDh*100<<"%"<<std::endl;
-            std::cout<<"RTDa = "<<TDa/Sa*100<<"%"<<std::endl;
-            std::cout<<"ROVa = "<<TOVa/Sa*100<<"%"<<std::endl;
-            std::cout<<"RDS = "<<RDS*100<<"%"<<std::endl;
-            std::cout<<std::endl;
+//            std::cout<<"RNDs = "<<RNDs*100<<"%"<<std::endl;
+//            std::cout<<"RNDh = "<<RNDh*100<<"%"<<std::endl;
+//            std::cout<<"RTDa = "<<TDa/Sa*100<<"%"<<std::endl;
+//            std::cout<<"ROVa = "<<TOVa/Sa*100<<"%"<<std::endl;
+//            std::cout<<"RDS = "<<RDS*100<<"%"<<std::endl;
+//            std::cout<<std::endl;
 
 //            layerInfo->stairedDisplay(map_info);
-            layerInfo->stairedDisplay(map_street);
-            layerInfo->stairedDisplay(map_building);
-            layerInfo->stairedDisplay(map_district);
-            layerInfo->stairedDisplay(map_city);
+//            layerInfo->stairedDisplay(map_street);
+//            layerInfo->stairedDisplay(map_building);
+//            layerInfo->stairedDisplay(map_district);
+//            layerInfo->stairedDisplay(map_city);
             layerInfo->display();
 
         }

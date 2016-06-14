@@ -218,6 +218,8 @@ public :
     osg::Vec3 m_sCornerMax; ///screen coordinates of max corner
     osg::Vec3 m_sCornerMin; /// screen coordinates of min corner
 
+    std::vector< std::vector<float> > m_OVaMatrix ;
+
     osg::Geode *m_tetra; ///geometry node to display local vector
 
 };

@@ -35,8 +35,12 @@ public:
 
     /// \brief Display document in map as stairs
     /// Each document is higher than the one in front
-    /// \param osgInfo* pointer to current info
+    /// \param sorted map with osgInfo and its DCAM
     void stairedDisplay(std::map<float, osgInfo*> m_info);
+
+    /// \brief Display document by OVa
+    /// \param sorted map with osgInfo and its DCAM
+    void OVaDisplay(std::map<float, osgInfo *> m_info);
 
     /// \brief Turn on switches with displayable documents
     void display();
