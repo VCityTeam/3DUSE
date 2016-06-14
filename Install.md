@@ -93,7 +93,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * [Visual Studio Express 2015](https://en.wikipedia.org/wiki/Microsoft_Visual_Studio_Express):
    * dowload [LIRIS local copy](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/Visual%20Studio%20Express%202015/Visual%20Studio%20Express%202015%20pour%20Windows%20Desktop.rar)
    * Unrar the downloaded archive file (e.g. with [7-zip](http://www.7-zip.org/)
-   * Enter the extracted folder (`Express 2015 up2 pour Wndowds Desktop`) and launch the installater `wdexpress_full.exe`
+   * Enter the extracted folder (`Express 2015 up2 pour Wndowds Desktop`) and launch the installer `wdexpress_full.exe`
  * VCity binary kit:
    * download [binary installer](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/kits/VCITY_local_vs2015_64.7z)
    * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
