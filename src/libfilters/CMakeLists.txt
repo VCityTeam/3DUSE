@@ -10,6 +10,8 @@ add_library( filters
   tiling/TilingCityGML.cpp
 )
 
+add_subdirectory(EnhanceCityGML)
+
 target_include_directories( filters PUBLIC
   ${VCITYCORE_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
