@@ -215,8 +215,11 @@ public :
 
     osg::Billboard *m_billboard; ///billboard object is needed
 
-    osg::Vec3 m_sCornerMax; ///screen coordinates of max corner
-    osg::Vec3 m_sCornerMin; /// screen coordinates of min corner
+    osg::Vec3 m_currentsCornerMax; ///screen coordinates of max corner
+    osg::Vec3 m_currentsCornerMin; /// screen coordinates of min corner
+
+    osg::Vec3 m_initsCornerMax; ///screen coordinates of max corner
+    osg::Vec3 m_initsCornerMin; /// screen coordinates of min corner
 
     std::vector< std::vector<float> > m_OVaMatrix ;
 

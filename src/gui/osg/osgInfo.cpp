@@ -621,11 +621,17 @@ void osgInfo::computeDSC(osg::Camera *cam, int screenX, int screenY)
     osg::Vec3f normale(-dirDoc.x, -dirDoc.y, -dirDoc.z);
     osg::Vec3f axis = m_billboard->getAxis();
     osg::Vec3f ortho = axis.operator ^(normale);
-    osg::Vec3f wCornerMax = m_currentposition + (ortho/ortho.length())*(m_width/2.0f) + (axis/axis.length())*(m_height/2.0f);
-    osg::Vec3f wCornerMin = m_currentposition - (ortho/ortho.length())*(m_width/2.0f) - (axis/axis.length())*(m_height/2.0f);
+    osg::Vec3f wcurrentCornerMax = m_currentposition + (ortho/ortho.length())*(m_width/2.0f) + (axis/axis.length())*(m_height/2.0f);
+    osg::Vec3f wcurrentCornerMin = m_currentposition - (ortho/ortho.length())*(m_width/2.0f) - (axis/axis.length())*(m_height/2.0f);
 
-    osg::Vec3 sCornerMax = wCornerMax*Mview*Mproj*Mwin;
-    osg::Vec3 sCornerMin = wCornerMin*Mview*Mproj*Mwin;
+    osg::Vec3 scurrentCornerMax = wcurrentCornerMax*Mview*Mproj*Mwin;
+    osg::Vec3 scurrentCornerMin = wcurrentCornerMin*Mview*Mproj*Mwin;
+
+    osg::Vec3f winitCornerMax = m_initposition + (ortho/ortho.length())*(m_width/2.0f) + (axis/axis.length())*(m_height/2.0f);
+    osg::Vec3f winitCornerMin = m_initposition - (ortho/ortho.length())*(m_width/2.0f) - (axis/axis.length())*(m_height/2.0f);
+
+    osg::Vec3 sinitCornerMax = winitCornerMax*Mview*Mproj*Mwin;
+    osg::Vec3 sinitCornerMin = winitCornerMin*Mview*Mproj*Mwin;
 
     /********** RED POINTS TO WITNESS CORNERS ************/
     //                osg::Geode* cornersGeode = new osg::Geode;
@@ -654,38 +660,59 @@ void osgInfo::computeDSC(osg::Camera *cam, int screenX, int screenY)
     //                    info->getGroup()->addChild(cornersGeode);
 
     /* Determine if document on screen or not according to the borders of the screen */
-    if(sCornerMax.x()>0.0 && sCornerMin.x()<screenX && sCornerMax.y()>0.0 && sCornerMin.y()<screenY && angle < 90.0)
+    if(scurrentCornerMax.x()>0.0 && scurrentCornerMin.x()<screenX && scurrentCornerMax.y()>0.0 && scurrentCornerMin.y()<screenY && angle < 90.0)
         m_onscreen = true;
-    else if(sCornerMax.x()<0.0 && sCornerMin.x()>screenX && sCornerMax.y()<0.0 && sCornerMin.y()>screenY && angle < 90.0)
+    else if(scurrentCornerMax.x()<0.0 && scurrentCornerMin.x()>screenX && scurrentCornerMax.y()<0.0 && scurrentCornerMin.y()>screenY && angle < 90.0)
         m_onscreen = true;
     else
         m_onscreen = false;
 
 
     /* Crop document coordinates to tell the exact surface inside the screen */
-    if(sCornerMax.x()>screenX)
-        sCornerMax.x()=screenX;
-    if(sCornerMax.x()<0.0)
-        sCornerMax.x()=0.0;
-    if(sCornerMax.y()>screenY)
-        sCornerMax.y()=screenY;
-    if(sCornerMax.y()<0.0)
-        sCornerMax.y()=0.0;
-    if(sCornerMin.x()<0.0)
-        sCornerMin.x()=0.0;
-    if(sCornerMin.x()>screenX)
-        sCornerMin.x()=screenX;
-    if(sCornerMin.y()<0.0)
-        sCornerMin.y()=0.0;
-    if(sCornerMin.y()>screenY)
-        sCornerMin.y()=screenY;
+    if(scurrentCornerMax.x()>screenX)
+        scurrentCornerMax.x()=screenX;
+    if(scurrentCornerMax.x()<0.0)
+        scurrentCornerMax.x()=0.0;
+    if(scurrentCornerMax.y()>screenY)
+        scurrentCornerMax.y()=screenY;
+    if(scurrentCornerMax.y()<0.0)
+        scurrentCornerMax.y()=0.0;
+    if(scurrentCornerMin.x()<0.0)
+        scurrentCornerMin.x()=0.0;
+    if(scurrentCornerMin.x()>screenX)
+        scurrentCornerMin.x()=screenX;
+    if(scurrentCornerMin.y()<0.0)
+        scurrentCornerMin.y()=0.0;
+    if(scurrentCornerMin.y()>screenY)
+        scurrentCornerMin.y()=screenY;
 
-    float screenwidth = sCornerMax.x()-sCornerMin.x();
-    float screenheight = sCornerMax.y()-sCornerMin.y();
+    /* Crop document coordinates to tell the exact surface inside the screen */
+    if(sinitCornerMax.x()>screenX)
+        sinitCornerMax.x()=screenX;
+    if(sinitCornerMax.x()<0.0)
+        sinitCornerMax.x()=0.0;
+    if(sinitCornerMax.y()>screenY)
+        sinitCornerMax.y()=screenY;
+    if(sinitCornerMax.y()<0.0)
+        sinitCornerMax.y()=0.0;
+    if(sinitCornerMin.x()<0.0)
+        sinitCornerMin.x()=0.0;
+    if(sinitCornerMin.x()>screenX)
+        sinitCornerMin.x()=screenX;
+    if(sinitCornerMin.y()<0.0)
+        sinitCornerMin.y()=0.0;
+    if(sinitCornerMin.y()>screenY)
+        sinitCornerMin.y()=screenY;
+
+    float screenwidth = scurrentCornerMax.x()-scurrentCornerMin.x();
+    float screenheight = scurrentCornerMax.y()-scurrentCornerMin.y();
     m_Da = abs(screenwidth*screenheight);
 
-    m_sCornerMax=sCornerMax;
-    m_sCornerMin=sCornerMin;
+    m_currentsCornerMax=scurrentCornerMax;
+    m_currentsCornerMin=scurrentCornerMin;
+
+    m_initsCornerMax=sinitCornerMax;
+    m_initsCornerMin=sinitCornerMin;
 
     //UpdateTetra(normale/normale.length(), axis/axis.length(), ortho/ortho.length());
 

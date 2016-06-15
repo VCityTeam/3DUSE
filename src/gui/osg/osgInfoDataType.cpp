@@ -32,7 +32,8 @@ void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*
             found=false;
             for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
             {
-                if(i>=(int)it->second->m_sCornerMin.x() && i<=(int)it->second->m_sCornerMax.x() && j>=(int)it->second->m_sCornerMin.y() && j<(int)it->second->m_sCornerMax.y())
+                osgInfo* c_info = it->second;
+                if(i>=(int)c_info->m_initsCornerMin.x() && i<=(int)c_info->m_initsCornerMax.x() && j>=(int)c_info->m_initsCornerMin.y() && j<(int)c_info->m_initsCornerMax.y())
                 {
                     col.push_back(it->first);
                     found = true;
@@ -46,19 +47,17 @@ void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*
         screen.push_back(col);
     }
 
-
     for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
     {
-        it->second->m_OVaMatrix.clear();
-        it->second->m_OVa=0;
+        osgInfo* c_info = it->second;
+        c_info->m_OVaMatrix.clear();
+        c_info->m_OVa=0;
         std::vector<float> col;
-        for(int i = (int)it->second->m_sCornerMin.x(); i<(int)it->second->m_sCornerMax.x(); ++i)
+        for(int i = std::floor(c_info->m_initsCornerMin.x()); i<std::floor(c_info->m_initsCornerMax.x()); ++i)
         {
             col.clear();
-            for(int j=(int)it->second->m_sCornerMin.y(); j<(int)it->second->m_sCornerMax.y(); ++j)
+            for(int j=std::floor(c_info->m_initsCornerMin.y()); j<std::floor(c_info->m_initsCornerMax.y()); ++j)
             {
-//                if(it->second->m_name == "opera")
-//                    std::cout<<"Matrice de profondeur ["<<i<<"]["<<j<<"] = "<<screen[i][j]<<std::endl;
                 col.push_back(screen[i][j]);
                 if(screen[i][j]!=it->first)
                 {
@@ -71,22 +70,6 @@ void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*
             it->second->m_OVa=it->second->m_Da;
 
     }
-
-//    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
-//    {
-//        if(it->second->m_name=="opera")
-//        {
-//            std::cout<<"Opera profondeur matrice : "<<std::endl;
-//            for(int i = 0; i<it->second->m_OVaMatrix.size(); ++i)
-//            {
-//                for(int j = 0; j<it->second->m_OVaMatrix[i].size(); ++j)
-//                {
-//                    std::cout<<it->second->m_OVaMatrix[i][j]<<" ";
-//                }
-//                std::cout<<std::endl;
-//            }
-//        }
-//    }
 
 
     screen.clear();
@@ -118,6 +101,8 @@ void InfoDataType::stairedDisplay(std::map<float, osgInfo *> m_info)
 void InfoDataType::OVaDisplay(std::map<float, osgInfo *> m_info)
 {
     std::vector<float> OVlist;
+    float newZ;
+    float newHeight;
     for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
     {
         osgInfo* c_info = it->second;
@@ -129,24 +114,20 @@ void InfoDataType::OVaDisplay(std::map<float, osgInfo *> m_info)
                 if(c_info->m_name!=m_info.find(c_info->m_OVaMatrix[i][j])->second->m_name)
                 {
                     OVlist.push_back(c_info->m_OVaMatrix[i][j]);
-                    if(c_info->m_name=="opera")
-                        std::cout<<c_info->m_OVaMatrix[i][j]<<" DCAM -> "<<m_info.find(c_info->m_OVaMatrix[i][j])->second->m_name<<std::endl;
                 }
             }
 
             if(c_info->m_OVa/c_info->m_Da>=0.3)
             {
-                float newZ = m_info.find(OVlist[0])->second->m_currentposition.z();
-                float newHeight = m_info.find(OVlist[0])->second->m_height;
-                osg::Vec3 newPos = osg::Vec3(c_info->m_currentposition.x(),c_info->m_currentposition.y(),newZ+newHeight/2+c_info->m_height/2);
-                if(c_info->m_name=="opera")
+                if(!OVlist.empty())
                 {
-//                    std::cout<<"Opera is overlapped by more than 0.3 by "<<OVlist[0]<<" DCAM"<<std::endl;
-//                    std::cout<<"    current Z : "<<c_info->m_currentposition.z()<<std::endl;
-//                    std::cout<<"    new Z : "<<newZ+newHeight/2+c_info->m_height/2<<std::endl;
+                    newZ = m_info.find(OVlist[0])->second->m_currentposition.z();
+                    newHeight = m_info.find(OVlist[0])->second->m_height;
+                    osg::Vec3 newPos = osg::Vec3(c_info->m_initposition.x(),c_info->m_initposition.y(),newZ+newHeight/2+c_info->m_height/2);
+
+                    c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
+                    c_info->UpdatePosition(newPos);
                 }
-                c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
-                c_info->UpdatePosition(newPos);
             }
             else
             {
