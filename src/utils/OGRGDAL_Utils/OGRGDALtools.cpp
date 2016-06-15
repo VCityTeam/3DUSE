@@ -550,15 +550,12 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
     delete Ring;
     Ring = new OGRLinearRing;
 
-    for (std::size_t i = 0; i < TexTmp.size(); ++i)
+    for (int i = 0; i < RingTmp->getNumPoints(); ++i)
     {
         Tex->push_back(TexTmp.at(TexTmp.size() - 1 - i));
-        // FIXME: VC++ warning C4267 on next line:
-        // 'argument': conversion from 'size_t' to 'int', possible loss of data
-        // i.e. the int cast trick doesn't satisfy the compiler.
-        Ring->addPoint( RingTmp->getX((int)TexTmp.size() - 1 - i),
-                        RingTmp->getY((int)TexTmp.size() - 1 - i),
-                        RingTmp->getZ((int)TexTmp.size() - 1 - i) );
+        Ring->addPoint( RingTmp->getX(RingTmp->getNumPoints() - 1 - i), 
+			RingTmp->getY(RingTmp->getNumPoints() - 1 - i), 
+			RingTmp->getZ(RingTmp->getNumPoints() - 1 - i) );
     }
 
     delete RingTmp;
