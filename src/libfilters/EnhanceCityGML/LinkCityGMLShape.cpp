@@ -1,12 +1,12 @@
 #include "LinkCityGMLShape.hpp"
-////////////////////////////////////////////////////////////////////////////////
 #include "libcitygml/utils/CityGMLtools.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtools.hpp"
-////////////////////////////////////////////////////////////////////////////////
+
 typedef std::pair<double, double> Point;
 typedef std::vector<Point> Polygon2D;
 typedef std::set<Polygon2D> PolySet;
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 * @brief Projette les toits du CityObject selectionne sur le plan (xy)

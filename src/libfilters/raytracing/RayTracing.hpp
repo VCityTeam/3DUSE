@@ -2,6 +2,7 @@
 #define __RAYTRACING_HPP__
 
 #include "Ray.hpp"
+#include "filters_export.h"
 
 struct TriangleList;
 
@@ -11,6 +12,9 @@ struct TriangleList;
 *	@param rays List of rays
 *   @return list of hits
 */
-std::vector<Hit*> *RayTracing(TriangleList* triangles, std::vector<Ray*> rays);
+FILTERS_EXPORT std::vector<Hit*> *RayTracing(
+  TriangleList* triangles,
+  std::vector<Ray*> rays
+);
 
 #endif

@@ -1,28 +1,20 @@
 project( 3DUSE )
 
-# FIXME Under construction
-# option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" OFF )
-# option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" ON )
-
-# FIXME: a pre-requisite of discussion on cmake version (below) is to discuss
-# the supported platforms and distros (which constrains the cmake available/
-# possible versions. Availabilty:
-#  *  cmake 2.8.9 is available for Ubuntu 14.04, debian 7, fedora 21,
-#     OpenSUSE 13.1...
-# FIXME: establish cmake minimum version with the following constraints:
-#  * Ubuntu 14.04 (current Travis image) still uses 2.8.12 (cmake 3.0 is
-#    thus too high)
-#  * QT5_USE_MODULES has a bug for cmake version 2.8.8
-# Proposed version: requiring anything in the range 2.8.9 to 2.8.12 would
-# make the job. Go for the higher version within this range i.e. 2.8.12 ?
-cmake_minimum_required(VERSION 2.8)
-enable_testing()
-
-if ( WITH_QT5 )
-  cmake_minimum_required(VERSION 2.8.9)
-endif ()
-
+cmake_minimum_required( VERSION 2.8.12 )
 include( cmake/3DusePolicies.cmake )
+include( GenerateExportHeader )  # For dll export header of VC++ shared lib
+
+# FIXME Under construction
+option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" ON )
+# option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" ON )
+if( BUILD_GUI_QT4 AND WITH_QT5 )
+  # In case of simultaneous demand, Qt5 has preference overs Qt4
+  set( BUILD_GUI_QT4 OFF  CACHE BOOL
+      "Build the Graphical User Interface with QT4."
+      FORCE)
+endif()
+
+enable_testing()
 
 # Project configuration
 set(PRJ_NAME 3DUSE)
@@ -64,7 +56,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 endif()
 
 ##### Clang compiler specifics (export CXX=clang++ CC=clang)
-if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" )
+if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" )
   set( ENABLE_CXX11 "-std=c++11" )
   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments" )
   set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments" )
@@ -115,9 +107,10 @@ if(APPLE)
 endif(APPLE)
 
 ############################## Package (dependencies) detection
-# Find Qt
-if (WITH_QT5)
-  # QT5 Handling
+##### Find Qt5
+if( WITH_QT5 )
+  # FIXME: Refer to comments in .travis.yml but this can
+  # probably be cleaned up.
   if(DEFINED ENV{QT5_DIR})
     set( QT5_DIR $ENV{QT5_DIR} )
   endif()
@@ -126,7 +119,7 @@ if (WITH_QT5)
   # Instruct CMake to run moc automatically when needed
   set(CMAKE_AUTOMOC ON)
 
-  FIND_PACKAGE(Qt5Core)
+  FIND_PACKAGE( Qt5Core )
   if(${Qt5Core_FOUND})
     message(STATUS "--> Qt5Core found.")
     FIND_PACKAGE(Qt5Widgets)
@@ -150,22 +143,20 @@ if (WITH_QT5)
   else(${Qt5Core_FOUND})
     message(FATAL_ERROR "Qt5Core not found. Please set QT5_DIR.")
   endif(${Qt5Core_FOUND})
-else(WITH_QT5)
-  # QT4 Handling
+endif()
+
+##### Find Qt4 
+if( BUILD_GUI_QT4 )
+  # FIXME: ask MTO but this looks like the opposite of what Qt5 does above
   if (QTDIR)
     set( ENV{QTDIR} ${QTDIR} )
   endif()
-  set( QT_USE_QTMAIN	TRUE )
-  set( QT_USE_QTXML		TRUE )
-  set( QT_USE_QTOPENGL	TRUE )
-  FIND_PACKAGE(Qt4)
-  if(QT4_FOUND)
-    INCLUDE(${QT_USE_FILE})
-  else(QT4_FOUND)
-    message(FATAL_ERROR "Qt4 not found. Please set QTDIR.")
-  endif(QT4_FOUND)
-endif(WITH_QT5)
-message(STATUS "Qt version used : ${QTDIR}")
+  set( QT_USE_QTMAIN   TRUE )
+  set( QT_USE_QTXML    TRUE )
+  set( QT_USE_QTOPENGL TRUE )
+  find_package( Qt4 REQUIRED )
+  include( ${QT_USE_FILE} )
+endif()
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -360,27 +351,34 @@ SET( VCITY_GUI_Qt_RES
   resources/vcity.qrc
 )
 
-if (WITH_QT5)
-  QT5_WRAP_UI(       VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
-  QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
-else(WITH_QT5)
+if( BUILD_GUI_QT4 )
   QT4_WRAP_CPP(      VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC})
   QT4_WRAP_UI(       VCITY_GUI_UI_CPP  ${VCITY_GUI_Qt_UI})
   QT4_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
-endif(WITH_QT5)
+endif()
+
+if( WITH_QT5 )
+  QT5_WRAP_UI(       VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
+  QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
+endif()
+
 
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt
 # to unify notations between external libraries and internal (defined
 # within this project) libraries. 
-# FIXME: those definition should be deported in their respective
+# FIXME: those definition should be deported to their respective
 # sub-directories.
-set( FILTERS_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/src/libfilters )
-set( FILTERS_LIBRARIES   filters )
 
-# CITYGML
+# CORE
+set( VCITYCORE_INCLUDE_DIR
+  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
+  ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
+)
+set( VCITYCORE_LIBRARY vcitycore )
+
+# CITYGML--> CORE
 set( CITYGML_INCLUDE_DIR
-  # CLEAN ME ${CMAKE_SOURCE_DIR}/src        #FIXME: should not be necessary
   ${CMAKE_SOURCE_DIR}/src/libcitygml
   ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
   ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
@@ -389,19 +387,20 @@ set( CITYGML_INCLUDE_DIR
 )
 set( CITYGML_LIBRARIES citygml )
 
-# CITYGML UTILS
+# CITYGML UTILS--> CITYGML
 set( CITYGMLUTILS_INCLUDE_DIR
   ${CMAKE_SOURCE_DIR}/src/libcitygml/utils
   ${CMAKE_BINARY_DIR}/src/libcitygml/utils  # generated citygmlutils_export.h
 )
 set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
-# CORE
-set( VCITYCORE_INCLUDE_DIR
-  ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
-  ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
+# FILTERS--> CORE, CITYGML, CITYGMLUTILS
+set( FILTERS_INCLUDE_DIR
+  ${PROJECT_SOURCE_DIR}/src/libfilters
+  ${PROJECT_BINARY_DIR}/src/libfilters      # for  generated filters_export.h
 )
-set( VCITYCORE_LIBRARY vcitycore )
+set( FILTERS_LIBRARIES   filters )
+
 
 # FIXME: inquire on the necessity of the following line
 # Find includes in corresponding build directories
@@ -429,7 +428,6 @@ set( VCITY_GUI_SRC
   src/core/layerTiledCityGML.cpp
   src/core/scene.cpp
   src/core/settings.cpp
-  src/core/tile.cpp
   src/core/tools/log.cpp
 ### The gui  
   src/gui/applicationGui.cpp
@@ -470,43 +468,12 @@ set( VCITY_GUI_SRC
   src/gui/osg/osgInfoDataType.cpp
   src/gui/osg/osgUpdateInfo.cpp
   
-### Filters
-  src/libfilters/ChangeDetection/ChangeDetection.cpp
-  src/libfilters/EnhanceCityGML/EnhanceMNT.cpp
-  src/libfilters/EnhanceCityGML/LinkCityGMLShape.cpp
-  src/libfilters/raytracing/Hit.cpp
-  src/libfilters/raytracing/Ray.cpp
-  src/libfilters/raytracing/RayTracing.cpp
-  src/libfilters/ShpExtrusion/ShpExtrusion.cpp
-  src/libfilters/tiling/ASCCut.cpp
-  src/libfilters/tiling/TilingCityGML.cpp
-  
-### Now part of "Core" library
-  # src/DataStructures/DEM/osgMnt.cpp
-  # src/utils/OGRGDAL_Utils/OGRGDALtools.cpp
-  
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
-  src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
 
-### The main
+  ### FIXME: is the main recompiled with every plugin !?
   src/main.cpp
-
-### FIXME section
-  # FIXME: Interestingly enough the following are not necessary !?
-  # src/gui/osgQt/osg32/GraphicsWindowQt.cxx
-  # src/gui/osgQt/osg34/GraphicsWindowQt.cxx
-  # src/plugins/*.cpp
-  
-  ## FIXME: the following should be dealt within libcitygmlutils.
-  # Yet finishing this job implies the availability of a core library
-  # since some of the libcitygml/utils content seems to depend both
-  # on libcityGML and the core. Actually, if this is indeed the case
-  # then those files should be compile with core, or the utils but not
-  # within libcityGML that should remain "3D-Use core" free.
-  src/libcitygml/utils/AABB.cpp
-  src/libcitygml/utils/Triangle.cpp
 )
 
 SET( VCITY_GUI_SRC
@@ -519,6 +486,10 @@ SET( VCITY_GUI_SRC
 # FIXME: the following section deals with OSG-QT and should probably
 # be placed next to the find_package on OSGQT (refer above) in order
 # to clarify the flow
+# The following section embarks a stable component making the connection
+# between OSG and QT. They are alas two versions:
+# src/gui/osgQt/osg32/GraphicsWindowQt.cxx
+# src/gui/osgQt/osg34/GraphicsWindowQt.cxx
 if( WIN32 )
   # FIXME: the supported kit versions are KIT_VS2015 and KIT_VS2012
   # Use KIT_VS2012 instead of "NOT DEFINED KIT_VS2015"
@@ -595,10 +566,11 @@ IF(WIN32)
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/qt.conf" "[Paths]\nPlugins = QtPlugins")
 ENDIF(WIN32)
 
+##### 3DUSE executable
 # For Windows set the ico file with the rc file
 IF(WIN32)
   SET(VCITY_GUI_ICON resources/vcity.rc)
-ENDIF(WIN32)
+ENDIF()
 
 # For Apple set the icns file containing icons
 IF(APPLE)
@@ -610,19 +582,18 @@ IF(APPLE)
   SET(VCITY_GUI_ICON resources/vcity.icns)
 ENDIF(APPLE)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    # Linux specific code
-    SET(LINUX_FLAGS -lpthread)
-ENDIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+  set(LINUX_FLAGS -lpthread)   # FIXME: assert this is needed
+endif()
 
-add_executable(${PRJ_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
+add_executable( 3DUSE MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 
-target_include_directories( ${PRJ_NAME} PUBLIC
+target_include_directories( 3DUSE PUBLIC
   ${CITYGML_INCLUDE_DIR}
   ${FILTERS_INCLUDE_DIR} 
 )
 
-target_link_libraries (${PRJ_NAME}
+target_link_libraries( 3DUSE
   ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
   ${VCITY_GUI_LIB}
   ${VCITYCORE_LIBRARY}
@@ -632,11 +603,13 @@ target_link_libraries (${PRJ_NAME}
 )
 
 if (WITH_QT5)
-  ADD_DEFINITIONS("-DWITH_QT5")
-  QT5_USE_MODULES( ${PRJ_NAME} Widgets Xml OpenGL )
+  # FIXME: refer to src/CMakeLists.txt to get rid of QT5_USE_MODULES
+  add_definitions( "-DWITH_QT5" )
+  QT5_USE_MODULES( 3DUSE Widgets Xml OpenGL )
 endif(WITH_QT5)
 SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
+##### CityGMLCut executable
 add_executable( CityGMLCut
   src/utils/cmdline/cityGMLCut.cxx
   src/utils/cmdline/triangulate.cxx
@@ -653,6 +626,11 @@ SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DE
 ################
 # 3DUSE plugins
 ################
+# FIXME: all the variable names of the plugin related stuff
+# is way too long. One could get git of the CityGML systematic
+# prefix as well as the Qt infix. For example we could use
+# BUILD_CUTPLUGIN  instead of the current BUILD_CityGMLCutQtPlugin
+# or CutPlugin_HEADER instead of CityGMLCut_Qt_Plugin_HEADER.
 
 if (WITH_QT5) # For the plugins, instruct CMake to not run moc automatically when needed
  set(CMAKE_AUTOMOC OFF)
@@ -668,6 +646,7 @@ if (BUILD_CityGMLCutQtPlugin)
     src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.h)
 	set( CityGMLCut_Qt_Plugin_UI
      src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui)
+
 	if (WITH_QT5)
 	  ADD_DEFINITIONS("-DWITH_QT5")
 	  QT5_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
@@ -685,9 +664,16 @@ if (BUILD_CityGMLCutQtPlugin)
       ${CityGMLCut_Qt_Plugin_HEADER}
       TARGET CityGMLCutQtPlugin
     )
-	  QT4_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
-	  set(CityGMLCut_Qt_Plugin_SRC ${CityGMLCut_Qt_Plugin_SRC} ${CityGMLCut_Qt_Plugin_MOC_CPP} ${CityGMLCut_Qt_Plugin_UI_CPP})
-	  set(CityGMLCut_Qt_Plugin_LIB ${CityGMLCut_Qt_Plugin_LIB} ${QT_LIBRARIES})
+	  QT4_WRAP_UI( CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI} )
+	  set( CityGMLCut_Qt_Plugin_SRC
+      ${CityGMLCut_Qt_Plugin_SRC}
+      ${CityGMLCut_Qt_Plugin_MOC_CPP}
+      ${CityGMLCut_Qt_Plugin_UI_CPP}
+    )
+	  set( CityGMLCut_Qt_Plugin_LIB
+      ${CityGMLCut_Qt_Plugin_LIB}
+      ${QT_LIBRARIES}
+    )
 	endif(WITH_QT5)
 
   add_library( CityGMLCutQtPlugin SHARED
@@ -701,6 +687,7 @@ if (BUILD_CityGMLCutQtPlugin)
   target_include_directories( CityGMLCutQtPlugin PUBLIC
     src                            # For moc on Generic_PluginInterface
     ${CITYGML_INCLUDE_DIR}
+    ${CITYGMLUTILS_INCLUDE_DIR}
   )
   target_link_libraries( CityGMLCutQtPlugin
     ${CityGMLCut_Qt_Plugin_LIB}
@@ -728,13 +715,26 @@ if (BUILD_CityGMLEmptyQtPlugin)
       ${CityGMLEmpty_Qt_Plugin_HEADER}
       TARGET CityGMLEmptyQtPlugin
     )
-	  QT5_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
-	  set(CityGMLEmpty_Qt_Plugin_SRC ${CityGMLEmpty_Qt_Plugin_SRC} ${CityGMLEmpty_Qt_Plugin_MOC_CPP} ${CityGMLEmpty_Qt_Plugin_UI_CPP})
+	  QT5_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
+	  set( CityGMLEmpty_Qt_Plugin_SRC
+      ${CityGMLEmpty_Qt_Plugin_SRC}
+      ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
+      ${CityGMLEmpty_Qt_Plugin_UI_CPP}
+    )
 	else(WITH_QT5) 
-	  QT4_WRAP_CPP(CityGMLEmpty_Qt_Plugin_MOC_CPP ${CityGMLEmpty_Qt_Plugin_HEADER})
-	  QT4_WRAP_UI(CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI})
-	  set(CityGMLEmpty_Qt_Plugin_SRC ${CityGMLEmpty_Qt_Plugin_SRC} ${CityGMLEmpty_Qt_Plugin_MOC_CPP} ${CityGMLEmpty_Qt_Plugin_UI_CPP})
-	  set(CityGMLEmpty_Qt_Plugin_LIB ${CityGMLEmpty_Qt_Plugin_LIB} ${QT_LIBRARIES})
+	  QT4_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
+      ${CityGMLEmpty_Qt_Plugin_HEADER}
+    )
+	  QT4_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
+	  set( CityGMLEmpty_Qt_Plugin_SRC
+      ${CityGMLEmpty_Qt_Plugin_SRC}
+      ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
+      ${CityGMLEmpty_Qt_Plugin_UI_CPP}
+    )
+	  set( CityGMLEmpty_Qt_Plugin_LIB
+      ${CityGMLEmpty_Qt_Plugin_LIB}
+      ${QT_LIBRARIES}
+    )
 	endif(WITH_QT5)
 
   add_library( CityGMLEmptyQtPlugin SHARED
@@ -747,6 +747,7 @@ if (BUILD_CityGMLEmptyQtPlugin)
   target_include_directories( CityGMLEmptyQtPlugin PUBLIC
     src                            # For moc on Generic_PluginInterface
     ${CITYGML_INCLUDE_DIR}
+    ${CITYGMLUTILS_INCLUDE_DIR}
   )
   target_link_libraries( CityGMLEmptyQtPlugin
     ${CityGMLEmpty_Qt_Plugin_LIB}
@@ -806,11 +807,13 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     src                            # For moc on Generic_PluginInterface
     src/libfilters
     ${CITYGML_INCLUDE_DIR}
+    ${FILTERS_INCLUDE_DIR} 
   )
   target_link_libraries( CityGMLVisibiliteQtPlugin
     ${LINUX_FLAGS}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
+    ${FILTERS_LIBRARIES}
     ${CityGMLVisibilite_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
@@ -875,6 +878,7 @@ if (BUILD_CityGMLFloodARQtPlugin)
     ${VCITY_GUI_LIB}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
+    ${FILTERS_LIBRARIES}
   )
   if (WITH_QT5)
     QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)
@@ -926,6 +930,7 @@ if (BUILD_CityGMLSunlightQtPlugin)
     ${VCITY_GUI_LIB}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
+    ${FILTERS_LIBRARIES}
   )
   if (WITH_QT5)
     QT5_USE_MODULES(CityGMLSunlightQtPlugin Core Widgets OpenGL)

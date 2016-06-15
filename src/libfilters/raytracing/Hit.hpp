@@ -4,12 +4,12 @@
 #include "vecs.hpp"
 #include "Triangle.hpp"
 #include "Ray.hpp"
-
+#include "filters_export.h"
 
 /**
 *	@brief An intersection between a ray and a triangle
 */
-struct Hit
+struct FILTERS_EXPORT Hit
 {
     /**
     *	@brief Create a new Hit

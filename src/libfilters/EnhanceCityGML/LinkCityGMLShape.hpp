@@ -9,20 +9,24 @@
 #endif                         // including ogrsf_frmts.h on VCC++
 #include <ogrsf_frmts.h>
 
-#include "core/tile.hpp"
+#include "libcitygml/utils/tile.hpp"
 #include "export/exportCityGML.hpp"
+#include "filters_export.h"
 
-citygml::CityModel* SplitBuildingsFromCityGML(
+FILTERS_EXPORT citygml::CityModel* SplitBuildingsFromCityGML(
   vcity::Tile* Tile,
-  std::vector<TextureCityGML*>* TexturesList );
+  std::vector<TextureCityGML*>* TexturesList
+);
 
-citygml::CityModel* CutCityGMLwithShapefile(
+FILTERS_EXPORT citygml::CityModel* CutCityGMLwithShapefile(
   vcity::Tile* Tile, OGRDataSource* ShapeFile,
-  std::vector<TextureCityGML*>* TexturesList );
+  std::vector<TextureCityGML*>* TexturesList
+);
 
-citygml::CityModel* CutMNTwithShapefile(
+FILTERS_EXPORT citygml::CityModel* CutMNTwithShapefile(
   vcity::Tile* Tile,
   OGRDataSource* ShapeFile,
-  std::vector<TextureCityGML*>* TexturesList );
+  std::vector<TextureCityGML*>* TexturesList
+);
 
 #endif // __LINKCITYGMLSHAPE_HPP__

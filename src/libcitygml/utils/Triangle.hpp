@@ -2,12 +2,16 @@
 #define __TRIANGLE_HPP__
 
 #include "libcitygml/citygml.hpp"
-#include "core/tile.hpp"
+#include "libcitygml/utils/tile.hpp"
+#include "citygmlutils_export.h"
+#ifdef _MSC_VER
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
+#endif
 
 /**
 *	@brief A triangle created from a citygml polygon
 */
-struct Triangle
+struct CITYGMLUTILS_EXPORT Triangle
 {
     /**
     *	@brief Build a new triangle
@@ -34,7 +38,7 @@ struct Triangle
 *	A list of triangle
 *
 */
-struct TriangleList
+struct CITYGMLUTILS_EXPORT TriangleList
 {
     /**
     *	@brief Build a new collection of triangle
@@ -52,6 +56,9 @@ struct TriangleList
 *	@param objectType The type of cityobject to load
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType);
+CITYGMLUTILS_EXPORT TriangleList* BuildTriangleList(
+  std::string tilefilename,
+  citygml::CityObjectsType objectType
+);
 
 #endif
