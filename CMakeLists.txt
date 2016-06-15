@@ -315,6 +315,7 @@ endif(OPENTHREADS_FOUND)
 # Find GDAL
 find_package(GDAL)
 if(GDAL_FOUND)
+  # FIXME: remove this line and (if needed) use target_include_directories...
   include_directories(${GDAL_INCLUDE_DIR})
 else(GDAL_FOUND)
   message(FATAL_ERROR "GDAL not found. Please set GDAL_DIR or GDAL_ROOT.")
@@ -337,6 +338,7 @@ else(LASLIB_FOUND)
   message(FATAL_ERROR "LASLIB not found.")
 endif(LASLIB_FOUND)
 
+# FIXME: expand this glob
 file(
   GLOB_RECURSE
   VCITY_GUI_Qt_SRC
@@ -370,20 +372,19 @@ endif()
 # FIXME: those definition should be deported to their respective
 # sub-directories.
 
-# CORE
+# CORE FIXME: rename CORE TO Utils !
 set( VCITYCORE_INCLUDE_DIR
   ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
-  ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
+  ${CMAKE_BINARY_DIR}/src              # for generated vcitycore_export.h
 )
 set( VCITYCORE_LIBRARY vcitycore )
 
 # CITYGML--> CORE
 set( CITYGML_INCLUDE_DIR
-  ${CMAKE_SOURCE_DIR}/src/libcitygml
-  ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
-  ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
-  ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  # FIXME: will become a library
-  ${CMAKE_BINARY_DIR}/src/libcitygml        # for generated citygml_export.h
+  ${CMAKE_SOURCE_DIR}/src              # FIXME: this should be the last one !
+  ${CMAKE_SOURCE_DIR}/src/libcitygml   # Used to find vecs.hpp
+                                       # BTW move vecs.hpp to CORE
+  ${CMAKE_BINARY_DIR}/src/libcitygml   # for generated citygml_export.h
 )
 set( CITYGML_LIBRARIES citygml )
 
@@ -589,8 +590,8 @@ endif()
 add_executable( 3DUSE MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 
 target_include_directories( 3DUSE PUBLIC
-  ${CITYGML_INCLUDE_DIR}
-  ${FILTERS_INCLUDE_DIR} 
+  ${CITYGML_INCLUDE_DIR}   # FIXME: there is a mismatch between the included
+  ${FILTERS_INCLUDE_DIR}   #        directories and the linked libraries.
 )
 
 target_link_libraries( 3DUSE

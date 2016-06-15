@@ -2,15 +2,15 @@
 #define _IMPORTERASC_HPP_
 
 #include <queue>
+#include <ogrsf_frmts.h>
 
-#include "importer.hpp"
-#include "citygml.hpp"
-
-#include "src/DataStructures/DEM/osgMnt.hpp"
-#include "ogrsf_frmts.h"
-
+#include "libcitygml/import/importer.hpp"
+#include "libcitygml/citygml.hpp"
+#include "DataStructures/DEM/osgMnt.hpp"
 #include "citygmlutils_export.h"
+#ifdef _MSC_VER
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
+#endif
 
 namespace citygml
 {

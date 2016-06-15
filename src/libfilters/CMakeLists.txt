@@ -1,3 +1,5 @@
+add_subdirectory( Test )
+
 add_library( filters SHARED
   ChangeDetection/ChangeDetection.cpp
   EnhanceCityGML/EnhanceMNT.cpp
@@ -16,7 +18,6 @@ target_include_directories( filters PUBLIC
 )
 
 target_link_libraries(filters
-  ${OSG_LIBRARIES}
   ${VCITYCORE_LIBRARY}
   ${CITYGMLUTILS_LIBRARIES}
 )

@@ -4,11 +4,11 @@
 #ifndef __JSON_EXPORT_HPP_
 #define __JSON_EXPORT_HPP_
 
-#include "exporter.hpp"
-#include "citygml.hpp"
-#include "citygmlutils_export.h"
 #include <fstream>
 #include <map>
+#include "libcitygml/export/exporter.hpp"
+#include "libcitygml/citygml.hpp"
+#include "citygmlutils_export.h"
 
 namespace citygml
 {
