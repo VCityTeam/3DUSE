@@ -81,3 +81,10 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DWITH_QT5=YES -DQT5_DIR=/usr/local/opt/qt5; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest; fi
+
+  # OSX only: previous test was against qt4. Try the same but this time against qt5.
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi # ---> now install qt5
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DWITH_QT5=YES; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest; fi
