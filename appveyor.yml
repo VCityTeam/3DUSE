@@ -87,7 +87,7 @@ before_build:
   - cd %APPVEYOR_BUILD_FOLDER%
   -  cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
 # Ctest is currently disabled on Windoze: refer to issue #125
-#  - ctest
+  - ctest
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:

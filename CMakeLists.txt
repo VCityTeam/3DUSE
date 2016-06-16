@@ -90,15 +90,17 @@ if(MSVC)
   # the same (configuration dependent) directory.
   # The objective is to have the executables to sit side by side with the dlls
   # on which they depend on for the loader to find them at runtime.
-  foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-    string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
-    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
-         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
-    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
-         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
-    set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
-         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
-  endforeach()
+  # FIXME: Alas this breaks ctest (on MSVC) that is unable to find the
+  # executables that were declared with add_test()...
+  # foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+  #   string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
+  #   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+  #        ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  #   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+  #        ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  #   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+  #        ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  # endforeach()
 endif()
 
 ##### OSX specifics (Apple)
