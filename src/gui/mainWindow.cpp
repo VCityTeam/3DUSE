@@ -3177,7 +3177,7 @@ void MainWindow::test2()
         v_info[i]->setBillboarding(true);
     }
 
-	//Création d'ilots à partir de Shapefile contenant des routes
+	//Creation d'ilots a partir de Shapefile contenant des routes
 //	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
 //	OGRLayer *LayerRoutes = Routes->GetLayer(0);
 //	OGRFeature *FeatureRoutes;
@@ -3213,7 +3213,7 @@ void MainWindow::test2()
 }
 
 
-// void MainWindow::test2() //Génération de stats pour étude de visibilité
+// void MainWindow::test2() //Generation de stats pour etude de visibilite
 // {
 // 	QTime time;
 // 	time.start();
