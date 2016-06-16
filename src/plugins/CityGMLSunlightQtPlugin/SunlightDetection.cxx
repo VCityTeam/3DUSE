@@ -129,7 +129,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
     AABBCollection boxes = LoadAABB(fileDir);
 
     //Concatenate buildingAABB and terrainAABB
-    std::vector<AABB> building_terrainBB;
+    std::vector<AABB> building_terrainBB; // TIME CONSUMER ?
 
     building_terrainBB.reserve(boxes.building.size() + boxes.terrain.size()); //preallocate memory
     building_terrainBB.insert( building_terrainBB.end(), boxes.building.begin(), boxes.building.end() ); // insert building AABB
@@ -168,7 +168,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
             std::cout << "Triangle " << cpt_tri << " of " << trianglesfile->triangles.size() << "..." << std::endl;
 
             //Initialize sunlight Info results
-            std::map<int,bool> datetimeSunInfo = datetime_sunnyMap;
+            std::map<int,bool> datetimeSunInfo = datetime_sunnyMap; // TIME CONSUMER ?
 
             //Compute Barycenter of triangle
             TVec3d barycenter = TVec3d();
@@ -252,6 +252,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 //Change sunlight information according to hits found
                 for(Hit* h : *tmpHits)
                 {
+                    //std::cout << h->ray.id
                     datetimeSunInfo[h->ray.id] = false;
                 }
 

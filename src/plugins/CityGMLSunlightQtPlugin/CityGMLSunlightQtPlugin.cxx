@@ -73,7 +73,6 @@ void CityGMLSunlightQtPlugin::loadFile(QString filepath)
             //Add value to map
             if(m_sunlightInfo[idatetime] == NULL)
             {
-                std::cout << idatetime << std::endl;
                 m_sunlightInfo[idatetime] = new std::map<std::string,bool>();
             }
             (*(m_sunlightInfo[idatetime]))[polygonId] = bSunlight;

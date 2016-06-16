@@ -39,6 +39,32 @@ void RayLoop(RayTracingData data)
     }
 }
 
+//Loop through all triangles and check if any rays intersect with triangles
+void RayLoop2(RayTracingData data)
+{
+    for (unsigned int k = 0; k < data.rowToDo->size(); k++)
+    {
+        Ray* ray = data.rowToDo->at(k);
+
+        for (unsigned int l = 0; l < data.triangles->triangles.size(); l++)
+        {
+            Triangle* tri = data.triangles->triangles.at(l);
+
+            Hit* hit = new Hit();
+            if (ray->Intersect(tri, hit))//Check if the ray hit the triangle and
+            {
+                data.Hits->push_back(hit);
+                continue;
+            }
+            else
+            {
+                delete hit;
+            }
+        }
+
+    }
+}
+
 std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
 {
     QTime time;
@@ -79,7 +105,7 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
         data.rowToDo = &toDo[i];
         data.Hits = &hitsArray[i];
 
-        std::thread* t = new std::thread(RayLoop,data);
+        std::thread* t = new std::thread(RayLoop2,data);
         threads.push_back(t);
     }
 

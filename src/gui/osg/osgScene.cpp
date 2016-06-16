@@ -933,10 +933,8 @@ void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::st
     {
         if(grp)
         {
-            std::cout << "grp " << std::endl;
             for(unsigned int i = 0 ; i < grp->getNumChildren() ; ++i)
             {
-                //std::cout << "recursive call " << i << " of " << grp->getNumChildren();
                 changePolyColorRec(grp->getChild(i), sunlightInfo);
             }
         }
