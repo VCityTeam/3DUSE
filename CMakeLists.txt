@@ -512,7 +512,7 @@ if(DEFINED ENV{TRAVIS})
   else() # Linux
     set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
     set( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
-  endif
+  endif()
 endif()
 
 if (WITH_QT5)
