@@ -1,6 +1,10 @@
 #include <iostream>
 #include <fstream>
+#ifdef _MSC_VER                  // Inhibit dll-interface warnings concerning
+  # pragma warning(disable:4251) // gdal-1.11.4 internals (cpl_string.h) when
+#endif                           // including ogrsf_frmts.h on VC++
 #include <ogrsf_frmts.h>
+
 #include "libcitygml/utils/tile.hpp"
 #include "libcitygml/export/exportCityGML.hpp"
 #include "filters/EnhanceCityGML/LinkCityGMLShape.hpp"

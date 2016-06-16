@@ -41,7 +41,7 @@
 
 #include "filters/ChangeDetection/ChangeDetection.hpp"
 #include "filters/EnhanceCityGML/LinkCityGMLShape.hpp"
-#include "filters/tiling/TilingCityGML.hpp"
+#include "filters/Tiling/TilingCityGML.hpp"
 #include "filters/EnhanceCityGML/EnhanceMNT.hpp"
 
 #include "pluginInterface.h"

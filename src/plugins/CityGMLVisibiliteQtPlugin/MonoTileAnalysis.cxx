@@ -1,5 +1,11 @@
 #include <thread>
 #include <queue>
+#ifdef _MSC_VER                 
+  // Inhibit dll-interface warnings concerning gdal-1.11.4 internals
+  // (cpl_string.h) when including ogrsf_frmts.h and/or gdal_priv.h
+  // on VC++
+  # pragma warning(disable:4251) 
+#endif
 #include <ogrsf_frmts.h>
 #include <gdal_priv.h>    // Gdal
 #include <cpl_conv.h>     // Gdal for CPLMalloc()

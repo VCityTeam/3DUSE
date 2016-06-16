@@ -8,8 +8,8 @@ add_library( filters SHARED
   raytracing/Ray.cpp
   raytracing/RayTracing.cpp
   ShpExtrusion/ShpExtrusion.cpp
-  tiling/ASCCut.cpp
-  tiling/TilingCityGML.cpp
+  Tiling/ASCCut.cpp
+  Tiling/TilingCityGML.cpp
 )
 
 target_include_directories( filters PUBLIC

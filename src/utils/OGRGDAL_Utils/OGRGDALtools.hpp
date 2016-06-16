@@ -4,10 +4,11 @@
 #define __OGRGDALTOOLS_HPP__
 
 #include <vector>
-#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
-# pragma warning(disable:4251) // gdal-1.11.4 internals (cpl_string.h) when
-#endif                         // including ogrsf_frmts.h on VCC++
+#ifdef _MSC_VER                  // Inhibit dll-interface warnings concerning
+  # pragma warning(disable:4251) // gdal-1.11.4 internals (cpl_string.h) when
+#endif                           // including ogrsf_frmts.h on VC++
 #include <ogrsf_frmts.h>
+
 #include "vcitycore_export.h"
 #include "vecs.hpp"
 
