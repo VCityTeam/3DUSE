@@ -397,16 +397,17 @@ set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
 # FILTERS--> CORE, CITYGML, CITYGMLUTILS
 set( FILTERS_INCLUDE_DIR
-  ${PROJECT_SOURCE_DIR}/src/libfilters
-  ${PROJECT_BINARY_DIR}/src/libfilters      # for  generated filters_export.h
+  ${PROJECT_SOURCE_DIR}/src
+  ${PROJECT_BINARY_DIR}/src/filters    # for  generated filters_export.h
 )
 set( FILTERS_LIBRARIES   filters )
 
 
-# FIXME: inquire on the necessity of the following line
-# Find includes in corresponding build directories
+# FIXME: the following line should be made away with. It is used by some
+# plugins to find their includes. But this is the plugins build commands
+# are defined from this central CMakeFile and thus with a path that is
+# not relative to the code...
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 
 ################### General
 set( VCITY_GUI_SRC

@@ -9,8 +9,9 @@
 #include <QDate>
 #include <QPluginLoader>
 
-#include "moc/mainWindow.hpp"
 #include "ui_mainWindow.h"
+
+#include "moc/mainWindow.hpp"
 #include "moc/dialogLoadBBox.hpp"
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
@@ -18,35 +19,37 @@
 
 #include "controllerGui.hpp"
 
-#include "citygml.hpp"
-#include "export/exportCityGML.hpp"
-#include "exportJSON.hpp"
-#include "exportOBJ.hpp"
+#include "libcitygml/citygml.hpp"
+#include "libcitygml/export/exportCityGML.hpp"
+#include "libcitygml/utils/exportJSON.hpp"
+#include "libcitygml/utils/exportOBJ.hpp"
 
 #include "importerAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
 #include "osg/osgGDAL.hpp"
-
 #include "osg/osgAssimp.hpp"
-#include "src/DataStructures/DEM/osgMnt.hpp"
-
-#include "utils/CityGMLFusion.h"
 #include "osg/osgLas.hpp"
 
-#include "src/libcitygml/utils/CityGMLtools.hpp"
-#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
-#include "src/libfilters/ChangeDetection/ChangeDetection.hpp"
-#include "src/libfilters/EnhanceCityGML/LinkCityGMLShape.hpp"
-#include "src/libfilters/tiling/TilingCityGML.hpp"
-#include "src/libfilters/EnhanceCityGML/EnhanceMNT.hpp"
+#include "DataStructures/DEM/osgMnt.hpp"
+
+#include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
+#include "utils/CityGMLFusion.h"
+
+#include "libcitygml/utils/CityGMLtools.hpp"
+
+#include "filters/ChangeDetection/ChangeDetection.hpp"
+#include "filters/EnhanceCityGML/LinkCityGMLShape.hpp"
+#include "filters/tiling/TilingCityGML.hpp"
+#include "filters/EnhanceCityGML/EnhanceMNT.hpp"
 
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 #include "TiledFilesLayout.hpp"
 
-//CLEMENT LIB ADDING
+//FIXME: the following block (CLEMENT LIB ADDING) is used by one of the
+// test functions and can be made away together with those tests.
 #include <osg/PositionAttitudeTransform>
 #include "osg/osgInfo.hpp"
 #include "osg/osgQtWidget.hpp"
@@ -54,9 +57,9 @@
 #include <math.h>
 #include <osg/MatrixTransform>
 #include <core/layerInfo.hpp>
-#include "raytracing/RayTracing.hpp"
+#include "filters/raytracing/RayTracing.hpp"
 #include "Triangle.hpp"
-#include "raytracing/Hit.hpp"
+#include "filters/raytracing/Hit.hpp"
 #include <fstream>
 #include <string>
 #include "gui/applicationGui.hpp"

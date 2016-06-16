@@ -3,7 +3,7 @@
 #include <ogrsf_frmts.h>
 #include "libcitygml/utils/tile.hpp"
 #include "libcitygml/export/exportCityGML.hpp"
-#include "EnhanceCityGML/LinkCityGMLShape.hpp"
+#include "filters/EnhanceCityGML/LinkCityGMLShape.hpp"
 
 int main(int narg, char** argv)
 {

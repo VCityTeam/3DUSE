@@ -1,17 +1,15 @@
-#include "FloodARTools.hpp"
-
-#include "osgDB/fstream"
-
+#include <osgDB/fstream>
 #include <QFileDialog>
 #include <QImageReader>
 #include <QDebug>
 #include <QMessageBox>
 #include <QProgressDialog>
 
-#include "src/DataStructures/DEM/osgMnt.hpp"
+#include "FloodARTools.hpp"
+#include "DataStructures/DEM/osgMnt.hpp"
 #include "importerASC.hpp"
-#include "libfilters/tiling/ASCCut.hpp"
-#include "libfilters/ShpExtrusion/ShpExtrusion.hpp"
+#include "filters/tiling/ASCCut.hpp"
+#include "filters/ShpExtrusion/ShpExtrusion.hpp"
 
 namespace FloodAR
 {

@@ -1,18 +1,14 @@
-#include "Visibilite.hpp"
-
-#include "citygml.hpp"
-
-#include "gdal_priv.h"
-#include "cpl_conv.h" // for CPLMalloc()
-#include "ogrsf_frmts.h"
-
 #include <thread>
 #include <queue>
+#include <ogrsf_frmts.h>
+#include <gdal_priv.h>    // Gdal
+#include <cpl_conv.h>     // Gdal for CPLMalloc()
 
-#include "raytracing/Hit.hpp"
+#include "filters/raytracing/Hit.hpp"
+#include "filters/raytracing/RayTracing.hpp"
+#include "libcitygml/citygml.hpp"
+#include "Visibilite.hpp"
 #include "Export.hpp"
-#include "raytracing/RayTracing.hpp"
-
 
 /**
 *	@brief Perform the analysis of a set of viewpoint with a set of tile

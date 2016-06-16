@@ -1,24 +1,26 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#include "dialogVisibilite.hpp"
-#include "ui_dialogVisibilite.h"
-#include "gui/applicationGui.hpp"
-
-#include "export/exportCityGML.hpp"
-#include "../../../gui/moc/mainWindow.hpp"
-#include "../Visibilite.hpp"
-#include "../data/BelvedereDB.h"
-#include "../FlatRoof.hpp"
-#include "libfilters/ShpExtrusion/ShpExtrusion.hpp"
-#include "../VegetTool.hpp"
-#include "../AlignementTree.hpp"
-#include "AABB.hpp"
-#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
-
 #include <QSettings>
 #include <QFileDialog>
 #include <osg/MatrixTransform>
 #include <queue>
+
+#include "dialogVisibilite.hpp"
+#include "ui_dialogVisibilite.h"
+#include "gui/applicationGui.hpp"
+
+#include "libcitygml/export/exportCityGML.hpp"
+// FIXME: why the following dependance of a plugin towards the main application
+// window ?
+#include "gui/moc/mainWindow.hpp"  
+#include "filters/ShpExtrusion/ShpExtrusion.hpp"
+#include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
+#include "AABB.hpp"
+#include "../Visibilite.hpp"                      // FIXME: no relative path
+#include "../data/BelvedereDB.h"                  // FIXME: no relative path
+#include "../FlatRoof.hpp"                        // FIXME: no relative path
+#include "../VegetTool.hpp"                       // FIXME: no relative path
+#include "../AlignementTree.hpp"                  // FIXME: no relative path
 
 ////////////////////////////////////////////////////////////////////////////////
 DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :

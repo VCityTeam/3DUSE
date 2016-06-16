@@ -1,18 +1,12 @@
-#include "Visibilite.hpp"
-
-#include "citygml.hpp"
-
-#include "gdal_priv.h"
-#include "cpl_conv.h" // for CPLMalloc()
-#include "ogrsf_frmts.h"
-
 #include <thread>
 #include <queue>
+#include <ogrsf_frmts.h>
+#include <gdal_priv.h>    // Gdal
+#include <cpl_conv.h>     // Gdal for CPLMalloc()
 #include <qfileinfo.h>
 
-#include "raytracing/Hit.hpp"
+#include "Visibilite.hpp"
 #include "Export.hpp"
-#include "raytracing/RayTracing.hpp"
 #include "data/BelvedereDB.h"
 #include "AABB.hpp"
 #include "core/RayBox.hpp"
