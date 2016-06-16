@@ -45,6 +45,10 @@ void CityGMLSunlightQtPlugin::startVisuAction(QStringList filepaths, QDateTime s
 
 void CityGMLSunlightQtPlugin::stopVisuAction()
 {
+    //Delete maps of map m_sunlightInfo
+    for(auto iterator = m_sunlightInfo.begin(); iterator != m_sunlightInfo.end(); iterator++)
+        delete iterator->second;
+
     m_sunlightInfo.clear();
     m_visu = false;
 }
