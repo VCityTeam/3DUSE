@@ -51,7 +51,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
     set( ENABLE_CXX11 "-std=c++0x" )
   endif()
 
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -pg" )
   message(STATUS "GNUCXX compiler detected (with ${ENABLE_CXX11} activated)")
 endif()
 
@@ -887,7 +887,7 @@ endif (BUILD_CityGMLFloodARQtPlugin)
 # --> CityGMLFloodARQtPlugin : QtPlugin [END]
 
 # --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
-OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " OFF)
+OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " ON)
 if (BUILD_CityGMLSunlightQtPlugin)
   set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h)
   set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)

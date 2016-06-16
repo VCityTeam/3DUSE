@@ -36,6 +36,8 @@
 
 #include <string>
 
+static int nbcouche = 0;
+
 //#include <typeinfo>
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
@@ -882,7 +884,7 @@ void OsgScene::setDate(const QDateTime& date)
     setDateRec(date, this);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool> sunlightInfo)
+void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool>* sunlightInfo)
 {
     //get node as group in order to navigate through structure
     osg::ref_ptr<osg::Group> grp = node->asGroup();
@@ -897,7 +899,7 @@ void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::st
 
             std::string drawableName = drawableChild->getName();
 
-            if(sunlightInfo.count(drawableName) > 0) //If there is a value for this polygon in the map
+            if(sunlightInfo->count(drawableName) > 0) //If there is a value for this polygon in the map
             {
                 osg::Geometry* geom =  drawableChild->asGeometry();
 
@@ -909,7 +911,7 @@ void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::st
 
                 osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
 
-                if(sunlightInfo[drawableName] == true) //If sunny
+                if((*sunlightInfo)[drawableName] == true) //If sunny
                 {
                     ambiantColor = osg::Vec4(1.f,1.f,0.f,1.f); //change polygon color to yellow
                 }
@@ -931,8 +933,10 @@ void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::st
     {
         if(grp)
         {
+            std::cout << "grp " << std::endl;
             for(unsigned int i = 0 ; i < grp->getNumChildren() ; ++i)
             {
+                //std::cout << "recursive call " << i << " of " << grp->getNumChildren();
                 changePolyColorRec(grp->getChild(i), sunlightInfo);
             }
         }
@@ -940,7 +944,7 @@ void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::st
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void OsgScene::changePolyColor(std::map<std::string,bool> sunlightInfo)
+void OsgScene::changePolyColor(std::map<std::string,bool>* sunlightInfo)
 {
     //Get URI of CityGML Layer
     vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerCityGML")->getURI();
