@@ -1,16 +1,14 @@
-#include "SunlightDetection.h"
-
 #include <osgDB/fstream>
 #include <queue>
 
+#include "SunlightDetection.h"
 #include "AABB.hpp"
 #include "Triangle.hpp"
-#include "libfilters/raytracing/RayTracing.hpp"
-#include "libfilters/raytracing/Hit.hpp"
-#include "src/core/RayBox.hpp"
+#include "filters/raytracing/RayTracing.hpp"
+#include "filters/raytracing/Hit.hpp"
+#include "core/RayBox.hpp"
 #include "quaternion.hpp"
 #include "core/dateTime.hpp"
-
 #include "IO.h"
 #include "FileInfo.h"
 
@@ -57,7 +55,9 @@ std::queue<RayBoxHit> SetupFileOrder(std::vector<AABB> boxes,RayBoxCollection* r
             int current = boxToMaxOrder[rayBox->boxes[j].box.name];
             boxToMaxOrder[rayBox->boxes[j].box.name] = std::max(static_cast<int>(j),current);
 
-            if(boxToRayBoxHit.find(rayBox->boxes[j].box.name) != boxToRayBoxHit.end())//= Si rayBox->boxes[j].box.name existe déjà dans boxToRayBoxHit/// MultiResolution
+            if(boxToRayBoxHit.find(rayBox->boxes[j].box.name) != boxToRayBoxHit.end())
+            // if rayBox->boxes[j].box.name already exists in boxToRayBoxHit
+            // MultiResolution
             {
                 boxToRayBoxHit[rayBox->boxes[j].box.name] = std::min(rayBox->boxes[j],boxToRayBoxHit[rayBox->boxes[j].box.name]);
             }

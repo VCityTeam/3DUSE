@@ -90,15 +90,17 @@ if(MSVC)
   # the same (configuration dependent) directory.
   # The objective is to have the executables to sit side by side with the dlls
   # on which they depend on for the loader to find them at runtime.
-  foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-    string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
-    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
-         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
-    set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
-         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
-    set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
-         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
-  endforeach()
+  # FIXME: Alas this breaks ctest (on MSVC) that is unable to find the
+  # executables that were declared with add_test()...
+  # foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+  #   string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
+  #   set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+  #        ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  #   set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+  #        ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  #   set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+  #        ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG} )
+  # endforeach()
 endif()
 
 ##### OSX specifics (Apple)
@@ -318,6 +320,7 @@ endif(OPENTHREADS_FOUND)
 # Find GDAL
 find_package(GDAL)
 if(GDAL_FOUND)
+  # FIXME: remove this line and (if needed) use target_include_directories...
   include_directories(${GDAL_INCLUDE_DIR})
 else(GDAL_FOUND)
   message(FATAL_ERROR "GDAL not found. Please set GDAL_DIR or GDAL_ROOT.")
@@ -340,6 +343,7 @@ else(LASLIB_FOUND)
   message(FATAL_ERROR "LASLIB not found.")
 endif(LASLIB_FOUND)
 
+# FIXME: expand this glob
 file(
   GLOB_RECURSE
   VCITY_GUI_Qt_SRC
@@ -373,20 +377,19 @@ endif()
 # FIXME: those definition should be deported to their respective
 # sub-directories.
 
-# CORE
+# CORE FIXME: rename CORE TO Utils !
 set( VCITYCORE_INCLUDE_DIR
   ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM
-  ${CMAKE_BINARY_DIR}/src                   # for generated vcitycore_export.h
+  ${CMAKE_BINARY_DIR}/src              # for generated vcitycore_export.h
 )
 set( VCITYCORE_LIBRARY vcitycore )
 
 # CITYGML--> CORE
 set( CITYGML_INCLUDE_DIR
-  ${CMAKE_SOURCE_DIR}/src/libcitygml
-  ${CMAKE_SOURCE_DIR}/src/libcitygml/export # FIXME: remove once flatten out 
-  ${CMAKE_SOURCE_DIR}/src/libcitygml/import # FIXME: remove once flatten out
-  ${CMAKE_SOURCE_DIR}/src/libcitygml/utils  # FIXME: will become a library
-  ${CMAKE_BINARY_DIR}/src/libcitygml        # for generated citygml_export.h
+  ${CMAKE_SOURCE_DIR}/src              # FIXME: this should be the last one !
+  ${CMAKE_SOURCE_DIR}/src/libcitygml   # Used to find vecs.hpp
+                                       # BTW move vecs.hpp to CORE
+  ${CMAKE_BINARY_DIR}/src/libcitygml   # for generated citygml_export.h
 )
 set( CITYGML_LIBRARIES citygml )
 
@@ -399,16 +402,17 @@ set( CITYGMLUTILS_LIBRARIES citygmlutils )
 
 # FILTERS--> CORE, CITYGML, CITYGMLUTILS
 set( FILTERS_INCLUDE_DIR
-  ${PROJECT_SOURCE_DIR}/src/libfilters
-  ${PROJECT_BINARY_DIR}/src/libfilters      # for  generated filters_export.h
+  ${PROJECT_SOURCE_DIR}/src
+  ${PROJECT_BINARY_DIR}/src/filters    # for  generated filters_export.h
 )
 set( FILTERS_LIBRARIES   filters )
 
 
-# FIXME: inquire on the necessity of the following line
-# Find includes in corresponding build directories
+# FIXME: the following line should be made away with. It is used by some
+# plugins to find their includes. But this is the plugins build commands
+# are defined from this central CMakeFile and thus with a path that is
+# not relative to the code...
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 
 ################### General
 set( VCITY_GUI_SRC
@@ -595,8 +599,8 @@ endif()
 add_executable( 3DUSE MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 
 target_include_directories( 3DUSE PUBLIC
-  ${CITYGML_INCLUDE_DIR}
-  ${FILTERS_INCLUDE_DIR} 
+  ${CITYGML_INCLUDE_DIR}   # FIXME: there is a mismatch between the included
+  ${FILTERS_INCLUDE_DIR}   #        directories and the linked libraries.
 )
 
 target_link_libraries( 3DUSE

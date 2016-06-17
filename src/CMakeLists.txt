@@ -1,7 +1,7 @@
-# add_subdirectory(core)
-add_subdirectory(libfilters)
-add_subdirectory(plugins)
-add_subdirectory(libcitygml)
+add_subdirectory( filters )
+add_subdirectory( plugins )
+add_subdirectory( libcitygml )
+# add_subdirectory(core)   # FIXME: finish or clean up.
 
 add_library( vcitycore SHARED
   DataStructures/DEM/osgMnt.cpp 

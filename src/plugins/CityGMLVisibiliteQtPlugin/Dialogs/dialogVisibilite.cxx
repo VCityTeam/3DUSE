@@ -1,24 +1,26 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#include "dialogVisibilite.hpp"
-#include "ui_dialogVisibilite.h"
-#include "gui/applicationGui.hpp"
-
-#include "export/exportCityGML.hpp"
-#include "../../../gui/moc/mainWindow.hpp"
-#include "../Visibilite.hpp"
-#include "../data/BelvedereDB.h"
-#include "../FlatRoof.hpp"
-#include "libfilters/ShpExtrusion/ShpExtrusion.hpp"
-#include "../VegetTool.hpp"
-#include "../AlignementTree.hpp"
-#include "AABB.hpp"
-#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
-
 #include <QSettings>
 #include <QFileDialog>
 #include <osg/MatrixTransform>
 #include <queue>
+
+#include "dialogVisibilite.hpp"
+#include "ui_dialogVisibilite.h"
+#include "gui/applicationGui.hpp"
+
+#include "libcitygml/export/exportCityGML.hpp"
+// FIXME: why the following dependance of a plugin towards the main application
+// window ?
+#include "gui/moc/mainWindow.hpp"  
+#include "filters/ShpExtrusion/ShpExtrusion.hpp"
+#include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
+#include "AABB.hpp"
+#include "../Visibilite.hpp"                      // FIXME: no relative path
+#include "../data/BelvedereDB.h"                  // FIXME: no relative path
+#include "../FlatRoof.hpp"                        // FIXME: no relative path
+#include "../VegetTool.hpp"                       // FIXME: no relative path
+#include "../AlignementTree.hpp"                  // FIXME: no relative path
 
 ////////////////////////////////////////////////////////////////////////////////
 DialogVisibilite::DialogVisibilite(QWidget *parent, MainWindow* mainwindow) :
@@ -187,21 +189,12 @@ void DialogVisibilite::SetCamParam()
     mainwindow->m_osgView->m_osgView->getCameraManipulator()->setByInverseMatrix(mat);
     cam->getViewMatrixAsLookAt(pos, target, up);
 
-    ///////////////// Test
-    //OGRMultiLineString* MLS = new OGRMultiLineString;
-
-    //OGRLineString* LS = new OGRLineString;
-    //LS->addPoint(ui->posXSB->value(), ui->posYSB->value(), ui->posZSB->value());
-    //LS->addPoint(ui->posXSB->value() + 1000*dir.x(), ui->posYSB->value() + 1000*dir.y(), ui->posZSB->value() + 1000*dir.z());
-
-    //MLS->addGeometry(LS);
-
     osg::Vec3 d = dir;
     osg::Vec3 u(-d.x() * d.z(), -d.y() * d.z(), d.x() * d.x() + d.y() * d.y());
     u.normalize();
 
-    double C = 0.5; //Cos de 60°
-    double S = 0.866; //Sin de 60°
+    double C = 0.5;   // Cos of 60 degrees
+    double S = 0.866; // Sin of 60 degrees
 
     std::cout << "Vecteur : " << d.x() << " " << d.y() << " " << d.z() << std::endl;
 
@@ -209,9 +202,6 @@ void DialogVisibilite::SetCamParam()
 
     for (int i = 0; i < 5; ++i)
     {
-        //delete LS;
-        //LS = new OGRLineString;
-
         double x = (u.x()*u.x()*(1 - C) + C)*d.x() + (u.x()*u.y()*(1 - C) - u.z()*S)*d.y() + (u.x()*u.z()*(1 - C) + u.y()*S)*d.z();
         double y = (u.x()*u.y()*(1 - C) + u.z()*S)*d.x() + (u.y()*u.y()*(1 - C) + C)*d.y() + (u.y()*u.z()*(1 - C) - u.x()*S)*d.z();
         double z = (u.x()*u.z()*(1 - C) - u.y()*S)*d.x() + (u.y()*u.z()*(1 - C) + u.x()*S)*d.y() + (u.z()*u.z()*(1 - C) + C)*d.z();
@@ -220,14 +210,10 @@ void DialogVisibilite::SetCamParam()
 
         d.normalize();
 
-        std::cout << "Rotation " << i + 1 << " : " << d.x() << " " << d.y() << " " << d.z() << std::endl;
+        std::cout << "Rotation " << i + 1 << " : "
+                  << d.x() << " " << d.y() << " " << d.z() << std::endl;
 
-        //LS->addPoint(ui->posXSB->value(), ui->posYSB->value(), ui->posZSB->value());
-        //LS->addPoint(ui->posXSB->value() + 10*d.x(), ui->posYSB->value() + 10*d.y(), ui->posZSB->value() + 10*d.z());
-        //MLS->addGeometry(LS);
     }
-    //SaveGeometrytoShape("TestRot.shp", MLS);
-    //delete MLS;
 }
 
 void DialogVisibilite::SetupEmblematicViewExportParameter()
@@ -246,7 +232,8 @@ void DialogVisibilite::SetupEmblematicViewExportParameter()
     ExportParameter::SetGobalParameter(param);
 }
 
-osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la caméra selon les données entrées par l'utilisateur.
+// Create the camera according to user defined data
+osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera()
 {
     SetupEmblematicViewExportParameter();
     SetCamParam();
@@ -263,10 +250,7 @@ osg::ref_ptr<osg::Camera> DialogVisibilite::SetupRenderingCamera() //Créer la ca
     pos = pos + osg::Vec3d(offset.x, offset.y, offset.z);
     target = target + osg::Vec3d(offset.x, offset.y, offset.z);
 
-    //std::cout << "Target1 : " << target.x() << " " << target.y() << " " << target.z() << std::endl;
-
     cam->setViewMatrixAsLookAt(pos, target, up);
-
 
     float fovx = ui->fovxSB->value();
     float fovy = ui->fovySB->value();

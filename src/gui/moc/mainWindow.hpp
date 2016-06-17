@@ -58,7 +58,6 @@ public:
 
     void updateTextBox(const std::stringstream& ss);
     void updateTextBox(const vcity::URI& uri);
-    //const std::stringstream& genSelectedNodes
     void updateTextBoxWithSelectedNodes();
 
     // admin mode (show all menus)
@@ -70,7 +69,8 @@ public:
 
 
 signals:
-   void activateVisuSunlightPlugin(QDateTime d); //Signal used for Sunlight Plugin (visualisation part)
+   // Signal used for Sunlight Plugin (visualisation part)
+   void activateVisuSunlightPlugin(QDateTime d);
 
 private:
     // plugins

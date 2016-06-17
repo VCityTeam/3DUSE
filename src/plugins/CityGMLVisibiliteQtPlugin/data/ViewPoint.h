@@ -2,8 +2,7 @@
 #define __VIEWPOINT_HPP__
 
 #include <qcolor.h>
-
-#include "raytracing/Hit.hpp"
+#include "filters/raytracing/Hit.hpp"
 
 struct Skyline
 {
