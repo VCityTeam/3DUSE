@@ -29,17 +29,13 @@ target_link_libraries( vcitycore
   ${GDAL_LIBRARY}
 )
 
-
 if( WITH_QT5 )
-  # FIXME: following line produces cmake warnings and was deprecated: refer
-  # to https://bugreports.qt.io/browse/QTBUG-39457
-  # QT5_USE_MODULES( vcitycore Core )  # QT4 way of providing QDir/QString 
-  # The replacement is a bit verbose, but no other workaround according to
-  # https://cmake.org/Bug/view.php?id=14778
   target_include_directories( vcitycore PRIVATE
     $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
   target_link_libraries( vcitycore Qt5::Core )
-else() # With QT4
+endif()
+
+if( BUILD_GUI_QT4 )
   target_link_libraries( vcitycore ${QT_LIBRARIES} )
 endif()
 

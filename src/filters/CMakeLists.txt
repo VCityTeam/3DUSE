@@ -22,9 +22,10 @@ target_link_libraries(filters
   ${CITYGMLUTILS_LIBRARIES}
 )
 
-if (WITH_QT5)
-  # FIXME: refer to src/CMakeLists.txt to remove usage of QT5_USE_MODULES
-	QT5_USE_MODULES(filters Core)
-endif(WITH_QT5)
+if( WITH_QT5 )
+  target_include_directories( filters PRIVATE
+    $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+  target_link_libraries( filters Qt5::Core )
+endif()
 
 GENERATE_EXPORT_HEADER( filters )

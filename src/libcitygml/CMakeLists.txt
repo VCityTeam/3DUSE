@@ -62,15 +62,6 @@ add_library( citygml SHARED
   ADE/document/tag.cpp
 )
 
-# The dependence of this library towards QT both undue and a drag:
-if (WITH_QT5)
-  QT5_USE_MODULES( citygml Core Widgets Xml OpenGL )
-  # FIXME: assert the following two lines are indeed required
-  add_definitions("-DWITH_QT5")
-  # FIXME: if this line were to be kept remove the semi-colon from last argument
-  set_target_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
-endif ()
-
 # FIXME: this instruction should and can probably be compeletely removed !
 target_include_directories( citygml PUBLIC 
  ${CMAKE_SOURCE_DIR}
@@ -98,6 +89,21 @@ target_link_libraries( citygml
                          # - temporalExt.cpp 
   ${VCITYCORE_LIBRARY}
 )
+
+# FIXME The dependence of this library towards QT both undue and a drag:
+if( WITH_QT5 )
+  # FIXME: assert the following two lines are indeed required
+  add_definitions("-DWITH_QT5")
+  # FIXME: if this line were to be kept remove the semi-colon from last argument
+  set_target_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
+  target_include_directories( citygml PRIVATE
+    $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>
+  )
+  # FIXME: Core should suffice (and it is already too much)
+  target_link_libraries( citygml Qt5::Widgets Qt5::Core )
+
+endif ()
+
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
 GENERATE_EXPORT_HEADER( citygml ) 

@@ -121,6 +121,7 @@ if( WITH_QT5 )
   # Instruct CMake to run moc automatically when needed
   set(CMAKE_AUTOMOC ON)
 
+  # FIXME: remove those nested and make it flat !
   FIND_PACKAGE( Qt5Core )
   if(${Qt5Core_FOUND})
     message(STATUS "--> Qt5Core found.")
@@ -129,22 +130,22 @@ if( WITH_QT5 )
       message(STATUS "--> Qt5Widgets found.")
       FIND_PACKAGE(Qt5Xml)
       if(${Qt5Xml_FOUND})
-	message(STATUS "--> Qt5Xml found.")
-	FIND_PACKAGE(Qt5OpenGL)
-	if(${Qt5OpenGL_FOUND})
-	  message(STATUS "--> Qt5OpenGL found.")
-	else(${Qt5OpenGL_FOUND})
-	  message(FATAL_ERROR "Qt5OpenGL not found.")
-	endif(${Qt5OpenGL_FOUND})
-      else(${Qt5Xml_FOUND})
-	message(FATAL_ERROR "Qt5Xml not found.")
-      endif(${Qt5Xml_FOUND})
-    else(${Qt5Widgets_FOUND})
+        message(STATUS "--> Qt5Xml found.")
+        FIND_PACKAGE(Qt5OpenGL)
+        if(${Qt5OpenGL_FOUND})
+          message(STATUS "--> Qt5OpenGL found.")
+        else(${Qt5OpenGL_FOUND})
+          message(FATAL_ERROR "Qt5OpenGL not found.")
+        endif()
+      else()
+        message(FATAL_ERROR "Qt5Xml not found.")
+      endif()
+    else()
       message(FATAL_ERROR "Qt5Widgets not found.")
-    endif(${Qt5Widgets_FOUND})
-  else(${Qt5Core_FOUND})
+    endif()
+  else()
     message(FATAL_ERROR "Qt5Core not found. Please set QT5_DIR.")
-  endif(${Qt5Core_FOUND})
+  endif()
 endif()
 
 ##### Find Qt4 
@@ -252,71 +253,6 @@ else(OSGWIDGET_FOUND)
   message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
 endif(OSGWIDGET_FOUND)
 
-# Find osgQt
-# FIXME: assert the following with MTO
-# Not surprisingly OSG-QT depends both on OSG and QT. Depending on
-# the platform/distribution the packagers choose some QT version
-# (4 or 5) to in order to package OSG-QT. 3DUse offers support for
-# both QT4 and QT5. This can produce collisions when e.g. 3DUSe is
-# build against QT5 but the OSG-QT package is against QT4. Solving
-# this is done by embedding the (various versions of) OSG-QT within
-# 3DUse (refer to src/gui/osgQt directory). Then when required (this
-# is the difficult part) either the native OSG-QT package is used or
-# the embedded version is used.
-# The trick is realised with the usage of the variables
-# - OSGQT_INCLUDE_DIR (either set by find_package or manually)
-# - VCITY_GUI_SRC_WIN that is either empty (for the native package) or points
-#   to the ad-hoc version of the sources
-# With QT4 the split goes:
-#  - Embedded code used for: 
-#     - MacOS AND TRAVIS     
-#     - Win32
-#  - Native package for:
-#     - MacOS (not on Travis) 
-#     - Linux
-# With QT5 the split goes:
-#  - Embedded code used for:  FIXME: ask MTO ?
-#  - Native package for:      FIXME: ask MTO ?
-#  
-# FIXME: why consider Travis as being special case that needs to be
-# flagged through an environement variable ? Shouldn't Travis be
-# a platform like another one i.e. indirectly specified through its
-# compiler and version of QT4 or QT5 ?
-
-if (WIN32)
-  SET( OSGQT_INCLUDE_DIR "" )
-elseif(DEFINED ENV{TRAVIS})
-  if (APPLE)
-    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg34/include" )
-    include_directories(${OSGQT_INCLUDE_DIR})
-  else() # Linux
-    #find_package(osgQt)
-    #if(OSGQT_FOUND)
-    #  include_directories(${OSGQT_INCLUDE_DIR})
-    #else(OSGQT_FOUND)
-    #  message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
-    #endif(OSGQT_FOUND)
-
-    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg32/include" )
-    include_directories(${OSGQT_INCLUDE_DIR})
-  endif()
-else()
-  find_package(osgQt)
-  if(OSGQT_FOUND)
-    include_directories(${OSGQT_INCLUDE_DIR})
-  else(OSGQT_FOUND)
-    message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
-  endif(OSGQT_FOUND)
-endif()
-
-# Find OpenThreads (which is also an OSG sub-module)
-find_package(OpenThreads)
-if(OPENTHREADS_FOUND)
-  include_directories(${OPENTHREADS_INCLUDE_DIR})
-else(OPENTHREADS_FOUND)
-  message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
-endif(OPENTHREADS_FOUND)
-
 # Find GDAL
 find_package(GDAL)
 if(GDAL_FOUND)
@@ -343,6 +279,75 @@ else(LASLIB_FOUND)
   message(FATAL_ERROR "LASLIB not found.")
 endif(LASLIB_FOUND)
 
+# Find OpenThreads (which is also an OSG sub-module)
+find_package(OpenThreads)
+if(OPENTHREADS_FOUND)
+  include_directories(${OPENTHREADS_INCLUDE_DIR})
+else(OPENTHREADS_FOUND)
+  message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
+endif(OPENTHREADS_FOUND)
+
+# Find osgQt
+# Not surprisingly OSG-QT depends both on OSG and QT. Depending on the
+# platform/distribution the packagers alas choose some QT version
+# (most often QT4) in order to package OSG-QT (instead of providing it for
+# both versions of QT. But 3DUse offers support for both QT4 and QT5. This
+# can produce collisions when e.g. the application is build against QT5 but
+# the OSG-QT package was build against QT4.
+# Solving this is done by embedding the (various versions of) OSG-QT within
+# 3DUse (refer to content src/gui/osgQt directory). Then when required (this
+# is the difficult part) either the native OSG-QT package is used or
+# the embedded version is used. For the time being the usage grid goes:
+#  - Embedded code used: 
+#     - MacOS and Linux when using QT5
+#     - Win32
+#  - Native package for:
+#     - MacOS and Linux when using QT4
+#
+# The trick is realised with the usage of the following variables
+# - OSGQT_INCLUDE_DIR (either set by find_package or manually)
+# - VCITY_GUI_SRC_WIN that is either empty (for the native package) or points
+#   to the ad-hoc version of the sources
+# FIXME: don't systematically add a variable content because its misleading
+#        when empty. Instead add the code when required. In other terms
+#        remove the VCITY_GUI_SRC_WIN variable and propagate to the targets...  
+
+if( BUILD_GUI_QT4 AND NOT WIN32 )
+  # APPLE, LINUX...
+  find_package( osgQt )
+  if( OSGQT_FOUND )
+    # FIXME remove and use targ_include_directories...
+    include_directories(${OSGQT_INCLUDE_DIR})
+  else()
+    message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
+  endif()
+endif()
+
+if( WITH_QT5 AND NOT WIN32 )
+  # APPLE, LINUX...
+  if( APPLE )
+    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg34/include" )
+    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
+  else() # Linux
+    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg32/include" )
+    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
+  endif()
+  include_directories( ${OSGQT_INCLUDE_DIR} )
+endif()
+
+if( ( BUILD_GUI_QT4 OR WITH_QT5 ) AND WIN32 )
+  set( OSGQT_INCLUDE_DIR "" )
+  # FIXME: the supported binary kit versions are KIT_VS2015 and KIT_VS2012
+  # Use KIT_VS2012 instead of "NOT DEFINED KIT_VS2015"
+  if( NOT DEFINED KIT_VS2015)
+    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
+  endif()
+  if( DEFINED KIT_VS2015 )
+    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
+  endif()
+endif()
+
+##############
 # FIXME: expand this glob
 file(
   GLOB_RECURSE
@@ -409,9 +414,11 @@ set( FILTERS_LIBRARIES   filters )
 
 
 # FIXME: the following line should be made away with. It is used by some
-# plugins to find their includes. But this is the plugins build commands
-# are defined from this central CMakeFile and thus with a path that is
-# not relative to the code...
+# plugins to find their includes. But this is because the plugins build
+# commands are currently defined from within this central CMakeFile and
+# thus with a path that is not relative to the code... When moving the
+# plugin related directive to their respective directories, the following
+# line can be removed
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ################### General
@@ -479,6 +486,8 @@ set( VCITY_GUI_SRC
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
 
+  ${VCITY_GUI_SRC_WIN}       # For OSGQT: might be empty
+
   ### FIXME: is the main recompiled with every plugin !?
   src/main.cpp
 )
@@ -489,36 +498,6 @@ SET( VCITY_GUI_SRC
   ${VCITY_GUI_UI_CPP}
   ${VCITY_GUI_RES_CPP}
 )
-
-# FIXME: the following section deals with OSG-QT and should probably
-# be placed next to the find_package on OSGQT (refer above) in order
-# to clarify the flow
-# The following section embarks a stable component making the connection
-# between OSG and QT. They are alas two versions:
-# src/gui/osgQt/osg32/GraphicsWindowQt.cxx
-# src/gui/osgQt/osg34/GraphicsWindowQt.cxx
-if( WIN32 )
-  # FIXME: the supported kit versions are KIT_VS2015 and KIT_VS2012
-  # Use KIT_VS2012 instead of "NOT DEFINED KIT_VS2015"
-  if(NOT DEFINED KIT_VS2015)
-    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
-  endif()
-  if(DEFINED KIT_VS2015)
-    SET( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
-  endif()
-
-  SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
-endif()
-if(DEFINED ENV{TRAVIS})
-  if (APPLE)
-    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
-    set( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
-  else() # Linux
-    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
-    set( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_SRC_WIN} )
-  endif()
-endif()
-
 if (WITH_QT5)
 else(WITH_QT5)
   SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
@@ -535,7 +514,6 @@ SET( VCITY_GUI_LIB
   ${OSGFX_LIBRARIES}
   ${OSGSHADOW_LIBRARIES}
   ${OSGWIDGET_LIBRARIES}
-  ${OSGQT_LIBRARIES}
   ${OPENTHREADS_LIBRARY}
   ${GDAL_LIBRARY}
   ${LIBXML2_LIBRARIES}
@@ -548,6 +526,7 @@ else(WITH_QT5)
   SET( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT_LIBRARIES} )
 endif(WITH_QT5)
 
+# FIXME: get rid of this my_COMPILE_DEFINITIONS variable 
 set(my_COMPILE_DEFINITIONS "")
 if (WITH_QT5)
   set(my_COMPILE_DEFINITIONS ${my_COMPILE_DEFINITIONS} ";WITH_QT5")
@@ -576,7 +555,8 @@ IF(WIN32)
  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/qt.conf" "[Paths]\nPlugins = QtPlugins")
 ENDIF(WIN32)
 
-##### 3DUSE executable
+##### Executable for the application
+set(APP_NAME 3DUSE)
 # For Windows set the ico file with the rc file
 IF(WIN32)
   SET(VCITY_GUI_ICON resources/vcity.rc)
@@ -596,14 +576,14 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
   set(LINUX_FLAGS -lpthread)   # FIXME: assert this is needed
 endif()
 
-add_executable( 3DUSE MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
+add_executable( ${APP_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
 
-target_include_directories( 3DUSE PUBLIC
+target_include_directories( ${APP_NAME} PUBLIC
   ${CITYGML_INCLUDE_DIR}   # FIXME: there is a mismatch between the included
   ${FILTERS_INCLUDE_DIR}   #        directories and the linked libraries.
 )
 
-target_link_libraries( 3DUSE
+target_link_libraries( ${APP_NAME}
   ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
   ${VCITY_GUI_LIB}
   ${VCITYCORE_LIBRARY}
@@ -612,12 +592,20 @@ target_link_libraries( 3DUSE
   ${CITYGMLUTILS_LIBRARIES}
 )
 
-if (WITH_QT5)
-  # FIXME: refer to src/CMakeLists.txt to get rid of QT5_USE_MODULES
-  add_definitions( "-DWITH_QT5" )
-  QT5_USE_MODULES( 3DUSE Widgets Xml OpenGL )
-endif(WITH_QT5)
-SET_TARGET_PROPERTIES(${PRJ_NAME} PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
+if( WITH_QT5 )
+  add_definitions( "-DWITH_QT5" )   # FIXME: do we need this ?
+  target_include_directories( ${APP_NAME} PRIVATE
+    $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+  target_link_libraries( ${APP_NAME} Qt5::Widgets Qt5::OpenGL )
+endif()
+
+if( BUILD_GUI_QT4 )
+  target_link_libraries( ${APP_NAME} ${OSGQT_LIBRARIES} )
+endif()
+
+set_target_properties( ${APP_NAME} PROPERTIES
+                       COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}"
+)
 
 ##### CityGMLCut executable
 add_executable( CityGMLCut
@@ -627,10 +615,13 @@ add_executable( CityGMLCut
 target_include_directories( CityGMLCut PUBLIC src/libcitygml ) # For vecs.hpp
 target_link_libraries(CityGMLCut ${VCITY_GUI_LIB})
 
-if (WITH_QT5)
+if( WITH_QT5 )
   ADD_DEFINITIONS("-DWITH_QT5")
-  QT5_USE_MODULES( CityGMLCut Widgets Xml OpenGL )
-endif(WITH_QT5)
+  target_include_directories( CityGMLCut PRIVATE
+    $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+  target_link_libraries( CityGMLCut Qt5::Widgets )
+endif()
+
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
 ################
@@ -651,40 +642,40 @@ endif(WITH_QT5)
 # --> CityGMLCutQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLCutQtPlugin "BUILD CityGMLCutQtPlugin " ON)
 if (BUILD_CityGMLCutQtPlugin)
-	set( CityGMLCut_Qt_Plugin_HEADER
+  set( CityGMLCut_Qt_Plugin_HEADER
     src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.h
     src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.h)
-	set( CityGMLCut_Qt_Plugin_UI
+  set( CityGMLCut_Qt_Plugin_UI
      src/plugins/CityGMLCutQtPlugin/Dialogs/DialogCityGMLCut1.ui)
 
-	if (WITH_QT5)
-	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
+  if (WITH_QT5)
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
       ${CityGMLCut_Qt_Plugin_HEADER}
       TARGET CityGMLCutQtPlugin
     )
-	  QT5_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
-	  set( CityGMLCut_Qt_Plugin_SRC
+    QT5_WRAP_UI(CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI})
+    set( CityGMLCut_Qt_Plugin_SRC
       ${CityGMLCut_Qt_Plugin_SRC}
       ${CityGMLCut_Qt_Plugin_MOC_CPP}
       ${CityGMLCut_Qt_Plugin_UI_CPP}
     )
-	else(WITH_QT5) 
-	  QT4_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
+  else() 
+    QT4_WRAP_CPP( CityGMLCut_Qt_Plugin_MOC_CPP
       ${CityGMLCut_Qt_Plugin_HEADER}
       TARGET CityGMLCutQtPlugin
     )
-	  QT4_WRAP_UI( CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI} )
-	  set( CityGMLCut_Qt_Plugin_SRC
+    QT4_WRAP_UI( CityGMLCut_Qt_Plugin_UI_CPP ${CityGMLCut_Qt_Plugin_UI} )
+    set( CityGMLCut_Qt_Plugin_SRC
       ${CityGMLCut_Qt_Plugin_SRC}
       ${CityGMLCut_Qt_Plugin_MOC_CPP}
       ${CityGMLCut_Qt_Plugin_UI_CPP}
     )
-	  set( CityGMLCut_Qt_Plugin_LIB
+    set( CityGMLCut_Qt_Plugin_LIB
       ${CityGMLCut_Qt_Plugin_LIB}
       ${QT_LIBRARIES}
     )
-	endif(WITH_QT5)
+  endif(WITH_QT5)
 
   add_library( CityGMLCutQtPlugin SHARED
     src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx
@@ -703,49 +694,52 @@ if (BUILD_CityGMLCutQtPlugin)
     ${CityGMLCut_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
-	if (WITH_QT5)
-	  QT5_USE_MODULES(CityGMLCutQtPlugin Core Widgets OpenGL)
-	endif(WITH_QT5)
+  if( WITH_QT5 )
+    target_include_directories( CityGMLCutQtPlugin PRIVATE
+      $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries( CityGMLCutQtPlugin Qt5::Widgets Qt5::OpenGL )
+  endif()
+
 endif (BUILD_CityGMLCutQtPlugin)
 # --> CityGMLCutQtPlugin : QtPlugin [END]
 
 # --> CityGMLEmptyQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLEmptyQtPlugin "BUILD CityGMLEmptyQtPlugin " ON)
 if (BUILD_CityGMLEmptyQtPlugin)
-	set( CityGMLEmpty_Qt_Plugin_HEADER
+  set( CityGMLEmpty_Qt_Plugin_HEADER
     src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.h
     src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.h
   )
-	set( CityGMLEmpty_Qt_Plugin_UI
+  set( CityGMLEmpty_Qt_Plugin_UI
     src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.ui
   )
-	if (WITH_QT5)
-	  ADD_DEFINITIONS("-DWITH_QT5")
-	  QT5_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
+  if( WITH_QT5 )
+    ADD_DEFINITIONS("-DWITH_QT5")
+    QT5_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
       ${CityGMLEmpty_Qt_Plugin_HEADER}
       TARGET CityGMLEmptyQtPlugin
     )
-	  QT5_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
-	  set( CityGMLEmpty_Qt_Plugin_SRC
+    QT5_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
+    set( CityGMLEmpty_Qt_Plugin_SRC
       ${CityGMLEmpty_Qt_Plugin_SRC}
       ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
       ${CityGMLEmpty_Qt_Plugin_UI_CPP}
     )
-	else(WITH_QT5) 
-	  QT4_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
+  else() 
+    QT4_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
       ${CityGMLEmpty_Qt_Plugin_HEADER}
     )
-	  QT4_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
-	  set( CityGMLEmpty_Qt_Plugin_SRC
+    QT4_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
+    set( CityGMLEmpty_Qt_Plugin_SRC
       ${CityGMLEmpty_Qt_Plugin_SRC}
       ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
       ${CityGMLEmpty_Qt_Plugin_UI_CPP}
     )
-	  set( CityGMLEmpty_Qt_Plugin_LIB
+    set( CityGMLEmpty_Qt_Plugin_LIB
       ${CityGMLEmpty_Qt_Plugin_LIB}
       ${QT_LIBRARIES}
     )
-	endif(WITH_QT5)
+  endif()
 
   add_library( CityGMLEmptyQtPlugin SHARED
     src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx
@@ -763,9 +757,12 @@ if (BUILD_CityGMLEmptyQtPlugin)
     ${CityGMLEmpty_Qt_Plugin_LIB}
     ${VCITY_GUI_LIB}
   )
-  if (WITH_QT5)
-    QT5_USE_MODULES(CityGMLEmptyQtPlugin Core Widgets OpenGL)
-  endif(WITH_QT5)
+  if( WITH_QT5 )
+    target_include_directories( CityGMLEmptyQtPlugin PRIVATE
+      $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries( CityGMLEmptyQtPlugin Qt5::Widgets Qt5::OpenGL )
+  endif()
+
 endif (BUILD_CityGMLEmptyQtPlugin)
 # --> CityGMLEmptyQtPlugin : QtPlugin [END]
 
@@ -781,7 +778,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.h
     src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.hpp
   )
-	set( CityGMLVisibilite_Qt_Plugin_UI
+  set( CityGMLVisibilite_Qt_Plugin_UI
     src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.ui
   )
   if (WITH_QT5)
@@ -798,12 +795,20 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
       ${CityGMLVisibilite_Qt_Plugin_MOC_CPP}
       ${CityGMLVisibilite_Qt_Plugin_UI_CPP}
     )
-	else(WITH_QT5) 
-	  QT4_WRAP_CPP(CityGMLVisibilite_Qt_Plugin_MOC_CPP ${CityGMLVisibilite_Qt_Plugin_HEADER})
-	  QT4_WRAP_UI(CityGMLVisibilite_Qt_Plugin_UI_CPP ${CityGMLVisibilite_Qt_Plugin_UI})
-	  set(CityGMLVisibilite_Qt_Plugin_SRC ${CityGMLVisibilite_Qt_Plugin_SRC} ${CityGMLVisibilite_Qt_Plugin_MOC_CPP} ${CityGMLVisibilite_Qt_Plugin_UI_CPP})
-	  set(CityGMLVisibilite_Qt_Plugin_LIB ${CityGMLVisibilite_Qt_Plugin_LIB} ${QT_LIBRARIES})
-	endif(WITH_QT5)
+  endif()
+  if( BUILD_GUI_QT4 )
+    QT4_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
+      ${CityGMLVisibilite_Qt_Plugin_HEADER}
+    )
+    QT4_WRAP_UI( CityGMLVisibilite_Qt_Plugin_UI_CPP
+      ${CityGMLVisibilite_Qt_Plugin_UI}
+    )
+    set(CityGMLVisibilite_Qt_Plugin_SRC
+      ${CityGMLVisibilite_Qt_Plugin_SRC}
+      ${CityGMLVisibilite_Qt_Plugin_MOC_CPP}
+      ${CityGMLVisibilite_Qt_Plugin_UI_CPP}
+    )
+  endif()
 
   add_library( CityGMLVisibiliteQtPlugin SHARED
      src/plugins/CityGMLVisibiliteQtPlugin/CityGMLVisibiliteQtPlugin.cxx
@@ -824,13 +829,20 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
     ${FILTERS_LIBRARIES}
-    ${CityGMLVisibilite_Qt_Plugin_LIB}
+    ${QT_LIBRARIES}           # FIXME: looks suspcious since we have a 
+                              # special treatment for QT just below
     ${VCITY_GUI_LIB}
   )
 
-	if (WITH_QT5)
-	  QT5_USE_MODULES(CityGMLVisibiliteQtPlugin Core Widgets OpenGL)
-	endif(WITH_QT5)
+  if( WITH_QT5 )
+    target_include_directories( CityGMLVisibiliteQtPlugin PRIVATE
+      $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries( CityGMLVisibiliteQtPlugin Qt5::Widgets Qt5::OpenGL )
+  endif()
+
+  if( BUILD_GUI_QT4 )
+    target_link_libraries( CityGMLVisibiliteQtPlugin ${OSGQT_LIBRARIES} )
+  endif()
 
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [END]
@@ -890,31 +902,60 @@ if (BUILD_CityGMLFloodARQtPlugin)
     ${CITYGMLUTILS_LIBRARIES}
     ${FILTERS_LIBRARIES}
   )
-  if (WITH_QT5)
-    QT5_USE_MODULES(CityGMLFloodARQtPlugin Core Widgets OpenGL)
-  endif(WITH_QT5)
+
+  if( WITH_QT5 )
+    target_include_directories( CityGMLFloodARQtPlugin PRIVATE
+      $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries( CityGMLFloodARQtPlugin Qt5::Widgets Qt5::OpenGL )
+  endif()
+
+  if( BUILD_GUI_QT4 )
+    target_link_libraries( CityGMLFloodARQtPlugin ${OSGQT_LIBRARIES} )
+  endif()
+
 endif (BUILD_CityGMLFloodARQtPlugin)
 # --> CityGMLFloodARQtPlugin : QtPlugin [END]
 
 # --> CityGMLSunlightQtPlugin : QtPlugin [BEGIN]
 OPTION(BUILD_CityGMLSunlightQtPlugin "BUILD CityGMLSunlightQtPlugin " OFF)
 if (BUILD_CityGMLSunlightQtPlugin)
-  set(CityGMLSunlight_Qt_Plugin_HEADER src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h)
-  set(CityGMLSunlight_Qt_Plugin_UI src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui)
+  set( CityGMLSunlight_Qt_Plugin_HEADER
+    src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.h
+    src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.h
+  )
+  set( CityGMLSunlight_Qt_Plugin_UI
+    src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.ui
+  )
+
   if (WITH_QT5)
     ADD_DEFINITIONS("-DWITH_QT5")
     QT5_WRAP_CPP( CityGMLSunlight_Qt_Plugin_MOC_CPP
       ${CityGMLSunlight_Qt_Plugin_HEADER}
       TARGET CityGMLSunlightQtPlugin
     )
-    QT5_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
-    set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
-  else(WITH_QT5)
-    QT4_WRAP_CPP(CityGMLSunlight_Qt_Plugin_MOC_CPP ${CityGMLSunlight_Qt_Plugin_HEADER})
-    QT4_WRAP_UI(CityGMLSunlight_Qt_Plugin_UI_CPP ${CityGMLSunlight_Qt_Plugin_UI})
-    set(CityGMLSunlight_Qt_Plugin_SRC ${CityGMLSunlight_Qt_Plugin_SRC} ${CityGMLSunlight_Qt_Plugin_MOC_CPP} ${CityGMLSunlight_Qt_Plugin_UI_CPP})
-    set(CityGMLSunlight_Qt_Plugin_LIB ${CityGMLSunlight_Qt_Plugin_LIB} ${QT_LIBRARIES})
-  endif(WITH_QT5)
+    QT5_WRAP_UI( CityGMLSunlight_Qt_Plugin_UI_CPP
+      ${CityGMLSunlight_Qt_Plugin_UI}
+    )
+    set( CityGMLSunlight_Qt_Plugin_SRC
+      ${CityGMLSunlight_Qt_Plugin_SRC}
+      ${CityGMLSunlight_Qt_Plugin_MOC_CPP}
+      ${CityGMLSunlight_Qt_Plugin_UI_CPP}
+    )
+  endif()
+
+  if( BUILD_GUI_QT4 )
+    QT4_WRAP_CPP( CityGMLSunlight_Qt_Plugin_MOC_CPP
+      ${CityGMLSunlight_Qt_Plugin_HEADER}
+    )
+    QT4_WRAP_UI( CityGMLSunlight_Qt_Plugin_UI_CPP
+      ${CityGMLSunlight_Qt_Plugin_UI}
+    )
+    set( CityGMLSunlight_Qt_Plugin_SRC
+      ${CityGMLSunlight_Qt_Plugin_SRC}
+      ${CityGMLSunlight_Qt_Plugin_MOC_CPP}
+      ${CityGMLSunlight_Qt_Plugin_UI_CPP}
+    )
+  endif()
 
   add_library( CityGMLSunlightQtPlugin SHARED
     src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.cxx
@@ -936,17 +977,23 @@ if (BUILD_CityGMLSunlightQtPlugin)
 
   target_link_libraries ( CityGMLSunlightQtPlugin
     ${LINUX_FLAGS}
-    ${CityGMLSunlight_Qt_Plugin_LIB}
+    ${QT_LIBRARIES}
     ${VCITY_GUI_LIB}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
     ${FILTERS_LIBRARIES}
   )
-  if (WITH_QT5)
-    QT5_USE_MODULES(CityGMLSunlightQtPlugin Core Widgets OpenGL)
-  endif(WITH_QT5)
+  if( WITH_QT5 )
+    target_include_directories( CityGMLSunlightQtPlugin PRIVATE
+      $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+    target_link_libraries( CityGMLSunlightQtPlugin Qt5::Widgets Qt5::OpenGL )
+  endif()
+
+  if( BUILD_GUI_QT4 )
+    target_link_libraries( CityGMLSunlightQtPlugin ${OSGQT_LIBRARIES} )
+  endif()
+
 endif (BUILD_CityGMLSunlightQtPlugin)
-# --> CityGMLSunlightQtPlugin : QtPlugin [END]
 
 ################
 # END of plugins
@@ -963,12 +1010,12 @@ SET(plugin_dest_dir .)
 SET(qtconf_dest_dir .)
 SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}")
 IF(APPLE)
-		SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
-		SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
-		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
+  SET(plugin_dest_dir ${PRJ_NAME}.app/Contents/MacOS)
+  SET(qtconf_dest_dir ${PRJ_NAME}.app/Contents/Resources)
+  SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.app")
 ENDIF(APPLE)
 IF(WIN32)
-		SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
+  SET(APPS "\${CMAKE_INSTALL_PREFIX}/${PRJ_NAME}.exe")
 ENDIF(WIN32)
 
 #--------------------------------------------------------------------------------
@@ -978,13 +1025,13 @@ ENDIF(WIN32)
 # 3DUSE plugins
 ################
 if (BUILD_CityGMLCutQtPlugin)
-		set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
+  set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
 endif (BUILD_CityGMLCutQtPlugin)
 if (BUILD_CityGMLEmptyQtPlugin)
-		set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
+  set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
 endif (BUILD_CityGMLEmptyQtPlugin)
 if (BUILD_CityGMLVisibiliteQtPlugin)
-		set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
+  set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
 endif (BUILD_CityGMLVisibiliteQtPlugin)
 if (BUILD_CityGMLFloodARQtPlugin)
     set(CityGMLFloodARQtPlugin "CityGMLFloodARQtPlugin")
@@ -1005,9 +1052,9 @@ INSTALL(TARGETS ${PRJ_NAME}
   ${CityGMLFloodARQtPlugin}
   ${CityGMLSunlightQtPlugin}
   # add your plugin installation here
-		BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
-		RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
-		LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
+  BUNDLE DESTINATION . COMPONENT ${PRJ_NAME}
+  RUNTIME DESTINATION . COMPONENT ${PRJ_NAME}
+  LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}
 )
 
 #--------------------------------------------------------------------------------
@@ -1015,14 +1062,14 @@ INSTALL(TARGETS ${PRJ_NAME}
 # One can cull what gets copied by using 'REGEX "..." EXCLUDE'
 INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/imageformats" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
 if (WITH_QT5)
-		INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
+  INSTALL(DIRECTORY "${QT_PLUGINS_DIR}/platforms" DESTINATION ${plugin_dest_dir}/plugins COMPONENT ${PRJ_NAME})
 endif(WITH_QT5)
 
 # OSG plugins
 if(OPENSCENEGRAPH_FOUND)
-		INCLUDE(BundleOSGPlugins)
-		install_osg_plugins( osg_plugins )
-		MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
+  INCLUDE(BundleOSGPlugins)
+  install_osg_plugins( osg_plugins )
+  MESSAGE( STATUS "OSG plugins: " ${osg_plugins} )
 endif(OPENSCENEGRAPH_FOUND)
 
 #--------------------------------------------------------------------------------
@@ -1091,7 +1138,6 @@ ENDIF(APPLE)
 IF(WIN32)
 		set(CPACK_GENERATOR "NSIS64")
 		set(CPACK_NSIS_MENU_LINKS "${PRJ_NAME}" "${PRJ_NAME}")
-		#MESSAGE( STATUS "PRJ_NAME: " ${PRJ_NAME} )
 		include(CPack)
 ENDIF(WIN32)
 #--------------------------------------------------------------------------------
