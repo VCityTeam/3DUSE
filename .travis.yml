@@ -57,6 +57,9 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew list open-scene-graph; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/lib; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/include; fi
     # Fix unstatified dependency of libgdal.1.dylib that looks for
     # libspatialite.5.dylib (version 5) when the libspatialite formula installs
     # libspatialite.7.dylib (version 7). Trick libgdal in getting what it needs:
