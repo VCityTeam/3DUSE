@@ -51,15 +51,15 @@ if( CMAKE_COMPILER_IS_GNUCXX )
     set( ENABLE_CXX11 "-std=c++0x" )
   endif()
 
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Wno-c99-extensions" )
   message(STATUS "GNUCXX compiler detected (with ${ENABLE_CXX11} activated)")
 endif()
 
 ##### Clang compiler specifics (export CXX=clang++ CC=clang)
 if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" )
   set( ENABLE_CXX11 "-std=c++11" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments" )
-  set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments -Wno-c99-extensions" )
+  set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments -Wno-c99-extensions" )
   message( STATUS "Clang compiler detected (with ${ENABLE_CXX11} activated)" )
 endif()
 
@@ -342,6 +342,20 @@ if(LASLIB_FOUND)
 else(LASLIB_FOUND)
   message(FATAL_ERROR "LASLIB not found.")
 endif(LASLIB_FOUND)
+
+# Find PCL
+option( BUILD_USE_PCL "PCL usage toggle." ON )
+if( BUILD_USE_PCL )
+  find_package(PCL 1.3 REQUIRED COMPONENTS common io)
+  if ( PCL_FOUND )
+    include_directories( ${PCL_INCLUDE_DIRS} )
+    add_definitions( ${PCL_DEFINITIONS} )
+    add_definitions( -DFEVV_USE_PCL )
+  else()
+    message ( "Unfound PCL package: try with PCL support disabled.")
+    message ( "(try toggling BUILD_USE_PCL to OFF)." )
+  endif ()
+endif ()
 
 # FIXME: expand this glob
 file(
@@ -955,6 +969,9 @@ endif (BUILD_CityGMLSunlightQtPlugin)
 # Placed here because BUILD_CityGMLSunlightQtPlugin variable needs to be set
 # because it is needed in src/plugins/CMakeLists.txt
 add_subdirectory(src)
+
+# tiny PCL sample (temp, just for helping developers and for validate cmake, travis, appveyor...)
+add_subdirectory( tests/PCL )
 
 #--------------------------------------------------------------------------------
 # Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample

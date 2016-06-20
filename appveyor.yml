@@ -13,6 +13,8 @@ os: Visual Studio 2015
 
 # environment variables
 environment:
+  BOOST_ROOT: C:\Libraries\boost_1_59_0
+#
   QT5_DIR: C:\Qt\5.6\msvc2015_64
 #
   KIT_ROOT: C:\local_vs2015_64
@@ -83,9 +85,17 @@ before_build:
 # libxml
   - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
   - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
+# boost
+  - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
+# eigen
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
+  - IF %CACHE%==FALSE 7z x eigen-3.2.8.rar > nul
+# PCL, flann, qhull
+  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
+  - IF %CACHE%==FALSE 7z x PCL-1.7.2.rar > nul
 #
   - cd %APPVEYOR_BUILD_FOLDER%
-  -  cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:

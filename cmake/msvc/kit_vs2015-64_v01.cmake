@@ -30,3 +30,11 @@ set(LIBXML2_LIBRARIES		${VCITY_KIT_ROOT}/libxml2-2.9.3/lib/libxml2.lib)
 set(LASLIB_INCLUDE_DIR		${VCITY_KIT_ROOT}/laslib/include)
 set(LASLIB_LIBRARY			${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)
 set(LASLIB_LIBRARY_D		${VCITY_KIT_ROOT}/laslib/lib/Debug/laslib.lib)
+
+# ---
+
+set(BOOST_ROOT				${VCITY_KIT_ROOT}/boost_1_59_0)
+
+set(EIGEN3_INCLUDE_DIR		${VCITY_KIT_ROOT}/eigen-3.2.8)
+
+set(PCL_DIR					${VCITY_KIT_ROOT}/PCL/pcl-1.7.2/cmake)

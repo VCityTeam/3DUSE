@@ -47,21 +47,37 @@ addons:
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
+      - libboost-dev
+      - libboost-thread-dev
+      - libboost-system-dev
+      - libboost-filesystem-dev
+      - libboost-iostreams-dev
+      - libeigen3-dev
+      - libflann-dev
+      - libqhull-dev
       - doxygen
       - graphviz
 
 install:
   - export TRAVIS=YES
   - cmake --version
+
   # OSX install done through brew:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/pcl; fi
     # Fix unstatified dependency of libgdal.1.dylib that looks for
     # libspatialite.5.dylib (version 5) when the libspatialite formula installs
     # libspatialite.7.dylib (version 7). Trick libgdal in getting what it needs:
     # refer to issue #121. [osx_image: beta-xcode6.1]
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
+
+  # Linux
+  # ---> because no PCL package under linux 14.04 !!!
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar zxf pcl-pcl-1.7.2.travis-trusty.tgz; cd pcl-pcl-1.7.2/buildR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make install && cd .. && cd ..; fi
 
 script:
   - cd externals/laslib
@@ -70,6 +86,7 @@ script:
   - mkdir build && cd build && cmake .. $BTYPE
   - make
   - ctest
+
   # OSX only: previous test was against qt4. Try the same but this time
   # against qt5. The following is a perversion of the script target since
   # we start by an internalized sub-install that installs Qt5.
@@ -82,7 +99,7 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest; fi
 
-  # OSX only: previous test was against qt4. Try the same but this time against qt5.
+  # Linux only: previous test was against qt4. Try the same but this time against qt5.
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi # ---> now install qt5
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DWITH_QT5=YES; fi
