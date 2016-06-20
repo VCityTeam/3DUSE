@@ -12,6 +12,7 @@
 #include <osg/Billboard>
 #include <osg/MatrixTransform>
 #include <osg/Vec3>
+#include <osg/Point>
 #include <osg/Texture2D>
 #include <osgDB/ReadFile>
 #include <osg/BlendFunc>
@@ -54,6 +55,12 @@ public:
     /// \brief Update current document position
     /// \param osg::Vec3 new coordinates
     void UpdatePosition(osg::Vec3 newPos);
+
+    /// \brief Display red point objects at upper and lower cornes of info
+    /// \param osg::Vec3 upperCorner
+    /// \param osg::Vec3 lowerCorner
+    /// \param osgInfo* concerned info
+    void displayRedCorners(osg::Vec3 upperCorner, osg::Vec3 lowerCorner);
 
     /// \brief Compute and update DSC value for current document
     /// \param osg::Camera* pointer to camera to get camera current position
@@ -179,7 +186,6 @@ private:
     bool m_displayable; /// is this document displayable
     bool m_requested; /// is this document requested by the filter bar
     bool m_onscreen; /// is this document on screen
-
 
     osg::Texture2D *m_texture ; ///texture of the doc
     osg::Material *m_material ; ///material of the doc

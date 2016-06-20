@@ -9,7 +9,6 @@
 #include "osgInfo.hpp"
 #include "vecs.hpp"
 #include <osg/Switch>
-#include <osg/Point>
 #include <osg/MatrixTransform>
 
 

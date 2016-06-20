@@ -594,6 +594,34 @@ void osgInfo::updateDisplayability()
     }
 }
 
+void osgInfo::displayRedCorners(osg::Vec3 upperCorner, osg::Vec3 lowerCorner)
+{
+    osg::Geode* cornersGeode = new osg::Geode;
+    osg::Geometry* cornersGeom = new osg::Geometry;
+    osg::Vec3Array* verticesPoints = new osg::Vec3Array;
+
+    verticesPoints->push_back(upperCorner);
+    verticesPoints->push_back(lowerCorner);
+
+    osg::ref_ptr<osg::Vec4Array> colorpoints = new osg::Vec4Array;
+    colorpoints->push_back(osg::Vec4(1.0,0.0,0.0,1.0));
+
+    cornersGeom->setVertexArray(verticesPoints);
+    cornersGeom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS,0,verticesPoints->size()));
+    cornersGeom->getOrCreateStateSet()->setAttribute(new osg::Point(5.0f), osg::StateAttribute::ON);
+
+    cornersGeom->setColorArray(colorpoints, osg::Array::BIND_OVERALL);
+    cornersGeode->addDrawable(cornersGeom);
+
+    if(m_group->getNumChildren()>3)
+    {
+        m_group->removeChild(m_group->getNumChildren()-1);
+        m_group->addChild(cornersGeode);
+    }
+    else
+        m_group->addChild(cornersGeode);
+}
+
 void osgInfo::computeDSC(osg::Camera *cam, int screenX, int screenY)
 {
     osg::Vec3d pos;
@@ -624,6 +652,8 @@ void osgInfo::computeDSC(osg::Camera *cam, int screenX, int screenY)
     osg::Vec3f wcurrentCornerMax = m_currentposition + (ortho/ortho.length())*(m_width/2.0f) + (axis/axis.length())*(m_height/2.0f);
     osg::Vec3f wcurrentCornerMin = m_currentposition - (ortho/ortho.length())*(m_width/2.0f) - (axis/axis.length())*(m_height/2.0f);
 
+    displayRedCorners(wcurrentCornerMax,wcurrentCornerMin);
+
     osg::Vec3 scurrentCornerMax = wcurrentCornerMax*Mview*Mproj*Mwin;
     osg::Vec3 scurrentCornerMin = wcurrentCornerMin*Mview*Mproj*Mwin;
 
@@ -633,31 +663,6 @@ void osgInfo::computeDSC(osg::Camera *cam, int screenX, int screenY)
     osg::Vec3 sinitCornerMax = winitCornerMax*Mview*Mproj*Mwin;
     osg::Vec3 sinitCornerMin = winitCornerMin*Mview*Mproj*Mwin;
 
-    /********** RED POINTS TO WITNESS CORNERS ************/
-    //                osg::Geode* cornersGeode = new osg::Geode;
-    //                osg::Geometry* cornersGeom = new osg::Geometry;
-    //                osg::Vec3Array* verticesPoints = new osg::Vec3Array;
-
-    //                verticesPoints->push_back(wCornerMax);
-    //                verticesPoints->push_back(wCornerMin);
-
-    //                osg::ref_ptr<osg::Vec4Array> colorpoints = new osg::Vec4Array;
-    //                colorpoints->push_back(osg::Vec4(1.0,0.0,0.0,1.0));
-
-    //                cornersGeom->setVertexArray(verticesPoints);
-    //                cornersGeom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS,0,verticesPoints->size()));
-    //                cornersGeom->getOrCreateStateSet()->setAttribute(new osg::Point(5.0f), osg::StateAttribute::ON);
-
-    //                cornersGeom->setColorArray(colorpoints, osg::Array::BIND_OVERALL);
-    //                cornersGeode->addDrawable(cornersGeom);
-
-    //                if(info->getGroup()->getNumChildren()>3)
-    //                {
-    //                    info->getGroup()->removeChild(info->getGroup()->getNumChildren()-1);
-    //                    info->getGroup()->addChild(cornersGeode);
-    //                }
-    //                else
-    //                    info->getGroup()->addChild(cornersGeode);
 
     /* Determine if document on screen or not according to the borders of the screen */
     if(scurrentCornerMax.x()>0.0 && scurrentCornerMin.x()<screenX && scurrentCornerMax.y()>0.0 && scurrentCornerMin.y()<screenY && angle < 90.0)
