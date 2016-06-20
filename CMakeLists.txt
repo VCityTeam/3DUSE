@@ -51,15 +51,15 @@ if( CMAKE_COMPILER_IS_GNUCXX )
     set( ENABLE_CXX11 "-std=c++0x" )
   endif()
 
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Wno-c99-extensions" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}" )
   message(STATUS "GNUCXX compiler detected (with ${ENABLE_CXX11} activated)")
 endif()
 
 ##### Clang compiler specifics (export CXX=clang++ CC=clang)
 if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" )
   set( ENABLE_CXX11 "-std=c++11" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments -Wno-c99-extensions" )
-  set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments -Wno-c99-extensions" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments" )
+  set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments" )
   message( STATUS "Clang compiler detected (with ${ENABLE_CXX11} activated)" )
 endif()
 

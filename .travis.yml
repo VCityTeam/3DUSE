@@ -75,9 +75,9 @@ install:
 
   # Linux
   # ---> because no PCL package under linux 14.04 !!!
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd /tmp; wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar zxf pcl-pcl-1.7.2.travis-trusty.tgz; cd pcl-pcl-1.7.2/buildR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make install && cd .. && cd ..; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make install && cd $TRAVIS_BUILD_DIR; fi
 
 script:
   - cd externals/laslib
@@ -91,7 +91,7 @@ script:
   # against qt5. The following is a perversion of the script target since
   # we start by an internalized sub-install that installs Qt5.
   # Unlinking qt4 suffices to avoid collisions with upcoming install of qt5
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
     # FIXME: make it so the QT5_DIR is not necessary (simplify cmake files)
