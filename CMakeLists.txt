@@ -51,7 +51,7 @@ if( CMAKE_COMPILER_IS_GNUCXX )
     set( ENABLE_CXX11 "-std=c++0x" )
   endif()
 
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -pg" )
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11}" )
   message(STATUS "GNUCXX compiler detected (with ${ENABLE_CXX11} activated)")
 endif()
 
