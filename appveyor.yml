@@ -85,7 +85,9 @@ before_build:
   - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
 #
   - cd %APPVEYOR_BUILD_FOLDER%
-  -  cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
+# If someday we use the binary kit of 2012 again, then the pertinent option
+# concerning OSG-QT will be -DUSE_BUILT-IN_OSG-QT_32=ON (i.e. 32 instead of 34).
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DUSE_BUILT-IN_OSG-QT_34=ON -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
