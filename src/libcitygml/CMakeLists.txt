@@ -1,4 +1,5 @@
-add_subdirectory(utils)
+add_subdirectory( utils )
+add_subdirectory( Test  )
 
 if(APPLE)
   # FIXME: instead of hiding the deprecation messages update the code ?
@@ -9,9 +10,6 @@ if(APPLE)
 endif(APPLE)
 
 add_library( citygml SHARED
-  # FIXME: the following are dependencies of import/importerASC.cpp
-  # FIXME ${CMAKE_SOURCE_DIR}/src/DataStructures/DEM/osgMnt.cpp   # WTF
-  # FIXME ${CMAKE_SOURCE_DIR}/src/utils/OGRGDAL_Utils/OGRGDALtools.cpp 
   URI.cpp
   appearance.cpp
   appearancemanager.cpp
@@ -30,12 +28,13 @@ add_library( citygml SHARED
   # Discuss whether we should definitively give up on xerces support.
   # Note: xerces as the reputation of having a smaller memory footprint than
   # libxml2 that imports the whole content in memory before parsing per se. This
-  # libxml2 way of doing thins might be a strong constrain when working with huge
-  # citygml files.
+  # libxml2 way of doing thins might be a strong constrain when working with
+  # huge citygml files.
   # If xerces support is dropped then remove the following file, and allo remove
   # the xerces dependency at the cmakefile level (Find_package( xerces )...)
   # parserxercesc.cpp 
   polygon.cpp
+  quaternion.cpp
   temporalExt.cpp
   tesselator.cpp
   texture.cpp
@@ -68,6 +67,7 @@ if (WITH_QT5)
   QT5_USE_MODULES( citygml Core Widgets Xml OpenGL )
   # FIXME: assert the following two lines are indeed required
   add_definitions("-DWITH_QT5")
+  # FIXME: if this line were to be kept remove the semi-colon from last argument
   set_target_properties( citygml PROPERTIES COMPILE_DEFINITIONS ";WITH_QT5" )
 endif ()
 
@@ -100,5 +100,4 @@ target_link_libraries( citygml
 )
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
-include (GenerateExportHeader)
 GENERATE_EXPORT_HEADER( citygml ) 

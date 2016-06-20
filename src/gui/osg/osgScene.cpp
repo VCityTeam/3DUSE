@@ -27,10 +27,12 @@
 #include "core/dataprofile.hpp"
 #include "osgTools.hpp"
 #include "../controllerGui.hpp"
+#include <QTextStream>
 
 #include "osgInfo.hpp"
 #include "osgInfoDataType.hpp"
 #include "osgUpdateInfo.hpp"
+#include "core/dateTime.hpp"
 
 #include <string>
 
@@ -193,7 +195,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OsgScene::OsgScene()
-    : osg::Group(), m_shadow(false), m_shadowVec(-1, -1, 0.1, 0)
+    : osg::Group(), m_shadow(false), m_shadowVec(0.2f,-1.f,0.5f,0.f)
 {
     init();
 }
@@ -261,9 +263,6 @@ osg::Node* OsgScene::createSkybox()
 //**** End of Skybox Creation ***//
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
 void OsgScene::init()
 {
     setName("root");
@@ -882,6 +881,86 @@ void OsgScene::setDate(const QDateTime& date)
 {
     setDateRec(date, this);
 }
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool> sunlightInfo)
+{
+    //get node as group in order to navigate through structure
+    osg::ref_ptr<osg::Group> grp = node->asGroup();
+
+    osg::ref_ptr<osg::Geode> geode = node->asGeode();
+
+    if(geode)
+    {
+        for(std::size_t i = 0 ; i < geode->getNumDrawables(); ++i)
+        {
+            osg::ref_ptr<osg::Drawable> drawableChild = geode->getDrawable(i);
+
+            std::string drawableName = drawableChild->getName();
+
+            if(sunlightInfo.count(drawableName) > 0) //If there is a value for this polygon in the map
+            {
+                osg::Geometry* geom =  drawableChild->asGeometry();
+
+                //Change color
+                osg::ref_ptr<osg::StateSet> stateset = geom->getOrCreateStateSet();
+
+                osg::Material* material = new osg::Material;
+                material->setColorMode( osg::Material::OFF );
+
+                osg::Vec4 ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f);
+
+                if(sunlightInfo[drawableName] == true) //If sunny
+                {
+                    ambiantColor = osg::Vec4(1.f,1.f,0.f,1.f); //change polygon color to yellow
+                }
+                else // if shadowed
+                {
+                    ambiantColor = osg::Vec4(0.f,0.f,0.f,1.f); // Change polygon color to black
+                }
+
+                material->setAmbient( osg::Material::FRONT_AND_BACK, ambiantColor );
+
+                stateset->setAttributeAndModes( material, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+                stateset->setMode( GL_LIGHTING, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+            }
+
+        }
+
+    }
+    else
+    {
+        if(grp)
+        {
+            for(unsigned int i = 0 ; i < grp->getNumChildren() ; ++i)
+            {
+                changePolyColorRec(grp->getChild(i), sunlightInfo);
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::changePolyColor(std::map<std::string,bool> sunlightInfo)
+{
+    //Get URI of CityGML Layer
+    vcity::URI uriLayer = vcity::app().getScene().getDefaultLayer("LayerCityGML")->getURI();
+
+    //Get node of CityGML Layer
+    osg::ref_ptr<osg::Node> layer = getNode(uriLayer);
+
+    if(layer) // If layer exists
+    {
+        osg::ref_ptr<osg::Group> layerGrp = layer->asGroup();
+
+        for(unsigned int i = 0 ; i < layerGrp->getNumChildren() ; ++i) //For all files
+        {
+            osg::ref_ptr<osg::Node> tileNode = layerGrp->getChild(i);
+            changePolyColorRec(tileNode, sunlightInfo);
+        }
+    }
+
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::reset()
 {

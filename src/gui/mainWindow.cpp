@@ -1,14 +1,5 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#include "moc/mainWindow.hpp"
-#include "ui_mainWindow.h"
-#include "moc/dialogLoadBBox.hpp"
-#include "moc/dialogSettings.hpp"
-#include "moc/dialogAbout.hpp"
-#include "moc/dialogTilingCityGML.hpp"
-
-#include "controllerGui.hpp"
-
 #include <QFileDialog>
 #include <QCheckBox>
 #include <QDirIterator>
@@ -16,41 +7,50 @@
 #include <QListView>
 #include <QMessageBox>
 #include <QDate>
+#include <QPluginLoader>
 
-#include "citygml.hpp"
-#include "export/exportCityGML.hpp"
-#include "exportJSON.hpp"
-#include "exportOBJ.hpp"
+#include "ui_mainWindow.h"
+
+#include "moc/mainWindow.hpp"
+#include "moc/dialogLoadBBox.hpp"
+#include "moc/dialogSettings.hpp"
+#include "moc/dialogAbout.hpp"
+#include "moc/dialogTilingCityGML.hpp"
+
+#include "controllerGui.hpp"
+
+#include "libcitygml/citygml.hpp"
+#include "libcitygml/export/exportCityGML.hpp"
+#include "libcitygml/utils/exportJSON.hpp"
+#include "libcitygml/utils/exportOBJ.hpp"
 
 #include "importerAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
 #include "osg/osgGDAL.hpp"
-
-/*#include "assimp/Importer.hpp"
-#include "assimp/PostProcess.h"
-#include "assimp/Scene.h"*/
-
 #include "osg/osgAssimp.hpp"
-#include "src/DataStructures/DEM/osgMnt.hpp"
+#include "osg/osgLas.hpp"
 
+#include "DataStructures/DEM/osgMnt.hpp"
+
+#include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 #include "utils/CityGMLFusion.h"
 #include "osg/osgLas.hpp"
 
-#include "src/libcitygml/utils/CityGMLtools.hpp"
-#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
-#include "src/libfilters/ChangeDetection/ChangeDetection.hpp"
-#include "src/libfilters/EnhanceCityGML/LinkCityGMLShape.hpp"
-#include "src/libfilters/tiling/TilingCityGML.hpp"
-#include "src/libfilters/EnhanceCityGML/EnhanceMNT.hpp"
+#include "libcitygml/utils/CityGMLtools.hpp"
 
-#include <QPluginLoader>
+#include "filters/ChangeDetection/ChangeDetection.hpp"
+#include "filters/EnhanceCityGML/LinkCityGMLShape.hpp"
+#include "filters/Tiling/TilingCityGML.hpp"
+#include "filters/EnhanceCityGML/EnhanceMNT.hpp"
+
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 #include "TiledFilesLayout.hpp"
 
-//CLEMENT LIB ADDING
+//FIXME: the following block (CLEMENT LIB ADDING) is used by one of the
+// test functions and can be made away together with those tests.
 #include <osg/PositionAttitudeTransform>
 #include "osg/osgInfo.hpp"
 #include "osg/osgQtWidget.hpp"
@@ -58,9 +58,9 @@
 #include <math.h>
 #include <osg/MatrixTransform>
 #include <core/layerInfo.hpp>
-#include "raytracing/RayTracing.hpp"
+#include "filters/raytracing/RayTracing.hpp"
 #include "Triangle.hpp"
-#include "raytracing/Hit.hpp"
+#include "filters/raytracing/Hit.hpp"
 #include <fstream>
 #include <string>
 #include "gui/applicationGui.hpp"
@@ -105,40 +105,40 @@ MainWindow::MainWindow(QWidget *parent) :
     GDALAllRegister();
     OGRRegisterAll();
 
-    // connect slots
-    connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
-    connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
-    //connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
-    connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
-    connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
-    connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
-    connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
-    connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
-    connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
-    //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
-    connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
-    connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
-    connect(m_ui->actionBuilding, SIGNAL(triggered()), this, SLOT(optionPickBuiling()));
-    connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
-    connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
-    connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
-    connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
-    //connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
-    //connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
-    connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
-    connect(m_ui->checkBoxTemporalTools, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
-    connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
-    //connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
-    connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
-    connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
-    connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
-    //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
-    connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
-    connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
-    connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
-    connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
-    connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
+	// connect slots
+	connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+	connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
+	connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
+	//connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
+	connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
+	connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
+	connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
+	connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
+	connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
+	connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
+	//connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
+	connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
+	connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
+	connect(m_ui->actionBuilding, SIGNAL(triggered()), this, SLOT(optionPickBuiling()));
+	connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
+	connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
+	connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
+	connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
+	//connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
+	//connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
+	connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
+    connect(m_ui->checkBoxTemporalTools, SIGNAL(stateChanged(int)), this, SLOT(toggleUseTemporal()));
+	connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
+	//connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
+	connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
+	connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
+	connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
+	//connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
+	connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
+	connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
+	connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
+	connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
+	connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
 
     connect(m_ui->toolButton, SIGNAL(clicked()), this, SLOT(slotTemporalAnim()));
 
@@ -967,10 +967,15 @@ void MainWindow::updateTemporalParams(int value)
 
     //std::cout << "set year : " << date.year() << std::endl;
 
-    QDateTime datetime(date);
-    m_currentDate = datetime;
-    if (m_useTemporal)   m_osgScene->setDate(datetime);
+	QDateTime datetime(date);
+	m_currentDate = datetime;
+    if(m_useTemporal)
+    {
+        m_osgScene->setDate(datetime);
 
+        //Send signal to Sunlight Plugin which will trap it if visu is activated
+        emit activateVisuSunlightPlugin(m_currentDate);
+    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTemporalSlider()
@@ -1022,7 +1027,12 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    //std::cout << "toggle temporal tool" << std::endl;
+	//std::cout << "toggle temporal tool" << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::ChangecheckBoxTemporalToolsState()
+{
+     m_ui->checkBoxTemporalTools->setChecked(!m_useTemporal); //This will trigger a signal and call toggleUseTemporal function
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
@@ -3009,7 +3019,7 @@ void MainWindow::test1()
 }
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test3.csv";
+    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
 
     std::vector<osgInfo*> v_info;
@@ -3101,6 +3111,8 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 
         std::vector<Ray*> v_ray;
         int cpt2=0;
+        int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
+        bool raytracing = false;
 
         for(osgInfo* i : v_info)
         {
@@ -3108,14 +3120,17 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
             {
                 osg::Vec3 osgvec3 = i->getPosition();
                 TVec3d ori = TVec3d(osgvec3.x()+offsetx,osgvec3.y()+offsety,osgvec3.z());
-                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), i->getInfoName());
+                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), id);
                 v_ray.push_back(tmp_ray);
+                raytracing = true;
                 cpt2++;
             }
+            ++id;
         }
+
         std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
 
-        if(cpt2!=0)
+        if(raytracing)
         {
             TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
             TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
@@ -3127,17 +3142,10 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
             triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
 
             std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
-            cpt2=0;
+
             for(Hit* h : *(v_hit))
             {
-                for(osgInfo* i : v_info)
-                {
-                    if (i->getInfoName()==h->ray.id)
-                    {
-                        i->setAnchoringPoint(h->point.z);
-                        cpt2++;
-                    }
-                }
+                v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
             }
 
         }
@@ -3170,7 +3178,7 @@ void MainWindow::test2()
         v_info[i]->setBillboarding(true);
     }
 
-	//Création d'ilots à partir de Shapefile contenant des routes
+	//Creation d'ilots a partir de Shapefile contenant des routes
 //	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
 //	OGRLayer *LayerRoutes = Routes->GetLayer(0);
 //	OGRFeature *FeatureRoutes;
@@ -3206,7 +3214,7 @@ void MainWindow::test2()
 }
 
 
-// void MainWindow::test2() //Génération de stats pour étude de visibilité
+// void MainWindow::test2() //Generation de stats pour etude de visibilite
 // {
 // 	QTime time;
 // 	time.start();

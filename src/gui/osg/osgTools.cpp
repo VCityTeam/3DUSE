@@ -1,11 +1,12 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
-#include "osgTools.hpp"
-#include <osg/Geometry>
 #include <iostream>
+#include <osg/Geometry>
 #include <osg/ValueObject>
-////////////////////////////////////////////////////////////////////////////////
-osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upperBound)
+#include "osgTools.hpp"
+
+osg::ref_ptr<osg::Geode> osgTools::buildBBox( osg::Vec3 lowerBound,
+                                              osg::Vec3 upperBound)
 {
     osg::Vec3 step = upperBound - lowerBound;
 
@@ -20,7 +21,9 @@ osg::ref_ptr<osg::Geode> osgTools::buildBBox(osg::Vec3 lowerBound, osg::Vec3 upp
         {
             for (int z = 0; z <= 1; ++z)
             {
-                vertices->push_back(osg::Vec3(lowerBound.x() + x*step.x(), lowerBound.y() + y*step.y(), lowerBound.z() + z*step.z()));
+                vertices->push_back( osg::Vec3( lowerBound.x() + x*step.x(),
+                                                lowerBound.y() + y*step.y(),
+                                                lowerBound.z() + z*step.z() ));
             }
         }
     }
@@ -52,8 +55,6 @@ vcity::URI osgTools::getURI(osg::Node* node)
     osg::Node* parent = node;
     vcity::URI uri;// = node->getName();
     uri.append(node->getName());
-    std::cout<<"[osgTools > getURI]..... node name : "<<node->getName()<<std::endl;
-    std::cout<<"[osgTools > getURI]..... uri : "<<uri.getStringURI()<<std::endl;
     //while((parent = (osg::Node*)(parent->getParent(0))) != NULL)
     while (parent->getNumParents() > 0 && (parent = (osg::Node*)(parent->getParent(0))) != NULL)
     {
@@ -76,8 +77,6 @@ vcity::URI osgTools::getURI(osg::Node* node)
 
         //URI.insert(0, parent->getName());
         uri.prepend(parent->getName(), strType);
-        std::cout<<"[osgTools > getURI]..... node name : "<<node->getName()<<std::endl;
-        std::cout<<"[osgTools > getURI]..... uri : "<<uri.getStringURI()<<std::endl;
     }
 
     return uri;

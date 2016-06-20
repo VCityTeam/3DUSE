@@ -24,8 +24,8 @@
 /// Tile child  osg::Group - Tile0  osg::Group - Tile1 ...
 ///
 ////////////////////////////////////////////////////////////////////////////////
-#include "core/tile.hpp"
 #include "libcitygml/URI.hpp"
+#include "libcitygml/utils/tile.hpp"
 #include <osg/Node>
 #include <osg/Group>
 #include <osg/Geode>
@@ -101,6 +101,9 @@ public:
     /// Set date for temporal use, use -4000 as year to disable temporal
     void setDate(const QDateTime& date);
 
+    /// Set Color (yellow or black, depending on sunlight)
+    void changePolyColor(std::map<std::string,bool> sunlightInfo);
+
     /// reset osg scene
     void reset();
 
@@ -157,8 +160,6 @@ public:
     void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
     void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
 
-
-
     bool m_shadow;                          ///< flag to use osg shadows or not
     osg::Vec4 m_shadowVec;
 
@@ -169,6 +170,8 @@ public:
 
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
+    void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool> sunlightInfo);
+
     osg::TextureCubeMap* readCubeMap();
     osg::Node* createSkybox();
 

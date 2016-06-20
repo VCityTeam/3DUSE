@@ -19,7 +19,8 @@ OGRMultiPolygon * GetEnveloppe(OGRMultiPolygon * MP)
     {
         OGRMultiPolygon * GeoCollection = (OGRMultiPolygon*)(ResUnion);
 
-        return GeoCollection;		//////////// Ignore le retrait des interior ring plats
+        //////////// Ignore le retrait des interior ring plats
+        return GeoCollection;
 
         OGRMultiPolygon * MultiPolygonRes = new OGRMultiPolygon;
 
@@ -549,10 +550,12 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
     delete Ring;
     Ring = new OGRLinearRing;
 
-    for (std::size_t i = 0; i < TexTmp.size(); ++i)
+    for (int i = 0; i < RingTmp->getNumPoints(); ++i)
     {
         Tex->push_back(TexTmp.at(TexTmp.size() - 1 - i));
-        Ring->addPoint(RingTmp->getX((int)TexTmp.size() - 1 - i), RingTmp->getY((int)TexTmp.size() - 1 - i), RingTmp->getZ((int)TexTmp.size() - 1 - i));
+        Ring->addPoint( RingTmp->getX(RingTmp->getNumPoints() - 1 - i), 
+			RingTmp->getY(RingTmp->getNumPoints() - 1 - i), 
+			RingTmp->getZ(RingTmp->getNumPoints() - 1 - i) );
     }
 
     delete RingTmp;

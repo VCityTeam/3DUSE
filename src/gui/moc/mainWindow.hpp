@@ -58,13 +58,19 @@ public:
 
     void updateTextBox(const std::stringstream& ss);
     void updateTextBox(const vcity::URI& uri);
-    //const std::stringstream& genSelectedNodes
     void updateTextBoxWithSelectedNodes();
 
     // admin mode (show all menus)
     void unlockFeatures(const QString& pass);
 
+    void ChangecheckBoxTemporalToolsState();
+
     QLineEdit* getFilter();
+
+
+signals:
+   // Signal used for Sunlight Plugin (visualisation part)
+   void activateVisuSunlightPlugin(QDateTime d);
 
 private:
     // plugins
