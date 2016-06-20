@@ -100,7 +100,7 @@ if( WITH_QT5 )
     $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>
   )
   # FIXME: Core should suffice (and it is already too much)
-  target_link_libraries( citygml Qt5::Widgets Qt5::Core )
+  target_link_libraries( citygml Qt5::Core )
 
 endif ()
 

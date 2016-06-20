@@ -4,9 +4,12 @@ cmake_minimum_required( VERSION 2.8.12 )
 include( cmake/3DusePolicies.cmake )
 include( GenerateExportHeader )  # For dll export header of VC++ shared lib
 
-# FIXME Under construction
 option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" ON )
+# FIXME Replace WITH_QT5 with the following BUILD_GUI_QT5 variable
 # option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" ON )
+option( USE_BUILT-IN_OSG-QT_32 "Use embarked copy of OSG-Qt version 3.2" OFF )
+option( USE_BUILT-IN_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
+
 if( BUILD_GUI_QT4 AND WITH_QT5 )
   # In case of simultaneous demand, Qt5 has preference overs Qt4
   set( BUILD_GUI_QT4 OFF  CACHE BOOL
@@ -288,62 +291,53 @@ else(OPENTHREADS_FOUND)
 endif(OPENTHREADS_FOUND)
 
 # Find osgQt
-# Not surprisingly OSG-QT depends both on OSG and QT. Depending on the
-# platform/distribution the packagers alas choose some QT version
-# (most often QT4) in order to package OSG-QT (instead of providing it for
-# both versions of QT. But 3DUse offers support for both QT4 and QT5. This
-# can produce collisions when e.g. the application is build against QT5 but
-# the OSG-QT package was build against QT4.
-# Solving this is done by embedding the (various versions of) OSG-QT within
-# 3DUse (refer to content src/gui/osgQt directory). Then when required (this
-# is the difficult part) either the native OSG-QT package is used or
-# the embedded version is used. For the time being the usage grid goes:
-#  - Embedded code used: 
-#     - MacOS and Linux when using QT5
-#     - Win32
-#  - Native package for:
-#     - MacOS and Linux when using QT4
-#
-# The trick is realised with the usage of the following variables
-# - OSGQT_INCLUDE_DIR (either set by find_package or manually)
-# - VCITY_GUI_SRC_WIN that is either empty (for the native package) or points
-#   to the ad-hoc version of the sources
+# 3DUse embarks its own "fork" of OSQ-Qt (within src/gui/osgQt sub-directory).
+# Choosing whether to use the "native" version (i.e. the one found with
+# find_package() or the embarked version is triggered manually with the
+# USE_BUILT-IN_OSG-QT-XX (where XX stands for the version number) flags.
+# When using the embarked version the additional source file names that
+# need to be compiled are placed within the VCITY_GUI_SRC_WIN variable.
 # FIXME: don't systematically add a variable content because its misleading
 #        when empty. Instead add the code when required. In other terms
 #        remove the VCITY_GUI_SRC_WIN variable and propagate to the targets...  
+#
+# Refer to doc/SoftwareEngineering/CMakeChoices.md for further design notes.
+if( USE_BUILT-IN_OSG-QT_32 )
+  if( WIN32 )
+    if( DEFINED KIT_VS2015 )
+      message( WARNING "Trying to use OSG-Qt version 32 with Kit 2015 !?")
+    endif()
+    set( OSGQT_INCLUDE_DIR "" )
+  else()
+    # Apple, Linux...
+    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg32/include" )
+  endif()
+  # FIXME: remove systematic inclusion and use include_target_directories()
+  include_directories( ${OSGQT_INCLUDE_DIR} )
+  set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
 
-if( BUILD_GUI_QT4 AND NOT WIN32 )
-  # APPLE, LINUX...
+elseif( USE_BUILT-IN_OSG-QT_34 )
+  if( WIN32 )
+    if( NOT DEFINED KIT_VS2015 )
+      message( WARNING "Trying to use OSG-Qt version 34 with Kit 2012 !?")
+    endif()
+    set( OSGQT_INCLUDE_DIR "" )
+  else()
+    # Apple, Linux...
+    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg34/include" )
+  endif()
+  # FIXME: remove systematic inclusion and use include_target_directories()
+  include_directories( ${OSGQT_INCLUDE_DIR} )
+  set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
+
+else( )
+  # Look for the "native" version:
   find_package( osgQt )
   if( OSGQT_FOUND )
-    # FIXME remove and use targ_include_directories...
+    # FIXME remove and use target_include_directories instead...
     include_directories(${OSGQT_INCLUDE_DIR})
   else()
-    message(FATAL_ERROR "osgQt not found. Please set OSG_DIR.")
-  endif()
-endif()
-
-if( WITH_QT5 AND NOT WIN32 )
-  # APPLE, LINUX...
-  if( APPLE )
-    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg34/include" )
-    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
-  else() # Linux
-    set( OSGQT_INCLUDE_DIR "src/gui/osgQt/osg32/include" )
-    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
-  endif()
-  include_directories( ${OSGQT_INCLUDE_DIR} )
-endif()
-
-if( ( BUILD_GUI_QT4 OR WITH_QT5 ) AND WIN32 )
-  set( OSGQT_INCLUDE_DIR "" )
-  # FIXME: the supported binary kit versions are KIT_VS2015 and KIT_VS2012
-  # Use KIT_VS2012 instead of "NOT DEFINED KIT_VS2015"
-  if( NOT DEFINED KIT_VS2015)
-    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
-  endif()
-  if( DEFINED KIT_VS2015 )
-    set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
+    message(FATAL_ERROR "osgQt not found. Either set OSG_DIR or use USE_BUILT-IN_OSG-QT_XX flags.")
   endif()
 endif()
 
@@ -599,7 +593,7 @@ if( WITH_QT5 )
   target_link_libraries( ${APP_NAME} Qt5::Widgets Qt5::OpenGL )
 endif()
 
-if( BUILD_GUI_QT4 )
+if( NOT ( USE_BUILT-IN_OSG-QT_32 OR USE_BUILT-IN_OSG-QT_34 ) )
   target_link_libraries( ${APP_NAME} ${OSGQT_LIBRARIES} )
 endif()
 
@@ -840,7 +834,7 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     target_link_libraries( CityGMLVisibiliteQtPlugin Qt5::Widgets Qt5::OpenGL )
   endif()
 
-  if( BUILD_GUI_QT4 )
+  if( NOT ( USE_BUILT-IN_OSG-QT_32 OR USE_BUILT-IN_OSG-QT_34 ) )
     target_link_libraries( CityGMLVisibiliteQtPlugin ${OSGQT_LIBRARIES} )
   endif()
 
@@ -909,7 +903,7 @@ if (BUILD_CityGMLFloodARQtPlugin)
     target_link_libraries( CityGMLFloodARQtPlugin Qt5::Widgets Qt5::OpenGL )
   endif()
 
-  if( BUILD_GUI_QT4 )
+  if( NOT ( USE_BUILT-IN_OSG-QT_32 OR USE_BUILT-IN_OSG-QT_34 ) )
     target_link_libraries( CityGMLFloodARQtPlugin ${OSGQT_LIBRARIES} )
   endif()
 
@@ -989,7 +983,7 @@ if (BUILD_CityGMLSunlightQtPlugin)
     target_link_libraries( CityGMLSunlightQtPlugin Qt5::Widgets Qt5::OpenGL )
   endif()
 
-  if( BUILD_GUI_QT4 )
+  if( NOT ( USE_BUILT-IN_OSG-QT_32 OR USE_BUILT-IN_OSG-QT_34 ) )
     target_link_libraries( CityGMLSunlightQtPlugin ${OSGQT_LIBRARIES} )
   endif()
 
