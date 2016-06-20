@@ -85,9 +85,10 @@ before_build:
   - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
 #
   - cd %APPVEYOR_BUILD_FOLDER%
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON
+  -  cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-#  - msbuild /m 3DUSE.sln
-  - msbuild 3DUSE.sln # /m IS responsible for random crashes of Qt MOC !!!
+  - msbuild 3DUSE.sln # Avoid /m which produces random crashes Qt-MOC invocations
+  # Some existing tests trigger exceptions on Win32...
+  # - ctest

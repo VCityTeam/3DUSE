@@ -19,6 +19,128 @@ osg::ref_ptr<osg::Switch> InfoDataType::getSwitchRoot()
     return switchRoot;
 }
 
+void InfoDataType::computeDCAM(osg::Camera *cam, osgInfo* info)
+{
+    osg::Vec3d pos;
+    osg::Vec3d target;
+    osg::Vec3d up;
+    cam->getViewMatrixAsLookAt(pos,target,up);
+    float DCAM;
+
+    float infoX = info->getPosition().x();
+    float infoY = info->getPosition().y();
+    float infoZ = info->getPosition().z();
+    float camX=pos.x();
+    float camY=pos.y();
+    float camZ=pos.z();
+
+
+    DCAM = sqrt((infoX-camX)*(infoX-camX)+(infoY-camY)*(infoY-camY)+(infoZ-camZ)*(infoZ-camZ));
+    info->setDCAM(DCAM);
+}
+
+void InfoDataType::computeDSC(osg::Camera *cam, int screenX, int screenY, osgInfo* info)
+{
+
+    osg::Vec3d pos;
+    osg::Vec3d target;
+    osg::Vec3d up;
+    cam->getViewMatrixAsLookAt(pos,target,up);
+
+    osg::Matrix Mview = cam->getViewMatrix();
+    osg::Matrix Mwin = cam->getViewport()->computeWindowMatrix();
+    osg::Matrix Mproj = cam->getProjectionMatrix();
+
+    osg::Vec3 worldcoord = info->getPosition();
+    osg::Vec3 screencoord = worldcoord*Mview*Mproj*Mwin;
+
+    int Ds = sqrt((screencoord.x()-screenX/2)*(screencoord.x()-screenX/2)+(screencoord.y()-screenY/2)*(screencoord.y()-screenY/2));
+    info->setDSC(Ds);
+
+    TVec3d dirLookAt(target.x() - pos.x(),target.y() - pos.y(),target.z() - pos.z());
+    TVec3d dirDoc(info->m_currentposition.x() - pos.x(), info->m_currentposition.y() - pos.y(), info->m_currentposition.z() - pos.z());
+
+    float scalaire = dirLookAt.dot(dirDoc);
+    float angle = acos(scalaire/(dirLookAt.length()*dirDoc.length()));
+    angle=angle*180/3.1415;
+
+    osg::Vec3f normale(-dirDoc.x, -dirDoc.y, -dirDoc.z);
+    osg::Vec3f axis = info->m_billboard->getAxis();
+    osg::Vec3f ortho = axis.operator ^(normale);
+    osg::Vec3f wCornerMax = info->m_currentposition + (ortho/ortho.length())*(info->m_width/2.0f) + (axis/axis.length())*(info->m_height/2.0f);
+    osg::Vec3f wCornerMin = info->m_currentposition - (ortho/ortho.length())*(info->m_width/2.0f) - (axis/axis.length())*(info->m_height/2.0f);
+
+    osg::Vec3 sCornerMax = wCornerMax*Mview*Mproj*Mwin;
+    osg::Vec3 sCornerMin = wCornerMin*Mview*Mproj*Mwin;
+
+    /********** RED POINTS TO WITNESS CORNERS ************/
+    //                osg::Geode* cornersGeode = new osg::Geode;
+    //                osg::Geometry* cornersGeom = new osg::Geometry;
+    //                osg::Vec3Array* verticesPoints = new osg::Vec3Array;
+
+    //                verticesPoints->push_back(wCornerMax);
+    //                verticesPoints->push_back(wCornerMin);
+
+    //                osg::ref_ptr<osg::Vec4Array> colorpoints = new osg::Vec4Array;
+    //                colorpoints->push_back(osg::Vec4(1.0,0.0,0.0,1.0));
+
+    //                cornersGeom->setVertexArray(verticesPoints);
+    //                cornersGeom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS,0,verticesPoints->size()));
+    //                cornersGeom->getOrCreateStateSet()->setAttribute(new osg::Point(5.0f), osg::StateAttribute::ON);
+
+    //                cornersGeom->setColorArray(colorpoints, osg::Array::BIND_OVERALL);
+    //                cornersGeode->addDrawable(cornersGeom);
+
+    //                if(info->getGroup()->getNumChildren()>3)
+    //                {
+    //                    info->getGroup()->removeChild(info->getGroup()->getNumChildren()-1);
+    //                    info->getGroup()->addChild(cornersGeode);
+    //                }
+    //                else
+    //                    info->getGroup()->addChild(cornersGeode);
+
+    /* Determine if document on screen or not according to the borders of the screen */
+    if(sCornerMax.x()>0.0 && sCornerMin.x()<screenX && sCornerMax.y()>0.0 && sCornerMin.y()<screenY && angle < 90.0)
+        info->setonScreen(true);
+    else if(sCornerMax.x()<0.0 && sCornerMin.x()>screenX && sCornerMax.y()<0.0 && sCornerMin.y()>screenY && angle < 90.0)
+        info->setonScreen(true);
+    else
+        info->setonScreen(false);
+
+
+    /* Crop document coordinates to tell the exact surface inside the screen */
+    if(sCornerMax.x()>screenX)
+        sCornerMax.x()=screenX;
+    if(sCornerMax.x()<0.0)
+        sCornerMax.x()=0.0;
+    if(sCornerMax.y()>screenY)
+        sCornerMax.y()=screenY;
+    if(sCornerMax.y()<0.0)
+        sCornerMax.y()=0.0;
+    if(sCornerMin.x()<0.0)
+        sCornerMin.x()=0.0;
+    if(sCornerMin.x()>screenX)
+        sCornerMin.x()=screenX;
+    if(sCornerMin.y()<0.0)
+        sCornerMin.y()=0.0;
+    if(sCornerMin.y()>screenY)
+        sCornerMin.y()=screenY;
+
+    float screenwidth = sCornerMax.x()-sCornerMin.x();
+    float screenheight = sCornerMax.y()-sCornerMin.y();
+    float Da = std::fabs(screenwidth*screenheight);
+
+    info->m_sCornerMax=sCornerMax;
+    info->m_sCornerMin=sCornerMin;
+
+    info->setDa(Da);
+
+
+    //info->UpdateTetra(normale/normale.length(), axis/axis.length(), ortho/ortho.length());
+
+
+}
+
 void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*> m_info)
 {
    std::vector< std::vector<float> > screen;
@@ -145,6 +267,20 @@ void InfoDataType::setDisplayability(osgInfo* info)
         }
 
     }
+
+}
+
+void InfoDataType::updateScale(osgInfo* info, int screenX, int screenY)
+{
+    //Function of DCAM
+    //float scale = info->m_DCAM/50450.1;
+
+    //Function of DSC
+    float scale;
+    float maxscale = std::sqrt(screenX*screenX+screenY*screenY);
+    if(info->m_DSC)
+        scale = info->m_DSC/maxscale;
+    info->Scaling(scale);
 
 }
 

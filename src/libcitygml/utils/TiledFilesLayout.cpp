@@ -8,7 +8,7 @@
 #include <map>
 
 #include "libcitygml/citygml.hpp"
-#include "core/tile.hpp"
+#include "libcitygml/utils/tile.hpp"
 
 TiledFiles::TiledFiles(std::string Folderpath)
 {

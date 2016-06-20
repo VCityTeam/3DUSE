@@ -84,7 +84,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * `make`
 
 ## Windows install
-### Supported windowsplatforms:
+### Supported Windows platforms:
    * Windows versions: [Windows 7](https://en.wikipedia.org/wiki/Windows_7), [Windows 8](https://en.wikipedia.org/wiki/Windows_8), [Windows 8.1](https://en.wikipedia.org/wiki/Windows_8.1) or [Windows 10](https://en.wikipedia.org/wiki/Windows_10)
    * Be sure to apply all required "services packs" and "windows updates"
 
@@ -92,11 +92,14 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
 
  * [Visual Studio Express 2015](https://en.wikipedia.org/wiki/Microsoft_Visual_Studio_Express):
    * dowload [LIRIS local copy](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/Visual%20Studio%20Express%202015/Visual%20Studio%20Express%202015%20pour%20Windows%20Desktop.rar)
-   * proceed with install
+   * Unrar the downloaded archive file (e.g. with [7-zip](http://www.7-zip.org/)
+   * Enter the extracted folder (`Express 2015 up2 pour Wndowds Desktop`) and launch the installer `wdexpress_full.exe`
  * VCity binary kit:
    * download [binary installer](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/kits/VCITY_local_vs2015_64.7z)
-   * extract content (installation will require 3.1 Go of free disk space) to a tagert directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
+   * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
    * Note: the extracted directory name (`VCITY_local_vs2015_64`) can be renamed if you need to.
+ * Obtain VCity sources:
+   * Install (from github) the [git for Windows](https://git-for-windows.github.io/) client
  * [Cmake version 3.4.3.](https://cmake.org/cmake/help/v3.4/release/3.4.html) (this version is Visual Studio 2015 aware):
    * Extract cmake from `VCITY_local_vs2015_64\_utils_\cmake-3.4.3-win32-x86.zip`
    * Extract NSIS from `VCITY_local_vs2015_64\_utils_\nsis-2.50-setup.exe``

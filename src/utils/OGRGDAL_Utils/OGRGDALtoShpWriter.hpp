@@ -8,9 +8,12 @@
 # pragma warning(disable:4251) // gdal-1.11.4 internals (cpl_string.h) when
 #endif                         // including ogrsf_frmts.h on VCC++
 #include <ogrsf_frmts.h>
+#include "vcitycore_export.h"
 
-void SaveGeometrytoShape(std::string name, const OGRGeometryCollection* G);
+VCITYCORE_EXPORT void SaveGeometrytoShape( std::string name,
+                                           const OGRGeometryCollection* G );
 
-void SaveGeometrytoShape(std::string name, const OGRGeometry* G);
+VCITYCORE_EXPORT void SaveGeometrytoShape( std::string name,
+                                           const OGRGeometry* G );
 
 #endif // __OGRGDALTOSHPWRITER_HPP__
