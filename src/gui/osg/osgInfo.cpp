@@ -218,8 +218,9 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
 
     m_DCAM = 0.0f;
     m_DSC = 0.0f;
-    m_Da= 0.0f;
-    m_OVa = 0.0f;
+    m_Da= 0;
+    m_initOVa = 0.0f;
+    m_currentOVa = 0.0f;
 
 
 }
@@ -652,7 +653,7 @@ void osgInfo::computeDSC(osg::Camera *cam, int screenX, int screenY)
     osg::Vec3f wcurrentCornerMax = m_currentposition + (ortho/ortho.length())*(m_width/2.0f) + (axis/axis.length())*(m_height/2.0f);
     osg::Vec3f wcurrentCornerMin = m_currentposition - (ortho/ortho.length())*(m_width/2.0f) - (axis/axis.length())*(m_height/2.0f);
 
-    displayRedCorners(wcurrentCornerMax,wcurrentCornerMin);
+    //displayRedCorners(wcurrentCornerMax,wcurrentCornerMin);
 
     osg::Vec3 scurrentCornerMax = wcurrentCornerMax*Mview*Mproj*Mwin;
     osg::Vec3 scurrentCornerMin = wcurrentCornerMin*Mview*Mproj*Mwin;
@@ -741,6 +742,54 @@ void osgInfo::computeDCAM(osg::Camera *cam)
     m_DCAM = sqrt((infoX-camX)*(infoX-camX)+(infoY-camY)*(infoY-camY)+(infoZ-camZ)*(infoZ-camZ));
 }
 
+void osgInfo::computeOVaMatrix(std::vector< std::vector<float> > screen)
+{
+    std::vector< std::vector<float> > OVaMatrix;
+    std::vector<float> col;
+    for(int i = std::floor(m_currentsCornerMin.x()); i<std::floor(m_currentsCornerMax.x()); ++i)
+    {
+        col.clear();
+        for(int j=std::floor(m_currentsCornerMin.y()); j<std::floor(m_currentsCornerMax.y()); ++j)
+            col.push_back(screen[i][j]);
+
+        OVaMatrix.push_back(col);
+    }
+    m_OVaMatrix.clear();
+    m_OVaMatrix = OVaMatrix;
+
+    computeOVas(screen);
+}
+
+void osgInfo::computeOVas(std::vector< std::vector<float> > screen)
+{
+    m_initOVa=0;
+    m_currentOVa=0;
+
+
+    for(int i = std::floor(m_initsCornerMin.x()); i<std::floor(m_initsCornerMax.x()); ++i)
+    {
+        for(int j=std::floor(m_initsCornerMin.y()); j<std::floor(m_initsCornerMax.y()); ++j)
+        {
+            if(screen[i][j]!=m_DCAM)
+            {
+                m_initOVa+=1;
+            }
+        }
+    }
+    if(m_initOVa>m_Da)
+        m_initOVa=m_Da;
+
+    for(size_t i = 0; i<m_OVaMatrix.size(); ++i)
+    {
+        for(size_t j = 0; j<m_OVaMatrix[i].size(); ++j)
+        {
+            if(m_OVaMatrix[i][j]!=m_DCAM)
+            {
+                m_currentOVa+=1;
+            }
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////

@@ -26,12 +26,6 @@ public:
     /// \return osg::ref_ptr<osg::Switch> pointer to switchroot
     osg::ref_ptr<osg::Switch> getSwitchRoot();
 
-    /// \brief Compute and update DSC value for every document in the map
-    /// \param int screenX width of screen (in pixels)
-    /// \param int screenY height of screen (in pixels)
-    /// \param std::map sorting infos according to their DCAM
-    void computeOVa(int screenX, int screenY, std::map<float, osgInfo *> m_info);
-
     /// \brief Display document in map as stairs
     /// Each document is higher than the one in front
     /// \param sorted map with osgInfo and its DCAM
@@ -39,10 +33,14 @@ public:
 
     /// \brief Display document by OVa
     /// \param sorted map with osgInfo and its DCAM
-    void OVaDisplay(std::map<float, osgInfo *> m_info);
+    void OVaDisplay(int screenX, int screenY, std::map<float, osgInfo *> m_info);
 
     /// \brief Turn on switches with displayable documents
     void display();
+
+
+    void computeDepthMap(int screenX, int screenY, std::map<float, osgInfo *> m_info);
+
 
 protected:
     osg::ref_ptr<osg::Switch> switchRoot;

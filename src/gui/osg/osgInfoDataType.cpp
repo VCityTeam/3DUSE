@@ -19,61 +19,39 @@ osg::ref_ptr<osg::Switch> InfoDataType::getSwitchRoot()
     return switchRoot;
 }
 
-
-void InfoDataType::computeOVa(int screenX, int screenY, std::map<float, osgInfo*> m_info)
+void InfoDataType::computeDepthMap(int screenX, int screenY, std::map<float, osgInfo*> m_info)
 {
-   std::vector< std::vector<float> > screen;
-   bool found;
+    std::vector< std::vector<float> > screen;
+    bool found;
 
-    for(int i = 0; i<screenX; i++)
-    {
-        std::vector<float> col;
-        for(int j=0; j<screenY; j++)
-        {
-            found=false;
-            for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
-            {
-                osgInfo* c_info = it->second;
-                if(i>=(int)c_info->m_initsCornerMin.x() && i<=(int)c_info->m_initsCornerMax.x() && j>=(int)c_info->m_initsCornerMin.y() && j<(int)c_info->m_initsCornerMax.y())
-                {
-                    col.push_back(it->first);
-                    found = true;
-                    break;
-                }
-            }
-            if(!found)
-                col.push_back(0.0f);
+     for(int i = 0; i<screenX; i++)
+     {
+         std::vector<float> col;
+         for(int j=0; j<screenY; j++)
+         {
+             found=false;
+             for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+             {
+                 osgInfo* c_info = it->second;
+                 if(i>=floor(c_info->m_currentsCornerMin.x()) && i<=floor(c_info->m_currentsCornerMax.x()) && j>=floor(c_info->m_currentsCornerMin.y()) && j<floor(c_info->m_currentsCornerMax.y()))
+                 {
+                     col.push_back(it->first);
+                     found = true;
+                     break;
+                 }
+             }
+             if(!found)
+                 col.push_back(0.0f);
 
-        }
-        screen.push_back(col);
-    }
+         }
+         screen.push_back(col);
+     }
 
-    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
-    {
-        osgInfo* c_info = it->second;
-        c_info->m_OVaMatrix.clear();
-        c_info->m_OVa=0;
-        std::vector<float> col;
-        for(int i = std::floor(c_info->m_initsCornerMin.x()); i<std::floor(c_info->m_initsCornerMax.x()); ++i)
-        {
-            col.clear();
-            for(int j=std::floor(c_info->m_initsCornerMin.y()); j<std::floor(c_info->m_initsCornerMax.y()); ++j)
-            {
-                col.push_back(screen[i][j]);
-                if(screen[i][j]!=it->first)
-                {
-                    it->second->m_OVa+=1;
-                }
-            }
-            it->second->m_OVaMatrix.push_back(col);
-        }
-        if(it->second->m_OVa>it->second->m_Da)
-            it->second->m_OVa=it->second->m_Da;
-
-    }
-
-
-    screen.clear();
+     for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+     {
+         osgInfo* c_info = it->second;
+         c_info->computeOVaMatrix(screen);
+     }
 }
 
 void InfoDataType::stairedDisplay(std::map<float, osgInfo *> m_info)
@@ -99,43 +77,53 @@ void InfoDataType::stairedDisplay(std::map<float, osgInfo *> m_info)
     }
 }
 
-void InfoDataType::OVaDisplay(std::map<float, osgInfo *> m_info)
+void InfoDataType::OVaDisplay(int screenX, int screenY, std::map<float, osgInfo *> m_info)
 {
-    std::vector<float> OVlist;
     float newZ;
     float newHeight;
-    for (std::map<float,osgInfo*>::iterator it=m_info.begin(); it!=m_info.end(); ++it)
+    float farthestDCAM;
+    for (std::map<float,osgInfo*>::iterator it1=m_info.begin(); it1!=m_info.end(); ++it1)
     {
-        osgInfo* c_info = it->second;
-        OVlist.clear();
-        for(int i = 0; i<c_info->m_OVaMatrix.size(); ++i)
+        farthestDCAM=0;
+        osgInfo* c_info = it1->second;
+
+        if(c_info->m_initOVa/c_info->m_Da>=0.3)//if document hidden at its init position
         {
-            for(int j=0; j<c_info->m_OVaMatrix[i].size(); ++j)
+            //move to free space
+            if(c_info->m_currentOVa/c_info->m_Da<0.3)
             {
-                if(c_info->m_name!=m_info.find(c_info->m_OVaMatrix[i][j])->second->m_name)
+                for(size_t i = 0; i<c_info->m_OVaMatrix.size(); ++i)
                 {
-                    OVlist.push_back(c_info->m_OVaMatrix[i][j]);
+                    for(size_t j=0; j<c_info->m_OVaMatrix[i].size(); ++j)
+                    {
+                        if(c_info->m_OVaMatrix[i][j]!=c_info->m_DCAM && c_info->m_OVaMatrix[i][j]>=farthestDCAM)
+                        {
+                            farthestDCAM=c_info->m_OVaMatrix[i][j];
+                        }
+                    }
                 }
-            }
+                newZ = m_info.find(farthestDCAM)->second->m_currentposition.z();
+                newHeight = m_info.find(farthestDCAM)->second->m_height;
 
-            if(c_info->m_OVa/c_info->m_Da>=0.3)
-            {
-                if(!OVlist.empty())
-                {
-                    newZ = m_info.find(OVlist[0])->second->m_currentposition.z();
-                    newHeight = m_info.find(OVlist[0])->second->m_height;
-                    osg::Vec3 newPos = osg::Vec3(c_info->m_initposition.x(),c_info->m_initposition.y(),newZ+newHeight/2+c_info->m_height/2);
+                osg::Vec3 newPos = osg::Vec3(c_info->m_initposition.x(),c_info->m_initposition.y(),newZ+newHeight/2+c_info->m_height/2);
 
-                    c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
-                    c_info->UpdatePosition(newPos);
-                }
-            }
-            else
-            {
-                c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(c_info->m_initposition);
-                c_info->UpdatePosition(c_info->m_initposition);
+                c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
+                c_info->UpdatePosition(newPos);
+
+                computeDepthMap(screenX, screenY, m_info);
+
             }
         }
+        else //if not
+        {
+            //move to init position
+            c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(c_info->m_initposition);
+            c_info->UpdatePosition(c_info->m_initposition);
+
+            computeDepthMap(screenX, screenY, m_info);
+        }
+
+
     }
 
 }

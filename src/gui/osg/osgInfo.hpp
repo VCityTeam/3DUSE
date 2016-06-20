@@ -72,6 +72,10 @@ public:
     /// \param osg::Camera* pointer to camera to get camera current position
     void computeDCAM(osg::Camera *cam);
 
+    void computeOVaMatrix(std::vector< std::vector<float> > screen);
+
+    void computeOVas(std::vector< std::vector<float> > screen);
+
     // Setters
 
     /// \brief Update document rotation axis
@@ -217,7 +221,8 @@ public :
     float m_DCAM ; ///distance between doc and cam
     float m_DSC ; /// distance between doc and screen center
     int m_Da; ///document area on screen
-    float m_OVa; ///total area of document overlapped by others in front of it
+    float m_initOVa; ///total area of document overlapped by others in front of it in its init position
+    float m_currentOVa; ///total area of document overlapped by others in front of it in its current position
 
     osg::Billboard *m_billboard; ///billboard object is needed
 

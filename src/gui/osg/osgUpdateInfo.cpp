@@ -69,11 +69,11 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                             if(info->getInfoLOD()=="city")
                                 map_city[info->m_DCAM]=info;
 
-                            if(info->m_OVa/info->m_Da>0.5)
+                            if(info->m_currentOVa/info->m_Da>0.5)
                                 NDh++;
 
                             TDa+=info->m_Da;
-                            TOVa+=info->m_OVa;
+                            TOVa+=info->m_currentOVa;
                             NDs++;
                         }
                         ND++;
@@ -81,9 +81,9 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                 }
             }
 
-            layerInfo->computeOVa(screenX, screenY, map_info);
+            layerInfo->computeDepthMap(screenX, screenY, map_info);
 
-            layerInfo->OVaDisplay(map_info);
+            layerInfo->OVaDisplay(screenX, screenY, map_info);
 
             osg::Vec3d pos;
             osg::Vec3d target;
