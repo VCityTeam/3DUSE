@@ -6,9 +6,6 @@ add_subdirectory( libcitygml )
 add_library( vcitycore SHARED
   DataStructures/DEM/osgMnt.cpp 
   utils/OGRGDAL_Utils/OGRGDALtools.cpp
-  # FIXME: within OGRGDALtoShpWriter.cpp the SaveGeometrytoShape() funcion
-  # uses QT's QDIR and QString which creates a dependency of the backend
-  # towards the frontend. Switch to boost::filesystem and get rid of QT.
   utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
 )
 
@@ -29,12 +26,14 @@ target_link_libraries( vcitycore
   ${GDAL_LIBRARY}
 )
 
-if( WITH_QT5 )
+# FIXME: within OGRGDALtoShpWriter.cpp the SaveGeometrytoShape() funcion
+# uses QT's QDIR and QString which creates a dependency of the backend
+# towards the frontend. Switch to boost::filesystem and get rid of QT.
+if( BUILD_GUI_QT5 )
   target_include_directories( vcitycore PRIVATE
     $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
   target_link_libraries( vcitycore Qt5::Core )
 endif()
-
 if( BUILD_GUI_QT4 )
   target_link_libraries( vcitycore ${QT_LIBRARIES} )
 endif()

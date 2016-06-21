@@ -29,8 +29,8 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON"
 
 matrix:
   fast_finish: true
@@ -71,7 +71,7 @@ script:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  cmake .. $BTYPE; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DUSE_BUILT-IN_OSG-QT_34=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - make
   - ctest
   #### Test the Qt5 version
@@ -88,9 +88,9 @@ script:
     # hence the native OSG-Qt (that links against Qt4) cannot be used 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
-    # Now building 3DUS
+    # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DWITH_QT5=YES -DQT5_DIR=/usr/local/opt/qt5 -DUSE_BUILT-IN_OSG-QT_34=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest; fi
 
@@ -98,8 +98,8 @@ script:
     # First the install of Qt5
     # Same remark as for OSX concerning the iQt version mismatch of libOSG-Qt
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi
-    # Now building 3DUS
+    # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DWITH_QT5=YES -DUSE_BUILT-IN_OSG-QT_32=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest; fi

@@ -22,13 +22,5 @@ target_link_libraries( citygmlutils
    ${VCITYCORE_LIBRARY}
 )
 
-# FIXME The dependence of this library towards QT both undue and a drag:
-if( WITH_QT5 )
-  target_include_directories( citygmlutils PRIVATE
-    $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>
-  )
-  target_link_libraries( citygmlutils Qt5::Widgets )
-endif ()
-
 # Dealing with VC++ oddities: generates the export header citygmlutils_exports.h 
 GENERATE_EXPORT_HEADER( citygmlutils )

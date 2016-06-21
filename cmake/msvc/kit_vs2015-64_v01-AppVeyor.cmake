@@ -7,15 +7,11 @@ if( NOT DEFINED VCITY_KIT_ROOT )
 	message(FATAL_ERROR "VCITY_KIT_ROOT not set.  Please set VCITY_KIT_ROOT.")
 endif( NOT DEFINED VCITY_KIT_ROOT )
 
-#set(WITH_QT5				TRUE)
-
-if(WITH_QT5)
-	# with qt5
-	#QT5_DIR				see appveyor
-else(WITH_QT5)
-	# with qt4
+# FIXME: the BUILD_GUI_QT5 case seems to be dealt with in the
+# Appveyor scripts !? But what about a manual build ?
+if( BUILD_GUI_QT4 )
 	set(QTDIR				${VCITY_KIT_ROOT}/Qt/qt-4.8.7-x64-msvc2015)
-endif(WITH_QT5)
+endif()
 
 set(ASSIMP_ROOT_DIR			${VCITY_KIT_ROOT}/assimp-3.2)
 

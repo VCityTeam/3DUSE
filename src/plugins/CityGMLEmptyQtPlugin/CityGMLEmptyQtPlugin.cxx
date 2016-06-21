@@ -25,6 +25,6 @@ int CityGMLEmptyQtPlugin::your_code_here(unsigned int ui_G_xmin, unsigned int ui
 	return res;
 }
 
-#if QT_VERSION < 0x050000 // (for QT4)
+#if( defined(BUILD_GUI_QT4) )
 Q_EXPORT_PLUGIN2(CityGMLEmptyQtPlugin, CityGMLEmptyQtPlugin)
 #endif
