@@ -146,9 +146,6 @@ if( BUILD_GUI_QT5 )
   endif()
   SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${QT5_DIR})
 
-  # Instruct CMake to run moc automatically when needed
-  set(CMAKE_AUTOMOC ON)
-
   # FIXME: remove those nested and make it flat !
   FIND_PACKAGE( Qt5Core )
   if(${Qt5Core_FOUND})
@@ -389,10 +386,14 @@ if( BUILD_GUI_QT4 )
 endif()
 
 if( BUILD_GUI_QT5 )
-  QT5_WRAP_UI(       VCITY_GUI_UI_CPP ${VCITY_GUI_Qt_UI})
+  # FIXME: Running automoc automatically seems to create undocumented
+  # difficulties. Inquire on this matter and either document the encounted
+  # difficulties or resume to the default mechanism.
+  set( CMAKE_AUTOMOC OFF )
+  QT5_WRAP_CPP(      VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC} )
+  QT5_WRAP_UI(       VCITY_GUI_UI_CPP  ${VCITY_GUI_Qt_UI})
   QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
 endif()
-
 
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt
@@ -505,21 +506,16 @@ set( VCITY_GUI_SRC
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
 
-  ${VCITY_GUI_SRC_WIN}       # For OSGQT: might be empty
-
   ### FIXME: is the main recompiled with every plugin !?
   src/main.cpp
-)
 
-SET( VCITY_GUI_SRC
-  ${VCITY_GUI_SRC}
+### QT related:
   ${VCITY_GUI_Qt_SRC}
   ${VCITY_GUI_UI_CPP}
   ${VCITY_GUI_RES_CPP}
+  ${VCITY_GUI_MOC_CPP}
+  ${VCITY_GUI_SRC_WIN}       # For OSGQT: might be empty
 )
-if( BUILD_GUI_QT4 )
-  set( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
-endif()
 
 SET( VCITY_GUI_LIB
   ${ASSIMP_LIBRARY}
@@ -649,12 +645,6 @@ SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DE
 # prefix as well as the Qt infix. For example we could use
 # BUILD_CUTPLUGIN  instead of the current BUILD_CityGMLCutQtPlugin
 # or CutPlugin_HEADER instead of CityGMLCut_Qt_Plugin_HEADER.
-
-if( BUILD_GUI_QT5 ) # For the plugins, instruct CMake to not run moc automatically when needed
- set(CMAKE_AUTOMOC OFF)
- QT5_WRAP_CPP(VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC})
- SET( VCITY_GUI_SRC ${VCITY_GUI_SRC} ${VCITY_GUI_MOC_CPP} )
-endif()
 
 # --> CityGMLCutQtPlugin : QtPlugin [BEGIN]
 option( BUILD_CityGMLCutQtPlugin "Build the Cut GUI plugin." ON )
