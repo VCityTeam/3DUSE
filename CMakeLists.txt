@@ -344,7 +344,7 @@ else(LASLIB_FOUND)
 endif(LASLIB_FOUND)
 
 # Find PCL
-option( BUILD_USE_PCL "PCL usage toggle." ON )
+option( BUILD_USE_PCL "PCL usage toggle." OFF )
 if( BUILD_USE_PCL )
   find_package(PCL 1.3 REQUIRED COMPONENTS common io)
   if ( PCL_FOUND )
