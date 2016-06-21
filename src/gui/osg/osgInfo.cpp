@@ -334,6 +334,7 @@ void osgInfo::UpdateAnchoringLine(float newZ)
 void osgInfo::UpdatePosition(osg::Vec3 newPos)
 {
     m_currentposition=newPos;
+    m_group->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
     UpdateAnchoringLine(newPos.z());
 }
 
@@ -757,6 +758,19 @@ void osgInfo::computeOVaMatrix(std::vector< std::vector<float> > screen)
     m_OVaMatrix.clear();
     m_OVaMatrix = OVaMatrix;
 
+//    if(m_name == "opera")
+//    {
+//        std::cout<<std::endl<<"Opera OVaMatrix : (DCAM="<<m_DCAM<<")"<<std::endl;
+//        for(int i = 0; i<m_OVaMatrix.size(); ++i)
+//        {
+//            for(int j=0; j<m_OVaMatrix[i].size(); ++j)
+//            {
+//                std::cout<<m_OVaMatrix[i][j]<<" ";
+//            }
+//            std::cout<<std::endl;
+//        }
+//    }
+
     computeOVas(screen);
 }
 
@@ -765,12 +779,11 @@ void osgInfo::computeOVas(std::vector< std::vector<float> > screen)
     m_initOVa=0;
     m_currentOVa=0;
 
-
     for(int i = std::floor(m_initsCornerMin.x()); i<std::floor(m_initsCornerMax.x()); ++i)
     {
         for(int j=std::floor(m_initsCornerMin.y()); j<std::floor(m_initsCornerMax.y()); ++j)
         {
-            if(screen[i][j]!=m_DCAM)
+            if(screen[i][j]!=m_DCAM & screen[i][j]!=0)
             {
                 m_initOVa+=1;
             }
@@ -789,6 +802,14 @@ void osgInfo::computeOVas(std::vector< std::vector<float> > screen)
             }
         }
     }
+    if(m_currentOVa>m_Da)
+        m_currentOVa=m_Da;
+
+//    if(m_name=="opera")
+//    {
+//        std::cout<<std::endl;
+//        std::cout<<"Opera OVa init : "<<m_initOVa/m_Da<<std::endl<<"Opera OVa current "<<m_currentOVa/m_Da<<std::endl;
+//    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

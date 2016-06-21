@@ -86,33 +86,40 @@ void InfoDataType::OVaDisplay(int screenX, int screenY, std::map<float, osgInfo 
     {
         farthestDCAM=0;
         osgInfo* c_info = it1->second;
+//        if(c_info->m_name=="opera")
+//            std::cout<<"Opera OVa% = "<<c_info->m_initOVa/c_info->m_Da;
 
-        if(c_info->m_initOVa/c_info->m_Da>=0.3)//if document hidden at its init position
+        if((c_info->m_initOVa/c_info->m_Da)>0.3)//if document hidden at its init position
         {
+            if(c_info->m_name=="opera")
+                std::cout<<"...in"<<std::endl;
+
             //move to free space
-            if(c_info->m_currentOVa/c_info->m_Da<0.3)
+            for(size_t i = 0; i<c_info->m_OVaMatrix.size(); ++i)
             {
-                for(size_t i = 0; i<c_info->m_OVaMatrix.size(); ++i)
+                for(size_t j=0; j<c_info->m_OVaMatrix[i].size(); ++j)
                 {
-                    for(size_t j=0; j<c_info->m_OVaMatrix[i].size(); ++j)
+                    //                        if(c_info->m_name=="opera")
+                    //                        {
+                    //                            std::cout<<"Opera DCAM = "<<c_info->m_DCAM<<std::endl;
+                    //                            std::cout<<"Opera farthestDCAM "<<farthestDCAM<<std::endl;
+                    //                        }
+                    if(c_info->m_OVaMatrix[i][j]!=c_info->m_DCAM && c_info->m_OVaMatrix[i][j]>=farthestDCAM)
                     {
-                        if(c_info->m_OVaMatrix[i][j]!=c_info->m_DCAM && c_info->m_OVaMatrix[i][j]>=farthestDCAM)
-                        {
-                            farthestDCAM=c_info->m_OVaMatrix[i][j];
-                        }
+                        farthestDCAM=c_info->m_OVaMatrix[i][j];
                     }
                 }
+            }
+            if(farthestDCAM!=0)
+            {
                 newZ = m_info.find(farthestDCAM)->second->m_currentposition.z();
                 newHeight = m_info.find(farthestDCAM)->second->m_height;
-
                 osg::Vec3 newPos = osg::Vec3(c_info->m_initposition.x(),c_info->m_initposition.y(),newZ+newHeight/2+c_info->m_height/2);
-
-                c_info->getGroup()->getChild(0)->asTransform()->asPositionAttitudeTransform()->setPosition(newPos);
                 c_info->UpdatePosition(newPos);
-
-                computeDepthMap(screenX, screenY, m_info);
-
             }
+
+            computeDepthMap(screenX, screenY, m_info);
+
         }
         else //if not
         {
