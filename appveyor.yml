@@ -92,7 +92,7 @@ before_build:
   - IF %CACHE%==FALSE 7z x eigen-3.2.8.rar > nul
 # PCL, flann, qhull
   - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
-  - IF %CACHE%==FALSE 7z x PCL-1.7.2.rar > nul
+  - IF %CACHE%==FALSE 7z x PCL-1.7.2.7z > nul
 #
   - cd %APPVEYOR_BUILD_FOLDER%
   - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
