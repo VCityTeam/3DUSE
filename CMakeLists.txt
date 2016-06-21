@@ -343,20 +343,6 @@ else(LASLIB_FOUND)
   message(FATAL_ERROR "LASLIB not found.")
 endif(LASLIB_FOUND)
 
-# Find PCL
-option( BUILD_USE_PCL "PCL usage toggle." OFF )
-if( BUILD_USE_PCL )
-  find_package(PCL 1.3 REQUIRED COMPONENTS common io)
-  if ( PCL_FOUND )
-    include_directories( ${PCL_INCLUDE_DIRS} )
-    add_definitions( ${PCL_DEFINITIONS} )
-    add_definitions( -DFEVV_USE_PCL )
-  else()
-    message ( "Unfound PCL package: try with PCL support disabled.")
-    message ( "(try toggling BUILD_USE_PCL to OFF)." )
-  endif ()
-endif ()
-
 # FIXME: expand this glob
 file(
   GLOB_RECURSE
@@ -969,9 +955,6 @@ endif (BUILD_CityGMLSunlightQtPlugin)
 # Placed here because BUILD_CityGMLSunlightQtPlugin variable needs to be set
 # because it is needed in src/plugins/CMakeLists.txt
 add_subdirectory(src)
-
-# tiny PCL sample (temp, just for helping developers and for validate cmake, travis, appveyor...)
-add_subdirectory( tests/PCL )
 
 #--------------------------------------------------------------------------------
 # Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
