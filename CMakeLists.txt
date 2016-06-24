@@ -450,6 +450,8 @@ set( VCITY_GUI_SRC
   src/core/scene.cpp
   src/core/settings.cpp
   src/core/tools/log.cpp
+  src/core/search/criteria.cpp
+  src/core/search/document.cpp
 ### The gui  
   src/gui/applicationGui.cpp
   src/gui/controllerGui.cpp
@@ -457,7 +459,6 @@ set( VCITY_GUI_SRC
   src/gui/dialogAddBuilding.cpp
   src/gui/dialogAddLayer.cpp
   src/gui/dialogDoc.cpp
-  src/gui/dialogDynState.cpp
   src/gui/dialogEditAssimpNode.cpp
   src/gui/dialogEditBldg.cpp
   src/gui/dialogEditLayer.cpp
@@ -466,8 +467,6 @@ set( VCITY_GUI_SRC
   src/gui/dialogLoadBBox.cpp
   src/gui/dialogSettings.cpp
   src/gui/dialogShpTool.cpp
-  src/gui/dialogState.cpp
-  src/gui/dialogTag.cpp
   src/gui/dialogTilingCityGML.cpp
   src/gui/dialogYearOfConst.cpp
   src/gui/dialogYearOfDemol.cpp
