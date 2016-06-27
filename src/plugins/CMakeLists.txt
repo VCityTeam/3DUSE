@@ -1,10 +1,5 @@
-
-### CityGMLCutQtPlugin missing here
-
+add_subdirectory( CityGMLCutQtPlugin )
 add_subdirectory( CityGMLEmptyQtPlugin )
-
-### CityGMLFloodARQtPlugin missing here
-
+add_subdirectory( CityGMLFloodARQtPlugin )
 add_subdirectory( CityGMLSunlightQtPlugin )
-
-### CityGMLVisibiliteQtPlugin missing here
+add_subdirectory( CityGMLVisibiliteQtPlugin )

@@ -26,6 +26,7 @@ endif()
 if( BUILD_GUI_QT4 )
   QT4_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
     ${CityGMLEmpty_Qt_Plugin_HEADER}
+    TARGET CityGMLEmptyQtPlugin
   )
   QT4_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
   set( CityGMLEmpty_Qt_Plugin_SRC
@@ -64,6 +65,8 @@ if( BUILD_GUI_QT5 )
   target_link_libraries( CityGMLEmptyQtPlugin Qt5::Widgets Qt5::OpenGL )
 endif()
 
-install( TARGETS CityGMLEmptyQtPlugin
-  LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}  # FIXME: is this line needed ?
-)
+# FIXME: temporarily disabled because of AppVeyor build crash
+# install( TARGETS CityGMLEmptyQtPlugin
+#   LIBRARY DESTINATION lib   # FIXME: inquire on this
+#     COMPONENT ${PRJ_NAME}     # FIXME: is this line needed ?
+#)
