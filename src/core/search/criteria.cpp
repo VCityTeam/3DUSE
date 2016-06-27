@@ -16,18 +16,22 @@ float Criteria::getTemporalSatisfactionDegree(time_t time1, time_t time2)
 }
 float Criteria::getProviderSatisfactionDegree()
 {
-
+    float satisfactionDegree = 1.0;
+    return satisfactionDegree;
 }
 float Criteria::getThematicSatisfactionDegree()
 {
-
+    float satisfactionDegree = 1.0;
+    return satisfactionDegree;
 }
 float Criteria::getContentSatisfactionDegree()
 {
-
+    float satisfactionDegree = 1.0;
+    return satisfactionDegree;
 }
 
 float Criteria::getOverallSatisfactionDegree(Document d)
 {
-
+    float satisfactionDegree = 1.0;
+    return satisfactionDegree;
 }
