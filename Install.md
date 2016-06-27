@@ -125,4 +125,4 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
 
 ### Building VCity with Cmake
  * Use cmake (`cmake-gui.exe`)
-   * Warning: Visual Studio 2015 is the 14th version of Visual Studio and hence assert that cmake detects the "Visual Studio 14 2015 Win64" compiler set (otherwise set it manually)
+   * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
