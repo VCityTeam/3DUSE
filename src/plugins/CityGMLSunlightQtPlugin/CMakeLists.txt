@@ -78,6 +78,7 @@ if( NOT ( BUILD_EMBARKED_OSG-QT_32 OR BUILD_EMBARKED_OSG-QT_34 ) )
   target_link_libraries( CityGMLSunlightQtPlugin ${OSGQT_LIBRARIES} )
 endif()
 
-install( TARGETS CityGMLSunlightQtPlugin
-  LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}  # FIXME: is this line needed ?
-)
+# FIXME: temporarily disabled because of AppVeyor build crash
+#install( TARGETS CityGMLSunlightQtPlugin
+#  LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}  # FIXME: is this line needed ?
+#)
