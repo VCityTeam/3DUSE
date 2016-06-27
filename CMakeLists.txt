@@ -442,7 +442,7 @@ set( FILTERS_LIBRARIES   filters )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ################### General
-set( VCITY_GUI_SRC
+add_library( VCityGui STATIC
 ### The core
   src/core/RayBox.cpp
   src/core/abstractlayer.cpp
@@ -490,9 +490,9 @@ set( VCITY_GUI_SRC
   
   src/gui/osg/osgAssimp.cpp
   src/gui/osg/osgCityGML.cpp
-  src/gui/osg/osgCompass.cpp
+  # src/gui/osg/osgCompass.cpp     # FIXME: remove this EMPTY file.
   src/gui/osg/osgGDAL.cpp
-  src/gui/osg/osgInfoBubbles.cpp
+  # src/gui/osg/osgInfoBubbles.cpp # FIXME: remove this EMPTY file.
   src/gui/osg/osgLas.cpp
   src/gui/osg/osgPicking.cpp
   src/gui/osg/osgQtWidget.cpp
@@ -506,15 +506,19 @@ set( VCITY_GUI_SRC
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
 
-  ### FIXME: is the main recompiled with every plugin !?
-  src/main.cpp
-
 ### QT related:
   ${VCITY_GUI_Qt_SRC}
   ${VCITY_GUI_UI_CPP}
   ${VCITY_GUI_RES_CPP}
   ${VCITY_GUI_MOC_CPP}
   ${VCITY_GUI_SRC_WIN}       # For OSGQT: might be empty
+)
+
+target_include_directories( VCityGui PUBLIC
+  ${VCITYCORE_INCLUDE_DIR}
+  ${CITYGML_INCLUDE_DIR}
+  ${CITYGMLUTILS_INCLUDE_DIR}
+  ${FILTERS_INCLUDE_DIR}
 )
 
 SET( VCITY_GUI_LIB
@@ -589,7 +593,10 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
   set(LINUX_FLAGS -lpthread)   # FIXME: assert this is needed
 endif()
 
-add_executable( ${APP_NAME} MACOSX_BUNDLE ${VCITY_GUI_SRC} ${VCITY_GUI_ICON})
+add_executable( ${APP_NAME} MACOSX_BUNDLE 
+  src/main.cpp
+  ${VCITY_GUI_ICON}
+)
 
 target_include_directories( ${APP_NAME} PUBLIC
   ${CITYGML_INCLUDE_DIR}   # FIXME: there is a mismatch between the included
@@ -598,6 +605,7 @@ target_include_directories( ${APP_NAME} PUBLIC
 
 target_link_libraries( ${APP_NAME}
   ${LINUX_FLAGS}  # FIXME: are these flags or a library !?
+  VCityGui
   ${VCITY_GUI_LIB}
   ${VCITYCORE_LIBRARY}
   ${FILTERS_LIBRARIES}
@@ -713,67 +721,6 @@ endif (BUILD_CityGMLCutQtPlugin)
 
 # --> CityGMLEmptyQtPlugin : QtPlugin [BEGIN]
 option( BUILD_CityGMLEmptyQtPlugin "Build the Empty GUI plugin." ON)
-if (BUILD_CityGMLEmptyQtPlugin)
-  set( CityGMLEmpty_Qt_Plugin_HEADER
-    src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.h
-    src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.h
-  )
-  set( CityGMLEmpty_Qt_Plugin_UI
-    src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.ui
-  )
-  if( BUILD_GUI_QT5 )
-    ADD_DEFINITIONS("-DBUILD_GUI_QT5")
-    QT5_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
-      ${CityGMLEmpty_Qt_Plugin_HEADER}
-      TARGET CityGMLEmptyQtPlugin
-    )
-    QT5_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
-    set( CityGMLEmpty_Qt_Plugin_SRC
-      ${CityGMLEmpty_Qt_Plugin_SRC}
-      ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
-      ${CityGMLEmpty_Qt_Plugin_UI_CPP}
-    )
-  endif() 
-  if( BUILD_GUI_QT4 )
-    QT4_WRAP_CPP( CityGMLEmpty_Qt_Plugin_MOC_CPP
-      ${CityGMLEmpty_Qt_Plugin_HEADER}
-    )
-    QT4_WRAP_UI( CityGMLEmpty_Qt_Plugin_UI_CPP ${CityGMLEmpty_Qt_Plugin_UI} )
-    set( CityGMLEmpty_Qt_Plugin_SRC
-      ${CityGMLEmpty_Qt_Plugin_SRC}
-      ${CityGMLEmpty_Qt_Plugin_MOC_CPP}
-      ${CityGMLEmpty_Qt_Plugin_UI_CPP}
-    )
-    set( CityGMLEmpty_Qt_Plugin_LIB
-      ${CityGMLEmpty_Qt_Plugin_LIB}
-      ${QT_LIBRARIES}
-    )
-  endif()
-
-  add_library( CityGMLEmptyQtPlugin SHARED
-    src/plugins/CityGMLEmptyQtPlugin/CityGMLEmptyQtPlugin.cxx
-    src/plugins/CityGMLEmptyQtPlugin/Dialogs/DialogCityGMLEmpty1.cxx
-    ${CityGMLEmpty_Qt_Plugin_HEADER}
-    ${CityGMLEmpty_Qt_Plugin_SRC}
-    ${VCITY_GUI_SRC_WIN}
-  )
-  target_include_directories( CityGMLEmptyQtPlugin PUBLIC
-    src                            # For moc on Generic_PluginInterface
-    ${CITYGML_INCLUDE_DIR}
-    ${CITYGMLUTILS_INCLUDE_DIR}
-  )
-  target_link_libraries( CityGMLEmptyQtPlugin
-    ${CityGMLEmpty_Qt_Plugin_LIB}
-    ${VCITY_GUI_LIB}
-  )
-  if( BUILD_GUI_QT5 )
-    target_include_directories( CityGMLEmptyQtPlugin PRIVATE
-      $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
-    target_link_libraries( CityGMLEmptyQtPlugin Qt5::Widgets Qt5::OpenGL )
-  endif()
-
-endif (BUILD_CityGMLEmptyQtPlugin)
-# --> CityGMLEmptyQtPlugin : QtPlugin [END]
 
 # --> CityGMLVisibiliteQtPlugin : QtPlugin [BEGIN]
 option( BUILD_CityGMLVisibiliteQtPlugin "Build the Visibility GUI plugin." OFF)
@@ -824,9 +771,8 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
      src/plugins/CityGMLVisibiliteQtPlugin/Dialogs/dialogVisibilite.cxx
      ${CityGMLVisibilite_Qt_Plugin_HEADER}
      ${CityGMLVisibilite_Qt_Plugin_SRC}
-     ${VCITY_GUI_SRC} # if need, add cxx files here before the ')'
   )
-  # For raytracing:
+
   target_include_directories( CityGMLVisibiliteQtPlugin PUBLIC
     src                            # For moc on Generic_PluginInterface
     src/libfilters
@@ -834,11 +780,12 @@ if (BUILD_CityGMLVisibiliteQtPlugin)
     ${FILTERS_INCLUDE_DIR} 
   )
   target_link_libraries( CityGMLVisibiliteQtPlugin
+    VCityGui
     ${LINUX_FLAGS}
     ${CITYGML_LIBRARIES}
     ${CITYGMLUTILS_LIBRARIES}
     ${FILTERS_LIBRARIES}
-    ${QT_LIBRARIES}           # FIXME: looks suspcious since we have a 
+    ${QT_LIBRARIES}           # FIXME: looks suspicious since we have a 
                               # special treatment for QT just below
     ${VCITY_GUI_LIB}
   )
@@ -893,13 +840,11 @@ if (BUILD_CityGMLFloodARQtPlugin)
   endif()
 
   add_library( CityGMLFloodARQtPlugin SHARED
+    ${CityGMLFloodAR_Qt_Plugin_HEADER}
+    ${CityGMLFloodAR_Qt_Plugin_SRC}
     src/plugins/CityGMLFloodARQtPlugin/CityGMLFloodARQtPlugin.cxx
     src/plugins/CityGMLFloodARQtPlugin/Dialogs/dialogFloodAR.cxx
     src/plugins/CityGMLFloodARQtPlugin/FloodARTools.cxx
-    ${CityGMLFloodAR_Qt_Plugin_HEADER}
-    ${CityGMLFloodAR_Qt_Plugin_SRC}
-    ${VCITY_GUI_SRC}
-    # if needed, add cxx files here
   )
 
   target_include_directories( CityGMLFloodARQtPlugin PUBLIC
@@ -972,15 +917,13 @@ if (BUILD_CityGMLSunlightQtPlugin)
   endif()
 
   add_library( CityGMLSunlightQtPlugin SHARED
+    ${CityGMLSunlight_Qt_Plugin_HEADER}
+    ${CityGMLSunlight_Qt_Plugin_SRC}
     src/plugins/CityGMLSunlightQtPlugin/CityGMLSunlightQtPlugin.cxx
     src/plugins/CityGMLSunlightQtPlugin/Dialogs/DialogCityGMLSunlight1.cxx
     src/plugins/CityGMLSunlightQtPlugin/FileInfo.cxx
     src/plugins/CityGMLSunlightQtPlugin/IO.cxx
     src/plugins/CityGMLSunlightQtPlugin/SunlightDetection.cxx
-    ${CityGMLSunlight_Qt_Plugin_HEADER}
-    ${CityGMLSunlight_Qt_Plugin_SRC}
-    ${VCITY_GUI_SRC}
-    # if needed, add cxx files here
   )
 
   target_include_directories( CityGMLSunlightQtPlugin PUBLIC
@@ -990,6 +933,7 @@ if (BUILD_CityGMLSunlightQtPlugin)
   )
 
   target_link_libraries ( CityGMLSunlightQtPlugin
+    VCityGui
     ${LINUX_FLAGS}
     ${QT_LIBRARIES}
     ${VCITY_GUI_LIB}
@@ -1041,9 +985,6 @@ ENDIF(WIN32)
 if (BUILD_CityGMLCutQtPlugin)
   set(CityGMLCutQtPlugin "CityGMLCutQtPlugin")
 endif (BUILD_CityGMLCutQtPlugin)
-if (BUILD_CityGMLEmptyQtPlugin)
-  set(CityGMLEmptyQtPlugin "CityGMLEmptyQtPlugin")
-endif (BUILD_CityGMLEmptyQtPlugin)
 if (BUILD_CityGMLVisibiliteQtPlugin)
   set(CityGMLVisibiliteQtPlugin "CityGMLVisibiliteQtPlugin")
 endif (BUILD_CityGMLVisibiliteQtPlugin)
@@ -1061,7 +1002,6 @@ endif (BUILD_CityGMLSunlightQtPlugin)
 INSTALL(TARGETS ${PRJ_NAME}
   CityGMLCut
   ${CityGMLCutQtPlugin}
-  ${CityGMLEmptyQtPlugin}
   ${CityGMLVisibiliteQtPlugin}
   ${CityGMLFloodARQtPlugin}
   ${CityGMLSunlightQtPlugin}
