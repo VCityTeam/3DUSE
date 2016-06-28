@@ -27,4 +27,5 @@ Following extensions are possible through ADE.
 
 ## Example ADE
 - [Document ADE](DocumentADE/documentADE.md)
+- [Workspace ADE](WorkspaceADE/WorkspaceADE.md)
 - [Temporal ADE](Temporel/temporalADE.md)
