@@ -57,6 +57,9 @@ configuration:
 
 # scripts to run before build
 before_build:
+# Get rid of pesky Xamarin build messages, refer to
+# http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
+  - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
   - IF EXIST %KIT_ROOT% SET CACHE=TRUE
 #
   - echo %CACHE%

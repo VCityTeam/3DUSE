@@ -42,20 +42,21 @@ endif()
 add_library( CityGMLCutQtPlugin SHARED
   ${CityGMLCut_Qt_Plugin_HEADER}
   ${CityGMLCut_Qt_Plugin_SRC}
-  # FIXME ${VCITY_GUI_SRC_WIN}
+  ${EMBARKED_OSGQT_SRC}
   CityGMLCutQtPlugin.cxx
   Dialogs/DialogCityGMLCut1.cxx
   ${CMAKE_SOURCE_DIR}/src/utils/cmdline/cityGMLCut.cxx  #FIXME: why does a plugin depend on cmdline?
   ${CMAKE_SOURCE_DIR}/src/utils/cmdline/triangulate.cxx #FIXME: why does a plugin depend on cmdline?
 )
+
 target_include_directories( CityGMLCutQtPlugin PUBLIC
   ${CMAKE_SOURCE_DIR}/src/gui              # For moc on Generic_PluginInterface
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CITYGML_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
 )
+
 target_link_libraries( CityGMLCutQtPlugin
-  # VCityGui
   ${CityGMLCut_Qt_Plugin_LIB}
   ${VCITY_GUI_LIB}
 )

@@ -324,12 +324,9 @@ endif(OPENTHREADS_FOUND)
 # find_package() or the embarked version is triggered manually with the
 # USE_BUILT-IN_OSG-QT-XX (where XX stands for the version number) flags.
 # When using the embarked version the additional source file names that
-# need to be compiled are placed within the VCITY_GUI_SRC_WIN variable.
-# FIXME: don't systematically add a variable content because its misleading
-#        when empty. Instead add the code when required. In other terms
-#        remove the VCITY_GUI_SRC_WIN variable and propagate to the targets...  
-#
-# Refer to doc/SoftwareEngineering/CMakeChoices.md for further design notes.
+# need to be compiled are placed within the EMBARKED_OSGQT_SRC variable.
+# Refer to doc/SoftwareEngineering/CMakeChoices.md for further design
+# notes on this matter.
 if( BUILD_EMBARKED_OSG-QT_32 )
   if( WIN32 )
     if( DEFINED KIT_VS2015 )
@@ -342,8 +339,9 @@ if( BUILD_EMBARKED_OSG-QT_32 )
   endif()
   # FIXME: remove systematic inclusion and use include_target_directories()
   include_directories( ${OSGQT_INCLUDE_DIR} )
-  set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg32/GraphicsWindowQt.cxx )
-
+  set( EMBARKED_OSGQT_SRC
+       ${CMAKE_SOURCE_DIR}/src/gui/osgQt/osg32/GraphicsWindowQt.cxx
+  )
 elseif( BUILD_EMBARKED_OSG-QT_34 )
   if( WIN32 )
     if( NOT DEFINED KIT_VS2015 )
@@ -356,8 +354,9 @@ elseif( BUILD_EMBARKED_OSG-QT_34 )
   endif()
   # FIXME: remove systematic inclusion and use include_target_directories()
   include_directories( ${OSGQT_INCLUDE_DIR} )
-  set( VCITY_GUI_SRC_WIN src/gui/osgQt/osg34/GraphicsWindowQt.cxx )
-
+  set( EMBARKED_OSGQT_SRC
+       ${CMAKE_SOURCE_DIR}/src/gui/osgQt/osg34/GraphicsWindowQt.cxx
+  )
 else( )
   # Look for the "native" version:
   find_package( osgQt )
@@ -515,7 +514,7 @@ add_library( VCityGui STATIC
   ${VCITY_GUI_UI_CPP}
   ${VCITY_GUI_RES_CPP}
   ${VCITY_GUI_MOC_CPP}
-  ${VCITY_GUI_SRC_WIN}       # For OSGQT: might be empty
+  ${EMBARKED_OSGQT_SRC}       # Might be empty
 )
 
 if( CMAKE_COMPILER_IS_GNUCXX )

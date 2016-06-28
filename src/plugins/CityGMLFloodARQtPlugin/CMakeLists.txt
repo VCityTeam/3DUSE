@@ -41,6 +41,7 @@ endif()
 add_library( CityGMLFloodARQtPlugin SHARED
   ${CityGMLFloodAR_Qt_Plugin_HEADER}
   ${CityGMLFloodAR_Qt_Plugin_SRC}
+  ${EMBARKED_OSGQT_SRC}
   CityGMLFloodARQtPlugin.cxx
   Dialogs/dialogFloodAR.cxx
   FloodARTools.cxx
