@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QDate>
 #include <QPluginLoader>
+#include <ctime>
+#include <time.h>
 
 #include "ui_mainWindow.h"
 
@@ -3018,8 +3020,9 @@ void MainWindow::test1()
 }
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
+//    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
+   std::string sourcepath = "/home/john/Alaric/vcity/data/Data/spreadsheet_testnolod.csv";
 
     std::vector<osgInfo*> v_info;
     std::vector<float> v_height;
@@ -3038,6 +3041,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
     std::vector<std::string> v_filetype;
     std::vector<std::string> v_sourcetype;
     std::vector<std::string> v_LOD;
+    std::vector<time_t> v_publicationdate;
 
     // *** CSV Load
         std::ifstream file(sourcepath);
@@ -3096,6 +3100,12 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 
                 if(cpt==13)
                     v_priority.push_back(std::stod(cell));
+                if(cpt==14) {
+                    struct tm tm;
+                    strptime(cell.c_str(), "%Y:%m:%d", &tm);
+                    time_t t = mktime(&tm);
+                    v_publicationdate.push_back(t);
+                }
 
                 cpt++;
              }
@@ -3104,7 +3114,8 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
         for (std::size_t i=0; i<v_filepath.size(); ++i)
         {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
+                                         v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i],v_publicationdate[i]));
         }
 
 
@@ -3150,7 +3161,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         }
 
 
-         std::ofstream ofs;
+        /* std::ofstream ofs;
          ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
 
          ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
@@ -3159,7 +3170,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
             ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
             ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
          }
-         ofs.close();
+         ofs.close();*/
 
         return v_info;
 }

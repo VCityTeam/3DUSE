@@ -54,6 +54,9 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                         layerInfo->computeDSC(cam, screenX, screenY, info);
 
                         info->setDisplayable(true);
+                        if(info->m_publcationDate > appGui().getMainWindow()->m_currentDate.toTime_t()){
+                             info->setDisplayable(false);
+                        }
 
                         if(info->isonScreen())
                         {
