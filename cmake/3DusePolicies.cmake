@@ -3,6 +3,12 @@ if (COMMAND cmake_policy)
   # Libraries linked via full path no longer produce linker search paths.
   cmake_policy(SET CMP0003 NEW)
 
+  # ignore CMAKE_SHARED_LIBRARY_<Lang>_FLAGS and honor the
+  # POSITION_INDEPENDENT_CODE target property.
+  if( POLICY CMP0018 )
+    cmake_policy(SET CMP0018 NEW)
+  endif ()
+
   # Automatically link Qt executables to qtmain target on Windows.
   if( POLICY CMP0020 )
     cmake_policy(SET CMP0020 NEW)

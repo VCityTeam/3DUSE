@@ -517,12 +517,10 @@ add_library( VCityGui STATIC
   ${EMBARKED_OSGQT_SRC}       # Might be empty
 )
 
-if( CMAKE_COMPILER_IS_GNUCXX )
-  # Embedding of a static library within the plugins (i.e. which must be
-  # dynamic libraries) requires the code to be agnostic in terms of position
-  # (PIC=Position-Independent Code).
-  set_target_properties ( VCityGui PROPERTIES COMPILE_FLAGS "-fPIC" )
-endif()
+# Embedding of a static library within the plugins (which must be dynamic
+# libraries) requires the code to be agnostic in terms of position
+# (PIC=Position-Independent Code).
+set_target_properties( VCityGui PROPERTIES POSITION_INDEPENDENT_CODE ON )
 
 target_include_directories( VCityGui PUBLIC
   ${VCITYCORE_INCLUDE_DIR}

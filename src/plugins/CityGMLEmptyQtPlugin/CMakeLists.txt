@@ -53,7 +53,7 @@ target_include_directories( CityGMLEmptyQtPlugin PUBLIC
 )
 
 target_link_libraries( CityGMLEmptyQtPlugin
-  VCityGui
+  # VCityGui          # FIXME: clean me up
   ${VCITY_GUI_LIB}
   ${QT_LIBRARIES}
 )
