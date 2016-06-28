@@ -532,6 +532,17 @@ target_include_directories( VCityGui PUBLIC
   ${FILTERS_INCLUDE_DIR}
 )
 
+if( BUILD_GUI_QT4 )
+  # Strangely enough we are missing the ad-hoc target_include_directories() 
+endif()
+
+if( BUILD_GUI_QT5 )
+  add_definitions( "-DBUILD_GUI_QT5" )   # FIXME: do we need this ?
+  target_include_directories( VCityGui PRIVATE
+    $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
+  target_link_libraries( VCityGui Qt5::Widgets Qt5::OpenGL )
+endif()
+
 SET( VCITY_GUI_LIB
   ${ASSIMP_LIBRARY}
   ${OSG_LIBRARIES}
