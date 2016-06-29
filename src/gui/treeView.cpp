@@ -7,9 +7,6 @@
 #include "moc/dialogEditTile.hpp"
 #include "moc/dialogEditAssimpNode.hpp"
 #include "moc/dialogEditBldg.hpp"
-#include "moc/dialogDynState.hpp"
-#include "moc/dialogState.hpp"
-#include "moc/dialogTag.hpp"
 #include "moc/dialogDoc.hpp"
 #include "moc/dialogYearOfConst.hpp"
 #include "moc/dialogYearOfDemol.hpp"
@@ -41,15 +38,6 @@ TreeView::~TreeView()
     delete m_actionAddBuilding;
     delete m_actionEditBuilding;
     delete m_actionDeleteBuilding;
-    delete m_actionAddState;
-    delete m_actionAddDynState;
-    delete m_actionAddTag;
-    delete m_actionEditState;
-    delete m_actionEditDynState;
-    delete m_actionEditTag;
-    delete m_actionDeleteState;
-    delete m_actionDeleteDynState;
-    delete m_actionDeleteTag;
     delete m_actionSelectAll;
     delete m_actionDeSelectAll;
     delete m_actionAddDoc;
@@ -76,15 +64,6 @@ void TreeView::init()
     m_actionAddBuilding = new QAction("Add building", NULL);
     m_actionEditBuilding = new QAction("Edit building", NULL);
     m_actionDeleteBuilding = new QAction("Delete building", NULL);
-    m_actionAddState = new QAction("Add State", NULL);
-    m_actionAddDynState = new QAction("Add dynamic State", NULL);
-    m_actionAddTag = new QAction("Add Tag", NULL);
-    m_actionEditState = new QAction("Edit State", NULL);
-    m_actionEditDynState = new QAction("Edit dynamic State", NULL);
-    m_actionEditTag = new QAction("Edit Tag", NULL);
-    m_actionDeleteState = new QAction("Delete State", NULL);
-    m_actionDeleteDynState = new QAction("Delete dynamic State", NULL);
-    m_actionDeleteTag = new QAction("Delete Tag", NULL);
     m_actionSelectAll = new QAction("Check all", NULL);
     m_actionDeSelectAll = new QAction("Check none", NULL);
     m_actionAddDoc = new QAction("Add document", NULL);
@@ -108,15 +87,6 @@ void TreeView::init()
     connect(m_actionAddBuilding, SIGNAL(triggered()), this, SLOT(slotAddBuilding()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBuilding()));
     connect(m_actionDeleteBuilding, SIGNAL(triggered()), this, SLOT(slotDeleteBuilding()));
-    connect(m_actionAddState, SIGNAL(triggered()), this, SLOT(slotAddState()));
-    connect(m_actionAddDynState, SIGNAL(triggered()), this, SLOT(slotAddDynState()));
-    connect(m_actionAddTag, SIGNAL(triggered()), this, SLOT(slotAddTag()));
-    connect(m_actionEditState, SIGNAL(triggered()), this, SLOT(slotEditState()));
-    connect(m_actionEditDynState, SIGNAL(triggered()), this, SLOT(slotEditDynState()));
-    connect(m_actionEditTag, SIGNAL(triggered()), this, SLOT(slotEditTag()));
-    connect(m_actionDeleteState, SIGNAL(triggered()), this, SLOT(slotDeleteState()));
-    connect(m_actionDeleteDynState, SIGNAL(triggered()), this, SLOT(slotDeleteDynState()));
-    connect(m_actionDeleteTag, SIGNAL(triggered()), this, SLOT(slotDeleteTag()));
     connect(m_actionSelectAll, SIGNAL(triggered()), this, SLOT(slotCheckAll()));
     connect(m_actionDeSelectAll, SIGNAL(triggered()), this, SLOT(slotUnCheckAll()));
     connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
@@ -128,11 +98,7 @@ void TreeView::init()
 	connect(m_actionAddLink, SIGNAL(triggered()), this, SLOT(slotAddLink()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
-    connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
-
-    connect(m_actionAddState, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddState()));
-    connect(m_actionAddDynState, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddDynState()));
-    connect(m_actionAddTag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddTag()));*/
+    connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));*/
 
 
     //connect(select, SIGNAL(triggered()), this, SLOT(selectNodeHandler()));
@@ -741,28 +707,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionEditBuilding);
         m_tree->addAction(m_actionAddDoc);
     }
-    else if(item->text(1) == "Tag")
-    {
-        //std::cout << "Tag" << std::endl;
-        m_tree->addAction(m_actionDeleteTag);
-        m_tree->addAction(m_actionEditTag);
-        m_tree->addAction(m_actionAddDoc);
-    }
-    else if(item->text(1) == "State")
-    {
-        //std::cout << "State" << std::endl;
-        m_tree->addAction(m_actionDeleteState);
-        m_tree->addAction(m_actionEditState);
-        m_tree->addAction(m_actionAddDoc);
-    }
-    else if(item->text(1) == "DynState")
-    {
-        //std::cout << "DynState" << std::endl;
-        m_tree->addAction(m_actionDeleteDynState);
-        m_tree->addAction(m_actionEditDynState);
-        m_tree->addAction(m_actionAddDoc);
-    }
-	else if(item->text(1) == "ShpNode")
+    else if(item->text(1) == "ShpNode")
     {
         //std::cout << "ShpNode" << std::endl;
         m_tree->addAction(m_actionEditShp);
@@ -785,9 +730,6 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
        item->text(1) == "InteriorWallSurface" || item->text(1) == "CeilingSurface"
             ||  item->text(1) == "Document" )
     {
-        m_tree->addAction(m_actionAddTag);
-        m_tree->addAction(m_actionAddState);
-        m_tree->addAction(m_actionAddDynState);
         m_tree->addAction(m_actionAddDoc);
 		m_tree->addAction(m_actionAddYearOfConst);
 		m_tree->addAction(m_actionAddYearOfDemol);
@@ -939,54 +881,6 @@ void TreeView::slotDeleteBuilding()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddState()
-{
-    DialogState diag;
-    diag.addState(getURI(getCurrentItem()));
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddDynState()
-{
-    DialogDynState diag;
-    diag.addDynState(getURI(getCurrentItem()));
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddTag()
-{
-    DialogTag diag;
-    diag.addTag(getURI(getCurrentItem()));
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditDynState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditTag()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteDynState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteTag()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotCheckAll()
 {
     setItemStateRec(getCurrentItem(), true);
@@ -1052,13 +946,6 @@ void TreeView::resetActions()
     m_tree->removeAction(m_actionAddBuilding);
     m_tree->removeAction(m_actionEditBuilding);
     m_tree->removeAction(m_actionDeleteBuilding);
-    m_tree->removeAction(m_actionAddState);
-    m_tree->removeAction(m_actionAddDynState);
-    m_tree->removeAction(m_actionAddTag);
-    m_tree->removeAction(m_actionEditState);
-    m_tree->removeAction(m_actionEditTag);
-    m_tree->removeAction(m_actionDeleteState);
-    m_tree->removeAction(m_actionDeleteTag);
     m_tree->removeAction(m_actionSelectAll);
     m_tree->removeAction(m_actionDeSelectAll);
     m_tree->removeAction(m_actionAddDoc);

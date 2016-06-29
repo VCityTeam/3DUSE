@@ -1,3 +1,5 @@
+add_subdirectory( Test )
+
 add_library( filters SHARED
   ChangeDetection/ChangeDetection.cpp
   EnhanceCityGML/EnhanceMNT.cpp
@@ -6,8 +8,8 @@ add_library( filters SHARED
   raytracing/Ray.cpp
   raytracing/RayTracing.cpp
   ShpExtrusion/ShpExtrusion.cpp
-  tiling/ASCCut.cpp
-  tiling/TilingCityGML.cpp
+  Tiling/ASCCut.cpp
+  Tiling/TilingCityGML.cpp
 )
 
 target_include_directories( filters PUBLIC
@@ -16,7 +18,6 @@ target_include_directories( filters PUBLIC
 )
 
 target_link_libraries(filters
-  ${OSG_LIBRARIES}
   ${VCITYCORE_LIBRARY}
   ${CITYGMLUTILS_LIBRARIES}
 )

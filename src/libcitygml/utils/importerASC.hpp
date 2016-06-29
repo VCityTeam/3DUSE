@@ -2,15 +2,18 @@
 #define _IMPORTERASC_HPP_
 
 #include <queue>
+#ifdef _MSC_VER
+  // Inhibit dll-interface warnings concerning:
+  // * gdal-1.11.4 internals (cpl_string.h)
+  // * complains on STL _Id member (of class ImporterASC)
+  # pragma warning(disable:4251)
+#endif
+#include <ogrsf_frmts.h>
 
-#include "importer.hpp"
-#include "citygml.hpp"
-
-#include "src/DataStructures/DEM/osgMnt.hpp"
-#include "ogrsf_frmts.h"
-
+#include "libcitygml/import/importer.hpp"
+#include "libcitygml/citygml.hpp"
+#include "DataStructures/DEM/osgMnt.hpp"
 #include "citygmlutils_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
 
 namespace citygml
 {

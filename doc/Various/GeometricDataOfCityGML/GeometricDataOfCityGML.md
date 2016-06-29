@@ -57,7 +57,7 @@ We could hope to provide each `gml:pos` (spatial position) with an id, and defin
 Semantic and geometry hierachies can (and thus will) lack coherence:
 ![Alt Text](Images/SemanticVsGeometryGeneral.png)
 ![Alt Text](Images/SemanticVsGeometryPoorSemanticsRichGeometry.png)
-![Alt Text](Images/SemanticVsGeometryDetailedAndAligned.png)
+![Alt Text](Images/SemanticVsGeometryMissmatchingAlignement.png)
 ![Alt Text](Images/SemanticVsGeometryDetailedAndAligned.png)
 
 ### Conclusion
