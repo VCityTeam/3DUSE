@@ -397,6 +397,10 @@ if( BUILD_GUI_QT5 )
   set( CMAKE_AUTOMOC OFF )
   QT5_WRAP_CPP(      VCITY_GUI_MOC_CPP ${VCITY_GUI_Qt_SRC} )
   QT5_WRAP_UI(       VCITY_GUI_UI_CPP  ${VCITY_GUI_Qt_UI})
+  # The following line issues the CMake Warning (from Qt5CoreMacros.cmake:224):
+  #    "configure_file called with unknown argument COPY_ONLY"
+  # This is a qt bug (see reference below) that is fixed above QT 5.4.1.
+  # Reference: https://bugreports.qt.io/browse/QTBUG-44637
   QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
 endif()
 

@@ -98,7 +98,7 @@ script:
 
     ####  Linux Qt5 tests:
     # First the install of Qt5
-    # Same remark as for OSX concerning the iQt version mismatch of libOSG-Qt
+    # Same remark as for OSX concerning the Qt version mismatch of libOSG-Qt
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi
     # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
