@@ -45,6 +45,20 @@ add_library( CityGMLEmptyQtPlugin SHARED
   ${CityGMLEmpty_Qt_Plugin_SRC}
 )
 
+if(MSVC)
+  # The build dll goes to the top level build directory.
+  # The associated import library goes...out of the way.
+  foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+    string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
+    set_target_properties( CityGMLEmptyQtPlugin PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}
+      LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/Lib
+    )
+  endforeach()
+endif()
+
 target_include_directories( CityGMLEmptyQtPlugin PUBLIC
   ${CMAKE_SOURCE_DIR}/src           # For moc on Generic_PluginInterface
   ${CMAKE_CURRENT_SOURCE_DIR}

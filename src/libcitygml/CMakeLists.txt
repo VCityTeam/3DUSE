@@ -63,6 +63,20 @@ add_library( citygml SHARED
   ADE/document/tag.cpp
 )
 
+if(MSVC)
+  # The build dll goes to the top level build directory.
+  # The associated import library goes...out of the way.
+  foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
+    string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )  # Just in case
+    set_target_properties( citygml PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}
+      LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+         ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/Lib
+    )
+  endforeach()
+endif()
+
 target_include_directories( citygml PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}       # Required for generated citygml_export.h
