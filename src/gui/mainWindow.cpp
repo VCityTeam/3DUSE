@@ -3022,7 +3022,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
 //    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
-   std::string sourcepath = "/home/john/Alaric/vcity/data/Data/spreadsheet_testnolod.csv";
+   std::string sourcepath = "/home/john/Alaric/vcity/data/Data/spreadsheet_testnolodilotdulac.csv";
 
     std::vector<osgInfo*> v_info;
     std::vector<float> v_height;
@@ -3041,7 +3041,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
     std::vector<std::string> v_filetype;
     std::vector<std::string> v_sourcetype;
     std::vector<std::string> v_LOD;
-    std::vector<time_t> v_publicationdate;
+    std::vector<std::string> v_publicationdate;
 
     // *** CSV Load
         std::ifstream file(sourcepath);
@@ -3101,10 +3101,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
                 if(cpt==13)
                     v_priority.push_back(std::stod(cell));
                 if(cpt==14) {
-                    struct tm tm;
-                    strptime(cell.c_str(), "%Y:%m:%d", &tm);
-                    time_t t = mktime(&tm);
-                    v_publicationdate.push_back(t);
+                    v_publicationdate.push_back(cell);
                 }
 
                 cpt++;
@@ -3161,16 +3158,18 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         }
 
 
-        /* std::ofstream ofs;
+        std::ofstream ofs;
          ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
 
-         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
+         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
          for(osgInfo* i : v_info)
          {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
+              <<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
+              <<i->m_anchoring<<","<<i->m_priority<<i->m_publicationDate<<std::endl;
          }
-         ofs.close();*/
+         ofs.close();
 
         return v_info;
 }

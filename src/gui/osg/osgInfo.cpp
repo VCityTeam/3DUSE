@@ -32,7 +32,7 @@ osgInfo::osgInfo()
 }
 
 osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3 axis, std::string filepath, std::string name, std::string type,
-                 std::string source, std::string lod, float anchor, int priority,   time_t publicationDate)
+                 std::string source, std::string lod, float anchor, int priority,    std::string publicationDate)
 {
     m_texture = new osg::Texture2D;
     m_geom = new osg::Geometry;
@@ -56,7 +56,7 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_width = width;
 
     m_anchoring = anchor ;
-    m_publcationDate = publicationDate;
+    m_publicationDate = publicationDate;
 
 
 
