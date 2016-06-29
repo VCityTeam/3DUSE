@@ -15,7 +15,7 @@ struct RayTracingData
 };
 
 //Loop through all triangles and check if any rays intersect with triangles
-void RayLoop(RayTracingData data)
+void RayLoop(const RayTracingData& data)
 {
     for (unsigned int k = 0; k < data.rowToDo->size(); k++)
     {
@@ -40,7 +40,7 @@ void RayLoop(RayTracingData data)
 }
 
 //Loop through all triangles and check if any rays intersect with triangles
-void RayLoop2(RayTracingData data)
+void RayLoop2(const RayTracingData& data)
 {
     for (unsigned int k = 0; k < data.rowToDo->size(); k++)
     {
@@ -65,7 +65,7 @@ void RayLoop2(RayTracingData data)
     }
 }
 
-std::vector<Hit*>* RayTracing(TriangleList* triangles, std::vector<Ray*> rays)
+std::vector<Hit*>* RayTracing(TriangleList* triangles, const std::vector<Ray*>& rays)
 {
     QTime time;
     time.start();

@@ -57,8 +57,8 @@ struct CITYGMLUTILS_EXPORT TriangleList
 *	@return The list of triangle from the CityGML tile
 */
 CITYGMLUTILS_EXPORT TriangleList* BuildTriangleList(
-  std::string tilefilename,
-  citygml::CityObjectsType objectType
+  const std::string& tilefilename,
+  const citygml::CityObjectsType& objectType
 );
 
 #endif

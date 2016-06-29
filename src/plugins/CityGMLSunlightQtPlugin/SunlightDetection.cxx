@@ -21,7 +21,7 @@
 /// \param rays Rays for intersection with bounding boxes testing
 /// \return a std::queue of RayboxHit sorted by intersection distance (min first)
 ///
-std::queue<RayBoxHit> SetupFileOrder(std::vector<AABB> boxes,RayBoxCollection* rays)
+std::queue<RayBoxHit> SetupFileOrder(const std::vector<AABB>& boxes,RayBoxCollection* rays)
 {
     std::map<std::string,int> boxToMaxOrder; //The order in which the box has been crossed : if a ray cross multiple AABB, we record the order of crossing in each one
     std::map<std::string,RayBoxHit> boxToRayBoxHit;//We keep record of the smallest rayboxhit of a box /// MultiResolution
@@ -139,7 +139,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
     // *** Load files to analyse *** //
 
     unsigned int cpt_files = 1;
-    int time_tot = 0;
+    double time_tot = 0.0;
 
     for(FileInfo* f : filenames) //Loop through files
     {
@@ -281,18 +281,20 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
         delete trianglesfile;
 
         std::cout << "===================================================" << std::endl;
-        std::cout << "file " << cpt_files << " of " << filenames.size() << " done in : " << (double)time.elapsed()/60000.0 << " min." << std::endl;
+        std::cout << "file " << cpt_files << " of " << filenames.size() << " done in : " << static_cast<double>(time.elapsed())/1000.0 << "s" << std::endl;
         std::cout << "===================================================" << std::endl;
 
-        time_tot += time.elapsed();
+        time_tot += static_cast<double>(time.elapsed())/1000.0;
         time.restart();
         ++cpt_files;
 
     }
 
+    /*(double)time.elapsed()/60000.0*/
+    /*<< " min."*/
     //Delete files info
     for(unsigned int i = 0 ; i < filenames.size() ; ++i)
         delete filenames[i];
 
-    std::cout << "Total time : " << (double)time_tot/60000.0 << " min" << std::endl;
+    std::cout << "Total time : " << time_tot << "s" << std::endl;
 }

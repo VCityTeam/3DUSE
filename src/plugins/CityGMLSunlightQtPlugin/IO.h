@@ -36,14 +36,14 @@ struct Triangle;
 ///
 /// \param sOutputDir Path to output directory
 ///
-void createOutputFolders(QString sOutputDir);
+void createOutputFolders(const QString &sOutputDir);
 
 ///
 /// \brief createFileFolder Creates folder for a given file which will hold its computed sunlight infos
 /// \param file File to create folder for
 /// \param sOutputDir Full path to output directory
 ///
-void createFileFolder(FileInfo* file, QString sOutputDir);
+void createFileFolder(FileInfo* file, const QString &sOutputDir);
 
 ///
 /// \brief exportLightningToCSV Export Sunlight results of a given triangle into a csv.

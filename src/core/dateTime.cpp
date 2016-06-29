@@ -22,7 +22,7 @@ int encodeDateTime(int y, int m, int d, int h)
 }
 
 
-int encodeDateTime(std::string date, int hour)
+int encodeDateTime(const std::string& date, int hour)
 {
     //Split string
     std::string sYear = date.substr(0,4);
@@ -37,7 +37,7 @@ int encodeDateTime(std::string date, int hour)
     return encodeDateTime(year,month,day,hour);
 }
 
-int encodeDateTime(std::string datetime)
+int encodeDateTime(const std::string& datetime)
 {
     //Split string
     std::string sYear = datetime.substr(0,4);

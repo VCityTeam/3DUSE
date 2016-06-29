@@ -14,7 +14,7 @@ struct TriangleList;
 */
 FILTERS_EXPORT std::vector<Hit*> *RayTracing(
   TriangleList* triangles,
-  std::vector<Ray*> rays
+  const std::vector<Ray*>& rays
 );
 
 #endif

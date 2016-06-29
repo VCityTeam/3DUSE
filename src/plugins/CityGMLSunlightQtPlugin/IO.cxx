@@ -15,7 +15,7 @@
 #endif
 
 
-void createOutputFolders(QString sOutputDir)
+void createOutputFolders(const QString& sOutputDir)
 {
     //*** Create output folders
     QDir outputDirSunlight(sOutputDir + "SunlightOutput/");
@@ -31,7 +31,7 @@ void createOutputFolders(QString sOutputDir)
         outputDirMnt.mkpath(outputDirMnt.absolutePath());
 }
 
-void createFileFolder(FileInfo* file, QString sOutputDir)
+void createFileFolder(FileInfo* file, const QString& sOutputDir)
 {
     //Create folder corresponding to file
     QString path = sOutputDir + "SunlightOutput/" + QString::fromStdString(file->WithPrevFolder()) + "/";

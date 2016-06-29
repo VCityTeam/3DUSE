@@ -31,7 +31,7 @@ TriangleList::~TriangleList()
         delete triangles[i];
 }
 
-TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType)
+TriangleList* BuildTriangleList(const std::string& tilefilename, const citygml::CityObjectsType& objectType)
 {
     std::vector<Triangle*> triangles;
 
