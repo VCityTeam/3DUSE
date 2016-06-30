@@ -5,6 +5,12 @@
 #1848000 - 1843000 = 5000 -> 10 tiles x
 #5175500 - 5172500 = 3000 -> 6 tiles y
 
+# In the following code the hardwired constants represent:
+#  - 1843000 is the X offset 
+#  - 5172500 is the Y offset 
+#  - 500 is the X size 
+#  - 500 is the Y size 
+# The double nested loop enables to iterate on the tiles
 cd /home/maxime/src/VCity-build/build-Qt4-gcc-debug/
 
 for I in {0..9}
