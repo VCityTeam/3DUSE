@@ -57,6 +57,9 @@ configuration:
 
 # scripts to run before build
 before_build:
+# Get rid of pesky Xamarin build messages, refer to
+# http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
+  - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
   - IF EXIST %KIT_ROOT% SET CACHE=TRUE
 #
   - echo %CACHE%
@@ -85,7 +88,9 @@ before_build:
   - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
 #
   - cd %APPVEYOR_BUILD_FOLDER%
-  -  cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DWITH_QT5=%B_USE_QT5% -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON
+# If someday we use the binary kit of 2012 again, then the pertinent option
+# concerning OSG-QT will be -DBUILD_EMBARKED_OSG-QT_32=ON (i.e. 32 instead of 34).
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
