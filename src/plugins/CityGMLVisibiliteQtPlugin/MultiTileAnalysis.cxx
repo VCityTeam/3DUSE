@@ -1,28 +1,29 @@
-#include "Visibilite.hpp"
-
-#include "citygml.hpp"
-
-#include "gdal_priv.h"
-#include "cpl_conv.h" // for CPLMalloc()
-#include "ogrsf_frmts.h"
-
 #include <thread>
 #include <queue>
+#ifdef _MSC_VER                 
+  // Inhibit dll-interface warnings concerning gdal-1.11.4 internals
+  // (cpl_string.h) when including ogrsf_frmts.h and/or gdal_priv.h
+  // on VC++
+  # pragma warning(disable:4251) 
+#endif
+#include <ogrsf_frmts.h>
+#include <gdal_priv.h>    // Gdal
+#include <cpl_conv.h>     // Gdal for CPLMalloc()
 #include <qfileinfo.h>
 
-#include "raytracing/Hit.hpp"
+#include "Visibilite.hpp"
 #include "Export.hpp"
-#include "raytracing/RayTracing.hpp"
 #include "data/BelvedereDB.h"
 #include "AABB.hpp"
 #include "core/RayBox.hpp"
 
 /**
-*	@brief Calcule la distance 2D min entre une box et un point (la caméra)
+*	@brief Calcule la distance 2D min entre une box et un point (la camera)
 */
 float CalculDistMin(TVec3d camPos, AABB box)
 {
-	if(camPos.x >= box.min.x && camPos.x <= box.max.x && camPos.y >= box.min.y && camPos.y <= box.max.y) //Si la caméra est dans la box
+  //If the camera lies within the box
+	if(camPos.x >= box.min.x && camPos.x <= box.max.x && camPos.y >= box.min.y && camPos.y <= box.max.y) 
 		return 0;
 
 	TVec2d BoxP1 = TVec2d(box.min.x, box.min.y);
@@ -73,25 +74,19 @@ std::vector<BoxwithRays> Setup(std::vector<AABB> boxes, RayBoxCollection* rays, 
 				RayBoxHit hTemp;
 				hTemp.box = box;
 				hTemp.minDistance = hit0;
-				rayBox->boxes.push_back(hTemp); //On remplit la liste des boîtes intersectées par ce rayon
-
-				BoxInfo.IndicesRays.push_back(i); //On met l'indice de ce rayon dans la boite car il l'intersecte
+        // On remplit la liste des boites intersectees par ce rayon
+				rayBox->boxes.push_back(hTemp);
+        // On met l'indice de ce rayon dans la boite car il l'intersecte
+				BoxInfo.IndicesRays.push_back(i);
 			}
 		}
 
 		OrderedListBox.push_back(BoxInfo);
 	}
 
-	std::sort(OrderedListBox.begin(), OrderedListBox.end()); //On trie les boîtes suivant leur minDistance pour avoir les plus proches de la caméra en premier
-
-	/*std::cout << "CamPos : " << (camPos.x / 500) << " " << (camPos.y / 500) << std::endl;
-
-	for(BoxwithRays b:OrderedListBox)
-	{
-		std::cout << b.box.name << std::endl;
-		int a;
-		std::cin >> a;
-	}*/
+  // On trie les boites suivant leur minDistance pour avoir les plus
+  // proches de la camera en premier
+	std::sort(OrderedListBox.begin(), OrderedListBox.end());
 
 	return OrderedListBox;
 }
@@ -99,11 +94,6 @@ std::vector<BoxwithRays> Setup(std::vector<AABB> boxes, RayBoxCollection* rays, 
 std::string GetTilePrefixFromDistance(float distance, double DistLod1)
 {
 	std::string result = "";
-
-	/*if(distance > 5000)
-	result = "LOD0";
-	else*/ //if(distance > DistLod1)
-	//result = "LOD1";
 
 	return result;
 }
@@ -141,13 +131,15 @@ ViewPoint* DoMultiTileAnalysis(std::string dirTile, std::vector<AABB> boxes, osg
 	{
 		std::string tileName = currBox.box.name;
 
-		RayCollection raysTemp; //Parmi les rayons qui intersectent la box, il ne faut conserver que ceux qui n'ont pas déjà eu une intersection avec une boîte plus proche
-		//raysTemp.viewpoint = viewpoint;
+    // Parmi les rayons qui intersectent la box, il ne faut conserver
+    // que ceux qui n'ont pas deja eu une intersection avec une boite plus proche
+		RayCollection raysTemp;
 
-		//We get only the rays that intersect the box
+		// We get only the rays that intersect the box
 		for(unsigned int i : currBox.IndicesRays)
 		{
-			RayBox* raybox = raysBoxes->raysBB[i];//Get the ray
+      // Get the ray
+			RayBox* raybox = raysBoxes->raysBB[i]; 
 			bool inter = viewpoint->hits[int(raybox->fragCoord.x)][int(raybox->fragCoord.y)].intersect;//Check the viewpoint to see if at the ray coordinates we have intersect something in a previous iteration
 			if(!inter)
 			{
@@ -288,15 +280,12 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* 
 	std::cout << "===================================================" << std::endl;
 	std::cout << "Veget Done ! " << std::endl;
 	std::cout << "===================================================" << std::endl;
-	// ViewPoint* result<MyData> = DoMultiTileAnalysis(dirTile,boxes.<myData>,cam,citygml::CityObjectsType::COT_<MyDataType>);
-	// std::cout << "===================================================" << std::endl;
-	// std::cout << "<MyData> Done ! " << std::endl;
-	// std::cout << "===================================================" << std::endl;
 
 	//Merge all viewpoint into one
-	MergeViewpointTerrainOther(resultBis,resultTer); //Au cas où il y a de l'eau collé à du terrain, on les merge en donnant la priorité à l'eau.
+  // Au cas ou il y a de l'eau collee a du terrain, on les merge en donnant
+  // la priorite a l'eau.
+	MergeViewpointTerrainOther(resultBis,resultTer);
 	MergeViewpointTerrainOther(resultBis,resultQuad);
-	// MergeViewpoint(result,result<MyData>);
 	MergeViewpoint(result,resultBis);
 
 	//Get and export the results
@@ -321,15 +310,6 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* 
 	return returns;
 }
 
-/*std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile,osg::Camera* cam, unsigned int count, float zIncrement)
-{
-for(unsigned int i = 0; i <= 13; i++)
-MultiTileBasicAnalyse(dirTile, cam, std::to_string(i)+"_", 1000 * i);
-
-std::vector<ViewPoint*> L;
-
-return L;
-}*/
 std::vector<ViewPoint*> MultiTileCascadeAnalyse(std::string dirTile,osg::Camera* cam, unsigned int count, float zIncrement)
 {
 	//See monotile cascade analyse

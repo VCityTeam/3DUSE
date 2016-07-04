@@ -8,9 +8,12 @@
 #include <QMessageBox>
 #include <QDate>
 #include <QPluginLoader>
+#include <ctime>
+#include <time.h>
+
+#include "ui_mainWindow.h"
 
 #include "moc/mainWindow.hpp"
-#include "ui_mainWindow.h"
 #include "moc/dialogLoadBBox.hpp"
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
@@ -18,35 +21,37 @@
 
 #include "controllerGui.hpp"
 
-#include "citygml.hpp"
-#include "export/exportCityGML.hpp"
-#include "exportJSON.hpp"
-#include "exportOBJ.hpp"
+#include "libcitygml/citygml.hpp"
+#include "libcitygml/export/exportCityGML.hpp"
+#include "libcitygml/utils/exportJSON.hpp"
+#include "libcitygml/utils/exportOBJ.hpp"
 
 #include "importerAssimp.hpp"
 
 #include "gui/osg/osgScene.hpp"
 #include "gdal_priv.h"
 #include "osg/osgGDAL.hpp"
-
 #include "osg/osgAssimp.hpp"
-#include "src/DataStructures/DEM/osgMnt.hpp"
-
-#include "utils/CityGMLFusion.h"
 #include "osg/osgLas.hpp"
 
-#include "src/libcitygml/utils/CityGMLtools.hpp"
-#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
-#include "src/libfilters/ChangeDetection/ChangeDetection.hpp"
-#include "src/libfilters/EnhanceCityGML/LinkCityGMLShape.hpp"
-#include "src/libfilters/tiling/TilingCityGML.hpp"
-#include "src/libfilters/EnhanceCityGML/EnhanceMNT.hpp"
+#include "DataStructures/DEM/osgMnt.hpp"
+
+#include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
+#include "utils/CityGMLFusion.h"
+
+#include "libcitygml/utils/CityGMLtools.hpp"
+
+#include "filters/ChangeDetection/ChangeDetection.hpp"
+#include "filters/EnhanceCityGML/LinkCityGMLShape.hpp"
+#include "filters/Tiling/TilingCityGML.hpp"
+#include "filters/EnhanceCityGML/EnhanceMNT.hpp"
 
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
 #include "TiledFilesLayout.hpp"
 
-//CLEMENT LIB ADDING
+//FIXME: the following block (CLEMENT LIB ADDING) is used by one of the
+// test functions and can be made away together with those tests.
 #include <osg/PositionAttitudeTransform>
 #include "osg/osgInfo.hpp"
 #include "osg/osgQtWidget.hpp"
@@ -54,9 +59,9 @@
 #include <math.h>
 #include <osg/MatrixTransform>
 #include <core/layerInfo.hpp>
-#include "raytracing/RayTracing.hpp"
+#include "filters/raytracing/RayTracing.hpp"
 #include "Triangle.hpp"
-#include "raytracing/Hit.hpp"
+#include "filters/raytracing/Hit.hpp"
 #include <fstream>
 #include <string>
 #include "gui/applicationGui.hpp"
@@ -3015,8 +3020,9 @@ void MainWindow::test1()
 }
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
+//    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
+   std::string sourcepath = "/home/john/Alaric/vcity/data/Data/spreadsheet_testnolodilotdulac.csv";
 
     std::vector<osgInfo*> v_info;
     std::vector<float> v_height;
@@ -3035,6 +3041,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
     std::vector<std::string> v_filetype;
     std::vector<std::string> v_sourcetype;
     std::vector<std::string> v_LOD;
+    std::vector<std::string> v_publicationdate;
 
     // *** CSV Load
         std::ifstream file(sourcepath);
@@ -3093,6 +3100,9 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 
                 if(cpt==13)
                     v_priority.push_back(std::stod(cell));
+                if(cpt==14) {
+                    v_publicationdate.push_back(cell);
+                }
 
                 cpt++;
              }
@@ -3101,7 +3111,8 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
         for (std::size_t i=0; i<v_filepath.size(); ++i)
         {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
+                                         v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i],v_publicationdate[i]));
         }
 
 
@@ -3147,14 +3158,16 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         }
 
 
-         std::ofstream ofs;
+        std::ofstream ofs;
          ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
 
-         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
+         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
          for(osgInfo* i : v_info)
          {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
+              <<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
+              <<i->m_anchoring<<","<<i->m_priority<<i->m_publicationDate<<std::endl;
          }
          ofs.close();
 
@@ -3174,7 +3187,7 @@ void MainWindow::test2()
         v_info[i]->setBillboarding(true);
     }
 
-	//Création d'ilots à partir de Shapefile contenant des routes
+	//Creation d'ilots a partir de Shapefile contenant des routes
 //	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
 //	OGRLayer *LayerRoutes = Routes->GetLayer(0);
 //	OGRFeature *FeatureRoutes;
@@ -3210,7 +3223,7 @@ void MainWindow::test2()
 }
 
 
-// void MainWindow::test2() //Génération de stats pour étude de visibilité
+// void MainWindow::test2() //Generation de stats pour etude de visibilite
 // {
 // 	QTime time;
 // 	time.start();

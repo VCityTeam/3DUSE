@@ -54,6 +54,16 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                         layerInfo->computeDSC(cam, screenX, screenY, info);
 
                         info->setDisplayable(true);
+                        int year,month,day;
+                        sscanf(info->m_publicationDate.c_str(),"%d-%d-%d",&year,&month,&day);
+                        struct tm ptime;
+                        ptime.tm_year = year -1900;
+                        ptime.tm_mon= month -1;
+                        ptime.tm_mday = day;
+                        time_t publicationTime = mktime(&ptime);
+                        if(publicationTime > appGui().getMainWindow()->m_currentDate.toTime_t()){
+                             info->setDisplayable(false);
+                        }
 
                         if(info->isonScreen())
                         {

@@ -1,6 +1,5 @@
 #include "CityGMLtools.hpp"
-#include "src/utils/OGRGDAL_Utils/OGRGDALtools.hpp"
-////////////////////////////////////////////////////////////////////////////////
+#include "utils/OGRGDAL_Utils/OGRGDALtools.hpp"
 
 /**
 * @brief Projette les toits du CityObject selectionne sur le plan (xy)

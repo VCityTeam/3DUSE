@@ -11,7 +11,6 @@
 #include <osgGA/KeySwitchMatrixManipulator>
 #include <osgViewer/ViewerEventHandlers>
 #include <osg/io_utils>
-//#include <QtWidgets/QGridLayout>
 #include <QResizeEvent>
 #include <iostream>
 #include <sstream>
@@ -168,14 +167,10 @@ private:
 osgQtWidget::osgQtWidget(QWidget* parent)
     : QWidget(parent)//, m_osgScene(new osg::Group())
 {
-#ifdef Q_WS_X11
-    setThreadingModel(osgViewer::ViewerBase::CullThreadPerCameraDrawThreadPerContext);
-#else
-#if (WITH_QT5)
+#if( defined(MSVC) && defined(BUILD_GUI_QT5) )
     setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
 #else
     setThreadingModel(osgViewer::ViewerBase::CullThreadPerCameraDrawThreadPerContext);
-#endif
 #endif
     m_widget = addViewWidget(createGraphicsWindow(0, 0, 100, 100), parent);
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));

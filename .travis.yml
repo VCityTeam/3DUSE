@@ -13,7 +13,7 @@ cache: apt     # feature available only for private repositories
 #   - clang: Debug and Release over Qt4
 # - osx:
 #   - clang: Debug and Release over Qt4 and Qt5
-#     NOTE: under the hood OSX does in fact tow sub-jobs per job,
+#     NOTE: under the hood OSX does in fact two sub-jobs per job,
 #           since two Qt versions 4 and 5 are sequentially tested.
 # - Win32:  (not dealt with by Travis bu through Appveyor)
 #   - VC++: Debug and Release over Qt4 and Qt5
@@ -29,8 +29,8 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON"
 
 matrix:
   fast_finish: true
@@ -57,6 +57,8 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
+    # Already (indirectly) installed          brew install gdal
+    #
     # Fix unstatified dependency of libgdal.1.dylib that looks for
     # libspatialite.5.dylib (version 5) when the libspatialite formula installs
     # libspatialite.7.dylib (version 7). Trick libgdal in getting what it needs:
@@ -64,20 +66,42 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
 
 script:
+  # FIXME: try to deport laslib installation to install target
   - cd externals/laslib
   - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF; make; sudo make install
+  # Proceed with building:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
-  - mkdir build && cd build && cmake .. $BTYPE
+  - mkdir build && cd build
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  cmake .. $BTYPE; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - make
   - ctest
-  # OSX only: previous test was against qt4. Try the same but this time
-  # against qt5. The following is a perversion of the script target since
+  #### Test the Qt5 version
+  # Previous test were against qt4 which is the default version
+  # for both linux and osx. Try building and testing as above
+  # but this time against qt5. Note that since we need to first install
+  # the required Qt5 packages (for both platforms) the following
+  # is thus a perversion of the script target. 
   # we start by an internalized sub-install that installs Qt5.
-  # Unlinking qt4 suffices to avoid collisions with upcoming install of qt5
+    #### OSX Qt5 tests:
+    # First the install of Qt5
+    # Unlinking qt4 suffices to avoid collisions with upcoming install
+    # of qt5. Note that open-scene-graph is not re-installed and
+    # hence the native OSG-Qt (that links against Qt4) cannot be used 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
+    # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
-    # FIXME: make it so the QT5_DIR is not necessary (simplify cmake files)
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DWITH_QT5=YES -DQT5_DIR=/usr/local/opt/qt5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest; fi
+
+    ####  Linux Qt5 tests:
+    # First the install of Qt5
+    # Same remark as for OSX concerning the Qt version mismatch of libOSG-Qt
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi
+    # Now building 3DUse
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest; fi
