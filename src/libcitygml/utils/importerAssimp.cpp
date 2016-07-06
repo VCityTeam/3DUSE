@@ -94,11 +94,11 @@ namespace citygml
     assimpNodeToCityGML(aiScene, aiNode->mChildren[i], parent);
     }
     }*/
-    void ImporterAssimp::assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent)
+    void ImporterAssimp::assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent, QString Prefix)
     {
         static int id = 0;
 
-        std::string Name = std::to_string(id) + "_Building"/* + std::string(aiNode->mName.C_Str())*/;
+        std::string Name = Prefix.toStdString() + "_" + std::to_string(id) + "_Building"/* + std::string(aiNode->mName.C_Str())*/;
 
         citygml::CityObject* BuildingCO = new citygml::Building(Name);
         citygml::CityObject* RoofCO = new citygml::RoofSurface(Name + "_Roof");
@@ -180,27 +180,27 @@ namespace citygml
 
         for (unsigned int i = 0; i < aiNode->mNumChildren; ++i)
         {
-            assimpNodeToCityGML(aiScene, aiNode->mChildren[i], parent);
+            assimpNodeToCityGML(aiScene, aiNode->mChildren[i], parent, Prefix);
         }
     }
     ////////////////////////////////////////////////////////////////////////////////
-    CityModel* ImporterAssimp::assimpSceneToCityGML(const struct aiScene* aiScene)
+    CityModel* ImporterAssimp::assimpSceneToCityGML(const struct aiScene* aiScene, QString Prefix)
     {
         delete m_model;
         m_model = new CityModel(aiScene->mRootNode->mName.C_Str()); // build root model
-        CityObject* bldg = new Building(std::string("bldg_") + aiScene->mRootNode->mName.C_Str()); // build root building
+        CityObject* bldg = new Building(Prefix.toStdString() + std::string("_bldg_") + aiScene->mRootNode->mName.C_Str()); // build root building
         //m_model->addCityObject(bldg);
         //m_model->addCityObjectAsRoot(bldg);
 
         const aiNode* aiNode = aiScene->mRootNode;
-        assimpNodeToCityGML(aiScene, aiNode, bldg);
+        assimpNodeToCityGML(aiScene, aiNode, bldg, Prefix);
         ParserParams params;
         m_model->finish(params); // call this to triangulate the polygons
 
         return m_model;
     }
     ////////////////////////////////////////////////////////////////////////////////
-    CityModel* ImporterAssimp::import(const std::string& fileName, bool detectRoof) //detectRoof should be set at true to detect roofs and false if we only want wall polygons
+    CityModel* ImporterAssimp::import(const std::string& fileName, bool detectRoof, QString Prefix) //detectRoof should be set at true to detect roofs and false if we only want wall polygons
     {
         Assimp::Importer importer;
         // read file with assimp
@@ -208,7 +208,7 @@ namespace citygml
 
         _detectRoof = detectRoof;
         // convert it to CityGML
-        CityModel* model = assimpSceneToCityGML(aiScene);
+        CityModel* model = assimpSceneToCityGML(aiScene, Prefix);
         model->computeEnvelope();
 
         return model;
