@@ -45,10 +45,11 @@ namespace documentADE
       RT_PUBLIC=0,
       RT_PRIVATE
   };
+
   class DocumentObject:  public citygml::CityObject
   {
   public:
-      DocumentObject( const std::string& id ) : citygml::CityObject( id, citygml::COT_Document ){}
+      DocumentObject( const std::string& id ) : citygml::CityObject( id, citygml::COT_GenericCityObject ){}
       inline TVec4f getDefaultColor( void ) const
       {
          return MAKE_RGB( 10, 230, 1 );
