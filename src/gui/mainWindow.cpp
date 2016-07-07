@@ -681,8 +681,6 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     {
         ss << "ID : " << obj->getId() << std::endl;
         ss << "Type : " << obj->getTypeAsString() << std::endl;
-        //obj->l
-        ss << "Temporal : " << obj->isTemporal() << std::endl;
 
         ss << "Attributes : " << std::endl;
         citygml::AttributesMap attribs = obj->getAttributes();
@@ -3167,7 +3165,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
             ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
               <<","<<std::to_string(i->m_angle)<<",";
             ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
-              <<i->m_anchoring<<","<<i->m_priority<<i->m_publicationDate<<std::endl;
+              <<i->m_anchoring<<","<<i->m_priority<<","<<i->m_publicationDate<<std::endl;
          }
          ofs.close();
 

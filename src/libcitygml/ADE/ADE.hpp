@@ -47,9 +47,6 @@ protected:
 	bool* getAppearanceAssigned(){return &(gmlHandler->_appearanceAssigned);}
 	citygml::GeometryType* getCurrentGeometryType(){return &(gmlHandler->_currentGeometryType);}
 	void** getGeoTransform(){return &(gmlHandler->_geoTransform);}
-	citygml::CityObjectState** getCurrentState(){return &(gmlHandler->m_currentState);}
-	citygml::CityObjectDynState** getCurrentDynState(){return &(gmlHandler->m_currentDynState);}
-	citygml::CityObjectTag** getCurrentTag(){return &(gmlHandler->m_currentTag);}
 
 	//some gmlHandler methods
 	virtual std::string getAttribute( void*, const std::string&, const std::string&){return "";}
