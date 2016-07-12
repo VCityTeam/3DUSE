@@ -783,7 +783,7 @@ void osgInfo::computeOVas(std::vector< std::vector<float> > screen)
     {
         for(int j=std::floor(m_initsCornerMin.y()); j<std::floor(m_initsCornerMax.y()); ++j)
         {
-            if(screen[i][j]!=m_DCAM & screen[i][j]!=0)
+            if(screen[i][j]!=m_DCAM && screen[i][j]!=0)
             {
                 m_initOVa+=1;
             }
