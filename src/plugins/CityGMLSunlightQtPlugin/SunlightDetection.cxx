@@ -50,7 +50,7 @@ std::queue<RayBoxHit> SetupFileOrder(const std::vector<AABB>& boxes,RayBoxCollec
 
         std::sort(rayBox->boxes.begin(),rayBox->boxes.end());//Sort the boxes depending on their intersection distance
 
-        for(std::size_t j = 0; j < rayBox->boxes.size(); j++)//We update the order of each boxes
+        for(std::size_t j = 0; j < rayBox->boxes.size(); j++)//We update the order of each box
         {
             int current = boxToMaxOrder[rayBox->boxes[j].box.name];
             boxToMaxOrder[rayBox->boxes[j].box.name] = std::max(static_cast<int>(j),current);
@@ -185,6 +185,13 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 if(beamdir.second == TVec3d(0.0,0.0,0.0))
                     continue;
 
+                //if triangle is not oriented towards the sun, it is in the shadow
+                if(t->GetNormal().dot(beamdir.second) < 0.0)
+                {
+                    datetimeSunInfo[beamdir.first] = false;
+                    continue;
+                }
+
                 //Add an offset for raytracing. Without this offset, origin of the ray might be behind the barycenter,
                 //which will result in a collision between the ray its origin triangle
                 TVec3d tmpBarycenter = TVec3d(0.0,0.0,0.0);
@@ -241,10 +248,9 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 TriangleList* trianglesTemp;
 
                 if(fBoxHit.m_type == fileType::_BATI)
-                    trianglesTemp = BuildTriangleList(fBoxHit.m_filepath,citygml::CityObjectsType::COT_Building);
+                    trianglesTemp = BuildTriangleList2(fBoxHit.m_filepath,citygml::CityObjectsType::COT_Building,raysTemp.rays.at(0)->ori.z);
                 else if(fBoxHit.m_type == fileType::_MNT)
-                    trianglesTemp = BuildTriangleList(fBoxHit.m_filepath,citygml::CityObjectsType::COT_TINRelief);
-
+                    trianglesTemp = BuildTriangleList2(fBoxHit.m_filepath,citygml::CityObjectsType::COT_TINRelief,raysTemp.rays.at(0)->ori.z);
 
                 //Perform raytracing
                 std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,raysTemp.rays);
@@ -252,7 +258,6 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                 //Change sunlight information according to hits found
                 for(Hit* h : *tmpHits)
                 {
-                    //std::cout << h->ray.id
                     datetimeSunInfo[h->ray.id] = false;
                 }
 
@@ -290,8 +295,6 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
 
     }
 
-    /*(double)time.elapsed()/60000.0*/
-    /*<< " min."*/
     //Delete files info
     for(unsigned int i = 0 ; i < filenames.size() ; ++i)
         delete filenames[i];

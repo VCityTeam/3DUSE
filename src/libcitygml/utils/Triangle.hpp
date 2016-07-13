@@ -61,4 +61,10 @@ CITYGMLUTILS_EXPORT TriangleList* BuildTriangleList(
   const citygml::CityObjectsType& objectType
 );
 
+CITYGMLUTILS_EXPORT TriangleList* BuildTriangleList2(
+  const std::string& tilefilename,
+  const citygml::CityObjectsType& objectType,
+  const double& zMin
+);
+
 #endif

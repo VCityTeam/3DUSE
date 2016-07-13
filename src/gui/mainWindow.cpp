@@ -3374,6 +3374,26 @@ void MainWindow::test2()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
+    std::string file1path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10383.gml";
+
+    std::cout << "load citygml file : " << file1path << std::endl;
+    vcity::Tile* tile1 = new vcity::Tile(file1path);
+
+    citygml::CityModel * City1 = tile1->getCityModel();
+
+    citygml::Envelope envTest = City1->getEnvelope();
+
+    std::cout << "CityModel AABB LowerBound : " << envTest.getLowerBound() << std::endl;
+    std::cout << "CityModel AABB UpperBound : " << envTest.getUpperBound() << std::endl;
+
+    citygml::CityObjects cityObjRoots = City1->getCityObjectsRoots();
+
+    for(citygml::CityObject obj : cityObjRoots)
+    {
+
+    }
+
+#if 0
     //FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert a fusionner les tiles donc deux fichiers du meme nom seront fusionnes en un fichier contenant tous leurs objets a la suite.
 
     //// FusionLODs : prend deux fichiers modelisant les batiments avec deux lods differents et les fusionne en un seul
@@ -3432,6 +3452,8 @@ void MainWindow::test3()
     exporter.exportCityModel(*City2);
 
     QApplication::restoreOverrideCursor();
+
+#endif
 }
 
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
