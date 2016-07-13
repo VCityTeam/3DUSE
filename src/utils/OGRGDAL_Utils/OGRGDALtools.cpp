@@ -101,13 +101,6 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
             C.y = Ring->getY(i);
             C.z = Ring->getZ(i);
 
-            /*if ((C.x - A.x) / (B.x - A.x) != (C.y - A.y) / (B.y - A.y))
-            {
-                ++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
-                -AC = C - A;
-                break;
-            }*/
-
             AC = C - A;
 
             if (AB.x == 0 && AC.x != 0)
@@ -139,9 +132,6 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
     M.y = Point->getY();
 
     double s, t;
-
-    //t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
-    //s = (M.x - A.x - t * AC.x) / AB.x;
 
     if (AB.x != 0)
     {
