@@ -18,6 +18,7 @@
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
+#include "moc/dialogConvertObjToCityGML.hpp"
 
 #include "controllerGui.hpp"
 
@@ -2082,23 +2083,8 @@ void MainWindow::slotCutCityGMLwithShapefile()
 void MainWindow::slotObjToCityGML()
 {
     m_osgView->setActive(false);
-
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert OBJ to CityGML");
-
-    for (int i = 0; i < filenames.count(); ++i)
-    {
-        QFileInfo file(filenames[i]);
-        QString ext = file.suffix().toLower();
-        if (ext == "obj")
-        {
-            citygml::ImporterAssimp importer;
-            importer.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
-            citygml::CityModel* model = importer.import(file.absoluteFilePath().toStdString());
-
-            citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
-            exporter.exportCityModel(*model);
-        }
-    }
+    DialogConvertObjToCityGML diag(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+    diag.exec();
 
     m_osgView->setActive(true);
 }

@@ -490,6 +490,7 @@ add_library( VCityGui STATIC
   src/gui/dialogSettings.cpp
   src/gui/dialogShpTool.cpp
   src/gui/dialogTilingCityGML.cpp
+  src/gui/dialogConvertObjToCityGML.cpp
   src/gui/dialogYearOfConst.cpp
   src/gui/dialogYearOfDemol.cpp
   src/gui/mainWindow.cpp
