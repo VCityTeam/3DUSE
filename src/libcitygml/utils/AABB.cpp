@@ -34,12 +34,7 @@ bool operator<(const BoxwithRays& a, const BoxwithRays& b)
 
 // AABBCollection
 
-/**
-*	@brief Load a collection of box from a file
-*	@param path Path to the file
-*	@return A collection of box
-*/
-std::vector<AABB> DoLoadAABB(std::string path)
+std::vector<AABB> LoadAABBFile(std::string path)
 {
     std::vector<AABB> bSet;
 
@@ -90,7 +85,7 @@ std::vector<AABB> DoLoadAABB(std::string path)
     return bSet;
 }
 
-AABBCollection LoadAABB(std::string dir)
+AABBCollection LoadLayersAABBs(std::string dir)
 {
     // In order to add a new data set, uncomment exemple and replace fillers <..> by your data
     bool foundBuild = false;
@@ -153,19 +148,19 @@ AABBCollection LoadAABB(std::string dir)
 
 
     if (foundBuild)
-        bSet = DoLoadAABB(dir + "_BATI_AABB.dat");
+        bSet = LoadAABBFile(dir + "_BATI_AABB.dat");
 
     if (foundTerrain)
-        tSet = DoLoadAABB(dir + "_MNT_AABB.dat");
+        tSet = LoadAABBFile(dir + "_MNT_AABB.dat");
 
     if (foundWater)
-        wSet = DoLoadAABB(dir + "_WATER_AABB.dat");
+        wSet = LoadAABBFile(dir + "_WATER_AABB.dat");
 
     if (foundVeget)
-        vSet = DoLoadAABB(dir + "_VEGET_AABB.dat");
+        vSet = LoadAABBFile(dir + "_VEGET_AABB.dat");
 
     // if(foundVeget)
-    // <myData>Set = DoLoadAABB(dir+"_<MyDataSuffix>_AABB.dat");
+    // <myData>Set = LoadAABBFile(dir+"_<MyDataSuffix>_AABB.dat");
 
     AABBCollection collection;
     collection.building = bSet;

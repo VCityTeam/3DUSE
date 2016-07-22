@@ -68,10 +68,17 @@ struct CITYGMLUTILS_EXPORT AABBCollection
 CITYGMLUTILS_EXPORT void BuildAABB(std::string dir);
 
 /**
+*	@brief Load a collection of box from a file
+*	@param path Path to the file
+*	@return A collection of box
+*/
+CITYGMLUTILS_EXPORT std::vector<AABB> LoadAABBFile(std::string path);
+
+/**
 *	@brief Load an aabb set previously build
 *	@param dir Directory where citygml files are located, must contain several subdirectories, one for each data layer (terrain, building, water, ..)
 *	@return AABB Collection of the set of tiles
 */
-CITYGMLUTILS_EXPORT AABBCollection LoadAABB(std::string dir);
+CITYGMLUTILS_EXPORT AABBCollection LoadLayersAABBs(std::string dir);
 
 #endif

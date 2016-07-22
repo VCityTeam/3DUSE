@@ -3391,7 +3391,11 @@ void buildAABBs(std::string filepath)
 
     //ofs << "_BATI/3670_10383" << std::endl;
 
-    for (const citygml::CityObject* cityObj : city->getCityObjectsRoots())
+    citygml::CityObjects cityobjects = city->getCityObjectsRoots();
+
+    ofs_B_AABB << cityobjects.size() << std::endl;
+
+    for (const citygml::CityObject* cityObj : cityobjects)
     {
         citygml::Envelope envCityObj = cityObj->getEnvelope();
 
@@ -3404,7 +3408,11 @@ void buildAABBs(std::string filepath)
         ofs_B_AABB << std::to_string(envCityObj.getUpperBound().y) << std::endl;
         ofs_B_AABB << std::to_string(envCityObj.getUpperBound().z) << std::endl;
 
-        for (citygml::CityObject* subObj : cityObj->getChildren())
+        std::vector<citygml::CityObject*> cityobjchilds = cityObj->getChildren();
+
+        ofs_BP_AABB << cityobjchilds.size() << std::endl;
+
+        for (citygml::CityObject* subObj : cityobjchilds)
         {
             citygml::Envelope envSubObj2 = subObj->getEnvelope();
 
@@ -3452,7 +3460,6 @@ void MainWindow::test3()
 
         it.next();
     }
-
 
 #if 0
     std::string file1path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10383.gml";
