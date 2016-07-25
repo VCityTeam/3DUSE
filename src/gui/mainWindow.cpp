@@ -1925,65 +1925,6 @@ void MainWindow::slotSplitCityGMLBuildings()
     QApplication::restoreOverrideCursor();
     m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 
-
-    /*QSettings settings("liris", "virtualcity");
-    QString lastdir = settings.value("lastdir").toString();
-    QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
-    QFileInfo file1(filename1);
-    QString filepath1 = file1.absoluteFilePath();
-    QString ext1 = file1.suffix().toLower();
-    if(ext1 != "citygml" && ext1 != "gml")
-    {
-    std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
-    QApplication::restoreOverrideCursor();
-    return;
-    }
-    settings.setValue("lastdir", file1.dir().absolutePath());
-
-
-    QFileDialog w;
-    w.setWindowTitle("Selectionner le dossier de sortie");
-    w.setFileMode(QFileDialog::Directory);
-
-    if(w.exec() == 0)
-    {
-    std::cout << "Annulation : Dossier non valide." << std::endl;
-    return;
-    }
-
-    std::string Folder = w.selectedFiles().at(0).toStdString();
-
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
-
-    QTime time;
-    time.start();
-
-    vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath1.toStdString());
-
-    std::vector<TextureCityGML*> ListTextures;
-
-    citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML, &ListTextures);
-
-    delete BatiLOD2CityGML;
-
-    ModelOut->computeEnvelope();
-    citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_SplitBuildings.gml");
-    //exporter.exportCityModel(*ModelOut);
-
-    exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
-
-    delete ModelOut;
-
-    for(TextureCityGML* Tex:ListTextures)
-    delete Tex;
-
-    int millisecondes = time.elapsed();
-    std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-
-    std::cout << Folder + "/" + file1.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;*/
-
     return;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -2035,22 +1976,6 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
-
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
-
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
-
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", FALSE);
-
     QTime time;
     time.start();
 
@@ -2062,7 +1987,6 @@ void MainWindow::slotCutCityGMLwithShapefile()
     ModelOut->computeEnvelope();
 
     citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString() + "_CutBuildings.gml");
-    //citygml::ExporterCityGML exporter("A_CutBuildings.gml");
 
     exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
 
