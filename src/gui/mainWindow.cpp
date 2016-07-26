@@ -110,6 +110,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
 	connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
 	//connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
+    connect(m_ui->actionLoad_CSV, SIGNAL(triggered()), this, SLOT(loadHistory()));
 	connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
 	connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
 	connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
@@ -215,7 +216,7 @@ MainWindow::~MainWindow()
     delete m_osgView;
     delete m_ui;
 }
-////////////////////////////////////////////////////////////////////////////////
+
 // Plugins
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadPlugins()
@@ -551,6 +552,40 @@ void MainWindow::loadScene()
     m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::loadHistory();
+{
+    m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
+
+    std::cout << "Load Scene" << std::endl;
+
+    QSettings settings("liris", "virtualcity");
+    QString lastdir = settings.value("lastdir").toString();
+    QStringList CSVfilenames = QFileDialog::getOpenFileNames(this, "Sélectionner le fichier CSV", lastdir);
+
+    QString GMLdirectory = QFileDialog::getExistingDirectory(this, tr("Sélectionner le fichier Tuiles"),lastdir,QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    std::cout << "directory : " << GMLdirectory.toStdString() << std::endl;
+
+    if(!GMLdirectory.isNull())
+    {
+        for (int i = 0; i < CSVfilenames.count(); ++i)
+        {
+            QFileInfo file(CSVfilenames[i]);
+            bool success = loadCSV(file.absoluteFilePath(), GMLdirectory);
+            if (success)
+            {
+                // save path
+                QFileInfo file(CSVfilenames[i]);
+                //std::cout << "lastdir : " << file.dir().absolutePath().toStdString() << std::endl;
+                settings.setValue("lastdir", file.dir().absolutePath());
+            }
+        }
+    }
+
+    updateRecentFiles();
+
+    m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
+}
+////////////////////////////////////////////////////////////////////////////////
 void buildRecursiveFileList(const QDir& dir, QStringList& list)
 {
     QDirIterator iterator(dir.absolutePath(), QDirIterator::Subdirectories);
@@ -659,6 +694,7 @@ void MainWindow::loadSceneBBox()
     DialogLoadBBox diag;
     diag.exec();
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTextBox(const std::stringstream& ss)
 {
@@ -3017,9 +3053,249 @@ void MainWindow::test1()
 
     QApplication::restoreOverrideCursor();
 }
-std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
+bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_test3.csv";
+
+    // date check
+    if (QDate::currentDate() > QDate(2016, 12, 31))
+    {
+        QMessageBox(QMessageBox::Critical, "Error", "Expired").exec();
+        return false;
+    }
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QFileInfo file(CSVfilepath);
+
+    if (!file.exists())
+    {
+        removeRecentFile(CSVfilepath);
+        QApplication::restoreOverrideCursor();
+        return false;
+    }
+
+    QString ext = file.suffix().toLower();
+    if (ext == "csv")
+    {
+        std::cout << "load csv file : " << CSVfilepath.toStdString() << std::endl;
+
+        //v_info = loadCSV2(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+
+        double offsetx=m_app.getSettings().getDataProfile().m_offset.x;
+        double offsety=m_app.getSettings().getDataProfile().m_offset.y;
+
+        std::string sourcepath = CSVfilepath.toStdString();
+        std::string tilesdirectory = DIRfilepath.toStdString();
+
+        std::vector<osgInfo*> v_info;
+        std::vector<float> v_height;
+        std::vector<float> v_width;
+        std::vector<double> v_angle;
+        std::vector<float> v_anchoring;
+
+        std::vector<int> v_priority;
+
+        std::vector<osg::Vec3> v_position;
+        std::vector<osg::Vec3> v_axis;
+
+
+        std::vector<std::string> v_filepath;
+        std::vector<std::string> v_name;
+        std::vector<std::string> v_filetype;
+        std::vector<std::string> v_sourcetype;
+        std::vector<std::string> v_LOD;
+
+    // *** CSV Load
+        std::ifstream file(sourcepath);
+        std::string line;
+        std::getline(file,line); //get the first line
+        int cpt = 0 ;
+        float x=0;
+        float y=0;
+        float z=0;
+        while(std::getline(file,line)) // For all lines of csv file
+        {
+            std::stringstream  lineStream(line);
+            std::string        cell;
+            cpt=0;
+            x=0;
+            y=0;
+            z=0;
+            while(std::getline(lineStream,cell,','))
+            {
+                if (cpt==0)
+                        v_height.push_back(std::stod(cell));
+                if (cpt==1)
+                        v_width.push_back(std::stod(cell));
+                if (cpt==2)
+                        x=std::stod(cell);
+
+                if (cpt==3)
+                        y=std::stod(cell);
+
+                if (cpt==4)
+                        z=std::stod(cell);
+
+                if (cpt==5)
+                        v_angle.push_back(std::stod(cell));
+                if (cpt==6)
+                {
+                    if(cell=="z")
+                        v_axis.push_back(osg::Vec3(0,0,1));
+                }
+                if (cpt==7)
+                        v_filepath.push_back(cell);
+
+                if (cpt==8)
+                        v_name.push_back(cell);
+
+                if (cpt==9)
+                        v_filetype.push_back(cell);
+
+                if (cpt==10)
+                        v_sourcetype.push_back(cell);
+
+                if (cpt==11)
+                    v_LOD.push_back(cell);
+                if (cpt==12)
+                    v_anchoring.push_back(std::stod(cell));
+
+                if(cpt==13)
+                    v_priority.push_back(std::stod(cell));
+
+                cpt++;
+             }
+            v_position.push_back(osg::Vec3(x,y,z));
+        }
+        std::cout<<"[MainWindow > loadHistory > loadCSV].....file parsed"<<std::endl;
+        for (std::size_t i=0; i<v_filepath.size(); ++i)
+        {
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
+        }
+
+        int cpt2=0;
+        int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
+        bool raytracing = false;
+
+        std::vector<std::string> vecTile;
+        bool tilefound ;
+
+        std::vector< std::vector<Ray*> > vecRay;
+
+        for(osgInfo* i : v_info)
+        {
+            if(i->m_anchoring==0)
+            {
+                osg::Vec3 pos = i->getPosition();
+                TVec3d ori = TVec3d(pos.x()+offsetx,pos.y()+offsety,pos.z());
+                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), id);
+
+                int tileX = floor((pos.x()+offsetx)/500);
+                int tileY = floor((pos.y()+offsety)/500);
+                std::string tilename = std::to_string(tileX)+"_"+std::to_string(tileY)+".gml";
+                tilefound = false;
+                for(std::size_t j=0; j<vecTile.size(); ++j)
+                {
+                    if(vecTile[j]==tilename)
+                    {
+                        vecRay[j].push_back(tmp_ray);
+                        tilefound = true;
+                    }
+                }
+                if(!tilefound)
+                {
+                    vecTile.push_back(tilename);
+                    std::vector<Ray*> newtile;
+                    newtile.push_back(tmp_ray);
+                    vecRay.push_back(newtile);
+                }
+                raytracing = true;
+                cpt2++;
+            }
+            ++id;
+        }
+
+        std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
+
+        if(raytracing)
+        {
+            for(std::size_t j=0; j<vecTile.size(); ++j)
+            {
+                std::cout<<"In file : "<<tilesdirectory<<std::endl;
+                std::cout<<"    ... open tile : "<<vecTile[j]<<std::endl;
+                std::string batipath=tilesdirectory+"/_BATI/"+vecTile[j];
+                std::string mntpath=tilesdirectory+"/_MNT/"+vecTile[j];
+
+                TriangleList* triangles_bati = BuildTriangleList(batipath, citygml::CityObjectsType::COT_Building);
+                TriangleList* triangles_mnt = BuildTriangleList(mntpath, citygml::CityObjectsType::COT_TINRelief);
+
+                TriangleList* triangles = new TriangleList();
+                triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_mnt->triangles.size());
+
+                triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
+                triangles->triangles.insert(triangles->triangles.end(), triangles_mnt->triangles.begin(), triangles_mnt->triangles.end());
+
+                std::vector<Hit*>* v_hit = RayTracing(triangles, vecRay[j]);
+
+                for(Hit* h : *(v_hit))
+                {
+                    v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
+                }
+
+            }
+
+
+//            TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
+//            TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
+
+//            TriangleList* triangles = new TriangleList();
+//            triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
+
+//            triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
+//            triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
+
+//            std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
+
+//            for(Hit* h : *(v_hit))
+//            {
+//                v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
+//            }
+
+        }
+
+
+         std::ofstream ofs;
+         ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
+
+         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
+         for(osgInfo* i : v_info)
+         {
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
+         }
+         ofs.close();
+
+
+
+
+
+
+        vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
+        appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
+
+        for (std::size_t i=0; i<v_info.size() ; ++i)
+        {
+            v_info[i]->setBillboarding(true);
+        }
+
+        addRecentFile(CSVfilepath);
+    }
+
+}
+
+std::vector<osgInfo*> loadCSV2(float offsetx, float offsety)
+{
+
+    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
 
     std::vector<osgInfo*> v_info;
@@ -3165,11 +3441,12 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         return v_info;
 }
 
+
 void MainWindow::test2()
 {
 
     std::vector<osgInfo*> v_info;
-    v_info = loadCSV(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+    v_info = loadCSV2(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
     vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
     appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 
