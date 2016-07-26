@@ -33,9 +33,6 @@ public:
     QTreeWidgetItem* createItemRoot();
     QTreeWidgetItem* createItemLayer(const QString& name, const QString& type);
 
-    QTreeWidgetItem* addItemTag();
-    QTreeWidgetItem* addItemState();
-
     void deleteItem(const std::string& URI);
     void deleteItem(const vcity::URI& URI);
 
@@ -98,15 +95,6 @@ private slots:
     void slotAddBuilding();
     void slotEditBuilding();
     void slotDeleteBuilding();
-    void slotAddState();
-    void slotAddDynState();
-    void slotAddTag();
-    void slotEditState();
-    void slotEditDynState();
-    void slotEditTag();
-    void slotDeleteState();
-    void slotDeleteDynState();
-    void slotDeleteTag();
     void slotCheckAll();
     void slotUnCheckAll();
     void slotAddDoc();
@@ -144,15 +132,6 @@ private:
     QAction* m_actionAddBuilding;
     QAction* m_actionEditBuilding;
     QAction* m_actionDeleteBuilding;
-    QAction* m_actionAddState;
-    QAction* m_actionAddDynState;
-    QAction* m_actionAddTag;
-    QAction* m_actionEditState;
-    QAction* m_actionEditDynState;
-    QAction* m_actionEditTag;
-    QAction* m_actionDeleteState;
-    QAction* m_actionDeleteDynState;
-    QAction* m_actionDeleteTag;
     QAction* m_actionSelectAll;
     QAction* m_actionDeSelectAll;
     QAction* m_actionAddDoc;

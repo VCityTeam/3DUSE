@@ -527,63 +527,9 @@ namespace citygml
 		case citygml::COT_CeilingSurface:
             res = exportCityObjetGenericXml(obj, "bldg:CeilingSurface", parent, true);
 			break;
-        case citygml::COT_Document:
-            res = exportCityObjetGenericXml(obj, "doc:DocumentObject", parent, true);
-            break;
 		default:
 			break;
 		}
-
-		if(!m_temporalExport) // export TAGs and STATEs
-		{   
-			for(CityObjectState* state : obj.getStates())
-			{
-				xmlNodePtr r = exportCityObjetStateXml(*state, type + state->getParent()->getTypeAsString(), parent);
-
-				// build apperance node for current node
-				/*if(rootLevel)
-				{
-					m_currentAppearence = xmlNewChild(r, NULL, BAD_CAST "app:appearance", NULL);
-				}*/
-
-				if(state->getGeom())
-				{
-					for(const auto& geom : state->getGeom()->getGeometries())
-					{
-						exportGeometryXml(*geom, r);
-					}
-
-					for(const auto& child : state->getGeom()->getChildren())
-					{
-						exportCityObjetXml(*child, r);
-					}
-				}
-			}
-			for(CityObjectTag* tag : obj.getTags())
-			{
-				xmlNodePtr r = exportCityObjetTagXml(*tag, type + tag->getParent()->getTypeAsString(), parent);
-
-				// build apperance node for current node
-				/*if(rootLevel)
-				{
-					m_currentAppearence = xmlNewChild(r, NULL, BAD_CAST "app:appearance", NULL);
-				}*/
-
-				if(tag->getGeom())
-				{
-					for(const auto& geom : tag->getGeom()->getGeometries())
-					{
-						exportGeometryXml(*geom, r);
-					}
-
-					for(const auto& child : tag->getGeom()->getChildren())
-					{
-						exportCityObjetXml(*child, r);
-					}
-				}
-			}
-		}
-
 		// build apperance node for current node //// F.pedrinis 10/03/16 : Utilite d'un <app:appearance/> vide a chaque city object ? Donc retrait car bug lors de l'ouverture avec la nouvelle libcitygml.
 		/*if(rootLevel)
 		{

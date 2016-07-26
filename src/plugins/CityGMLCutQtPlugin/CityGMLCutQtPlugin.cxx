@@ -21,6 +21,6 @@ int CityGMLCutQtPlugin::cmdline(QString s_IN, QString s_OUT, unsigned int ui_G_x
 	return res;
 }
 
-#if QT_VERSION < 0x050000 // (for QT4)
+#if( defined(BUILD_GUI_QT4) )
 Q_EXPORT_PLUGIN2(CityGMLCutQtPlugin, CityGMLCutQtPlugin)
 #endif

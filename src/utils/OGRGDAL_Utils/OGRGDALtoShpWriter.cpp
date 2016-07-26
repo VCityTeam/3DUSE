@@ -11,10 +11,13 @@
 */
 void SaveGeometrytoShape(std::string name, const OGRGeometryCollection* G)
 {
-    std::string Path = name.substr(0, name.find_last_of('/'));
+    if (name.find('/') != std::string::npos)
+    {
+        std::string Path = name.substr(0, name.find_last_of('/'));
 
-    if (!QDir(QString::fromStdString(Path)).exists())
-        QDir().mkdir(QString::fromStdString(Path));
+        if (!QDir(QString::fromStdString(Path)).exists())
+            QDir().mkdir(QString::fromStdString(Path));
+    }
 
     const char * DriverName = "ESRI Shapefile";
     OGRSFDriver * Driver;

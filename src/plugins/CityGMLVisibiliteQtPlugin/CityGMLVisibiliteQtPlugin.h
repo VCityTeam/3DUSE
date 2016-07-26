@@ -11,7 +11,7 @@ class CityGMLVisibiliteQtPlugin :
 {
     Q_OBJECT
     Q_INTERFACES(Generic_PluginInterface)	
-#if (WITH_QT5) // see at the end of .cxx for QT4
+#if(BUILD_GUI_QT5) // Refer to the end of .cxx for QT4 equivalent
     Q_PLUGIN_METADATA(IID "CityGMLVisibiliteQtPlugin")
 #endif
         
