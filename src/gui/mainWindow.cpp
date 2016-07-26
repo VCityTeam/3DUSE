@@ -552,11 +552,9 @@ void MainWindow::loadScene()
     m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::loadHistory();
+void MainWindow::loadHistory()
 {
     m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
-
-    std::cout << "Load Scene" << std::endl;
 
     QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
@@ -3103,6 +3101,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         std::vector<std::string> v_filetype;
         std::vector<std::string> v_sourcetype;
         std::vector<std::string> v_LOD;
+        std::vector<std::string> v_publicationdate;
 
     // *** CSV Load
         std::ifstream file(sourcepath);
@@ -3161,15 +3160,18 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 
                 if(cpt==13)
                     v_priority.push_back(std::stod(cell));
+                if(cpt==14)
+                    v_publicationdate.push_back(cell);
 
                 cpt++;
              }
             v_position.push_back(osg::Vec3(x,y,z));
         }
-        std::cout<<"[MainWindow > loadHistory > loadCSV].....file parsed"<<std::endl;
+
         for (std::size_t i=0; i<v_filepath.size(); ++i)
         {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
+                                         v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i],v_publicationdate[i]));
         }
 
         int cpt2=0;
@@ -3243,36 +3245,19 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 
             }
 
-
-//            TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
-//            TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
-
-//            TriangleList* triangles = new TriangleList();
-//            triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
-
-//            triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
-//            triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
-
-//            std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
-
-//            for(Hit* h : *(v_hit))
-//            {
-//                v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
-//            }
-
         }
 
-
-         std::ofstream ofs;
-         ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
-
-         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
-         for(osgInfo* i : v_info)
-         {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
-         }
-         ofs.close();
+        std::ofstream ofs;
+        ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
+        ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
+        for(osgInfo* i : v_info)
+        {
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
+                                 <<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
+                                <<i->m_anchoring<<","<<i->m_priority<<","<<i->m_publicationDate<<std::endl;
+        }
+        ofs.close();
 
 
 
@@ -3292,202 +3277,9 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 
 }
 
-std::vector<osgInfo*> loadCSV2(float offsetx, float offsety)
-{
-
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
-
-
-    std::vector<osgInfo*> v_info;
-    std::vector<float> v_height;
-    std::vector<float> v_width;
-    std::vector<double> v_angle;
-    std::vector<float> v_anchoring;
-
-    std::vector<int> v_priority;
-
-    std::vector<osg::Vec3> v_position;
-    std::vector<osg::Vec3> v_axis;
-
-
-    std::vector<std::string> v_filepath;
-    std::vector<std::string> v_name;
-    std::vector<std::string> v_filetype;
-    std::vector<std::string> v_sourcetype;
-    std::vector<std::string> v_LOD;
-
-    // *** CSV Load
-        std::ifstream file(sourcepath);
-        std::string line;
-        std::getline(file,line); //get the first line
-        int cpt = 0 ;
-        float x=0;
-        float y=0;
-        float z=0;
-        while(std::getline(file,line)) // For all lines of csv file
-        {
-            std::stringstream  lineStream(line);
-            std::string        cell;
-            cpt=0;
-            x=0;
-            y=0;
-            z=0;
-            while(std::getline(lineStream,cell,','))
-            {
-                if (cpt==0)
-                        v_height.push_back(std::stod(cell));
-                if (cpt==1)
-                        v_width.push_back(std::stod(cell));
-                if (cpt==2)
-                        x=std::stod(cell);
-
-                if (cpt==3)
-                        y=std::stod(cell);
-
-                if (cpt==4)
-                        z=std::stod(cell);
-
-                if (cpt==5)
-                        v_angle.push_back(std::stod(cell));
-                if (cpt==6)
-                {
-                    if(cell=="z")
-                        v_axis.push_back(osg::Vec3(0,0,1));
-                }
-                if (cpt==7)
-                        v_filepath.push_back(cell);
-
-                if (cpt==8)
-                        v_name.push_back(cell);
-
-                if (cpt==9)
-                        v_filetype.push_back(cell);
-
-                if (cpt==10)
-                        v_sourcetype.push_back(cell);
-
-                if (cpt==11)
-                    v_LOD.push_back(cell);
-                if (cpt==12)
-                    v_anchoring.push_back(std::stod(cell));
-
-                if(cpt==13)
-                    v_priority.push_back(std::stod(cell));
-
-                cpt++;
-             }
-            v_position.push_back(osg::Vec3(x,y,z));
-        }
-        std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
-        for (std::size_t i=0; i<v_filepath.size(); ++i)
-        {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
-        }
-
-
-        std::vector<Ray*> v_ray;
-        int cpt2=0;
-        int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
-        bool raytracing = false;
-
-        for(osgInfo* i : v_info)
-        {
-            if(i->m_anchoring==0)
-            {
-                osg::Vec3 osgvec3 = i->getPosition();
-                TVec3d ori = TVec3d(osgvec3.x()+offsetx,osgvec3.y()+offsety,osgvec3.z());
-                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), id);
-                v_ray.push_back(tmp_ray);
-                raytracing = true;
-                cpt2++;
-            }
-            ++id;
-        }
-
-        std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
-
-        if(raytracing)
-        {
-            TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
-            TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
-
-            TriangleList* triangles = new TriangleList();
-            triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
-
-            triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
-            triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
-
-            std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
-
-            for(Hit* h : *(v_hit))
-            {
-                v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
-            }
-
-        }
-
-
-         std::ofstream ofs;
-         ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
-
-         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
-         for(osgInfo* i : v_info)
-         {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
-         }
-         ofs.close();
-
-        return v_info;
-}
-
-
 void MainWindow::test2()
 {
-
-    std::vector<osgInfo*> v_info;
-    v_info = loadCSV2(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
-    vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
-    appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
-
-    for (std::size_t i=0; i<v_info.size() ; ++i)
-    {
-        v_info[i]->setBillboarding(true);
-    }
-
-	//Creation d'ilots a partir de Shapefile contenant des routes
-//	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-//	OGRLayer *LayerRoutes = Routes->GetLayer(0);
-//	OGRFeature *FeatureRoutes;
-//	LayerRoutes->ResetReading();
-
-//	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-//	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-//	{
-//		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
-
-//		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-//		{
-//			ReseauRoutier->addGeometry(Route);
-//		}
-//	}
-
-
-//	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
-
-//	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
-//    std::cout<<"[MainWindow > test2].....CSV loaded"<<std::endl;
-
-//	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-//	{
-//		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-//		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-//			ReseauMP->addGeometry(temp);
-//	}
-
-//	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
-
-//	delete ReseauRoutier;
+    std::cout<<"Rien"<<std::endl;
 }
 
 
