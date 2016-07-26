@@ -103,6 +103,9 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
             cam->getViewMatrixAsLookAt(pos,target,up);
 
 
+
+
+
             float RDS = (TDa-TOVa)/Sa ; //ratio of all document area to screen area
             float RNDs = NDs/ND; //ratio of all document displayed
             float RNDh = NDh/NDs; //ratio of document hidden

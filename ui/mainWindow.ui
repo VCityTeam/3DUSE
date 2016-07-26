@@ -270,7 +270,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -414,6 +414,12 @@
      <string>Plugins</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuHistory">
+    <property name="title">
+     <string>History</string>
+    </property>
+    <addaction name="actionLoad_CSV"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuScene"/>
@@ -423,6 +429,7 @@
    <addaction name="menuDebug"/>
    <addaction name="menuTest"/>
    <addaction name="menuPlugins"/>
+   <addaction name="menuHistory"/>
    <addaction name="menu"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -816,6 +823,11 @@
   <action name="actionCut_MNT_with_Shapefile">
    <property name="text">
     <string>Cut MNT with Shapefile</string>
+   </property>
+  </action>
+  <action name="actionLoad_CSV">
+   <property name="text">
+    <string>Load CSV...</string>
    </property>
   </action>
  </widget>

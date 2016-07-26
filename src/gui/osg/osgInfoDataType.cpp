@@ -86,9 +86,6 @@ void InfoDataType::OVaDisplay(int screenX, int screenY, std::map<float, osgInfo 
     {
         farthestDCAM=0;
         osgInfo* c_info = it1->second;
-//        if(c_info->m_name=="opera")
-//            std::cout<<"Opera OVa% = "<<c_info->m_initOVa/c_info->m_Da;
-
         if((c_info->m_initOVa/c_info->m_Da)>0.3)//if document hidden at its init position
         {
             if(c_info->m_name=="opera")
@@ -99,11 +96,6 @@ void InfoDataType::OVaDisplay(int screenX, int screenY, std::map<float, osgInfo 
             {
                 for(size_t j=0; j<c_info->m_OVaMatrix[i].size(); ++j)
                 {
-                    //                        if(c_info->m_name=="opera")
-                    //                        {
-                    //                            std::cout<<"Opera DCAM = "<<c_info->m_DCAM<<std::endl;
-                    //                            std::cout<<"Opera farthestDCAM "<<farthestDCAM<<std::endl;
-                    //                        }
                     if(c_info->m_OVaMatrix[i][j]!=c_info->m_DCAM && c_info->m_OVaMatrix[i][j]>=farthestDCAM)
                     {
                         farthestDCAM=c_info->m_OVaMatrix[i][j];
