@@ -7,7 +7,6 @@
 #include "filters/raytracing/RayTracing.hpp"
 #include "filters/raytracing/Hit.hpp"
 #include "core/RayBox.hpp"
-#include "quaternion.hpp"
 #include "core/dateTime.hpp"
 #include "IO.h"
 #include "FileInfo.h"
@@ -150,7 +149,7 @@ void RayTraceTriangles(const std::string& filepath, const citygml::CityObjectsTy
     trianglesTemp = BuildTriangleList(filepath,fileType, cityObjId, rayColl.rays.at(0)->ori.z);
 
     //Perform raytracing
-    std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,rayColl.rays);
+    std::vector<Hit*>* tmpHits = RayTracing(trianglesTemp,rayColl.rays, true);
 
     for(Hit* h : *tmpHits)
     {
