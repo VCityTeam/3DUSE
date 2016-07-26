@@ -50,11 +50,12 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                         osg::Node* node = subSwitch->getChild(j);
                         osgInfo* info = dynamic_cast<osgInfo*>(node);
 
-                        layerInfo->computeDCAM(cam, info);
-                        layerInfo->computeDSC(cam, screenX, screenY, info);
+                        info->computeDCAM(cam);
+                        info->computeDSC(cam, screenX, screenY);
 
                         info->setDisplayable(true);
-			info->updateDisplayability();
+                        //info->updateDisplayability();
+
                         int year,month,day;
                         sscanf(info->m_publicationDate.c_str(),"%d-%d-%d",&year,&month,&day);
                         struct tm ptime;
@@ -65,6 +66,7 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                         if(publicationTime > appGui().getMainWindow()->m_currentDate.toTime_t()){
                              info->setDisplayable(false);
                         }
+
 
                         if(info->isonScreen())
                         {
@@ -99,7 +101,6 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
             osg::Vec3d target;
             osg::Vec3d up;
             cam->getViewMatrixAsLookAt(pos,target,up);
-            std::cout<<std::endl;
 
 
             float RDS = (TDa-TOVa)/Sa ; //ratio of all document area to screen area
@@ -107,12 +108,12 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
             float RNDh = NDh/NDs; //ratio of document hidden
 
 
-            std::cout<<"RNDs = "<<RNDs*100<<"%"<<std::endl;
-            std::cout<<"RNDh = "<<RNDh*100<<"%"<<std::endl;
-            std::cout<<"RTDa = "<<TDa/Sa*100<<"%"<<std::endl;
-            std::cout<<"ROVa = "<<TOVa/Sa*100<<"%"<<std::endl;
-            std::cout<<"RDS = "<<RDS*100<<"%"<<std::endl;
-            std::cout<<std::endl;
+//            std::cout<<"RNDs = "<<RNDs*100<<"%"<<std::endl;
+//            std::cout<<"RNDh = "<<RNDh*100<<"%"<<std::endl;
+//            std::cout<<"RTDa = "<<TDa/Sa*100<<"%"<<std::endl;
+//            std::cout<<"ROVa = "<<TOVa/Sa*100<<"%"<<std::endl;
+//            std::cout<<"RDS = "<<RDS*100<<"%"<<std::endl;
+//            std::cout<<std::endl;
 
 //            layerInfo->stairedDisplay(map_info);
 //            layerInfo->stairedDisplay(map_street);

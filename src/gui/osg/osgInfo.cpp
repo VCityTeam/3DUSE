@@ -32,7 +32,7 @@ osgInfo::osgInfo()
 }
 
 osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3 axis, std::string filepath, std::string name, std::string type,
-                 std::string source, std::string lod, float anchor, int priority,    std::string publicationDate)
+                 std::string source, std::string lod, float anchor, int priority, std::string publicationDate)
 {
     //Fill members from constructor parameters
     m_texture = new osg::Texture2D;
