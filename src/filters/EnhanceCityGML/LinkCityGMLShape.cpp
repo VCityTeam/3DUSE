@@ -837,8 +837,8 @@ OGRGeometry* CreatePointsOnLine(OGRGeometry* Points, OGRGeometry* Lines)
             GC_Lines->addGeometry(Lines);
         }
         return CreatePointsOnLine(GC_Points, GC_Lines);
-        //return nullptr;
     }
+
     OGRPolygon * PolyP = (OGRPolygon*)Points;
     OGRLinearRing * ExtRingP = PolyP->getExteriorRing();
 
@@ -1720,9 +1720,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
     ///On effectue un premier passage afin de detecter les murs qu'il faudra generer pour avoir des batiments fermes
     std::vector<OGRMultiLineString*>* ListGeneratedWalls = new std::vector<OGRMultiLineString*>[FootprintsShape->size()];
 
-    //OGRGeometryCollection* Test = new OGRGeometryCollection; //Aretes internes
-    //OGRGeometryCollection* Test2 = new OGRGeometryCollection; //Aretes internes 3D
-
     int cpt = -1;
 
     for (citygml::CityObject* obj : ModelGML->getCityObjectsRoots())
@@ -1842,40 +1839,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                 if (Footprint1->Distance(Footprint2) > Precision_Vect)
                     continue;
 
-                //OGRGeometryCollection* Footprint1WithPoints = CreatePointsOnLine(Footprint2, Footprint1);
-                //OGRGeometryCollection* Footprint2WithPoints = CreatePointsOnLine(Footprint1, Footprint2);
-
                 OGRMultiLineString* ListAretesIntersection = new OGRMultiLineString;
-
-                /*std::vector<OGRMultiLineString*> LineStringsFootprint1 = GetLineStringsFromMultiPolygon(Footprint1WithPoints);
-
-                for(OGRMultiLineString* MultiLS1 : LineStringsFootprint1) //Chaque MultiLineString correspond a un Ring (exterior ou interior) parmi ceux des polygones de Footprint1WithPoints
-                {
-                for(int L1 = 0; L1 < MultiLS1->getNumGeometries(); ++L1)
-                {
-                OGRLineString* Ring1 = MultiLS1->getGeometryRef(L1); // Un LineString issu GetLineStringsFromMultiPolygon correspond a seulement deux points.
-
-                if(Ring1->Distance(Geo2) > Precision_Vect)
-                continue;
-
-                OGRPoint* P1 = new OGRPoint;
-                OGRPoint* P2 = new OGRPoint;
-
-                Ring1->getPoint(0, P1);
-                Ring1->getPoint(1, P2);
-
-                if(P1->Distance(Geo2) < Precision_Vect && P2->Distance(Geo2) < Precision_Vect)
-                {
-                OGRLineString* LineInter = new OGRLineString;
-                LineInter->addPoint(P1);
-                LineInter->addPoint(P2);
-                Test->addGeometry(LineInter);
-                ListAretesIntersection->addGeometryDirectly(LineInter);
-                }
-                delete P1;
-                delete P2;
-                }
-                }*/
 
                 for (int G1 = 0; G1 < Footprint1->getNumGeometries(); ++G1)
                 {
@@ -1930,9 +1894,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                     }
                 }
 
-                //delete Footprint1WithPoints;
-                //delete Footprint2WithPoints;
-
                 if (ListAretesIntersection == nullptr || ListAretesIntersection->getNumGeometries() == 0)
                     continue;
 
@@ -1970,44 +1931,7 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
                         }
                     }
 
-                    if (ZPoint1 == 99999)
-                    {
-                        /*std::cout << "ERREUR CALCUL DE Z DU POINT ARETE" << std::endl;
-                        SaveGeometrytoShape("A_Footprint1.shp", Footprint1);
-                        SaveGeometrytoShape("A_Footprint2.shp", Footprint2);
-                        SaveGeometrytoShape("A_Aretes.shp", Aretes);
-
-                        OGRMultiPolygon* MP = new OGRMultiPolygon;
-                        int num = 0;
-
-                        for(OGRPolygon* Poly : ListPolygonRoofCityGML)
-                        {
-                        MP->addGeometry(Poly);
-                        if(PointArete1->Distance(Poly) < Precision_Vect && PointArete2->Distance(Poly) < Precision_Vect)
-                        {
-                        OGRPoint* PointArete1_3D = ProjectPointOnPolygon3D(PointArete1, Poly);
-                        std::cout << num << " : " << PointArete1_3D->getZ() << std::endl;
-
-                        if(ZPoint1 > PointArete1_3D->getZ())
-                        {
-                        ZPoint1 = PointArete1_3D->getZ();
-
-                        OGRPoint* PointArete2_3D = ProjectPointOnPolygon3D(PointArete2, Poly);
-                        ZPoint2 = PointArete2_3D->getZ();
-                        delete PointArete2_3D;
-                        }
-
-                        delete PointArete1_3D;
-                        }
-                        ++num;
-                        }
-
-                        SaveGeometrytoShape("A_ListPolygonRoofCityGML.shp", MP);
-                        delete MP;
-                        int a;
-                        std::cin >> a;*/
-                    }
-                    else
+                    if (ZPoint1 != 99999)
                     {
                         OGRLineString* AretesWithZ = new OGRLineString;
 
@@ -2028,12 +1952,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
         }
     }
 
-    //std::cout << "FIN " << std::endl;
-
-    //SaveGeometrytoShape("Test.shp", Test);
-    //SaveGeometrytoShape("Test2.shp", Test2);
-    //int a;
-    //std::cin >> a;
     ///
 
     const std::string NameModel = ModelGML->getId();
@@ -2066,7 +1984,6 @@ citygml::CityModel* AssignPolygonGMLtoShapeBuildings(std::vector<OGRGeometryColl
             if (BuildingShp == nullptr || BuildingShp->get_Area() < Precision_Vect)
                 continue;
 
-            //SaveGeometrytoShape("A_BuildingShp.shp", BuildingShp);
             OGRPolygon* BuildingShp2 = (OGRPolygon*)BuildingShp->clone(); //Contiendra le polygon Shape mais avec les points intermediaires ajoutes a partir des Polygons du Wall pour que les intersections fonctionnent.
             OGRMultiPolygon* PolygonsRoofBuildingShp = new OGRMultiPolygon; //Contiendra la liste des Polygons de toit ajoute.
 
@@ -2615,25 +2532,6 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         }
     }
 
-    /*//
-    OGRGeometryCollection* Res2 = new OGRGeometryCollection;
-
-    for(int i = 0; i < Footprints->size(); ++i)
-    {
-    OGRGeometry* MP = new OGRPolygon;
-    for(int j = 0; j < ListPolygonsFootprints[i].size(); ++j)
-    {
-    OGRGeometry* tmp = MP;
-    MP = tmp->Union(ListPolygonsFootprints[i].at(j));
-    delete tmp;
-    }
-    Res2->addGeometryDirectly(MP);
-    }
-
-    SaveGeometrytoShape("ListPolygonsFootprints.shp", Res2);
-    delete Res2;
-    //*/
-
     OGRMultiPolygon* PolygonsDiscontinus = new OGRMultiPolygon;
     std::vector<int> IndiceOrigineDesPolygonsDiscontinus; //Contiendra l'indice du polygone Footprint a partir duquel chaque polygone discontinu aura ete extrait, ainsi que sa place a l'interieur de celui ci dans ListPolygonsFootprints.
 
@@ -2673,7 +2571,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
                 OGRLinearRing* RingTest = PolyTest->getExteriorRing();
 
-                //On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
+                ///On va comparer point par point les deux LinearRing afin de regarder si il y a au moins des points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
                 if (IntersectRings3D(RingBase, RingTest) == 2) //Les deux polygones ont au moins deux points en commun
                 {
                     PolyIsAssigned[k] = true;
@@ -2702,7 +2600,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
                     OGRLinearRing* RingTest = PolyTest->getExteriorRing();
 
-                    //On va comparer point par point les deux LinearRing afin de regarder si il y a au moins deux points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
+                    ///On va comparer point par point les deux LinearRing afin de regarder si il y a au moins deux points (x,y) qui se retrouvent dans les deux et avec des Z identiques.
 
                     if (IntersectRings3D(RingBase, RingTest) == 2) //Les deux polygones ont au moins deux points en commun
                     {
@@ -2767,60 +2665,11 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         delete[] PolyIsAssigned;
     }
 
-    //SaveGeometrytoShape("PolygonsDiscontinus.shp", PolygonsDiscontinus);
+    ///On va maintenant parcourir chaque polygone discontinu, regarder s'il semble voisin avec un autre Footprint que celui duquel il est issu et se rattacher a lui.
+    ///S'il n'en trouve pas, on le remet simplement dans son Footprint d'origine.
+    ///Un polygon discontinu peut se lier a plusieurs polygons footprints si la separation entre eux est purement 2D.
+    /// Il faut donc ajouter une etape de decoupe afin de partager si necessaire le polygon discontinu entre eux.
 
-    /// Uniquement pour sauvegarder PolygonsNonDiscontinus.shp
-
-    OGRMultiPolygon* ResTemp = new OGRMultiPolygon;
-
-    for (std::size_t i = 0; i < CleanedFootprintsMP.size(); ++i)
-    {
-        OGRMultiPolygon* MP = CleanedFootprintsMP.at(i);
-
-        if (MP->getNumGeometries() == 0)
-        {
-            continue;
-        }
-
-        OGRGeometryCollection* GC_Union = new OGRGeometryCollection;
-
-        OGRGeometry* UnionPoly = new OGRPolygon;
-        for (int j = 0; j < MP->getNumGeometries(); ++j)
-        {
-            if (((OGRPolygon*)MP->getGeometryRef(j))->get_Area() < 10 * Precision_Vect)
-                continue;
-
-            OGRGeometry* tmp = UnionPoly;
-            UnionPoly = tmp->Union(MP->getGeometryRef(j));
-            delete tmp;
-        }
-        if (UnionPoly->getGeometryType() == wkbPolygon || UnionPoly->getGeometryType() == wkbPolygon25D)
-        {
-            ResTemp->addGeometryDirectly(UnionPoly);
-        }
-        else
-        {
-            GC_Union = dynamic_cast<OGRGeometryCollection*>(UnionPoly);
-            if (GC_Union == nullptr)
-                continue;
-            for (int j = 0; j < GC_Union->getNumGeometries(); ++j)
-            {
-                OGRPolygon* Poly = dynamic_cast<OGRPolygon*>(GC_Union->getGeometryRef(j));
-                if (Poly == nullptr)
-                    continue;
-                ResTemp->addGeometryDirectly(Poly);
-            }
-        }
-    }
-
-    //SaveGeometrytoShape("PolygonsNonDiscontinus.shp", ResTemp);
-    delete ResTemp;
-
-    /// Fin
-
-    //On va maintenant parcourir chaque polygone discontinu, regarder s'il semble voisin avec un autre Footprint que celui duquel il est issu et se rattacher a lui. S'il n'en trouve pas, on le remet simplement dans son Footprint d'origine.
-
-    //Un polygon discontinu peut se lier a plusieurs polygons footprints si la separation entre eux est purement 2D. Il faut donc ajouter une etape de decoupe afin de partager si necessaire le polygon discontinu entre eux.
     std::vector<std::vector<int>> ListFootprintsLinkedtoPolyDiscontinu; //Chaque element du vector contiendra une liste des indices (dans CleanedFootprintsMP) des polygons se partageant un polygon discontinu.
     std::vector<int> IndicePolygonsDiscontinusToCut; //Contiendra la liste des indices (dans PolygonsDiscontinus) des polygons discontinus concernes par ceci, afin de pouvoir les recuperer rapidement.
     std::vector<int> ListeDesPolygonsDiscontinusNonAssignes; //Contiendra les indices des PolygonsDiscontinus non assignes des la premiere passe.
@@ -2845,12 +2694,8 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
             {
                 OGRPolygon* PolyFootprint = dynamic_cast<OGRPolygon*>(CleanedFootprintsMPSaved.at(i)->getGeometryRef(j)->clone());
                 if (PolyFootprint == nullptr)
-                {
-                    std::cout << "ERREUR : PolyFootprint n'est pas un Polygon : " << CleanedFootprintsMPSaved.at(i)->getGeometryRef(j)->getGeometryName() << std::endl;
-                    int a;
-                    std::cin >> a;
                     continue;
-                }
+
                 if (PolyDiscontinu->Distance(PolyFootprint) > Precision_Vect)
                 {
                     delete PolyFootprint;
@@ -2912,17 +2757,11 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         }
     }
 
-    //OGRGeometryCollection* PolygonsToCut = new OGRGeometryCollection;//// Debug
-    //OGRGeometryCollection* PolygonsCut = new OGRGeometryCollection;////
-
-    //On va parcourir tous les cas de Polygons discontinus lies a plusieurs footprints afin de mettre en place une eventuelle decoupe de ce polygon afin de le partager entre les footprints.
+    ///On va parcourir tous les cas de Polygons discontinus lies a plusieurs footprints afin de mettre en place une eventuelle decoupe de ce polygon afin de le partager entre les footprints.
     for (std::size_t i = 0; i < IndicePolygonsDiscontinusToCut.size(); ++i)
     {
         OGRPolygon* PolyDiscontinu = (OGRPolygon*)PolygonsDiscontinus->getGeometryRef(IndicePolygonsDiscontinusToCut.at(i));
 
-        //PolygonsToCut->addGeometry(PolyDiscontinu);////
-
-        //OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
         std::vector<OGRMultiPoint*> ListPoints = GetPointsFromPolygon(PolyDiscontinu); //Contient un OGRMultiPoint par Ring du Polygon
 
         std::vector<OGRPoint*> ListAProjetes; //Contiendra tous les points que l'on aura projetes
@@ -2930,8 +2769,8 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         std::vector<OGRPoint*> ListAProjetesModifies; //Contiendra les points projetes "modifies" : qui ne correspondent pas forcement a des points du Polygone et qu'il faudra donc creer sur le MultiLS
         OGRMultiLineString* MultiLS = new OGRMultiLineString; //Contiendra les LineString qui serviront a generer les polygones desires
 
-        //On va maintenant parcourir point par point ce PolyDiscontinu, afin de reperer quels sont ceux qui se trouvent sur une frontiere entre deux PolygonsCommuns,
-        //ce seront ces points que l'on projettera pour chercher a decouper PolyDiscontinu.
+        ///On va maintenant parcourir point par point ce PolyDiscontinu, afin de reperer quels sont ceux qui se trouvent sur une frontiere entre deux PolygonsCommuns,
+        ///ce seront ces points que l'on projettera pour chercher a decouper PolyDiscontinu.
         for (std::size_t l = 0; l < ListPoints.size(); ++l)
         {
             for (int j = 0; j < ListPoints.at(l)->getNumGeometries() - 1; ++j)
@@ -2996,7 +2835,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         for (OGRMultiPoint* MP : ListPoints)
             delete MP;
 
-        //Avec MultiLS, on va mettre en place les polygones decoupes
+        ///Avec MultiLS, on va mettre en place les polygones decoupes
         for (int j = 0; j < MultiLS->getNumGeometries(); ++j)
         {
             OGRLineString* LS = (OGRLineString*)MultiLS->getGeometryRef(j);
@@ -3077,7 +2916,7 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
         delete MultiLS;
 
-        //Maintenant que l'on a les SplitPolygons, il faut les associer aux footprints correspondants.
+        ///Maintenant que l'on a les SplitPolygons, il faut les associer aux footprints correspondants.
 
         if (ListSplitPolygons != nullptr)
         {
@@ -3086,8 +2925,6 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
                 OGRPolygon* SplitPolygon = dynamic_cast<OGRPolygon*>(ListSplitPolygons->getGeometryRef(j));
                 if (SplitPolygon == nullptr)
                     continue;
-
-                //PolygonsCut->addGeometry(SplitPolygon);////
 
                 OGRLinearRing* SplitRing = SplitPolygon->getExteriorRing();
 
@@ -3130,17 +2967,15 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         delete ListSplitPolygons;
     }
 
-    //SaveGeometrytoShape("A_PolygonsToCut.shp", PolygonsToCut); ////
-    //SaveGeometrytoShape("A_PolygonsCut.shp", PolygonsCut); ////
-
     for (OGRMultiPolygon* MP : CleanedFootprintsMPSaved) //On n'a plus besoin de cette version
         delete MP;
     std::vector<OGRMultiPolygon*> CleanedFootprintsMPSaved2;
     for (OGRMultiPolygon* MP : CleanedFootprintsMP) //On cree une nouvelle sauvegarde de CleanedFootprintsMP car on va maintenant lui ajouter les PolygonsDiscontinus non assignes mais on veut conserver cette version pour faire les tests de IntersectRings3D
         CleanedFootprintsMPSaved2.push_back((OGRMultiPolygon*)MP->clone());
 
-    for (std::size_t k = 0; k < ListeDesPolygonsDiscontinusNonAssignes.size(); ++k) //On faire un second passage en parcourant les polygons discontinus mis de cate afin de les comparer aux footprints deja modifies par des polygons discontinus
-       //Car un polygon discontinu peut se rattacher a un footprint par un autre polygon discontinu, et ceci n'etait pas possible lors de la premiere phase car on comparait avec les footprints non modifies
+    for (std::size_t k = 0; k < ListeDesPolygonsDiscontinusNonAssignes.size(); ++k) ///On faire un second passage en parcourant les polygons discontinus mis de cote
+        ///afin de les comparer aux footprints deja modifies par des polygons discontinus car un polygon discontinu peut se rattacher a un footprint par un autre
+        ///polygon discontinu, et ceci n'etait pas possible lors de la premiere phase car on comparait avec les footprints non modifies
     {
         OGRPolygon* PolyDiscontinu = (OGRPolygon*)PolygonsDiscontinus->getGeometryRef(ListeDesPolygonsDiscontinusNonAssignes.at(k));
         OGRLinearRing* RingDiscontinu = PolyDiscontinu->getExteriorRing();
@@ -3156,12 +2991,8 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
             {
                 OGRPolygon* PolyFootprint = dynamic_cast<OGRPolygon*>(CleanedFootprintsMPSaved2.at(i)->getGeometryRef(j)->clone());
                 if (PolyFootprint == nullptr)
-                {
-                    std::cout << "ERREUR : PolyFootprint n'est pas un Polygon : " << CleanedFootprintsMPSaved2.at(i)->getGeometryRef(j)->getGeometryName() << std::endl;
-                    int a;
-                    std::cin >> a;
                     continue;
-                }
+
                 if (PolyDiscontinu->Distance(PolyFootprint) > Precision_Vect)
                 {
                     delete PolyFootprint;
@@ -3216,18 +3047,12 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
         {
             CleanedFootprintsMP.at(IndicesPolygonsCommuns.at(0))->addGeometry(PolyDiscontinu);
         }
-        /*else if(IndicesPolygonsCommuns.size() > 1 ) //Il y a plusieurs polygons footprint assignes.
-        {
-        //CleanedFootprintsMP.at(IndicesPolygonsCommuns.at(0))->addGeometry(PolyDiscontinu); ///DECOMMENTER CECI (et commenter le reste) POUR VOIR CE QUE CA DONNE SANS DECOUPE
-        ListFootprintsLinkedtoPolyDiscontinu.push_back(IndicesPolygonsCommuns); //Pour le polygon discontinu K, on aura ici la liste des footprints avec lesquels il semble continu en 3D (partage d'une arrete).
-        IndicePolygonsDiscontinusToCut.push_back(ListeDesPolygonsDiscontinusNonAssignes.at(k));
-        }*/
     }
 
     for (OGRMultiPolygon* MP : CleanedFootprintsMPSaved2) //On n'a plus besoin de cette version
         delete MP;
 
-    //On met ça en forme dans un vector de Polygon unissant tous les petits polygones, afin d'obtenir des emprises au sol propres.
+    ///On met ça en forme dans un vector de Polygon unissant tous les petits polygones, afin d'obtenir des emprises au sol propres.
     std::vector<OGRGeometryCollection*> CleanedFootprints;
     OGRMultiPolygon* Res = new OGRMultiPolygon;
 
@@ -3276,8 +3101,6 @@ std::vector<OGRGeometryCollection*> CleanFootprintsWith3D(std::vector<OGRPolygon
 
     for (OGRMultiPolygon* MP : CleanedFootprintsMP)
         delete MP;
-
-    //SaveGeometrytoShape("FootPrintsShape_Modifie.shp", Res);
 
     return CleanedFootprints;
 }
@@ -3399,25 +3222,20 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
     citygml::CityModel* Model = Tile->getCityModel();
     OGRLayer* Layer = DataSource->GetLayer(0);
 
-    //Creer 2 tableaux de polygons correspondant aux emprises au sol des batiments du CityGML et a celles du cadastre. 
+    ///Creer 2 tableaux de polygons correspondant aux emprises au sol des batiments du CityGML et a celles du cadastre.
     std::cout << "Generation des emprises au sol du CityGML." << std::endl;
     std::vector<OGRPolygon*> FootprintsCityGML = GetFootPrintsfromCityGML(Model); //On part du principe que chaque batiment CityGML correspond a une emprise au sol Polygon (et non MultiPolygon !). Passage dans SplitBuildingsFromCityGML obligatoire !
-
-    /*OGRMultiPolygon* FootPrintsBuildingsCityGML = new OGRMultiPolygon;
-    for(OGRPolygon* Poly:FootprintsCityGML)
-    FootPrintsBuildingsCityGML->addGeometry(Poly);
-    SaveGeometrytoShape("FootPrintsBuildingsCityGML.shp", FootPrintsBuildingsCityGML);*/
 
     std::cout << "Generation des emprises au sol du ShapeFile." << std::endl;
     std::vector<OGRPolygon*> FootprintsShapefile = GetFootPrintsfromShapeFile(Layer); //On part du principe que chaque feature du shapefile contient un unique polygon en geometry
 
-    //Lier Batiments CityGML <-> Batiments Cadastraux qui s'intersectent pour orienter les etapes suivantes.
+    ///Lier Batiments CityGML <-> Batiments Cadastraux qui s'intersectent pour orienter les etapes suivantes.
 
-    //Mettre en place un lien entre les elements du CityGML et ceux du ShapeFile.
+    ///Mettre en place un lien entre les elements du CityGML et ceux du ShapeFile.
     std::cout << "Liaison des emprises au sol du CityGML avec celles du ShapeFile." << std::endl;
     std::pair<std::vector<std::vector<int>>, std::vector<std::vector<int>>> Link = LinkCityGMLandShapefilesFootprints(FootprintsCityGML, FootprintsShapefile);
 
-    //Modifier chaque emprise au sol du Shapefile afin que ses arretes correspondent a celles des batiments du CityGML
+    ///Modifier chaque emprise au sol du Shapefile afin que ses arretes correspondent a celles des batiments du CityGML
     std::cout << "Modification des polygones du cadastre." << std::endl;
     std::vector<OGRPolygon*> NewFootprintsShapefile = FusionEnvelopes(&FootprintsCityGML, &FootprintsShapefile, &Link);
 
@@ -3426,13 +3244,13 @@ citygml::CityModel* CutCityGMLwithShapefile(vcity::Tile* Tile, OGRDataSource* Da
     for (OGRPolygon* Poly : FootprintsCityGML)
         delete Poly;
 
-    //Reperer les incoherences en 3D provenant de la decoupe 2D afin d'ameliorer celle ci.
+    ///Reperer les incoherences en 3D provenant de la decoupe 2D afin d'ameliorer celle ci.
     std::cout << "Amelioration de la decoupe des emprises au sol." << std::endl;
     std::vector<OGRGeometryCollection*> CleanedFootprints = CleanFootprintsWith3D(&NewFootprintsShapefile, Model, &Link);
 
-    //On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectees avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
-    //NewFootprintsShapefile. Chaque polygon correspond a un batiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un batiment CityGML lie. L'ensemble des emprises au sol
-    //de NewFootprintsShapefile doit recouvrir les emprises au sol de tous les batiments CityGML. Il nous reste a parcourir les polygons du CityGML et a les assigner a ces differents batiments Shape.
+    ///On a maintenant un ensemble d'emprises au sol (uniquement des Polygons, ce sont juste des zones d'influences non intersectees avec le CityGML, donc pas de MultiPolygon) contenues dans le vecteur
+    ///NewFootprintsShapefile. Chaque polygon correspond a un batiment cadastral et son emprise au sol recouvre une partie de l'emprise au sol d'un batiment CityGML lie. L'ensemble des emprises au sol
+    ///de NewFootprintsShapefile doit recouvrir les emprises au sol de tous les batiments CityGML. Il nous reste a parcourir les polygons du CityGML et a les assigner a ces differents batiments Shape.
     std::cout << "Decoupe des Polygons Wall et Roof du CityGML selon les emprises au sol generees a partir du cadastre." << std::endl;
     citygml::CityModel* ModelOut = AssignPolygonGMLtoShapeBuildings(&CleanedFootprints, Layer, Model, &Link, TexturesList);
 
