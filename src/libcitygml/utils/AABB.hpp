@@ -1,6 +1,8 @@
 #ifndef __AABB_HPP__
 #define __AABB_HPP__
 
+#include <QString>
+
 #include <string>
 #include <vector>
 
@@ -48,7 +50,7 @@ struct CITYGMLUTILS_EXPORT BoxwithRays
 CITYGMLUTILS_EXPORT bool operator<(const BoxwithRays& a, const BoxwithRays& b);
 
 /**
-*	Used to store a bounding box collection of different layer
+*	Used to store a bounding box collection for different layers
 */
 struct CITYGMLUTILS_EXPORT AABBCollection
 {
@@ -65,7 +67,7 @@ struct CITYGMLUTILS_EXPORT AABBCollection
 *	@brief Build bounding box from a set of tile, bounding boxes are saved on disk in a text file, not returned
 *	@param dir Directory where the citygml files are located
 */
-CITYGMLUTILS_EXPORT void BuildAABB(std::string dir);
+CITYGMLUTILS_EXPORT void BuildLayersAABBs(std::string dir);
 
 /**
 *	@brief Load a collection of box from a file
@@ -80,5 +82,13 @@ CITYGMLUTILS_EXPORT std::vector<AABB> LoadAABBFile(std::string path);
 *	@return AABB Collection of the set of tiles
 */
 CITYGMLUTILS_EXPORT AABBCollection LoadLayersAABBs(std::string dir);
+
+///
+/// \brief BuildBuildingAABBs Loops recursively through folder containing gml files representing buildings, compute and save AABBs for CityGML Building and Building Parts notions.
+///                           One file will contain Building AABBs (tilename_Building_AABB.dat) and the other one Building Parts AABBs (tilename_BuildingParts_AABB.dat).
+///
+/// \param buildingFilesFolder Path to folder holding Building gml files
+///
+CITYGMLUTILS_EXPORT void BuildBuildingAABBs (QString buildingFilesFolder);
 
 #endif

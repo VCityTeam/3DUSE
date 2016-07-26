@@ -116,6 +116,7 @@ private:
     void slotCutCityGMLwithShapefile();
     void slotSplitCityGMLBuildings();
     void slotTilingCityGML();
+    void slotBuildBuildingAABBs();
     void slotCutMNTwithShapefile();
     void slotCreateRoadOnMNT();
     void slotCreateVegetationOnMNT();

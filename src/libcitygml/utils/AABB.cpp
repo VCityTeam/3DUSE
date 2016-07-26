@@ -1,6 +1,7 @@
 #include "AABB.hpp"
 
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 
 #include <iostream>
@@ -242,7 +243,7 @@ void DoSaveAABB(std::string filePath, std::map<std::string, std::pair<TVec3d, TV
     fb.close();
 }
 
-void BuildAABB(std::string dir)
+void BuildLayersAABBs(std::string dir)
 {
     TiledFiles Files(dir);
     Files.BuildListofLayers();
@@ -265,4 +266,101 @@ void BuildAABB(std::string dir)
     }
 
     std::cout << "Done." << std::endl;
+}
+
+///
+/// \brief doBuildBuildingAABBs Build Building AABBs and Building Parts AABBs
+/// \param filepath Path to file to build AABB for.
+///
+void doBuildBuildingAABBs(std::string filepath)
+{
+    vcity::Tile* tile = new vcity::Tile(filepath);
+
+    citygml::CityModel *city = tile->getCityModel();
+
+    //Size of Building Parts AABB
+    int AABBsize = 0;
+
+    //Create and open files
+    std::ofstream ofs_B_AABB; // Building AABB
+    std::ofstream ofs_BP_AABB; // Building Parts AABB
+
+    int extensionPos = filepath.find(".gml");
+    std::string filename_B_AABB = filepath.substr(0, extensionPos) + "_Building_AABB.dat";
+    std::string filename_BP_AABB = filepath.substr(0, extensionPos) + "_BuildingParts_AABB.dat";
+
+    ofs_B_AABB.open (filename_B_AABB, std::ofstream::trunc);
+
+    citygml::CityObjects cityobjects = city->getCityObjectsRoots();
+
+    //Write in Building AABB file
+    ofs_B_AABB << cityobjects.size() << std::endl;
+
+    for (const citygml::CityObject* cityObj : cityobjects)
+    {
+        citygml::Envelope envCityObj = cityObj->getEnvelope();
+
+        //Print AABB in Building AABB file
+        ofs_B_AABB << cityObj->getId() << std::endl;
+        ofs_B_AABB << std::to_string(envCityObj.getLowerBound().x) << std::endl;
+        ofs_B_AABB << std::to_string(envCityObj.getLowerBound().y) << std::endl;
+        ofs_B_AABB << std::to_string(envCityObj.getLowerBound().z) << std::endl;
+        ofs_B_AABB << std::to_string(envCityObj.getUpperBound().x) << std::endl;
+        ofs_B_AABB << std::to_string(envCityObj.getUpperBound().y) << std::endl;
+        ofs_B_AABB << std::to_string(envCityObj.getUpperBound().z) << std::endl;
+
+        std::vector<citygml::CityObject*> cityobjchilds = cityObj->getChildren();
+
+        AABBsize += cityobjchilds.size();
+    }
+
+    ofs_B_AABB.close();
+
+    //Write in Building Parts AABB File
+    ofs_BP_AABB.open(filename_BP_AABB,std::ofstream::trunc);
+
+    ofs_BP_AABB << AABBsize << std::endl;
+
+    for (const citygml::CityObject* cityObj : cityobjects)
+    {
+        std::vector<citygml::CityObject*> cityobjchilds = cityObj->getChildren();
+
+        for (citygml::CityObject* subObj : cityobjchilds)
+        {
+            citygml::Envelope envSubObj = subObj->getEnvelope();
+
+            //Print AABB in Building Parts AABB file
+            ofs_BP_AABB << subObj->getId() << std::endl;
+            ofs_BP_AABB << std::to_string(envSubObj.getLowerBound().x) << std::endl;
+            ofs_BP_AABB << std::to_string(envSubObj.getLowerBound().y) << std::endl;
+            ofs_BP_AABB << std::to_string(envSubObj.getLowerBound().z) << std::endl;
+            ofs_BP_AABB << std::to_string(envSubObj.getUpperBound().x) << std::endl;
+            ofs_BP_AABB << std::to_string(envSubObj.getUpperBound().y) << std::endl;
+            ofs_BP_AABB << std::to_string(envSubObj.getUpperBound().z) << std::endl;
+
+        }
+    }
+
+    ofs_BP_AABB.close();
+
+    delete tile;
+}
+
+void BuildBuildingAABBs(QString buildingFilesFolder)
+{
+    //Loop recursively through folder
+    QDirIterator it(buildingFilesFolder, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        if(it.filePath().contains("_BATI")) //MAYBE TO REMOVE
+        {
+            if(it.fileName().contains(".gml"))
+            {
+                std::cout << "File : " << it.fileName().toStdString() << std::endl;
+                doBuildBuildingAABBs(it.filePath().toStdString());
+            }
+        }
+
+        it.next();
+    }
 }
