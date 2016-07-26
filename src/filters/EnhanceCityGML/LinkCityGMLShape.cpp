@@ -588,12 +588,9 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
         delete ProlongementProjete;
         *PointIsModified = true;
 
-        //Point->setX(OldProjete->getX());
-        //Point->setY(OldProjete->getY());
-        //Point->setZ(OldProjete->getZ());
-
-        delete Point;
-        Point = (OGRPoint*)OldProjete->clone();
+        Point->setX(OldProjete->getX());
+        Point->setY(OldProjete->getY());
+        Point->setZ(OldProjete->getZ());
 
         delete OldProjete;
     }
@@ -807,10 +804,7 @@ OGRGeometryCollection* CreatePointsOnLine(OGRGeometryCollection* Points, OGRGeom
 
         Res->addGeometryDirectly(ResPoly);
     }
-
-    //SaveGeometrytoShape("VecShape1.shp", Lines);
-    //SaveGeometrytoShape("VecShape2.shp", Res);
-
+    
     return Res;
 }
 
