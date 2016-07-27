@@ -67,6 +67,8 @@
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 
+#include "libcitygml/quaternion.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::pair<double, double>> Hauteurs;
@@ -3447,6 +3449,7 @@ void buildAABBs(std::string filepath)
 
 void MainWindow::test3()
 {
+
     // Parcours récursif du dossier en param (dossier contenant les tuiles BATI) et création d'un fichier avec les aabb des
     // batis (tilename_AABBBuilding) puis un autre avec les aabb des roofs/walls (tilename_AABBBuildingParts)
 
@@ -3469,7 +3472,7 @@ void MainWindow::test3()
         it.next();
     }
 
-#if 0
+
     std::string file1path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10383.gml";
 
     std::cout << "load citygml file : " << file1path << std::endl;
@@ -3532,7 +3535,7 @@ void MainWindow::test3()
     ofs.close();
 
     /////////////////////////////////////////////////
-
+    #if 0
     //FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert a fusionner les tiles donc deux fichiers du meme nom seront fusionnes en un fichier contenant tous leurs objets a la suite.
 
     //// FusionLODs : prend deux fichiers modelisant les batiments avec deux lods differents et les fusionne en un seul

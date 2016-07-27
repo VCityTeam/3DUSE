@@ -352,7 +352,7 @@ void BuildBuildingAABBs(QString buildingFilesFolder)
     QDirIterator it(buildingFilesFolder, QDirIterator::Subdirectories);
     while (it.hasNext())
     {
-        if(it.filePath().contains("_BATI")) //MAYBE TO REMOVE
+        if(it.filePath().contains("_BATI"))
         {
             if(it.fileName().contains(".gml"))
             {

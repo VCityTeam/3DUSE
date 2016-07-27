@@ -85,12 +85,10 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
         return TVec3d(0.0,0.0,0.0);
 
     //Azimut rotation quaternion
-    citygml::quaternion qA = citygml::quaternion();
-    qA.set_axis_angle(ARotAxis,azimutAngle);
+    citygml::quaternion qA = citygml::quaternion(ARotAxis,azimutAngle);
 
     //Elevation rotation quaternion
-    citygml::quaternion qE = citygml::quaternion();
-    qE.set_axis_angle(ERotAxis,elevationAngle);
+    citygml::quaternion qE = citygml::quaternion(ERotAxis,elevationAngle);
 
     //Total rotation quaternion
     citygml::quaternion q = qE*qA;
