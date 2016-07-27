@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QDate>
 #include <QPluginLoader>
+#include <ctime>
+#include <time.h>
 
 #include "ui_mainWindow.h"
 
@@ -16,6 +18,7 @@
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
+#include "moc/dialogConvertObjToCityGML.hpp"
 
 #include "controllerGui.hpp"
 
@@ -216,7 +219,7 @@ MainWindow::~MainWindow()
     delete m_osgView;
     delete m_ui;
 }
-
+////////////////////////////////////////////////////////////////////////////////
 // Plugins
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadPlugins()
@@ -558,9 +561,9 @@ void MainWindow::loadHistory()
 
     QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
-    QStringList CSVfilenames = QFileDialog::getOpenFileNames(this, "Sélectionner le fichier CSV", lastdir);
+    QStringList CSVfilenames = QFileDialog::getOpenFileNames(this, "SÃ©lectionner le fichier CSV", lastdir);
 
-    QString GMLdirectory = QFileDialog::getExistingDirectory(this, tr("Sélectionner le fichier Tuiles"),lastdir,QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString GMLdirectory = QFileDialog::getExistingDirectory(this, tr("SÃ©lectionner le fichier Tuiles"),lastdir,QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     std::cout << "directory : " << GMLdirectory.toStdString() << std::endl;
 
     if(!GMLdirectory.isNull())
@@ -692,7 +695,6 @@ void MainWindow::loadSceneBBox()
     DialogLoadBBox diag;
     diag.exec();
 }
-
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::updateTextBox(const std::stringstream& ss)
 {
@@ -2117,23 +2119,8 @@ void MainWindow::slotCutCityGMLwithShapefile()
 void MainWindow::slotObjToCityGML()
 {
     m_osgView->setActive(false);
-
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert OBJ to CityGML");
-
-    for (int i = 0; i < filenames.count(); ++i)
-    {
-        QFileInfo file(filenames[i]);
-        QString ext = file.suffix().toLower();
-        if (ext == "obj")
-        {
-            citygml::ImporterAssimp importer;
-            importer.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
-            citygml::CityModel* model = importer.import(file.absoluteFilePath().toStdString());
-
-            citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
-            exporter.exportCityModel(*model);
-        }
-    }
+    DialogConvertObjToCityGML diag(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+    diag.exec();
 
     m_osgView->setActive(true);
 }
@@ -3053,6 +3040,7 @@ void MainWindow::test1()
 }
 bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 {
+    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
     // date check
     if (QDate::currentDate() > QDate(2016, 12, 31))
@@ -3076,7 +3064,6 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
     {
         std::cout << "load csv file : " << CSVfilepath.toStdString() << std::endl;
 
-        //v_info = loadCSV2(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
 
         double offsetx=m_app.getSettings().getDataProfile().m_offset.x;
         double offsety=m_app.getSettings().getDataProfile().m_offset.y;
@@ -3174,6 +3161,8 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
                                          v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i],v_publicationdate[i]));
         }
 
+
+        std::vector<Ray*> v_ray;
         int cpt2=0;
         int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
         bool raytracing = false;
@@ -3247,7 +3236,8 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 
         }
 
-        std::ofstream ofs;
+
+                std::ofstream ofs;
         ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
         for(osgInfo* i : v_info)

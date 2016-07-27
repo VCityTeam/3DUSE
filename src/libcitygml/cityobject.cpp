@@ -169,65 +169,6 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void CityObject::addState(CityObjectState* state)
-{
-    state->m_id = m_states.size(); m_states.push_back(state);
-}
-////////////////////////////////////////////////////////////////////////////////
-std::vector<CityObjectState*>& CityObject::getStates()
-{
-    return m_states;
-}
-////////////////////////////////////////////////////////////////////////////////
-const std::vector<CityObjectState*>& CityObject::getStates() const
-{
-    return m_states;
-}
-////////////////////////////////////////////////////////////////////////////////
-CityObjectState* CityObject::getState(const std::string& name)
-{
-    for(size_t i=0; i<m_states.size(); ++i)
-    {
-        if(m_states[i]->getStringId() == name)
-            return m_states[i];
-    }
-    return nullptr;
-}
-////////////////////////////////////////////////////////////////////////////////
-void CityObject::addTag(CityObjectTag* tag)
-{
-    tag->m_id = m_tags.size();
-    m_tags.push_back(tag);
-}
-////////////////////////////////////////////////////////////////////////////////
-std::vector<CityObjectTag*>& CityObject::getTags()
-{
-    return m_tags;
-}
-////////////////////////////////////////////////////////////////////////////////
-const std::vector<CityObjectTag*>& CityObject::getTags() const
-{
-    return m_tags;
-}
-////////////////////////////////////////////////////////////////////////////////
-bool CityObject::isTemporal() const
-{
-    return m_tags.size() + m_states.size();
-}
-////////////////////////////////////////////////////////////////////////////////
-std::string CityObject::getAttributeTemporal(const std::string& attribName, const QDateTime& date) const
-{
-    for(size_t i=0; i<m_tags.size()-1; ++i)
-    {
-        if(m_tags[i]->m_date < date && date < m_tags[i+1]->m_date)
-        {
-            return m_tags[i]->getAttribute(attribName, date);
-        }
-    }
-
-    return "";
-}
-////////////////////////////////////////////////////////////////////////////////
 void CityObject::finish( AppearanceManager& appearanceManager, const ParserParams& params )
 {
     Appearance* myappearance = appearanceManager.getAppearance( getId() );
@@ -335,44 +276,6 @@ void CityObject::computeCentroid()
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void CityObject::checkTags()
-{
-  std::cout
-    << "CityObject::checkTags code is currently inactivated. "       << std::endl
-    << "In theory you shouldn't be reading this since the checkTags" << std::endl
-    << "method is related to the old version of the temporal"        << std::endl
-    << "extention. This method is thus waiting for removal. Yet if"  << std::endl
-    << "you are reading this, chances are that this deprecation is"  << std::endl
-    << "breaking an unexpectedly still active function..."           << std::endl
-    << "Sorry for that."                                             << std::endl;
-  /*
-    // reorder tags
-    std::sort(m_tags.begin(), m_tags.end(), cmpTag);
-
-    for(size_t i=0; i<m_tags.size(); ++i)
-    {
-        CityObject* geom = m_tags[i]->getGeom();
-        if(geom) // && geom->getOsgNode())
-        {
-            osg::ref_ptr<osg::Group> grp = m_tags[i]->getOsg();
-            if(grp)
-            {
-                //osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
-                grp->setUserValue("yearOfConstruction", m_tags[i]->m_date.date().year());
-                int year = std::numeric_limits<int>::max();
-                if(m_tags[i]->getGeom() == NULL)
-                {
-                    year = m_tags[i]->m_date.date().year();
-                }
-                if(i < m_tags.size()-1)
-                    year = m_tags[i+1]->m_date.date().year();
-                grp->setUserValue("yearOfDemolition", year);
-            }
-        }
-    }
-  */
-}
-////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream& os, const CityObject& o )
 {
     os << o.getType() << ": " << o.getId() << std::endl;
@@ -429,7 +332,6 @@ std::string getCityObjectsClassName( CityObjectsTypeMask mask )
     GETCITYNAME( FloorSurface );
     GETCITYNAME( InteriorWallSurface );
     GETCITYNAME( CeilingSurface );
-    GETCITYNAME( Document );
 #undef GETCITYNAME
     std::string s = ss.str();
     if ( s != "" ) s.erase( s.length() - 1, 1 ); // remove the last | char
@@ -483,7 +385,6 @@ if ( ci_string_compare( #_t_, neg ? tokens[i].substr(1) : tokens[i] ) ) { mask =
         COMPARECITYNAMEMASK( FloorSurface );
         COMPARECITYNAMEMASK( InteriorWallSurface );
         COMPARECITYNAMEMASK( CeilingSurface );
-        COMPARECITYNAMEMASK( Document );
         COMPARECITYNAMEMASK( All );
     }
 #undef COMPARECITYNAMEMASK

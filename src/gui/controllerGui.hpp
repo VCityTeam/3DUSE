@@ -29,11 +29,6 @@ public:
     //info
     virtual void addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
 
-    // temporal
-    virtual void addTag(const vcity::URI& uri, citygml::CityObjectTag* tag) override;
-    virtual void addState(const vcity::URI& uri, citygml::CityObjectState* state) override;
-    virtual void addDynState(const vcity::URI& uri, citygml::CityObjectDynState* state) override;
-
     // Assimp
     virtual void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     virtual void deleteAssimpNode(const vcity::URI& uri);

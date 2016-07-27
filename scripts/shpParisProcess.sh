@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This scripts enables to cut a shapefile along a bounding box
+# that evolves with the doubly nested loop
+
 #tiles id : xmin - xmax / ymin - ymax
 #1286 - 1315 / 13714 - 13734
 

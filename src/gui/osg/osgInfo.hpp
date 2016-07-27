@@ -193,6 +193,7 @@ private:
     bool m_requested; /// is this document requested by the filter bar
     bool m_onscreen; /// is this document on screen
 
+
     osg::Texture2D *m_texture ; ///texture of the doc
     osg::Material *m_material ; ///material of the doc
     osg::StateSet *m_state; ///state of the doc
