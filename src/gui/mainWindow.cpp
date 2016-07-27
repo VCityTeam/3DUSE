@@ -3114,6 +3114,10 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
                         v_angle.push_back(std::stod(cell));
                 if (cpt==6)
                 {
+                    if(cell=="x")
+                        v_axis.push_back(osg::Vec3(1,0,));
+                    if(cell=="y")
+                        v_axis.push_back(osg::Vec3(0,1,0));
                     if(cell=="z")
                         v_axis.push_back(osg::Vec3(0,0,1));
                 }
@@ -3237,12 +3241,6 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         }
 
 
-
-
-
-
-
-
         vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
         appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 
@@ -3254,6 +3252,9 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         addRecentFile(CSVfilepath);
     }
 
+    QApplication::restoreOverrideCursor();
+
+    return true;
 }
 
 void MainWindow::test2()

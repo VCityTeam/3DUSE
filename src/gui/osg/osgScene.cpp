@@ -393,7 +393,6 @@ void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
         osg::ref_ptr<osg::Group> layerGroup = layerNode->asGroup();
         if(layerGroup)
         {
-            std::cout<<"[osgScene > initInfo].....if(layerGroup)"<<std::endl;
             osg::ref_ptr<osg::Switch> switchRoot = new osg::Switch;
             switchRoot->setName("switch_root");
             layerGroup->addChild(switchRoot);
