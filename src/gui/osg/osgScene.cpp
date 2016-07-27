@@ -12,6 +12,15 @@
 #include <osgText/Text>
 #include <osgUtil/Optimizer>
 
+#include <osg/Depth>
+#include <osg/CullFace>
+#include <osg/TexMat>
+#include <osg/TexGen>
+#include <osg/TexEnv>
+#include <osg/TexEnvCombine>
+#include <osg/VertexProgram>
+#include <osg/ShapeDrawable>
+
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
 #include "osgCityGML.hpp"
