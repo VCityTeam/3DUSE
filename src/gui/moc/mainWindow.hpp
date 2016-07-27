@@ -97,6 +97,7 @@ private:
     void optionPickFace();
     void optionInfoBubbles();
     void optionShadow();
+    void optionSkybox();
     void slotSettings();
     void optionShowTemporalTools();
     void optionShowAdvancedTools();

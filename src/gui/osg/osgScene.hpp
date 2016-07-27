@@ -98,6 +98,9 @@ public:
     /// Enable / disable osg shadows
     void setShadow(bool shadow);
 
+    /// Enable / disable skybox
+    void toggleSkybox(bool skybox);
+
     /// Set date for temporal use, use -4000 as year to disable temporal
     void setDate(const QDateTime& date);
 
@@ -163,6 +166,8 @@ public:
 
     osg::ref_ptr<osg::Group> m_effectNone;
     osg::ref_ptr<osg::Group> m_effectShadow;
+
+    osg::Node* m_skybox;
 
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);

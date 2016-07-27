@@ -166,7 +166,7 @@ void OsgScene::init()
     }
 
     //build skybox
-    addChild(createSkybox());
+//    addChild(createSkybox());
 
     // build layers node
     m_layers = new osg::Group();
@@ -206,6 +206,9 @@ void OsgScene::init()
     m_layers->addChild(layer5);
 
     updateGrid();
+
+    //Create Skybox Node but don't display it
+    m_skybox = createSkybox();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
@@ -524,6 +527,18 @@ void OsgScene::setShadow(bool shadow)
     }
 
     m_shadow = shadow;
+}
+////////////////////////////////////////////////////////////////////////////////
+void OsgScene::toggleSkybox(bool skybox)
+{
+    if(skybox)
+    {
+        m_skybox = createSkybox();
+        addChild(m_skybox);
+    }
+    else
+        removeChild(m_skybox);
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::ref_ptr<osg::Texture2D> texture)
