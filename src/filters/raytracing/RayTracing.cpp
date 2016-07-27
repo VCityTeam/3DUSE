@@ -22,8 +22,6 @@ void RayLoop(const RayTracingData& data)
     {
         Ray* ray = data.rowToDo->at(k);
 
-        int i = 0;
-
         for (unsigned int l = 0; l < data.triangles->triangles.size(); l++)
         {
             Triangle* tri = data.triangles->triangles.at(l);
@@ -41,7 +39,6 @@ void RayLoop(const RayTracingData& data)
                 delete hit;
             }
 
-            ++i;
         }
 
     }
@@ -53,7 +50,6 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, const std::vector<Ray*>& 
     time.start();
 
     unsigned int tCount = std::thread::hardware_concurrency() - 1;//Get how many thread we have
-
     unsigned int rayPerThread = rays.size() / tCount;
 
     //List of rays and their frag coord
@@ -76,6 +72,9 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, const std::vector<Ray*>& 
     //List of hits for each thread
     std::vector<Hit*>* hitsArray = new std::vector<Hit*>[tCount];
 
+    //std::cout << "Thread : " << tCount << std::endl;
+    //std::cout << "Ray count : " << rays.size() << std::endl;
+
     std::vector<std::thread*> threads;//Our thread list
 
     for(unsigned int i = 0; i < tCount; i++)
@@ -89,6 +88,8 @@ std::vector<Hit*>* RayTracing(TriangleList* triangles, const std::vector<Ray*>& 
         std::thread* t = new std::thread(RayLoop,data);
         threads.push_back(t);
     }
+
+    //std::cout << "Thread Launched " << std::endl;
 
     for(unsigned int i = 0; i < tCount; i++)//Join all our thread and update global data min and max distance
     {

@@ -62,6 +62,7 @@ TriangleList* BuildTriangleList(const std::string& tilefilename, const citygml::
                             TVec3d b = vert[ind[i * 3 + 1]];
                             TVec3d c = vert[ind[i * 3 + 2]];
 
+                            // If all vertices of current triangle are below given zMin
                             if(a.z - zMin < epsilon && b.z - zMin < epsilon && c.z - zMin < epsilon)
                                 continue;
 
@@ -97,6 +98,7 @@ TriangleList* BuildTriangleList(const std::string& tilefilename, const citygml::
                         TVec3d b = vert[ind[i * 3 + 1]];
                         TVec3d c = vert[ind[i * 3 + 2]];
 
+                        // If all vertices of current triangle are below given zMin
                         if(a.z - zMin < epsilon && b.z - zMin < epsilon && c.z - zMin < epsilon)
                             continue;
 

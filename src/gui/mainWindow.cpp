@@ -67,8 +67,6 @@
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 
-#include "DataStructures/quaternion.hpp"
-
 ////////////////////////////////////////////////////////////////////////////////
 
 std::vector<std::pair<double, double>> Hauteurs;
