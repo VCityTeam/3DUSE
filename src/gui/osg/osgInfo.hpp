@@ -10,22 +10,23 @@
 #include <osg/Geometry>
 #include <osg/PositionAttitudeTransform>
 #include <osg/Billboard>
-#include <osg/Point>
 #include <osg/MatrixTransform>
 #include <osg/Vec3>
+#include <osg/Point>
 #include <osg/Texture2D>
 #include <osgDB/ReadFile>
 #include <osg/BlendFunc>
 #include <osg/Material>
-#include <ctime>
 #include "vecs.hpp"
+#include <ctime>
+
 
 class osgInfo : public osg::Group
 {
 public:
     osgInfo();
     osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type,
-            std::string source, std::string lod, float anchor, int priority, std::string publicationDate);
+                std::string source, std::string lod, float anchor, int priority, std::string publicationDate);
 
     /// \brief Turn fixed document into billboard or reverse operation
     /// \param boolean value to set billboard mode or not
@@ -225,8 +226,8 @@ public :
     int m_Da; ///document area on screen
     float m_initOVa; ///total area of document overlapped by others in front of it in its init position
     float m_currentOVa; ///total area of document overlapped by others in front of it in its current position
-	
-	std::string m_publicationDate;
+
+    std::string m_publicationDate;
 
     osg::Billboard *m_billboard; ///billboard object is needed
 

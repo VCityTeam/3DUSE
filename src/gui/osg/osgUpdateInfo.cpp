@@ -55,7 +55,6 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
 
                         info->setDisplayable(true);
                         //info->updateDisplayability();
-
                         int year,month,day;
                         sscanf(info->m_publicationDate.c_str(),"%d-%d-%d",&year,&month,&day);
                         struct tm ptime;
@@ -63,10 +62,8 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                         ptime.tm_mon= month -1;
                         ptime.tm_mday = day;
                         time_t publicationTime = mktime(&ptime);
-                        if(publicationTime > appGui().getMainWindow()->m_currentDate.toTime_t()){
+                        if(publicationTime > appGui().getMainWindow()->m_currentDate.toTime_t())
                              info->setDisplayable(false);
-                        }
-
 
                         if(info->isonScreen())
                         {
