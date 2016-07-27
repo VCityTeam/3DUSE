@@ -54,21 +54,14 @@
 
 //FIXME: the following block (CLEMENT LIB ADDING) is used by one of the
 // test functions and can be made away together with those tests.
-#include <osg/PositionAttitudeTransform>
-#include "osg/osgInfo.hpp"
-#include "osg/osgQtWidget.hpp"
-#include <osg/LineWidth>
-#include <math.h>
-#include <osg/MatrixTransform>
-#include <core/layerInfo.hpp>
+
 #include "filters/raytracing/RayTracing.hpp"
 #include "Triangle.hpp"
 #include "filters/raytracing/Hit.hpp"
-#include <fstream>
-#include <string>
-#include "gui/applicationGui.hpp"
-#include <osgViewer/Viewer>
-#include <osgViewer/ViewerEventHandlers>
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -716,9 +709,6 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     {
         ss << "ID : " << obj->getId() << std::endl;
         ss << "Type : " << obj->getTypeAsString() << std::endl;
-        //obj->l
-        ss << "Temporal : " << obj->isTemporal() << std::endl;
-
         ss << "Attributes : " << std::endl;
         citygml::AttributesMap attribs = obj->getAttributes();
         citygml::AttributesMap::const_iterator it = attribs.begin();
@@ -3040,7 +3030,6 @@ void MainWindow::test1()
 }
 bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
     // date check
     if (QDate::currentDate() > QDate(2016, 12, 31))
@@ -3162,7 +3151,6 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         }
 
 
-        std::vector<Ray*> v_ray;
         int cpt2=0;
         int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
         bool raytracing = false;
@@ -3205,7 +3193,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
             ++id;
         }
 
-        std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
+        std::cout<<"[MainWindow > LoadCSV] Anchoring points to update : "<<cpt2<<std::endl;
 
         if(raytracing)
         {
@@ -3233,21 +3221,22 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
                 }
 
             }
+            //Rewriting csv with updated achoring point
+            std::ofstream ofs;
+            ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
+            ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
+            for(osgInfo* i : v_info)
+            {
+                ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
+                                     <<","<<std::to_string(i->m_angle)<<",";
+                ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
+                                    <<i->m_anchoring<<","<<i->m_priority<<","<<i->m_publicationDate<<std::endl;
+            }
+            ofs.close();
 
         }
 
 
-                std::ofstream ofs;
-        ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
-        ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
-        for(osgInfo* i : v_info)
-        {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
-                                 <<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
-                                <<i->m_anchoring<<","<<i->m_priority<<","<<i->m_publicationDate<<std::endl;
-        }
-        ofs.close();
 
 
 
