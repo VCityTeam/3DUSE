@@ -3115,10 +3115,10 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
                 if (cpt==6)
                 {
                     if(cell=="x")
-                        v_axis.push_back(osg::Vec3(1,0,));
-                    if(cell=="y")
+                        v_axis.push_back(osg::Vec3(1,0,0));
+                    else if(cell=="y")
                         v_axis.push_back(osg::Vec3(0,1,0));
-                    if(cell=="z")
+                    else if(cell=="z")
                         v_axis.push_back(osg::Vec3(0,0,1));
                 }
                 if (cpt==7)
