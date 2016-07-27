@@ -2,9 +2,6 @@
 
 #include <cmath>
 
-namespace citygml
-{
-
 quaternion::quaternion()
 {
     this->x = 0.0;
@@ -72,5 +69,4 @@ std::ostream& operator<<(std::ostream& stream, const quaternion& q)
     return stream;
 }
 
-}
 

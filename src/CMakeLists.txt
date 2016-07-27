@@ -5,6 +5,7 @@ add_subdirectory( libcitygml )
 
 add_library( vcitycore SHARED
   DataStructures/DEM/osgMnt.cpp 
+  DataStructures/quaternion.cpp
   utils/OGRGDAL_Utils/OGRGDALtools.cpp
   # FIXME: within OGRGDALtoShpWriter.cpp the SaveGeometrytoShape() funcion
   # uses QT's QDIR and QString which creates a dependency of the backend

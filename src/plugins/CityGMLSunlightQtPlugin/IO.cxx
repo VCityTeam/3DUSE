@@ -2,7 +2,7 @@
 
 #include "Triangle.hpp"
 #include "core/dateTime.hpp"
-#include "libcitygml/quaternion.hpp"
+#include "DataStructures/quaternion.hpp"
 
 #include <QDir>
 //This is not a real dependency towards osgDB/fstream, but towards fstream.
@@ -85,13 +85,13 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
         return TVec3d(0.0,0.0,0.0);
 
     //Azimut rotation quaternion
-    citygml::quaternion qA = citygml::quaternion(ARotAxis,azimutAngle);
+    quaternion qA = quaternion(ARotAxis,azimutAngle);
 
     //Elevation rotation quaternion
-    citygml::quaternion qE = citygml::quaternion(ERotAxis,elevationAngle);
+    quaternion qE = quaternion(ERotAxis,elevationAngle);
 
     //Total rotation quaternion
-    citygml::quaternion q = qE*qA;
+    quaternion q = qE*qA;
 
     sunPos = sunPos - origin;
     newSunPos = q*sunPos;

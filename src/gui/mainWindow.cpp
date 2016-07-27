@@ -67,7 +67,7 @@
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
 
-#include "libcitygml/quaternion.hpp"
+#include "DataStructures/quaternion.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3382,160 +3382,8 @@ void MainWindow::test2()
 // }
 
 ////////////////////////////////////////////////////////////////////////////////
-void buildAABBs(std::string filepath)
-{
-    vcity::Tile* tile = new vcity::Tile(filepath);
-
-    citygml::CityModel *city = tile->getCityModel();
-
-    //Create and open files
-    std::ofstream ofs_B_AABB; // Building AABB
-    std::ofstream ofs_BP_AABB; // Building Parts AABB
-
-    int extensionPos = filepath.find(".gml");
-    std::string filename_B_AABB = filepath.substr(0, extensionPos) + "_Building_AABB.dat";
-    std::string filename_BP_AABB = filepath.substr(0, extensionPos) + "_BuildingParts_AABB.dat";
-
-    ofs_B_AABB.open (filename_B_AABB, std::ofstream::trunc);
-    ofs_BP_AABB.open(filename_BP_AABB,std::ofstream::trunc);
-
-    //ofs << "_BATI/3670_10383" << std::endl;
-
-    citygml::CityObjects cityobjects = city->getCityObjectsRoots();
-
-    ofs_B_AABB << cityobjects.size() << std::endl;
-
-    for (const citygml::CityObject* cityObj : cityobjects)
-    {
-        citygml::Envelope envCityObj = cityObj->getEnvelope();
-
-        //Print AABB in Building AABB file
-        ofs_B_AABB << cityObj->getId() << std::endl;
-        ofs_B_AABB << std::to_string(envCityObj.getLowerBound().x) << std::endl;
-        ofs_B_AABB << std::to_string(envCityObj.getLowerBound().y) << std::endl;
-        ofs_B_AABB << std::to_string(envCityObj.getLowerBound().z) << std::endl;
-        ofs_B_AABB << std::to_string(envCityObj.getUpperBound().x) << std::endl;
-        ofs_B_AABB << std::to_string(envCityObj.getUpperBound().y) << std::endl;
-        ofs_B_AABB << std::to_string(envCityObj.getUpperBound().z) << std::endl;
-
-        std::vector<citygml::CityObject*> cityobjchilds = cityObj->getChildren();
-
-        ofs_BP_AABB << cityobjchilds.size() << std::endl;
-
-        for (citygml::CityObject* subObj : cityobjchilds)
-        {
-            citygml::Envelope envSubObj2 = subObj->getEnvelope();
-
-            //Print AABB in Building Parts AABB file
-            ofs_BP_AABB << subObj->getId() << std::endl;
-            ofs_BP_AABB << std::to_string(envSubObj2.getLowerBound().x) << std::endl;
-            ofs_BP_AABB << std::to_string(envSubObj2.getLowerBound().y) << std::endl;
-            ofs_BP_AABB << std::to_string(envSubObj2.getLowerBound().z) << std::endl;
-            ofs_BP_AABB << std::to_string(envSubObj2.getUpperBound().x) << std::endl;
-            ofs_BP_AABB << std::to_string(envSubObj2.getUpperBound().y) << std::endl;
-            ofs_BP_AABB << std::to_string(envSubObj2.getUpperBound().z) << std::endl;
-
-           // std::cout << "cityObj2 " << subObj->getTypeAsString() << " ; " << subObj->getId() << " AABB LowerBound : " << envcityobj2.getLowerBound() << std::endl;
-           // std::cout << "cityObj2 " << subObj->getTypeAsString() << " ; " << subObj->getId() << " AABB UpperBound : " << envcityobj2.getUpperBound() << std::endl;
-
-        }
-    }
-
-    ofs_B_AABB.close();
-    ofs_BP_AABB.close();
-
-    delete tile;
-}
-
 void MainWindow::test3()
 {
-
-    // Parcours récursif du dossier en param (dossier contenant les tuiles BATI) et création d'un fichier avec les aabb des
-    // batis (tilename_AABBBuilding) puis un autre avec les aabb des roofs/walls (tilename_AABBBuildingParts)
-
-    //Parameters
-    QString buildingTilesFolder = "/home/vincent/Documents/VCity_Project/Data/TuilesTest/_BATI";
-
-    //Loop recursively through folder
-    QDirIterator it(buildingTilesFolder, QDirIterator::Subdirectories);
-    while (it.hasNext()) {
-
-        if(it.filePath().contains("_BATI")) //MAYBE TO REMOVE
-        {
-            if(it.fileName().contains(".gml"))
-            {
-                std::cout << "File : " << it.fileName().toStdString() << std::endl;
-                buildAABBs(it.filePath().toStdString());
-            }
-        }
-
-        it.next();
-    }
-
-
-    std::string file1path = "/home/vincent/Documents/VCity_Project/Data/Tuiles/_BATI/3670_10383.gml";
-
-    std::cout << "load citygml file : " << file1path << std::endl;
-    vcity::Tile* tile1 = new vcity::Tile(file1path);
-
-    citygml::CityModel * City1 = tile1->getCityModel();
-
-    citygml::Envelope envTest = City1->getEnvelope();
-
-//    std::cout << "CityModel AABB LowerBound : " << envTest.getLowerBound() << std::endl;
-//    std::cout << "CityModel AABB UpperBound : " << envTest.getUpperBound() << std::endl;
-
-    //Create and open file
-    std::ofstream ofs;
-    ofs.open ("/home/vincent/Documents/VCity_Project/Data/TestAABB/_BATI/AABB_3670_10383.dat", std::ofstream::app);
-
-    ofs << "_BATI/3670_10383" << std::endl;
-
-    for (const citygml::CityObject* cityObj : City1->getCityObjectsRoots())
-    {
-        citygml::Envelope envcityobj1 = cityObj->getEnvelope();
-
-        ofs << cityObj->getId() << std::endl;
-        ofs << std::to_string(envcityobj1.getLowerBound().x) << std::endl;
-        ofs << std::to_string(envcityobj1.getLowerBound().y) << std::endl;
-        ofs << std::to_string(envcityobj1.getLowerBound().z) << std::endl;
-        ofs << std::to_string(envcityobj1.getUpperBound().x) << std::endl;
-        ofs << std::to_string(envcityobj1.getUpperBound().y) << std::endl;
-        ofs << std::to_string(envcityobj1.getUpperBound().z) << std::endl;
-
-
-        std::cout << "cityObj " << cityObj->getTypeAsString() << " ; " << cityObj->getId() << " AABB LowerBound : " << envcityobj1.getLowerBound() << std::endl;
-        std::cout << "cityObj " << cityObj->getTypeAsString() << " ; " << cityObj->getId() << " AABB UpperBound : " << envcityobj1.getUpperBound() << std::endl;
-
-//        for (citygml::CityObject* object : cityObj->getChildren())
-//        {
-//            citygml::Envelope envcityobj2 = object->getEnvelope();
-
-//            std::cout << "cityObj2 " << object->getTypeAsString() << " ; " << object->getId() << " AABB LowerBound : " << envcityobj2.getLowerBound() << std::endl;
-//            std::cout << "cityObj2 " << object->getTypeAsString() << " ; " << object->getId() << " AABB UpperBound : " << envcityobj2.getUpperBound() << std::endl;
-
-//            for (citygml::Geometry* Geometry : object->getGeometries())
-//            {
-//                citygml::Envelope envgeom = Geometry->getEnvelope();
-
-//                std::cout << "Geom " << citygml::getCityObjectsClassName(Geometry->getType()) << " ; " << Geometry->getId() << " AABB LowerBound : " << envgeom.getLowerBound() << std::endl;
-//                std::cout << "Geom " << citygml::getCityObjectsClassName(Geometry->getType()) << " ; " << Geometry->getId() << " AABB UpperBound : " << envgeom.getUpperBound() << std::endl;
-
-//                for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
-//                {
-//                    citygml::Envelope envpoly = PolygonCityGML->getEnvelope();
-
-//                    std::cout << "Poly " << citygml::getCityObjectsClassName(Geometry->getType()) << " ; " << PolygonCityGML->getId() << " AABB LowerBound : " << envpoly.getLowerBound() << std::endl;
-//                    std::cout << "Poly " << citygml::getCityObjectsClassName(Geometry->getType()) << " ; " << PolygonCityGML->getId() << " AABB UpperBound : " << envpoly.getUpperBound() << std::endl;
-//                }
-//            }
-//        }
-    }
-
-    ofs.close();
-
-    /////////////////////////////////////////////////
-    #if 0
     //FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert a fusionner les tiles donc deux fichiers du meme nom seront fusionnes en un fichier contenant tous leurs objets a la suite.
 
     //// FusionLODs : prend deux fichiers modelisant les batiments avec deux lods differents et les fusionne en un seul
@@ -3594,9 +3442,6 @@ void MainWindow::test3()
     exporter.exportCityModel(*City2);
 
     QApplication::restoreOverrideCursor();
-
-#endif
-
 }
 
 #define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);

@@ -34,7 +34,6 @@ add_library( citygml SHARED
   # the xerces dependency at the cmakefile level (Find_package( xerces )...)
   # parserxercesc.cpp 
   polygon.cpp
-  quaternion.cpp
   temporalExt.cpp
   tesselator.cpp
   texture.cpp
