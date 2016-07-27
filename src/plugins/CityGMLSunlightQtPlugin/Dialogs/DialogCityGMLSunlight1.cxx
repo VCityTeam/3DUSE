@@ -350,7 +350,8 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
     settings.setValue("startDate",startDate.toString(Qt::ISODate));
 
     QDateTime endDate = ui->VisuEndDate->dateTime();
-    endDate = endDate.addDays(1); //In plugin, endDateTime is displayed with time at 23:59 which match endDateTime+1 at 00:00 in settings, so we need to add one day to the displayed day to update settings the right way
+    QTime endTime = ui->VisuEndTime->time();
+    endDate.setTime(endTime);
     vcity::app().getSettings().m_endDate = endDate.toString(Qt::ISODate).toStdString();
     settings.setValue("endDate",endDate.toString(Qt::ISODate));
 
@@ -375,19 +376,6 @@ void DialogCityGMLSunlight1::StartVisuButtonClicked()
 
     //Signal to notify CityGMLSunlightQtPlugin that visualization is activated
     emit startVisu(filepaths, startDate, endDate);
-
-    // Tests to bring mainwindow foreground and send Sunlight background
-    //appGui()->->setWindowState(Qt::WindowActive);
-//    appGui().getMainWindow()->raise();
-//    appGui().getMainWindow()->activateWindow();
-//    appGui().getMainWindow()->showNormal();
-    //this->lower();
-    //appGui().getMainWindow()->raise();
-    //appGui().getMainWindow()->setWindowState(Qt::WindowActive);
-
-//    appGui().getMainWindow()->setWindowState( (windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
-//    appGui().getMainWindow()->raise();  // for MacOS
-//    appGui().getMainWindow()->activateWindow(); // for Windows
 
 }
 ////////////////////////////////////////////////////////////////////////////////
