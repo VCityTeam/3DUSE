@@ -49,7 +49,7 @@ std::vector<double> ComputeDist(OGRLayer* LayerSkylinePoints1, OGRLayer* LayerSk
 
     if(vPoints1.size() != vPoints2.size())
     {
-        std::cout << "Error : Curves are not the same size, consider discretisation" << std::cout;
+        std::cout << "Error : Curves are not the same size, consider discretisation" << std::endl;
         return dist;
     }
 
