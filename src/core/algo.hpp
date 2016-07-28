@@ -14,6 +14,8 @@ namespace vcity
         Algo();
         ~Algo();
 
+        void MainLidar();
+
         void CompareTwoLidar(std::string Path1, std::string Path2);
 
         /*void ConvertLasToPCD();
