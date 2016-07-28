@@ -12,14 +12,6 @@ enum Compo
     Other
 };
 
-//struct CompResult
-//{
-//    int order;
-//    double angle;
-//    double dist;
-//    std::pair<Compo,Compo> compoSkylines;
-//};
-
 void CompareSkylines();
 
 

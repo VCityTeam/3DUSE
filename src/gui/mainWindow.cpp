@@ -46,11 +46,12 @@
 #include "src/processes/LinkCityGMLShape.hpp"
 #include "src/processes/TilingCityGML.hpp"
 #include "src/processes/EnhanceMNT.hpp"
-#include "src/processes/SkylineComparison.hpp"
 
 #include <QPluginLoader>
 #include "pluginInterface.h"
 #include "moc/plugindialog.hpp"
+
+#include "utils/SkylineComparison.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3232,101 +3233,6 @@ void MainWindow::test3()
 void MainWindow::test4()
 {
     CompareSkylines();
-
-#if 0
-
-    //*******************Comparison of 2 skylines
-
-    //Load 2 shapefiles
-    QString filepath1 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/SkylinesNewAlgo/SkylineOutputBellecour1/SkylinePoints.shp";
-    QString filepath2 = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/SkylinesNewAlgo/SkylineOutputBellecour2/SkylinePoints.shp";
-
-    std::cout << "load shp file : " << filepath1.toStdString() << std::endl;
-    OGRDataSource* poDS1 = OGRSFDriverRegistrar::Open(filepath1.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
-
-    std::cout << "load shp file : " << filepath2.toStdString() << std::endl;
-    OGRDataSource* poDS2 = OGRSFDriverRegistrar::Open(filepath2.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
-
-    //Get vector of OGRPoints from OGRDataSource
-    std::list<OGRPoint*> vPoints1 = dataSourceToPointList(poDS1);
-    std::list<OGRPoint*> vPoints2 = dataSourceToPointList(poDS2);
-
-    std::cout << vPoints1.size() << std::endl;
-    std::cout << vPoints2.size() << std::endl;
-
-
-
-
-    //Load point of view
-    QString pov_filepath = "/home/vincent/Documents/VCity_Project/NewFonctionalities/Comparaison_skylines/Skylines/SkylineOutput_BellecourDepuisRhone_1/Viewpoint.shp";
-
-    std::cout << "load point of view : " << pov_filepath.toStdString() << std::endl;
-    OGRDataSource* povODS = OGRSFDriverRegistrar::Open(pov_filepath.toStdString().c_str(), /*TRUE*/FALSE); //False pour read only et TRUE pour pouvoir modifier
-
-    std::list<OGRPoint*> vPoV = dataSourceToPointList(povODS);
-    std::list<OGRPoint*>::iterator it = vPoV.begin();
-    //OGRPoint* pov = *it;
-    //TVec3d PoV = TVec3d(pov->getX(), pov->getY(), pov->getZ());
-    //Convert it to TVec3d for convinience
-    TVec3d PoV = OGRPointToTVec3d(**it);
-
-    //Iterate through two lists simultaneously
-    std::list<OGRPoint*>::iterator itList1 = vPoints1.begin();
-    std::list<OGRPoint*>::iterator itList2 = vPoints2.begin();
-
-    //Compute ref vector (making the assesment that first point of skyline is the same for both skylines)
-    TVec3d vRef = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
-
-    //epsilon for float comparison
-    float epsilon = 0.001;
-
-    for(; itList1 != vPoints1.end() && itList2 != vPoints2.end(); ++itList1, ++itList2) // && ou || ?
-    {
-        //Create vectors
-        TVec3d v1 = TVec3d((*itList1)->getX() - PoV.x, (*itList1)->getY() - PoV.y, (*itList1)->getZ() - PoV.z);
-        TVec3d v2 = TVec3d((*itList2)->getX() - PoV.x, (*itList2)->getY() - PoV.y, (*itList2)->getZ() - PoV.z);
-
-        //Compute angles with reference vector
-        float angle1 = acos(vRef.dot(v1) / (vRef.length() * v1.length()));
-        float angle2 = acos(vRef.dot(v2) / (vRef.length() * v2.length()));
-
-
-        if(fabs(angle1 - angle2) > epsilon) // ie there are not equals
-        {       
-            if(angle1 < angle2)
-            {
-                //Get line of list2 to compute intersection with (ie line from previous point of list2 to current point)
-                std::list<OGRPoint*>::iterator prevPointList2 = std::prev(itList2,1);
-
-                //Compute intersection between list 2 and v1
-                TVec3d pIntersect = LineLineIntersection(PoV, OGRPointToTVec3d(**itList1), OGRPointToTVec3d(**prevPointList2), OGRPointToTVec3d(**itList2));
-
-                //insert the intersection into list 2
-                if(inter)
-                {
-                    std::cout << "intersection" << std::endl;
-                    /*OGRPoint* newPoint = new OGRPoint();
-                    *newPoint = TVec3dToOGRPoint(pIntersect);
-                    vPoints2.insert(itList2,newPoint);*/
-                }
-                else
-                    std::cout << "no intersection found" << std::endl;
-
-            }
-            else if(angle1 > angle2)
-            {
-                //Compute intersection between list 1 and v2
-                //insert the intersection into list 1
-            }
-        }
-//        else
-//            std::cout << "angles are equals" << std::endl;
-
-    }
-
-#endif
-
-
     //buildJson();
 
     /*std::vector<std::string> building;
