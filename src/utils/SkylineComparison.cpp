@@ -187,7 +187,8 @@ void exportToCSV(std::string path, std::string filename, std::vector<double> dis
 
     for(unsigned int i = 1 ; i < dist.size() ; ++i)
     {
-        angle += 60.0 / dist.size();
+        angle += 60.0 / dist.size(); ///Valeur entree en dur pour des etudes de visibilite avec un fovx de 60degres. 
+        ///La valeur de FoV utilisee n'est pas exporte lors d'un calcul de visibilite, il le faudrait afin de pouvoir recuperer ici cette valeur.
         ofs << angle << ";";
     }
 
