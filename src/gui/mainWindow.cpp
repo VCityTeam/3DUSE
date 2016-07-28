@@ -101,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
 	connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
 	//connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
-    connect(m_ui->actionLoad_CSV, SIGNAL(triggered()), this, SLOT(loadHistory()));
+    connect(m_ui->actionLoad_CSV, SIGNAL(triggered()), this, SLOT(loadDocuments()));
 	connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
 	connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
 	connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
@@ -775,7 +775,7 @@ void MainWindow::loadScene()
     m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::loadHistory()
+void MainWindow::loadDocuments()
 {
     m_osgView->setActive(false); // reduce osg framerate to have better response in Qt ui (it would be better if ui was threaded)
 

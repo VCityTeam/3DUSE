@@ -92,7 +92,7 @@ private:
     void loadScene();
     void loadSceneRecursive();
     void loadSceneBBox();
-    void loadHistory();
+    void loadDocuments();
     void resetScene();
     void clearSelection();
     void optionPickBuiling();
