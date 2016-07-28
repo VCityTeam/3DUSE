@@ -1925,65 +1925,6 @@ void MainWindow::slotSplitCityGMLBuildings()
     QApplication::restoreOverrideCursor();
     m_osgView->setActive(true); // don't forget to restore high framerate at the end of the ui code (don't forget executions paths)
 
-
-    /*QSettings settings("liris", "virtualcity");
-    QString lastdir = settings.value("lastdir").toString();
-    QString filename1 = QFileDialog::getOpenFileName(this, "Selectionner le fichier CityGML a traiter.", lastdir);
-    QFileInfo file1(filename1);
-    QString filepath1 = file1.absoluteFilePath();
-    QString ext1 = file1.suffix().toLower();
-    if(ext1 != "citygml" && ext1 != "gml")
-    {
-    std::cout << "Erreur : Le fichier n'est pas un CityGML." << std::endl;
-    QApplication::restoreOverrideCursor();
-    return;
-    }
-    settings.setValue("lastdir", file1.dir().absolutePath());
-
-
-    QFileDialog w;
-    w.setWindowTitle("Selectionner le dossier de sortie");
-    w.setFileMode(QFileDialog::Directory);
-
-    if(w.exec() == 0)
-    {
-    std::cout << "Annulation : Dossier non valide." << std::endl;
-    return;
-    }
-
-    std::string Folder = w.selectedFiles().at(0).toStdString();
-
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/LYON01_BATIS_WithoutTextures.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136.gml");
-
-    QTime time;
-    time.start();
-
-    vcity::Tile* BatiLOD2CityGML = new vcity::Tile(filepath1.toStdString());
-
-    std::vector<TextureCityGML*> ListTextures;
-
-    citygml::CityModel* ModelOut = SplitBuildingsFromCityGML(BatiLOD2CityGML, &ListTextures);
-
-    delete BatiLOD2CityGML;
-
-    ModelOut->computeEnvelope();
-    citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString()  + "_SplitBuildings.gml");
-    //exporter.exportCityModel(*ModelOut);
-
-    exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
-
-    delete ModelOut;
-
-    for(TextureCityGML* Tex:ListTextures)
-    delete Tex;
-
-    int millisecondes = time.elapsed();
-    std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-
-    std::cout << Folder + "/" + file1.baseName().toStdString()  + "_Split.gml a ete cree." << std::endl;*/
-
     return;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -2035,22 +1976,6 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("/home/frederic/Telechargements/Data/Lyon01/Lyon01_BatimentsDecoupes.gml");
-
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Lyon01_BatimentsDecoupes_Textures.gml"); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes.gml");
-    //vcity::Tile* BatiLOD2CityGML = new vcity::Tile("C:/Users/Game Trap/Downloads/Data/Lyon01/Jeux de test/LYON_1ER_00136_BatimentsDecoupes_Textures.gml");
-
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/GrandLyon_old/Lyon01/CADASTRE_SHP/BatiTest.shp", TRUE);
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("/home/frederic/Telechargements/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", TRUE);
-
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/PARCELLES_LYON01.shp", FALSE);
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BATIS_LYON01.shp", FALSE); //Doit ouvrir un fichier CityGML contenant des batiments LOD2
-    //OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/CADASTRE_SHP/BatiTest.shp", FALSE);
-
     QTime time;
     time.start();
 
@@ -2062,7 +1987,6 @@ void MainWindow::slotCutCityGMLwithShapefile()
     ModelOut->computeEnvelope();
 
     citygml::ExporterCityGML exporter(Folder + "/" + file1.baseName().toStdString() + "_CutBuildings.gml");
-    //citygml::ExporterCityGML exporter("A_CutBuildings.gml");
 
     exporter.exportCityModelWithListTextures(*ModelOut, &ListTextures);
 
@@ -2777,236 +2701,21 @@ void buildJson()//GrandLyon
     std::cout << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
-/*void MainWindow::test1() //Generation de stats pour etude de visibilite
-{
-QTime time;
-time.start();
-
-for(int cam = 1; cam <= 10; ++cam)
-{
-QString filepath = QString::fromStdString("D:/Dropbox/ResultatsVisibilite/"+std::to_string(cam)+"_Comparaison.csv");
-
-QFileInfo file(filepath);
-
-if(file.exists())
-{
-continue;
-}
-
-std::ofstream ofs;
-ofs.open("D:/Dropbox/ResultatsVisibilite/"+std::to_string(cam)+"_Comparaison.csv", std::ofstream::out);
-std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
-
-int min = -1;
-int max = -1;
-
-for(int i = 0; i <= 20; ++i)
-{
-std::string dist = std::to_string(i);
-
-filepath = QString::fromStdString(Folder+dist) + "_Result.shp";
-
-QFileInfo file(filepath);
-
-if(file.exists())
-{
-if(min == -1)
-min = i;
-max = i;
-}
-else if(min != -1)
-break;
-}
-
-std::cout << cam << " : " << min << "   " << max << std::endl;
-
-filepath = QString::fromStdString(Folder+std::to_string(max)) + "_Result.shp";
-
-OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
-OGRLayer* Layer = DataSource->GetLayer(0);
-
-OGRMultiPoint* ListPointsLod2 = new OGRMultiPoint;
-OGRFeature *Feature;
-Layer->ResetReading();
-while((Feature = Layer->GetNextFeature()) != NULL)
-{
-OGRGeometry* Point = Feature->GetGeometryRef();
-if(Point->getGeometryType() == wkbPoint || Point->getGeometryType() == wkbPoint25D)
-ListPointsLod2->addGeometry(Point);
-}
-
-delete DataSource;
-
-for(int i = min; i < max; ++i)
-{
-std::cout << "Avancement LoD1 : " << i << "/" << max << std::endl;
-int cpt1 = 0; //Points de Lod1 qui sont dans Lod2
-int cpt2 = 0; //Points de Lod1 qui ne sont pas dans Lod2
-int cpt3 = 0; //Points de Lod2 qui sont dans Lod1
-int cpt4 = 0; //Points de Lod2 qui ne sont pas dans Lod1
-
-std::string dist = std::to_string(i);
-
-filepath = QString::fromStdString(Folder+dist) + "_Result.shp";
-
-OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
-OGRLayer* Layer2 = DataSource2->GetLayer(0);
-
-OGRMultiPoint* ListPoints = new OGRMultiPoint;
-OGRFeature *Feature2;
-Layer2->ResetReading();
-while((Feature2 = Layer2->GetNextFeature()) != NULL)
-{
-OGRGeometry* Point = Feature2->GetGeometryRef();
-if(Point->getGeometryType() == wkbPoint || Point->getGeometryType() == wkbPoint25D)
-{
-ListPoints->addGeometry(Point);
-//if(Point->Distance(ListPointsLod2) < 1.0)
-//cpt1++;
-//else
-//cpt2++;
-}
-}
-delete DataSource2;
-
-for(int j = 0; j < ListPointsLod2->getNumGeometries(); ++j)
-{
-double distance = 1000;
-std::cout << "Avancement Comparaison Points : " << j << " / " << ListPointsLod2->getNumGeometries() << ".\r" << std::flush;
-OGRPoint* Point1 = (OGRPoint*)ListPointsLod2->getGeometryRef(j);
-for(int k = 0; k < ListPoints->getNumGeometries(); ++k)
-{
-OGRPoint* Point2 = (OGRPoint*)ListPoints->getGeometryRef(k);
-float tempdist = sqrt((Point2->getX()-Point1->getX())*(Point2->getX()-Point1->getX()) + (Point2->getY()-Point1->getY())*(Point2->getY()-Point1->getY()) + (Point2->getZ()-Point1->getZ())*(Point2->getZ()-Point1->getZ()));
-if(tempdist < distance)
-distance = tempdist;
-}
-if(distance < 1.0)
-cpt3++;
-else
-cpt4++;
-}
-std::cout << std::endl;
-
-ofs << "Comparaison LoD1 a partir de " << i << "000m et LoD2 (" << max << "000m)" << std::endl;
-ofs << "LoD1 : " << ListPoints->getNumGeometries() << " points;LoD2 : " << ListPointsLod2->getNumGeometries() << " points" << std::endl;
-ofs << "; Nombre de points" << std::endl;
-//ofs << "Points de Lod1 qui sont dans Lod2 : " << cpt1 << ";" << cpt1/(cpt1 + cpt2) * 100.f << std::endl;
-//ofs << "Points de Lod1 qui ne sont pas dans Lod2 : " << cpt2 << ";" << cpt2/(cpt1 + cpt2) * 100.f << std::endl;
-ofs << "Points de Lod2 qui sont dans Lod1 : ;" << cpt3 << std::endl;
-ofs << "Points de Lod2 qui ne sont pas dans Lod1 : ;" << cpt4 << std::endl << std::endl;
-
-delete ListPoints;
-}
-delete ListPointsLod2;
-ofs.close();
-}
-
-int millisecondes = time.elapsed();
-std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-}*/
 void MainWindow::test1()
 {
     QTime time;
     time.start();
 
-    std::string LiDAR2012 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2012//1833_5173_1_1_1.laz";
-    std::string LiDAR2015 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2015//1833_5173_2015_1_1_1.las";
-
-    vcity::app().getAlgo().CompareTwoLidar(LiDAR2012, LiDAR2015);
-
-    //vcity::app().getAlgo().ConvertLasToPCD();
-    //vcity::app().getAlgo().ExtractGround();
-    //vcity::app().getAlgo().ExtractBuildings();
-    //vcity::app().getAlgo().RemoveGroundWithTIN();
-    //vcity::app().getAlgo().CompareBuildings();
-    //vcity::app().getAlgo().ConstructRoofs();
+    vcity::app().getAlgo().MainLidar();
 
     int millisecondes = time.elapsed();
     std::cout << "Execution time : " << millisecondes / 1000.0 << std::endl;
-
-    return;
-
-    ////// Recupere les ilots partages en ilot Bati et ilot non bati (terrain) decoupes par les routes et les extrude en 3D grace aux informations de hauteurs
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    OGRDataSource* Bati = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/batiout.shp", TRUE);
-    OGRDataSource* Terrain = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/terrainout.shp", TRUE);
-
-    OGRLayer *LayerBati = Bati->GetLayer(0);
-    OGRLayer *LayerTerrain = Terrain->GetLayer(0);
-
-    citygml::ExporterCityGML exporter("C:/Users/Game Trap/Downloads/Ilots.gml");
-    exporter.initExport();
-    citygml::Envelope Envelope;
-
-    OGRFeature *FeatureBati;
-    LayerBati->ResetReading();
-
-    int cpt = 0;
-
-    while ((FeatureBati = LayerBati->GetNextFeature()) != NULL)
-    {
-        OGRMultiPolygon* GeometryBati = new OGRMultiPolygon;
-        GeometryBati->addGeometry(FeatureBati->GetGeometryRef());
-        double H = 20;
-        double Zmin = 0;
-        if (FeatureBati->GetFieldIndex("HAUTEUR") != -1)
-            H = FeatureBati->GetFieldAsDouble("HAUTEUR");
-        if (FeatureBati->GetFieldIndex("Z_MIN") != -1)
-            Zmin = FeatureBati->GetFieldAsDouble("Z_MIN");
-        double Zmax = Zmin + H;
-
-        Zmax = Zmin;
-        Zmin = Zmax - H;
-
-        citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotBati_" + std::to_string(cpt), GeometryBati, &Zmax, &Zmin);
-        ++cpt;
-
-        exporter.appendCityObject(*Ilot);
-        Ilot->computeEnvelope();
-        Envelope.merge(Ilot->getEnvelope());
-
-        delete GeometryBati;
-    }
-
-    OGRFeature *FeatureTerrain;
-    LayerTerrain->ResetReading();
-
-    cpt = 0;
-
-    while ((FeatureTerrain = LayerTerrain->GetNextFeature()) != NULL)
-    {
-        OGRMultiPolygon* GeometryTerrain = new OGRMultiPolygon;
-        GeometryTerrain->addGeometry(FeatureTerrain->GetGeometryRef());
-        double H = 1;
-        double Zmin = 0;
-        if (FeatureTerrain->GetFieldIndex("HAUTEUR") != -1)
-            H = FeatureTerrain->GetFieldAsDouble("HAUTEUR");
-        if (FeatureTerrain->GetFieldIndex("Z_MIN") != -1)
-            Zmin = FeatureTerrain->GetFieldAsDouble("Z_MIN");
-        double Zmax = Zmin + H;
-
-        citygml::CityObject* Ilot = ConvertLOD1ToCityGML("IlotTerrain_" + std::to_string(cpt), GeometryTerrain, &Zmax, &Zmin);
-        ++cpt;
-
-        exporter.appendCityObject(*Ilot);
-        Ilot->computeEnvelope();
-        Envelope.merge(Ilot->getEnvelope());
-
-        delete GeometryTerrain;
-    }
-
-    exporter.addEnvelope(Envelope);
-    exporter.endExport();
-
-    QApplication::restoreOverrideCursor();
 }
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-//    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
+    //    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
-   std::string sourcepath = "/home/john/Alaric/vcity/data/Data/spreadsheet_testnolodilotdulac.csv";
+    std::string sourcepath = "/home/john/Alaric/vcity/data/Data/spreadsheet_testnolodilotdulac.csv";
 
     std::vector<osgInfo*> v_info;
     std::vector<float> v_height;
@@ -3028,134 +2737,134 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
     std::vector<std::string> v_publicationdate;
 
     // *** CSV Load
-        std::ifstream file(sourcepath);
-        std::string line;
-        std::getline(file,line); //get the first line
-        int cpt = 0 ;
-        float x=0;
-        float y=0;
-        float z=0;
-        while(std::getline(file,line)) // For all lines of csv file
+    std::ifstream file(sourcepath);
+    std::string line;
+    std::getline(file, line); //get the first line
+    int cpt = 0;
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    while (std::getline(file, line)) // For all lines of csv file
+    {
+        std::stringstream  lineStream(line);
+        std::string        cell;
+        cpt = 0;
+        x = 0;
+        y = 0;
+        z = 0;
+        while (std::getline(lineStream, cell, ','))
         {
-            std::stringstream  lineStream(line);
-            std::string        cell;
-            cpt=0;
-            x=0;
-            y=0;
-            z=0;
-            while(std::getline(lineStream,cell,','))
+            if (cpt == 0)
+                v_height.push_back(std::stod(cell));
+            if (cpt == 1)
+                v_width.push_back(std::stod(cell));
+            if (cpt == 2)
+                x = std::stod(cell);
+
+            if (cpt == 3)
+                y = std::stod(cell);
+
+            if (cpt == 4)
+                z = std::stod(cell);
+
+            if (cpt == 5)
+                v_angle.push_back(std::stod(cell));
+            if (cpt == 6)
             {
-                if (cpt==0)
-                        v_height.push_back(std::stod(cell));
-                if (cpt==1)
-                        v_width.push_back(std::stod(cell));
-                if (cpt==2)
-                        x=std::stod(cell);
-
-                if (cpt==3)
-                        y=std::stod(cell);
-
-                if (cpt==4)
-                        z=std::stod(cell);
-
-                if (cpt==5)
-                        v_angle.push_back(std::stod(cell));
-                if (cpt==6)
-                {
-                    if(cell=="z")
-                        v_axis.push_back(osg::Vec3(0,0,1));
-                }
-                if (cpt==7)
-                        v_filepath.push_back(cell);
-
-                if (cpt==8)
-                        v_name.push_back(cell);
-
-                if (cpt==9)
-                        v_filetype.push_back(cell);
-
-                if (cpt==10)
-                        v_sourcetype.push_back(cell);
-
-                if (cpt==11)
-                    v_LOD.push_back(cell);
-                if (cpt==12)
-                    v_anchoring.push_back(std::stod(cell));
-
-                if(cpt==13)
-                    v_priority.push_back(std::stod(cell));
-                if(cpt==14) {
-                    v_publicationdate.push_back(cell);
-                }
-
-                cpt++;
-             }
-            v_position.push_back(osg::Vec3(x,y,z));
-        }
-        std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
-        for (std::size_t i=0; i<v_filepath.size(); ++i)
-        {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
-                                         v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i],v_publicationdate[i]));
-        }
-
-
-        std::vector<Ray*> v_ray;
-        int cpt2=0;
-        int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
-        bool raytracing = false;
-
-        for(osgInfo* i : v_info)
-        {
-            if(i->m_anchoring==0)
-            {
-                osg::Vec3 osgvec3 = i->getPosition();
-                TVec3d ori = TVec3d(osgvec3.x()+offsetx,osgvec3.y()+offsety,osgvec3.z());
-                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), id);
-                v_ray.push_back(tmp_ray);
-                raytracing = true;
-                cpt2++;
+                if (cell == "z")
+                    v_axis.push_back(osg::Vec3(0, 0, 1));
             }
-            ++id;
-        }
+            if (cpt == 7)
+                v_filepath.push_back(cell);
 
-        std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
+            if (cpt == 8)
+                v_name.push_back(cell);
 
-        if(raytracing)
-        {
-            TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
-            TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
+            if (cpt == 9)
+                v_filetype.push_back(cell);
 
-            TriangleList* triangles = new TriangleList();
-            triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
+            if (cpt == 10)
+                v_sourcetype.push_back(cell);
 
-            triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
-            triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
+            if (cpt == 11)
+                v_LOD.push_back(cell);
+            if (cpt == 12)
+                v_anchoring.push_back(std::stod(cell));
 
-            std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
-
-            for(Hit* h : *(v_hit))
-            {
-                v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
+            if (cpt == 13)
+                v_priority.push_back(std::stod(cell));
+            if (cpt == 14) {
+                v_publicationdate.push_back(cell);
             }
 
+            cpt++;
+        }
+        v_position.push_back(osg::Vec3(x, y, z));
+    }
+    std::cout << "[MainWindow > test2 > loadCSV].....file parsed" << std::endl;
+    for (std::size_t i = 0; i < v_filepath.size(); ++i)
+    {
+        v_info.push_back(new osgInfo(v_height[i], v_width[i], v_position[i], v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
+            v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i], v_publicationdate[i]));
+    }
+
+
+    std::vector<Ray*> v_ray;
+    int cpt2 = 0;
+    int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
+    bool raytracing = false;
+
+    for (osgInfo* i : v_info)
+    {
+        if (i->m_anchoring == 0)
+        {
+            osg::Vec3 osgvec3 = i->getPosition();
+            TVec3d ori = TVec3d(osgvec3.x() + offsetx, osgvec3.y() + offsety, osgvec3.z());
+            Ray* tmp_ray = new Ray(ori, TVec3d(0.0, 0.0, -1.0), id);
+            v_ray.push_back(tmp_ray);
+            raytracing = true;
+            cpt2++;
+        }
+        ++id;
+    }
+
+    std::cout << "Anchoring points to update : " << cpt2 << std::endl;
+
+    if (raytracing)
+    {
+        TriangleList* triangles_bati = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_BATI_2012.gml", citygml::CityObjectsType::COT_Building);
+        TriangleList* triangles_tin = BuildTriangleList("/home/pers/clement.chagnaud/Documents/Data/LYON_1ER_2012/LYON_1ER_TIN_2012.gml", citygml::CityObjectsType::COT_TINRelief);
+
+        TriangleList* triangles = new TriangleList();
+        triangles->triangles.reserve(triangles_bati->triangles.size() + triangles_tin->triangles.size());
+
+        triangles->triangles.insert(triangles->triangles.end(), triangles_bati->triangles.begin(), triangles_bati->triangles.end());
+        triangles->triangles.insert(triangles->triangles.end(), triangles_tin->triangles.begin(), triangles_tin->triangles.end());
+
+        std::vector<Hit*>* v_hit = RayTracing(triangles, v_ray);
+
+        for (Hit* h : *(v_hit))
+        {
+            v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
         }
 
+    }
 
-        std::ofstream ofs;
-         ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
 
-         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
-         for(osgInfo* i : v_info)
-         {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
-              <<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
-              <<i->m_anchoring<<","<<i->m_priority<<","<<i->m_publicationDate<<std::endl;
-         }
-         ofs.close();
+    std::ofstream ofs;
+    ofs.open(sourcepath, std::ofstream::in | std::ofstream::out);
 
-        return v_info;
+    ofs << "height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate" << std::endl;
+    for (osgInfo* i : v_info)
+    {
+        ofs << std::to_string(i->m_height) << "," << std::to_string(i->m_width) << "," << i->m_initposition.x() << "," << i->m_initposition.y() << "," << i->m_initposition.z()
+            << "," << std::to_string(i->m_angle) << ",";
+        ofs << "z" << "," << i->m_filepath << "," << i->m_name << "," << i->m_filetype << "," << i->m_sourcetype << "," << i->m_LOD << ","
+            << i->m_anchoring << "," << i->m_priority << "," << i->m_publicationDate << std::endl;
+    }
+    ofs.close();
+
+    return v_info;
 }
 
 void MainWindow::test2()
@@ -3166,442 +2875,28 @@ void MainWindow::test2()
     vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
     appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 
-    for (std::size_t i=0; i<v_info.size() ; ++i)
+    for (std::size_t i = 0; i < v_info.size(); ++i)
     {
         v_info[i]->setBillboarding(true);
     }
-
-	//Creation d'ilots a partir de Shapefile contenant des routes
-//	OGRDataSource* Routes = OGRSFDriverRegistrar::Open("C:/Users/Game Trap/Downloads/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-//	OGRLayer *LayerRoutes = Routes->GetLayer(0);
-//	OGRFeature *FeatureRoutes;
-//	LayerRoutes->ResetReading();
-
-//	OGRMultiLineString* ReseauRoutier = new OGRMultiLineString;
-//	while((FeatureRoutes = LayerRoutes->GetNextFeature()) != NULL)
-//	{
-//		OGRGeometry* Route = FeatureRoutes->GetGeometryRef();
-
-//		if(Route->getGeometryType() == wkbLineString || Route->getGeometryType() == wkbLineString25D)
-//		{
-//			ReseauRoutier->addGeometry(Route);
-//		}
-//	}
-
-
-//	OGRGeometryCollection * ReseauPolygonize = (OGRGeometryCollection*) ReseauRoutier->Polygonize();
-
-//	OGRMultiPolygon * ReseauMP = new OGRMultiPolygon;
-//    std::cout<<"[MainWindow > test2].....CSV loaded"<<std::endl;
-
-//	for(int i = 0; i < ReseauPolygonize->getNumGeometries(); ++i)
-//	{
-//		OGRGeometry* temp = ReseauPolygonize->getGeometryRef(i);
-//		if(temp->getGeometryType() == wkbPolygon || temp->getGeometryType() == wkbPolygon25D)
-//			ReseauMP->addGeometry(temp);
-//	}
-
-//	SaveGeometrytoShape("ReseauRoutier.shp", ReseauMP);
-
-//	delete ReseauRoutier;
 }
-
-
-// void MainWindow::test2() //Generation de stats pour etude de visibilite
-// {
-// 	QTime time;
-// 	time.start();
-// 
-// 	for(int cam = 1; cam <= 10; ++cam)
-// 	{
-// 		std::ofstream ofs;
-// 		ofs.open("D:/3DUSE 0.2.5/"+std::to_string(cam)+"_Skyline.csv", std::ofstream::out);
-// 		std::string Folder = "D:/3DUSE 0.2.5/SkylineOutput_" + std::to_string(cam) + "/";
-// 
-// 		int min = -1;
-// 		int max = -1;
-// 
-// 		QString filepath;
-// 
-// 		for(int i = 0; i <= 20; ++i)
-// 		{
-// 			std::string dist = std::to_string(i);
-// 
-// 			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
-// 
-// 			QFileInfo file(filepath);
-// 
-// 			if(file.exists())
-// 			{
-// 				if(min == -1)
-// 					min = i;
-// 				max = i;
-// 			}
-// 			else if(min != -1)
-// 				break;
-// 		}
-// 
-// 		OGRDataSource* DS = OGRSFDriverRegistrar::Open((Folder + std::to_string(max)+ "_Viewpoint.shp").c_str(), FALSE);
-// 		OGRLayer* L = DS->GetLayer(0);
-// 		OGRFeature *F;
-// 		L->ResetReading();
-// 		F = L->GetNextFeature();
-// 		OGRPoint* Camera = (OGRPoint*)F->GetGeometryRef()->clone();
-// 
-// 		delete DS;
-// 
-// 		std::cout << cam << " : " << min << "   " << max << std::endl;
-// 
-// 		filepath = QString::fromStdString(Folder+std::to_string(max)) + "_SkylineLine.shp";
-// 
-// 		OGRDataSource* DataSource = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
-// 		OGRLayer* Layer = DataSource->GetLayer(0);
-// 
-// 		OGRLineString * LineLoD2;
-// 		OGRFeature *Feature;
-// 		Layer->ResetReading();
-// 		Feature = Layer->GetNextFeature();
-// 		LineLoD2 = (OGRLineString*)Feature->GetGeometryRef()->clone();
-// 
-// 		delete DataSource;
-// 
-// 		for(int i = min; i < max; ++i)
-// 		{
-// 			std::cout << "Avancement : " << i << std::endl;
-// 
-// 			std::string dist = std::to_string(i);
-// 
-// 			filepath = QString::fromStdString(Folder+dist) + "_SkylineLine.shp";
-// 
-// 			OGRDataSource* DataSource2 = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), FALSE);
-// 			OGRLayer* Layer2 = DataSource2->GetLayer(0);
-// 
-// 			OGRLineString * Line;
-// 			OGRFeature *Feature2;
-// 			Layer2->ResetReading();
-// 			Feature2 = Layer2->GetNextFeature();
-// 			Line = (OGRLineString*)Feature2->GetGeometryRef()->clone();
-// 
-// 			delete DataSource2;
-// 
-// 			//std::cout << Line->getNumPoints() << " - " << LineLoD2->getNumPoints() << std::endl;
-// 
-// 			std::vector<float> Dist;
-// 
-// 			ofs << "LoD2 a une distance de " << max << std::endl;
-// 			ofs << "Comparaison LoD1 a partir de " << i << "000m et LoD2" << std::endl;
-// 
-// 			//OGRMultiLineString* MLS = new OGRMultiLineString;
-// 
-// 			for(int k = 0; k < LineLoD2->getNumPoints(); ++k)
-// 			{
-// 				OGRPoint* Point1 = new OGRPoint;
-// 				LineLoD2->getPoint(k, Point1);
-// 
-// 				double DistMin = 100000;
-// 
-// 				for(int j = 0; j < Line->getNumPoints(); ++j)
-// 				{
-// 					OGRPoint* Point2 = new OGRPoint;
-// 					Line->getPoint(j, Point2);
-// 
-// 					TVec2d AB(Point1->getX() - Camera->getX(), Point1->getY() - Camera->getY());
-// 					TVec2d AC(Point2->getX() - Camera->getX(), Point2->getY() - Camera->getY());
-// 
-// 					/*std::cout << Point1->getX() << " " << Point1->getY() << " " << Point1->getZ() << std::endl;
-// 					std::cout << Point2->getX() << " " << Point2->getY() << " " << Point2->getZ() << std::endl;
-// 
-// 					std::cout << Camera->getX() << " " << Camera->getY() << " " << Camera->getZ() << std::endl;
-// 
-// 					std::cout << AB << std::endl;
-// 					std::cout << AC << std::endl;
-// 
-// 					std::cout << AB.x * AC.y - AB.y * AC.x << std::endl;
-// 
-// 					int a;
-// 					std::cin >> a;*/
-// 
-// 
-// 					if(AB.x * AC.y - AB.y * AC.x < 0.01)
-// 					{
-// 						double Distance = sqrt((Point2->getX()-Point1->getX())*(Point2->getX()-Point1->getX()) + (Point2->getY()-Point1->getY())*(Point2->getY()-Point1->getY()) + (Point2->getZ()-Point1->getZ())*(Point2->getZ()-Point1->getZ()));
-// 						if(DistMin > Distance)
-// 							DistMin = Distance;
-// 					}
-// 
-// 					//delete Point1;
-// 					//delete Point2;
-// 					//OGRLineString* LS = new OGRLineString;
-// 					//LS->addPoint(Point1);
-// 					//LS->addPoint(Point2);
-// 					//MLS->addGeometryDirectly(LS);
-// 					delete Point2;
-// 
-// 				}
-// 				if(DistMin == 100000)
-// 				{
-// 					std::cout << k << " Erreur DistMin" << std::endl;
-// 					DistMin = Point1->Distance(Line);
-// 					//int a;
-// 					//std::cin >> a;
-// 				}
-// 				ofs << DistMin << ";";
-// 				Dist.push_back(DistMin);
-// 
-// 				delete Point1;
-// 			}
-// 
-// 			ofs << std::endl << std::endl;
-// 
-// 			delete Line;
-// 
-// 			//SaveGeometrytoShape("MLS.shp", MLS);
-// 		}
-// 		delete LineLoD2;
-// 		ofs.close();
-// 	}
-// 
-// 	int millisecondes = time.elapsed();
-// 	std::cout << "Execution time : " << millisecondes/1000.0 <<std::endl;
-// }
-
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
-    //FusionTiles(); //Fusion des fichiers CityGML contenus dans deux dossiers : sert a fusionner les tiles donc deux fichiers du meme nom seront fusionnes en un fichier contenant tous leurs objets a la suite.
-
-    //// FusionLODs : prend deux fichiers modelisant les batiments avec deux lods differents et les fusionne en un seul
-    QSettings settings("liris", "virtualcity");
-    QString lastdir = settings.value("lastdir").toString();
-    QStringList File1 = QFileDialog::getOpenFileNames(this, "Selectionner le premier fichier.", lastdir);
-
-    QFileInfo file1temp(File1[0]);
-    QString file1path = file1temp.absoluteFilePath();
-    QFileInfo file1(file1path);
-
-    QString ext = file1.suffix().toLower();
-    if (ext != "citygml" && ext != "gml")
-    {
-        std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-        return;
-    }
-
-    QStringList File2 = QFileDialog::getOpenFileNames(this, "Selectionner le second fichier.", lastdir);
-
-    QFileInfo file2temp(File2[0]);
-    QString file2path = file2temp.absoluteFilePath();
-    QFileInfo file2(file2path);
-
-    ext = file2.suffix().toLower();
-    if (ext != "citygml" && ext != "gml")
-    {
-        std::cout << "Erreur : Le fichier n'est pas un CityGML" << std::endl;
-        return;
-    }
-
-    QFileDialog w;
-    w.setWindowTitle("Selectionner le dossier de sortie");
-    w.setFileMode(QFileDialog::Directory);
-
-    if (w.exec() == 0)
-    {
-        std::cout << "Annulation : Dossier non valide." << std::endl;
-        return;
-    }
-    std::string Folder = w.selectedFiles().at(0).toStdString() + "/" + file2.baseName().toStdString() + "_Fusion.gml";
-
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    std::cout << "load citygml file : " << file1path.toStdString() << std::endl;
-    vcity::Tile* tile1 = new vcity::Tile(file1path.toStdString());
-    std::cout << "load citygml file : " << file2path.toStdString() << std::endl;
-    vcity::Tile* tile2 = new vcity::Tile(file2path.toStdString());
-
-    citygml::CityModel * City1 = tile1->getCityModel();
-    citygml::CityModel * City2 = tile2->getCityModel();
-
-    FusionLODs(City1, City2);
-
-    citygml::ExporterCityGML exporter(Folder);
-
-    exporter.exportCityModel(*City2);
-
-    QApplication::restoreOverrideCursor();
 }
-
-#define addTree(message) appGui().getControllerGui().addAssimpNode(m_app.getScene().getDefaultLayer("LayerAssimp")->getURI(), message);
-
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
 {
-	//buildJson();
-
-    /*std::vector<std::string> building;
-    building.push_back("C:/VCityData/Jeux de test/LYON_1ER_00136.gml");
-
-    std::vector<AnalysisResult> res = Analyse(building,m_app.getSettings().getDataProfile().m_offset,cam);
-
-    int cpt = 0;
-    for(AnalysisResult ar : res)
-    {
-    addTree(BuildViewshedOSGNode(ar,std::to_string(cpt)+"_"));
-    addTree(BuildSkylineOSGNode(ar.skyline,std::to_string(cpt)+"_"));
-    cpt++;
-    }*/
-
-    //if(p.getX() >= 1841000 && p.getX() <= 1843000 && p.getY() >= 5175000 && p.getY() <= 5177000)
-
-    //ProcessLasShpVeget();
-    /*BelvedereDB::Get().Setup("C:/VCityData/Tile/","Test");
-    std::vector<std::pair<std::string,PolygonData>> top = BelvedereDB::Get().GetTop(5);
-
-    std::ofstream ofs("C:/VCityBuild/SkylineOutput/TopPoly.csv",std::ofstream::out);
-
-    ofs << "PolygonId" << ";" << "Time Seen" << ";" << "CityObjectId" << std::endl;
-    for(std::pair<std::string,PolygonData> p : top)
-    {
-    ofs << p.first << ";" << p.second.HitCount << ";" << p.second.CityObjectId << std::endl;
-    }
-    ofs.close();*/
-
-    /*ProcessCL("C:/VCityBuild/SkylineOutput/1841_5175.dat","1841_5175");
-    ProcessCL("C:/VCityBuild/SkylineOutput/1841_5176.dat","1841_5176");
-    ProcessCL("C:/VCityBuild/SkylineOutput/1842_5175.dat","1842_5175");
-    ProcessCL("C:/VCityBuild/SkylineOutput/1842_5176.dat","1842_5176");*/
-
-    //ExtrudeAlignementTree();
-
-    /*LASreadOpener lasreadopener;
-    lasreadopener.set_file_name("C:\VCityData\Veget\1841_5175.las");
-    LASreader* lasreader = lasreadopener.open();
-
-    OGRMultiPoint* mp = new OGRMultiPoint;
-
-    while (lasreader->read_point())
-    {
-    OGRPoint* point = new OGRPoint;
-    mp->addGeometry(new OGRPoint((lasreader->point).get_x(),(lasreader->point).get_y(),(lasreader->point).get_z()));
-    }*/
-
-    std::cout<<std::endl;
-    vcity::LayerCityGML* layer = dynamic_cast<vcity::LayerCityGML*>(m_app.getScene().getDefaultLayer("LayerCityGML"));
-    citygml::CityModel* model = layer->getTiles()[0]->getCityModel();
-    std::vector<temporal::Version*> versions = model->getVersions();
-    for (temporal::Version* version : versions)
-    {
-        std::cout<<"Version \""<<version->getId()<<"\" :"<<std::endl;
-        std::vector<citygml::CityObject*>* members = version->getVersionMembers();
-        for (std::vector<citygml::CityObject*>::iterator it = members->begin(); it != members->end(); it++)
-        {
-            std::cout<<"    - member: "<<(*it)->getId()<<std::endl;
-        }
-    }
-    std::cout<<std::endl;
-    std::vector<temporal::VersionTransition*> transitions = model->getTransitions();
-    for (temporal::VersionTransition* transition : transitions)
-    {
-        std::cout<<"Transition \""<<transition->getId()<<"\" :"<<std::endl;
-        std::cout<<"    - from: "<<transition->from()->getId()<<std::endl;
-        std::cout<<"    - to: "<<transition->to()->getId()<<std::endl;
-    }
-    std::cout<<std::endl;
-
-    std::cout<<"Workspaces:"<<std::endl;
-    std::map<std::string,temporal::Workspace> workspaces = model->getWorkspaces();
-    for(std::map<std::string,temporal::Workspace>::iterator it = workspaces.begin();it!=workspaces.end();it++){
-        std::cout<<it->second.name<<std::endl;
-        for(temporal::Version* v : it->second.versions){
-            std::cout<<"    - "<<v->getId()<<std::endl;
-        }
-    }
-
-}
-////////////////////////////////////////////////////////////////////////////////
-citygml::LinearRing* cpyOffsetLinearRing(citygml::LinearRing* ring, float offset)
-{
-    citygml::LinearRing* ringOffset = new citygml::LinearRing(ring->getId() + "_offset", true);
-
-    std::vector<TVec3d>& vertices = ring->getVertices();
-    for (std::vector<TVec3d>::iterator itVertices = vertices.begin(); itVertices != vertices.end(); ++itVertices)
-    {
-        TVec3d point = *itVertices;
-        point.z += offset;
-        ringOffset->addVertex(point);
-    }
-
-    return ringOffset;
-}
-///////////////////////////////////////////////////////////////////////////////////
-void test5rec(citygml::CityObject* obj)
-{
-    std::vector<citygml::Polygon*> polyBuf;
-
-    // parse geometry
-    std::vector<citygml::Geometry*>& geoms = obj->getGeometries();
-    for (std::vector<citygml::Geometry*>::iterator itGeom = geoms.begin(); itGeom != geoms.end(); ++itGeom)
-    {
-        // parse polygons
-        std::vector<citygml::Polygon*>& polys = (*itGeom)->getPolygons();
-        for (std::vector<citygml::Polygon*>::iterator itPoly = polys.begin(); itPoly != polys.end(); ++itPoly)
-        {
-            // get linear ring
-            citygml::LinearRing* ring = (*itPoly)->getExteriorRing();
-            citygml::LinearRing* ringOffset = cpyOffsetLinearRing(ring, 100);
-
-            citygml::Polygon* poly = new citygml::Polygon((*itPoly)->getId()); // ((*itPoly)->getId()+"_"+ringOffset->getId());
-            poly->addRing(ringOffset);
-            //(*itGeom)->addPolygon(poly);
-            polyBuf.push_back(poly);
-        }
-
-        for (std::vector<citygml::Polygon*>::iterator it = polyBuf.begin(); it < polyBuf.end(); ++it)
-        {
-            (*itGeom)->addPolygon(*it);
-        }
-    }
-
-    citygml::CityObjects& cityObjects = obj->getChildren();
-    for (citygml::CityObjects::iterator itObj = cityObjects.begin(); itObj != cityObjects.end(); ++itObj)
-    {
-        test5rec(*itObj);
-    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test5()
 {
-    if (appGui().getSelectedNodes().size() > 0)
-    {
-        citygml::CityObject* obj = appGui().getScene().getCityObjectNode(appGui().getSelectedNodes()[0]);
-        test5rec(obj);
-        appGui().getControllerGui().update(appGui().getSelectedNodes()[0]);
-    }
 }
-////////////////////////////////////////////////////////////////////////////////
-
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::loadShpFile(const QString& filepath)
 {
     std::cout << "load shp file : " << filepath.toStdString() << std::endl;
     OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/); //False pour read only et TRUE pour pouvoir modifier
-
-    //Pour sauvegarder un shapefile
-    /*const char *pszDriverName = "ESRI Shapefile";
-    OGRSFDriver *poDriver;
-    OGRRegisterAll();
-    poDriver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(pszDriverName);
-
-    if( poDriver == NULL )
-    {
-    printf( "%s driver not available.\n", pszDriverName );
-    return false;
-    }
-    OGRDataSource *poDS2;
-    remove("Polygon.shp");
-    poDS2 = poDriver->CreateDataSource("Polygon.shp", NULL);
-
-    poDS2->CopyLayer(poDS->GetLayer(0), "test");
-    OGRDataSource::DestroyDataSource(poDS2);
-
-    return false;*/
 
     //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
