@@ -42,9 +42,9 @@ if( BUILD_ALL_PLUGINS )
 else()
   option( BUILD_CityGMLCutQtPlugin      "Build the Cut GUI plugin."      ON )
   option( BUILD_CityGMLEmptyQtPlugin    "Build the Empty GUI plugin."    ON )
-  option( BUILD_CityGMLFloodARQtPlugin  "Build the FloodAR GUI plugin."  ON)
-  option( BUILD_CityGMLSunlightQtPlugin "Build the Sunlight GUI plugin." ON)
-  option( BUILD_CityGMLVisibiliteQtPlugin "Build the Visibilite plugin." ON)
+  option( BUILD_CityGMLFloodARQtPlugin  "Build the FloodAR GUI plugin."  OFF)
+  option( BUILD_CityGMLSunlightQtPlugin "Build the Sunlight GUI plugin." OFF)
+  option( BUILD_CityGMLVisibiliteQtPlugin "Build the Visibilite plugin." OFF)
 endif()
 
 
