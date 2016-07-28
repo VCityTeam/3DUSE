@@ -684,31 +684,6 @@ void OsgScene::setShadow(bool shadow)
     m_shadow = shadow;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::ref_ptr<osg::Texture2D> texture)
-{
-    osg::ref_ptr<osg::Group> grp = node->asGroup();
-    if (grp)
-    {
-        for (unsigned int i = 0; i < grp->getNumChildren(); ++i)
-        {
-            osg::ref_ptr<osg::Node> child = grp->getChild(i);
-            setTexture(child, tag, texture);
-        }
-    }
-
-    osg::ref_ptr<osg::Geode> geode = node->asGeode();
-    if (geode)
-    {
-        for (unsigned int i = 0; i < geode->getNumDrawables(); ++i)
-        {
-            osg::StateSet* stateset = geode->getDrawable(i)->getOrCreateStateSet();
-            //if(texture) stateset->setTextureAttributeAndModes( 0, texture, osg::StateAttribute::ON );
-            std::cout << "texture : " << texture << std::endl;
-            if (texture) stateset->setTextureAttribute(0, texture, osg::StateAttribute::ON);
-        }
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
 void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
 {
     // -4000 is used as a special value to disable time
