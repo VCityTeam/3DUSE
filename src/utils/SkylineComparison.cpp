@@ -8,6 +8,7 @@
 #include <map>
 #include <utility>
 #include <iostream>
+#include <string>
 #include "ogrsf_frmts.h"
 #include "vecs.hpp"
 
