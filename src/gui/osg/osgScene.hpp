@@ -170,8 +170,6 @@ private:
 
     osg::TextureCubeMap* readCubeMap();
     osg::Node* createSkybox();
-
-    std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief osgSceneBuild will create an osg tree (for rendering with osg) from a tile
