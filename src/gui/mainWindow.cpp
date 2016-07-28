@@ -976,9 +976,9 @@ void MainWindow::updateTemporalParams(int value)
 
     //std::cout << "set year : " << date.year() << std::endl;
 
-    QDateTime datetime(date);
-    m_currentDate = datetime;
-    if (m_useTemporal)
+	QDateTime datetime(date);
+	m_currentDate = datetime;
+    if(m_useTemporal)
     {
         m_osgScene->setDate(datetime);
 
@@ -1036,7 +1036,7 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    //std::cout << "toggle temporal tool" << std::endl;
+	//std::cout << "toggle temporal tool" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::ChangecheckBoxTemporalToolsState()

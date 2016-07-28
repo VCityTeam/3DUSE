@@ -519,6 +519,7 @@ add_library( VCityGui STATIC
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
+  src/utils/SkylineComparison.cpp
 
 ### QT related:
   ${VCITY_GUI_Qt_SRC}
