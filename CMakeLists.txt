@@ -405,6 +405,7 @@ if( BUILD_GUI_QT5 )
   QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
 endif()
 
+
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt
 # to unify notations between external libraries and internal (defined

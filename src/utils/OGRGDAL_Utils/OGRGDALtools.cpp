@@ -101,13 +101,6 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
             C.y = Ring->getY(i);
             C.z = Ring->getZ(i);
 
-            /*if ((C.x - A.x) / (B.x - A.x) != (C.y - A.y) / (B.y - A.y))
-            {
-                ++test;// C n'est pas aligné avec A et B => A B C forment bien un plan
-                -AC = C - A;
-                break;
-            }*/
-
             AC = C - A;
 
             if (AB.x == 0 && AC.x != 0)
@@ -139,9 +132,6 @@ OGRPoint* ProjectPointOnPolygon3D(OGRPoint* Point, OGRPolygon* Polygon)
     M.y = Point->getY();
 
     double s, t;
-
-    //t = (A.y * AB.x - A.x * AB.y + AB.y * M.x - AB.x * M.y) / (AB.y * AC.x - AB.x * AC.y);
-    //s = (M.x - A.x - t * AC.x) / AB.x;
 
     if (AB.x != 0)
     {
@@ -186,7 +176,6 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
         OGRLinearRing * Ring = Poly->getExteriorRing();
         if (Ring->getNumPoints() == 5)
         {
-            //SaveGeometrytoShape("Rectangle_" + std::to_string(i) + ".shp", Poly);
             OGRPoint * P1 = new OGRPoint;
             OGRPoint * P2 = new OGRPoint;
             OGRPoint * P3 = new OGRPoint;
@@ -210,8 +199,7 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
             OGRPolygon * Poly2 = new OGRPolygon;
             Poly1->addRingDirectly(Ring1);
             Poly2->addRingDirectly(Ring2);
-            //SaveGeometrytoShape("Rectangle_" + std::to_string(i) + "_Triangle1.shp", Poly1);
-            //SaveGeometrytoShape("Rectangle_" + std::to_string(i) + "_Triangle2.shp", Poly2);
+
             Geo->removeGeometry(i);
             --i;
             Geo->addGeometry(Poly1);
@@ -381,17 +369,9 @@ double Hausdorff(OGRMultiPolygon * GeoPoints, OGRMultiPolygon * Geo)
                 }
             }
         }
-        /*if(D_1 > 5)
-        {
-        std::cout << "Erreur = " << D_1 << std::endl;
-        std::cout << P0 <<std::endl;
-        SaveGeometrytoShape("ERREUR_" + std::to_string(i) + ".shp", (OGRPolygon *)Geo->getGeometryRef(J));
-        }*/
         if (D_1 > D)
             D = D_1;
     }
-    //int a;
-    //std::cin >> a;
     return D;
 }
 
@@ -500,10 +480,11 @@ OGRMultiPolygon* ProjectPolyOn3DPlane(OGRMultiPolygon* Poly2D, OGRPolygon * Poly
 
 /**
 * @brief ChangePointsOrderForNormal : Modifie l'orientation du polygone pour que sa normale soit orientee vers le haut (pour MNT et Roof).
-* @param Ring : Contient les points formant le polygone
-* @param Tex : Contient les coordonnees de textures liees aux points de Ring, il faut egalement modifier leur ordre si on veut conserver l'information de texture
+* @return Le ring correctement oriente.
+* @param [in] Ring : Contient les points formant le polygone
+* @param [in, out] Tex : Contient les coordonnees de textures liees aux points de Ring, il faut egalement modifier leur ordre si on veut conserver l'information de texture
 */
-void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
+OGRLinearRing* ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
 {
     TVec3d A;
     TVec3d B;
@@ -549,26 +530,28 @@ void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex)
     double NormZ = AB.x * AC.y - AB.y * AC.x;
 
     if (NormZ >= 0) //Le polygone est bien oriente pour que sa normale soit vers le haut, il n'y a donc rien a changer.
-        return;
+    {
+        OGRLinearRing* OutRing = (OGRLinearRing*)Ring->clone();
+        return OutRing;
+    }
 
-    OGRLinearRing* RingTmp = (OGRLinearRing*)Ring->clone();
     std::vector<TVec2f> TexTmp;// = *Tex;
 
     TexTmp.insert(TexTmp.end(), Tex->begin(), Tex->end());
 
     Tex->clear();
-    delete Ring;
-    Ring = new OGRLinearRing;
 
-    for (int i = 0; i < RingTmp->getNumPoints(); ++i)
+    OGRLinearRing* OutRing = new OGRLinearRing;
+
+    for (int i = 0; i < Ring->getNumPoints(); ++i)
     {
         Tex->push_back(TexTmp.at(TexTmp.size() - 1 - i));
-        Ring->addPoint( RingTmp->getX(RingTmp->getNumPoints() - 1 - i), 
-			RingTmp->getY(RingTmp->getNumPoints() - 1 - i), 
-			RingTmp->getZ(RingTmp->getNumPoints() - 1 - i) );
+        OutRing->addPoint(Ring->getX(Ring->getNumPoints() - 1 - i),
+            Ring->getY(Ring->getNumPoints() - 1 - i),
+            Ring->getZ(Ring->getNumPoints() - 1 - i) );
     }
 
-    delete RingTmp;
+    return OutRing;
 }
 
 /**
@@ -674,9 +657,7 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
         {
             delete Inter;
             TexUVout->push_back(*TexUV);
-            OGRPolygon* PolyTemp = new OGRPolygon(*GMLPoly);
-            return PolyTemp;
-            //return GMLPoly->clone(); //GMLPoly est inclu dans BuildingShp, il n'y a pas besoin de le modifier
+            return GMLPoly->clone(); //GMLPoly est inclu dans BuildingShp, il n'y a pas besoin de le modifier
         }
         OGRPolygon* ResPoly = new OGRPolygon;
         OGRLinearRing* InterExtRing = PolyInter->getExteriorRing();
@@ -707,7 +688,9 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
             delete P;
         }
 
-        ChangePointsOrderForNormal(ResExtRing, &uvPolyInter);
+        OGRLinearRing* RingTmp = ResExtRing;
+        ResExtRing = ChangePointsOrderForNormal(RingTmp, &uvPolyInter);
+        delete RingTmp;
 
         ResPoly->addRingDirectly(ResExtRing);
 
@@ -789,7 +772,9 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
                         delete P;
                     }
 
-                    ChangePointsOrderForNormal(ResExtRing, &uvPolyInter);
+                    OGRLinearRing* RingTmp = ResExtRing;
+                    ResExtRing = ChangePointsOrderForNormal(RingTmp, &uvPolyInter);
+                    delete RingTmp;
 
                     ResPoly->addRingDirectly(ResExtRing);
 
@@ -922,30 +907,6 @@ TVec2f CalculUV(std::vector<TVec3d>* Poly, std::vector<TVec2f>* UVs, TVec3d Poin
     }
 
     TVec2f Res = TVec2f(uvA.x + s * uvAB.x + t * uvAC.x, uvA.y + s * uvAB.y + t * uvAC.y);
-
-    /*if(Res.x != Res.x || Res.y != Res.y)
-    {
-    std::cout << std::setprecision(15) << "s - t : " << s << " - " << t << std::endl;
-    std::cout << Res << std::endl;
-    std::cout << std::endl << "A : " << A << std::endl;
-    std::cout << "uvA : " << uvA << std::endl;
-    std::cout << "B : " << B << std::endl;
-    std::cout << "uvB : " << uvB << std::endl;
-    std::cout << "C : " << C << std::endl;
-    std::cout << "uvC : " << uvC << std::endl;
-    std::cout << "Point : " << Point << std::endl;
-
-    for(TVec3d Vec: *Poly)
-    std::cout << "Poly : " << Vec << std::endl;
-
-    std::cout << std::endl << "AB : " << AB << std::endl;
-    std::cout << "AC : " << AC << std::endl;
-    std::cout << "uvAB : " << uvAB << std::endl;
-    std::cout << "uvAC : " << uvAC << std::endl;
-
-    int a;
-    std::cin >> a;
-    }*/
 
     return Res;
 }
