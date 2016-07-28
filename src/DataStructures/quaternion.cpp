@@ -38,6 +38,8 @@ quaternion operator*(const quaternion& q, double s)
     qOut.y = qOut.y * s;
     qOut.z = qOut.z * s;
     qOut.w = qOut.w * s;
+
+    return qOut;
 }
 
 quaternion operator*(double s, const quaternion& q)
