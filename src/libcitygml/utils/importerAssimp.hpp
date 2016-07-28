@@ -12,6 +12,7 @@
 #include "libcitygml/import/importer.hpp"
 #include "libcitygml/citygml.hpp"
 #include "citygmlutils_export.h"
+#include <QString>
 
 namespace citygml
 {

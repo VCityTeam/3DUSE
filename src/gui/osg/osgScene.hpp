@@ -29,6 +29,7 @@
 #include <osg/Node>
 #include <osg/Group>
 #include <osg/Geode>
+#include <QDateTime>
 #include <osg/Geometry>
 #include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"

@@ -47,15 +47,15 @@ namespace documentADE
    {
        _currentRightsHolder = currentRightsHolder;
    }
-   void DocumentObject::setCurrentPossessionDate(QDateTime currentPossessionDate)
+   void DocumentObject::setCurrentPossessionDate(time_t currentPossessionDate)
    {
        _currentPossessionDate = currentPossessionDate;
    }
-   void DocumentObject::setCurrentRightsObtainedDate(QDateTime currentRightsObtainedDate)
+   void DocumentObject::setCurrentRightsObtainedDate(time_t currentRightsObtainedDate)
    {
        _currentRightsObtainedDate = currentRightsObtainedDate;
    }
-   void DocumentObject::setPublicationDate(QDateTime publicationDate)
+   void DocumentObject::setPublicationDate(time_t publicationDate)
    {
        _publicationDate = publicationDate;
    }
@@ -138,15 +138,15 @@ namespace documentADE
    {
        return _currentRightsHolder;
    }
-   QDateTime DocumentObject::getCurrentPossessionDate()
+   time_t DocumentObject::getCurrentPossessionDate()
    {
        return _currentPossessionDate;
    }
-   QDateTime DocumentObject::getCurrentRightsObtainedDate()
+   time_t DocumentObject::getCurrentRightsObtainedDate()
    {
        return _currentRightsObtainedDate;
    }
-   QDateTime DocumentObject::getPublicationDate()
+   time_t DocumentObject::getPublicationDate()
    {
        return _publicationDate;
    }
