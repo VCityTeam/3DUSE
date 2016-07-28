@@ -3,7 +3,7 @@
 
 #include "citygml.hpp"
 
-void FusionTiles();
 void FusionLODs(citygml::CityModel * City1, citygml::CityModel * City2);
+void CallFusion();
 
 #endif // CITYGMLFUSION_H
