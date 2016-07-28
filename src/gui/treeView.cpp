@@ -298,23 +298,6 @@ void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 	{
         addCityObject(item,(citygml::CityObject*) *it);
     }
-    // add temporal elements after
-    for(auto* tag : node->getTags())
-    {
-        item->addChild(createItemGeneric(tag->getStringId().c_str(), "Tag"));
-    }
-
-    for(auto* state : node->getStates())
-    {
-        if(dynamic_cast<citygml::CityObjectDynState*>(state))
-        {
-            item->addChild(createItemGeneric(state->getStringId().c_str(), "DynState"));
-        }
-        else
-        {
-            item->addChild(createItemGeneric(state->getStringId().c_str(), "State"));
-        }
-    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)

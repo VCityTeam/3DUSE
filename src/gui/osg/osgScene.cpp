@@ -380,7 +380,6 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
             uri.resetCursor();
             osg::ref_ptr<osg::Node> osgTile = buildTile(uri, tile);
             layerGroup->addChild(osgTile);
-            buildTemporalNodes(uri, tile);
         }
     }
 }
@@ -1138,36 +1137,6 @@ void OsgScene::optim()
 {
     osgUtil::Optimizer optimizer;
     optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
-}
-////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile)
-{
-    for (citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
-    {
-        vcity::URI u = uri;
-        u.append(child->getId(), child->getTypeAsString());
-        u.resetCursor();
-        buildTemporalNodesRec(u, child);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj)
-{
-    // add tags geom
-    for (citygml::CityObjectTag* tag : obj->getTags())
-    {
-        appGui().getControllerGui().addTag(uri, tag);
-    }
-    //add yearOfConstruction and yearOfDemolition to tags geom
-    obj->checkTags();
-    // recursive call
-    for (citygml::CityObject* child : obj->getChildren())
-    {
-        vcity::URI u = uri;
-        u.append(obj->getId(), obj->getTypeAsString());
-        u.resetCursor();
-        buildTemporalNodesRec(u, child);
-    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth, osg::ref_ptr<osg::Group> nodeVersion, osg::ref_ptr<osg::Group> nodeWorkspace)

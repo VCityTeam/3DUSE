@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QDate>
 #include <QPluginLoader>
+#include <ctime>
+#include <time.h>
 
 #include "ui_mainWindow.h"
 
@@ -16,7 +18,7 @@
 #include "moc/dialogSettings.hpp"
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
-#include "moc/dialogBuildBuildingAABBs.hpp"
+#include "moc/dialogConvertObjToCityGML.hpp"
 
 #include "controllerGui.hpp"
 
@@ -107,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	// connect slots
 	connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
+	connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
 	connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
 	//connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
 	connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
@@ -681,8 +683,6 @@ void MainWindow::updateTextBox(const vcity::URI& uri)
     {
         ss << "ID : " << obj->getId() << std::endl;
         ss << "Type : " << obj->getTypeAsString() << std::endl;
-        //obj->l
-        ss << "Temporal : " << obj->isTemporal() << std::endl;
 
         ss << "Attributes : " << std::endl;
         citygml::AttributesMap attribs = obj->getAttributes();
@@ -2084,23 +2084,8 @@ void MainWindow::slotCutCityGMLwithShapefile()
 void MainWindow::slotObjToCityGML()
 {
     m_osgView->setActive(false);
-
-    QStringList filenames = QFileDialog::getOpenFileNames(this, "Convert OBJ to CityGML");
-
-    for (int i = 0; i < filenames.count(); ++i)
-    {
-        QFileInfo file(filenames[i]);
-        QString ext = file.suffix().toLower();
-        if (ext == "obj")
-        {
-            citygml::ImporterAssimp importer;
-            importer.setOffset(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
-            citygml::CityModel* model = importer.import(file.absoluteFilePath().toStdString());
-
-            citygml::ExporterCityGML exporter((file.path() + '/' + file.baseName() + ".gml").toStdString());
-            exporter.exportCityModel(*model);
-        }
-    }
+    DialogConvertObjToCityGML diag(m_app.getSettings().getDataProfile().m_offset.x, m_app.getSettings().getDataProfile().m_offset.y);
+    diag.exec();
 
     m_osgView->setActive(true);
 }
@@ -3026,8 +3011,9 @@ void MainWindow::test1()
 }
 std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 {
-    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
+//    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
+   std::string sourcepath = "/home/john/Alaric/vcity/data/Data/spreadsheet_testnolodilotdulac.csv";
 
     std::vector<osgInfo*> v_info;
     std::vector<float> v_height;
@@ -3046,6 +3032,7 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
     std::vector<std::string> v_filetype;
     std::vector<std::string> v_sourcetype;
     std::vector<std::string> v_LOD;
+    std::vector<std::string> v_publicationdate;
 
     // *** CSV Load
         std::ifstream file(sourcepath);
@@ -3104,6 +3091,9 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
 
                 if(cpt==13)
                     v_priority.push_back(std::stod(cell));
+                if(cpt==14) {
+                    v_publicationdate.push_back(cell);
+                }
 
                 cpt++;
              }
@@ -3112,7 +3102,8 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         std::cout<<"[MainWindow > test2 > loadCSV].....file parsed"<<std::endl;
         for (std::size_t i=0; i<v_filepath.size(); ++i)
         {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i], v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i]));
+            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
+                                         v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i],v_publicationdate[i]));
         }
 
 
@@ -3158,14 +3149,16 @@ std::vector<osgInfo*> loadCSV(float offsetx, float offsety)
         }
 
 
-         std::ofstream ofs;
+        std::ofstream ofs;
          ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
 
-         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,piority"<<std::endl;
+         ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
          for(osgInfo* i : v_info)
          {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()<<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","<<i->m_anchoring<<","<<i->m_priority<<std::endl;
+            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
+              <<","<<std::to_string(i->m_angle)<<",";
+            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
+              <<i->m_anchoring<<","<<i->m_priority<<","<<i->m_publicationDate<<std::endl;
          }
          ofs.close();
 

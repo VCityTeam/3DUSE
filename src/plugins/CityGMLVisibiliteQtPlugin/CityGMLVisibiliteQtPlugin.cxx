@@ -17,6 +17,6 @@ int CityGMLVisibiliteQtPlugin::your_code_here(void)
 	return res;
 }
 
-#if QT_VERSION < 0x050000 // (for QT4)
+#if( defined(BUILD_GUI_QT4) )
 Q_EXPORT_PLUGIN2(CityGMLVisibiliteQtPlugin, CityGMLVisibiliteQtPlugin)
 #endif
