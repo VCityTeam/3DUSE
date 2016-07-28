@@ -53,8 +53,8 @@ void DialogLink::initComboBox()
 		<< "ClosureSurface"			//25
 		<< "FloorSurface"			//26
 		<< "InteriorWallSurface"	//27
-		<< "CeilingSurface";		//28
-	ui->comboBox->addItems(cityObjectTypes);
+        << "CeilingSurface" ; 		//28
+    ui->comboBox->addItems(cityObjectTypes);
 }
 
 citygml::CityObject* DialogLink::createXLink(int index)

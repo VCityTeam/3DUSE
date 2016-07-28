@@ -9,80 +9,85 @@
 #include "tools/log.hpp"
 #include "algo.hpp"
 #include "algo2.hpp"
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity
 {
-////////////////////////////////////////////////////////////////////////////////
-class Controller;
-////////////////////////////////////////////////////////////////////////////////
-/// \brief The Application class
-/// Stores Common application data
-class Application
-{
-public:
-    Application();
-    virtual ~Application();
+    ////////////////////////////////////////////////////////////////////////////////
+    class Controller;
+    ////////////////////////////////////////////////////////////////////////////////
+    /// \brief The Application class
+    /// Stores Common application data
 
-    /// \brief getScene Get the scene
-    /// \return The scene
-    Scene& getScene();
+    // class CITYGML_EXPORT Application   FIXME : waiting for core to be a library
+    class Application
+    {
+    public:
+        Application();
+        virtual ~Application();
 
-    /// \brief getScene Get the scene
-    /// \return The scene
-    const Scene& getScene() const;
+        /// \brief getScene Get the scene
+        /// \return The scene
+        Scene& getScene();
 
-    /// \brief getSettings Get app settings
-    /// \return Settings class instance
-    Settings& getSettings();
+        /// \brief getScene Get the scene
+        /// \return The scene
+        const Scene& getScene() const;
 
-    /// \brief getSettings Get app settings
-    /// \return Settings class instance
-    const Settings& getSettings() const;
+        /// \brief getSettings Get app settings
+        /// \return Settings class instance
+        Settings& getSettings();
 
-    /// \brief getController Get the controller
-    /// \return The controller
-    Controller* getController();
+        /// \brief getSettings Get app settings
+        /// \return Settings class instance
+        const Settings& getSettings() const;
 
-    /// \brief getController Get the controller
-    /// \return The controller
-    void setController(Controller* cont);
+        /// \brief getController Get the controller
+        /// \return The controller
+        Controller* getController();
 
-    /// \brief getAlgo Get algo class
-    /// \return Ref on Aglo instance
-    Algo& getAlgo();
+        /// \brief getController Get the controller
+        /// \return The controller
+        void setController(Controller* cont);
 
-    /// \brief getAlgo2 Get algo2 class
-    /// \return Ref on Aglo2 instance
-    Algo2& getAlgo2();
+        /// \brief getAlgo Get algo class
+        /// \return Ref on Aglo instance
+        Algo& getAlgo();
 
-    /// \brief getSelectedNodes Get selected nodes (in treeview or in osg)
-    /// \return Array of URI
-    const std::vector<URI>& getSelectedNodes() const;
+        /// \brief getAlgo2 Get algo2 class
+        /// \return Ref on Aglo2 instance
+        Algo2& getAlgo2();
 
-    /// \brief setSelectedNodes Set selected nodes
-    /// \param uris Array of uri ponting to selected nodes
-    void setSelectedNodes(const std::vector<URI>& uris);
+        /// \brief getSelectedNodes Get selected nodes (in treeview or in osg)
+        /// \return Array of URI
+        const std::vector<URI>& getSelectedNodes() const;
 
-    /// \brief addSelectedNode Add a selected node
-    /// \param uri URI pointing to the selected node to add
-    bool addSelectedNode(const URI& uri);
+        /// \brief setSelectedNodes Set selected nodes
+        /// \param uris Array of uri ponting to selected nodes
+        void setSelectedNodes(const std::vector<URI>& uris);
 
-    /// \brief resetSelectedNode Rest seleceted nodes list
-    void resetSelectedNodes();
+        /// \brief addSelectedNode Add a selected node
+        /// \param uri URI pointing to the selected node to add
+        bool addSelectedNode(const URI& uri);
 
-protected:
-    Scene m_scene;                      ///< scene tree : citygml + shape + ...
-    Settings m_settings;                ///< application settings
-    Controller* m_controller;           ///< controller, needs to be allocated outside
-    Log m_log;                          ///< Log manager
-    Algo m_algo;                        ///< Algo class
-    Algo2 m_algo2;                      ///< Algo class
-    std::vector<URI> m_selectedNodes;   ///< Selected nodes
-};
-////////////////////////////////////////////////////////////////////////////////
-Application& app();
-Log& log();
-////////////////////////////////////////////////////////////////////////////////
+        /// \brief resetSelectedNode Rest seleceted nodes list
+        void resetSelectedNodes();
+
+    protected:
+        Scene m_scene;                      ///< scene tree : citygml + shape + ...
+        Settings m_settings;                ///< application settings
+        Controller* m_controller;           ///< controller, needs to be allocated outside
+        Log m_log;                          ///< Log manager
+        Algo m_algo;                        ///< Algo class
+        Algo2 m_algo2;                      ///< Algo class
+        std::vector<URI> m_selectedNodes;   ///< Selected nodes
+    };
+    ////////////////////////////////////////////////////////////////////////////////
+    Application& app();
+    Log& log();
+    ////////////////////////////////////////////////////////////////////////////////
 } // namespace vcity
 ////////////////////////////////////////////////////////////////////////////////
 #include "controller.hpp"

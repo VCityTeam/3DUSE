@@ -7,9 +7,6 @@
 #include "moc/dialogEditTile.hpp"
 #include "moc/dialogEditAssimpNode.hpp"
 #include "moc/dialogEditBldg.hpp"
-#include "moc/dialogDynState.hpp"
-#include "moc/dialogState.hpp"
-#include "moc/dialogTag.hpp"
 #include "moc/dialogDoc.hpp"
 #include "moc/dialogYearOfConst.hpp"
 #include "moc/dialogYearOfDemol.hpp"
@@ -41,15 +38,6 @@ TreeView::~TreeView()
     delete m_actionAddBuilding;
     delete m_actionEditBuilding;
     delete m_actionDeleteBuilding;
-    delete m_actionAddState;
-    delete m_actionAddDynState;
-    delete m_actionAddTag;
-    delete m_actionEditState;
-    delete m_actionEditDynState;
-    delete m_actionEditTag;
-    delete m_actionDeleteState;
-    delete m_actionDeleteDynState;
-    delete m_actionDeleteTag;
     delete m_actionSelectAll;
     delete m_actionDeSelectAll;
     delete m_actionAddDoc;
@@ -76,15 +64,6 @@ void TreeView::init()
     m_actionAddBuilding = new QAction("Add building", NULL);
     m_actionEditBuilding = new QAction("Edit building", NULL);
     m_actionDeleteBuilding = new QAction("Delete building", NULL);
-    m_actionAddState = new QAction("Add State", NULL);
-    m_actionAddDynState = new QAction("Add dynamic State", NULL);
-    m_actionAddTag = new QAction("Add Tag", NULL);
-    m_actionEditState = new QAction("Edit State", NULL);
-    m_actionEditDynState = new QAction("Edit dynamic State", NULL);
-    m_actionEditTag = new QAction("Edit Tag", NULL);
-    m_actionDeleteState = new QAction("Delete State", NULL);
-    m_actionDeleteDynState = new QAction("Delete dynamic State", NULL);
-    m_actionDeleteTag = new QAction("Delete Tag", NULL);
     m_actionSelectAll = new QAction("Check all", NULL);
     m_actionDeSelectAll = new QAction("Check none", NULL);
     m_actionAddDoc = new QAction("Add document", NULL);
@@ -108,15 +87,6 @@ void TreeView::init()
     connect(m_actionAddBuilding, SIGNAL(triggered()), this, SLOT(slotAddBuilding()));
     connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBuilding()));
     connect(m_actionDeleteBuilding, SIGNAL(triggered()), this, SLOT(slotDeleteBuilding()));
-    connect(m_actionAddState, SIGNAL(triggered()), this, SLOT(slotAddState()));
-    connect(m_actionAddDynState, SIGNAL(triggered()), this, SLOT(slotAddDynState()));
-    connect(m_actionAddTag, SIGNAL(triggered()), this, SLOT(slotAddTag()));
-    connect(m_actionEditState, SIGNAL(triggered()), this, SLOT(slotEditState()));
-    connect(m_actionEditDynState, SIGNAL(triggered()), this, SLOT(slotEditDynState()));
-    connect(m_actionEditTag, SIGNAL(triggered()), this, SLOT(slotEditTag()));
-    connect(m_actionDeleteState, SIGNAL(triggered()), this, SLOT(slotDeleteState()));
-    connect(m_actionDeleteDynState, SIGNAL(triggered()), this, SLOT(slotDeleteDynState()));
-    connect(m_actionDeleteTag, SIGNAL(triggered()), this, SLOT(slotDeleteTag()));
     connect(m_actionSelectAll, SIGNAL(triggered()), this, SLOT(slotCheckAll()));
     connect(m_actionDeSelectAll, SIGNAL(triggered()), this, SLOT(slotUnCheckAll()));
     connect(m_actionAddDoc, SIGNAL(triggered()), this, SLOT(slotAddDoc()));
@@ -128,11 +98,7 @@ void TreeView::init()
 	connect(m_actionAddLink, SIGNAL(triggered()), this, SLOT(slotAddLink()));
 
     /*connect(m_actionEditLayer, SIGNAL(triggered()), this, SLOT(slotEditLayer()));
-    connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));
-
-    connect(m_actionAddState, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddState()));
-    connect(m_actionAddDynState, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddDynState()));
-    connect(m_actionAddTag, SIGNAL(triggered()), m_mainWindow, SLOT(optionAddTag()));*/
+    connect(m_actionEditBuilding, SIGNAL(triggered()), this, SLOT(slotEditBldg()));*/
 
 
     //connect(select, SIGNAL(triggered()), this, SLOT(selectNodeHandler()));
@@ -183,6 +149,9 @@ void TreeView::reset()
 
     QTreeWidgetItem* layer4 = createItemLayer("layer_Shp", "LayerShp");
     root->addChild(layer4);
+
+    QTreeWidgetItem* layer5 = createItemLayer("layer_Info", "LayerInfo");
+    root->addChild(layer5);
 }
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::createItemGeneric(const QString& name, const QString& type, const bool checkable)
@@ -297,6 +266,22 @@ QTreeWidgetItem* TreeView::addWorkspace(QTreeWidgetItem* parent, const std::stri
 	return item;
 }
 ////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::addDocument(QTreeWidgetItem* parent, const std::string& name)
+{
+    QTreeWidgetItem* item = createItemGeneric(name.c_str(), "Document");
+    parent->addChild(item);
+
+    return item;
+}
+////////////////////////////////////////////////////////////////////////////////
+QTreeWidgetItem* TreeView::addReference(QTreeWidgetItem* parent, const std::string& name)
+{
+    QTreeWidgetItem* item = createItemGeneric(name.c_str(), "Reference");
+    parent->addChild(item);
+
+    return item;
+}
+////////////////////////////////////////////////////////////////////////////////
 void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 {
 	std::string type = (node->_isXlink==citygml::xLinkState::LINKED) ? "xLink:"+node->getTypeAsString() : node->getTypeAsString();
@@ -312,23 +297,6 @@ void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 	for(std::vector<citygml::Object*>::iterator it = node->getXLinkTargets().begin();it != node->getXLinkTargets().end(); ++it)
 	{
         addCityObject(item,(citygml::CityObject*) *it);
-    }
-    // add temporal elements after
-    for(auto* tag : node->getTags())
-    {
-        item->addChild(createItemGeneric(tag->getStringId().c_str(), "Tag"));
-    }
-
-    for(auto* state : node->getStates())
-    {
-        if(dynamic_cast<citygml::CityObjectDynState*>(state))
-        {
-            item->addChild(createItemGeneric(state->getStringId().c_str(), "DynState"));
-        }
-        else
-        {
-            item->addChild(createItemGeneric(state->getStringId().c_str(), "State"));
-        }
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -384,7 +352,29 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 			}
 		}
 	}
-	// VERSIONS & WORKSPACES
+    // Document
+    std::cout<<"Documents:"<<std::endl;
+   std::vector<documentADE::DocumentObject*> documents = citymodel->getDocuments();
+    for(std::vector<documentADE::DocumentObject*>::iterator it = documents.begin();it!=documents.end();it++)
+    {
+        documentADE::DocumentObject document = **it;
+        std::cout<<"Document ID: " << document.getId()<<std::endl;
+        addDocument(item, document.getId());
+
+    }
+
+    // References
+    std::cout<<"References:"<<std::endl;
+   std::vector<documentADE::Reference*> references = citymodel->getReferences();
+    for(std::vector<documentADE::Reference*>::iterator it = references.begin();it!=references.end();it++)
+    {
+        documentADE::Reference reference = **it;
+        std::cout<<"Reference ID: " << reference.getId()<<std::endl;
+        addReference(item, reference.getId());
+
+    }
+
+    // VERSIONS & WORKSPACES
 
     citygml::CityObjects& cityObjects = citymodel->getCityObjectsRoots();
     citygml::CityObjects::iterator it = cityObjects.begin();
@@ -398,6 +388,58 @@ void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
 
     m_tree->blockSignals(false);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+void TreeView::addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info)
+{
+
+    m_tree->blockSignals(true);
+
+    QTreeWidgetItem* layer = getNode(uriLayer);
+    QTreeWidgetItem* itemStreet = createItemGeneric("street", "LOD");
+    QTreeWidgetItem* itemBuilding = createItemGeneric("building", "LOD");
+    QTreeWidgetItem* itemDistrict = createItemGeneric("district", "LOD");
+    QTreeWidgetItem* itemCity = createItemGeneric("city", "LOD");
+
+    layer->addChild(itemStreet);
+    layer->addChild(itemBuilding);
+    layer->addChild(itemDistrict);
+    layer->addChild(itemCity);
+
+
+    if(layer)
+    {
+        for(std::size_t i=0; i<v_info.size(); i++)
+        {
+            if(v_info[i]->getInfoLOD()=="street")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(0)->addChild(item);
+            }
+            if(v_info[i]->getInfoLOD()=="building")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(1)->addChild(item);
+            }
+            if(v_info[i]->getInfoLOD()=="district")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(2)->addChild(item);
+            }
+            if(v_info[i]->getInfoLOD()=="city")
+            {
+                QTreeWidgetItem* item = createItemGeneric(v_info[i]->getInfoName().c_str(), v_info[i]->getType().c_str());
+                layer->child(3)->addChild(item);
+            }
+
+        }
+    }
+
+    m_tree->expandToDepth(1);
+
+    m_tree->blockSignals(false);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::setTileName(const vcity::URI& uri, const std::string& name)
 {
@@ -576,6 +618,7 @@ void TreeView::resetSelection()
 ////////////////////////////////////////////////////////////////////////////////
 QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 {
+    //std::cout<<"[treeView > getNode]"<<std::endl;
     QTreeWidgetItem* res = nullptr;
     QTreeWidgetItem* current = m_tree->topLevelItem(0);
 
@@ -601,6 +644,7 @@ QTreeWidgetItem* TreeView::getNode(const vcity::URI& uri)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
 {
+    std::cout<<"[treeView > slotSelectNode]"<<std::endl;
     //std::cout << "select node : " << item->text(0).toStdString() << "," << item->text(1).toStdString() << std::endl;
 
     // insane brute force hack :
@@ -646,28 +690,7 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
         m_tree->addAction(m_actionEditBuilding);
         m_tree->addAction(m_actionAddDoc);
     }
-    else if(item->text(1) == "Tag")
-    {
-        //std::cout << "Tag" << std::endl;
-        m_tree->addAction(m_actionDeleteTag);
-        m_tree->addAction(m_actionEditTag);
-        m_tree->addAction(m_actionAddDoc);
-    }
-    else if(item->text(1) == "State")
-    {
-        //std::cout << "State" << std::endl;
-        m_tree->addAction(m_actionDeleteState);
-        m_tree->addAction(m_actionEditState);
-        m_tree->addAction(m_actionAddDoc);
-    }
-    else if(item->text(1) == "DynState")
-    {
-        //std::cout << "DynState" << std::endl;
-        m_tree->addAction(m_actionDeleteDynState);
-        m_tree->addAction(m_actionEditDynState);
-        m_tree->addAction(m_actionAddDoc);
-    }
-	else if(item->text(1) == "ShpNode")
+    else if(item->text(1) == "ShpNode")
     {
         //std::cout << "ShpNode" << std::endl;
         m_tree->addAction(m_actionEditShp);
@@ -687,11 +710,9 @@ void TreeView::slotSelectNode(QTreeWidgetItem* item, int /*column*/)
        item->text(1) == "BuildingPart" || item->text(1) == "WallSurface" ||
        item->text(1) == "RoofSurface" || item->text(1) == "GroundSurface" ||
        item->text(1) == "ClosureSurface" || item->text(1) == "FloorSurface" ||
-       item->text(1) == "InteriorWallSurface" || item->text(1) == "CeilingSurface")
+       item->text(1) == "InteriorWallSurface" || item->text(1) == "CeilingSurface"
+            ||  item->text(1) == "Document" )
     {
-        m_tree->addAction(m_actionAddTag);
-        m_tree->addAction(m_actionAddState);
-        m_tree->addAction(m_actionAddDynState);
         m_tree->addAction(m_actionAddDoc);
 		m_tree->addAction(m_actionAddYearOfConst);
 		m_tree->addAction(m_actionAddYearOfDemol);
@@ -738,6 +759,7 @@ void TreeView::slotItemChanged(QTreeWidgetItem* item, int /*column*/)
 void TreeView::slotItemClicked(QTreeWidgetItem* item, int)
 {
     vcity::URI uri = getURI(item);
+    std::cout<<"[treeView > slotItemClicked].....uri : "<<uri.getStringURI()<<std::endl;
 
     if(uri.getDepth() > 0)
     {
@@ -755,6 +777,7 @@ void TreeView::slotItemDoubleClicked(QTreeWidgetItem* item, int)
 ////////////////////////////////////////////////////////////////////////////////
 void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 {
+    //std::cout<<"[treeview > searchNode]"<<std::endl;
     if(node)
     {
         int count = node->childCount();
@@ -773,10 +796,12 @@ void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotFilter()
 {
-    //std::cout << "filter : " << appGui().getMainWindow()->getFilter()->text().toStdString() << std::endl;
+    //std::cout << "[treeView > slotFilter ].....filtre : -" << appGui().getMainWindow()->getFilter()->text().toStdString() <<"-"<<std::endl;
 
     appGui().getControllerGui().resetSelection();
     searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
+    //appGui().getOsgScene()->filterInfo(appGui().getMainWindow()->getFilter()->text());
+
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotAddTile()
@@ -835,54 +860,6 @@ void TreeView::slotEditBuilding()
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotDeleteBuilding()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddState()
-{
-    DialogState diag;
-    diag.addState(getURI(getCurrentItem()));
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddDynState()
-{
-    DialogDynState diag;
-    diag.addDynState(getURI(getCurrentItem()));
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotAddTag()
-{
-    DialogTag diag;
-    diag.addTag(getURI(getCurrentItem()));
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditDynState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotEditTag()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteDynState()
-{
-
-}
-////////////////////////////////////////////////////////////////////////////////
-void TreeView::slotDeleteTag()
 {
 
 }
@@ -952,13 +929,6 @@ void TreeView::resetActions()
     m_tree->removeAction(m_actionAddBuilding);
     m_tree->removeAction(m_actionEditBuilding);
     m_tree->removeAction(m_actionDeleteBuilding);
-    m_tree->removeAction(m_actionAddState);
-    m_tree->removeAction(m_actionAddDynState);
-    m_tree->removeAction(m_actionAddTag);
-    m_tree->removeAction(m_actionEditState);
-    m_tree->removeAction(m_actionEditTag);
-    m_tree->removeAction(m_actionDeleteState);
-    m_tree->removeAction(m_actionDeleteTag);
     m_tree->removeAction(m_actionSelectAll);
     m_tree->removeAction(m_actionDeSelectAll);
     m_tree->removeAction(m_actionAddDoc);

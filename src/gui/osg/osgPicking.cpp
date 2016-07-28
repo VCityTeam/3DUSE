@@ -9,13 +9,13 @@
 #include "gui/moc/mainWindow.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 PickHandler::PickHandler()
-    : m_mx(0.0),m_my(0.0), m_pickingMode(1), m_addToSelection(false)
+    : m_mx(0.0), m_my(0.0), m_pickingMode(1), m_addToSelection(false)
 {
 }
 ////////////////////////////////////////////////////////////////////////////////
 void PickHandler::resetPicking()
 {
-    for(const vcity::URI& uri : appGui().getSelectedNodes())
+    for (const vcity::URI& uri : appGui().getSelectedNodes())
     {
         deselectNode(uri);
     }
@@ -31,61 +31,61 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
     osgViewer::View* viewer = dynamic_cast<osgViewer::View*>(&aa);
     if (!viewer) return false;
 
-    switch(ea.getEventType())
+    switch (ea.getEventType())
     {
-        case(osgGA::GUIEventAdapter::PUSH):
-        {
-            m_mx = ea.getX();
-            m_my = ea.getY();
-            return false;
-        }
-        case(osgGA::GUIEventAdapter::MOVE):
+    case(osgGA::GUIEventAdapter::PUSH) :
+    {
+        m_mx = ea.getX();
+        m_my = ea.getY();
+        return false;
+    }
+    case(osgGA::GUIEventAdapter::MOVE) :
         /*{
             m_mx = ea.getX();
             m_my = ea.getY();
             return false;
         }*/
-            break;
-        case(osgGA::GUIEventAdapter::RELEASE):
+        break;
+    case(osgGA::GUIEventAdapter::RELEASE) :
+    {
+        if ((ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0)
         {
-            if((ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) != 0)
-            {
-                //std::cout << "start pick add" << std::endl;
-                m_addToSelection = true;
-            }
-            else
-            {
-                //std::cout << "stop pick add" << std::endl;
-                m_addToSelection = false;
-            }
-
-            if(m_mx == ea.getX() && m_my == ea.getY())
-            {
-                // only do a pick if the mouse hasn't moved
-                // TODO: add a little headroom so the mouse does not have to stand perfectly still.
-                //std::cout << "Pick point : (" << m_mx << ", " << m_my << ")" << std::endl;
-                pickPoint(ea,viewer);
-            }
-            else
-            {
-                //std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getX() << ", " << ea.getY() << ")"  << std::endl;
-                //std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getXnormalized() << ", " << ea.getYnormalized() << ")"  << std::endl;
-                //pickRectangle(ea,viewer);
-            }
-            return true;
+            //std::cout << "start pick add" << std::endl;
+            m_addToSelection = true;
         }
-        case(osgGA::GUIEventAdapter::KEYDOWN):
-       {
-          switch(ea.getKey())
-          {
-          case osgGA::GUIEventAdapter::KEY_Escape:
-              return true;
-              break;
-          case osgGA::GUIEventAdapter::KEY_Plus:
-          case osgGA::GUIEventAdapter::KEY_KP_Add:
-          case osgGA::GUIEventAdapter::KEY_P:
+        else
+        {
+            //std::cout << "stop pick add" << std::endl;
+            m_addToSelection = false;
+        }
 
-            if(appGui().getSelectedNodes().size() > 0)
+        if (m_mx == ea.getX() && m_my == ea.getY())
+        {
+            // only do a pick if the mouse hasn't moved
+            // TODO: add a little headroom so the mouse does not have to stand perfectly still.
+            //std::cout << "Pick point : (" << m_mx << ", " << m_my << ")" << std::endl;
+            pickPoint(ea, viewer);
+        }
+        else
+        {
+            //std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getX() << ", " << ea.getY() << ")"  << std::endl;
+            //std::cout << "Pick rectangle : (" << m_mx << ", " << m_my << "), (" << ea.getXnormalized() << ", " << ea.getYnormalized() << ")"  << std::endl;
+            //pickRectangle(ea,viewer);
+        }
+        return true;
+    }
+    case(osgGA::GUIEventAdapter::KEYDOWN) :
+    {
+        switch (ea.getKey())
+        {
+        case osgGA::GUIEventAdapter::KEY_Escape:
+            return true;
+            break;
+        case osgGA::GUIEventAdapter::KEY_Plus:
+        case osgGA::GUIEventAdapter::KEY_KP_Add:
+        case osgGA::GUIEventAdapter::KEY_P:
+
+            if (appGui().getSelectedNodes().size() > 0)
             {
                 vcity::URI uri = appGui().getSelectedNodes()[0];
                 appGui().getControllerGui().resetSelection();
@@ -98,44 +98,44 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
                 updateLabel(uri);
             }
 
-             /*if(m_osgNodesPicked.size() > 0)
-             {
-                 toggleSelected(m_osgNodesPicked[0]); // unselect last node
-                 m_osgNodesPicked[0] = (m_osgNodesPicked[0]->getNumParents() > 0) ? m_osgNodesPicked[0]->getParent(0) : m_osgNodesPicked[0];
-                 toggleSelected(m_osgNodesPicked[0]);
+            /*if(m_osgNodesPicked.size() > 0)
+            {
+                toggleSelected(m_osgNodesPicked[0]); // unselect last node
+                m_osgNodesPicked[0] = (m_osgNodesPicked[0]->getNumParents() > 0) ? m_osgNodesPicked[0]->getParent(0) : m_osgNodesPicked[0];
+                toggleSelected(m_osgNodesPicked[0]);
 
-                 std::cout << "+ picking uri : " << osgTools::getURI(m_osgNodesPicked[0]).getStringURI() << std::endl;
-                 appGui().getTreeView()->selectItem(osgTools::getURI(m_osgNodesPicked[0]));
-                 updateLabel(osgTools::getURI(m_osgNodesPicked[0]));
-             }*/
-             return true;
-             break;
-          /*case osgGA::GUIEventAdapter::KEY_Control_L:
-          case osgGA::GUIEventAdapter::KEY_Control_R:
-              std::cout << "start pick add" << std::endl;
-              std::cout << "mask : " << ea.getModKeyMask() << std::endl;
-              break;*/
-          default:
-             return false;
-             break;
-          }
-       }
-    /*case osgGA::GUIEventAdapter::KEYUP:
-    {
-        switch(ea.getKey())
-        {
-        case osgGA::GUIEventAdapter::KEY_Control_L:
-        case osgGA::GUIEventAdapter::KEY_Control_R:
-            std::cout << "stop pick add" << std::endl;
+                std::cout << "+ picking uri : " << osgTools::getURI(m_osgNodesPicked[0]).getStringURI() << std::endl;
+                appGui().getTreeView()->selectItem(osgTools::getURI(m_osgNodesPicked[0]));
+                updateLabel(osgTools::getURI(m_osgNodesPicked[0]));
+            }*/
+            return true;
             break;
-        default:
-           return false;
-           break;
-        }
-    }*/
-
+            /*case osgGA::GUIEventAdapter::KEY_Control_L:
+            case osgGA::GUIEventAdapter::KEY_Control_R:
+                std::cout << "start pick add" << std::endl;
+                std::cout << "mask : " << ea.getModKeyMask() << std::endl;
+                break;*/
         default:
             return false;
+            break;
+        }
+    }
+                                          /*case osgGA::GUIEventAdapter::KEYUP:
+                                          {
+                                              switch(ea.getKey())
+                                              {
+                                              case osgGA::GUIEventAdapter::KEY_Control_L:
+                                              case osgGA::GUIEventAdapter::KEY_Control_R:
+                                                  std::cout << "stop pick add" << std::endl;
+                                                  break;
+                                              default:
+                                                 return false;
+                                                 break;
+                                              }
+                                          }*/
+
+    default:
+        return false;
     }
     return false;
 }
@@ -143,14 +143,14 @@ bool PickHandler::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapt
 void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *viewer)
 {
     osg::Node* scene = viewer->getSceneData();
-    if(!scene) return;
+    if (!scene) return;
 
     // use non dimensional coordinates - in projection/clip space
-    osgUtil::LineSegmentIntersector* picker = new osgUtil::LineSegmentIntersector( osgUtil::Intersector::PROJECTION, ea.getXnormalized(),ea.getYnormalized() );
+    osgUtil::LineSegmentIntersector* picker = new osgUtil::LineSegmentIntersector(osgUtil::Intersector::PROJECTION, ea.getXnormalized(), ea.getYnormalized());
     osgUtil::IntersectionVisitor iv(picker);
     viewer->getCamera()->accept(iv);
 
-    if(picker->containsIntersections())
+    if (picker->containsIntersections())
     {
         osgUtil::LineSegmentIntersector::Intersection intersection = picker->getFirstIntersection();
         //osg::notify(osg::NOTICE)<<"Picked "<<intersection.localIntersectionPoint<<std::endl;
@@ -159,7 +159,6 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         //node = (nodePath.size()>=1)?nodePath[nodePath.size()-1]:0;
 
         osg::Node* node = nodePath.back();
-
         //osg::notify(osg::NOTICE) << "Picked: " << node->getName() << std::endl;
 
 
@@ -168,17 +167,17 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
         //osg::Group* parent = node->getParent(0);
 
         // check that we are not on a geode
-        if(node->asGeode())
+        if (node->asGeode())
         {
             node = node->getParent(0);
         }
 
         // get building
-        if(m_pickingMode == 0) // face
+        if (m_pickingMode == 0) // face
         {
             // nothing to do, keep actual selection
         }
-        if(m_pickingMode == 1) // building
+        if (m_pickingMode == 1) // building
         {
             // backup node
             osg::Node* nodeOri = node;
@@ -186,12 +185,11 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
             vcity::URI uri = osgTools::getURI(node);
             citygml::CityObject* obj = appGui().getScene().getCityObjectNode(uri, true);
             //citygml::CityObject* obj = m_scene->findNode(node->getName());
-            while(obj && (obj->getTypeAsString() != "Building"))// || obj->getTypeAsString() != "TINRelief" ))
+            while (obj && (obj->getTypeAsString() != "Building"))// || obj->getTypeAsString() != "TINRelief" ))
             {
-                if(node->getNumParents() > 0)
+                if (node->getNumParents() > 0)
                 {
                     node = node->getParent(0);
-                    //std::cout << "parent node " << node->getName() << std::endl;
                 }
                 else
                     break;
@@ -201,18 +199,18 @@ void PickHandler::pickPoint(const osgGA::GUIEventAdapter &ea, osgViewer::View *v
                 //obj = m_scene->findNode(node->getName());
             }
 
-            if(!node) node = nodePath.back();
+            if (!node) node = nodePath.back();
 
             // check we found a building, else keep first found node
             uri = osgTools::getURI(node);
             obj = appGui().getScene().getCityObjectNode(uri, true);
-            if(!obj || obj->getTypeAsString() != "Building")
+            if (!obj || obj->getTypeAsString() != "Building")
             {
                 node = nodeOri;
             }
         }
 
-        if(m_addToSelection)
+        if (m_addToSelection)
         {
             appGui().getControllerGui().addSelection(osgTools::getURI(node));
         }
@@ -326,9 +324,9 @@ void PickHandler::pickRectangle(const osgGA::GUIEventAdapter &ea, osgViewer::Vie
 // toggle osgFX::Scribe to show picking
 void PickHandler::toggleSelected(osg::Node *node, osg::Group *parent, bool /*forceUnselect*/)
 {
-    if(!node) return;
+    if (!node) return;
 
-    if(!parent && node->getNumParents() > 0)
+    if (!parent && node->getNumParents() > 0)
     {
         parent = node->getParent(0);
     }
@@ -378,27 +376,28 @@ void PickHandler::selectNode(const vcity::URI& uri)
 {
     uri.resetCursor();
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
-    if(node)
+    if (node)
     {
         //osg::ref_ptr<osg::PolygonMode> pm = new osg::PolygonMode;
         //pm->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
         //node->getOrCreateStateSet()->setAttribute(pm.get());
 
         osg::ref_ptr<osg::Material> mat = (osg::Material*)node->getOrCreateStateSet()->getAttribute(osg::StateAttribute::MATERIAL);
-        if(!mat.valid())
+        if (!mat.valid())
         {
             mat = new osg::Material;
         }
         //mat->setColorMode(osg::Material::EMISSION);
-        mat->setAmbient(osg::Material::FRONT_AND_BACK, osg::Vec4(1.f,0.f,0.f,1.f));
+        mat->setAmbient(osg::Material::FRONT_AND_BACK, osg::Vec4(1.f, 0.f, 0.f, 1.f));
         //mat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(1,0,0,1));
-        mat->setEmission(osg::Material::FRONT_AND_BACK, osg::Vec4(1.f,0.f,0.f,1.f));
+        mat->setEmission(osg::Material::FRONT_AND_BACK, osg::Vec4(1.f, 0.f, 0.f, 1.f));
         //mat->setShininess(osg::Material::FRONT_AND_BACK, 128);
 
         //node->getStateSet()->setAttribute(mat);
-        node->getStateSet()->setAttributeAndModes( mat, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON );
+        node->getStateSet()->setAttributeAndModes(mat, osg::StateAttribute::OVERRIDE | osg::StateAttribute::ON);
 
         appGui().getOsgScene()->createInfoBubble(node);
+        //appGui().getOsgScene()->createInfo(node);
     }
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -406,19 +405,19 @@ void PickHandler::deselectNode(const vcity::URI& uri)
 {
     uri.resetCursor();
     osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
-    if(node)
+    if (node)
     {
         // remove material (red highlight)
         node->getOrCreateStateSet()->removeAttribute(osg::StateAttribute::MATERIAL);
 
         // remove infobubble
         osg::ref_ptr<osg::Group> grp = node->asGroup();
-        if(grp)
+        if (grp)
         {
             int nb = grp->getNumChildren();
-            for(int i=0; i<nb; ++i)
+            for (int i = 0; i < nb; ++i)
             {
-                if(grp->getChild(i)->getName() == "infobubble")
+                if (grp->getChild(i)->getName() == "infobubble")
                 {
                     grp->removeChild(i);
                 }
@@ -436,7 +435,7 @@ void PickHandler::deselectNode(const vcity::URI& uri)
 void PickHandler::setPickingMode(int mode)
 {
     m_pickingMode = mode;
-    if(m_pickingMode < 0) m_pickingMode = 0;    // force face
-    if(m_pickingMode > 1) m_pickingMode = 1;    // force building
+    if (m_pickingMode < 0) m_pickingMode = 0;    // force face
+    if (m_pickingMode > 1) m_pickingMode = 1;    // force building
 }
 ////////////////////////////////////////////////////////////////////////////////

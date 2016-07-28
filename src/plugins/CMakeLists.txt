@@ -1,0 +1,5 @@
+add_subdirectory( CityGMLCutQtPlugin )
+add_subdirectory( CityGMLEmptyQtPlugin )
+add_subdirectory( CityGMLFloodARQtPlugin )
+add_subdirectory( CityGMLSunlightQtPlugin )
+add_subdirectory( CityGMLVisibiliteQtPlugin )

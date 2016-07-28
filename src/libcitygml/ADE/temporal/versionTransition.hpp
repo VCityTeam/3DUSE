@@ -3,6 +3,7 @@
 
 #include "transaction.hpp"
 #include "version.hpp"
+#include "citygml_export.h"
 
 namespace temporal
 {
@@ -15,7 +16,7 @@ enum TransitionValue
 	MERGE
 };
 
-class VersionTransition : public citygml::Object
+class CITYGML_EXPORT VersionTransition : public citygml::Object
 {
 public:
 	VersionTransition (const std::string& id);

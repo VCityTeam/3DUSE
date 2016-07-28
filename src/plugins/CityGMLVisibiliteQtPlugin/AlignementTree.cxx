@@ -1,17 +1,16 @@
-#include "AlignementTree.hpp"
-
 #include <qstring.h>
 #include <qfiledialog.h>
+#include <ogrsf_frmts.h>
 
+#include "AlignementTree.hpp"
 #include "core/application.hpp"
-#include "gui/osg/osgGDAL.hpp"
-#include "gui/osg/osgScene.hpp"
-#include "export/exportCityGML.hpp"
-
-#include "raytracing/Hit.hpp"
+#include "libcitygml/export/exportCityGML.hpp"
+#include "filters/raytracing/Hit.hpp"
 #include "AABB.hpp"
 
 typedef std::vector<TVec3d> LRing;
+
+// FIXME: this file has some comments in french.
 
 /**
 *	@brief Convert a degree float to radian
@@ -156,20 +155,24 @@ void PutLRingOnTiledTerrain(LRing ring, std::vector<OGRFeature*> pointsFeatures,
 		std::string path = dir + box.name;
 		TriangleList* TrianglesTile = BuildTriangleList(path, citygml::CityObjectsType::COT_TINRelief);
 
-		LRing PtsBox; //Contiendra les points de la box courante
-		std::vector<OGRFeature*> PtsBoxFeatures; //Contiendra les données sémantiques de ces points
+    // Contiendra les points de la box courante
+		LRing PtsBox;
+    // Contiendra les donnees semantiques de ces points
+		std::vector<OGRFeature*> PtsBoxFeatures;
 
 		for(int i = 0; i < ring.size(); ++i)
 		{
 			TVec3d vec = ring.at(i);
-			if(vec.x >= min.x && vec.x <= max.x && vec.y >= min.y && vec.y <= max.y) //Le point vec est dans la box courante
+      // Le point vec est dans la box courante
+			if(vec.x >= min.x && vec.x <= max.x && vec.y >= min.y && vec.y <= max.y)
 			{
 				Ray ray(vec,TVec3d(0.0,0.0,1.0));
 
 				for(unsigned int j = 0; j < TrianglesTile->triangles.size(); j++)
 				{
 					Hit hit;
-					if(ray.Intersect(TrianglesTile->triangles[j], &hit))//Check if the ray hit the triangle 
+          // Check if the ray hit the triangle 
+					if(ray.Intersect(TrianglesTile->triangles[j], &hit))
 					{
 						vec.z = hit.point.z;
 						PtsBox.push_back(vec);
@@ -178,7 +181,8 @@ void PutLRingOnTiledTerrain(LRing ring, std::vector<OGRFeature*> pointsFeatures,
 					}
 				}
 
-				LRing::iterator it = ring.begin() + i; //Pour ne plus avoir à tester ce point dans les prochaines box
+        // Pour ne plus avoir a tester ce point dans les prochaines box
+				LRing::iterator it = ring.begin() + i;
 				ring.erase(it);
 				std::vector<OGRFeature*>::iterator it2 = pointsFeatures.begin() + i;
 				pointsFeatures.erase(it2);
@@ -220,7 +224,7 @@ void ExtrudeAlignementTree(std::string dir)
 
 	if(ext == "shp")
 	{
-		OGRDataSource* poDS = OGRSFDriverRegistrar::Open(filepath.toStdString().c_str(), TRUE/*FALSE*/);
+		OGRDataSource* poDS = OGRSFDriverRegistrar::Open( filepath.toStdString().c_str(), TRUE );
 		std::cout << "Shp loaded" << std::endl;
 		std::cout << "Processing..." << std::endl;
 
@@ -232,8 +236,10 @@ void ExtrudeAlignementTree(std::string dir)
 			return;
 		}
 
-		LRing points; //Contiendra tous les points représentant les positions des arbres d'alignement
-		std::vector<OGRFeature*> pointsFeatures; //Contiendra les informartions sémantiques liées à ces points
+    // Contiendra tous les points representant les positions des arbres d'alignement
+		LRing points;
+    // Contiendra les informations semantiques liees a ces points
+		std::vector<OGRFeature*> pointsFeatures;
 
 		poLayer = poDS->GetLayer(0);
 

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <assert.h>
 
 #include "triangulate.h"
@@ -134,7 +134,7 @@ bool Triangulate::Process(const MyVectorOfVertices &contour,MyVectorOfVertices &
 
 
 
-  delete V;
+  delete[] V;
 
   return true;
 }

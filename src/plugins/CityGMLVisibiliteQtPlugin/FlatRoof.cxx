@@ -1,7 +1,7 @@
 #include "FlatRoof.hpp"
 
 #include "gui/osg/osgScene.hpp"
-#include "src/processes/ExportToShape.hpp"
+#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 
 #include <QDir>
 

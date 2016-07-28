@@ -3,12 +3,14 @@
 #ifndef __CITYGML_IMPORTER_HPP__
 #define __CITYGML_IMPORTER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include "citygml_export.h"
+
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Base class for data import
 ///
-class Importer
+class CITYGML_EXPORT Importer
 {
 public:
     Importer();

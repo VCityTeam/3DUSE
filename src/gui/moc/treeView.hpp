@@ -4,7 +4,7 @@
 #define __TREEVIEW_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include <QTreeWidget>
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
 #include "core/application.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,9 +33,6 @@ public:
     QTreeWidgetItem* createItemRoot();
     QTreeWidgetItem* createItemLayer(const QString& name, const QString& type);
 
-    QTreeWidgetItem* addItemTag();
-    QTreeWidgetItem* addItemState();
-
     void deleteItem(const std::string& URI);
     void deleteItem(const vcity::URI& URI);
 
@@ -55,6 +52,9 @@ public:
     void setTileName(const vcity::URI& uri, const std::string& name);
     void deleteTile(const vcity::URI& uri);
 
+    void addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> v_info);
+
+
 	void addAssimpNodeRecursively(QTreeWidgetItem* parent, const osg::ref_ptr<osg::Node> node, std::string strLevel);
 	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 	void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
@@ -66,6 +66,8 @@ public:
 
 	QTreeWidgetItem* addVersion(QTreeWidgetItem* parent, const std::string& name);
 	QTreeWidgetItem* addWorkspace(QTreeWidgetItem* parent, const std::string& name);
+    QTreeWidgetItem* addDocument(QTreeWidgetItem* parent, const std::string& name);
+    QTreeWidgetItem* addReference(QTreeWidgetItem* parent, const std::string& name);
 
     void addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node);
 
@@ -93,15 +95,6 @@ private slots:
     void slotAddBuilding();
     void slotEditBuilding();
     void slotDeleteBuilding();
-    void slotAddState();
-    void slotAddDynState();
-    void slotAddTag();
-    void slotEditState();
-    void slotEditDynState();
-    void slotEditTag();
-    void slotDeleteState();
-    void slotDeleteDynState();
-    void slotDeleteTag();
     void slotCheckAll();
     void slotUnCheckAll();
     void slotAddDoc();
@@ -139,15 +132,6 @@ private:
     QAction* m_actionAddBuilding;
     QAction* m_actionEditBuilding;
     QAction* m_actionDeleteBuilding;
-    QAction* m_actionAddState;
-    QAction* m_actionAddDynState;
-    QAction* m_actionAddTag;
-    QAction* m_actionEditState;
-    QAction* m_actionEditDynState;
-    QAction* m_actionEditTag;
-    QAction* m_actionDeleteState;
-    QAction* m_actionDeleteDynState;
-    QAction* m_actionDeleteTag;
     QAction* m_actionSelectAll;
     QAction* m_actionDeSelectAll;
     QAction* m_actionAddDoc;

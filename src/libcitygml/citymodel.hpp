@@ -17,18 +17,26 @@
 #ifndef __CITYGML_CITYMODEL_HPP__
 #define __CITYGML_CITYMODEL_HPP__
 ////////////////////////////////////////////////////////////////////////////////
+#include <vector>
+#include <map>
+#include <ostream>
 #include "object.hpp"
 #include "envelope.hpp"
 #include "cityobject.hpp"
 #include "appearancemanager.hpp"
 #include "vecs.hpp"
-#include "core/URI.hpp"
+#include "URI.hpp"
 #include "ADE/temporal/version.hpp"
 #include "ADE/temporal/versionTransition.hpp"
 #include "ADE/temporal/workspace.hpp"
+#include "ADE/document/documentObject.hpp"
+#include "ADE/document/reference.hpp"
 #include <vector>
 #include <map>
 #include <ostream>
+#include "citygml_export.h"
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -36,13 +44,13 @@ namespace citygml
 typedef std::vector< CityObject* > CityObjects;
 typedef std::map< CityObjectsType, CityObjects > CityObjectsMap;
 ////////////////////////////////////////////////////////////////////////////////
-class CityModel : public Object
+class CITYGML_EXPORT CityModel : public Object
 {
     friend class CityGMLHandler;
 public:
     CityModel( const std::string& id = "CityModel" );
 
-    LIBCITYGML_EXPORT ~CityModel( void ) override;
+    ~CityModel( void ) override;
 
     // Return the envelope (ie. the bounding box) of the model
     const Envelope& getEnvelope( void ) const;
@@ -99,8 +107,12 @@ public:
 	std::vector<temporal::VersionTransition*> getTransitions();
 	
 	void setWorkspaces(std::map<std::string,temporal::Workspace>);
+    void setDocuments( std::vector<documentADE::DocumentObject*> );
+    void setReferences( std::vector<documentADE::Reference*> );
 	const std::map<std::string,temporal::Workspace> getWorkspaces() const;
-	std::map<std::string,temporal::Workspace> getWorkspaces();
+    const std::vector<documentADE::DocumentObject *> getDocuments() const;
+    const std::vector<documentADE::Reference *> getReferences() const;
+    std::map<std::string,temporal::Workspace> getWorkspaces();
 
 protected:
     Envelope _envelope;
@@ -118,6 +130,8 @@ protected:
 	std::vector<temporal::Version*> _versions;
 	std::vector<temporal::VersionTransition*> _versionTransitions;
 	std::map<std::string,temporal::Workspace> _workspaces;
+    std::vector<documentADE::DocumentObject*> _documents;
+    std::vector<documentADE::Reference*> _references;
 };
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream&, const citygml::CityModel & );

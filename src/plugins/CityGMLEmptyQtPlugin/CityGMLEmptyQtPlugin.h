@@ -1,7 +1,7 @@
 #ifndef CITYGMLEmptyQTPLUGIN_H
 #define CITYGMLEmptyQTPLUGIN_H
 
-#include "../gui/pluginInterface.h"
+#include "gui/pluginInterface.h"
 
 #include <QStringList>
 #include "Dialogs/DialogCityGMLEmpty1.h"
@@ -12,7 +12,7 @@ class CityGMLEmptyQtPlugin :
 {
     Q_OBJECT
     Q_INTERFACES(Generic_PluginInterface)	
-#if (WITH_QT5) // see at the end of .cxx for QT4
+#if(BUILD_GUI_QT5) // Refer to the end of .cxx for QT4 equivalent
     Q_PLUGIN_METADATA(IID "CityGMLEmptyQtPlugin")
 #endif
         

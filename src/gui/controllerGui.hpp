@@ -26,21 +26,19 @@ public:
     virtual void deleteTile(const vcity::URI& uri) override;
     virtual void setTileName(const vcity::URI& uri, const std::string& name) override;
 
-    // temporal
-    virtual void addTag(const vcity::URI& uri, citygml::CityObjectTag* tag) override;
-    virtual void addState(const vcity::URI& uri, citygml::CityObjectState* state) override;
-    virtual void addDynState(const vcity::URI& uri, citygml::CityObjectDynState* state) override;
+    //info
+    virtual void addInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
 
-	// Assimp
-	virtual void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
-	virtual void deleteAssimpNode(const vcity::URI& uri);
-	virtual void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
+    // Assimp
+    virtual void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    virtual void deleteAssimpNode(const vcity::URI& uri);
+    virtual void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
 
-	// MntAsc
-	virtual void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    // MntAsc
+    virtual void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
-	// Las
-	virtual void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    // Las
+    virtual void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     // Shp
     virtual void addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS) override;

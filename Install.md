@@ -21,16 +21,15 @@ Dependencies under discussion (open questions for MTO):
    * Python: really needed ? Sub-dependency ? Not needed at all ?
    * xerces-c: really needed ? Sub-dependency ? Not needed at all ?
 
-## Ubuntu install
+## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
-    * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev libproj-dev libgeos++-dev`
+    * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
  * Manual installation of LASlib
    * With access rigths to `/usr/local/`:
      * `cd VCity/externals/laslib`
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_BUILD_TYPE=Release && make`
-     * `cmake .. -DCMAKE_BUILD_TYPE=Debug && make`
      * `sudo make install`
      * Proceed with building of Vcity
    * Without access rights to `/usr/local/`:
@@ -43,7 +42,7 @@ Dependencies under discussion (open questions for MTO):
 
 ### Building from sources
  * `git clone https://github.com/MEPP-team/VCity.git`
- * `cd VCity``
+ * `cd VCity`
  * `Build && cd Build`
  * `cmake ..`
  * `make`
@@ -85,19 +84,27 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * `make`
 
 ## Windows install
-### Supported windowsplatforms:
+### Supported Windows platforms:
    * Windows versions: [Windows 7](https://en.wikipedia.org/wiki/Windows_7), [Windows 8](https://en.wikipedia.org/wiki/Windows_8), [Windows 8.1](https://en.wikipedia.org/wiki/Windows_8.1) or [Windows 10](https://en.wikipedia.org/wiki/Windows_10)
    * Be sure to apply all required "services packs" and "windows updates"
 
 ### Installing dependencies
-
  * [Visual Studio Express 2015](https://en.wikipedia.org/wiki/Microsoft_Visual_Studio_Express):
    * dowload [LIRIS local copy](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/Visual%20Studio%20Express%202015/Visual%20Studio%20Express%202015%20pour%20Windows%20Desktop.rar)
-   * proceed with install
+   * Unrar the downloaded archive file (e.g. with [7-zip](http://www.7-zip.org/)
+   * Enter the extracted folder (`Express 2015 up2 pour Wndowds Desktop`) and launch the installer `wdexpress_full.exe`
+   * On first invocation Visual Studio will ask for an email/passwd to "Connect to Visual Studio". Simply close this connection sub-window and proceed. You will be automatically granted with a 30 days free evaluation license. After this trial period: 
+     * lauch Visual Studio, 
+     * go to the `Help` menu, 
+     * select the "A propos Microsoft Visual Studio..." entry
+     * select the "State of the license" link (at the top of window)
+     * on the right column (not the Connect youself one) proceed by providing an Outlook junk email (google on Outlook email in order to create it)
  * VCity binary kit:
    * download [binary installer](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/kits/VCITY_local_vs2015_64.7z)
-   * extract content (installation will require 3.1 Go of free disk space) to a tagert directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
+   * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
    * Note: the extracted directory name (`VCITY_local_vs2015_64`) can be renamed if you need to.
+ * Obtain VCity sources:
+   * Install (from github) the [git for Windows](https://git-for-windows.github.io/) client
  * [Cmake version 3.4.3.](https://cmake.org/cmake/help/v3.4/release/3.4.html) (this version is Visual Studio 2015 aware):
    * Extract cmake from `VCITY_local_vs2015_64\_utils_\cmake-3.4.3-win32-x86.zip`
    * Extract NSIS from `VCITY_local_vs2015_64\_utils_\nsis-2.50-setup.exe``
@@ -118,4 +125,4 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
 
 ### Building VCity with Cmake
  * Use cmake (`cmake-gui.exe`)
-   * Warning: Visual Studio 2015 is the 14th version of Visual Studio and hence assert that cmake detects the "Visual Studio 14 2015 Win64" compiler set (otherwise set it manually)
+   * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).

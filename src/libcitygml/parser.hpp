@@ -63,6 +63,10 @@ namespace citygml
 		NODETYPE( intAttribute ),
 		NODETYPE( dateAttribute ),
 		NODETYPE( uriAttribute ),
+        NODETYPE( externalReference ),
+        NODETYPE( informationSystem ),
+        NODETYPE( externalObject ),
+        NODETYPE( uri ),
 		NODETYPE( value ),
 
 		// gml
@@ -186,7 +190,7 @@ namespace citygml
 		NODETYPE( preferWorldFile ),
 
 		NODETYPE( X3DMaterial ),
-		NODETYPE( Material ),
+        NODETYPE( Material ),
 		NODETYPE( appearanceMember ),
 		NODETYPE( surfaceDataMember ),
 		NODETYPE( shininess ),
@@ -208,7 +212,7 @@ namespace citygml
 
 		~CityGMLHandler( void );
 
-		virtual void startDocument( void ) {}
+        virtual void startDocument( void ) {}
 
 		virtual void endDocument( void );
 
@@ -354,11 +358,6 @@ namespace citygml
 		void* _geoTransform;
 
 		bool _useXLink;
-
-        // temporal ext
-        CityObjectState* m_currentState;
-        CityObjectDynState* m_currentDynState;
-        CityObjectTag* m_currentTag;
 
     protected: // MT
 

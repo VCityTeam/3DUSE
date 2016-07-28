@@ -2,46 +2,51 @@
 #define __TRIANGLE_HPP__
 
 #include "libcitygml/citygml.hpp"
-#include "core/tile.hpp"
+#include "libcitygml/utils/tile.hpp"
+#include "citygmlutils_export.h"
+#ifdef _MSC_VER
+#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
+#endif
 
 /**
 *	@brief A triangle created from a citygml polygon
 */
-struct Triangle
+struct CITYGMLUTILS_EXPORT Triangle
 {
-	/**
-	*	@brief Build a new triangle
-	*	@param a First point of the triangle
-	*	@param b Second point of the triangle
-	*	@param c Third point of the triangle
-	*/
-    Triangle(TVec3d a = TVec3d(0.0,0.0,0.0),TVec3d b = TVec3d(0.0,0.0,0.0),TVec3d c = TVec3d(0.0,0.0,0.0));
+    /**
+    *	@brief Build a new triangle
+    *	@param a First point of the triangle
+    *	@param b Second point of the triangle
+    *	@param c Third point of the triangle
+    */
+    Triangle(TVec3d a = TVec3d(0.0, 0.0, 0.0), TVec3d b = TVec3d(0.0, 0.0, 0.0), TVec3d c = TVec3d(0.0, 0.0, 0.0));
 
     TVec3d GetNormal();
 
-	TVec3d a; ///< First point of the triangle
-	TVec3d b; ///< Second point of the triangle
-	TVec3d c; ///< Third point of the triangle
+    TVec3d a; ///< First point of the triangle
+    TVec3d b; ///< Second point of the triangle
+    TVec3d c; ///< Third point of the triangle
 
-	citygml::CityObjectsType objectType;
-	citygml::CityObjectsType subObjectType;
-	std::string objectId;
-	std::string polygonId;
-	std::string tileFile;
+    citygml::CityObjectsType objectType;
+    citygml::CityObjectsType subObjectType;
+    std::string objectId;
+    std::string polygonId;
+    std::string tileFile;
 };
 
 /**
 *	A list of triangle
 *
 */
-struct TriangleList
+struct CITYGMLUTILS_EXPORT TriangleList
 {
-	/**
-	*	@brief Build a new collection of triangle
-	*/
+    /**
+    *	@brief Build a new collection of triangle
+    */
     TriangleList(std::vector<Triangle*> triangles = std::vector<Triangle*>());
+    ~TriangleList();
 
-	std::vector<Triangle*> triangles;///< Triangles of the list
+    std::vector<Triangle*> triangles;///< Triangles of the list
 };
 
 /**
@@ -51,6 +56,9 @@ struct TriangleList
 *	@param objectType The type of cityobject to load
 *	@return The list of triangle from the CityGML tile
 */
-TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType);
+CITYGMLUTILS_EXPORT TriangleList* BuildTriangleList(
+  std::string tilefilename,
+  citygml::CityObjectsType objectType
+);
 
 #endif

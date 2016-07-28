@@ -84,7 +84,7 @@ void CALLBACK Tesselator::beginCallback( GLenum which, void* userData )
 void CALLBACK Tesselator::vertexCallback( GLvoid *data, void* userData ) 
 {
 	Tesselator *tess = (Tesselator*)userData;
-	tess->_curIndices.push_back( (intptr_t)data );
+	tess->_curIndices.push_back( (int)(intptr_t)data );
 }
 
 void CALLBACK Tesselator::combineCallback( GLdouble coords[3], void* /*vertex_data*/[4], GLfloat /*weight*/[4], void** outData, void* userData )
@@ -115,15 +115,15 @@ void CALLBACK Tesselator::endCallback( void* userData )
 
 			for ( size_t i = 2; i < len; i++ ) 
 			{
-				if ( tess->_curMode == GL_TRIANGLE_FAN || i%2 == 0 ) tess->_indices.push_back( first );
-				tess->_indices.push_back( prev );
+				if ( tess->_curMode == GL_TRIANGLE_FAN || i%2 == 0 ) tess->_indices.push_back( (int)first );
+				tess->_indices.push_back( (int)prev );
 				if ( tess->_curMode == GL_TRIANGLE_STRIP )
 				{
-					if ( i%2 == 1) tess->_indices.push_back( first );
+					if ( i%2 == 1) tess->_indices.push_back( (int)first );
 					first = prev;
 				}
 				prev = tess->_curIndices[i];
-				tess->_indices.push_back( prev );
+				tess->_indices.push_back( (int)prev );
 			}
 		}
 		break;

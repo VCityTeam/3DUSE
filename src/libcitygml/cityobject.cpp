@@ -14,8 +14,10 @@
 * GNU Lesser General Public License for more details.
 */
 ////////////////////////////////////////////////////////////////////////////////
+#include <iostream>
 #include "cityobject.hpp"
 #include "utils.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
@@ -167,65 +169,6 @@ CityObject* CityObject::getNode(const vcity::URI& uri)
     return res;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void CityObject::addState(CityObjectState* state)
-{
-    state->m_id = m_states.size(); m_states.push_back(state);
-}
-////////////////////////////////////////////////////////////////////////////////
-std::vector<CityObjectState*>& CityObject::getStates()
-{
-    return m_states;
-}
-////////////////////////////////////////////////////////////////////////////////
-const std::vector<CityObjectState*>& CityObject::getStates() const
-{
-    return m_states;
-}
-////////////////////////////////////////////////////////////////////////////////
-CityObjectState* CityObject::getState(const std::string& name)
-{
-    for(size_t i=0; i<m_states.size(); ++i)
-    {
-        if(m_states[i]->getStringId() == name)
-            return m_states[i];
-    }
-    return nullptr;
-}
-////////////////////////////////////////////////////////////////////////////////
-void CityObject::addTag(CityObjectTag* tag)
-{
-    tag->m_id = m_tags.size();
-    m_tags.push_back(tag);
-}
-////////////////////////////////////////////////////////////////////////////////
-std::vector<CityObjectTag*>& CityObject::getTags()
-{
-    return m_tags;
-}
-////////////////////////////////////////////////////////////////////////////////
-const std::vector<CityObjectTag*>& CityObject::getTags() const
-{
-    return m_tags;
-}
-////////////////////////////////////////////////////////////////////////////////
-bool CityObject::isTemporal() const
-{
-    return m_tags.size() + m_states.size();
-}
-////////////////////////////////////////////////////////////////////////////////
-std::string CityObject::getAttributeTemporal(const std::string& attribName, const QDateTime& date) const
-{
-    for(size_t i=0; i<m_tags.size()-1; ++i)
-    {
-        if(m_tags[i]->m_date < date && date < m_tags[i+1]->m_date)
-        {
-            return m_tags[i]->getAttribute(attribName, date);
-        }
-    }
-
-    return "";
-}
-////////////////////////////////////////////////////////////////////////////////
 void CityObject::finish( AppearanceManager& appearanceManager, const ParserParams& params )
 {
     Appearance* myappearance = appearanceManager.getAppearance( getId() );
@@ -331,34 +274,6 @@ void CityObject::computeEnvelope()
 void CityObject::computeCentroid()
 {
 
-}
-////////////////////////////////////////////////////////////////////////////////
-void CityObject::checkTags()
-{
-    // reorder tags
-    std::sort(m_tags.begin(), m_tags.end(), cmpTag);
-
-    for(size_t i=0; i<m_tags.size(); ++i)
-    {
-        CityObject* geom = m_tags[i]->getGeom();
-        if(geom) // && geom->getOsgNode())
-        {
-            osg::ref_ptr<osg::Group> grp = m_tags[i]->getOsg();
-            if(grp)
-            {
-                //osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
-                grp->setUserValue("yearOfConstruction", m_tags[i]->m_date.date().year());
-                int year = std::numeric_limits<int>::max();
-                if(m_tags[i]->getGeom() == NULL)
-                {
-                    year = m_tags[i]->m_date.date().year();
-                }
-                if(i < m_tags.size()-1)
-                    year = m_tags[i+1]->m_date.date().year();
-                grp->setUserValue("yearOfDemolition", year);
-            }
-        }
-    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<( std::ostream& os, const CityObject& o )

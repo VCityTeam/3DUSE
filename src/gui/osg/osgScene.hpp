@@ -24,15 +24,15 @@
 /// Tile child  osg::Group - Tile0  osg::Group - Tile1 ...
 ///
 ////////////////////////////////////////////////////////////////////////////////
-#include "core/tile.hpp"
-#include "core/URI.hpp"
+#include "libcitygml/URI.hpp"
+#include "libcitygml/utils/tile.hpp"
 #include <osg/Node>
 #include <osg/Group>
 #include <osg/Geode>
 #include <osg/Geometry>
 #include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"
-
+#include "osgInfo.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
 class OsgScene : public osg::Group
@@ -57,12 +57,12 @@ public:
     /// \param uriTile URI pointing to the tile
     void deleteTile(const vcity::URI& uriTile);
 
-	/// \brief addAssimpNode Add a node in a layer of the osg scene
+    /// \brief addAssimpNode Add a node in a layer of the osg scene
     /// \param uriLayer URI pointing to the layer
     /// \param node Node to add
-	void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addAssimpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
-	/// \brief setAssimpNodeName Set the name of an assimpNode
+    /// \brief setAssimpNodeName Set the name of an assimpNode
     /// \param uri URI pointing to the assimpNode
     /// \param name AssimpNode name
     void setAssimpNodeName(const vcity::URI& uri, const std::string& name);
@@ -71,8 +71,8 @@ public:
     /// \param uri URI pointing to the assimpNode
     void deleteAssimpNode(const vcity::URI& uri);
 
-	void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
-	void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addMntAscNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
+    void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
     void addShpNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     /// \brief addLayer Add a layer to the osg scene
@@ -101,6 +101,9 @@ public:
     /// Set date for temporal use, use -4000 as year to disable temporal
     void setDate(const QDateTime& date);
 
+    /// Set Color (yellow or black, depending on sunlight)
+    void changePolyColor(std::map<std::string,bool> sunlightInfo);
+
     /// reset osg scene
     void reset();
 
@@ -117,7 +120,7 @@ public:
     /// \param uri URI pointing to the node
     void centerOn(const vcity::URI& uri);
 
-    void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth=0);
+    void dump(std::ostream& out = std::cout, osg::ref_ptr<osg::Node> node = NULL, int depth = 0);
 
     /// OSG optimizer test (destroy tree topology and picking does not work after)
     void optim();
@@ -133,14 +136,25 @@ public:
     /// Insert info bubble for a node
     osg::ref_ptr<osg::Node> createInfoBubble(osg::ref_ptr<osg::Node> node);
 
+
+    /// \brief Fill layer with all info objects
+    /// \param URI pointing to the appropriate layer
+    /// \param stdd:vector with all infos
+    void initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info);
+
+    /// \brief Fill switches LOD structure with all infos
+    /// \param osg::ref_ptr<osg::Switch> pointer to switch root node
+    /// \param stdd:vector with all infos
+    void fillSwitches(osg::ref_ptr<osg::Switch> switchRoot, std::vector<osgInfo*> v_info);
+
+    /// \brief Update is_requested members of all infos
+    /// \param const QString& word from the filter search bar
+    void filterInfo(const QString& filter);
+
 public:
     /// Build osg node from CityGML data
     osg::ref_ptr<osg::Node> buildTile(const vcity::URI& uri, const vcity::Tile& tile);
-    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth=0, osg::ref_ptr<osg::Group> nodeVersion=NULL, osg::ref_ptr<osg::Group> nodeWorkspace=NULL);
-
-    /// Build osg node from CityGML temporal data
-    void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
-    void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
+    void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth = 0, osg::ref_ptr<osg::Group> nodeVersion = NULL, osg::ref_ptr<osg::Group> nodeWorkspace = NULL);
 
     bool m_shadow;                          ///< flag to use osg shadows or not
     osg::Vec4 m_shadowVec;
@@ -152,6 +166,7 @@ public:
 
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
+    void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool> sunlightInfo);
 
     osg::TextureCubeMap* readCubeMap();
     osg::Node* createSkybox();

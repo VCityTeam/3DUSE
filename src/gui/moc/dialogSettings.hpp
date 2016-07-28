@@ -8,7 +8,7 @@
 #include "core/dataprofile.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 namespace Ui {
-class DialogSettings;
+    class DialogSettings;
 }
 ////////////////////////////////////////////////////////////////////////////////
 class DialogSettings : public QDialog
@@ -21,10 +21,10 @@ public:
 
     void doSettings();
 
-private slots:
+    private slots:
     void choosePathSlot();
     void chooseDataProfileSlot(int i);
-	void setMinEndDate();
+    void setMinEndDate();
 
 private:
     void setFromDataProfile(const vcity::DataProfile& dp);

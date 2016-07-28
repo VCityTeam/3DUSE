@@ -20,16 +20,12 @@
 #include "tesselator.hpp"
 #include "citygml.hpp"
 #include "utils.hpp"
-#include <string.h>
+#include <string>
 #include <limits>
 #include <iterator>
 #include <set>
 #include <algorithm>
 
-#include "gui/applicationGui.hpp"
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
@@ -229,7 +225,7 @@ void CityModel::computeEnvelope()
 
         obj->computeEnvelope();
 
-		if(obj->getEnvelope().getUpperBound().x > 1000000000) //Pour pas qu'un bâtiment qui bug gêne le calcul de l'enveloppe
+		if(obj->getEnvelope().getUpperBound().x > 1000000000) //Pour pas qu'un batiment qui bug gene le calcul de l'enveloppe
 			continue;
 		
 		//TVec3d Low = _envelope.getLowerBound();
@@ -292,9 +288,29 @@ void CityModel::setWorkspaces(std::map<std::string,temporal::Workspace> wrkspsli
 	_workspaces=wrkspslist; 
 }
 ////////////////////////////////////////////////////////////////////////////////
+void CityModel::setDocuments(std::vector<documentADE::DocumentObject*> documentslist)
+{
+    _documents=documentslist;
+}
+////////////////////////////////////////////////////////////////////////////////
+void CityModel::setReferences(std::vector<documentADE::Reference*> referencelist)
+{
+    _references=referencelist;
+}
+////////////////////////////////////////////////////////////////////////////////
 const std::map<std::string,temporal::Workspace> CityModel::getWorkspaces() const
 {
 	return _workspaces;
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::vector<documentADE::Reference*> CityModel::getReferences() const
+{
+    return _references;
+}
+////////////////////////////////////////////////////////////////////////////////
+const std::vector<documentADE::DocumentObject*> CityModel::getDocuments() const
+{
+    return _documents;
 }
 ////////////////////////////////////////////////////////////////////////////////
 std::map<std::string,temporal::Workspace> CityModel::getWorkspaces()

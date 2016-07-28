@@ -1,7 +1,7 @@
 #include "VegetTool.hpp"
 
 #include <qfiledialog.h>
-#include "src/processes/ExportToShape.hpp"
+#include "src/utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 #include "lasreader.hpp"
 
 #include "citygml.hpp"

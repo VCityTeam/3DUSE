@@ -1,5 +1,6 @@
 #include "ADE.hpp"
 #include "temporal/temporalHandler.hpp"
+#include "document/documentHandler.hpp"
 
 //  JE 17/02/2016: DISCARDED BECAUSE PROBLEMS WITH RECENT VERSIONS OF UBUNTU: 
 //instanciate the ADE Handler constructors map
@@ -9,11 +10,13 @@
 // ADD YOUR NEW ADE PARSERS HERE !
 void ADEHandlerFactory::getInstances(std::map<std::string,ADEHandler*>* map)
 {
-	(*map)["temp"]=new TempHandler();
+    (*map)["temp"]=new TempHandler();
+    (*map)["doc"]=new DocumentHandler();
 }
 
 //some gmlHandler methods
-std::string ADEHandler::getGmlIdAttribute( void* attributes ) { return getAttribute( attributes, "gml:id", "" ); }
+std::string ADEHandler::getGmlIdAttribute( void* attributes ) {
+    return getAttribute( attributes, "gml:id", "" ); }
 unsigned int ADEHandler::getPathDepth( void ) { return (getNodePath())->size(); }
 void ADEHandler::pushCityObject( citygml::CityObject* object )
 {
