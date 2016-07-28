@@ -692,49 +692,6 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if (grp)
     {
-        // dyntag
-        /*double val;
-        bool hasFlag = node->getUserValue("TAGPTR", val);
-        if(hasFlag)
-        {
-        citygml::CityObjectTag* tag;
-        memcpy(&tag, &val, sizeof(tag));
-        std::string texturePath = tag->getAttribute("texture", date);
-        if(texturePath != "none")
-        {
-        std::cout << date.toString().toStdString() << " : texture : " << texturePath << std::endl;
-
-        // check cache
-        osg::ref_ptr<osg::Texture2D> texture = nullptr;
-        std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = m_texManager.find(texturePath);
-        if(it!=m_texManager.end())
-        {
-        texture = it->second;
-        }
-        else
-        {
-        if(osg::Image* image = osgDB::readImageFile(texturePath))
-        {
-        //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
-        //std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
-        texture = new osg::Texture2D;
-        texture->setImage( image );
-        texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-        texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-        texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-        texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-        texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
-
-        m_texManager[texturePath] = texture;
-        }
-        else
-        osg::notify(osg::NOTICE) << "  Warning: Texture " << texturePath << " not found!" << std::endl;
-        }
-
-        setTexture(node, tag, texture);
-        }
-        }*/
-
         // get attributes in cityobject
 #if 0
         vcity::URI uri = osgTools::getURI(node);
