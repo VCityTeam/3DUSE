@@ -554,9 +554,9 @@ void MainWindow::loadHistory()
 
     QSettings settings("liris", "virtualcity");
     QString lastdir = settings.value("lastdir").toString();
-    QStringList CSVfilenames = QFileDialog::getOpenFileNames(this, "Sélectionner le fichier CSV", lastdir);
+    QStringList CSVfilenames = QFileDialog::getOpenFileNames(this, "Selectionner le fichier CSV", lastdir);
 
-    QString GMLdirectory = QFileDialog::getExistingDirectory(this, tr("Sélectionner le fichier Tuiles"),lastdir,QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString GMLdirectory = QFileDialog::getExistingDirectory(this, tr("Selectionner le dossier Tuiles"),lastdir,QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     std::cout << "directory : " << GMLdirectory.toStdString() << std::endl;
 
     if(!GMLdirectory.isNull())
