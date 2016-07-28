@@ -20,7 +20,6 @@
 #include <ostream>
 #include "object.hpp"
 #include "geometry.hpp"
-#include "temporalExt.hpp"
 #include "URI.hpp"
 #include "citygml_export.h"
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
@@ -146,9 +145,6 @@ protected:
 
     std::vector< Geometry* > _geometries;
     std::vector< CityObject* > _children;
-
-    std::vector<CityObjectState*> m_states;
-    std::vector<CityObjectTag*> m_tags;
 
 public:
     CityObject* _parent; // MT (MAC OS X problem...)

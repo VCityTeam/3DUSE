@@ -34,11 +34,6 @@ CityObject::~CityObject()
     for(CityObject* obj : _children)
 		delete obj;
 
-    for(CityObjectState* state : m_states)
-        delete state;
-
-    for(CityObjectTag* tag : m_tags)
-        delete tag;
 }
 ////////////////////////////////////////////////////////////////////////////////
 // Get the object type
