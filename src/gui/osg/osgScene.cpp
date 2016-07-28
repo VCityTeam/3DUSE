@@ -156,9 +156,6 @@ void OsgScene::init()
         addChild(m_effectNone);
     }
 
-    //build skybox
-//    addChild(createSkybox());
-
     // build layers node
     m_layers = new osg::Group();
     m_layers->setName("layers");
