@@ -52,21 +52,17 @@ void ViewPoint::ComputeSkyline()
             if(hits[i][j].intersect)
             {
                 skyline.FragCoords.push_back(std::make_pair(i,j)); // Add this point to skyline
+                Hit h = hits[i][j];
+        	skyline.Points.push_back(h.point);
                 break;
             }
         }
     }
 
-    for(unsigned int j = 0; j < skyline.FragCoords.size(); j++)
-    {
-        Hit h = hits[skyline.FragCoords[j].first][skyline.FragCoords[j].second];
-        skyline.Points.push_back(h.point);
-    }
-
     skyline.Position = position;
 }
 
-/*void ViewPoint::ComputeSkyline()
+/*void ViewPoint::ComputeSkyline() ///Old version of ComputeSkyline using Freeman Algorithm
 {
     bool found = false;
 
