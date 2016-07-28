@@ -7,6 +7,7 @@
   # pragma warning(disable:4251) 
 #endif
 #include <ogrsf_frmts.h>
+#include <QTime>
 #include <gdal_priv.h>    // Gdal
 #include <cpl_conv.h>     // Gdal for CPLMalloc()
 #include <qfileinfo.h>
