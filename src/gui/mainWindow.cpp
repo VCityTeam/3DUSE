@@ -19,6 +19,7 @@
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
 #include "moc/dialogConvertObjToCityGML.hpp"
+#include "moc/dialogBuildBuildingAABBs.hpp"
 
 #include "controllerGui.hpp"
 
