@@ -156,9 +156,6 @@ void OsgScene::init()
         addChild(m_effectNone);
     }
 
-    //build skybox
-//    addChild(createSkybox());
-
     // build layers node
     m_layers = new osg::Group();
     m_layers->setName("layers");
@@ -829,7 +826,7 @@ void forceLODrec(int lod, osg::ref_ptr<osg::Node> node)
 {
     //05/11/2015 Frederic : Fonction qui ne me semble pas bien propre. On parcourt l'arbre osg qui semble vide de semantique, on a juste un ensemble de nodes et de sous nodes.
     //Le CityModel est le sous node du layer CityGML, ensuite il y a les batiments, puis les murs, puis les geometries, puis les polygones, ...
-    //Visiblement, un objet concerne par des LODs possedent obligatoirement 5 enfants "geodes" (1 par LoD) et on va donc chercher les objets qui ont 5 fils repertories comme des "geodes" (lors du chargement, je suppose qu'on doit assimiler les Lods a ça).
+    //Visiblement, un objet concerne par des LODs possedent obligatoirement 5 enfants "geodes" (1 par LoD) et on va donc chercher les objets qui ont 5 fils repertories comme des "geodes" (lors du chargement, je suppose qu'on doit assimiler les Lods a Ã§a).
     //Parmi ces 5 enfants, on va donc cacher le "lodieme".
     //Probleme entre LoD1 et LoD2 : la notion de Lod apparait un cran plus haut sur un LOD1 que sur un LOD2 (car il y a un fils Wall, Roof, ... dans le LOD2 avant le Lod2multisurface).
     //Donc quand on arrive au niveau du LOD1, finalement le Lod2 correspondant (grp->getChild(2)) ne signifie rien, il n'appaitra reellement que lorsque l'on parcourera les murs et walls par la suite. Et a ce moment, c'est grp->getChild(1) qui n'aura pas de sens.
