@@ -131,17 +131,17 @@ MainWindow::MainWindow(QWidget *parent) :
 	//connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
 	connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
     connect(m_ui->checkBoxTemporalTools, SIGNAL(stateChanged(int)), this, SLOT(toggleUseTemporal()));
-    connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
-    //connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
-    connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
-    connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
-    connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
-    //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
-    connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
-    connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
-    connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
-    connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
-    connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
+	connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
+	//connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
+	connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
+	connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
+	connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
+	//connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
+	connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
+	connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
+	connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
+	connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
+	connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
 
     connect(m_ui->toolButton, SIGNAL(clicked()), this, SLOT(slotTemporalAnim()));
 
@@ -1232,9 +1232,9 @@ void MainWindow::updateTemporalParams(int value)
 
     //std::cout << "set year : " << date.year() << std::endl;
 
-    QDateTime datetime(date);
-    m_currentDate = datetime;
-    if (m_useTemporal)
+	QDateTime datetime(date);
+	m_currentDate = datetime;
+    if(m_useTemporal)
     {
         m_osgScene->setDate(datetime);
 
@@ -1292,12 +1292,12 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-    //std::cout << "toggle temporal tool" << std::endl;
+	//std::cout << "toggle temporal tool" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::ChangecheckBoxTemporalToolsState()
 {
-    m_ui->checkBoxTemporalTools->setChecked(!m_useTemporal); //This will trigger a signal and call toggleUseTemporal function
+     m_ui->checkBoxTemporalTools->setChecked(!m_useTemporal); //This will trigger a signal and call toggleUseTemporal function
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
