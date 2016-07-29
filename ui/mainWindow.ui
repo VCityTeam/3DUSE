@@ -270,7 +270,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>23</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -349,6 +349,7 @@
      <addaction name="actionInfo_bubbles"/>
      <addaction name="actionShadows"/>
      <addaction name="actionShadows_options"/>
+     <addaction name="actionSkybox"/>
     </widget>
     <addaction name="menuRender"/>
     <addaction name="actionShow_temporal_tools"/>
@@ -828,6 +829,14 @@
   <action name="actionLoad_CSV">
    <property name="text">
     <string>Load CSV...</string>
+   </property>
+  </action>
+  <action name="actionSkybox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Skybox</string>
    </property>
   </action>
  </widget>
