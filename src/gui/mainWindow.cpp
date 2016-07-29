@@ -1221,9 +1221,9 @@ void MainWindow::updateTemporalParams(int value)
 
     //std::cout << "set year : " << date.year() << std::endl;
 
-    QDateTime datetime(date);
-    m_currentDate = datetime;
-    if (m_useTemporal)
+	QDateTime datetime(date);
+	m_currentDate = datetime;
+    if(m_useTemporal)
     {
         m_osgScene->setDate(datetime);
 
