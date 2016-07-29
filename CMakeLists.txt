@@ -284,6 +284,7 @@ else(OSGWIDGET_FOUND)
   message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
 endif(OSGWIDGET_FOUND)
 
+
 # Find GDAL
 find_package(GDAL)
 if(GDAL_FOUND)
@@ -403,6 +404,7 @@ if( BUILD_GUI_QT5 )
   # Reference: https://bugreports.qt.io/browse/QTBUG-44637
   QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
 endif()
+
 
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt

@@ -12,18 +12,21 @@
 #include <osg/Billboard>
 #include <osg/MatrixTransform>
 #include <osg/Vec3>
+#include <osg/Point>
 #include <osg/Texture2D>
 #include <osgDB/ReadFile>
 #include <osg/BlendFunc>
 #include <osg/Material>
+#include "vecs.hpp"
 #include <ctime>
+
 
 class osgInfo : public osg::Group
 {
 public:
     osgInfo();
     osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type,
-            std::string source, std::string lod, float anchor, int priority,  std::string publicationDate);
+                std::string source, std::string lod, float anchor, int priority, std::string publicationDate);
 
     /// \brief Turn fixed document into billboard or reverse operation
     /// \param boolean value to set billboard mode or not
@@ -33,9 +36,13 @@ public:
     /// \param osg Vec3 new rotation for billboard
     void setBBAxis(osg::Vec3 newAxis);
 
-    /// \brief Scale document
-    /// \param new scale
-    void Scaling(float scale);
+    /// \brief Update scale of current document
+    /// \param int screenX width of screen (in pixels)
+    /// \param int screenY height of screen (in pixels)
+    void updateScale( int screenX, int screenY);
+
+    /// \brief Compute displayability of current info
+    void updateDisplayability();
 
     /// \brief Update the 3 local vectors
     /// \param osg::Vec3f normale of the document
@@ -50,6 +57,26 @@ public:
     /// \brief Update current document position
     /// \param osg::Vec3 new coordinates
     void UpdatePosition(osg::Vec3 newPos);
+
+    /// \brief Display red point objects at upper and lower cornes of info
+    /// \param osg::Vec3 upperCorner
+    /// \param osg::Vec3 lowerCorner
+    /// \param osgInfo* concerned info
+    void displayRedCorners(osg::Vec3 upperCorner, osg::Vec3 lowerCorner);
+
+    /// \brief Compute and update DSC value for current document
+    /// \param osg::Camera* pointer to camera to get camera current position
+    /// \param int screenX width of screen (in pixels)
+    /// \param int screenY height of screen (in pixels)
+    void computeDSC(osg::Camera *cam, int screenX, int screenY);
+
+    /// \brief Compute and update DCAM value for current document
+    /// \param osg::Camera* pointer to camera to get camera current position
+    void computeDCAM(osg::Camera *cam);
+
+    void computeOVaMatrix(std::vector< std::vector<float> > screen);
+
+    void computeOVas(std::vector< std::vector<float> > screen);
 
     // Setters
 
@@ -170,7 +197,7 @@ private:
     osg::Texture2D *m_texture ; ///texture of the doc
     osg::Material *m_material ; ///material of the doc
     osg::StateSet *m_state; ///state of the doc
-    osg::Geometry  *m_geom; ///geometry to store drawables
+    osg::Geometry  *m_quad; ///geometry to store quad drawable
     osg::Geode *m_geode; ///geometry node
     osg::Group *m_group; ///group node to store quad and line
     osg::PositionAttitudeTransform *m_pat; ///position attitude transforme of the node
@@ -196,14 +223,21 @@ public :
 
     float m_DCAM ; ///distance between doc and cam
     float m_DSC ; /// distance between doc and screen center
-    float m_Da; ///document area on screen
-    float m_OVa; ///total area of document overlapped by others in front of it
+    int m_Da; ///document area on screen
+    float m_initOVa; ///total area of document overlapped by others in front of it in its init position
+    float m_currentOVa; ///total area of document overlapped by others in front of it in its current position
+
     std::string m_publicationDate;
 
     osg::Billboard *m_billboard; ///billboard object is needed
 
-    osg::Vec3 m_sCornerMax; ///screen coordinates of max corner
-    osg::Vec3 m_sCornerMin; /// screen coordinates of min corner
+    osg::Vec3 m_currentsCornerMax; ///screen coordinates of max corner
+    osg::Vec3 m_currentsCornerMin; /// screen coordinates of min corner
+
+    osg::Vec3 m_initsCornerMax; ///screen coordinates of max corner
+    osg::Vec3 m_initsCornerMin; /// screen coordinates of min corner
+
+    std::vector< std::vector<float> > m_OVaMatrix ;
 
     osg::Geode *m_tetra; ///geometry node to display local vector
 
