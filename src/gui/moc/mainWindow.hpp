@@ -53,6 +53,7 @@ public:
     void removeRecentFile(const QString& filepath);
     void updateRecentFiles();
     bool loadFile(const QString& filepath);
+    bool loadCSV(const QString& CSVfilepath, const QString &DIRfilepath);
 
     void reset();           ///< reset ui : treeview, text box...
 
@@ -91,6 +92,7 @@ private:
     void loadScene();
     void loadSceneRecursive();
     void loadSceneBBox();
+    void loadDocuments();
     void resetScene();
     void clearSelection();
     void optionPickBuiling();

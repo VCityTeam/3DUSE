@@ -416,6 +416,12 @@
      <string>Plugins</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuHistory">
+    <property name="title">
+     <string>History</string>
+    </property>
+    <addaction name="actionLoad_CSV"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuScene"/>
@@ -425,6 +431,7 @@
    <addaction name="menuDebug"/>
    <addaction name="menuTest"/>
    <addaction name="menuPlugins"/>
+   <addaction name="menuHistory"/>
    <addaction name="menu"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -820,7 +827,12 @@
     <string>Cut MNT with Shapefile</string>
    </property>
   </action>
-<action name="actionSkybox">
+  <action name="actionLoad_CSV">
+   <property name="text">
+    <string>Load CSV...</string>
+   </property>
+  </action>
+  <action name="actionSkybox">
    <property name="checkable">
     <bool>true</bool>
    </property>
