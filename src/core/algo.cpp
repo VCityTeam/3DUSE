@@ -63,7 +63,21 @@ namespace vcity
     {
     }
 
-//FIXME: remove the following commented out code
+    void Algo::MainLidar()
+    {
+        std::string LiDAR2012 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2012//1833_5173_1_1_1.laz";
+        std::string LiDAR2015 = "C://Users//FredLiris//Downloads//Grand Lyon LiDAR//Grand Lyon CHANGEMENTS CRAPONNE//LAS 2015//1833_5173_2015_1_1_1.las";
+
+        CompareTwoLidar(LiDAR2012, LiDAR2015);
+
+        //ConvertLasToPCD();
+        //ExtractGround();
+        //ExtractBuildings();
+        //RemoveGroundWithTIN();
+        //CompareBuildings();
+        //ConstructRoofs();
+    }
+
 #if 0
     ////////////////////////////////////////////////////////////////////////////////
     /**
@@ -711,7 +725,6 @@ namespace vcity
     */
 #endif
 
-    // FIXME: remove the following empty method
     void Algo::CompareTwoLidar(std::string Path1, std::string Path2)
     {
         /*LASreadOpener lasreadopener;

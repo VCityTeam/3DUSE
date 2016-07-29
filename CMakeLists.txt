@@ -451,6 +451,12 @@ set( FILTERS_LIBRARIES   filters )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ################### General
+### Config files
+configure_file( 
+  src/gui/fileLayoutConfig.h.in
+  ${CMAKE_BINARY_DIR}/src/gui/fileLayoutConfig.h
+  @ONLY )
+
 add_library( VCityGui STATIC
 ### The core
   src/core/RayBox.cpp
@@ -509,10 +515,12 @@ add_library( VCityGui STATIC
   src/gui/osg/osgInfo.cpp
   src/gui/osg/osgInfoDataType.cpp
   src/gui/osg/osgUpdateInfo.cpp
+  src/gui/osg/osgSkybox.cpp
   
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
+  src/utils/SkylineComparison.cpp
 
 ### QT related:
   ${VCITY_GUI_Qt_SRC}
@@ -532,6 +540,7 @@ target_include_directories( VCityGui PUBLIC
   ${CITYGML_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
   ${FILTERS_INCLUDE_DIR}
+  ${CMAKE_BINARY_DIR}/src/gui #For configFileLayout.h
 )
 
 if( BUILD_GUI_QT4 )

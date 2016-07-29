@@ -98,6 +98,9 @@ public:
     /// Enable / disable osg shadows
     void setShadow(bool shadow);
 
+    /// Enable / disable skybox
+    void toggleSkybox(bool skybox);
+
     /// Set date for temporal use, use -4000 as year to disable temporal
     void setDate(const QDateTime& date);
 
@@ -164,12 +167,11 @@ public:
     osg::ref_ptr<osg::Group> m_effectNone;
     osg::ref_ptr<osg::Group> m_effectShadow;
 
+    osg::Node* m_skybox;
+
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
     void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string, bool> *sunlightInfo);
-
-    osg::TextureCubeMap* readCubeMap();
-    osg::Node* createSkybox();
 
     std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
 };

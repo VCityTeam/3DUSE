@@ -50,7 +50,7 @@ VCITYCORE_EXPORT OGRMultiPolygon* ProjectPolyOn3DPlane(
 // FIXME: the following declarations don't seem to be part of the API.
 // Remove them (the declarations not the defenitions within the cpp of course).
 
-void ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex);
+OGRLinearRing* ChangePointsOrderForNormal(OGRLinearRing* Ring, std::vector<TVec2f>* Tex);
 
 std::vector<OGRMultiLineString*> GetLineStringsFromPolygon(OGRPolygon* Polygon);
 

@@ -349,6 +349,7 @@
      <addaction name="actionInfo_bubbles"/>
      <addaction name="actionShadows"/>
      <addaction name="actionShadows_options"/>
+     <addaction name="actionSkybox"/>
     </widget>
     <addaction name="menuRender"/>
     <addaction name="actionShow_temporal_tools"/>
@@ -819,7 +820,15 @@
     <string>Cut MNT with Shapefile</string>
    </property>
   </action>
-  <action name="actionBuild_Building_AABBs">
+<action name="actionSkybox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Skybox</string>
+   </property>
+  </action>
+<action name="actionBuild_Building_AABBs">
    <property name="text">
     <string>Build Building AABBs</string>
    </property>
