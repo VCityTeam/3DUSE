@@ -74,7 +74,7 @@ private:
     ///
     ///  int: dateTime ; string : idPolygon ; bool : sunny
     ///
-    std::map<int,std::map<std::string,bool>> m_sunlightInfo;
+    std::map<int,std::map<std::string,bool>*> m_sunlightInfo;
 
     ///
     /// \brief m_visu true if visu start visu button clicked, false otherwise

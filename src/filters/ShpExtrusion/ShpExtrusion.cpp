@@ -111,7 +111,7 @@ LRing OGRLinearRingToLRing(OGRLinearRing* poLR)
 LRing PutLRingOnTerrain(LRing ring, std::string dir)
 {
     //Load all terrain bounding box that are abox the points
-    AABBCollection boxes = LoadAABB(dir);
+    AABBCollection boxes = LoadLayersAABBs(dir);
 
     std::vector<AABB> ptAABB;
     LRing ptResult;

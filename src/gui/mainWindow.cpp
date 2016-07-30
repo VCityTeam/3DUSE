@@ -19,6 +19,7 @@
 #include "moc/dialogAbout.hpp"
 #include "moc/dialogTilingCityGML.hpp"
 #include "moc/dialogConvertObjToCityGML.hpp"
+#include "moc/dialogBuildBuildingAABBs.hpp"
 
 #include "controllerGui.hpp"
 
@@ -160,6 +161,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
     connect(m_ui->actionTiling_CityGML, SIGNAL(triggered()), this, SLOT(slotTilingCityGML()));
+    connect(m_ui->actionBuild_Building_AABBs,SIGNAL(triggered()), this, SLOT(slotBuildBuildingAABBs()));
     connect(m_ui->actionCut_MNT_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutMNTwithShapefile()));
     connect(m_ui->actionCreate_Roads_on_MNT, SIGNAL(triggered()), this, SLOT(slotCreateRoadOnMNT()));
     connect(m_ui->actionCreate_Vegetation_on_MNT, SIGNAL(triggered()), this, SLOT(slotCreateVegetationOnMNT()));
@@ -2518,6 +2520,12 @@ void MainWindow::about()
 void MainWindow::slotTilingCityGML()
 {
     DialogTilingCityGML diag;
+    diag.exec();
+}
+////////////////////////////////////////////////////////////////////////////////
+void MainWindow::slotBuildBuildingAABBs()
+{
+    DialogBuildBuildingAABBs diag;
     diag.exec();
 }
 ////////////////////////////////////////////////////////////////////////////////

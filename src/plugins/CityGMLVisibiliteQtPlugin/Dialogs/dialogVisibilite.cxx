@@ -481,7 +481,7 @@ void DialogVisibilite::ToolAABBReconstruction()
     if (dir != "")
     {
         dir += "/";
-        BuildAABB(dir);
+        BuildLayersAABBs(dir);
     }
 }
 

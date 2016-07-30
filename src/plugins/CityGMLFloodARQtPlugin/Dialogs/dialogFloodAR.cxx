@@ -240,7 +240,7 @@ void dialogFloodAR::ASCtoTerrain()
 void dialogFloodAR::buildBoundingBoxes()
 {
     std::string dir = ui->lineEdit_wkingDir->text().toStdString();
-    BuildAABB(dir + "/");
+    BuildLayersAABBs(dir + "/");
 }
 ////////////////////////////////////////////////////////////////////////////////
 void dialogFloodAR::ShpExtrusion()

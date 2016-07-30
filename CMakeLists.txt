@@ -488,6 +488,7 @@ add_library( VCityGui STATIC
   src/gui/dialogAbout.cpp
   src/gui/dialogAddBuilding.cpp
   src/gui/dialogAddLayer.cpp
+  src/gui/dialogBuildBuildingAABBs.cpp
   src/gui/dialogDoc.cpp
   src/gui/dialogEditAssimpNode.cpp
   src/gui/dialogEditBldg.cpp

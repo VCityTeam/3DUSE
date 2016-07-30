@@ -368,6 +368,7 @@
     <addaction name="actionSplit_CityGML_Buildings"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
     <addaction name="actionTiling_CityGML"/>
+    <addaction name="actionBuild_Building_AABBs"/>
     <addaction name="actionCut_MNT_with_Shapefile"/>
     <addaction name="separator"/>
     <addaction name="actionCreate_Roads_on_MNT"/>
@@ -837,6 +838,11 @@
    </property>
    <property name="text">
     <string>Skybox</string>
+   </property>
+  </action>
+<action name="actionBuild_Building_AABBs">
+   <property name="text">
+    <string>Build Building AABBs</string>
    </property>
   </action>
  </widget>

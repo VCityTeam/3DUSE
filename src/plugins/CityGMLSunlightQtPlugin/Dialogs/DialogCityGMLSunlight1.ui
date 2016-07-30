@@ -77,7 +77,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QTimeEdit" name="timeEdit">
+         <widget class="QTimeEdit" name="CompStartTime">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -118,7 +118,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QTimeEdit" name="timeEdit_2">
+         <widget class="QTimeEdit" name="CompEndTime">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -644,7 +644,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QTimeEdit" name="timeEdit_3">
+         <widget class="QTimeEdit" name="VisuStartTime">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -691,7 +691,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QTimeEdit" name="timeEdit_4">
+         <widget class="QTimeEdit" name="VisuEndTime">
           <property name="enabled">
            <bool>false</bool>
           </property>

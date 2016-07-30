@@ -31,8 +31,10 @@ TriangleList::~TriangleList()
         delete triangles[i];
 }
 
-TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsType objectType)
+TriangleList* BuildTriangleList(const std::string& tilefilename, const citygml::CityObjectsType& objectType, const std::string& cityObjId, const double& zMin)
 {
+    double epsilon = 0.0001;
+
     std::vector<Triangle*> triangles;
 
     vcity::Tile* tile = new vcity::Tile(tilefilename);
@@ -41,6 +43,9 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
 
     for (citygml::CityObject* obj : model->getCityObjectsRoots()) //For each city object
     {
+        if(cityObjId.compare("") != 0 && cityObjId.compare(obj->getId()) != 0) //If cityObj not default "" and current city object equals to cityObjId
+            continue;
+
         if (obj->getType() == citygml::COT_Building && objectType == citygml::COT_Building) //We only take building or terrain
         {
             for (citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du batiment
@@ -56,6 +61,10 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
                             TVec3d a = vert[ind[i * 3 + 0]];
                             TVec3d b = vert[ind[i * 3 + 1]];
                             TVec3d c = vert[ind[i * 3 + 2]];
+
+                            // If all vertices of current triangle are below given zMin
+                            if(a.z - zMin < epsilon && b.z - zMin < epsilon && c.z - zMin < epsilon)
+                                continue;
 
                             Triangle* t = new Triangle(a, b, c);
                             t->subObjectType = object->getType();
@@ -88,6 +97,10 @@ TriangleList* BuildTriangleList(std::string tilefilename, citygml::CityObjectsTy
                         TVec3d a = vert[ind[i * 3 + 0]];
                         TVec3d b = vert[ind[i * 3 + 1]];
                         TVec3d c = vert[ind[i * 3 + 2]];
+
+                        // If all vertices of current triangle are below given zMin
+                        if(a.z - zMin < epsilon && b.z - zMin < epsilon && c.z - zMin < epsilon)
+                            continue;
 
                         Triangle* t = new Triangle(a, b, c);
                         t->objectType = obj->getType();
