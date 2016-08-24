@@ -124,6 +124,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
 	connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
 	connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
+    connect(m_ui->actionSkybox, SIGNAL(triggered()), this, SLOT(optionSkybox()));
 	connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
 	//connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
 	//connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
@@ -904,6 +905,14 @@ void MainWindow::optionShadow()
     std::cout << "toggle shadow" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void MainWindow::optionSkybox()
+{
+    bool isChecked = m_ui->actionSkybox->isChecked();
+    m_osgScene->toggleSkybox(isChecked);
+
+    std::cout << "Toggle Skybox" << std::endl;
+}
+////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotSettings()
 {
     DialogSettings diag;
@@ -1031,7 +1040,7 @@ void MainWindow::toggleUseTemporal()
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::ChangecheckBoxTemporalToolsState()
 {
-     m_ui->checkBoxTemporalTools->setChecked(!m_useTemporal); //This will trigger a signal and call toggleUseTemporal function
+    m_ui->checkBoxTemporalTools->setChecked(!m_useTemporal); //This will trigger a signal and call toggleUseTemporal function
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::exportCityGML()
