@@ -143,7 +143,7 @@ void GenCylindre(TVec3d pos,OGRFeature* feature, citygml::CityModel* ModelOut)
 void PutLRingOnTiledTerrain(LRing ring, std::vector<OGRFeature*> pointsFeatures, std::string dir)
 {
 	//Load all terrain bounding box that are above the points
-	AABBCollection boxes = LoadAABB(dir);
+    AABBCollection boxes = LoadLayersAABBs(dir);
 
 	std::cout << "Creation des arbres d'alignement sur les " << boxes.terrain.size() << " tuiles du terrain." << std::endl;
 

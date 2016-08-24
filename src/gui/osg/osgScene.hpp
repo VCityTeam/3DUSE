@@ -106,7 +106,7 @@ public:
     void setDate(const QDateTime& date);
 
     /// Set Color (yellow or black, depending on sunlight)
-    void changePolyColor(std::map<std::string,bool> sunlightInfo);
+    void changePolyColor(std::map<std::string, bool> *sunlightInfo);
 
     /// reset osg scene
     void reset();
@@ -172,7 +172,7 @@ public:
 
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
-    void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string,bool> sunlightInfo);
+    void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string, bool> *sunlightInfo);
 
     osg::TextureCubeMap* readCubeMap();
     osg::Node* createSkybox();

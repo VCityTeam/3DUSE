@@ -27,7 +27,7 @@
    <item row="0" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_general">
       <attribute name="title">
@@ -425,19 +425,6 @@
          </widget>
         </item>
        </layout>
-      </widget>
-      <widget class="QCheckBox" name="checkBoxBillboard">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>70</y>
-         <width>281</width>
-         <height>41</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Billboard</string>
-       </property>
       </widget>
      </widget>
     </widget>

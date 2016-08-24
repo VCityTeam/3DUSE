@@ -36,6 +36,7 @@ add_library( citygml SHARED
   # parserxercesc.cpp 
   polygon.cpp
   quaternion.cpp
+  temporalExt.cpp
   tesselator.cpp
   texture.cpp
 

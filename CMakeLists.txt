@@ -284,6 +284,7 @@ else(OSGWIDGET_FOUND)
   message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
 endif(OSGWIDGET_FOUND)
 
+
 # Find GDAL
 find_package(GDAL)
 if(GDAL_FOUND)
@@ -404,6 +405,7 @@ if( BUILD_GUI_QT5 )
   QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
 endif()
 
+
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt
 # to unify notations between external libraries and internal (defined
@@ -486,6 +488,7 @@ add_library( VCityGui STATIC
   src/gui/dialogAbout.cpp
   src/gui/dialogAddBuilding.cpp
   src/gui/dialogAddLayer.cpp
+  src/gui/dialogBuildBuildingAABBs.cpp
   src/gui/dialogDoc.cpp
   src/gui/dialogEditAssimpNode.cpp
   src/gui/dialogEditBldg.cpp

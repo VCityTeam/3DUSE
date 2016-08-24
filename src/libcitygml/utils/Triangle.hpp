@@ -54,11 +54,18 @@ struct CITYGMLUTILS_EXPORT TriangleList
 *	@param tile CityGML tile from which we want the triangle list
 *	@param viewpoint Data about the viewpoint we are rendering
 *	@param objectType The type of cityobject to load
+*   @param cityObjId The id of city object to load.
+*          Default = "" (i.e. all cityobjects of the tile are loaded)
+*   @param zMin A minimum z value of triangles to load
+*          (if all vertices of the triangle are below this zMin value, triangle is not loaded)
+*          Default = -10000.0
 *	@return The list of triangle from the CityGML tile
 */
 CITYGMLUTILS_EXPORT TriangleList* BuildTriangleList(
-  std::string tilefilename,
-  citygml::CityObjectsType objectType
+  const std::string& tilefilename,
+  const citygml::CityObjectsType& objectType,
+  const std::string& cityObjId = "",
+  const double& zMin = -10000.0
 );
 
 #endif
