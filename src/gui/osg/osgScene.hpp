@@ -175,7 +175,6 @@ private:
     void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string, bool> *sunlightInfo);
 
     osg::TextureCubeMap* readCubeMap();
-    osg::Node* createSkybox();
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief osgSceneBuild will create an osg tree (for rendering with osg) from a tile
