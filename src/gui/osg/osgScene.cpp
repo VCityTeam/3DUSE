@@ -528,7 +528,7 @@ void OsgScene::toggleSkybox(bool skybox)
 
 }
 ////////////////////////////////////////////////////////////////////////////////
-void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::ref_ptr<osg::Texture2D> texture)
+void setTexture(osg::ref_ptr<osg::Node> node, osg::ref_ptr<osg::Texture2D> texture)
 {
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if (grp)
@@ -536,7 +536,7 @@ void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::
         for (unsigned int i = 0; i < grp->getNumChildren(); ++i)
         {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
-            setTexture(child, tag, texture);
+            setTexture(child, texture);
         }
     }
 
