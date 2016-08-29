@@ -3,6 +3,7 @@
 #include "Hit.hpp"
 
 #include <thread>
+#include <QTime>
 
 /**
 *	@brief Data used by a ray tracing thread

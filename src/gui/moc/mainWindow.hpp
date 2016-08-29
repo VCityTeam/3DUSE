@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <QTreeWidgetItem>
 #include <QResizeEvent>
+#include <QDateTime>
 #include "gui/applicationGui.hpp"
 #include "gui/osg/osgQtWidget.hpp"
 #include "gui/moc/treeView.hpp"

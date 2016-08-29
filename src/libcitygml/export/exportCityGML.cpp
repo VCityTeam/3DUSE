@@ -345,49 +345,6 @@ namespace citygml
 
 	}
 	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportCityObjetStateXml(const citygml::CityObjectState& state, const std::string &nodeType, xmlNodePtr parent)
-	{
-		xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
-		xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST (state.getParent()->getId()+'_'+state.getStringId()).c_str());
-
-		if(state.getGeom())
-		{
-			// attributes
-			for(const auto& attr : state.getGeom()->getAttributes())
-			{
-				xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
-				xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
-				xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
-			}
-		}
-
-		return res;
-	}
-	////////////////////////////////////////////////////////////////////////////////
-	xmlNodePtr ExporterCityGML::exportCityObjetTagXml(const citygml::CityObjectTag& tag, const std::string &nodeType, xmlNodePtr parent)
-	{
-		xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
-		xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST (tag.getParent()->getId()+'_'+tag.getStringId()).c_str());
-
-		if(tag.getGeom())
-		{
-			// attributes
-			for(const auto& attr : tag.getGeom()->getAttributes())
-			{
-				xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
-				xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
-				xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
-			}
-		}
-
-		// date attrib
-		xmlNodePtr dateNode = xmlNewChild(res, NULL, BAD_CAST "gen:dateAttribute", NULL);
-		xmlNewProp(dateNode, BAD_CAST "name", BAD_CAST "date");
-		xmlNewChild(dateNode, NULL, BAD_CAST "gen:value", BAD_CAST tag.m_date.toString(Qt::ISODate).toStdString().c_str());
-
-		return res;
-	}
-	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent, bool rootLevel)
 	{
 		xmlNodePtr res = NULL;

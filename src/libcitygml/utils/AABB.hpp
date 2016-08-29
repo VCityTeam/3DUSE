@@ -8,6 +8,7 @@
 
 #include "vecs.hpp"
 #include "citygmlutils_export.h"
+#include <float.h>
 #ifdef _MSC_VER
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
 #endif

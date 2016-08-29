@@ -6,7 +6,6 @@
 #include <QSettings>
 #include <QListView>
 #include <QMessageBox>
-#include <QDate>
 #include <QPluginLoader>
 #include <ctime>
 #include <time.h>

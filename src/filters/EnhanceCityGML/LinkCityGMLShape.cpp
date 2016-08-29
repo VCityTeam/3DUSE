@@ -2,6 +2,8 @@
 #include "libcitygml/utils/CityGMLtools.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtools.hpp"
+#include <set>
+#include <cmath>
 
 typedef std::pair<double, double> Point;
 typedef std::vector<Point> Polygon2D;

@@ -29,6 +29,7 @@
 #include <osg/Node>
 #include <osg/Group>
 #include <osg/Geode>
+#include <QDateTime>
 #include <osg/Geometry>
 #include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"
@@ -173,7 +174,7 @@ private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
     void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string, bool> *sunlightInfo);
 
-    std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
+    osg::TextureCubeMap* readCubeMap();
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief osgSceneBuild will create an osg tree (for rendering with osg) from a tile
