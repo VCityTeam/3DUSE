@@ -181,6 +181,7 @@ endif()
 
 ##### Find Qt4 
 if( BUILD_GUI_QT4 )
+  add_definitions( "-DBUILD_GUI_QT4" )
   # FIXME: ask MTO but this looks like the opposite of what Qt5 does above
   if (QTDIR)
     set( ENV{QTDIR} ${QTDIR} )
