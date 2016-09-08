@@ -194,6 +194,10 @@ if( BUILD_GUI_QT4 )
 endif()
 
 # Find OpenGL
+# FIXME: the only dependency towards OpenGL occurs 
+# src/libcitygml/tesselator.hpp which includes glu.h. Deport this
+# dependency to libCityGML (and even better try to remove it completely
+# by using self contained code or CGAL tesselators).
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
@@ -296,6 +300,15 @@ else(GDAL_FOUND)
 endif(GDAL_FOUND)
 
 # Find LibXml2
+# FIXME: as discovered with the command
+#    grep -r "#include" * | grep -i libxml
+# LibXml2 is used only within libCityGML (which is a fair usage) and
+# src/utils/cmdline/cityGMLCut.h which (besides from the command line
+# src/utils/cmdline/cityGMLCut.cxx) gets strangely included in 
+#     src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx.
+# Assert with FDE that is not a real need and deport the remaining
+# find_package to LibXml2 where it belongs i.e. in the libCityGML
+# component.
 find_package(LibXml2)
 if(LIBXML2_FOUND)
   include_directories(${LIBXML2_INCLUDE_DIR})
@@ -371,7 +384,7 @@ else( )
 endif()
 
 ##############
-# FIXME: expand this glob
+# FIXME: expand the following obfuscating two glob_recurse
 file(
   GLOB_RECURSE
   VCITY_GUI_Qt_SRC
