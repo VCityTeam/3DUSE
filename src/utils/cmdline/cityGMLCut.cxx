@@ -1,9 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <libxml/parser.h>
-
 #include <string>
-
 #include <iostream>
 #include <QFileInfo>
 #include <QDir>
@@ -25,27 +22,24 @@ bool VERBOSE;
 double G_xmin, G_ymin, G_xmax, G_ymax;
 
 FOUR_PLANES G_my4planes;
-// TEMP
 
 void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
 	if (noeud->type == XML_ELEMENT_NODE)
 	{
-        if (noeud->children != NULL)// && noeud->children->type == XML_TEXT_NODE) // MT
+        if (noeud->children != NULL)
 		{
             if (xmlStrEqual(noeud->name, BAD_CAST "textureCoordinates"))
 			{
 				char *p = (char *) xmlGetProp(noeud, BAD_CAST "ring");
 				p++;
 
-				//printf("ring textureCoordinates: %s\n", p);
 				(*UUID_uvm)[std::string(p)] = noeud;
 			}
         }
     }
 }
 
-//typedef void (*fct_process_All_textureCoordinates)(xmlNodePtr, std::map<std::string, xmlNodePtr> *);
 void parcours_prefixe_All_textureCoordinates(xmlNodePtr noeud, fct_process_All_textureCoordinates f, std::map<std::string, xmlNodePtr> *UUID_uvm)
 {
     xmlNodePtr n;
@@ -63,7 +57,7 @@ xmlNodePtr process_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, x
 {
 	if (noeud->type == XML_ELEMENT_NODE)
 	{
-        if (noeud->children != NULL)// && noeud->children->type == XML_TEXT_NODE) // MT
+        if (noeud->children != NULL)
 		{
             if (xmlStrEqual(noeud->name, BAD_CAST "textureCoordinates"))
 			{
@@ -73,7 +67,6 @@ xmlNodePtr process_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, x
 				char *pid = (char *) xmlGetProp(noeud_id, BAD_CAST "id");
 				if ( strcmp(pid, p)==0 )
 				{
-					//printf("id LinearRing: %s\n", pid);
 					return noeud;
 				}
 			}
@@ -83,7 +76,6 @@ xmlNodePtr process_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, x
 	return NULL;
 }
 
-//typedef xmlNodePtr (*fct_process_Building_ReliefFeature_textureCoordinates)(xmlNodePtr, xmlNodePtr);
 xmlNodePtr parcours_prefixe_Building_ReliefFeature_textureCoordinates(xmlNodePtr noeud, fct_process_Building_ReliefFeature_textureCoordinates f, xmlNodePtr noeud_id)
 {
     xmlNodePtr n;
