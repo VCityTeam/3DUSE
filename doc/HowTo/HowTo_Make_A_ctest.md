@@ -1,4 +1,4 @@
-# How to create a CTest 
+# How to create a regression test with [CTest](https://cmake.org/Wiki/CMake/Testing_With_CTest)
 
 I will explain how to create a ctest for a plugin with the example of the Sunlight Plugin.
 
@@ -20,22 +20,17 @@ I will explain how to create a ctest for a plugin with the example of the Sunlig
 
 + Open this `CMakeLists.txt` file and add the following lines :
 
-
 		add_executable(testSunlightComputation testSunlightComputation.cxx)
 
 		target_link_libraries(testSunlightComputation CityGMLSunlightQtPlugin)
-		
+
 		add_test( SUNLIGHT_COMPUTATION
 		  testSunlightComputation)
 
-*Note : the command `add_executable` permits to create the executable which will run when you launch the test. 
-The first argument is the name of the executable which will be created and the second one is the .cpp files which will be used to create this executable.*
-
-*Note : The command `target_link_libraries` permits to link against the libraries your test will need.
-The first argument is the name of your previously created exec and the second one is the name of your library (normally set in the main CMakeLists.txt).*
-
-*Note: The commande `add_test` is the command which will run when you launch your ctest.
-The first argument is the name of the test and the second one is the name of the executable.*
+   Notes:
+    * the command `add_executable` permits to create the executable which will run when you launch the test. The first argument is the name of the executable which will be created and the second one is the .cpp files which will be used to create this executable.
+    * The command `target_link_libraries` permits to link against the libraries your test will need. The first argument is the name of your previously created exec and the second one is the name of your library (normally set in the main CMakeLists.txt).*
+    * The commande `add_test` is the command which will run when you launch your ctest. The first argument is the name of the test and the second one is the name of the executable.
 
 + Now go back in the folder holding your functionality and add the following line to the CMakeLists.txt : 
 
@@ -102,9 +97,7 @@ You might want to add arguments to your test. I will show an example on how to d
 		add_test( SUNLIGHT_COMPUTATION
 		  testSunlightComputation monkey)
 
-
-*Note : monkey will be the argument you will pass to your test function. It can be an int value as well. You can add more argument after "monkey" by separatinf them with a space character. Ex: add_test( SUNLIGHT_COMPUTATION
-  testSunlightComputation monkey 1).*
+   Note : monkey will be the argument you will pass to your test function. It can be an int value as well. You can add more argument after "monkey" by separatinf them with a space character. Ex: `add_test( SUNLIGHT_COMPUTATION testSunlightComputation monkey 1)`.
 
 + Open your `testMyFunctionality.cpp` file and add the following lines to the main function :
 
@@ -124,18 +117,17 @@ You might want to add arguments to your test. I will show an example on how to d
 		Checking test dependency graph end
 		test 1
 		    Start 1: SUNLIGHT_COMPUTATION
-		
+
 		1: Test command: /home/vincent/Documents/VCity_Project/build_debug/src/plugins/CityGMLSunlightQtPlugin/Test/testSunlightComputation "monkey"
 		1: Test timeout computed to be: 9.99988e+06
 		1: monkey
 		1/1 Test #1: SUNLIGHT_COMPUTATION .............   Passed    0.00 sec
-		
+
 		100% tests passed, 0 tests failed out of 1
-		
+
 		Total Test time (real) =   0.00 sec
 
-*Note: Lets say you want to pass an int value as an argument to your test and your add_test command look like that : `add_test( SUNLIGHT_COMPUTATION
-  testSunlightComputation monkey 1)`. In order to get an int value in the main, you must do the following : ` int iValue = std::stoi(argv[2]);`*
+  Note: Lets say you want to pass an int value as an argument to your test and your add_test command look like that : `add_test( SUNLIGHT_COMPUTATION testSunlightComputation monkey 1)`. In order to get an int value in the main, you must do the following : ` int iValue = std::stoi(argv[2]);`
 
 ## How to add more test
 
