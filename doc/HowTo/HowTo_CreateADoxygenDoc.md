@@ -28,7 +28,6 @@ Source code directory : The folder where your source files are.
 
 Destination directory: where the documentation will be generated.
 
-
 Then, click next.
 
 - Fill the second window as follow:
