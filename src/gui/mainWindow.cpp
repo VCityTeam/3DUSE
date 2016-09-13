@@ -743,6 +743,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         addRecentFile(CSVfilepath);
     }
 
+  return true;
 }
 
 
