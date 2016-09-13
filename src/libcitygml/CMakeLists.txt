@@ -78,7 +78,6 @@ endif()
 target_include_directories( citygml PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}       # Required for generated citygml_export.h
-  ${VCITYCORE_INCLUDE_DIR}
 )
 
 target_link_libraries( citygml
@@ -88,7 +87,6 @@ target_link_libraries( citygml
   ${OPENGL_LIBRARIES}    # FIXME: tesselation dependency 
   ${OSG_LIBRARIES}       # FIXME: this is a weak dependency on
                          # - osg::Referenced::signalObserversAndDelete
-  ${VCITYCORE_LIBRARY}
 )
 
 # FIXME The dependence of this library towards QT is both undue and a drag.
