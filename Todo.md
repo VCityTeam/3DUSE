@@ -16,15 +16,15 @@
       * [there](https://cmake.org/pipermail/cmake/2012-October/052423.html)
       * [also here](https://cmake.org/pipermail/cmake-developers/2013-June/019217.html)
    * What was tried is to get the following work. Alas nothing works like it should do (only the first entry of the PATH variable is displayed and the trash test fails !)
-     ```
+```cmake
      if( MSVC )
        string( REPLACE ";" "\\;" CURRENT_PATH "$ENV{PATH}")
        set( ENV{PATH} ${CURRENT_PATH} ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE} )
        message( "After substitution of commas" ${CURRENT_PATH} )
      endif()
-     ```
+```
    * In order to debug the above, trial boiled down to the following (which fails poorly):
-     ```
+```cmake
      if( MSVC )
        message( "The coarse result" $ENV{PATH} )
        set( JUNK "$ENV{PATH}")
@@ -36,6 +36,4 @@
        message("Cmake binary is here: " ${CMAKE_COMMAND} )
        add_test( NAME trash COMMAND ${CMAKE_COMMAND} -E environment)
      endif()
-     ```
-   
-
+```

@@ -21,6 +21,8 @@ endif()
 option( BUILD_EMBARKED_OSG-QT_32 "Use embarked copy of OSG-Qt version 3.2" OFF )
 option( BUILD_EMBARKED_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
 
+option( BUILD_DOCUMENTATION  "Build the documentation." OFF )
+
 # Some syntactic convenience for CI scripts shortening:
 option( BUILD_ALL_PLUGINS "Build all available plugins" OFF )
 if( BUILD_ALL_PLUGINS )
@@ -697,9 +699,13 @@ endif()
 
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-# Placed here because BUILD_CityGMLSunlightQtPlugin variable needs to be set
-# because it is needed in src/plugins/CMakeLists.txt
-add_subdirectory(src)
+# The location on Recursion on src is only constrained to be below the
+# definition of BUILD_CityGMLSunlightQtPlugin configuration symbols (refer
+# to their usage in e.g. src/plugins/CMakeLists.txt. For the time being
+# it is located down here only for historical reasons (plugin definitions
+# used to be located in the above lines)...
+add_subdirectory( src )
+add_subdirectory( doc )
 
 #-------------------------------------------------------------------------------
 # Now the installation stuff :

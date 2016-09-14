@@ -21,6 +21,14 @@ Dependencies under discussion (open questions for MTO):
    * Python: really needed ? Sub-dependency ? Not needed at all ?
    * xerces-c: really needed ? Sub-dependency ? Not needed at all ?
 
+## General introduction to building VCity
+VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/runningcmake/). Here is a short list of option flags that can be used to customize the building VCity:
+ * `BUILD_GUI_QT4` and `BUILD_GUI_QT5` enable to build the Graphical User Interface (GUI) of VCity respectively with using [QT4](http://doc.qt.io/qt-4.8/) or [QT5](http://qt-project.org/qt5)
+ * Flags of the form `BUILD_CityGML<something>QtPlugin` (e.g. `BUILD_CityGMLCutQtPlugin` or `BUILD_CityGMLSunlightQtPlugin`) toggle the build of optional VCity plugins (based on QT plugin mechanism). Unsurprisingly enough the `BUILD_ALL_PLUGINS` option flag will trigger the build of all plugins.
+ * `BUILD_DOCUMENTATION` enables the building of the [Doxygen](http://www.doxygen.org/) based documentation of VCity.
+ * `BUILD_EMBARKED_OSG-QT_32` and `BUILD_EMBARKED_OSG-QT_34` enable to build a VCity embarked version of the interface of [OpenSceneGraph (OSG)](http://www.openscenegraph.org/) within [QT](http://qt-project.org/)
+
+
 ## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
@@ -123,6 +131,6 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * [Graphviz](http://www.graphviz.org/)
 
 
-### Building VCity with Cmake
- * Use cmake (`cmake-gui.exe`)
-   * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
+### Building from sources
+Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
+  * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
