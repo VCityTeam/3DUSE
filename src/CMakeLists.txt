@@ -5,6 +5,7 @@ add_subdirectory( libcitygml )
 
 add_library( vcitycore SHARED
   DataStructures/DEM/osgMnt.cpp 
+  DataStructures/quaternion.cpp
   utils/OGRGDAL_Utils/OGRGDALtools.cpp
   utils/OGRGDAL_Utils/OGRGDALtoShpWriter.cpp
 )

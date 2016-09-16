@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <QTreeWidgetItem>
 #include <QResizeEvent>
+#include <QDateTime>
 #include "gui/applicationGui.hpp"
 #include "gui/osg/osgQtWidget.hpp"
 #include "gui/moc/treeView.hpp"
@@ -53,6 +54,7 @@ public:
     void removeRecentFile(const QString& filepath);
     void updateRecentFiles();
     bool loadFile(const QString& filepath);
+    bool loadCSV(const QString& CSVfilepath, const QString &DIRfilepath);
 
     void reset();           ///< reset ui : treeview, text box...
 
@@ -91,12 +93,14 @@ private:
     void loadScene();
     void loadSceneRecursive();
     void loadSceneBBox();
+    void loadDocuments();
     void resetScene();
     void clearSelection();
     void optionPickBuiling();
     void optionPickFace();
     void optionInfoBubbles();
     void optionShadow();
+    void optionSkybox();
     void slotSettings();
     void optionShowTemporalTools();
     void optionShowAdvancedTools();
@@ -116,6 +120,7 @@ private:
     void slotCutCityGMLwithShapefile();
     void slotSplitCityGMLBuildings();
     void slotTilingCityGML();
+    void slotBuildBuildingAABBs();
     void slotCutMNTwithShapefile();
     void slotCreateRoadOnMNT();
     void slotCreateVegetationOnMNT();

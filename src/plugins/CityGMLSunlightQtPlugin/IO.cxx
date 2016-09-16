@@ -2,7 +2,7 @@
 
 #include "Triangle.hpp"
 #include "core/dateTime.hpp"
-#include "libcitygml/quaternion.hpp"
+#include "DataStructures/quaternion.hpp"
 
 #include <QDir>
 //This is not a real dependency towards osgDB/fstream, but towards fstream.
@@ -15,7 +15,7 @@
 #endif
 
 
-void createOutputFolders(QString sOutputDir)
+void createOutputFolders(const QString& sOutputDir)
 {
     //*** Create output folders
     QDir outputDirSunlight(sOutputDir + "SunlightOutput/");
@@ -31,7 +31,7 @@ void createOutputFolders(QString sOutputDir)
         outputDirMnt.mkpath(outputDirMnt.absolutePath());
 }
 
-void createFileFolder(FileInfo* file, QString sOutputDir)
+void createFileFolder(FileInfo* file, const QString& sOutputDir)
 {
     //Create folder corresponding to file
     QString path = sOutputDir + "SunlightOutput/" + QString::fromStdString(file->WithPrevFolder()) + "/";
@@ -81,19 +81,17 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
     TVec3d ERotAxis = TVec3d(-1.0,0.0,0.0);
 
     //if sun to low (angle < 1°), return nul beam direction
-    if (elevationAngle <= 0.01 && azimutAngle <= 0.01)
+    if (elevationAngle <= 0.01 || azimutAngle <= 0.01)
         return TVec3d(0.0,0.0,0.0);
 
     //Azimut rotation quaternion
-    citygml::quaternion qA = citygml::quaternion();
-    qA.set_axis_angle(ARotAxis,azimutAngle);
+    quaternion qA = quaternion(ARotAxis,azimutAngle);
 
     //Elevation rotation quaternion
-    citygml::quaternion qE = citygml::quaternion();
-    qE.set_axis_angle(ERotAxis,elevationAngle);
+    quaternion qE = quaternion(ERotAxis,elevationAngle);
 
     //Total rotation quaternion
-    citygml::quaternion q = qE*qA;
+    quaternion q = qE*qA;
 
     sunPos = sunPos - origin;
     newSunPos = q*sunPos;

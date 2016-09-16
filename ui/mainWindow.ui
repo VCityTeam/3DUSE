@@ -270,7 +270,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>21</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -349,6 +349,7 @@
      <addaction name="actionInfo_bubbles"/>
      <addaction name="actionShadows"/>
      <addaction name="actionShadows_options"/>
+     <addaction name="actionSkybox"/>
     </widget>
     <addaction name="menuRender"/>
     <addaction name="actionShow_temporal_tools"/>
@@ -367,6 +368,7 @@
     <addaction name="actionSplit_CityGML_Buildings"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
     <addaction name="actionTiling_CityGML"/>
+    <addaction name="actionBuild_Building_AABBs"/>
     <addaction name="actionCut_MNT_with_Shapefile"/>
     <addaction name="separator"/>
     <addaction name="actionCreate_Roads_on_MNT"/>
@@ -414,6 +416,12 @@
      <string>Plugins</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuHistory">
+    <property name="title">
+     <string>History</string>
+    </property>
+    <addaction name="actionLoad_CSV"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuScene"/>
@@ -423,6 +431,7 @@
    <addaction name="menuDebug"/>
    <addaction name="menuTest"/>
    <addaction name="menuPlugins"/>
+   <addaction name="menuHistory"/>
    <addaction name="menu"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -816,6 +825,24 @@
   <action name="actionCut_MNT_with_Shapefile">
    <property name="text">
     <string>Cut MNT with Shapefile</string>
+   </property>
+  </action>
+  <action name="actionLoad_CSV">
+   <property name="text">
+    <string>Load CSV...</string>
+   </property>
+  </action>
+  <action name="actionSkybox">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Skybox</string>
+   </property>
+  </action>
+<action name="actionBuild_Building_AABBs">
+   <property name="text">
+    <string>Build Building AABBs</string>
    </property>
   </action>
  </widget>

@@ -6,7 +6,7 @@ namespace documentADE
       Reference::Reference( const std::string& id ) : Object( id )
       {
       }
-      QDateTime Reference::getReferringDate()
+      time_t Reference::getReferringDate()
       {
           return _referringDate;
       }
@@ -27,7 +27,7 @@ namespace documentADE
           return _coveragePeriod;
       }
 
-      void Reference::setReferringDate(QDateTime referringDate)
+      void Reference::setReferringDate(time_t referringDate)
       {
           this->_referringDate=referringDate;
       }

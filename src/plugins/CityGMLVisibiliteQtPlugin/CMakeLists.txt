@@ -2,19 +2,28 @@ if( NOT BUILD_CityGMLVisibiliteQtPlugin )
   return()
 endif()
 
-# FIXME: remove this glob recursion by expanding it
-file(
-  GLOB_RECURSE
-  CityGMLVisibilite_Qt_Plugin_SRC
-  *.cxx
+set( CityGMLVisibilite_Qt_Plugin_SRC
+  data/BelvedereDB.cxx
+  data/ViewPoint.cxx
+
+  AlignementTree.cxx
+  CityGMLVisibiliteQtPlugin.cxx
+  Export.cxx
+  FlatRoof.cxx
+  MonoTileAnalysis.cxx
+  MultiTileAnalysis.cxx
+  VegetTool.cxx
 )
+
 set( CityGMLVisibilite_Qt_Plugin_HEADER
   CityGMLVisibiliteQtPlugin.h
   Dialogs/dialogVisibilite.hpp
 )
+
 set( CityGMLVisibilite_Qt_Plugin_UI
   Dialogs/dialogVisibilite.ui
 )
+
 if( BUILD_GUI_QT5 )
   ADD_DEFINITIONS("-DBUILD_GUI_QT5")
   QT5_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
@@ -30,6 +39,7 @@ if( BUILD_GUI_QT5 )
     ${CityGMLVisibilite_Qt_Plugin_UI_CPP}
   )
 endif()
+
 if( BUILD_GUI_QT4 )
   QT4_WRAP_CPP( CityGMLVisibilite_Qt_Plugin_MOC_CPP
     ${CityGMLVisibilite_Qt_Plugin_HEADER}

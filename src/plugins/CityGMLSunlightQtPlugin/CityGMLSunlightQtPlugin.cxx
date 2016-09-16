@@ -45,6 +45,10 @@ void CityGMLSunlightQtPlugin::startVisuAction(QStringList filepaths, QDateTime s
 
 void CityGMLSunlightQtPlugin::stopVisuAction()
 {
+    //Delete maps of map m_sunlightInfo
+    for(auto iterator = m_sunlightInfo.begin(); iterator != m_sunlightInfo.end(); iterator++)
+        delete iterator->second;
+
     m_sunlightInfo.clear();
     m_visu = false;
 }
@@ -71,8 +75,11 @@ void CityGMLSunlightQtPlugin::loadFile(QString filepath)
             std::istringstream(sSunlight) >> bSunlight;
 
             //Add value to map
-            m_sunlightInfo[idatetime][polygonId] = bSunlight;
-
+            if(m_sunlightInfo[idatetime] == NULL)
+            {
+                m_sunlightInfo[idatetime] = new std::map<std::string,bool>();
+            }
+            (*(m_sunlightInfo[idatetime]))[polygonId] = bSunlight;
         }
     }
 

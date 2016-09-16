@@ -181,6 +181,7 @@ endif()
 
 ##### Find Qt4 
 if( BUILD_GUI_QT4 )
+  add_definitions( "-DBUILD_GUI_QT4" )
   # FIXME: ask MTO but this looks like the opposite of what Qt5 does above
   if (QTDIR)
     set( ENV{QTDIR} ${QTDIR} )
@@ -193,6 +194,10 @@ if( BUILD_GUI_QT4 )
 endif()
 
 # Find OpenGL
+# FIXME: the only dependency towards OpenGL occurs 
+# src/libcitygml/tesselator.hpp which includes glu.h. Deport this
+# dependency to libCityGML (and even better try to remove it completely
+# by using self contained code or CGAL tesselators).
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
@@ -284,6 +289,7 @@ else(OSGWIDGET_FOUND)
   message(FATAL_ERROR "osgWidget not found. Please set OSG_DIR.")
 endif(OSGWIDGET_FOUND)
 
+
 # Find GDAL
 find_package(GDAL)
 if(GDAL_FOUND)
@@ -294,6 +300,15 @@ else(GDAL_FOUND)
 endif(GDAL_FOUND)
 
 # Find LibXml2
+# FIXME: as discovered with the command
+#    grep -r "#include" * | grep -i libxml
+# LibXml2 is used only within libCityGML (which is a fair usage) and
+# src/utils/cmdline/cityGMLCut.h which (besides from the command line
+# src/utils/cmdline/cityGMLCut.cxx) gets strangely included in 
+#     src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx.
+# Assert with FDE that is not a real need and deport the remaining
+# find_package to LibXml2 where it belongs i.e. in the libCityGML
+# component.
 find_package(LibXml2)
 if(LIBXML2_FOUND)
   include_directories(${LIBXML2_INCLUDE_DIR})
@@ -369,7 +384,7 @@ else( )
 endif()
 
 ##############
-# FIXME: expand this glob
+# FIXME: expand the following obfuscating two glob_recurse
 file(
   GLOB_RECURSE
   VCITY_GUI_Qt_SRC
@@ -403,6 +418,7 @@ if( BUILD_GUI_QT5 )
   # Reference: https://bugreports.qt.io/browse/QTBUG-44637
   QT5_ADD_RESOURCES( VCITY_GUI_RES_CPP ${VCITY_GUI_Qt_RES})
 endif()
+
 
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt
@@ -451,6 +467,12 @@ set( FILTERS_LIBRARIES   filters )
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ################### General
+### Config files
+configure_file( 
+  src/gui/fileLayoutConfig.h.in
+  ${CMAKE_BINARY_DIR}/src/gui/fileLayoutConfig.h
+  @ONLY )
+
 add_library( VCityGui STATIC
 ### The core
   src/core/RayBox.cpp
@@ -480,6 +502,7 @@ add_library( VCityGui STATIC
   src/gui/dialogAbout.cpp
   src/gui/dialogAddBuilding.cpp
   src/gui/dialogAddLayer.cpp
+  src/gui/dialogBuildBuildingAABBs.cpp
   src/gui/dialogDoc.cpp
   src/gui/dialogEditAssimpNode.cpp
   src/gui/dialogEditBldg.cpp
@@ -508,10 +531,12 @@ add_library( VCityGui STATIC
   src/gui/osg/osgInfo.cpp
   src/gui/osg/osgInfoDataType.cpp
   src/gui/osg/osgUpdateInfo.cpp
+  src/gui/osg/osgSkybox.cpp
   
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
+  src/utils/SkylineComparison.cpp
 
 ### QT related:
   ${VCITY_GUI_Qt_SRC}
@@ -531,6 +556,7 @@ target_include_directories( VCityGui PUBLIC
   ${CITYGML_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
   ${FILTERS_INCLUDE_DIR}
+  ${CMAKE_BINARY_DIR}/src/gui #For configFileLayout.h
 )
 
 if( BUILD_GUI_QT4 )

@@ -7,6 +7,7 @@
   # pragma warning(disable:4251) 
 #endif
 #include <ogrsf_frmts.h>
+#include <QTime>
 #include <gdal_priv.h>    // Gdal
 #include <cpl_conv.h>     // Gdal for CPLMalloc()
 #include <qfileinfo.h>
@@ -261,7 +262,7 @@ std::vector<ViewPoint*> MultiTileBasicAnalyse(std::string dirTile, osg::Camera* 
 	QTime time;
 	time.start();
 
-	AABBCollection boxes = LoadAABB(dirTile);
+    AABBCollection boxes = LoadLayersAABBs(dirTile);
 
 	//Do the analysis for each layers, building, terrain, water
 	ViewPoint* result = DoMultiTileAnalysis(dirTile,boxes.building,cam,citygml::CityObjectsType::COT_Building, DistLod1);

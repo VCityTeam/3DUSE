@@ -4,8 +4,6 @@
 #include <QFileDialog>
 #include <QSettings>
 #include <QDirIterator>
-#include <libxml/tree.h>
-#include <libxml/parser.h>
 #include <sstream>
 #include <iomanip>
 #include "tile.hpp"
