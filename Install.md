@@ -14,13 +14,6 @@ Depending on your packaging system you **might need** to manually pull the follo
  * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
  * [GEOS](https://trac.osgeo.org/geos/) as gdal sub-dependency
 
-Dependencies under discussion (open questions for MTO):
- * `Find_package` directives found in VCity CMakeLists:
-   * OpenMesh
- * some MTO's installation docs (exchanged through emails) also mention
-   * Python: really needed ? Sub-dependency ? Not needed at all ?
-   * xerces-c: really needed ? Sub-dependency ? Not needed at all ?
-
 ## General introduction to building VCity
 VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/runningcmake/). Here is a short list of option flags that can be used to customize the building VCity:
  * `BUILD_GUI_QT4` and `BUILD_GUI_QT5` enable to build the Graphical User Interface (GUI) of VCity respectively with using [QT4](http://doc.qt.io/qt-4.8/) or [QT5](http://qt-project.org/qt5)
