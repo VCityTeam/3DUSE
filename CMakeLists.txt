@@ -21,23 +21,25 @@ endif()
 option( BUILD_EMBARKED_OSG-QT_32 "Use embarked copy of OSG-Qt version 3.2" OFF )
 option( BUILD_EMBARKED_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
 
+option( BUILD_DOCUMENTATION  "Build the documentation." OFF )
+
 # Some syntactic convenience for CI scripts shortening:
 option( BUILD_ALL_PLUGINS "Build all available plugins" OFF )
 if( BUILD_ALL_PLUGINS )
   set( BUILD_CityGMLCutQtPlugin        ON CACHE BOOL
-      "BUILD the Cut GUI plugin"
+      "BUILD the Cut GUI plugin"       FORCE
   )
   set( BUILD_CityGMLEmptyQtPlugin      ON CACHE BOOL
-      "BUILD the Empty GUI plugin"
+      "BUILD the Empty GUI plugin"     FORCE
   )
   set( BUILD_CityGMLVisibiliteQtPlugin ON CACHE BOOL
-      "Build the Visibility plugin."
+      "Build the Visibility plugin."   FORCE
   )
   set( BUILD_CityGMLFloodARQtPlugin    ON CACHE BOOL
-      "Build the FloodAR GUI plugin." 
+      "Build the FloodAR GUI plugin."  FORCE
   )
   set( BUILD_CityGMLSunlightQtPlugin   ON CACHE BOOL
-      "Build the Sunlight GUI plugin."
+      "Build the Sunlight GUI plugin." FORCE
   )
 else()
   option( BUILD_CityGMLCutQtPlugin      "Build the Cut GUI plugin."      ON )
@@ -181,6 +183,9 @@ endif()
 
 ##### Find Qt4 
 if( BUILD_GUI_QT4 )
+  # FIXME: note that the "corresponding"
+  #     add_definitions( "-DBUILD_GUI_QT5" )
+  # is located elsewhere which breaks the QT4 vs QT5 "symmetry". Why is this ?
   add_definitions( "-DBUILD_GUI_QT4" )
   # FIXME: ask MTO but this looks like the opposite of what Qt5 does above
   if (QTDIR)
@@ -604,13 +609,13 @@ endif()
 if( BUILD_GUI_QT5 )
   if( NOT DEFINED QT_PLUGINS_DIR )
     set( QT_PLUGINS_DIR "${QT5_DIR}/plugins" )
-  endif( NOT DEFINED QT_PLUGINS_DIR )
+  endif( )
 endif()
 
 IF(WIN32)
- #--------------------------------------------------------------------------------
+ #------------------------------------------------------------------------------
  # Copy Qt plugins to 'Debug and Release' directories and configure qt.conf file
- #--------------------------------------------------------------------------------
+ #------------------------------------------------------------------------------
  file(GLOB qtplugin_dirs RELATIVE  "${QT_PLUGINS_DIR}"  "${QT_PLUGINS_DIR}/imageformats*"  "${QT_PLUGINS_DIR}/platforms*")
  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Debug/QtPlugins")
  file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE_OUTPUT_PATH}/Release/QtPlugins")
@@ -704,26 +709,19 @@ endif()
 
 SET_TARGET_PROPERTIES(CityGMLCut PROPERTIES COMPILE_DEFINITIONS "${my_COMPILE_DEFINITIONS}")
 
-################
-# 3DUSE plugins
-################
-# FIXME: all the variable names of the plugin related stuff
-# is way too long. One could get git of the CityGML systematic
-# prefix as well as the Qt infix. For example we could use
-# BUILD_CUTPLUGIN  instead of the current BUILD_CityGMLCutQtPlugin
-# or CutPlugin_HEADER instead of CityGMLCut_Qt_Plugin_HEADER.
+# The location on Recursion on src is only constrained to be below the
+# definition of BUILD_CityGMLSunlightQtPlugin configuration symbols (refer
+# to their usage in e.g. src/plugins/CMakeLists.txt. For the time being
+# it is located down here only for historical reasons (plugin definitions
+# used to be located in the above lines)...
+add_subdirectory( src )
+add_subdirectory( doc )
 
-
-################
-# END of plugins
-################
-
-# Placed here because BUILD_CityGMLSunlightQtPlugin variable needs to be set
-# because it is needed in src/plugins/CMakeLists.txt
-add_subdirectory(src)
-
-#--------------------------------------------------------------------------------
-# Now the installation stuff : http://www.cmake.org/Wiki/BundleUtilitiesExample
+#-------------------------------------------------------------------------------
+# Now the installation stuff :
+# References:
+#   - http://www.cmake.org/Wiki/BundleUtilitiesExample
+#   - https://cst.version.fz-juelich.de/jupedsim/jpseditor/blob/b5bf1a7d2eec10cb07bcca7d64b76beaf970b024/CMakeLists.txt
 #--------------------------------------------------------------------------------
 SET(plugin_dest_dir .)
 SET(qtconf_dest_dir .)

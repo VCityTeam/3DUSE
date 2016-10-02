@@ -43,7 +43,6 @@ addons:
   apt:
     packages:
       - libqt4-dev
-      - libxerces-c-dev
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
@@ -55,7 +54,7 @@ install:
   - cmake --version
   # OSX install done through brew:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt assimp doxygen graphviz; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
     # Already (indirectly) installed          brew install gdal
     #
