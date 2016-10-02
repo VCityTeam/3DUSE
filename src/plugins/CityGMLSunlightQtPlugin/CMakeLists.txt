@@ -4,6 +4,7 @@ if( NOT BUILD_CityGMLSunlightQtPlugin)
   return()
 endif()
 
+####### Collecting material for QT generated wrappers:
 set( CityGMLSunlight_Qt_Plugin_HEADER
   CityGMLSunlightQtPlugin.h
   Dialogs/DialogCityGMLSunlight1.h
@@ -43,6 +44,7 @@ if( BUILD_GUI_QT4 )
   )
 endif()
 
+####### The library per se:
 add_library( CityGMLSunlightQtPlugin SHARED
   ${CityGMLSunlight_Qt_Plugin_HEADER}
   ${CityGMLSunlight_Qt_Plugin_SRC}
@@ -53,6 +55,7 @@ add_library( CityGMLSunlightQtPlugin SHARED
   SunlightDetection.cxx
 )
 
+####### Destination location
 if(MSVC)
   # The build dll goes to the top level build directory.
   # The associated import library goes...out of the way.
@@ -67,22 +70,40 @@ if(MSVC)
   endforeach()
 endif()
 
+if(UNIX)
+  # A QT main applications looks for possible plugins in the application's
+  # executable directory (among different conventional places). Note that,
+  # strangely enough, on OSX (and as opposed to linux) the application ends
+  # up being built in the plugin_dest_dir directory (refer to main
+  # CMakeList.txt). Yet placing the plugin within ${CMAKE_BINARY_DIR}
+  # still seems to do the trick:
+  set_target_properties( CityGMLSunlightQtPlugin PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+endif()
+
+####### Preprocessing paths:
 target_include_directories( CityGMLSunlightQtPlugin PUBLIC
   src                            # For moc on Generic_PluginInterface
   ${FILTERS_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
 )
 
+####### Linking dependencies:
 target_link_libraries ( CityGMLSunlightQtPlugin
   VCityGui
-  ${LINUX_FLAGS}
+  ${LINUX_FLAGS}     # FIXME: defined as -lpthread, WTF ?
   ${QT_LIBRARIES}
   ${VCITY_GUI_LIB}
   ${CITYGML_LIBRARIES}
   ${CITYGMLUTILS_LIBRARIES}
   ${FILTERS_LIBRARIES}
 )
+
 if( BUILD_GUI_QT5 )
+  # FIXME: considering that there is no corresponding QT4 linking directive
+  # probably that the following QT5 directives are not necessary. Or maybe
+  # they are some hidden (global?) QT4 directives. Inquire on this...
   target_include_directories( CityGMLSunlightQtPlugin PRIVATE
     $<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>)
   target_link_libraries( CityGMLSunlightQtPlugin Qt5::Widgets Qt5::OpenGL )
@@ -91,8 +112,3 @@ endif()
 if( NOT ( BUILD_EMBARKED_OSG-QT_32 OR BUILD_EMBARKED_OSG-QT_34 ) )
   target_link_libraries( CityGMLSunlightQtPlugin ${OSGQT_LIBRARIES} )
 endif()
-
-# FIXME: temporarily disabled because of AppVeyor build crash
-#install( TARGETS CityGMLSunlightQtPlugin
-#  LIBRARY DESTINATION . COMPONENT ${PRJ_NAME}  # FIXME: is this line needed ?
-#)

@@ -1,10 +1,9 @@
-See also the [reflexions on libCityGML next generation](https://github.com/MEPP-team/VCity/wiki/libCityGML_NG).
+See also the [reflexions on libCityGML next generation](https://github.com/MEPP-team/VCity/wiki/libCityGML_NG) and [Xerces vs libXML2 issue](https://github.com/MEPP-team/VCity/issues/164)
 
 ## Dependencies: to be asserted
 
 | Package         |    License    | Included headers / Notes |
 | --------------- | ------------- | ------------------------ |
-|[XercesC](https://xerces.apache.org/xerces-c/)|[Apache 2.0](https://xerces.apache.org/xerces-c/)||
 | [libXml2](http://www.xmlsoft.org/) | [MIT licence](http://www.xmlsoft.org/) ||
 |[ASSIMP](http://assimp.sourceforge.net/main_doc.html) | [BSD](http://assimp.sourceforge.net/main_license.html)|[OSGPL](http://trac.openscenegraph.org/projects/osg//wiki/Legal) an LGPL variant|
 |[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)||Sub-libraries: osgDB |
