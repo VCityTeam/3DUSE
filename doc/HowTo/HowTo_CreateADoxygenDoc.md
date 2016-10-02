@@ -14,7 +14,7 @@
 
 + Fill the first window as shown below :
 
-![ ](/home/vincent/Images/doxy1.png  "Doxygen Wizard Project")
+![Doxygen Wizard Project](images/HowToDoxygen1.png)
 
 You need to fill the following fields:
 
@@ -28,12 +28,11 @@ Source code directory : The folder where your source files are.
 
 Destination directory: where the documentation will be generated.
 
-
 Then, click next.
 
 - Fill the second window as follow:
 
-![ ](/home/vincent/Images/doxy2.png  "Doxygen Mode")
+![Doxygen Mode](images/HowToDoxygen2.png)
 
 Choose All Entities option and include cross-referenced source code in the output.
 Depending on the language of your source files, you can optimize the result for it.
@@ -42,7 +41,7 @@ Then, click next.
 
 - Fill the third window:
 
-![ ](/home/vincent/Images/doxy3.png  "Doxy Output")
+![Doxygen Output](images/HowToDoxygen3.png)
 
 You can choose to generate HTML output and/or LaTeX output, Man pages, RTF and XML files.
 
@@ -50,13 +49,13 @@ Click next again.
 
 - Fill the fourth window:
 
-![ ](/home/vincent/Images/doxy4.png  "Doxy diagrams")
+![Doxygen Diagrams](images/HowToDoxygen4.png)
 
 If you want to generate diagrams of dependencies in your documentation, you can select the "Use dot tool from the Graphviz package option" and check all the graphs you want to generate.
 
 - Go into the run tab on the left:
 
-![ ](/home/vincent/Images/doxy5.png  "doxy run")
+![Doxygen Run](images/HowToDoxygen5.png)
 
 Click on "Run doxygen" on the upper left corner. 
 When generation is donne, click on "Show HTML Output" to see the documentation.
