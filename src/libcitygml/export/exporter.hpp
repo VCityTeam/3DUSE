@@ -4,7 +4,7 @@
 #define __CITYGML_EXPORTER_HPP__
 ////////////////////////////////////////////////////////////////////////////////
 #include "citygml_export.h"
-#include <QDateTime>
+#include <boost/date_time.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
@@ -22,14 +22,14 @@ public:
     void setTemporalExport(bool param);
 
     /// Set temporal export date
-    void setDate(const QDateTime& date);
+    void setDate(const boost::posix_time::ptime& date);
 
     /// Set offset
     void setOffset(double offsetX, double offsetY);
 
 protected:
     bool m_temporalExport;  ///< enable temporal export
-    QDateTime m_date;       ///< date for temporal export
+    boost::posix_time::ptime m_date;       ///< date for temporal export
 
     double m_offsetX;       ///< x offset
     double m_offsetY;       ///< y offset

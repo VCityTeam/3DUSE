@@ -83,6 +83,7 @@ target_include_directories( citygml PUBLIC
 
 target_link_libraries( citygml
   ${ASSIMP_LIBRARY}
+  ${Boost_LIBRARIES}
   ${LIBXML2_LIBRARIES}
   ${GDAL_LIBRARY}
   ${OPENGL_LIBRARIES}    # FIXME: tesselation dependency 

@@ -181,6 +181,7 @@ endif()
 
 ##### Find Qt4 
 if( BUILD_GUI_QT4 )
+  add_definitions( "-DBUILD_GUI_QT4" )
   # FIXME: ask MTO but this looks like the opposite of what Qt5 does above
   if (QTDIR)
     set( ENV{QTDIR} ${QTDIR} )
@@ -195,6 +196,7 @@ endif()
 # Find OpenGL
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
+
 
 # Find ASSIMP
 find_package(ASSIMP)
@@ -613,6 +615,15 @@ set(APP_NAME 3DUSE)
 IF(WIN32)
   SET(VCITY_GUI_ICON resources/vcity.rc)
 ENDIF()
+
+# Find Boost
+set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
+find_package(Boost COMPONENTS date_time REQUIRED)
+if(Boost_FOUND)
+  include_directories(${Boost_INCLUDE_DIRS})
+endif()
 
 # For Apple set the icns file containing icons
 IF(APPLE)

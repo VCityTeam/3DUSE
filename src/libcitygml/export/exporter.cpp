@@ -21,7 +21,7 @@ void Exporter::setTemporalExport(bool param)
     m_temporalExport = param;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void Exporter::setDate(const QDateTime& date)
+void Exporter::setDate(const boost::posix_time::ptime& date)
 {
     m_date = date;
 }

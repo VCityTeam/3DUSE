@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QPluginLoader>
 #include <ctime>
+#include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <time.h>
 
 #include "ui_mainWindow.h"
@@ -1310,8 +1312,9 @@ void MainWindow::exportCityGML()
     // check temporal params
     if (m_useTemporal)
     {
-        exporter.setTemporalExport(true);
-        exporter.setDate(m_ui->dateTimeEdit->dateTime());
+       exporter.setTemporalExport(true);
+       exporter.setDate(boost::posix_time::time_from_string(
+                             m_ui->dateTimeEdit->dateTime().toString().toStdString()));
     }
 
     // check if something is picked
