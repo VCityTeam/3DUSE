@@ -23,6 +23,8 @@ option( BUILD_EMBARKED_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
 
 option( BUILD_DOCUMENTATION  "Build the documentation." OFF )
 
+option( BUILD_PCL            "Point Cloud Library support toggle." OFF )
+
 # Some syntactic convenience for CI scripts shortening:
 option( BUILD_ALL_PLUGINS "Build all available plugins" OFF )
 if( BUILD_ALL_PLUGINS )
@@ -337,6 +339,23 @@ if(OPENTHREADS_FOUND)
 else(OPENTHREADS_FOUND)
   message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
 endif(OPENTHREADS_FOUND)
+
+# Find PCL dependency
+if( BUILD_PCL )
+  find_package( boost COMPONENTS system filesystem thread date_time iostreams serialization chrono)
+  if( NOT Boost_FOUND )
+    message(FATAL_ERROR "PCL requires Boost which cannot be found.")
+  endif ()
+  find_package(PCL 1.3 REQUIRED COMPONENTS common io)
+  # FIXME: deport the following to where it is used
+  # FIXME include_directories( ${PCL_INCLUDE_DIRS} )
+  # FIXME add_definitions( ${PCL_DEFINITIONS} )
+  # FIXME add_definitions( -DFEVV_USE_PCL )
+  if ( NOT PCL_FOUND )
+    messagE ( "Couldn't find package PCL (Point Could Library).")
+    message ( "Try building with PCL support disabled (set BUILD_PCL off).")
+  endif ()
+endif ()
 
 # Find osgQt
 # 3DUse embarks its own "fork" of OSQ-Qt (within src/gui/osgQt sub-directory).

@@ -48,11 +48,20 @@ addons:
       - libgdal-dev
       - doxygen
       - graphviz
+      # Point Cloud Library (PCL) dependencies. PCL itself not being an
+      # available package (do not get confused with the Portable Coroutine
+      # Library packaged as libpcl1-dev), it is manually "gotten" (refer
+      # to install section)
+      - libeigen3-dev
+      - libflann-dev
+      - libqhull-dev
+
 
 install:
   - export TRAVIS=YES
   - cmake --version
-  # OSX install done through brew:
+  #
+  ### OSX install done through brew:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt assimp doxygen graphviz; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
@@ -63,6 +72,13 @@ install:
     # libspatialite.7.dylib (version 7). Trick libgdal in getting what it needs:
     # refer to issue #121. [osx_image: beta-xcode6.1]
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/pcl; fi
+  #
+  ### Linux installs for which Travis doesn't offer the packages
+    # Start with the Point Cloud Library (not be confused with 
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd /tmp; wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar zxf pcl-pcl-1.7.2.travis-trusty.tgz; cd pcl-pcl-1.7.2/buildR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make install && cd $TRAVIS_BUILD_DIR; fi
 
 script:
   # FIXME: try to deport laslib installation to install target
