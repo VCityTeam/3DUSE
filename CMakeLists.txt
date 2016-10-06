@@ -342,6 +342,11 @@ endif(OPENTHREADS_FOUND)
 
 # Find PCL dependency
 if( BUILD_PCL )
+  # Assert manually that the PCL dependencies are satisfied (refer to
+  # PCLConfig.cmake for the explicit list of required boot components) in
+  # order to simplify the context of PCL failing dependency (when find_package
+  # fails on PCL because of a missing suv-dependency the error message is 
+  # really sketchy and hard to interpret):
   find_package( boost COMPONENTS system filesystem thread date_time iostreams serialization chrono)
   if( NOT Boost_FOUND )
     message(FATAL_ERROR "PCL requires Boost which cannot be found.")

@@ -53,10 +53,12 @@ addons:
       # Library packaged as libpcl1-dev), it is manually "gotten" (refer
       # to install section)
       - libboost-dev
-      - libboost-thread-dev
       - libboost-system-dev
       - libboost-filesystem-dev
-      - libboost-iostreams-dev
+      - libboost-thread-dev
+      - libboost-date-time-dev
+      - libboost-serialization-dev
+      - libboost-chrono-dev
       - libeigen3-dev
       - libflann-dev
       - libqhull-dev
