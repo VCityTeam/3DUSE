@@ -29,8 +29,8 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON"
 
 matrix:
   fast_finish: true
@@ -81,7 +81,7 @@ install:
     #      common is required but boost was not found
     # Hence the following kludgy fix
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost 1.40.0/find_package(boost 1.40.0/\nwq\n" | ed /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; cat /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
   #
   ### Linux installs for which Travis doesn't offer the packages
     # Start with the Point Cloud Library (not be confused with 
