@@ -81,6 +81,7 @@ install:
     #      common is required but boost was not found
     # Hence the following kludgy fix
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost 1.40.0/find_package(boost 1.40.0/\nwq\n" | ed /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; cat /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
   #
   ### Linux installs for which Travis doesn't offer the packages
     # Start with the Point Cloud Library (not be confused with 
