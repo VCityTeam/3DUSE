@@ -52,6 +52,11 @@ addons:
       # available package (do not get confused with the Portable Coroutine
       # Library packaged as libpcl1-dev), it is manually "gotten" (refer
       # to install section)
+      - libboost-dev
+      - libboost-thread-dev
+      - libboost-system-dev
+      - libboost-filesystem-dev
+      - libboost-iostreams-dev
       - libeigen3-dev
       - libflann-dev
       - libqhull-dev
