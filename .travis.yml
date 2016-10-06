@@ -73,6 +73,14 @@ install:
     # refer to issue #121. [osx_image: beta-xcode6.1]
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/pcl; fi
+    # PCL config files looks for the Boost package (whith a capital B) which
+    # will fail starting with cmake version 3.5 (previous version seem not
+    # be case dependent on the find_package argument) with a message of the
+    # form:
+    #    CMake Error at /usr/local/share/pcl-1.7/PCLConfig.cmake:45 (message):
+    #      common is required but boost was not found
+    # Hence the following kludgy fix
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost 1.40.0/find_package(boost 1.40.0/\nwq\n" | ed /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
   #
   ### Linux installs for which Travis doesn't offer the packages
     # Start with the Point Cloud Library (not be confused with 
