@@ -96,42 +96,42 @@ MainWindow::MainWindow(QWidget *parent) :
     GDALAllRegister();
     OGRRegisterAll();
 
-	// connect slots
-	connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
-	connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
-	connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
-	//connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
+    // connect slots
+    connect(m_ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(m_ui->actionLoad, SIGNAL(triggered()), this, SLOT(loadScene()));
+    connect(m_ui->actionLoad_recursive, SIGNAL(triggered()), this, SLOT(loadSceneRecursive()));
+    //connect(m_ui->actionLoad_bbox, SIGNAL(triggered()), this, SLOT(loadSceneBBox()));
     connect(m_ui->actionLoad_CSV, SIGNAL(triggered()), this, SLOT(loadDocuments()));
-	connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
-	connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
-	connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
-	connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
-	connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
-	connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
-	//connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
-	connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
-	connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
-	connect(m_ui->actionBuilding, SIGNAL(triggered()), this, SLOT(optionPickBuiling()));
-	connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
-	connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
-	connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
+    connect(m_ui->actionExport_citygml, SIGNAL(triggered()), this, SLOT(exportCityGML()));
+    connect(m_ui->actionExport_osg, SIGNAL(triggered()), this, SLOT(exportOsg()));
+    connect(m_ui->actionExport_tiled_osga, SIGNAL(triggered()), this, SLOT(exportOsga()));
+    connect(m_ui->actionExport_JSON, SIGNAL(triggered()), this, SLOT(exportJSON()));
+    connect(m_ui->actionExport_OBJ, SIGNAL(triggered()), this, SLOT(exportOBJ()));
+    connect(m_ui->actionExport_OBJ_split, SIGNAL(triggered()), this, SLOT(exportOBJsplit()));
+    //connect(m_ui->actionDelete_node, SIGNAL(triggered()), this, SLOT(deleteNode()));
+    connect(m_ui->actionReset, SIGNAL(triggered()), this, SLOT(resetScene()));
+    connect(m_ui->actionClearSelection, SIGNAL(triggered()), this, SLOT(clearSelection()));
+    connect(m_ui->actionBuilding, SIGNAL(triggered()), this, SLOT(optionPickBuiling()));
+    connect(m_ui->actionFace, SIGNAL(triggered()), this, SLOT(optionPickFace()));
+    connect(m_ui->actionInfo_bubbles, SIGNAL(triggered()), this, SLOT(optionInfoBubbles()));
+    connect(m_ui->actionShadows, SIGNAL(triggered()), this, SLOT(optionShadow()));
     connect(m_ui->actionSkybox, SIGNAL(triggered()), this, SLOT(optionSkybox()));
-	connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
-	//connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
-	//connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
-	connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
+    connect(m_ui->actionSettings, SIGNAL(triggered()), this, SLOT(slotSettings()));
+    //connect(m_ui->actionAdd_Tag, SIGNAL(triggered()), this, SLOT(optionAddTag()));
+    //connect(m_ui->actionAdd_Flag, SIGNAL(triggered()), this, SLOT(optionAddFlag()));
+    connect(m_ui->actionShow_temporal_tools, SIGNAL(triggered()), this, SLOT(optionShowTemporalTools()));
     connect(m_ui->checkBoxTemporalTools, SIGNAL(stateChanged(int)), this, SLOT(toggleUseTemporal()));
-	connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
-	//connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
-	connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
-	connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
-	connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
-	//connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
-	connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
-	connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
-	connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
-	connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
-	connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
+    connect(m_ui->actionShow_advanced_tools, SIGNAL(triggered()), this, SLOT(optionShowAdvancedTools()));
+    //connect(m_ui->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)), this, SLOT(handleTreeView(QTreeWidgetItem*, int)));
+    connect(m_ui->horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(updateTemporalParams(int)));
+    connect(m_ui->horizontalSlider, SIGNAL(sliderReleased()), this, SLOT(updateTemporalParams()));
+    connect(m_ui->dateTimeEdit, SIGNAL(editingFinished()), this, SLOT(updateTemporalSlider()));
+    //connect(m_ui->buttonBrowserTemporal, SIGNAL(clicked()), this, SLOT(toggleUseTemporal()));
+    connect(m_ui->actionDump_osg, SIGNAL(triggered()), this, SLOT(debugDumpOsg()));
+    connect(m_ui->actionDump_scene, SIGNAL(triggered()), this, SLOT(slotDumpScene()));
+    connect(m_ui->actionDump_selected_nodes, SIGNAL(triggered()), this, SLOT(slotDumpSelectedNodes()));
+    connect(m_ui->actionAbout, SIGNAL(triggered()), this, SLOT(about()));
+    connect(m_ui->actionOptim_osg, SIGNAL(triggered()), this, SLOT(slotOptimOSG()));
 
     connect(m_ui->toolButton, SIGNAL(clicked()), this, SLOT(slotTemporalAnim()));
 
@@ -160,7 +160,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionCut_CityGML_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutCityGMLwithShapefile()));
 
     connect(m_ui->actionTiling_CityGML, SIGNAL(triggered()), this, SLOT(slotTilingCityGML()));
-    connect(m_ui->actionBuild_Building_AABBs,SIGNAL(triggered()), this, SLOT(slotBuildBuildingAABBs()));
+    connect(m_ui->actionBuild_Building_AABBs, SIGNAL(triggered()), this, SLOT(slotBuildBuildingAABBs()));
     connect(m_ui->actionCut_MNT_with_Shapefile, SIGNAL(triggered()), this, SLOT(slotCutMNTwithShapefile()));
     connect(m_ui->actionCreate_Roads_on_MNT, SIGNAL(triggered()), this, SLOT(slotCreateRoadOnMNT()));
     connect(m_ui->actionCreate_Vegetation_on_MNT, SIGNAL(triggered()), this, SLOT(slotCreateVegetationOnMNT()));
@@ -543,8 +543,8 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         std::cout << "load csv file : " << CSVfilepath.toStdString() << std::endl;
 
 
-        double offsetx=m_app.getSettings().getDataProfile().m_offset.x;
-        double offsety=m_app.getSettings().getDataProfile().m_offset.y;
+        double offsetx = m_app.getSettings().getDataProfile().m_offset.x;
+        double offsety = m_app.getSettings().getDataProfile().m_offset.y;
 
         std::string sourcepath = CSVfilepath.toStdString();
         std::string tilesdirectory = DIRfilepath.toStdString();
@@ -568,109 +568,109 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         std::vector<std::string> v_LOD;
         std::vector<std::string> v_publicationdate;
 
-    // *** CSV Load
+        // *** CSV Load
         std::ifstream file(sourcepath);
         std::string line;
-        std::getline(file,line); //get the first line
-        int cpt = 0 ;
-        float x=0;
-        float y=0;
-        float z=0;
-        while(std::getline(file,line)) // For all lines of csv file
+        std::getline(file, line); //get the first line
+        int cpt = 0;
+        float x = 0;
+        float y = 0;
+        float z = 0;
+        while (std::getline(file, line)) // For all lines of csv file
         {
             std::stringstream  lineStream(line);
             std::string        cell;
-            cpt=0;
-            x=0;
-            y=0;
-            z=0;
-            while(std::getline(lineStream,cell,','))
+            cpt = 0;
+            x = 0;
+            y = 0;
+            z = 0;
+            while (std::getline(lineStream, cell, ','))
             {
-                if (cpt==0)
-                        v_height.push_back(std::stod(cell));
-                if (cpt==1)
-                        v_width.push_back(std::stod(cell));
-                if (cpt==2)
-                        x=std::stod(cell);
+                if (cpt == 0)
+                    v_height.push_back(std::stod(cell));
+                if (cpt == 1)
+                    v_width.push_back(std::stod(cell));
+                if (cpt == 2)
+                    x = std::stod(cell);
 
-                if (cpt==3)
-                        y=std::stod(cell);
+                if (cpt == 3)
+                    y = std::stod(cell);
 
-                if (cpt==4)
-                        z=std::stod(cell);
+                if (cpt == 4)
+                    z = std::stod(cell);
 
-                if (cpt==5)
-                        v_angle.push_back(std::stod(cell));
-                if (cpt==6)
+                if (cpt == 5)
+                    v_angle.push_back(std::stod(cell));
+                if (cpt == 6)
                 {
-                    if(cell=="z")
-                        v_axis.push_back(osg::Vec3(0,0,1));
+                    if (cell == "z")
+                        v_axis.push_back(osg::Vec3(0, 0, 1));
                 }
-                if (cpt==7)
-                        v_filepath.push_back(cell);
+                if (cpt == 7)
+                    v_filepath.push_back(cell);
 
-                if (cpt==8)
-                        v_name.push_back(cell);
+                if (cpt == 8)
+                    v_name.push_back(cell);
 
-                if (cpt==9)
-                        v_filetype.push_back(cell);
+                if (cpt == 9)
+                    v_filetype.push_back(cell);
 
-                if (cpt==10)
-                        v_sourcetype.push_back(cell);
+                if (cpt == 10)
+                    v_sourcetype.push_back(cell);
 
-                if (cpt==11)
+                if (cpt == 11)
                     v_LOD.push_back(cell);
-                if (cpt==12)
+                if (cpt == 12)
                     v_anchoring.push_back(std::stod(cell));
 
-                if(cpt==13)
+                if (cpt == 13)
                     v_priority.push_back(std::stod(cell));
-                if(cpt==14)
+                if (cpt == 14)
                     v_publicationdate.push_back(cell);
 
                 cpt++;
-             }
-            v_position.push_back(osg::Vec3(x,y,z));
+            }
+            v_position.push_back(osg::Vec3(x, y, z));
         }
 
-        for (std::size_t i=0; i<v_filepath.size(); ++i)
+        for (std::size_t i = 0; i < v_filepath.size(); ++i)
         {
-            v_info.push_back(new osgInfo(v_height[i],v_width[i], v_position[i],v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
-                                         v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i],v_publicationdate[i]));
+            v_info.push_back(new osgInfo(v_height[i], v_width[i], v_position[i], v_angle[i], v_axis[i], v_filepath[i], v_name[i], v_filetype[i],
+                v_sourcetype[i], v_LOD[i], v_anchoring[i], v_priority[i], v_publicationdate[i]));
         }
 
 
         std::vector<Ray*> v_ray;
-        int cpt2=0;
+        int cpt2 = 0;
         int id = 0; //Position of current osgInfo in v_info. Will be used as id for raytracing
         bool raytracing = false;
 
         std::vector<std::string> vecTile;
-        bool tilefound ;
+        bool tilefound;
 
         std::vector< std::vector<Ray*> > vecRay;
 
-        for(osgInfo* i : v_info)
+        for (osgInfo* i : v_info)
         {
-            if(i->m_anchoring==0)
+            if (i->m_anchoring == 0)
             {
                 osg::Vec3 pos = i->getPosition();
-                TVec3d ori = TVec3d(pos.x()+offsetx,pos.y()+offsety,pos.z());
-                Ray* tmp_ray = new Ray(ori,TVec3d(0.0,0.0,-1.0), id);
+                TVec3d ori = TVec3d(pos.x() + offsetx, pos.y() + offsety, pos.z());
+                Ray* tmp_ray = new Ray(ori, TVec3d(0.0, 0.0, -1.0), id);
 
-                int tileX = floor((pos.x()+offsetx)/500);
-                int tileY = floor((pos.y()+offsety)/500);
-                std::string tilename = std::to_string(tileX)+"_"+std::to_string(tileY)+".gml";
+                int tileX = floor((pos.x() + offsetx) / 500);
+                int tileY = floor((pos.y() + offsety) / 500);
+                std::string tilename = std::to_string(tileX) + "_" + std::to_string(tileY) + ".gml";
                 tilefound = false;
-                for(std::size_t j=0; j<vecTile.size(); ++j)
+                for (std::size_t j = 0; j < vecTile.size(); ++j)
                 {
-                    if(vecTile[j]==tilename)
+                    if (vecTile[j] == tilename)
                     {
                         vecRay[j].push_back(tmp_ray);
                         tilefound = true;
                     }
                 }
-                if(!tilefound)
+                if (!tilefound)
                 {
                     vecTile.push_back(tilename);
                     std::vector<Ray*> newtile;
@@ -683,16 +683,16 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
             ++id;
         }
 
-        std::cout<<"Anchoring points to update : "<<cpt2<<std::endl;
+        std::cout << "Anchoring points to update : " << cpt2 << std::endl;
 
-        if(raytracing)
+        if (raytracing)
         {
-            for(std::size_t j=0; j<vecTile.size(); ++j)
+            for (std::size_t j = 0; j < vecTile.size(); ++j)
             {
-                std::cout<<"In file : "<<tilesdirectory<<std::endl;
-                std::cout<<"    ... open tile : "<<vecTile[j]<<std::endl;
-                std::string batipath=tilesdirectory+"/_BATI/"+vecTile[j];
-                std::string mntpath=tilesdirectory+"/_MNT/"+vecTile[j];
+                std::cout << "In file : " << tilesdirectory << std::endl;
+                std::cout << "    ... open tile : " << vecTile[j] << std::endl;
+                std::string batipath = tilesdirectory + "/_BATI/" + vecTile[j];
+                std::string mntpath = tilesdirectory + "/_MNT/" + vecTile[j];
 
                 TriangleList* triangles_bati = BuildTriangleList(batipath, citygml::CityObjectsType::COT_Building);
                 TriangleList* triangles_mnt = BuildTriangleList(mntpath, citygml::CityObjectsType::COT_TINRelief);
@@ -705,7 +705,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
 
                 std::vector<Hit*>* v_hit = RayTracing(triangles, vecRay[j]);
 
-                for(Hit* h : *(v_hit))
+                for (Hit* h : *(v_hit))
                 {
                     v_info.at(h->ray.id)->setAnchoringPoint(h->point.z);
                 }
@@ -715,15 +715,15 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         }
 
 
-                std::ofstream ofs;
-        ofs.open (sourcepath, std::ofstream::in | std::ofstream::out);
-        ofs<<"height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate"<<std::endl;
-        for(osgInfo* i : v_info)
+        std::ofstream ofs;
+        ofs.open(sourcepath, std::ofstream::in | std::ofstream::out);
+        ofs << "height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate" << std::endl;
+        for (osgInfo* i : v_info)
         {
-            ofs<<std::to_string(i->m_height)<<","<<std::to_string(i->m_width)<<","<<i->m_initposition.x()<<","<<i->m_initposition.y()<<","<<i->m_initposition.z()
-                                 <<","<<std::to_string(i->m_angle)<<",";
-            ofs<<"z"<<","<<i->m_filepath<<","<<i->m_name<<","<<i->m_filetype<<","<<i->m_sourcetype<<","<<i->m_LOD<<","
-                                <<i->m_anchoring<<","<<i->m_priority<<","<<i->m_publicationDate<<std::endl;
+            ofs << std::to_string(i->m_height) << "," << std::to_string(i->m_width) << "," << i->m_initposition.x() << "," << i->m_initposition.y() << "," << i->m_initposition.z()
+                << "," << std::to_string(i->m_angle) << ",";
+            ofs << "z" << "," << i->m_filepath << "," << i->m_name << "," << i->m_filetype << "," << i->m_sourcetype << "," << i->m_LOD << ","
+                << i->m_anchoring << "," << i->m_priority << "," << i->m_publicationDate << std::endl;
         }
         ofs.close();
 
@@ -735,7 +735,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         vcity::URI uriInfoLayer = m_app.getScene().getDefaultLayer("LayerInfo")->getURI();
         appGui().getControllerGui().addInfo(uriInfoLayer, v_info);
 
-        for (std::size_t i=0; i<v_info.size() ; ++i)
+        for (std::size_t i = 0; i < v_info.size(); ++i)
         {
             v_info[i]->setBillboarding(true);
         }
@@ -743,7 +743,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
         addRecentFile(CSVfilepath);
     }
 
-  return true;
+    return true;
 }
 
 
@@ -786,10 +786,10 @@ void MainWindow::loadDocuments()
     QString lastdir = settings.value("lastdir").toString();
     QStringList CSVfilenames = QFileDialog::getOpenFileNames(this, "Selectionner le fichier CSV", lastdir);
 
-    QString GMLdirectory = QFileDialog::getExistingDirectory(this, tr("Selectionner le dossier Tuiles"),lastdir,QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString GMLdirectory = QFileDialog::getExistingDirectory(this, tr("Selectionner le dossier Tuiles"), lastdir, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     std::cout << "directory : " << GMLdirectory.toStdString() << std::endl;
 
-    if(!GMLdirectory.isNull())
+    if (!GMLdirectory.isNull())
     {
         for (int i = 0; i < CSVfilenames.count(); ++i)
         {
@@ -1232,9 +1232,9 @@ void MainWindow::updateTemporalParams(int value)
 
     //std::cout << "set year : " << date.year() << std::endl;
 
-	QDateTime datetime(date);
-	m_currentDate = datetime;
-    if(m_useTemporal)
+    QDateTime datetime(date);
+    m_currentDate = datetime;
+    if (m_useTemporal)
     {
         m_osgScene->setDate(datetime);
 
@@ -1292,7 +1292,7 @@ void MainWindow::toggleUseTemporal()
     m_ui->dateTimeEdit->setEnabled(m_useTemporal);
     m_ui->toolButton->setEnabled(m_useTemporal);
 
-	//std::cout << "toggle temporal tool" << std::endl;
+    //std::cout << "toggle temporal tool" << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::ChangecheckBoxTemporalToolsState()
@@ -2983,12 +2983,198 @@ void MainWindow::test1()
     std::cout << "Execution time : " << millisecondes / 1000.0 << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
+void ShapefileForage()
+{
+    //Donnees sous sol : convertir fichier excel représentant les forages en shapefile
+    std::string CSVfilepath = "D:/Donnees/Donnees sous sol/SONDAGES_SONDAGES_MODELE_s.csv";
+
+    // *** CSV Load
+    std::ifstream file(CSVfilepath);
+    std::string line;
+    std::getline(file, line); //get the first line
+    int cpt = 0;
+
+    OGRMultiLineString* ListeForages = new OGRMultiLineString;
+
+    while (std::getline(file, line)) // For all lines of csv file
+    {
+        std::stringstream  lineStream(line);
+        std::string        cell;
+        cpt = 0;
+
+        OGRPoint* Point1 = new OGRPoint;
+        OGRPoint* Point2 = new OGRPoint;
+
+        while (std::getline(lineStream, cell, ';'))
+        {
+            //std::cout << cpt << " : " << cell << std::endl;
+
+            if (cpt == 0) //NUM
+            {
+
+            }
+            else if (cpt == 1) //ZMNT
+            {
+
+            }
+            else if (cpt == 2) //Coordonnee_X
+            {
+                Point1->setX(std::stod(cell));
+            }
+            else if (cpt == 3) //Coordonnee_Y
+            {
+                Point1->setY(std::stod(cell));
+            }
+            else if (cpt == 4) //ZSOL
+            {
+                Point1->setZ(std::stod(cell));
+            }
+            else if (cpt == 5) //DEPT
+            {
+
+            }
+            else if (cpt == 6) //MODL
+            {
+
+            }
+            else if (cpt == 7) //TRAV
+            {
+
+            }
+            else if (cpt == 8) //COMMENT
+            {
+
+            }
+            else if (cpt == 9) //XXXX
+            {
+                Point2->setX(std::stod(cell));
+            }
+            else if (cpt == 10) //YYYY
+            {
+                Point2->setY(std::stod(cell));
+            }
+            else if (cpt == 11) //ZZZZ
+            {
+                Point2->setZ(std::stod(cell));
+            }
+
+            cpt++;
+        }
+
+        OGRLineString* Forage = new OGRLineString;
+        Forage->addPoint(Point1);
+        Forage->addPoint(Point2);
+
+        delete Point1;
+        delete Point2;
+
+        ListeForages->addGeometryDirectly(Forage);
+    }
+
+    SaveGeometrytoShape("ListeForages.shp", ListeForages);
+    delete ListeForages;
+}
+void CityGMLForage()
+{
+    OGRDataSource* poDS = OGRSFDriverRegistrar::Open("D:/Donnees/Donnees sous sol/ListeForages.shp", FALSE);
+    citygml::CityModel* ModelOut = new citygml::CityModel;
+
+    OGRLayer *poLayer;
+    int nbLayers = poDS->GetLayerCount();
+    if (nbLayers > 0)
+    {
+        poLayer = poDS->GetLayer(0);
+
+        OGRFeature *poFeature;
+        poLayer->ResetReading();
+
+        int cpt = 0;
+
+        while ((poFeature = poLayer->GetNextFeature()) != NULL)
+        {
+            OGRLineString* Forage = (OGRLineString*)poFeature->GetGeometryRef();
+
+            TVec3d P1H(Forage->getX(0) - 0.5, Forage->getY(0) + 0.5, Forage->getZ(0)); //Premier point en Haut
+            TVec3d P2H(Forage->getX(0) + 0.5, Forage->getY(0) + 0.5, Forage->getZ(0));
+            TVec3d P3H(Forage->getX(0) + 0.5, Forage->getY(0) - 0.5, Forage->getZ(0));
+            TVec3d P4H(Forage->getX(0) - 0.5, Forage->getY(0) - 0.5, Forage->getZ(0));
+
+            TVec3d P1B(Forage->getX(1) - 0.5, Forage->getY(1) + 0.5, Forage->getZ(1)); //Premier point en Bas
+            TVec3d P2B(Forage->getX(1) + 0.5, Forage->getY(1) + 0.5, Forage->getZ(1));
+            TVec3d P3B(Forage->getX(1) + 0.5, Forage->getY(1) - 0.5, Forage->getZ(1));
+            TVec3d P4B(Forage->getX(1) - 0.5, Forage->getY(1) - 0.5, Forage->getZ(1));
+
+            std::string Name = "Forage_" + std::to_string(cpt);
+            citygml::CityObject* BuildingCO = new citygml::Building(Name);
+            citygml::CityObject* WallCO = new citygml::WallSurface(Name + "_Wall");
+            citygml::Geometry* Wall = new citygml::Geometry(Name + "_WallGeometry", citygml::GT_Wall, 2);
+
+            citygml::Polygon * Poly1 = new citygml::Polygon(Name + "_Poly1");
+            citygml::LinearRing * Ring1 = new citygml::LinearRing(Name + "_Ring1", true);
+            citygml::Polygon * Poly2 = new citygml::Polygon(Name + "_Poly2");
+            citygml::LinearRing * Ring2 = new citygml::LinearRing(Name + "_Ring2", true);
+            citygml::Polygon * Poly3 = new citygml::Polygon(Name + "_Poly3");
+            citygml::LinearRing * Ring3 = new citygml::LinearRing(Name + "_Ring3", true);
+            citygml::Polygon * Poly4 = new citygml::Polygon(Name + "_Poly4");
+            citygml::LinearRing * Ring4 = new citygml::LinearRing(Name + "_Ring4", true);
+
+            Ring1->addVertex(P1H);
+            Ring1->addVertex(P2H);
+            Ring1->addVertex(P2B);
+            Ring1->addVertex(P1B);
+            Poly1->addRing(Ring1);
+            Wall->addPolygon(Poly1);
+
+            Ring2->addVertex(P2H);
+            Ring2->addVertex(P3H);
+            Ring2->addVertex(P3B);
+            Ring2->addVertex(P2B);
+            Poly2->addRing(Ring2);
+            Wall->addPolygon(Poly2);
+
+            Ring3->addVertex(P3H);
+            Ring3->addVertex(P4H);
+            Ring3->addVertex(P4B);
+            Ring3->addVertex(P3B);
+            Poly3->addRing(Ring3);
+            Wall->addPolygon(Poly3);
+
+            Ring4->addVertex(P4H);
+            Ring4->addVertex(P1H);
+            Ring4->addVertex(P1B);
+            Ring4->addVertex(P4B);
+            Poly4->addRing(Ring4);
+            Wall->addPolygon(Poly4);
+
+            WallCO->addGeometry(Wall);
+            ModelOut->addCityObject(WallCO);
+            BuildingCO->insertNode(WallCO);
+            ModelOut->addCityObject(BuildingCO);
+            ModelOut->addCityObjectAsRoot(BuildingCO);
+
+            ++cpt;
+        }
+    }
+
+    ModelOut->computeEnvelope();
+    citygml::ExporterCityGML exporter("D:/Donnees/Donnees sous sol/ListeForages.gml");
+
+    exporter.exportCityModel(*ModelOut);
+
+    std::cout << "ListeForage.gml a ete cree." << std::endl;
+
+    delete ModelOut;
+}
 void MainWindow::test2()
 {
+    //ShapefileForage();
+    CityGMLForage();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test3()
 {
+    OGRPolygon* Test = new OGRPolygon;
+    delete Test;
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::test4()
