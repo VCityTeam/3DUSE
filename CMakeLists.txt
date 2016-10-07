@@ -347,7 +347,11 @@ if( BUILD_PCL )
   # order to simplify the context of PCL failing dependency (when find_package
   # fails on PCL because of a missing suv-dependency the error message is 
   # really sketchy and hard to interpret):
-  find_package( boost COMPONENTS system filesystem thread date_time iostreams serialization chrono)
+  if( APPLE )
+    find_package( boost COMPONENTS system filesystem thread date_time iostreams serialization chrono REQUIRED)
+  else()
+    find_package( Boost COMPONENTS system filesystem thread date_time iostreams serialization chrono)
+  endif()
   if( NOT Boost_FOUND )
     message(FATAL_ERROR "PCL requires Boost which cannot be found.")
   endif ()
