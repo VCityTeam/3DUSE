@@ -410,11 +410,11 @@ namespace FloodAR
             if (!tileDir.exists("Appearance"))
                 tileDir.mkdir("Appearance");
 
-            QFileInfo file(filename.c_str());
+            QFileInfo file2(filename.c_str());
             std::string outputname = tileDir.path().toStdString() + "/Appearance/" + tilenumber + "_MNT.jpg";
-            QImageReader reader(file.absoluteFilePath());
-            reader.setClipRect(QRect(x, y, width, height));
-            QImage croppedImage = reader.read();
+            QImageReader reader2(file2.absoluteFilePath());
+            reader2.setClipRect(QRect(x, y, width, height));
+            QImage croppedImage = reader2.read();
             croppedImage.save(QString(outputname.c_str()), "JPG", -1);
             //tile is finished, set xy for next tile
             if ((x + width) < origWidth)

@@ -279,13 +279,13 @@ void doBuildBuildingAABBs(std::string filepath)
     citygml::CityModel *city = tile->getCityModel();
 
     //Size of Building Parts AABB
-    int AABBsize = 0;
+    size_t AABBsize = 0;
 
     //Create and open files
     std::ofstream ofs_B_AABB; // Building AABB
     std::ofstream ofs_BP_AABB; // Building Parts AABB
 
-    int extensionPos = filepath.find(".gml");
+    size_t extensionPos = filepath.find(".gml");
     std::string filename_B_AABB = filepath.substr(0, extensionPos) + "_Building_AABB.dat";
     std::string filename_BP_AABB = filepath.substr(0, extensionPos) + "_BuildingParts_AABB.dat";
 

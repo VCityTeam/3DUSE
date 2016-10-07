@@ -740,11 +740,11 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
             OGRMultiPolygon* ResMultiPoly = new OGRMultiPolygon;
             for (int j = 0; j < GC_Inter->getNumGeometries(); ++j)
             {
-                OGRPolygon* PolyInter = dynamic_cast<OGRPolygon*>(GC_Inter->getGeometryRef(j));
-                if (PolyInter != nullptr)
+                OGRPolygon* PolyInter2 = dynamic_cast<OGRPolygon*>(GC_Inter->getGeometryRef(j));
+                if (PolyInter2 != nullptr)
                 {
                     OGRPolygon* ResPoly = new OGRPolygon;
-                    OGRLinearRing* InterExtRing = PolyInter->getExteriorRing();
+                    OGRLinearRing* InterExtRing = PolyInter2->getExteriorRing();
                     OGRLinearRing* ResExtRing = new OGRLinearRing;
 
                     std::vector<TVec2f> uvPolyInter;
@@ -778,11 +778,11 @@ OGRGeometry * CutPolyGMLwithShape(OGRPolygon* GMLPoly, OGRPolygon* BuildingShp, 
 
                     ResPoly->addRingDirectly(ResExtRing);
 
-                    for (int r = 0; r < PolyInter->getNumInteriorRings(); ++r)
+                    for (int r = 0; r < PolyInter2->getNumInteriorRings(); ++r)
                     {
                         //std::cout << "INTERIOR RING2" << std::endl;
 
-                        OGRLinearRing* InterIntRing = PolyInter->getInteriorRing(r);
+                        OGRLinearRing* InterIntRing = PolyInter2->getInteriorRing(r);
                         OGRLinearRing* ResIntRing = new OGRLinearRing;
 
                         for (int i = 0; i < InterIntRing->getNumPoints(); ++i)

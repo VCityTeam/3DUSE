@@ -183,14 +183,14 @@ namespace citygml
 		std::vector<citygml::LinearRing*>::const_iterator it = lrings.begin();
 		for(; it != lrings.end(); ++it)
 		{
-			xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:interior", NULL);
-			exportLinearRingXml(**it, node);
+			xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "gml:interior", NULL);
+			exportLinearRingXml(**it, node2);
 		}
 
 		if(poly.getExteriorRing())
 		{
-			xmlNodePtr node = xmlNewChild(res, NULL, BAD_CAST "gml:exterior", NULL);
-			exportLinearRingXml(*poly.getExteriorRing(), node);
+			xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST "gml:exterior", NULL);
+			exportLinearRingXml(*poly.getExteriorRing(), node2);
 		}
 
 		return res;
@@ -493,7 +493,7 @@ namespace citygml
 			m_currentAppearence = xmlNewChild(res, NULL, BAD_CAST "app:appearance", NULL);
 		}*/
 
-		xmlNodePtr node;
+		xmlNodePtr node = nullptr;
 		if(res && obj.getGeometries().size() > 0) //// !! ATTENTION !! : Ne fonctionne que si toutes les geometries ont le meme LOD. A modifier pour la gestion des differents Lods.
 		{
 			switch(obj.getType())
@@ -699,10 +699,10 @@ namespace citygml
 		// do objects
 		for(const CityObject* obj : objs)
 		{
-			//xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
-			xmlNodePtr node = xmlNewChild(root, NULL, BAD_CAST "cityObjectMember", NULL);
+			//xmlNodePtr node2 = xmlNewChild(root, NULL, BAD_CAST "core:cityObjectMember", NULL);
+			xmlNodePtr node2 = xmlNewChild(root, NULL, BAD_CAST "cityObjectMember", NULL);
 
-			exportCityObjetXml(*obj, node, true);
+			exportCityObjetXml(*obj, node2, true);
 		}
 
 		return root;

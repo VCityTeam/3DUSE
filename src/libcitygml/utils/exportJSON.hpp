@@ -50,7 +50,7 @@ private:
     void exportFeature(CityObject& obj, CityObjectsType type);
     int getNbFeature(CityModel& model, CityObjectsType type) const;
     int getNbFaces(CityObject& obj, CityObjectsType type) const;
-    int getNbTris(CityObject& obj) const;
+    size_t getNbTris(CityObject& obj) const;
 
     // helper function for indent
     void openScope();
