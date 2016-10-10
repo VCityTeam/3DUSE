@@ -33,6 +33,9 @@ void TiledFiles::BuildListofLayers()
         if (LayerFolder.filePath().endsWith("ShpExtruded") || LayerFolder.filePath().endsWith("SkylineOutput")) //For visibility plugin
             continue;
 
+        if (LayerFolder.filePath().endsWith("tmp")) //For FloodAR plugin
+            continue;
+
         QDir QDirLayerFolder(LayerFolder.filePath());
 
         TiledLayer L;
