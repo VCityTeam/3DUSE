@@ -83,9 +83,10 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/pcl; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.7.2; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.7.2/share; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.8.*; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.8.*/share; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
     # PCL config files looks for the Boost package (whith a capital B) which
     # will fail starting with cmake version 3.5 (previous version seem not
     # be case dependent on the find_package argument) with a message of the
