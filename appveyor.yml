@@ -14,8 +14,8 @@ os: Visual Studio 2015
 # environment variables
 environment:
   QT5_DIR: C:\Qt\5.6\msvc2015_64
-  KIT_ROOT: C:\local_vs2015_64
   BOOST_ROOT: C:\Libraries\boost_1_59_0
+  KIT_ROOT: C:\local_vs2015_64
 #
   matrix:
   - B_USE_QT5:  OFF  # so we use Qt4 here for UI
@@ -23,25 +23,23 @@ environment:
 
 # this is how to allow failing jobs in the matrix
 matrix:
-  fast_finish: true # set this flag to immediately finish build once one of the jobs fails
+  fast_finish: true # Immediately finish build once one of the jobs fails
 #  allow_failures:
 
-# build cache to preserve files/folders between builds
 #cache:
-# - %KIT_ROOT% # don't work !?
-#  - C:\local_vs2015_64 # cached folder size cannot exceed 500 MB, so OFF for the moment...
+# Preserving files/folders accross builds currently limited to 
+# 500Mb which is not enough for all the dependencies...
 
 # scripts that are called at very beginning, before repo cloning
 init:
-#  - set
-#  - msbuild /version
-#  - cmake --version
-#  - dir C:\Libraries
-#  - dir C:\Libraries\boost_1_59_0
-#  - dir C:\Qt
-#  - dir C:\Qt\5.6
   - set APPVEYOR=TRUE
   - set CACHE=FALSE
+  # Debug section
+  #  - msbuild /version
+  #  - cmake --version
+  #  - dir C:\Libraries
+  - dir C:\Libraries\boost_1_59_0
+  #  - dir C:\Qt\5.6
 
 #---------------------------------#
 #       build configuration       #
@@ -57,45 +55,46 @@ configuration:
 
 # scripts to run before build
 before_build:
-# Get rid of pesky Xamarin build messages, refer to
-# http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
+  # Get rid of pesky Xamarin build messages, refer to
+  # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
-  - IF EXIST %KIT_ROOT% SET CACHE=TRUE
-#
-  - echo %CACHE%
-  - IF %CACHE%==FALSE echo CACHE_IS_FALSE
-  - IF %CACHE%==TRUE echo CACHE_IS_TRUE
-#
-  - IF %CACHE%==FALSE mkdir %KIT_ROOT%
-  - IF %CACHE%==FALSE cd %KIT_ROOT%
-### Install VCITY dependencies:
-# Qt4
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
-  - IF %CACHE%==FALSE 7z x qt-4.8.7-x64-msvc2015.7z > nul
-# OSG
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/osg-3.4.0.7z
-  - IF %CACHE%==FALSE 7z x osg-3.4.0.7z > nul
-# assimp
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/assimp-3.2.rar
-  - IF %CACHE%==FALSE 7z x assimp-3.2.rar > nul
-# gdal
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal.rar
-  - IF %CACHE%==FALSE 7z x gdal.rar > nul
-# laslib
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/laslib.rar
-  - IF %CACHE%==FALSE 7z x laslib.rar > nul
-# libxml
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
-  - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
-### PCL and its sub-dependencies
-# Boost:
+  #
+  - mkdir %KIT_ROOT%
+  - cd %KIT_ROOT%
+  #
+  ### Install VCITY dependencies:
+  # Note: many libraries come pre-installed by Appveyor. Refer to
+  #   https://www.appveyor.com/docs/installed-software/ for a list.
+  #   VCity currently uses: 
+  #    * QT5:   C:\Qt\5.6\msvc2015_64
+  #    * Boost: C:\Libraries\boost_1_59_0
+  ### Qt4
+  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
+  - 7z x qt-4.8.7-x64-msvc2015.7z > nul
+  ### OSG
+  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/osg-3.4.0.7z
+  - 7z x osg-3.4.0.7z > nul
+  ### Assimp
+  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/assimp-3.2.rar
+  - 7z x assimp-3.2.rar > nul
+  #### gdal
+  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal.rar
+  - 7z x gdal.rar > nul
+  ### Laslib
+  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/laslib.rar
+  - 7z x laslib.rar > nul
+  ### Libxml2
+  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
+  - 7z x libxml2-2.9.3.rar > nul
+  ### PCL and its sub-dependencies
+  ### Boost: kludgy renaming of appveyor provided version
   - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
-# eigen
-  - IF %CACHE%==FALSE curl --connect-timeout 60 --max-time 600 -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
-  - IF %CACHE%==FALSE 7z x eigen-3.2.8.rar > nul
-# PCL, flann, qhull
-  - IF %CACHE%==FALSE curl --connect-timeout 60 --max-time 600 -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
-  - IF %CACHE%==FALSE 7z x PCL-1.7.2.7z > nul
+  ### eigen
+  - curl --connect-timeout 60 --max-time 600 -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
+  - 7z x eigen-3.2.8.rar > nul
+  ### PCL, flann, qhull
+  - curl --connect-timeout 60 --max-time 600 -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
+  - 7z x PCL-1.7.2.7z > nul
 #
 #
   - cd %APPVEYOR_BUILD_FOLDER%
