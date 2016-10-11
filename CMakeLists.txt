@@ -12,7 +12,7 @@ if( BUILD_GUI_QT4 AND BUILD_GUI_QT5 )
   # In case of simultaneous demand, and since Qt4 is ON by default, asking
   # for Qt5 simply means that the builder didn't turn Qt4 OFF after requiring
   # for Qt5 to be ON. Hence, as an historical convenience (refer to Appveyor 
-  # scripts), when both Qt4 and Qt5 are one, Qt5 has preference overs Qt4:
+  # scripts), when both Qt4 and Qt5 are on, Qt5 has preference overs Qt4:
   set( BUILD_GUI_QT4 OFF  CACHE BOOL
       "Build the Graphical User Interface with QT4."
       FORCE)
@@ -193,6 +193,7 @@ if( BUILD_GUI_QT4 )
   if (QTDIR)
     set( ENV{QTDIR} ${QTDIR} )
   endif()
+    message(WARNING "DEBUG QTDIR: " ${QTDIR})
   set( QT_USE_QTMAIN   TRUE )
   set( QT_USE_QTXML    TRUE )
   set( QT_USE_QTOPENGL TRUE )
@@ -350,7 +351,7 @@ if( BUILD_PCL )
   if( APPLE )
     find_package( boost COMPONENTS system filesystem thread date_time iostreams serialization chrono REQUIRED)
   else()
-    message(WARNING "  PCL; BOOST_ROOT :" ${BOOST_ROOT})
+    message(WARNING "  DEBUG PCL; BOOST_ROOT :" ${BOOST_ROOT})
     find_package( Boost COMPONENTS system filesystem thread date_time iostreams serialization chrono)
   endif()
   if( NOT Boost_FOUND )
