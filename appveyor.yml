@@ -35,15 +35,7 @@ matrix:
 # scripts that are called at very beginning, before repo cloning
 init:
   - set APPVEYOR=TRUE
-  # FIXME: remove the following line
-  - set CACHE=FALSE
-  # Debug section
-  #  - msbuild /version
-  #  - cmake --version
-  #  - dir C:\Libraries
-  # FIXME: remove the following line
-  - dir C:\Libraries\boost_1_59_0
-  #  - dir C:\Qt\5.6
+  - cmake --version
 
 #---------------------------------#
 #       build configuration       #
