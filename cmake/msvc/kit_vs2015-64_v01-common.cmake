@@ -29,5 +29,4 @@ set(OSG_DIR             ${VCITY_KIT_ROOT}/osg/OpenSceneGraph-3.4.0)
 
 ###### PCL and its sub-dependencies
 set(PCL_DIR             ${VCITY_KIT_ROOT}/PCL/pcl-1.7.2/cmake)
-set(BOOST_ROOT          ${VCITY_KIT_ROOT}/boost_1_59_0)
 set(EIGEN3_INCLUDE_DIR  ${VCITY_KIT_ROOT}/eigen-3.2.8)

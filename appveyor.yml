@@ -13,12 +13,14 @@ os: Visual Studio 2015
 
 # environment variables
 environment:
+  # FIXME: move the following variable definitions in the pre_build section
+  #        where they are (only) used
   QT5_DIR: C:\Qt\5.6\msvc2015_64
   BOOST_ROOT: C:\Libraries\boost_1_59_0
   KIT_ROOT: C:\local_vs2015_64
 #
   matrix:
-  - B_USE_QT5:  OFF  # so we use Qt4 here for UI
+  - B_USE_QT5:  OFF  # Qt4 gets defaulted with a cmake trick/kludge
   - B_USE_QT5:  ON
 
 # this is how to allow failing jobs in the matrix
@@ -33,11 +35,13 @@ matrix:
 # scripts that are called at very beginning, before repo cloning
 init:
   - set APPVEYOR=TRUE
+  # FIXME: remove the following line
   - set CACHE=FALSE
   # Debug section
   #  - msbuild /version
   #  - cmake --version
   #  - dir C:\Libraries
+  # FIXME: remove the following line
   - dir C:\Libraries\boost_1_59_0
   #  - dir C:\Qt\5.6
 
@@ -62,7 +66,7 @@ before_build:
   - mkdir %KIT_ROOT%
   - cd %KIT_ROOT%
   #
-  ### Install VCITY dependencies:
+  ##### Install VCITY dependencies:
   # Note: many libraries come pre-installed by Appveyor. Refer to
   #   https://www.appveyor.com/docs/installed-software/ for a list.
   #   VCity currently uses: 
@@ -96,7 +100,7 @@ before_build:
   - curl --connect-timeout 60 --max-time 600 -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
   - 7z x PCL-1.7.2.7z > nul
 #
-#
+##### Eventually we can configure the building (with cmake):
   - cd %APPVEYOR_BUILD_FOLDER%
 # If someday we use the binary kit of 2012 again, then the pertinent option
 # concerning OSG-QT will be -DBUILD_EMBARKED_OSG-QT_32=ON (i.e. 32 instead of 34).
