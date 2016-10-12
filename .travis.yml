@@ -81,11 +81,8 @@ install:
     # refer to issue #121. [osx_image: beta-xcode6.1]
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/pcl; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.8.*; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.8.*/share; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -altr /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/; fi
+    # DEBUG
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -al /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
     # PCL config files looks for the Boost package (whith a capital B) which
     # will fail starting with cmake version 3.5 (previous version seem not

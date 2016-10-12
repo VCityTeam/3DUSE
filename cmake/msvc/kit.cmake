@@ -1,5 +1,5 @@
 if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "19")
-  message("-- VCITY windows binary kit version:: VS2015")
+  message( "-- VCITY windows binary kit version:: VS2015")
   include("${CMAKE_SOURCE_DIR}/cmake/msvc/kit_vs2015-64_v01-common.cmake")
   if( DEFINED ENV{APPVEYOR} )
     message("   Loading AppVeyor specific variables for VS2015 KIT")

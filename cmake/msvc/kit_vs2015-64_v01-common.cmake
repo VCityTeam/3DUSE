@@ -8,10 +8,14 @@ if( NOT DEFINED VCITY_KIT_ROOT )
 endif()
 
 if( BUILD_GUI_QT4 )
+  # Note: QTDIR seems to be a FindQT4.cmake module variable name
+  #   which value is added to the path list where qmake is searched
+  #   for. This should thus be seen as the equivalen of QT5_DIR for
+  #   QT5...
   set(QTDIR             ${VCITY_KIT_ROOT}/Qt/qt-4.8.7-x64-msvc2015)
 endif()
 
-### BUILD_GUI_QT5 as a specific treatment
+### BUILD_GUI_QT5 has a desktop/appveyor specific treatment
 
 set(ASSIMP_ROOT_DIR     ${VCITY_KIT_ROOT}/assimp-3.2)
 

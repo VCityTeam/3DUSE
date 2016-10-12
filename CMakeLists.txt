@@ -9,10 +9,15 @@ option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" ON )
 option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" OFF )
 
 if( BUILD_GUI_QT4 AND BUILD_GUI_QT5 )
-  # In case of simultaneous demand, and since Qt4 is ON by default, asking
-  # for Qt5 simply means that the builder didn't turn Qt4 OFF after requiring
-  # for Qt5 to be ON. Hence, as an historical convenience (refer to Appveyor 
-  # scripts), when both Qt4 and Qt5 are one, Qt5 has preference overs Qt4:
+  # The following preference of QT5 over QT4 (in case of an awkward simultaneous
+  # demand) is an historical convenience introduced for the Appveyor (builder)
+  # script. Indeed since QT4 is ON by default, asking for QT5 support simply
+  # means that the appveyor builder didn't turn QT4 OFF after requiring
+  # for Qt5 to be ON.
+  # FIXME: fix the Appveyor script (refer to the "matrix" definition that should
+  # be expressed symmetrically in terms of QT4 and QT5 supports), and convert the
+  # following overwriting rule into an error message (we should never be asking
+  # for a simultaneous support of QT4 and QT5)...
   set( BUILD_GUI_QT4 OFF  CACHE BOOL
       "Build the Graphical User Interface with QT4."
       FORCE)
@@ -350,7 +355,6 @@ if( BUILD_PCL )
   if( APPLE )
     find_package( boost COMPONENTS system filesystem thread date_time iostreams serialization chrono REQUIRED)
   else()
-    message(WARNING "  PCL; BOOST_ROOT :" ${BOOST_ROOT})
     find_package( Boost COMPONENTS system filesystem thread date_time iostreams serialization chrono)
   endif()
   if( NOT Boost_FOUND )
