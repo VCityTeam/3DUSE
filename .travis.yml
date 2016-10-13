@@ -87,13 +87,23 @@ install:
     # PCL related install: 
     # The following sub-dependencies are manually installed (instead of
     # letting them be pulled indirectly by pcl) just to make sub-dependencies
-    # more explicit;
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost; fi
+    # more explicit.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qhull; fi
+    # The following install of boost triggers a re-install that ends up
+    # considered as an error by Travis. We could use some Travis tricks
+    # like using
+    #    brew outdated <package-name> || brew upgrade <package-name>
+    # which is documented here 
+    #   https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages 
+    # but we shall just skip it for the time being.
+    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost; fi
+    #
     # Pcl itself takes a long time to be poured (more than Travis's 10' 
     # default cut off): 
+    # FIXME: consider adding the --without-apps --without-tools brew install
+    # option in order to save building time of pcl...
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60 brew install homebrew/science/pcl --without-vtk; fi
     # DEBUG
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -al /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/; fi
@@ -109,7 +119,8 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
   #
   ###### Linux depedency installation
-    # We only install what Travis doesn't already installs by default for linux.
+    # We are here only concerned with dependencies that were not already
+    # installed in above section addons:apt:packages.
     ### Point Cloud Library (not be confused with another library carrying
     # package under the same "pcl" name):
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd /tmp; wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz; fi

@@ -28,6 +28,8 @@ option( BUILD_EMBARKED_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
 
 option( BUILD_DOCUMENTATION  "Build the documentation." OFF )
 
+option( BUILD_TESTING        "Build the regression test suite." ON )
+
 option( BUILD_PCL            "Point Cloud Library support toggle." OFF )
 
 # Some syntactic convenience for CI scripts shortening:
@@ -57,7 +59,9 @@ else()
 endif()
 
 
-enable_testing()
+if( BUILD_TESTING )
+  enable_testing()
+endif()
 
 # Project configuration
 set(PRJ_NAME 3DUSE)
@@ -353,21 +357,32 @@ if( BUILD_PCL )
   # fails on PCL because of a missing suv-dependency the error message is 
   # really sketchy and hard to interpret):
   if( APPLE )
-    find_package( boost COMPONENTS system filesystem thread date_time iostreams serialization chrono REQUIRED)
+    # Context: cmake 3.6.x, boost 1.60
+    # Strangely enough boost if only found with a small caps leading b
+    # (that is trying to find_package on Boost wil fail)...
+    find_package( boost COMPONENTS
+      system filesystem thread date_time
+      iostreams serialization chrono 
+      REQUIRED
+    )
   else()
-    find_package( Boost COMPONENTS system filesystem thread date_time iostreams serialization chrono)
+    find_package( Boost COMPONENTS
+      system filesystem thread date_time iostreams serialization chrono)
+    if( NOT Boost_FOUND )
+      message(WARNING "PCL requires Boost which cannot be found.")
+    endif ()
   endif()
-  if( NOT Boost_FOUND )
-    message(WARNING "PCL requires Boost which cannot be found.")
-  endif ()
   find_package(PCL 1.3 REQUIRED COMPONENTS common io)
-  # FIXME: deport the following to where it is used
-  # FIXME include_directories( ${PCL_INCLUDE_DIRS} )
-  # FIXME add_definitions( ${PCL_DEFINITIONS} )
-  # FIXME add_definitions( -DFEVV_USE_PCL )
   if ( NOT PCL_FOUND )
     message ( "Couldn't find package PCL (Point Could Library).")
     message ( "Try building with PCL support disabled (set BUILD_PCL off).")
+  else ()
+    if( APPLE )
+      # Context: cmake 3.6.x, PCL 1.8, boost 1.60
+      # For some odd reason some pcl libraries do not come linked against
+      # some of its boost dependencies. Hence ce following syntactic sugar...
+      set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
+    endif()
   endif ()
 endif ()
 
