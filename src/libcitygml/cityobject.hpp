@@ -94,7 +94,7 @@ public:
     virtual TVec4f getDefaultColor( void ) const = 0;
 
     // Get the number of geometries contains in the object
-    unsigned int size( void ) const;
+    size_t size( void ) const;
 
     // Access the geometries
     const Geometry* getGeometry( unsigned int i ) const;
@@ -103,7 +103,7 @@ public:
     const std::vector< Geometry* >& getGeometries() const;
 
     // Access the children
-    unsigned int getChildCount( void ) const;
+    size_t getChildCount( void ) const;
 
     const CityObject* getChild( unsigned int i ) const;
 

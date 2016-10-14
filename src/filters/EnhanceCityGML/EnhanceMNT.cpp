@@ -561,6 +561,9 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
     {
         OGRGeometry* Geometry = Feature->GetGeometryRef();
 
+        if (Geometry == nullptr)
+            continue;
+
         if (Geometry->getGeometryType() == wkbPolygon || Geometry->getGeometryType() == wkbPolygon25D)
             MP->addGeometry(Geometry);
         else if (Geometry->getGeometryType() == wkbMultiPolygon || Geometry->getGeometryType() == wkbMultiPolygon25D)
@@ -617,6 +620,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
                     std::vector<TVec2f> TexUV = PolygonCityGML->getTexCoords();
 
                     OGRLinearRing * OgrRing = new OGRLinearRing;
+
                     for (TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
                         OgrRing->addPoint(Point.x, Point.y, Point.z);
 
@@ -654,6 +658,7 @@ void CreateVegetationOnMNT(vcity::Tile* MNT, OGRDataSource* Vegetation, citygml:
                     {
                         OGRPolygon * OgrPoly = new OGRPolygon;
                         OgrPoly->addRingDirectly(OgrRing);
+
                         if (!OgrPoly->IsValid())
                             continue;
                         if (OgrPoly->Intersects(VegetationPolygons))

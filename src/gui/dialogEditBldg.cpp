@@ -49,7 +49,7 @@ void DialogEditBldg::edit(const vcity::URI& uri)
     {
         //diag.setName(m_tree->currentItem()->text(0));
 
-        osg::ref_ptr<osg::Node> node = appGui().getOsgScene()->getNode(uri);
+        node = appGui().getOsgScene()->getNode(uri);
 
         if (node && node->asGeode())
         {
