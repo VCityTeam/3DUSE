@@ -109,7 +109,7 @@ void ExporterOBJ::exportCityObject(const CityObject& obj, citygml::CityObjectsTy
 {
     if(filter == COT_All || obj.getType() == filter)
     {
-        int& offset = m_filterOffsets[filter];
+        size_t& offset = m_filterOffsets[filter];
         for(citygml::Geometry* geom : obj.getGeometries())
         {
             for(citygml::Polygon* poly : geom->getPolygons())
