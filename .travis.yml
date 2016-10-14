@@ -88,9 +88,9 @@ install:
     # The following sub-dependencies are manually installed (instead of
     # letting them be pulled indirectly by pcl) just to make sub-dependencies
     # more explicit.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install flann; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/flann; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qhull; fi
     # The following install of boost triggers a re-install that ends up
     # considered as an error by Travis. We could use some Travis tricks
     # like using
