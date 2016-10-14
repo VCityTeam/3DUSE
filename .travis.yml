@@ -106,7 +106,6 @@ install:
     # option in order to save building time of pcl...
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60 brew install homebrew/science/pcl --without-vtk; fi
     # DEBUG
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ls -al /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
     # PCL config files looks for the Boost package (whith a capital B) which
     # will fail starting with cmake version 3.5 (previous version seem not
@@ -115,8 +114,7 @@ install:
     #    CMake Error at /usr/local/share/pcl-1.7/PCLConfig.cmake:45 (message):
     #      common is required but boost was not found
     # Hence the following kludgy fix
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost 1.40.0/find_package(boost 1.40.0/\nwq\n" | ed /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.7.2/share/pcl-1.7/PCLConfig.cmake; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
   #
   ###### Linux depedency installation
     # We are here only concerned with dependencies that were not already
