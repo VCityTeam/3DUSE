@@ -359,12 +359,15 @@ if( BUILD_PCL )
   if( APPLE )
     # Context: cmake 3.6.x, boost 1.60
     # Strangely enough boost if only found with a small caps leading b
-    # (that is trying to find_package on Boost wil fail)...
+    # (that is trying to find_package on Boost will fail)...
     find_package( boost COMPONENTS
-      system filesystem thread date_time
-      iostreams serialization chrono 
+      system filesystem thread date_time iostreams serialization chrono 
       REQUIRED
     )
+  elseif( WIN32 )
+       add_definitions( -DBOOST_LIB_DIAGNOSTIC )
+       # add_definitions( -DBOOST_ALL_DYN_LINK )
+       # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9
   else()
     find_package( Boost COMPONENTS
       system filesystem thread date_time iostreams serialization chrono)
@@ -372,6 +375,7 @@ if( BUILD_PCL )
       message(WARNING "PCL requires Boost which cannot be found.")
     endif ()
   endif()
+
   find_package(PCL 1.3 REQUIRED COMPONENTS common io)
   if ( NOT PCL_FOUND )
     message ( "Couldn't find package PCL (Point Could Library).")
@@ -380,7 +384,7 @@ if( BUILD_PCL )
     if( APPLE )
       # Context: cmake 3.6.x, PCL 1.8, boost 1.60
       # For some odd reason some pcl libraries do not come linked against
-      # some of its boost dependencies. Hence ce following syntactic sugar...
+      # some of its boost dependencies. Hence ce following "syntactic sugar"...
       set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
     endif()
   endif ()
