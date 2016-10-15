@@ -365,8 +365,8 @@ if( BUILD_PCL )
       REQUIRED
     )
   elseif( WIN32 )
-       add_definitions( -DBOOST_LIB_DIAGNOSTIC )
-       # add_definitions( -DBOOST_ALL_DYN_LINK )
+       add_definitions( -DBOOST_ALL_DYN_LINK )
+       # add_definitions( -DBOOST_LIB_DIAGNOSTIC )
        # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9
   else()
     find_package( Boost COMPONENTS
