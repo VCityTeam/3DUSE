@@ -351,6 +351,7 @@ endif(OPENTHREADS_FOUND)
 
 # Find PCL dependency
 if( BUILD_PCL )
+  ##### PCL module dectection:
   # Assert manually that the PCL dependencies are satisfied (refer to
   # PCLConfig.cmake for the explicit list of required boot components) in
   # order to simplify the context of PCL failing dependency (when find_package
@@ -364,11 +365,7 @@ if( BUILD_PCL )
       system filesystem thread date_time iostreams serialization chrono 
       REQUIRED
     )
-  elseif( WIN32 )
-       add_definitions( -DBOOST_ALL_DYN_LINK )
-       # add_definitions( -DBOOST_LIB_DIAGNOSTIC )
-       # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9
-  else()
+  else()   # Linux and MSVC (mind you)
     find_package( Boost COMPONENTS
       system filesystem thread date_time iostreams serialization chrono)
     if( NOT Boost_FOUND )
@@ -378,16 +375,55 @@ if( BUILD_PCL )
 
   find_package(PCL 1.3 REQUIRED COMPONENTS common io)
   if ( NOT PCL_FOUND )
-    message ( "Couldn't find package PCL (Point Could Library).")
-    message ( "Try building with PCL support disabled (set BUILD_PCL off).")
-  else ()
-    if( APPLE )
-      # Context: cmake 3.6.x, PCL 1.8, boost 1.60
-      # For some odd reason some pcl libraries do not come linked against
-      # some of its boost dependencies. Hence ce following "syntactic sugar"...
-      set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
-    endif()
+    message ( WARNING "Couldn't find package PCL (Point Could Library).")
+    message ( FATAL_ERROR
+      "Try building with PCL support disabled (set BUILD_PCL off).")
   endif ()
+
+  ##### Dealing with PCL (post find_package) oddities:
+  if( APPLE )
+    # Context: cmake 3.6.x, PCL 1.8, boost 1.60
+    # For some odd reason some pcl libraries do not come linked against
+    # some of their boost dependencies. Hence ce following "syntactic sugar".
+    set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
+  endif()
+  if( WIN32 )
+    # FIXME: instead of having to use a new variable (PCL_DEFINITIONS_VCITY)
+    # in order to pass around compile flag definitions, we could have 
+    # extended the content of the PCL provided (and already existing)
+    # PCL_DEFINITIONS variable. Yet the PCL_definitions sems to be usgin
+    # a syntax of the form "-DSYMBOL_A;-DSYMBOL_B" (that is a list) which
+    # doesn't seem to be easily extensible by writing things like
+    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS} -DMY_NEW_SYMBOL" ) or the
+    # same with no whitespace separator,
+    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS}-DMY_NEW_SYMBOL" ) or 
+    # with the quotes only around the extension
+    #   set( PCL_DEFINITIONS ${PCL_DEFINITIONS} "-DMY_NEW_SYMBOL" ) or
+    # eventually a blending of notations ("-DSYMBOL" and "SYMBOL=1)
+    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS} DMY_NEW_SYMBOL=1" )...
+    # Hence the usage of this extra variable.
+   
+    # There is a strange interference between find_package( Boost) and the
+    # VC++ auto-linking mechanisms. Indeed the Boost components get properly
+    # detected and the Boost_<Component>_LIBRARY get proper content e.g. 
+    # C:\Libraries\boost_1_59_0\lib\boost_thread-vc140-mt-1_59.lib". Yet when
+    # linking the PCL using code one get a "LINK : fatal error LNK1104" 
+    # described as "cannot open file libboost_thread-vc140-mt-1_59.lib" (it is
+    # important to notice that the filename is LIBboost_thread-* i.e. it gets
+    # prefixed with "LIB".
+    # This is due to an interference between find_package( Boost) and the
+    # VC++ auto-linking mechanisms that is documented e.g. here:
+    # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9 You could disable 
+    # In order to disable the auto-linking mechanisme we thus resolve to
+    # using the following additional compile flag:
+    set( PCL_DEFINITIONS_VCITY "BOOST_ALL_DYN_LINK=1" )
+
+    # In order to avoid a compile time error of the form "C2065 M_LOG2E
+    # undeclared identifier" reported for line 276 of pcl_macros.h (PCL
+    # version 1.7), one needs to add::
+    set(  PCL_DEFINITIONS_VCITY
+        "${PCL_DEFINITIONS_VCITY} _USE_MATH_DEFINES=1" )
+  endif()
 endif ()
 
 # Find osgQt

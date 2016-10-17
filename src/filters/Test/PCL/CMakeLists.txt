@@ -8,12 +8,10 @@ target_include_directories( TestPCLWritePcdFile PUBLIC ${PCL_INCLUDE_DIRS})
 target_link_libraries( TestPCLWritePcdFile ${PCL_LIBRARIES} )
 
 if( WIN32 )
-  # FIXME: is this really usefull ?
   set_target_properties( TestPCLWritePcdFile PROPERTIES
                          COMPILE_DEFINITIONS ${PCL_DEFINITIONS} )
-  # To avoid pcl_macros.h(176): error C2065 M_LOG2E undeclared identifier
-  set_target_properties( TestPCLWritePcdFile PROPERTIES
-                         COMPILE_DEFINITIONS "_USE_MATH_DEFINES" )
+  target_compile_definitions( TestPCLWritePcdFile
+                              PRIVATE ${PCL_DEFINITIONS_VCITY} )
 endif()
 
 add_test( TEST_PCL_WRITE_PCD_FILE TestPCLWritePcdFile )
