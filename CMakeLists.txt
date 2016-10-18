@@ -421,8 +421,8 @@ if( BUILD_PCL )
     # In order to avoid a compile time error of the form "C2065 M_LOG2E
     # undeclared identifier" reported for line 276 of pcl_macros.h (PCL
     # version 1.7), one needs to add::
-    set(  PCL_DEFINITIONS_VCITY
-        "${PCL_DEFINITIONS_VCITY} _USE_MATH_DEFINES=1" )
+    set(   PCL_DEFINITIONS_VCITY
+         ${PCL_DEFINITIONS_VCITY} "_USE_MATH_DEFINES=1" )
   endif()
 endif ()
 
