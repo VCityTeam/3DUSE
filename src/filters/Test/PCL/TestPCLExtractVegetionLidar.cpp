@@ -7,10 +7,6 @@
 #include <stdio.h>
 #include "ogrsf_frmts.h"
 
-#include <QFileDialog>
-#include <QImageReader>
-#include <QDebug>
-
 #include <lasreader.hpp>
 #include <laswriter.hpp>
 
