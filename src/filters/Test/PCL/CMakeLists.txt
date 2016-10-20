@@ -36,7 +36,7 @@ endif()
 target_link_libraries( TestPCLExtractVegetionLidar
   ${GDAL_LIBRARY}
   ${LASLIB_LIBRARY}
-  ${PCL_LIBRARIES} pcl_segmentation pcl_search
+  ${PCL_LIBRARIES} ${PCL_SEARCH_LIBRARY} ${PCL_SEGMENTATION_LIBRARY}
   ${CITYGMLUTILS_LIBRARIES}
 )
 

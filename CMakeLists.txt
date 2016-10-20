@@ -413,12 +413,6 @@ if( BUILD_PCL )
 
 
   ##### Dealing with PCL (post find_package) oddities:
-  if( APPLE )
-    # Context: cmake 3.6.x, PCL 1.8, boost 1.60
-    # For some odd reason some pcl libraries do not come linked against
-    # some of their boost dependencies. Hence ce following "syntactic sugar".
-    set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
-  endif()
   if( WIN32 )
     # FIXME: instead of having to use a new variable (PCL_DEFINITIONS_VCITY)
     # in order to pass around compile flag definitions, we could have 
@@ -455,7 +449,31 @@ if( BUILD_PCL )
     # version 1.7), one needs to add::
     set(   PCL_DEFINITIONS_VCITY
          ${PCL_DEFINITIONS_VCITY} "_USE_MATH_DEFINES=1" )
+
+    # PCL seems to forget to point to its sub-dependencies includes like
+    # Flann. This must be fixed in order to avoid compile time messages 
+    # of the form "Cannot open include file flann/flann.hpp" that PCL's
+    # pcl/kdtree/flann.h includes itself:
+    if( FLANN_ROOT ) 
+      set( PCL_INCLUDE_DIRS ${PCL_INCLUDE_DIRS} ${FLANN_ROOT}/include )
+    endif()
   endif()
+
+  ### Still dealing with PCL post find_package oddities
+  if( APPLE )
+    # Context: cmake 3.6.x, PCL 1.8, boost 1.60
+    # For some odd reason some pcl libraries do not come linked against
+    # some of their boost dependencies. Hence ce following "syntactic sugar".
+    set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
+  endif()
+  if( WIN32 )
+    ### FIXME: decline this symmetrically with release/debug
+    set( PCL_SEARCH_LIBRARY       pcl_search_release )
+    set( PCL_SEGMENTATION_LIBRARY pcl_segmentation_release )
+  else( )
+    set( PCL_SEARCH_LIBRARY       pcl_search )
+    set( PCL_SEGMENTATION_LIBRARY pcl_segmentation )
+  endif( )
 endif ()
 
 # Find osgQt
