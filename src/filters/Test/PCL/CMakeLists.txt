@@ -17,14 +17,27 @@ endif()
 add_test( TEST_PCL_WRITE_PCD_FILE TestPCLWritePcdFile )
 
 #######
-if( FALSE )
+if( TRUE )
 add_executable( TestPCLExtractVegetionLidar TestPCLExtractVegetionLidar.cpp )
 if( WIN32 )
-set_target_properties( TestPCLExtractVegetionLidar PROPERTIES
-                       COMPILE_DEFINITIONS ${PCL_DEFINITIONS} )
+  set_target_properties( TestPCLExtractVegetionLidar PROPERTIES
+                         COMPILE_DEFINITIONS ${PCL_DEFINITIONS} )
 endif()
 target_include_directories( TestPCLExtractVegetionLidar PUBLIC
-                            ${PCL_INCLUDE_DIRS})
-target_link_libraries( TestPCLExtractVegetionLidar ${PCL_LIBRARIES} )
-add_test(  TEST_PCL_EXTRACT_VEGETION_LIDAR  TestPCLExtractVegetionLidar )
+  ${VCITY_INCLUDE_DIR}
+  ${VCITYCORE_INCLUDE_DIR}
+  ${CITYGML_INCLUDE_DIR}
+  ${CITYGMLUTILS_INCLUDE_DIR}
+  ${PCL_INCLUDE_DIRS}
+)
+target_link_libraries( TestPCLExtractVegetionLidar
+  ${GDAL_LIBRARY}
+  ${LASLIB_LIBRARY}
+  ${PCL_LIBRARIES} pcl_segmentation pcl_search
+  ${CITYGMLUTILS_LIBRARIES}
+)
+add_test( TEST_PCL_EXTRACT_VEGETION_LIDAR  TestPCLExtractVegetionLidar
+  ${CMAKE_CURRENT_SOURCE_DIR}/Data/IRCFilteredLidarForExtractingVegetation.las
+  ${CMAKE_CURRENT_BINARY_DIR}/IRCFilteredLidarForExtractingVegetationOutput.gml
+)
 endif()
