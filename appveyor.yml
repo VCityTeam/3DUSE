@@ -18,6 +18,7 @@ environment:
   QT5_DIR: C:\Qt\5.6\msvc2015_64
   BOOST_ROOT: C:\Libraries\boost_1_59_0
   KIT_ROOT: C:\local_vs2015_64
+  FLANN_ROOT: %KIT_ROOT%\PCL\flann-1.8.4
   #
   matrix:
   - B_USE_QT5:  OFF  # Qt4 gets defaulted with a cmake trick/kludge

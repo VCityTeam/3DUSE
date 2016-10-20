@@ -352,11 +352,12 @@ endif(OPENTHREADS_FOUND)
 # Find PCL dependency
 if( BUILD_PCL )
   ##### PCL module dectection:
-  # Assert manually that the PCL dependencies are satisfied (refer to
-  # PCLConfig.cmake for the explicit list of required boot components) in
-  # order to simplify the context of PCL failing dependency (when find_package
+  # Assert manually that the PCL dependencies are satisfied in order to
+  # simplify the context of PCL failing dependency (when find_package
   # fails on PCL because of a missing suv-dependency the error message is 
   # really sketchy and hard to interpret):
+  ### Assert boost is found: refer to PCLConfig.cmake for the explicit
+  # list of required boot components.
   if( APPLE )
     # Context: cmake 3.6.x, boost 1.60
     # Strangely enough boost if only found with a small caps leading b
@@ -372,13 +373,32 @@ if( BUILD_PCL )
       message(WARNING "PCL requires Boost which cannot be found.")
     endif ()
   endif()
+  ### Assert Flann is installed:
+  find_package( Flann )
+  if ( NOT FLANN_FOUND )
+    message ( WARNING "Couldn't find package Flann that is required by PCL.")
+    # PCLConfig.cmake can use FLANN_ROOT as helper to find flan
+    if ( FLANN_ROOT )
+      message ( WARNING "Letting PCLconfig.cmake try to find Flann based on" )
+      message ( WARNING "the value of FLANN_ROOT: " ${FLANN_ROOT} )
+      message ( WARNING "Cross fingers and hope for the best. In case of")
+      message ( WARNING "failure try building with PCL support disabled")
+      message ( WARNING "(set BUILD_PCL off).")
+    else ()
+      message ( WARNING "Try setting FLANN_ROOT variable. In case of renewed")
+      message ( WARNING "failure try building with PCL support disabled")
+      message ( FATAL_ERROR "(set BUILD_PCL off).")
+    endif ()
+  endif ()
 
+  ### Eventually we can look for PCL itself
   find_package(PCL 1.3 REQUIRED COMPONENTS common io)
   if ( NOT PCL_FOUND )
     message ( WARNING "Couldn't find package PCL (Point Could Library).")
     message ( FATAL_ERROR
-      "Try building with PCL support disabled (set BUILD_PCL off).")
+              "Try building with PCL support disabled (set BUILD_PCL off).")
   endif ()
+
 
   ##### Dealing with PCL (post find_package) oddities:
   if( APPLE )

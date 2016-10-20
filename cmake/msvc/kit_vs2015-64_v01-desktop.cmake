@@ -6,3 +6,4 @@ endif()
 
 ###### PCL and its sub-dependencies
 set(BOOST_ROOT          ${VCITY_KIT_ROOT}/boost_1_59_0)
+set(FLANN_ROOT          ${VCITY_KIT_ROOT}/PCL/flann-1.8.4)

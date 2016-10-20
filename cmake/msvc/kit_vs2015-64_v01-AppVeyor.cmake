@@ -3,3 +3,4 @@
 #### The following variables are directly set in appveyor.yml script
 # * QT5_DIR
 # * BOOST_ROOT  (PCL sub-dependency)
+# * FLANN_ROOT  (PCL sub-dependency)
