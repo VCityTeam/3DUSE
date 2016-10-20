@@ -374,20 +374,32 @@ if( BUILD_PCL )
     endif ()
   endif()
   ### Assert Flann is installed:
-  find_package( Flann )
-  if ( NOT FLANN_FOUND )
-    message ( WARNING "Couldn't find package Flann that is required by PCL.")
-    # PCLConfig.cmake can use FLANN_ROOT as helper to find flan
+  # There is no simple way to assert that Flann package is installed. If one
+  # tries a find_package( Flann ) on Win32 then a side effect of this test
+  # is to make find_package( pcl ) to fail ! Apparently this is because
+  # this project cmake/FindFlann.cmake defines some Flann related variables
+  # that derails PCLConfig.cmake's find_flann macro.
+  # The only thing we can thus propose is to throw some messages...
+  if ( WIN32 )
     if ( FLANN_ROOT )
-      message ( WARNING "Letting PCLconfig.cmake try to find Flann based on" )
-      message ( WARNING "the value of FLANN_ROOT: " ${FLANN_ROOT} )
-      message ( WARNING "Cross fingers and hope for the best. In case of")
-      message ( WARNING "failure try building with PCL support disabled")
-      message ( WARNING "(set BUILD_PCL off).")
+      # PCLConfig.cmake can use FLANN_ROOT as helper to find flann and hence
+      # there is some hope.
+      message ( " WARNING: Letting PCLconfig.cmake try to find Flann based on" )
+      message ( "          the value of FLANN_ROOT: " ${FLANN_ROOT} )
+      message ( "          Cross fingers and hope for the best. In case of")
+      message ( "          failure try building with PCL support disabled")
+      message ( "          (set BUILD_PCL off).")
     else ()
-      message ( WARNING "Try setting FLANN_ROOT variable. In case of renewed")
-      message ( WARNING "failure try building with PCL support disabled")
-      message ( FATAL_ERROR "(set BUILD_PCL off).")
+      if ( NOT DEFINED VCITY_KIT_ROOT )
+        message ( " WARNING: you seem to be trying to build on WIN32 without" )
+        message ( "     VCity's binary kit. You only hope for PCL to find its")
+        message ( "     flann sub-dependency is for PCLConfig.cmake to find" )
+        message ( "     within the well known location (C:\ProgramFiles...)" )
+      else ()
+        message ( " WARNING: FLANN_ROOT variable was not set by VCity's Win32")
+        message ( "      binary kit which looks screwy... You might end up ")
+        message ( "      with PCL failing in finding the Flann library...") 
+      endif ()
     endif ()
   endif ()
 
