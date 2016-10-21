@@ -457,6 +457,19 @@ if( BUILD_PCL )
     if( FLANN_ROOT ) 
       set( PCL_INCLUDE_DIRS ${PCL_INCLUDE_DIRS} ${FLANN_ROOT}/include )
     endif()
+
+    # The list of libraries (PCL_LIBRARIES) seems to be incomplete. In order
+    # to define them manually we assume that PCLConfig.cmake ran smoothly
+    # and found PCL_COMMON_LIBRARY which should always be present. We further
+    # assume that packager of PCL laid the "other" libraries side by side
+    # with PCL_COMMON_LIBRARY...
+    get_filename_component( VCITY_PCL_LIBRARY_DIRECTORY
+                            ${PCL_COMMON_LIBRARY} DIRECTORY )
+    # FIXME: decline this symmetrically with release/debug
+    set( PCL_SEARCH_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_search_release.lib )
+    set( PCL_SEGMENTATION_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_segmentation_release.lib )
   endif()
 
   ### Still dealing with PCL post find_package oddities
@@ -466,11 +479,12 @@ if( BUILD_PCL )
     # some of their boost dependencies. Hence ce following "syntactic sugar".
     set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
   endif()
-  if( WIN32 )
-    ### FIXME: decline this symmetrically with release/debug
-    set( PCL_SEARCH_LIBRARY       pcl_search_release )
-    set( PCL_SEGMENTATION_LIBRARY pcl_segmentation_release )
-  else( )
+
+  if( NOT WIN32 )
+    # The list of libraries (PCL_LIBRARIES) as detected by PCLConfig.cmake
+    # seems to be partial (only a subset of available libraries is accessible
+    # through the variable that were set). Define them manually (and cross
+    # fingers for them to be present):
     set( PCL_SEARCH_LIBRARY       pcl_search )
     set( PCL_SEGMENTATION_LIBRARY pcl_segmentation )
   endif( )

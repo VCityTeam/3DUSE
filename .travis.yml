@@ -135,7 +135,7 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  cmake .. $BTYPE; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - make
-  - ctest
+  - ctest -V
   #### Test the Qt5 version
   # Previous test were against qt4 which is the default version
   # for both linux and osx. Try building and testing as above
@@ -154,7 +154,7 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest -V; fi
 
     ####  Linux Qt5 tests:
     # First the install of Qt5
