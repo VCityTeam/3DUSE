@@ -119,8 +119,13 @@ build_script:
     #  Volume in drive C is Windows
     #  Volume Serial Number is D4AB-4044
     #  Directory of C:\projects\vcity\Release
-  - dir .
-    # We can now proceed with the sweet test suite
-  - ctest -V
+    # - dir .
+    #  Volume in drive C is Windows
+    #  Volume Serial Number is D4AB-4044
+    #  Directory of C:\projects\vcity
+    #  and it lists an existing Release and Debug sub-directoty 
+  - dir Release
   - dir Debug
   - dir Debug\bin
+    # We can now proceed with the sweet test suite
+  - ctest -V
