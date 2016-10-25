@@ -54,7 +54,7 @@ public:
 
       std::vector<citygml::CityObjectsType> m_filters;    ///< filters list
       std::vector<std::string> m_filterNames;             ///< filters name
-      std::map<citygml::CityObjectsType, int> m_filterOffsets; ///< used to handle indices offset
+      std::map<citygml::CityObjectsType, size_t> m_filterOffsets; ///< used to handle indices offset
       std::map<std::string, std::string> m_materials;
    };
    ////////////////////////////////////////////////////////////////////////////////

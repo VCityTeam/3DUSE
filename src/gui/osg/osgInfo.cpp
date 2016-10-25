@@ -715,7 +715,7 @@ void osgInfo::computeDSC(osg::Camera *cam, int screenX, int screenY)
 
     float screenwidth = scurrentCornerMax.x()-scurrentCornerMin.x();
     float screenheight = scurrentCornerMax.y()-scurrentCornerMin.y();
-    m_Da = abs(screenwidth*screenheight);
+    m_Da = std::abs(screenwidth*screenheight);
 
     m_currentsCornerMax=scurrentCornerMax;
     m_currentsCornerMin=scurrentCornerMin;
