@@ -110,11 +110,24 @@ build_script:
     # Note: avoid launching msbuild with the /m set. This would produces
     # random crashes Qt-MOC invocations...
   - msbuild 3DUSE.sln 
+    ##### Ctest: establising context and run per se
     # For the binaries (the tests that ctest will trigger) to find the
     # dynamic libraries they depend on, the PATH variable must be set
     # properly:
-  - set PATH=%BOOST_ROOT%\lib;%KIT_ROOT%\Qt\qt-4.8.7-x64-msvc2015\bin;%QT5_DIR%\bin;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin\osgPlugins-3.4.0;%KIT_ROOT%\PCL\pcl-1.7.2\bin;%PATH%;%KIT_ROOT%\PCL\flann-1.8.4\bin;%KIT_ROOT%\PCL\qhull-2015.2\bin;%KIT_ROOT%\libxml2-2.9.3\bin;%KIT_ROOT%\assimp-3.2\lib;%APPVEYOR_BUILD_FOLDER%\Release\bin;%APPVEYOR_BUILD_FOLDER%\Debug\bin
+  - set PATH=%PATH%;%BOOST_ROOT%\lib
+  - set PATH=%PATH%;%QT5_DIR%\bin
+  - set PATH=%PATH%;%KIT_ROOT%\Qt\qt-4.8.7-x64-msvc2015\bin
+  - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin
+  - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin\osgPlugins-3.4.0
+  - set PATH=%PATH%;%KIT_ROOT%\PCL\pcl-1.7.2\bin
+  - set PATH=%PATH%;%KIT_ROOT%\PCL\flann-1.8.4\bin
+  - set PATH=%PATH%;%KIT_ROOT%\PCL\qhull-2015.2\bin
+  - set PATH=%PATH%;%KIT_ROOT%\libxml2-2.9.3\bin
+  - set PATH=%PATH%;%KIT_ROOT%\assimp-3.2\lib
+    # Eventually add the path to VCity internal dynamic libraries and plugins
+  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
     # CLEANME
+    # %APPVEYOR_BUILD_FOLDER%\Release\bin;%APPVEYOR_BUILD_FOLDER%\Debug\bin
     # - dir %APPVEYOR_BUILD_FOLDER%\Release\bin fails with
     #  Volume in drive C is Windows
     #  Volume Serial Number is D4AB-4044
@@ -124,8 +137,6 @@ build_script:
     #  Volume Serial Number is D4AB-4044
     #  Directory of C:\projects\vcity
     #  and it lists an existing Release and Debug sub-directoty 
-  - dir Release
-  - dir Debug
-  - dir Debug\bin
+  - dir %APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
     # We can now proceed with the sweet test suite
   - ctest -V
