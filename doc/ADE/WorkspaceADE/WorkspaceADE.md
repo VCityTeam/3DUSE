@@ -8,13 +8,18 @@ It permits the researchers to propose their hypothesis and urban plans using Cit
 This page explains the evolution of this Workspace ADE proposition.
 Note that, we want the approach to be generic enough so that we can deploy other options like distributed version control systems, semantic web technologies to test this proposition.
 
-# Current Proposition
-
-
-![Image Alt](WorkspaceADE.png)
-
 ## Evolution of Workspace ADE
 ### Proposition v0.1 
+It makes use of [CSG16] to propose workspaces.
+[CSG16] suggested making use of 'tags' to create user specific workspaces for hypothesis.
+Our proposition is to add a new class to represent the details of workspaces like name, owner and, creation date.
+Workspaces are owned by individual users.
+A workspace called 'Main' is used as a reference workspace.
+Other workspaces may propose any changes from the Main workspaces.
+In order to track a workspace, two pointers are used, the first version and the current version.
+First version corresponds to the starting version of the workspace.
+Current Version points to the latest version on a given workspace.
+![Image Alt](WorkspaceADE.png)
 ![Image Alt](WorkspacePropositionv0.1.png)
 ### Proposition v0.2 
 ![Image Alt](WorkspacePropositionv0.2.png)
