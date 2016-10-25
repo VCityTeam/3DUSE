@@ -15,11 +15,33 @@ Note that, we want the approach to be generic enough so that we can deploy other
 
 ## Evolution of Workspace ADE
 ### Proposition v0.1 
+![Image Alt](WorkspacePropositionv0.1.png)
 ### Proposition v0.2 
+![Image Alt](WorkspacePropositionv0.2.png)
 ### Proposition v0.3 
+![Image Alt](WorkspacePropositionv0.3.png)
 ### Proposition v0.4 
+![Image Alt](WorkspaceVCSComparison.png)
+![Image Alt](Git.png)
+![Image Alt](WorkspacePropositionv0.4.png)
+![Image Alt](WorkspacePropositionv0.4Workspaces.png)
 ### Proposition v0.5 
+![Image Alt](WorkspacePropositionv0.5Workspaces.png)
+![Image Alt](WorkspacePropositionv0.5Hypothesis.png)
+![Image Alt](WorkspacePropositionv0.5Planned.png)
+![Image Alt](WorkspacePropositionv0.5Influence.png)
+![Image Alt](WorkspacePropositionv0.5Influence2.png)
+![Image Alt](WorkspacePropositionv0.5Quality.png)
 ### Proposition v0.6 
+![Image Alt](WorkspacePropositionv0.6Hypothesis.png)
+![Image Alt](WorkspacePropositionv0.6Influence.png)
+![Image Alt](WorkspacePropositionv0.6Influence2.png)
+![Image Alt](WorkspacePropositionv0.6Quality.png)
+![Image Alt](WorkspacePropositionv0.6TimeDiagram.png)
+![Image Alt](WorkspacePropositionv0.6IntervalDiagram.png)
 ### Proposition v0.7 
+![Image Alt](WorkspacePropositionv0.7Past.png)
+![Image Alt](WorkspacePropositionv0.7TimeDiagram.png)
+![Image Alt](WorkspacePropositionv0.7IntervalDiagram.png)
 
 
