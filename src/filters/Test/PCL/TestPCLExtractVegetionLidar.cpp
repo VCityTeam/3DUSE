@@ -401,6 +401,7 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
                << std::endl;
      exit( EXIT_FAILURE );
    }
+   std::cout << "  LAS reader opened." << std::endl;
 
    LASwriteOpener laswriteopener;
    laswriteopener.set_file_name(LiDAR_PathOutput.c_str());
@@ -417,6 +418,7 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
      std::cout << "  Unable to retrieve the laswriter." << std::endl;
      exit( EXIT_FAILURE );
    }
+   std::cout << "  LAS writer opened." << std::endl;
 
    // Select the relevant points and write them down:
    while (lasreader->read_point())
@@ -540,12 +542,16 @@ void usage( int narg, char** argv )
 
 int main( int narg, char** argv )
 {
+   std::cout << "  Entering test " << argv[0] << std::endl;
    usage( narg, argv );
    std::string inputFileName  = argv[1];
    std::string outputFileName = argv[2];
-   std::cout << "  Using file " << inputFileName << " as input" << std::endl;
+   std::cout << "  Using file " << inputFileName  << " as input." << std::endl;
+   std::cout << "  Using file " << outputFileName << " as output." << std::endl;
 
+   std::cout << "  Entering FilterVegetationFromLidar." << std::endl;
    std::string LiDAR_Filtered_Path = FilterVegetationFromLidar( inputFileName );
+   std::cout << "  FilterVegetationFromLidar done." << std::endl;
 
    Create3DVegetation( LiDAR_Filtered_Path, outputFileName );
 
