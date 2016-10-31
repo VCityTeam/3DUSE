@@ -143,12 +143,7 @@ build_script:
     # CLEANME FIXME
   - dir %APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
   - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
-  - dir %APPVEYOR_BUILD_FOLDER%
-  - dir %APPVEYOR_BUILD_FOLDER%\src
-  - dir %APPVEYOR_BUILD_FOLDER%\src\filters
-  - dir %APPVEYOR_BUILD_FOLDER%\src\filters\Test
-  - dir %APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%
   - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%
-  - TestComputeEnvelope.exe
+  - TestComputeEnvelope.exe  2>&1
     # We can now proceed with the sweet test suite
   - ctest -V
