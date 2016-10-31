@@ -14,6 +14,7 @@ os: Visual Studio 2015
 # environment variables
 environment:
   QT5_DIR: C:\Qt\5.6\msvc2015_64
+  BOOST_ROOT: C:\Libraries\boost_1_59_0
 #
   KIT_ROOT: C:\local_vs2015_64
 #
@@ -91,6 +92,8 @@ before_build:
 # If someday we use the binary kit of 2012 again, then the pertinent option
 # concerning OSG-QT will be -DBUILD_EMBARKED_OSG-QT_32=ON (i.e. 32 instead of 34).
   - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON
+# boost
+  - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:

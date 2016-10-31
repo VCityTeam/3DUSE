@@ -635,12 +635,20 @@ IF(WIN32)
 ENDIF()
 
 # Find Boost
-set(Boost_USE_STATIC_LIBS        ON) # only find static libs
-set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
-find_package(Boost COMPONENTS date_time REQUIRED)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
+if( APPLE )
+  # Context: cmake 3.6.x, boost 1.60
+  # Strangely enough boost if only found with a small caps leading b
+  # (that is trying to find_package on Boost will fail)...
+  find_package( boost COMPONENTS
+    system filesystem thread date_time iostreams serialization chrono
+    REQUIRED
+  )
+else()  # Linux and MSVC (mind you)
+  find_package( Boost COMPONENTS
+    system filesystem thread date_time iostreams serialization chrono)
+  if( NOT Boost_FOUND )
+    message(WARNING "PCL requires Boost which cannot be found.")
+  endif ()
 endif()
 
 # For Apple set the icns file containing icons
