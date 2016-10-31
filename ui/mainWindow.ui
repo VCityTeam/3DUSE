@@ -270,7 +270,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -365,6 +365,7 @@
     <addaction name="separator"/>
     <addaction name="actionChange_Detection"/>
     <addaction name="separator"/>
+    <addaction name="actionExtract_Flat_Roofs"/>
     <addaction name="actionSplit_CityGML_Buildings"/>
     <addaction name="actionCut_CityGML_with_Shapefile"/>
     <addaction name="actionTiling_CityGML"/>
@@ -840,9 +841,14 @@
     <string>Skybox</string>
    </property>
   </action>
-<action name="actionBuild_Building_AABBs">
+  <action name="actionBuild_Building_AABBs">
    <property name="text">
     <string>Build Building AABBs</string>
+   </property>
+  </action>
+  <action name="actionExtract_Flat_Roofs">
+   <property name="text">
+    <string>Extract Flat Roofs</string>
    </property>
   </action>
  </widget>
