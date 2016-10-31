@@ -47,6 +47,8 @@ addons:
       - libopenscenegraph-dev
       - libgdal-dev
       - doxygen
+      - libboost-dev
+      - libboost-date-time-dev
       - graphviz
 
 install:
