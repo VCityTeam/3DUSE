@@ -643,11 +643,14 @@ if( APPLE )
     system filesystem thread date_time iostreams serialization chrono
     REQUIRED
   )
+  include_directories(${Boost_INCLUDE_DIRS})
 else()  # Linux and MSVC (mind you)
   find_package( Boost COMPONENTS
     system filesystem thread date_time iostreams serialization chrono)
   if( NOT Boost_FOUND )
     message(WARNING "PCL requires Boost which cannot be found.")
+  else ()
+   include_directories(${Boost_INCLUDE_DIRS})
   endif ()
 endif()
 
@@ -681,6 +684,7 @@ target_link_libraries( ${APP_NAME}
   ${VCITY_GUI_LIB}
   ${VCITYCORE_LIBRARY}
   ${FILTERS_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${CITYGML_LIBRARIES}
   ${CITYGMLUTILS_LIBRARIES}
 )
