@@ -635,6 +635,9 @@ IF(WIN32)
 ENDIF()
 
 # Find Boost
+set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME    OFF)
 if( APPLE )
   # Context: cmake 3.6.x, boost 1.60
   # Strangely enough boost if only found with a small caps leading b
