@@ -148,6 +148,7 @@ build_script:
   - dir %APPVEYOR_BUILD_FOLDER%\src\filters
   - dir %APPVEYOR_BUILD_FOLDER%\src\filters\Test
   - dir %APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%
-  - %APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%\TestComputeEnvelope.exe
+  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%
+  - TestComputeEnvelope.exe
     # We can now proceed with the sweet test suite
   - ctest -V
