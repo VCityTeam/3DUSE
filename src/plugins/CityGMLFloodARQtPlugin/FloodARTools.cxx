@@ -2,6 +2,7 @@
 #include <QFileDialog>
 #include <QImageReader>
 #include <QDebug>
+#include <QDateTime>
 #include <QMessageBox>
 #include <QProgressDialog>
 
