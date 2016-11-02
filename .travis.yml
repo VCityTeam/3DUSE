@@ -91,6 +91,7 @@ script:
     # hence the native OSG-Qt (that links against Qt4) cannot be used 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install --without-python boost; fi
     # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
@@ -101,6 +102,7 @@ script:
     # First the install of Qt5
     # Same remark as for OSX concerning the Qt version mismatch of libOSG-Qt
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install libboost-dev libboost-date-time-dev ; fi
     # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
