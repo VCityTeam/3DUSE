@@ -642,14 +642,10 @@ if( APPLE )
   # Context: cmake 3.6.x, boost 1.60
   # Strangely enough boost if only found with a small caps leading b
   # (that is trying to find_package on Boost will fail)...
-  find_package( boost COMPONENTS
-    system filesystem thread date_time iostreams serialization chrono
-    REQUIRED
-  )
+  find_package( boost COMPONENTS date_time REQUIRED)
   include_directories(${Boost_INCLUDE_DIRS})
 else()  # Linux and MSVC (mind you)
-  find_package( Boost COMPONENTS
-    system filesystem thread date_time iostreams serialization chrono)
+  find_package( Boost COMPONENTS date_time)
   if( NOT Boost_FOUND )
     message(WARNING "PCL requires Boost which cannot be found.")
   else ()
