@@ -26,6 +26,14 @@ VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/running
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
     * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
+    * `apt-get install libboost-all-dev`
+    * When building with the [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake):
+      * Install sub-dependencies: `apt-get install libeigen3-dev libflann-dev libqhull-dev`
+      * Easy (recommended for [newbie](https://en.wikipedia.org/wiki/Newbie)) Point Cloud library installation out of VCity provided [tarball](https://en.wikipedia.org/wiki/Tar_(computing) (pre-configured sources):
+        * `cd /tmp && wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz`
+        * `tar zxf pcl-pcl-1.7.2.travis-trusty.tgz && cd pcl-pcl-1.7.2/buildR`
+        * `sudo make install`
+      * Alternatively (more advanced installer) proceed with PCL standard installation (out of git repository): refer e.g. to [LarryLisky's install notes](https://larrylisky.com/2014/03/03/installing-pcl-on-ubuntu/).
  * Manual installation of LASlib
    * With access rigths to `/usr/local/`:
      * `cd VCity/externals/laslib`

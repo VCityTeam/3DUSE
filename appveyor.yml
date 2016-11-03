@@ -120,7 +120,10 @@ build_script:
   - set PATH=%PATH%;%QT5_DIR%\bin
   - set PATH=%PATH%;%KIT_ROOT%\Qt\qt-4.8.7-x64-msvc2015\bin
   - set PATH=%PATH%;%KIT_ROOT%\assimp-3.2\lib
+    # The "kit" stores some of Gdal sub-dependencies like geotiff.dll not
+    # within gdal directory but within _bin_...
   - set PATH=%PATH%;%KIT_ROOT%\gdal\gdal-1.11.4\bin
+  - set PATH=%PATH%;%KIT_ROOT%\_bin_
     # Laslib: the binary kit only provides the static library.
   - set PATH=%PATH%;%KIT_ROOT%\libxml2-2.9.3\bin
   - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin
@@ -133,17 +136,17 @@ build_script:
     # Eventually add the path to VCity internal dynamic libraries and plugins
     # located in either Release or Debug subdirectory (environment variable
     # CONFIGURATION in the matrix):
+  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
+    # We can now proceed with the sweet test suite
+  - ctest -V
+    #
+    # CLEANME FIXME
     # FIXME: TestComputeEnvelope fails on resolving dll. test_load_citygml_file
     # succeeds. Here are the the dependencies that TestComputeEnvelope has and
     # test_load_citygml_file hasn't:
     #    filters.dylib, citygmlutils.dylib, vcitycore.dylib and
     #    OpenThreads (comes from open-scene-graph)
-    # CLEANME FIXME
-  - dir %KIT_ROOT%\gdal\gdal-1.11.4\bin
-    # CLEANME FIXME
-  - dir %APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
-  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
-  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%
-  - TestComputeEnvelope.exe  2>&1
-    # We can now proceed with the sweet test suite
-  - ctest -V
+    # - dir %KIT_ROOT%\gdal\gdal-1.11.4\bin
+    # - dir %APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
+    # - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%
+    #  - TestComputeEnvelope.exe  2>&1
