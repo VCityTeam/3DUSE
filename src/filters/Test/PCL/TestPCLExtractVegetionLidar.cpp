@@ -396,12 +396,12 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
    LASreader* lasreader = lasreadopener.open();
    if( !lasreader )
    {
-     std::cout << "  LAS reader unable to open file "
+     std::cerr << "  LAS reader unable to open file "
                << LiDAR_Path 
                << std::endl;
      exit( EXIT_FAILURE );
    }
-   std::cout << "  LAS reader opened." << std::endl;
+   std::cerr << "  LAS reader opened." << std::endl;
 
    LASwriteOpener laswriteopener;
    laswriteopener.set_file_name(LiDAR_PathOutput.c_str());
@@ -415,10 +415,10 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
    LASwriter* laswriter = laswriteopener.open(&lasheader);
    if( !laswriter )
    {
-     std::cout << "  Unable to retrieve the laswriter." << std::endl;
+     std::cerr << "  Unable to retrieve the laswriter." << std::endl;
      exit( EXIT_FAILURE );
    }
-   std::cout << "  LAS writer opened." << std::endl;
+   std::cerr << "  LAS writer opened." << std::endl;
 
    // Select the relevant points and write them down:
    while (lasreader->read_point())
@@ -453,7 +453,7 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
 
    I64 total_bytes = laswriter->close();
 
-   std::cout << "  An intermediate LAS file ("
+   std::cerr << "  An intermediate LAS file ("
              << total_bytes << " bytes) was created here: " 
              << LiDAR_PathOutput << std::endl;
 
@@ -465,7 +465,7 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
 void Create3DVegetation( std::string LiDAR_Path,
                          std::string outputFileName )
 {
-   std::cout << "  Starting the computation of the 3D vegetation."
+   std::cerr << "  Starting the computation of the 3D vegetation."
              << std::endl;
 
     /// Retrieve the LIDAR data as a PCL point cloud
@@ -511,7 +511,7 @@ void Create3DVegetation( std::string LiDAR_Path,
     }
 
    /// Writing down the result as a CityGML file:
-   std::cout << "  Writing the vegetation created content as CityGML file "
+   std::cerr << "  Writing the vegetation created content as CityGML file "
              << outputFileName << std::endl;
     citygml::ExporterCityGML exporter( outputFileName );
     ModelOut->computeEnvelope( );
@@ -524,7 +524,7 @@ void usage( int narg, char** argv )
 {
   if ( narg != 3 )
   {
-    std::cout << "  Wrong number of arguments. "            << std::endl 
+    std::cerr << "  Wrong number of arguments. "            << std::endl 
               << "  Usage: " << argv[0]
               << "  lidar_data_filename citygml_filename" << std::endl
               << "  where the lidar data is the input information and citygml"
@@ -542,16 +542,16 @@ void usage( int narg, char** argv )
 
 int main( int narg, char** argv )
 {
-   std::cout << "  Entering test " << argv[0] << std::endl;
+   std::cerr << "  Entering test " << argv[0] << std::endl;
    usage( narg, argv );
    std::string inputFileName  = argv[1];
    std::string outputFileName = argv[2];
-   std::cout << "  Using file " << inputFileName  << " as input." << std::endl;
-   std::cout << "  Using file " << outputFileName << " as output." << std::endl;
+   std::cerr << "  Using file " << inputFileName  << " as input." << std::endl;
+   std::cerr << "  Using file " << outputFileName << " as output." << std::endl;
 
-   std::cout << "  Entering FilterVegetationFromLidar." << std::endl;
+   std::cerr << "  Entering FilterVegetationFromLidar." << std::endl;
    std::string LiDAR_Filtered_Path = FilterVegetationFromLidar( inputFileName );
-   std::cout << "  FilterVegetationFromLidar done." << std::endl;
+   std::cerr << "  FilterVegetationFromLidar done." << std::endl;
 
    Create3DVegetation( LiDAR_Filtered_Path, outputFileName );
 
