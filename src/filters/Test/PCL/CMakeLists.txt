@@ -40,17 +40,23 @@ target_link_libraries( TestPCLExtractVegetionLidar
   ${CITYGMLUTILS_LIBRARIES}
 )
 
-if( APPLE OR BUILD_UNMATURE_TESTS )
-  # Concerning WIN32:
-  #   Fails on Appveyor at run time with "Command exited with code -1073741515"
-  #   error message (which seems to indicate that a DLL was not found). The 
-  #   problem is thus not the test but the Appveyor context and probably
-  #   due to an uncomplete PATH environment variable. 
-  # Concerning LINUX:
-  #   Segfaults on Travis (Ubuntu ???) when on Debug mode (after 26s without
-  #   any debug message). Note that it runs smoothly in release mode.
-  #   Unable to reproduce any segfault in interactive mode on an
-  #   Ubuntu 14.04.3 LTS server.
+if( BUILD_UNMATURE_TESTS
+    OR
+    (
+      NOT ( WIN32 )
+      # Fails on Appveyor at run time with "Command exited with code -1073741515"
+      # error message (which seems to indicate that a DLL was not found). The 
+      # problem is thus not the test but the Appveyor context and probably
+      # due to an uncomplete PATH environment variable. 
+    AND
+      NOT ( LINUX AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") 
+                  AND ( CMAKE_BUILD_TYPE MATCHES DEBUG ) )
+      # Segfaults on Travis (Ubuntu ???) with clan when on Debug mode (after 26s
+      # without any debug message). Note that it runs smoothly in release mode.
+      # Unable to reproduce any segfault in interactive mode on an
+      # Ubuntu 14.04.3 LTS server.
+    )
+  )
   add_test( TEST_PCL_EXTRACT_VEGETION_LIDAR  TestPCLExtractVegetionLidar
     ${CMAKE_CURRENT_SOURCE_DIR}/Data/IRCFilteredLidarForExtractingVegetation.las
     ${CMAKE_CURRENT_BINARY_DIR}/IRCFilteredLidarForExtractingVegetationOutput.gml

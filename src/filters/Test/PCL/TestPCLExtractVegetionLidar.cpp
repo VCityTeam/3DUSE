@@ -1,10 +1,16 @@
-
 #include <iostream>
 #include <vector>
 #include <set>
 #include <utility>
 #include <cmath>
 #include <stdio.h>
+
+#if defined _MSC_VER
+#pragma warning (disable: 4267) // For lasdefinitions.hpp
+#pragma warning (disable: 4996) // Mostly for lasdefinitions.hpp and also
+                                // flann/util includes
+#endif
+
 #include "ogrsf_frmts.h"
 
 #include <lasreader.hpp>

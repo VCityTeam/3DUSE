@@ -1,7 +1,7 @@
 #include <iostream>
 
 #if defined _MSC_VER
-#pragma warning (disable: 4996) // MT
+#pragma warning (disable: 4996)
 #endif
 
 #include <pcl/io/pcd_io.h>
