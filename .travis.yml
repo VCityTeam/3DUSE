@@ -56,6 +56,7 @@ install:
   - cmake --version
   # OSX install done through brew:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew outdated boost || brew upgrade boost; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt assimp doxygen graphviz; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
     # Already (indirectly) installed          brew install gdal
