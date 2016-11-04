@@ -29,6 +29,12 @@ option( BUILD_EMBARKED_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
 option( BUILD_DOCUMENTATION  "Build the documentation." OFF )
 
 option( BUILD_TESTING        "Build the regression test suite." ON )
+# Some unstable or not yet mature tests fail on some platforms. This
+# can be problematic for the continuous integration scheme (since such
+# tests can invalidate the whole integration and blind us from otherwise
+# true regressions of the code). The following optional flag enables such
+# unmature tests to be set off while working on their improvement.
+option( BUILD_UNMATURE_TESTS "Build currently failing tests." ON )
 
 option( BUILD_PCL            "Point Cloud Library support toggle." OFF )
 
