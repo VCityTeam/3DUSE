@@ -7,8 +7,9 @@
 
 #if defined _MSC_VER
 #pragma warning (disable: 4267) // For lasdefinitions.hpp
-#pragma warning (disable: 4996) // Mostly for lasdefinitions.hpp and also
+#pragma warning (disable: 4996) // Mostly for lasdefinitions.hpp but also
                                 // flann/util includes
+#pragma warning (disable: 4251) // For gdal*/*/cpl_string.h
 #endif
 
 #include "ogrsf_frmts.h"

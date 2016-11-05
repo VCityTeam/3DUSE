@@ -1,5 +1,7 @@
 project( 3DUSE )
 
+set(APP_NAME 3DUSE)
+
 cmake_minimum_required( VERSION 2.8.12 )
 include( cmake/3DusePolicies.cmake )
 include( GenerateExportHeader )  # For dll export header of VC++ shared lib
@@ -364,7 +366,7 @@ if( BUILD_PCL )
   # really sketchy and hard to interpret):
   ### Assert boost is found: refer to PCLConfig.cmake for the explicit
   # list of required boot components.
-  if( APPLE )
+  if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
     # Context: cmake 3.6.x, boost 1.60
     # Strangely enough boost if only found with a small caps leading b
     # (that is trying to find_package on Boost will fail)...
@@ -385,16 +387,17 @@ if( BUILD_PCL )
   # is to make find_package( pcl ) to fail ! Apparently this is because
   # this project cmake/FindFlann.cmake defines some Flann related variables
   # that derails PCLConfig.cmake's find_flann macro.
-  # The only thing we can thus propose is to throw some messages...
+  # The only thing we can thus propose is to throw some warning messages...
+
   if ( WIN32 )
     if ( FLANN_ROOT )
       # PCLConfig.cmake can use FLANN_ROOT as helper to find flann and hence
       # there is some hope.
-      message ( " WARNING: Letting PCLconfig.cmake try to find Flann based on" )
-      message ( "          the value of FLANN_ROOT: " ${FLANN_ROOT} )
-      message ( "          Cross fingers and hope for the best. In case of")
-      message ( "          failure try building with PCL support disabled")
-      message ( "          (set BUILD_PCL off).")
+      message ( STATUS ${APP_NAME} ": a proper installation of Flann, a PCL sub-dependency, cannot be asserted." )
+      message ( STATUS "Letting PCLconfig.cmake try to find a Flann installation based on the value")
+      message ( STATUS "of FLANN_ROOT which is set to be " ${FLANN_ROOT} )
+      message ( STATUS "In case of failure of this default strategy (PCL would end up unfound)")
+      message ( STATUS "try configuring with PCL support disabled (set BUILD_PCL off).")
     else ()
       if ( NOT DEFINED VCITY_KIT_ROOT )
         message ( " WARNING: you seem to be trying to build on WIN32 without" )
@@ -785,7 +788,6 @@ IF(WIN32)
 ENDIF(WIN32)
 
 ##### Executable for the application
-set(APP_NAME 3DUSE)
 # For Windows set the ico file with the rc file
 IF(WIN32)
   SET(VCITY_GUI_ICON resources/vcity.rc)
