@@ -42,7 +42,7 @@ target_link_libraries( TestPCLExtractVegetionLidar
 
 message("aaaaaaaaaaaaa BUILD_UNMATURE_TESTS " ${BUILD_UNMATURE_TESTS})
 message("bbbbbbbbbbbbb WIN32 :" ${WIN32})
-message("ccccccccccccc LINUX :" ${LINUX})
+message("ccccccccccccc UNIX  :" ${UNIX})
 message("ccccccccccccc APPLE :" ${APPLE})
 message("ddddddddddddd CMAKE_CXX_COMPILER_ID " ${CMAKE_CXX_COMPILER_ID} )
 
@@ -52,17 +52,18 @@ else()
 message("eeeeeeeeeeeee CMAKE_CXX_COMPILER_ID MATCHES Clang: NO " )
 endif()
 
-if( CMAKE_BUILD_TYPE MATCHES DEBUG )
+if( CMAKE_BUILD_TYPE MATCHES "Debug" )
 message("fffffffffffff CMAKE_BUILD_TYPE MATCHES DEBUG : YES " )
 else()
 message("fffffffffffff CMAKE_BUILD_TYPE MATCHES DEBUG : NO " )
 endif()
 
-if( LINUX AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang") 
-          AND ( CMAKE_BUILD_TYPE MATCHES DEBUG ) ) 
-message("gggggggggggg THE LINUX CONTEXT : YES " )
+if( UNIX AND (NOT APPLE)
+         AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang") 
+         AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" ) ) 
+message("gggggggggggg THE UNIX CONTEXT : YES " )
 else()
-message("gggggggggggg THE LINUX CONTEXT : NO " )
+message("gggggggggggg THE UNIX CONTEXT : NO " )
 endif()
 
 if(   BUILD_UNMATURE_TESTS
@@ -74,8 +75,10 @@ if(   BUILD_UNMATURE_TESTS
         # problem is thus not the test but the Appveyor context and probably
         # due to an uncomplete PATH environment variable. 
       OR
-        ( LINUX AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang") 
-                AND ( CMAKE_BUILD_TYPE MATCHES DEBUG ) )
+        ( UNIX AND ( NOT APPLE ) 
+               AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
+               AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" )
+        )
         # Segfaults on Travis (Ubuntu ???) with clan when on Debug mode (after 26s
         # without any debug message). Note that it runs smoothly in release mode.
         # Unable to reproduce any segfault in interactive mode on an
