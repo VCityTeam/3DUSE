@@ -61,37 +61,42 @@ before_build:
   - cd %KIT_ROOT%
   #
   ##### Install VCITY dependencies:
+  - set CURL_FLAGS=--connect-timeout 60 --max-time 600 -s -O
   # Note: many libraries come pre-installed by Appveyor. Refer to
   #   https://www.appveyor.com/docs/installed-software/ for a list.
   #   VCity currently uses: 
   #    * QT5:   C:\Qt\5.6\msvc2015_64
   #    * Boost: C:\Libraries\boost_1_59_0
   ### Qt4
-  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
   - 7z x qt-4.8.7-x64-msvc2015.7z > nul
-  ### OSG
-  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/osg-3.4.0.7z
+  ### OSG together with  its third party dependencies:
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/osg-3.4.0.7z
   - 7z x osg-3.4.0.7z > nul
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/osg-3rdparty-runtime.rar
+  - 7z x osg-3rdparty-runtime.rar > nul
   ### Assimp
-  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/assimp-3.2.rar
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/assimp-3.2.rar
   - 7z x assimp-3.2.rar > nul
-  #### gdal
-  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal.rar
+  #### gdal together with  its third party dependencies:
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal.rar
   - 7z x gdal.rar > nul
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal-3rdparty-runtime.rar 
+  - 7z x gdal-3rdparty-runtime.rar > nul
   ### Laslib
-  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/laslib.rar
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/laslib.rar
   - 7z x laslib.rar > nul
   ### Libxml2
-  - curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
   - 7z x libxml2-2.9.3.rar > nul
   ### PCL and its sub-dependencies
   ### Boost: kludgy renaming of appveyor provided version
   - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
   ### eigen
-  - curl --connect-timeout 60 --max-time 600 -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
   - 7z x eigen-3.2.8.rar > nul
   ### PCL, flann, qhull
-  - curl --connect-timeout 60 --max-time 600 -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
   - 7z x PCL-1.7.2.7z > nul
   #
   ##### Eventually we can configure the building (with cmake):
@@ -103,7 +108,7 @@ before_build:
     #  - Testing against QT4 is obtained as a side effect of setting
     #    BUILD_GUI_QT5 to OFF in the matrix. QT4 gets then used because
     #    BUILD_GUI_QT4 is ON by default...
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
@@ -123,11 +128,12 @@ build_script:
     # The "kit" stores some of Gdal sub-dependencies like geotiff.dll not
     # within gdal directory but within _bin_...
   - set PATH=%PATH%;%KIT_ROOT%\gdal\gdal-1.11.4\bin
-  - set PATH=%PATH%;%KIT_ROOT%\_bin_
+  - set PATH=%PATH%;%KIT_ROOT%\gdal-3rdparty-runtime
     # Laslib: the binary kit only provides the static library.
   - set PATH=%PATH%;%KIT_ROOT%\libxml2-2.9.3\bin
   - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin
   - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin\osgPlugins-3.4.0
+  - set PATH=%PATH%;%KIT_ROOT%\osg-3rdparty-runtime
     # PCL and its sub-dependencies
   - set PATH=%PATH%;%KIT_ROOT%\PCL\pcl-1.7.2\bin
   - set PATH=%PATH%;%BOOST_ROOT%\lib
