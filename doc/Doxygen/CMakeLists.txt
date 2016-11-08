@@ -23,7 +23,7 @@ else()
   set(DOT_JOBS 2)
 endif()
 
-set( DOXYGEN_FILE_PATTERNS "*.h *.cpp *.cxx *.dox *.md")
+set( DOXYGEN_FILE_PATTERNS "*.h *.hpp *.cpp *.cxx *.dox *.md")
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
