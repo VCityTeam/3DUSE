@@ -109,7 +109,7 @@ before_build:
     #    BUILD_GUI_QT5 to OFF in the matrix. QT4 gets then used because
     #    BUILD_GUI_QT4 is ON by default...
     #  - BUILD_UNMATURE_TESTS is OFF by default
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION%
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
