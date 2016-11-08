@@ -40,41 +40,6 @@ target_link_libraries( TestPCLExtractVegetionLidar
   ${CITYGMLUTILS_LIBRARIES}
 )
 
-#########################################################
-# CLEANME UP FIXME
-message("aaaaaaaaaaaaa BUILD_UNMATURE_TESTS " ${BUILD_UNMATURE_TESTS})
-message("bbbbbbbbbbbbb WIN32 :" ${WIN32})
-message("ccccccccccccc UNIX  :" ${UNIX})
-message("ccccccccccccc APPLE :" ${APPLE})
-message("ddddddddddddd CMAKE_CXX_COMPILER_ID " ${CMAKE_CXX_COMPILER_ID} )
-
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
-  message("eeeeeeeeeeeee CMAKE_CXX_COMPILER_ID MATCHES Clang: YES " )
-else()
-  message("eeeeeeeeeeeee CMAKE_CXX_COMPILER_ID MATCHES Clang: NO " )
-endif()
-
-if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-  message("fffffffffffff CMAKE_BUILD_TYPE MATCHES DEBUG : YES " )
-else()
-  message("fffffffffffff CMAKE_BUILD_TYPE MATCHES DEBUG : NO " )
-endif()
-
-if(     WIN32 AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" ) )
-  message("gggggggggggg THE WIN32 CONTEXT : YES " )
-else()
-  message("gggggggggggg THE WIN32 CONTEXT : NO " )
-endif()
-
-if( UNIX AND (NOT APPLE)
-         AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang") 
-         AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" ) ) 
-  message("hhhhhhhhhhhh THE UNIX CONTEXT : YES " )
-else()
-  message("hhhhhhhhhhhh THE UNIX CONTEXT : NO " )
-endif()
-#########################################################
-
 if(   BUILD_UNMATURE_TESTS
     OR
       NOT (
@@ -97,4 +62,5 @@ if(   BUILD_UNMATURE_TESTS
   )
 else()
   message("  Test TestPCLExtractVegetionLidar shall NOT be run." )
+  message("  Set BUILD_UNMATURE_TESTS build flag to ON in order to run it." )
 endif()
