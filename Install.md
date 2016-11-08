@@ -120,10 +120,18 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * Extract NSIS from `VCITY_local_vs2015_64\_utils_\nsis-2.50-setup.exe``
  * Setting VCity related [environment variables](https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653%28v=vs.85%29.aspx):
    * Warnings: for those upgrading from a previous VCity version, make sure to remove any `3DUse` related variable. Also make sure to remove any previously set `vs2012` variable
-   * Setup a new `VCITY_KIT_ROOT` environment variable to be `C:/VCITY_local_vs2015_64`. Watch out: this is truly slash (`/`) character !
-   * Add `";C:\VCITY_local_vs2015_64\_bin_"` to your `Path` environment variable
-     * Don't forget to add the proper `";"` path separator
-     * Prepending your Path variable with this new directory path might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
+
+### Set up environment variables (to define the building context)
+Setup the following new environment variables (**watch out**: notice that the following variable path definitions use slash (`/`) character and NOT backslash (`\`) character !):
+ * `VCITY_KIT_ROOT` to be `C:/VCITY_local_vs2015_64`.
+ * `BOOST_ROOT` to be `%VCITY_KIT_ROOT%/boost_1_59_0`
+ * When building with Qt5: `QT5_DIR` to be `%VCITY_KIT_ROOT%/Qt/Qt5.6.0/5.6/msvc2015_64`
+ * Add a traling`";C:\VCITY_local_vs2015_64\_bin_"` to your `Path` environment variable
+   * Don't forget to add the proper `";"` path separator
+   * Note that prepending (as opposed to trailing) your Path variable with this new directory path might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
+
+**Tip**: in order to assert that the environement variables are properly set open a dos command and either use `set` and look for the variable(s) you are checking or check a specific variable with e.g. `echo %BOOST_ROOT%`.
+ 
 
 **Optional dependencies**
  * [Nullsoft Scriptable Install System (NSIS)](https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System)

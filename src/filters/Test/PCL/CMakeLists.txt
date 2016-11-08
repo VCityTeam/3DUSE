@@ -40,40 +40,11 @@ target_link_libraries( TestPCLExtractVegetionLidar
   ${CITYGMLUTILS_LIBRARIES}
 )
 
-message("aaaaaaaaaaaaa BUILD_UNMATURE_TESTS " ${BUILD_UNMATURE_TESTS})
-message("bbbbbbbbbbbbb WIN32 :" ${WIN32})
-message("ccccccccccccc UNIX  :" ${UNIX})
-message("ccccccccccccc APPLE :" ${APPLE})
-message("ddddddddddddd CMAKE_CXX_COMPILER_ID " ${CMAKE_CXX_COMPILER_ID} )
-
-if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
-message("eeeeeeeeeeeee CMAKE_CXX_COMPILER_ID MATCHES Clang: YES " )
-else()
-message("eeeeeeeeeeeee CMAKE_CXX_COMPILER_ID MATCHES Clang: NO " )
-endif()
-
-if( CMAKE_BUILD_TYPE MATCHES "Debug" )
-message("fffffffffffff CMAKE_BUILD_TYPE MATCHES DEBUG : YES " )
-else()
-message("fffffffffffff CMAKE_BUILD_TYPE MATCHES DEBUG : NO " )
-endif()
-
-if( UNIX AND (NOT APPLE)
-         AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang") 
-         AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" ) ) 
-message("gggggggggggg THE UNIX CONTEXT : YES " )
-else()
-message("gggggggggggg THE UNIX CONTEXT : NO " )
-endif()
-
 if(   BUILD_UNMATURE_TESTS
     OR
       NOT (
-        WIN32 
-        # Fails on Appveyor at run time with "Command exited with code -1073741515"
-        # error message (which seems to indicate that a DLL was not found). The 
-        # problem is thus not the test but the Appveyor context and probably
-        # due to an uncomplete PATH environment variable. 
+        ( WIN32 AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" ) )
+        # Hangs out...
       OR
         ( UNIX AND ( NOT APPLE ) 
                AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
@@ -85,9 +56,10 @@ if(   BUILD_UNMATURE_TESTS
         # Ubuntu 14.04.3 LTS server.
       )
   )
-message("hhhhhhhhhhhhhhhhh BUILDING TEST " )
   add_test( TEST_PCL_EXTRACT_VEGETION_LIDAR  TestPCLExtractVegetionLidar
     ${CMAKE_CURRENT_SOURCE_DIR}/Data/IRCFilteredLidarForExtractingVegetation.las
     ${CMAKE_CURRENT_BINARY_DIR}/IRCFilteredLidarForExtractingVegetationOutput.gml
   )
+else()
+  message("  Test TestPCLExtractVegetionLidar shall NOT be run." )
 endif()

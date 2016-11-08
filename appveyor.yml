@@ -34,7 +34,7 @@ matrix:
 
 # scripts that are called at very beginning, before repo cloning
 init:
-  - set APPVEYOR=TRUE
+  # FIXME: clean me up - set APPVEYOR=TRUE
   # Leaving traces of the context:
   - cmake --version
   #  - msbuild /version
@@ -108,7 +108,8 @@ before_build:
     #  - Testing against QT4 is obtained as a side effect of setting
     #    BUILD_GUI_QT5 to OFF in the matrix. QT4 gets then used because
     #    BUILD_GUI_QT4 is ON by default...
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=ON
+    #  - BUILD_UNMATURE_TESTS is OFF by default
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
@@ -145,14 +146,3 @@ build_script:
   - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
     # We can now proceed with the sweet test suite
   - ctest -V
-    #
-    # CLEANME FIXME
-    # FIXME: TestComputeEnvelope fails on resolving dll. test_load_citygml_file
-    # succeeds. Here are the the dependencies that TestComputeEnvelope has and
-    # test_load_citygml_file hasn't:
-    #    filters.dylib, citygmlutils.dylib, vcitycore.dylib and
-    #    OpenThreads (comes from open-scene-graph)
-    # - dir %KIT_ROOT%\gdal\gdal-1.11.4\bin
-    # - dir %APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
-    # - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\src\filters\Test\%CONFIGURATION%
-    #  - TestComputeEnvelope.exe  2>&1

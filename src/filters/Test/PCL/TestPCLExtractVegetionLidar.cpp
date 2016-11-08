@@ -1,16 +1,23 @@
+#if defined _MSC_VER
+// VC++ unduly warns (warning C4996) that call to std::uninitialized_copy
+// with parameters may be unsafe (and a pragma warning disable is not enough
+// to quiet this message down).
+// Refer to
+// - http://stackoverflow.com/questions/3317536/visual-studio-warning-c4996
+// - http://stackoverflow.com/questions/14386/fopen-deprecated-warning
+#define _CRT_SECURE_NO_DEPRECATE
+#pragma warning (disable: 4267) // For lasdefinitions.hpp
+#pragma warning (disable: 4996) // Mostly for lasdefinitions.hpp but also
+                                // flann/util includes
+#pragma warning (disable: 4251) // For gdal*/*/cpl_string.h
+#endif
+
 #include <iostream>
 #include <vector>
 #include <set>
 #include <utility>
 #include <cmath>
 #include <stdio.h>
-
-#if defined _MSC_VER
-#pragma warning (disable: 4267) // For lasdefinitions.hpp
-#pragma warning (disable: 4996) // Mostly for lasdefinitions.hpp but also
-                                // flann/util includes
-#pragma warning (disable: 4251) // For gdal*/*/cpl_string.h
-#endif
 
 #include "ogrsf_frmts.h"
 
