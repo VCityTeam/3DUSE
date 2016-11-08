@@ -60,9 +60,9 @@ else()
   message("fffffffffffff CMAKE_BUILD_TYPE MATCHES DEBUG : NO " )
 endif()
 
-if(    ( WIN32 AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" ) )
+if(     WIN32 AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" ) )
   message("gggggggggggg THE WIN32 CONTEXT : YES " )
-else
+else()
   message("gggggggggggg THE WIN32 CONTEXT : NO " )
 endif()
 
