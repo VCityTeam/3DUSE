@@ -1,10 +1,4 @@
 #---------------------------------#
-#      general configuration      #
-#---------------------------------#
-
-#
-
-#---------------------------------#
 #    environment configuration    #
 #---------------------------------#
 
@@ -34,7 +28,6 @@ matrix:
 
 # scripts that are called at very beginning, before repo cloning
 init:
-  # FIXME: clean me up - set APPVEYOR=TRUE
   # Leaving traces of the context:
   - cmake --version
   #  - msbuild /version
