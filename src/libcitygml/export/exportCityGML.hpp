@@ -4,20 +4,10 @@
 #define __CITYGML_EXPORT_HPP_
 ////////////////////////////////////////////////////////////////////////////////
 #include "exporter.hpp"
+#include "TextureCityGML.hpp"
 #include <libxml/tree.h>
 #include "citygml_export.h"
 #include "citymodel.hpp"
-////////////////////////////////////////////////////////////////////////////////
-struct TexturePolygonCityGML {
-   std::vector<TVec2f> TexUV;
-   std::string Id;
-   std::string IdRing;
-};
-struct TextureCityGML {
-   std::string Url;
-   citygml::Texture::WrapMode Wrap;
-   std::vector<TexturePolygonCityGML> ListPolygons;
-};
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
