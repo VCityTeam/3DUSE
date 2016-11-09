@@ -1,4 +1,6 @@
 language: cpp
+sudo: required # need by trusty
+dist: trusty   # Ubuntu 14.04 Trusty Tahr
 
 cache: apt     # feature available only for private repositories
 
@@ -18,12 +20,8 @@ cache: apt     # feature available only for private repositories
 
 os:
   - linux             # Ubuntu 14.04 Trusty Tahr
-  - osx
-
-sudo: required # need by trusty
-dist: trusty   # Ubuntu 14.04 Trusty Tahr
-
-osx_image: xcode8
+  - osx:
+    osx_image: xcode8
     # Default is OSX 10.9 (2013). Other versions are
     # available, including OSX 10.11 (2015), refer to
     # https://docs.travis-ci.com/user/osx-ci-environment/ 
