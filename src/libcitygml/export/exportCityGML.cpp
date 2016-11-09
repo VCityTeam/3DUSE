@@ -1,11 +1,11 @@
 #include <sstream>
-#include "exportCityGML.hpp"
 #include <libxml/parser.h>
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4251) // Concerns complaints on dll interface of
                                //  boost member m_date of Exporter class.
 #endif
+#include "exportCityGML.hpp"
 
 namespace citygml
 {
