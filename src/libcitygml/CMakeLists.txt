@@ -61,6 +61,11 @@ if(MSVC)
          ${CMAKE_BINARY_DIR}/${OUTPUTCONFIG}/Lib
     )
   endforeach()
+
+  # Disable auto-linking mechanism for the boost libraries. Refer further
+  # comments and references in section  "Dealing with PCL oddities" of
+  # main CMakeLists.txt (close to the definition of PCL_DEFINITIONS_VCITY).
+  target_compile_definitions( citygml PRIVATE "BOOST_ALL_DYN_LINK=1" )
 endif()
 
 target_include_directories( citygml PUBLIC
