@@ -8,8 +8,13 @@
 #include <QMessageBox>
 #include <QPluginLoader>
 #include <ctime>
+
+#ifdef _MSC_VER
+#define BOOST_ALL_DYN_LINK 1
+#endif
 #include <boost/date_time.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <time.h>
 
 #include "ui_mainWindow.h"

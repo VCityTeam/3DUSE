@@ -649,8 +649,10 @@ else()  # Linux and MSVC (mind you)
   else ()
     include_directories(${Boost_INCLUDE_DIRS})
     if( UNIX )
+      # FIXME: do we need this ?
       set (Boost_LIBRARIES boost_date_time)
     else()
+      # FIXME: remove the following debug code
       message(WARNING "aaaaaaaaaaaaaaaa WIN32 ")
       message(WARNING "bbbbbbbbbbbbbbbb Boost_LIBRARIES :" ${Boost_LIBRARIES})
    endif()
