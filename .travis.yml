@@ -20,11 +20,9 @@ cache: apt     # feature available only for private repositories
 
 os:
   - linux             # Ubuntu 14.04 Trusty Tahr
-  - osx
-    osx_image: xcode8
-    # Default is OSX 10.9 (2013). Other versions are
-    # available, including OSX 10.11 (2015), refer to
-    # https://docs.travis-ci.com/user/osx-ci-environment/ 
+  - osx               # Default is OSX 10.9 (2013). Other versions are
+    osx_image: xcode8 # available, including OSX 10.11 (2015), refer to
+                      # https://docs.travis-ci.com/user/osx-ci-environment/ 
 
 compiler:
   - gcc
