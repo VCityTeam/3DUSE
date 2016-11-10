@@ -10,12 +10,10 @@
 #include <memory>
 
 #ifdef _MSC_VER
-#pragma warning(disable : 4996) // TEMP MT
-#pragma warning(disable : 4267) // TEMP MT
+#pragma warning(disable : 4996)
+#pragma warning(disable : 4267)
 #endif
 
-// MT : the first time, you must do from /externals/laslib folder :
-// mkdir build; cd build; cmake .. -DCMAKE_BUILD_TYPE=Release; cmake .. -DCMAKE_BUILD_TYPE=Release; make; sudo make install
 #include <lasdefinitions.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////

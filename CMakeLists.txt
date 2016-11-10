@@ -1,5 +1,7 @@
 project( 3DUSE )
 
+set(APP_NAME 3DUSE)
+
 cmake_minimum_required( VERSION 2.8.12 )
 include( cmake/3DusePolicies.cmake )
 include( GenerateExportHeader )  # For dll export header of VC++ shared lib
@@ -9,10 +11,15 @@ option( BUILD_GUI_QT4 "Build the Graphical User Interface with QT4" ON )
 option( BUILD_GUI_QT5 "Build the Graphical User Interface with QT5" OFF )
 
 if( BUILD_GUI_QT4 AND BUILD_GUI_QT5 )
-  # In case of simultaneous demand, and since Qt4 is ON by default, asking
-  # for Qt5 simply means that the builder didn't turn Qt4 OFF after requiring
-  # for Qt5 to be ON. Hence, as an historical convenience (refer to Appveyor 
-  # scripts), when both Qt4 and Qt5 are one, Qt5 has preference overs Qt4:
+  # The following preference of QT5 over QT4 (in case of an awkward simultaneous
+  # demand) is an historical convenience introduced for the Appveyor (builder)
+  # script. Indeed since QT4 is ON by default, asking for QT5 support simply
+  # means that the appveyor builder didn't turn QT4 OFF after requiring
+  # for Qt5 to be ON.
+  # FIXME: fix the Appveyor script (refer to the "matrix" definition that should
+  # be expressed symmetrically in terms of QT4 and QT5 supports), and convert the
+  # following overwriting rule into an error message (we should never be asking
+  # for a simultaneous support of QT4 and QT5)...
   set( BUILD_GUI_QT4 OFF  CACHE BOOL
       "Build the Graphical User Interface with QT4."
       FORCE)
@@ -22,6 +29,16 @@ option( BUILD_EMBARKED_OSG-QT_32 "Use embarked copy of OSG-Qt version 3.2" OFF )
 option( BUILD_EMBARKED_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
 
 option( BUILD_DOCUMENTATION  "Build the documentation." OFF )
+
+option( BUILD_TESTING        "Build the regression test suite." ON )
+# Some unstable or not yet mature tests fail on some platforms. This
+# can be problematic for the continuous integration scheme (since such
+# tests can invalidate the whole integration and blind us from otherwise
+# true regressions of the code). The following optional flag enables such
+# unmature tests to be set off while working on their improvement.
+option( BUILD_UNMATURE_TESTS "Build currently failing tests." ON )
+
+option( BUILD_PCL            "Point Cloud Library support toggle." OFF )
 
 # Some syntactic convenience for CI scripts shortening:
 option( BUILD_ALL_PLUGINS "Build all available plugins" OFF )
@@ -50,7 +67,9 @@ else()
 endif()
 
 
-enable_testing()
+if( BUILD_TESTING )
+  enable_testing()
+endif()
 
 # Project configuration
 set(PRJ_NAME 3DUSE)
@@ -338,6 +357,148 @@ if(OPENTHREADS_FOUND)
 else(OPENTHREADS_FOUND)
   message(FATAL_ERROR "OpenThreads not found. Please set OPENTHREADS_DIR.")
 endif(OPENTHREADS_FOUND)
+
+# Find PCL dependency
+if( BUILD_PCL )
+  ##### PCL module dectection:
+  # Assert manually that the PCL dependencies are satisfied in order to
+  # simplify the context of PCL failing dependency (when find_package
+  # fails on PCL because of a missing suv-dependency the error message is 
+  # really sketchy and hard to interpret):
+  ### Assert boost is found: refer to PCLConfig.cmake for the explicit
+  # list of required boot components.
+  if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
+    # Context: cmake 3.6.x, boost 1.60
+    # Strangely enough boost if only found with a small caps leading b
+    # (that is trying to find_package on Boost will fail)...
+    find_package( boost COMPONENTS
+      system filesystem thread date_time iostreams serialization chrono 
+      REQUIRED
+    )
+  else()   # Linux and MSVC (mind you)
+    find_package( Boost COMPONENTS
+      system filesystem thread date_time iostreams serialization chrono)
+    if( NOT Boost_FOUND )
+      message(WARNING "PCL requires Boost which cannot be found.")
+    endif ()
+  endif()
+  ### Assert Flann is installed:
+  # There is no simple way to assert that Flann package is installed. If one
+  # tries a find_package( Flann ) on Win32 then a side effect of this test
+  # is to make find_package( pcl ) to fail ! Apparently this is because
+  # this project cmake/FindFlann.cmake defines some Flann related variables
+  # that derails PCLConfig.cmake's find_flann macro.
+  # The only thing we can thus propose is to throw some warning messages...
+
+  if ( WIN32 )
+    if ( FLANN_ROOT )
+      # PCLConfig.cmake can use FLANN_ROOT as helper to find flann and hence
+      # there is some hope.
+      message ( STATUS ${APP_NAME} ": a proper installation of Flann, a PCL sub-dependency, cannot be asserted." )
+      message ( STATUS "  Letting PCLconfig.cmake try to find a Flann installation based on the value")
+      message ( STATUS "  of FLANN_ROOT which is set to be " ${FLANN_ROOT} )
+      message ( STATUS "  In case of failure of this default strategy (PCL would end up unfound)")
+      message ( STATUS "  try configuring with PCL support disabled (set BUILD_PCL off).")
+    else ()
+      if ( NOT DEFINED VCITY_KIT_ROOT )
+        message ( " WARNING: you seem to be trying to build on WIN32 without" )
+        message ( "     VCity's binary kit. You only hope for PCL to find its")
+        message ( "     flann sub-dependency is for PCLConfig.cmake to find" )
+        message ( "     within the well known location (C:\ProgramFiles...)" )
+      else ()
+        message ( " WARNING: FLANN_ROOT variable was not set by VCity's Win32")
+        message ( "      binary kit which looks screwy... You might end up ")
+        message ( "      with PCL failing in finding the Flann library...") 
+      endif ()
+    endif ()
+  endif ()
+
+  ### Eventually we can look for PCL itself
+  find_package(PCL 1.3 REQUIRED COMPONENTS common io)
+  if ( NOT PCL_FOUND )
+    message ( WARNING "Couldn't find package PCL (Point Could Library).")
+    message ( FATAL_ERROR
+              "Try building with PCL support disabled (set BUILD_PCL off).")
+  endif ()
+
+
+  ##### Dealing with PCL (post find_package) oddities:
+  if( WIN32 )
+    # FIXME: instead of having to use a new variable (PCL_DEFINITIONS_VCITY)
+    # in order to pass around compile flag definitions, we could have 
+    # extended the content of the PCL provided (and already existing)
+    # PCL_DEFINITIONS variable. Yet the PCL_definitions sems to be usgin
+    # a syntax of the form "-DSYMBOL_A;-DSYMBOL_B" (that is a list) which
+    # doesn't seem to be easily extensible by writing things like
+    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS} -DMY_NEW_SYMBOL" ) or the
+    # same with no whitespace separator,
+    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS}-DMY_NEW_SYMBOL" ) or 
+    # with the quotes only around the extension
+    #   set( PCL_DEFINITIONS ${PCL_DEFINITIONS} "-DMY_NEW_SYMBOL" ) or
+    # eventually a blending of notations ("-DSYMBOL" and "SYMBOL=1)
+    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS} DMY_NEW_SYMBOL=1" )...
+    # Hence the usage of this extra variable.
+   
+    # There is a strange interference between find_package( Boost) and the
+    # VC++ auto-linking mechanisms. Indeed the Boost components get properly
+    # detected and the Boost_<Component>_LIBRARY get proper content e.g. 
+    # C:\Libraries\boost_1_59_0\lib\boost_thread-vc140-mt-1_59.lib". Yet when
+    # linking the PCL using code one get a "LINK : fatal error LNK1104" 
+    # described as "cannot open file libboost_thread-vc140-mt-1_59.lib" (it is
+    # important to notice that the filename is LIBboost_thread-* i.e. it gets
+    # prefixed with "LIB".
+    # This is due to an interference between find_package( Boost) and the
+    # VC++ auto-linking mechanisms that is documented e.g. here:
+    # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9 You could disable 
+    # In order to disable the auto-linking mechanisme we thus resolve to
+    # using the following additional compile flag:
+    set( PCL_DEFINITIONS_VCITY "BOOST_ALL_DYN_LINK=1" )
+
+    # In order to avoid a compile time error of the form "C2065 M_LOG2E
+    # undeclared identifier" reported for line 276 of pcl_macros.h (PCL
+    # version 1.7), one needs to add::
+    set(   PCL_DEFINITIONS_VCITY
+         ${PCL_DEFINITIONS_VCITY} "_USE_MATH_DEFINES=1" )
+
+    # PCL seems to forget to point to its sub-dependencies includes like
+    # Flann. This must be fixed in order to avoid compile time messages 
+    # of the form "Cannot open include file flann/flann.hpp" that PCL's
+    # pcl/kdtree/flann.h includes itself:
+    if( FLANN_ROOT ) 
+      set( PCL_INCLUDE_DIRS ${PCL_INCLUDE_DIRS} ${FLANN_ROOT}/include )
+    endif()
+
+    # The list of libraries (PCL_LIBRARIES) seems to be incomplete. In order
+    # to define them manually we assume that PCLConfig.cmake ran smoothly
+    # and found PCL_COMMON_LIBRARY which should always be present. We further
+    # assume that packager of PCL laid the "other" libraries side by side
+    # with PCL_COMMON_LIBRARY...
+    get_filename_component( VCITY_PCL_LIBRARY_DIRECTORY
+                            ${PCL_COMMON_LIBRARY} DIRECTORY )
+    # FIXME: decline this symmetrically with release/debug
+    set( PCL_SEARCH_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_search_release.lib )
+    set( PCL_SEGMENTATION_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_segmentation_release.lib )
+  endif()
+
+  ### Still dealing with PCL post find_package oddities
+  if( APPLE )
+    # Context: cmake 3.6.x, PCL 1.8, boost 1.60
+    # For some odd reason some pcl libraries do not come linked against
+    # some of their boost dependencies. Hence ce following "syntactic sugar".
+    set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
+  endif()
+
+  if( NOT WIN32 )
+    # The list of libraries (PCL_LIBRARIES) as detected by PCLConfig.cmake
+    # seems to be partial (only a subset of available libraries is accessible
+    # through the variable that were set). Define them manually (and cross
+    # fingers for them to be present):
+    set( PCL_SEARCH_LIBRARY       pcl_search )
+    set( PCL_SEGMENTATION_LIBRARY pcl_segmentation )
+  endif( )
+endif ()
 
 # Find osgQt
 # 3DUse embarks its own "fork" of OSQ-Qt (within src/gui/osgQt sub-directory).
@@ -628,7 +789,6 @@ IF(WIN32)
 ENDIF(WIN32)
 
 ##### Executable for the application
-set(APP_NAME 3DUSE)
 # For Windows set the ico file with the rc file
 IF(WIN32)
   SET(VCITY_GUI_ICON resources/vcity.rc)

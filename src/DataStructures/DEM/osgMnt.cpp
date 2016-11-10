@@ -6,7 +6,7 @@
 #include "osgMnt.hpp"
 
 #ifdef _MSC_VER
-#pragma warning(disable : 4996) // TEMP MT
+#pragma warning(disable : 4996)
 #endif
 ////////////////////////////////////////////////////////////////////////////////
 MNT::MNT()

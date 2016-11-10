@@ -1,10 +1,4 @@
 #---------------------------------#
-#      general configuration      #
-#---------------------------------#
-
-#
-
-#---------------------------------#
 #    environment configuration    #
 #---------------------------------#
 
@@ -13,36 +7,32 @@ os: Visual Studio 2015
 
 # environment variables
 environment:
+  # The following environement variable definitions are only used within
+  # the pre_build section:
   QT5_DIR: C:\Qt\5.6\msvc2015_64
   BOOST_ROOT: C:\Libraries\boost_1_59_0
 #
   KIT_ROOT: C:\local_vs2015_64
-#
+  #
   matrix:
-  - B_USE_QT5:  OFF  # so we use Qt4 here for UI
+  - B_USE_QT5:  OFF  # Qt4 gets defaulted with a cmake trick/kludge
   - B_USE_QT5:  ON
 
 # this is how to allow failing jobs in the matrix
 matrix:
-  fast_finish: true # set this flag to immediately finish build once one of the jobs fails
-#  allow_failures:
+  fast_finish: true # Immediately finish build once one of the jobs fails
+  # allow_failures:
 
-# build cache to preserve files/folders between builds
 #cache:
-# - %KIT_ROOT% # don't work !?
-#  - C:\local_vs2015_64 # cached folder size cannot exceed 500 MB, so OFF for the moment...
+  # Preserving files/folders accross builds currently limited to 
+  # 500Mb which is not enough for all the dependencies...
 
 # scripts that are called at very beginning, before repo cloning
 init:
-#  - set
-#  - msbuild /version
-#  - cmake --version
-#  - dir C:\Libraries
-#  - dir C:\Libraries\boost_1_59_0
-#  - dir C:\Qt
-#  - dir C:\Qt\5.6
-  - set APPVEYOR=TRUE
-  - set CACHE=FALSE
+  # Leaving traces of the context:
+  - cmake --version
+  #  - msbuild /version
+  #  - dir C:\Libraries
 
 #---------------------------------#
 #       build configuration       #
@@ -56,47 +46,97 @@ configuration:
 # MSBuild verbosity level
 #  verbosity: quiet|minimal|normal|detailed
 
-# scripts to run before build
 before_build:
-# Get rid of pesky Xamarin build messages, refer to
-# http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
+  # Get rid of pesky Xamarin build messages, refer to
+  # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
-  - IF EXIST %KIT_ROOT% SET CACHE=TRUE
-#
-  - echo %CACHE%
-  - IF %CACHE%==FALSE echo CACHE_IS_FALSE
-  - IF %CACHE%==TRUE echo CACHE_IS_TRUE
-#
-  - IF %CACHE%==FALSE mkdir %KIT_ROOT%
-  - IF %CACHE%==FALSE cd %KIT_ROOT%
-# Qt4
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
-  - IF %CACHE%==FALSE 7z x qt-4.8.7-x64-msvc2015.7z > nul
-# OSG
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/osg-3.4.0.7z
-  - IF %CACHE%==FALSE 7z x osg-3.4.0.7z > nul
-# assimp
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/assimp-3.2.rar
-  - IF %CACHE%==FALSE 7z x assimp-3.2.rar > nul
-# gdal
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal.rar
-  - IF %CACHE%==FALSE 7z x gdal.rar > nul
-# laslib
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/laslib.rar
-  - IF %CACHE%==FALSE 7z x laslib.rar > nul
-# libxml
-  - IF %CACHE%==FALSE curl -s -O https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
-  - IF %CACHE%==FALSE 7z x libxml2-2.9.3.rar > nul
-# boost
+  #
+  - mkdir %KIT_ROOT%
+  - cd %KIT_ROOT%
+  #
+  ##### Install VCITY dependencies:
+  - set CURL_FLAGS=--connect-timeout 60 --max-time 600 -s -O
+  # Note: many libraries come pre-installed by Appveyor. Refer to
+  #   https://www.appveyor.com/docs/installed-software/ for a list.
+  #   VCity currently uses: 
+  #    * QT5:   C:\Qt\5.6\msvc2015_64
+  #    * Boost: C:\Libraries\boost_1_59_0
+  ### Qt4
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
+  - 7z x qt-4.8.7-x64-msvc2015.7z > nul
+  ### OSG together with  its third party dependencies:
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/osg-3.4.0.7z
+  - 7z x osg-3.4.0.7z > nul
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/osg-3rdparty-runtime.rar
+  - 7z x osg-3rdparty-runtime.rar > nul
+  ### Assimp
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/redo/assimp-3.2.rar
+  - 7z x assimp-3.2.rar > nul
+  #### gdal together with  its third party dependencies:
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal.rar
+  - 7z x gdal.rar > nul
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/gdal-3rdparty-runtime.rar 
+  - 7z x gdal-3rdparty-runtime.rar > nul
+  ### Laslib
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/laslib.rar
+  - 7z x laslib.rar > nul
+  ### Libxml2
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
+  - 7z x libxml2-2.9.3.rar > nul
+  ### PCL and its sub-dependencies
+  ### Boost: kludgy renaming of appveyor provided version
   - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
-#
+  ### eigen
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
+  - 7z x eigen-3.2.8.rar > nul
+  ### PCL, flann, qhull
+  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
+  - 7z x PCL-1.7.2.7z > nul
+  #
+  ##### Eventually we can configure the building (with cmake):
   - cd %APPVEYOR_BUILD_FOLDER%
-# If someday we use the binary kit of 2012 again, then the pertinent option
-# concerning OSG-QT will be -DBUILD_EMBARKED_OSG-QT_32=ON (i.e. 32 instead of 34).
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON
+    # Notes concerning cmake configuration flags:
+    #  - When using 2012 binary kit (currently deprecated), then the pertinent
+    #    option concerning OSG-QT will be -DBUILD_EMBARKED_OSG-QT_32=ON (i.e.
+    #    32 instead of 34).
+    #  - Testing against QT4 is obtained as a side effect of setting
+    #    BUILD_GUI_QT5 to OFF in the matrix. QT4 gets then used because
+    #    BUILD_GUI_QT4 is ON by default...
+    #  - BUILD_UNMATURE_TESTS is ON by default
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_UNMATURE_TESTS=OFF
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-  - msbuild 3DUSE.sln # Avoid /m which produces random crashes Qt-MOC invocations
-  # Some existing tests trigger exceptions on Win32...
-  # - ctest
+    # Note: avoid launching msbuild with the /m set. This would produces
+    # random crashes Qt-MOC invocations...
+  - msbuild 3DUSE.sln 
+    ##### Ctest: establising context and run per se
+    # For the binaries (the tests that ctest will trigger) to find the
+    # dynamic libraries they depend on, the PATH variable must be set
+    # properly. The following definition of PATH (required at runtime)
+    # mirrors the definition of the various <package>_DIR variables used
+    # to drive cmake's find_package (required at compile time): refer to
+    # file cmake/msvc/kit_vs2015-64_v01-common.cmake.
+  - set PATH=%PATH%;%QT5_DIR%\bin
+  - set PATH=%PATH%;%KIT_ROOT%\Qt\qt-4.8.7-x64-msvc2015\bin
+  - set PATH=%PATH%;%KIT_ROOT%\assimp-3.2\lib
+    # The "kit" stores some of Gdal sub-dependencies like geotiff.dll not
+    # within gdal directory but within _bin_...
+  - set PATH=%PATH%;%KIT_ROOT%\gdal\gdal-1.11.4\bin
+  - set PATH=%PATH%;%KIT_ROOT%\gdal-3rdparty-runtime
+    # Laslib: the binary kit only provides the static library.
+  - set PATH=%PATH%;%KIT_ROOT%\libxml2-2.9.3\bin
+  - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin
+  - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin\osgPlugins-3.4.0
+  - set PATH=%PATH%;%KIT_ROOT%\osg-3rdparty-runtime
+    # PCL and its sub-dependencies
+  - set PATH=%PATH%;%KIT_ROOT%\PCL\pcl-1.7.2\bin
+  - set PATH=%PATH%;%BOOST_ROOT%\lib
+  - set PATH=%PATH%;%KIT_ROOT%\PCL\flann-1.8.4\bin
+  - set PATH=%PATH%;%KIT_ROOT%\PCL\qhull-2015.2\bin
+    # Eventually add the path to VCity internal dynamic libraries and plugins
+    # located in either Release or Debug subdirectory (environment variable
+    # CONFIGURATION in the matrix):
+  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
+    # We can now proceed with the sweet test suite
+  - ctest -V

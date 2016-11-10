@@ -20,8 +20,7 @@ cache: apt     # feature available only for private repositories
 
 os:
   - linux      # Ubuntu 14.04 Trusty Tahr
-  - osx        # Default is OSX 10.9 (2013). Other versions are
-               # available, including OSX 10.11 (2015), refer to
+  - osx        # Default is OSX 10.11.6 (2015): refer to
                # https://docs.travis-ci.com/user/osx-ci-environment/ 
 
 compiler:
@@ -29,8 +28,8 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
 
 matrix:
   fast_finish: true
@@ -50,22 +49,83 @@ addons:
       - libboost-dev
       - libboost-date-time-dev
       - graphviz
+      # Point Cloud Library (PCL) dependencies. PCL itself not being an
+      # available package (do not get confused with the Portable Coroutine
+      # Library packaged as libpcl1-dev), it is manually "gotten" (refer
+      # to install section)
+      - libboost-chrono-dev
+      - libboost-date-time-dev
+      - libboost-dev
+      - libboost-filesystem-dev
+      - libboost-iostreams-dev
+      - libboost-serialization-dev
+      - libboost-system-dev
+      - libboost-thread-dev
+      - libeigen3-dev
+      - libflann-dev
+      - libqhull-dev
+
 
 install:
   - export TRAVIS=YES
   - cmake --version
-  # OSX install done through brew:
+  #
+  ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew outdated boost || brew upgrade boost; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt assimp doxygen graphviz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install assimp; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install graphviz; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
-    # Already (indirectly) installed          brew install gdal
-    #
-    # Fix unstatified dependency of libgdal.1.dylib that looks for
-    # libspatialite.5.dylib (version 5) when the libspatialite formula installs
-    # libspatialite.7.dylib (version 7). Trick libgdal in getting what it needs:
-    # refer to issue #121. [osx_image: beta-xcode6.1]
+    ### Gdal
+    # "brew install gdal" is skipped because was already (indirectly) pulled.
+    # Yet we need to fix an unstatified dependency of libgdal.1.dylib that
+    # looks for libspatialite.5.dylib (version 5) when the libspatialite
+    # formula installs libspatialite.7.dylib (version 7). We thus trick
+    # libgdal in getting what it needs:
+    #     refer to issue #121. [osx_image: beta-xcode6.1]
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
+    # PCL related install: 
+    # The following sub-dependencies are manually installed (instead of
+    # letting them be pulled indirectly by pcl) just to make sub-dependencies
+    # more explicit.
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/flann; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
+    # The following install of boost triggers a re-install that ends up
+    # considered as an error by Travis. We could use some Travis tricks
+    # like using
+    #    brew outdated <package-name> || brew upgrade <package-name>
+    # which is documented here 
+    #   https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages 
+    # but we shall just skip it for the time being.
+    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost; fi
+    #
+    # Pcl itself takes a long time to be poured (more than Travis's 10' 
+    # default cut off): 
+    # FIXME: consider adding the --without-apps --without-tools brew install
+    # option in order to save building time of pcl...
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60 brew install homebrew/science/pcl --without-vtk; fi
+    # DEBUG
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
+    # PCL config files looks for the Boost package (whith a capital B) which
+    # will fail starting with cmake version 3.5 (previous version seem not
+    # be case dependent on the find_package argument) with a message of the
+    # form:
+    #    CMake Error at /usr/local/share/pcl-1.7/PCLConfig.cmake:45 (message):
+    #      common is required but boost was not found
+    # Hence the following kludgy fix
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
+  #
+  ###### Linux depedency installation
+    # We are here only concerned with dependencies that were not already
+    # installed in above section addons:apt:packages.
+    ### Point Cloud Library (not be confused with another library carrying
+    # package under the same "pcl" name):
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd /tmp; wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar zxf pcl-pcl-1.7.2.travis-trusty.tgz; cd pcl-pcl-1.7.2/buildR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make install && cd $TRAVIS_BUILD_DIR; fi
 
 script:
   # FIXME: try to deport laslib installation to install target
@@ -77,7 +137,7 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  cmake .. $BTYPE; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - make
-  - ctest
+  - ctest -V
   #### Test the Qt5 version
   # Previous test were against qt4 which is the default version
   # for both linux and osx. Try building and testing as above
@@ -96,7 +156,7 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest -V; fi
 
     ####  Linux Qt5 tests:
     # First the install of Qt5
@@ -106,4 +166,4 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest -V; fi
