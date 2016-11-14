@@ -370,7 +370,7 @@ void MainWindow::openRecentFile()
 bool MainWindow::loadFile( const QString& filepath )
 {
    // date check
-   if ( QDate::currentDate() > QDate( 2016, 12, 31 ) )
+   if ( QDate::currentDate() > QDate( 2017, 12, 31 ) )
    {
       QMessageBox( QMessageBox::Critical, "Error", "Expired" ).exec();
       return false;
@@ -2364,11 +2364,17 @@ void MainWindow::slotChangeDetection()
    QApplication::restoreOverrideCursor();
 }
 ////////////////////////////////////////////////////////////////////////////////
-void MainWindow::TilingCityGML( QString CityGMLPath, std::string OutputPath, int TileX, int TileY ) //BIEN PENSER A METTRE LES DOSSIER DE TEXTURE AVEC LES CITYGML POUR LES MNT AVEC DES TEXTURE WORLD
+/**
+* @brief Create tiles from CityGML files
+* @param CityGMLPath : folder containing input CityGML
+* @param OutputPath : folder in which will be stored tiled CityGML
+* @param TileX : tile size along axis X (m)
+* @param TileY : tile size along axis Y (en m)
+* @param Suffix : Optional suffix which allow to distinguish diffrent layers, ex : _BATI, _MNT. This suffix will be add at the en of CityGML filenames and a corresponding will be created in OutputPath, in which will be stored these CityGML.
+* @param AssignOrCut : true -> tiling by assigning cityobjects according to the position of their center of gravity, false -> tiling by cutting geometries according to the tile boundaries
+*/
+void MainWindow::TilingCityGML( QString CityGMLPath, std::string OutputPath, int TileX, int TileY, std::string Suffix, bool AssignOrCut ) //BIEN PENSER A METTRE LES DOSSIER DE TEXTURE DANS LE CityGMLPath POUR LES MNT AVEC DES TEXTURE WORLD
 {
-   //CityGMLPath = "D:/Donnees/Data/CityGML Grand Lyon/2012_DonneesVisibilite/Test";
-   //OutputPath = "D:/Donnees/Data/CityGML Grand Lyon/2012_DonneesVisibilite/Test2";
-
    CPLPushErrorHandler( CPLQuietErrorHandler ); //POUR CACHER LES WARNING DE GDAL
 
    QTime time;
@@ -2389,6 +2395,12 @@ void MainWindow::TilingCityGML( QString CityGMLPath, std::string OutputPath, int
       }
    }
    std::cout << list.size() << " fichier(s) CityGML trouve(s)." << std::endl;
+
+   if ( Suffix != "" ) //Pour creer les dossiers _BATI, _MNT, ...
+      OutputPath = OutputPath + "/" + Suffix;
+
+   if ( !QDir( QString::fromStdString( OutputPath ) ).exists() )
+      QDir().mkdir( QString::fromStdString( OutputPath ) );
 
    int cpt = 0;
    for ( QString Path : list )
@@ -2415,9 +2427,18 @@ void MainWindow::TilingCityGML( QString CityGMLPath, std::string OutputPath, int
             std::vector<TextureCityGML*> TexturesList;
 
             std::cout << "Tuile : " << x / TileX << "_" << y / TileY << std::endl;
-            citygml::CityModel* Tuile = TileCityGML( Tile, &TexturesList, TVec2d( x, y ), TVec2d( x + TileX, y + TileY ), CityGMLPath.toStdString().substr( 0, CityGMLPath.toStdString().find_last_of( "/" ) ) );
+            citygml::CityModel* Tuile;
+            if ( AssignOrCut )
+               Tuile = TileCityGML_assign( Tile, &TexturesList, TVec2d( x, y ), TVec2d( x + TileX, y + TileY ), CityGMLPath.toStdString().substr( 0, CityGMLPath.toStdString().find_last_of( "/" ) ) );
+            else
+               Tuile = TileCityGML_cut( Tile, &TexturesList, TVec2d( x, y ), TVec2d( x + TileX, y + TileY ), CityGMLPath.toStdString().substr( 0, CityGMLPath.toStdString().find_last_of( "/" ) ) );
 
-            std::string FileName = OutputPath + "/" + std::to_string( (int)( x / TileX ) ) + "_" + std::to_string( (int)( y / TileY ) ) + ".gml";
+            std::string TileFolder = OutputPath + "/" + std::to_string( (int)( x / TileX ) ) + "_" + std::to_string( (int)( y / TileY ) );
+
+            if ( !QDir( QString::fromStdString( TileFolder ) ).exists() )
+               QDir().mkdir( QString::fromStdString( TileFolder ) );
+
+            std::string FileName = TileFolder + "/" + std::to_string( (int)( x / TileX ) ) + "_" + std::to_string( (int)( y / TileY ) ) + Suffix + ".gml";
 
             FILE * fp = fopen( FileName.c_str(), "rb" );
             if ( fp == nullptr ) //Le fichier correspondant a la tuile courante n'existe pas, on peut donc le creer

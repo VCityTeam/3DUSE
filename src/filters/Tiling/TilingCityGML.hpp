@@ -15,19 +15,27 @@
 #include "export/exportCityGML.hpp"
 #include "filters_export.h"
 
-FILTERS_EXPORT citygml::CityModel* TileCityGML(
-  vcity::Tile* Tile,
-  std::vector<TextureCityGML*>* TexturesList,
-  TVec2d MinTile,
-  TVec2d MaxTile,
-  std::string PathFolder
-);
+FILTERS_EXPORT citygml::CityModel* TileCityGML_cut(
+   vcity::Tile* Tile,
+   std::vector<TextureCityGML*>* TexturesList,
+   TVec2d MinTile,
+   TVec2d MaxTile,
+   std::string PathFolder
+   );
+
+FILTERS_EXPORT citygml::CityModel* TileCityGML_assign(
+   vcity::Tile* Tile,
+   std::vector<TextureCityGML*>* TexturesList,
+   TVec2d MinTile,
+   TVec2d MaxTile,
+   std::string PathFolder
+   );
 
 FILTERS_EXPORT void MergingTile(
-  vcity::Tile* OldTile,
-  citygml::CityModel* NewTile,
-  std::vector<TextureCityGML*>* TexturesList
-);
+   vcity::Tile* OldTile,
+   citygml::CityModel* NewTile,
+   std::vector<TextureCityGML*>* TexturesList
+   );
 
 FILTERS_EXPORT citygml::CityModel* CreateBoundingBox( std::string dir );
 
