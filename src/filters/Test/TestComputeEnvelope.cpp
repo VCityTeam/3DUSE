@@ -11,6 +11,8 @@
 
 int main(int narg, char** argv)
 {
+  std::cout << "  Entering test " << argv[0] << std::endl;
+
   if ( narg < 4 )
   {
     std::cout << "Usage: " 
@@ -36,6 +38,12 @@ int main(int narg, char** argv)
               << std::endl;
     exit(EXIT_FAILURE);
   }
+  else
+  {
+    std::cout << "  CityGML file used as first input: "
+              << CityGML_filename
+              << std::endl;
+  }
 
   std::string Shape_filename( argv[2] );
   std::ifstream inShape( Shape_filename );
@@ -46,8 +54,16 @@ int main(int narg, char** argv)
               << std::endl;
     exit(EXIT_FAILURE);
   }
+  else
+  {
+    std::cout << "  Shape file used as second input: "
+              << Shape_filename
+              << std::endl;
+  }
 
+  std::cout << "  Launching the creation of the Tile." << std::endl;
   vcity::Tile* BatiLOD2CityGML = new vcity::Tile( CityGML_filename.c_str() );
+  std::cout << "  Tile created." << std::endl;
 
   // FIXME: remove the following line and make the test _really_ effective !
   return 0;
@@ -61,16 +77,23 @@ int main(int narg, char** argv)
               << std::endl;
     exit(EXIT_FAILURE);
   }
+  std::cout << "  Shape file succesfully opened." << std::endl;
 
+  std::cout << "  Initiating cut of shapefile." << std::endl;
   std::vector< TextureCityGML* > ListTextures;
   citygml::CityModel* ModelOut =
      CutCityGMLwithShapefile( BatiLOD2CityGML, BatiShapeFile, &ListTextures);
+  std::cout << "  Shapefile succesfully cut." << std::endl;
 
+  std::cout << "  Launching computation of envelope." << std::endl;
   ModelOut->computeEnvelope();
+  std::cout << "  Envelope computed." << std::endl;
 
   // Write the results to the CLI given outputfile:
   citygml::ExporterCityGML exporter( argv[3] );
+  std::cout << "  Exporter to file " << argv[3] << " created" << std::endl;
   exporter.exportCityModelWithListTextures( *ModelOut, &ListTextures );
+  std::cout << "  Exportation done." << std::endl;
 
   // Clean up round:
   for (TextureCityGML* Tex : ListTextures)

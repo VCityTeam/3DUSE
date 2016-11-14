@@ -1,3 +1,10 @@
+if( NOT BUILD_TESTING )
+  return()
+endif()
+
+add_subdirectory( PCL )
+
+###### Lonely tests:
 add_executable( TestComputeEnvelope TestComputeEnvelope.cpp )
 
 target_include_directories( TestComputeEnvelope PUBLIC
