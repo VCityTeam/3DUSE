@@ -27,6 +27,17 @@ endif()
 
 option( BUILD_EMBARKED_OSG-QT_32 "Use embarked copy of OSG-Qt version 3.2" OFF )
 option( BUILD_EMBARKED_OSG-QT_34 "Use embarked copy of OSG-Qt version 3.4" OFF )
+if( WIN32 )
+  # Win32 version of OSG-Qt never provides such functionnality. We shall assume
+  # that by default VC++ 2015 is used and thus a "recent" (above 3.4) version of
+  # QT external dependency will be provided. We thus turn this option ON by
+  # default. Note that turning it off (in order to set BUILD_EMBARKED_OSG-QT_32
+  # to ON) should only be needed in Win32 when using an MSVC version of 2012 (and
+  # thus an "old" version of QT°.
+  set( BUILD_EMBARKED_OSG-QT_34                 ON CACHE BOOL
+      "Use embarked copy of OSG-Qt version 3.4" FORCE
+  )
+endif()
 
 option( BUILD_DOCUMENTATION  "Build the documentation." OFF )
 
@@ -66,7 +77,7 @@ else()
   option( BUILD_CityGMLVisibiliteQtPlugin "Build the Visibilite plugin." OFF)
 endif()
 
-
+### Testing with ctest
 if( BUILD_TESTING )
   enable_testing()
 endif()
@@ -217,8 +228,37 @@ if( BUILD_GUI_QT4 )
   include( ${QT_USE_FILE} )
 endif()
 
-# Find OpenGL
-# FIXME: the only dependency towards OpenGL occurs 
+##### Find Boost
+if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
+  # In some recent OSX contexts (e.g. with cmake 3.6.x and boost 1.60), and
+  # strangely enough, Boost is only found with a small caps leading b. And
+  # trying a "find_package( Boost)" seems to always fail. Hence the current
+  # kludge. Note that the project central code only requires (for the time 
+  # being) filesystem and date_time components.
+  # Note that we also check for PCL related needed components (refer to
+  # PCLConfig.cmake for the explicit and complete list of PCL required boot
+  # components) which is not really clean. Indeed this adds some unnecessary
+  # requirements (on some boost components) when building without PCL...
+  find_package( boost COMPONENTS
+    date_time filesystem                          # Mandatory
+    chrono iostreams serialization system thread  # For PCL
+    REQUIRED )
+  include_directories(${Boost_INCLUDE_DIRS})
+  set (Boost_LIBRARIES boost_date_time)
+else()  # Linux and MSVC together in perfect harmony (mind you)
+  find_package( Boost COMPONENTS
+    date_time filesystem                          # Mandatory
+    chrono iostreams serialization system thread  # For PCL
+    REQUIRED )
+  if( UNIX )
+    # FIXME: do we need this ?
+    set (Boost_LIBRARIES boost_date_time)
+  endif()
+endif ()
+include_directories( ${Boost_INCLUDE_DIRS} )
+
+##### Find OpenGL
+# FIXME: the only dependency towards OpenGL occurs in
 # src/libcitygml/tesselator.hpp which includes glu.h. Deport this
 # dependency to libCityGML (and even better try to remove it completely
 # by using self contained code or CGAL tesselators).
@@ -365,23 +405,9 @@ if( BUILD_PCL )
   # simplify the context of PCL failing dependency (when find_package
   # fails on PCL because of a missing suv-dependency the error message is 
   # really sketchy and hard to interpret):
-  ### Assert boost is found: refer to PCLConfig.cmake for the explicit
-  # list of required boot components.
-  if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
-    # Context: cmake 3.6.x, boost 1.60
-    # Strangely enough boost if only found with a small caps leading b
-    # (that is trying to find_package on Boost will fail)...
-    find_package( boost COMPONENTS
-      system filesystem thread date_time iostreams serialization chrono 
-      REQUIRED
-    )
-  else()   # Linux and MSVC (mind you)
-    find_package( Boost COMPONENTS
-      system filesystem thread date_time iostreams serialization chrono)
-    if( NOT Boost_FOUND )
-      message(WARNING "PCL requires Boost which cannot be found.")
-    endif ()
-  endif()
+  ### Asserting Boost is installed:
+  # Boost being a mandatory dependency of this application this was already
+  # previsously (look above) taken care about.
   ### Assert Flann is installed:
   # There is no simple way to assert that Flann package is installed. If one
   # tries a find_package( Flann ) on Win32 then a side effect of this test
@@ -471,23 +497,35 @@ if( BUILD_PCL )
     # The list of libraries (PCL_LIBRARIES) seems to be incomplete. In order
     # to define them manually we assume that PCLConfig.cmake ran smoothly
     # and found PCL_COMMON_LIBRARY which should always be present. We further
-    # assume that packager of PCL laid the "other" libraries side by side
+    # assume that the packager of PCL laid the "other" libraries side by side
     # with PCL_COMMON_LIBRARY...
     get_filename_component( VCITY_PCL_LIBRARY_DIRECTORY
                             ${PCL_COMMON_LIBRARY} DIRECTORY )
-    # FIXME: decline this symmetrically with release/debug
-    set( PCL_SEARCH_LIBRARY
-         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_search_release.lib )
-    set( PCL_SEGMENTATION_LIBRARY
-         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_segmentation_release.lib )
+    if( CMAKE_BUILD_TYPE MATCHES "Release" )
+      set( PCL_SEARCH_LIBRARY
+           ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_search_release.lib )
+      set( PCL_SEGMENTATION_LIBRARY
+           ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_segmentation_release.lib )
+    elseif( CMAKE_BUILD_TYPE      MATCHES "Debug" )
+      set( PCL_SEARCH_LIBRARY
+           ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_search_debug.lib )
+      set( PCL_SEGMENTATION_LIBRARY
+           ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_segmentation_debug.lib )
+    else()
+      message( FATAL_ERROR "Neither Release not Debug mode? How could this be") 
+    endif()
   endif()
 
   ### Still dealing with PCL post find_package oddities
-  if( APPLE )
+  if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
     # Context: cmake 3.6.x, PCL 1.8, boost 1.60
     # For some odd reason some pcl libraries do not come linked against
     # some of their boost dependencies. Hence ce following "syntactic sugar".
     set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
+    # When PCL looks for its Boost sub-dependency with the ad-hoc find_package
+    # it seems that the Boost_LIBRARIES variable (manually set above) gets
+    # reset. Set it again...
+    set( Boost_LIBRARIES boost_date_time )
   endif()
 
   if( NOT WIN32 )
@@ -793,31 +831,6 @@ ENDIF(WIN32)
 IF(WIN32)
   SET(VCITY_GUI_ICON resources/vcity.rc)
 ENDIF()
-
-# Find Boost
-if( APPLE )
-  # Context: cmake 3.6.x, boost 1.60
-  # Strangely enough boost if only found with a small caps leading b
-  # (that is trying to find_package on Boost will fail)...
-  find_package( boost COMPONENTS date_time REQUIRED)
-  include_directories(${Boost_INCLUDE_DIRS})
-  set (Boost_LIBRARIES boost_date_time)
-else()  # Linux and MSVC (mind you)
-  find_package( Boost COMPONENTS date_time)
-  if( NOT Boost_FOUND )
-    message(WARNING "Boost cannot be found.")
-  else ()
-    include_directories(${Boost_INCLUDE_DIRS})
-    if( UNIX )
-      # FIXME: do we need this ?
-      set (Boost_LIBRARIES boost_date_time)
-    else()
-      # FIXME: remove the following debug code
-      message(WARNING "aaaaaaaaaaaaaaaa WIN32 ")
-      message(WARNING "bbbbbbbbbbbbbbbb Boost_LIBRARIES :" ${Boost_LIBRARIES})
-   endif()
-  endif ()
-endif()
 
 # For Apple set the icns file containing icons
 IF(APPLE)
