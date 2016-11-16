@@ -72,6 +72,15 @@ install:
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+    ### Travis feeds on Homebrew that switched its default version of OSG to
+    # be 3.5.5 (which seems not even official, refer to 
+    # http://www.openscenegraph.org/index.php/download-section/developer-releases).
+    # This breaks the embarked version of OSG-QT. We thus trick Homebrew to 
+    # install version 3.4.4 by overwriting the associated formula:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula &&
+      mv open-scene-graph.rb open-scene-graph.rb.old                     &&
+      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew outdated boost || brew upgrade boost; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install assimp; fi
@@ -85,12 +94,14 @@ install:
     # formula installs libspatialite.7.dylib (version 7). We thus trick
     # libgdal in getting what it needs:
     #     refer to issue #121. [osx_image: beta-xcode6.1]
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
     # PCL related install: 
     # The following sub-dependencies are manually installed (instead of
     # letting them be pulled indirectly by pcl) just to make sub-dependencies
     # more explicit.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/flann; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install homebrew/science/flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
     # The following install of boost triggers a re-install that ends up
