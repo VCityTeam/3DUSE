@@ -488,7 +488,7 @@ void Create3DVegetation( boost::filesystem::path LiDAR_Path,
 
     /// Retrieve the LIDAR data as a PCL point cloud
     LASreadOpener lasreadopener;
-    lasreadopener.set_file_name( LiDAR_Path.c_str() );
+    lasreadopener.set_file_name( LiDAR_Path.string().c_str() );
     LASreader* LiDAR = lasreadopener.open();
 
     pcl::PointXYZ point;
