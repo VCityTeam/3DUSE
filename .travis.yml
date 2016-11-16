@@ -72,20 +72,29 @@ install:
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-    ### Travis feeds on Homebrew that switched its default version of OSG to
-    # be 3.5.5 (which seems not even official, refer to 
-    # http://www.openscenegraph.org/index.php/download-section/developer-releases).
-    # This breaks the embarked version of OSG-QT. We thus trick Homebrew to 
-    # install version 3.4.4 by overwriting the associated formula:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula &&
-      mv open-scene-graph.rb open-scene-graph.rb.old                     &&
-      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew outdated boost || brew upgrade boost; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install assimp; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install graphviz; fi
+    ### Open-Scene-Graph
+    # Travis feeds on Homebrew that switched its default version of OSG to
+    # be 3.5.5 (which seems not even official, refer to 
+    # http://www.openscenegraph.org/index.php/download-section/developer-releases).
+    # This breaks the embarked version 34 of OSG-QT. We thus trick Homebrew to 
+    # install version 3.4.4 by overwriting the associated formula. This must be 
+    # done just before installing OSG since Homebrew default behavior is now to 
+    # check for updates on a per command basis a.k.a. auto-update (e.g. each
+    # time a sub-dependency is installed) and thus in order to prevent any
+    # change (overwrite to 3.5.5) that could happen (within the Homebrew
+    # repository) in between the "brew update" and the following "brew
+    # install" of OSG:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula  &&
+      mv open-scene-graph.rb open-scene-graph.rb.old  &&
+      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
+      cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
     ### Gdal
     # "brew install gdal" is skipped because was already (indirectly) pulled.
