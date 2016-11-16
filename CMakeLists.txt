@@ -487,6 +487,7 @@ if( BUILD_PCL )
     # For some odd reason some pcl libraries do not come linked against
     # some of their boost dependencies. Hence ce following "syntactic sugar".
     set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
+    set( Boost_LIBRARIES boost_filesystem )
   endif()
 
   if( NOT WIN32 )
