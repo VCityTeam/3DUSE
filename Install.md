@@ -121,6 +121,13 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * Setting VCity related [environment variables](https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653%28v=vs.85%29.aspx):
    * Warnings: for those upgrading from a previous VCity version, make sure to remove any `3DUse` related variable. Also make sure to remove any previously set `vs2012` variable
 
+**Optional dependencies**
+ * [Nullsoft Scriptable Install System (NSIS)](https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System)
+   * only needed if you need to package VCity versions for redistribution
+ * In order to build the documentation:
+   * [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
+   * [Graphviz](http://www.graphviz.org/)
+
 ### Set up environment variables (to define the building context)
 Setup the following new environment variables (**watch out**: notice that the following variable path definitions use slash (`/`) character and NOT backslash (`\`) character !):
  * `VCITY_KIT_ROOT` to be `C:/VCITY_local_vs2015_64`.
@@ -131,18 +138,18 @@ Setup the following new environment variables (**watch out**: notice that the fo
    * Note that prepending (as opposed to trailing) your Path variable with this new directory path might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
 
 **Tip**: in order to assert that the environement variables are properly set open a dos command and either use `set` and look for the variable(s) you are checking or check a specific variable with e.g. `echo %BOOST_ROOT%`.
- 
-
-**Optional dependencies**
- * [Nullsoft Scriptable Install System (NSIS)](https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System)
-   * only needed if you need to package VCity versions for redistribution
- * In order to build the documentation:
-   * [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
-   * [Graphviz](http://www.graphviz.org/)
-
 
 ### Building from sources
-Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
-  * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
-  * Set the optional cmake build flag `BUILD_EMBARKED_OSG-QT_34`to `ON`.
-  * Open the resulting `3DUSE.sln` located in `Bin` subdirectory
+ * Clone the [sources](https://github.com/MEPP-team/VCity.git) with a git client (e.g. [Tortoise git](https://tortoisegit.org/) 
+
+* Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
+   * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
+   * Set the optional cmake build flag `BUILD_EMBARKED_OSG-QT_34`to `ON`.
+   * Unless you are a developer working on improving the regression tests, turn the cmake build flag `BUILD_UNMATURE_TESTS`to `OFF`.
+   * Open (with Visual Studio) the resulting project `3DUSE.sln` located in your build subdirectory (`Bin` most often) and generate the solution
+   
+### Run the regresion tests
+  * Assuming you build the solution in the say `c:\Users\MyLogin\VCity\MyBuild` directory add the following to your `Path` environment variable:
+    * Release mode `c:\Users\MyLogin\VCity\MyBuild\Release`
+    * Debug mode `c:\Users\MyLogin\VCity\MyBuild\Debug`
+ * Select the `RUN_TESTS` project and launch (right click) the tests by invoking `Debug->Start a new instance` 
