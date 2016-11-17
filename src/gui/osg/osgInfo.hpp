@@ -25,6 +25,20 @@ class osgInfo : public osg::Group
 {
 public:
     osgInfo();
+    /// \brief Details of a document
+    /// \param height of the document
+    /// \param width of the document
+    /// \param position of the document in EPSG: 3946
+    /// \param angle or orientation of document
+    /// \param axis
+    /// \param filepath of the document
+    /// \param name of the document
+    /// \param type of the document (official etc.)
+    /// \param source of the document
+    /// \param lod or level of detail
+    /// \param anchor (at what height)
+    /// \param priority of the document
+    /// \param publicationDate of the document
     osgInfo(float height, float width, osg::Vec3 position, double angle, osg::Vec3 axis, std::string filepath, std::string name, std::string type,
                 std::string source, std::string lod, float anchor, int priority, std::string publicationDate);
 

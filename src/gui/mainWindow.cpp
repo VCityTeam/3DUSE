@@ -638,6 +638,8 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
             cpt++;
          }
          v_position.push_back(osg::Vec3(x, y, z));
+
+         std::cout<< "mw pos " <<x <<" "<<y<<"\n";
       }
 
       for (std::size_t i = 0; i < v_filepath.size(); ++i)
@@ -722,7 +724,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
       }
 
 
-      std::ofstream ofs;
+   /*   std::ofstream ofs;
       ofs.open(sourcepath, std::ofstream::in | std::ofstream::out);
       ofs << "height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate" << std::endl;
       for (osgInfo* i : v_info)
@@ -733,7 +735,7 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
             << i->m_anchoring << "," << i->m_priority << "," << i->m_publicationDate << std::endl;
       }
       ofs.close();
-
+*/
 
 
 
