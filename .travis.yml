@@ -143,9 +143,13 @@ install:
     # installed in above section addons:apt:packages.
     ### Point Cloud Library (not be confused with another library carrying
     # package under the same "pcl" name):
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd /tmp; wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then tar zxf pcl-pcl-1.7.2.travis-trusty.tgz; cd pcl-pcl-1.7.2/buildR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo make install && cd $TRAVIS_BUILD_DIR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      cd /tmp &&
+      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz &&
+      tar zxf pcl-pcl-1.7.2.travis-trusty.tgz &&
+      cd pcl-pcl-1.7.2/buildR &&
+      sudo make install && 
+      cd $TRAVIS_BUILD_DIR; fi
 
 script:
   # FIXME: try to deport laslib installation to install target
