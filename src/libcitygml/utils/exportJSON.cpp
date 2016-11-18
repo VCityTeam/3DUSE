@@ -312,7 +312,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
 
       if (!texture.empty() || m_genTexCoords)
       {
-         std::vector<TVec2f> genTexCoords;
+         std::vector<TVec2d> genTexCoords;
 
          if (m_needComma)
          {
@@ -361,7 +361,7 @@ void ExporterJSON::exportFeature(CityObject& obj, CityObjectsType type)
                   {
                      //compute tex coords
 
-                     TVec2f tc;
+                     TVec2d tc;
                      tc.x = (vertex.x - m_offsetX) / m_tileSizeX;
                      tc.y = (vertex.y - m_offsetY) / m_tileSizeY;
                      tc.y = 1.0f - tc.y;

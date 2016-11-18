@@ -400,7 +400,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 
     if (LineFound || Outside) //On veut prolonger pour voir si on peut fixer le projete plus loin tout en restant dans le PolygonGMLDiffShape, sinon on ne fait rien car cela signifie qu'il n'y a vraisemblablement pas besoin de couper le polygone en deux
     {
-        TVec2f Vecteur;
+        TVec2d Vecteur;
         Vecteur.x = projete->getX() - Point->getX();
         Vecteur.y = projete->getY() - Point->getY();
 
