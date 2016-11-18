@@ -1,7 +1,29 @@
 add_subdirectory( filters )
 add_subdirectory( plugins )
 add_subdirectory( libcitygml )
-# add_subdirectory(core)   # FIXME: finish or clean up.
+add_subdirectory( utils )
+
+# FIXME: to be finished...
+# The following vcitycore library might have a missleading name that
+# might trick into thinking that the library holds the (build) content
+# of the src/core directory. Yet the src/core directory is not really
+# the core of a possible CLI/GUI independent core code but really the
+# "core" of the GUI application (i.e. files that do not include QT files).
+# Besides the content of src/core gets build by the main CMakeLists.txt
+# and not as a separated library (this last point is logic since src/core
+# and src/gui must be build together: that is, it wouldn't make sense to
+# link src/core against something else that src/gui...)
+# In order to finish the job one should really:
+#  - cd src
+#  - mkdir viewerApp
+#  - mv gui core guiApp
+#  - mkdir core
+#  - mv utils DataStructures core 
+# Then:
+#  * deport the content concerning viewerApp out of the main CMakeLists.txt
+#    to a newly created viewerApp/CMakeLists.txt.
+#  * basically move the content of the present makefile to core/CMakeLists.txt
+# add_subdirectory(core)   
 
 add_library( vcitycore SHARED
   DataStructures/DEM/osgMnt.cpp 

@@ -1,0 +1,108 @@
+#include <cstring>
+#include <iostream>
+
+int main(int narg, char** argv)
+{
+   std::cout << "@APP_NAME@ version number: " 
+             << @PRJ_VERSION_MAJOR@ << "."
+             << @PRJ_VERSION_MINOR@ << "."
+             << @PRJ_VERSION_PATCH@
+             << std::endl;
+   
+   std::cout << "Cmake version: @CMAKE_VERSION@" << std::endl;
+
+   ////////////////////
+   std::cout << "Mandatory library dependencies:" << std::endl;
+
+   std::cout << " - Assimp library: @ASSIMP_LIBRARY@" << std::endl; 
+
+   std::cout << " - Boost:" << std::endl;
+   std::cout << "   - version: @Boost_LIB_VERSION@ ("
+             << @Boost_VERSION@ << ")"
+             << std::endl; 
+   std::cout << "   - library: @Boost_LIBRARIES@" << std::endl; 
+
+   std::cout << " - GDAL library: @GDAL_LIBRARY@" << std::endl; 
+
+   std::cout << " - LASLIB library: @LASLIB_LIBRARY@" << std::endl; 
+
+   std::cout << " - LibXml2:" << std::endl;
+   std::cout << "   - version: @LIBXML2_VERSION_STRING@" << std::endl; 
+   std::cout << "   - library: @LIBXML2_LIBRARIES@"      << std::endl; 
+   
+   ////////////////////
+   std::cout << "Optional library dependencies:" << std::endl;
+   if( !strcmp( "@BUILD_GUI_QT4@", "ON" ) )
+   {
+     std::cout << " - QT4 version: "
+               << @QT_VERSION_MAJOR@ << "."
+               << @QT_VERSION_MINOR@ << "."
+               << @QT_VERSION_PATCH@
+               << std::endl;
+   }
+
+   if( !strcmp( "@BUILD_GUI_QT5@", "ON" ) )
+   {
+     std::cout << " - QT5: ???" << std::endl;
+   }
+
+   if(   !strcmp( "@BUILD_GUI_QT4@", "ON" )
+      || !strcmp( "@BUILD_GUI_QT5@", "ON" ) )
+   {
+     std::cout << "   - OpenSceneGraph:"                     << std::endl;
+     std::cout << "     o version: @OPENSCENEGRAPH_VERSION@" << std::endl;
+     std::cout << "     o library: @OPENSCENEGRAPH_LIBRARIES@" << std::endl;
+   }
+
+
+   if( !strcmp( "@BUILD_PCL@", "ON" ) )
+   {
+     std::cout << " - PCL:" << std::endl;
+     std::cout << "   o version: @PCL_VERSION@"     << std::endl;
+     std::cout << "   o libraries: @PCL_LIBRARIES@" << std::endl;
+     if( !strcmp( "@FLANN_FOUND@", "TRUE" ) )
+     {
+       std::cout << "   - Flann library: @FLANN_LIBRARIES@" << std::endl; 
+     }
+   }
+
+   ////////////////////
+   std::cout << "Optional module and/or plugins:" << std::endl;
+
+   if( !strcmp( "@BUILD_EMBARKED_OSG-QT_32@", "ON" ) )
+   {
+     std::cout << " - OSG-QT embarked version: 32" << std::endl;
+   }
+
+   if( !strcmp( "@BUILD_EMBARKED_OSG-QT_34@", "ON" ) )
+   {
+     std::cout << " - OSG-QT embarked version: 3.4" << std::endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLCutQtPlugin@", "ON" ) )
+   {
+     std::cout << " - Cut plugin" << std::endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLEmptyQtPlugin@", "ON" ) )
+   {
+     std::cout << " - Empty plugin" << std::endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLFloodARQtPlugin@", "ON" ) )
+   {
+     std::cout << " - FloodAR plugin" << std::endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLSunlightQtPlugin@", "ON" ) )
+   {
+     std::cout << " - Sunlight plugin" << std::endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLVisibiliteQtPlugin@", "ON" ) )
+   {
+     std::cout << " - Visibility plugin" << std::endl;
+   }
+
+   return EXIT_SUCCESS;
+}

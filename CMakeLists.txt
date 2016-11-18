@@ -642,6 +642,7 @@ configure_file(
 
 add_library( VCityGui STATIC
 ### The core
+  # Refer to comment of the name of the vcitycore library.
   src/core/RayBox.cpp
   src/core/abstractlayer.cpp
   src/core/algo.cpp
