@@ -1,7 +1,3 @@
-#ifdef _MSC_VER
-#pragma warning(disable: 4251) // Concerns complaints on dll interface of
-                               //  boost member m_date of Exporter class.
-#endif
 #include "exporter.hpp"
 
 namespace citygml
