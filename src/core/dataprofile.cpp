@@ -119,11 +119,11 @@ namespace vcity
     {
         return m_xStep;
     }
-    float DataProfile::getTileXOffset() const
+    double DataProfile::getTileXOffset() const
     {
         return m_offset.x;
     }
-    float DataProfile::getTileYOffset() const
+    double DataProfile::getTileYOffset() const
     {
         return m_offset.y;
     }
