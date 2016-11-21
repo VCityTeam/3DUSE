@@ -35,9 +35,9 @@ int main(int narg, char** argv)
    if( !strcmp( "@BUILD_GUI_QT4@", "ON" ) )
    {
      std::cout << " - QT4 version: "
-               << @QT_VERSION_MAJOR@ << "."
-               << @QT_VERSION_MINOR@ << "."
-               << @QT_VERSION_PATCH@
+               << "@QT_VERSION_MAJOR@" << "."
+               << "@QT_VERSION_MINOR@" << "."
+               << "@QT_VERSION_PATCH@"
                << std::endl;
    }
 
