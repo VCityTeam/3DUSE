@@ -128,28 +128,35 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
    * [Graphviz](http://www.graphviz.org/)
 
-### Set up environment variables (to define the building context)
-Setup the following new environment variables (**watch out**: notice that the following variable path definitions use slash (`/`) character and NOT backslash (`\`) character !):
+### Set up environment variables
+In order to **build the "solution"** you will first need to setup the following new environment variables (in order to define the building context i.e. in order to indicate where the dependency libraries are to be found):
  * `VCITY_KIT_ROOT` to be `C:/VCITY_local_vs2015_64`.
  * `BOOST_ROOT` to be `%VCITY_KIT_ROOT%/boost_1_59_0`
  * When building with Qt5: `QT5_DIR` to be `%VCITY_KIT_ROOT%/Qt/Qt5.6.0/5.6/msvc2015_64`
- * Add a traling`";C:\VCITY_local_vs2015_64\_bin_"` to your `Path` environment variable
-   * Don't forget to add the proper `";"` path separator
-   * Note that prepending (as opposed to trailing) your Path variable with this new directory path might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
 
-**Tip**: in order to assert that the environement variables are properly set open a dos command and either use `set` and look for the variable(s) you are checking or check a specific variable with e.g. `echo %BOOST_ROOT%`.
+**Watch out**: notice that for the above variables used path definitions where the separator is a  (`/`) character and NOT backslash (`\`) character ! (Note: this is because those variables are used by CMake which internally uses the Unix convention for path separators)
+
+Once the "solution" is build (see below), and for the impatient user, in order to **run the application** you will also need to:
+ * Add a traling`";C:\VCITY_local_vs2015_64\_bin_"` to your `PATH` environment variable (in order for the dynamic loader to find the dynamic libraries of the application dependencies)
+ * Assuming you build the solution in e.g. the `c:\Users\MyLogin\VCity\MyBuild` directory add the following entries to your `PATH` environment variable:
+  * Release mode `c:\Users\MyLogin\VCity\MyBuild\Release`
+  * Debug mode `c:\Users\MyLogin\VCity\MyBuild\Debug`
+
+**Watch out**: notice that for the above run time variables the separator is now classically for Windows a backslash (`\`) character !
+
+**Tips and notes**:
+ * in order to assert that the environement variables are properly set open a dos command and either use `set` and look for the variable(s) you are checking or check a specific variable with e.g. `echo %BOOST_ROOT%`.
+ * When editing your `PATH` environment variable (and for versions of Windows requiring the edition of the pull `PATH` as a string) don't forget to add the proper `";" as  path separator
+ * Note that prepending (as opposed to trailing) your `PATH` variable with the above mentionned directory paths might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
 
 ### Building from sources
- * Clone the [sources](https://github.com/MEPP-team/VCity.git) with a git client (e.g. [Tortoise git](https://tortoisegit.org/) 
+ * Clone the [sources](https://github.com/MEPP-team/VCity.git) with a git client (e.g. [Tortoise git](https://tortoisegit.org/)
 
 * Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
    * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
    * Set the optional cmake build flag `BUILD_EMBARKED_OSG-QT_34`to `ON`.
    * Unless you are a developer working on improving the regression tests, turn the cmake build flag `BUILD_UNMATURE_TESTS`to `OFF`.
    * Open (with Visual Studio) the resulting project `3DUSE.sln` located in your build subdirectory (`Bin` most often) and generate the solution
-   
+
 ### Run the regresion tests
-  * Assuming you build the solution in the say `c:\Users\MyLogin\VCity\MyBuild` directory add the following to your `Path` environment variable:
-    * Release mode `c:\Users\MyLogin\VCity\MyBuild\Release`
-    * Debug mode `c:\Users\MyLogin\VCity\MyBuild\Debug`
- * Select the `RUN_TESTS` project and launch (right click) the tests by invoking `Debug->Start a new instance` 
+Select the `RUN_TESTS` project and launch (right click) the tests by invoking `Debug->Start a new instance`

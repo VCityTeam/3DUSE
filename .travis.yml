@@ -41,6 +41,8 @@ matrix:
 addons:
   apt:
     packages:
+      - libboost-date-time-dev
+      - libboost-filesystem-dev
       - libqt4-dev
       - libassimp-dev
       - libopenscenegraph-dev
@@ -54,9 +56,7 @@ addons:
       # Library packaged as libpcl1-dev), it is manually "gotten" (refer
       # to install section)
       - libboost-chrono-dev
-      - libboost-date-time-dev
       - libboost-dev
-      - libboost-filesystem-dev
       - libboost-iostreams-dev
       - libboost-serialization-dev
       - libboost-system-dev
@@ -71,8 +71,15 @@ install:
   - cmake --version
   #
   ### OSX dependencies install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew outdated boost || brew upgrade boost; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update; fi
+    # Installing boost directly (through "brew install boost" triggers a
+    # re-install that ends up considered as an (false positive) error by Travis.
+    # A work around (documented here 
+    #  https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages )
+    # consists in using the following odd form or install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew outdated boost || brew upgrade boost; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install assimp; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
@@ -95,7 +102,8 @@ install:
       mv open-scene-graph.rb open-scene-graph.rb.old  &&
       wget https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
       cd $TRAVIS_BUILD_DIR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install open-scene-graph; fi
     ### Gdal
     # "brew install gdal" is skipped because was already (indirectly) pulled.
     # Yet we need to fix an unstatified dependency of libgdal.1.dylib that
@@ -113,15 +121,6 @@ install:
       brew install homebrew/science/flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
-    # The following install of boost triggers a re-install that ends up
-    # considered as an error by Travis. We could use some Travis tricks
-    # like using
-    #    brew outdated <package-name> || brew upgrade <package-name>
-    # which is documented here 
-    #   https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages 
-    # but we shall just skip it for the time being.
-    # - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install boost; fi
-    #
     # Pcl itself takes a long time to be poured (more than Travis's 10' 
     # default cut off): 
     # FIXME: consider adding the --without-apps --without-tools brew install

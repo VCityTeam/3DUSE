@@ -5,7 +5,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
-    std::cout << "3D-Use version 0.3.2" << std::endl;
 
 #ifdef Q_WS_X11
     // FIXME: how come there is no equivalent for QT5 (that renamed
