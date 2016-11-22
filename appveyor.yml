@@ -109,6 +109,7 @@ build_script:
     # Note: avoid launching msbuild with the /m set. This would produces
     # random crashes Qt-MOC invocations...
   - msbuild 3DUSE.sln 
+  - type C:\projects\vcity\src\utils\cmdline\3DUSE-config.cpp
     ##### Ctest: establising context and run per se
     # For the binaries (the tests that ctest will trigger) to find the
     # dynamic libraries they depend on, the PATH variable must be set
