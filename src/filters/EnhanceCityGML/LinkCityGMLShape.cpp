@@ -439,7 +439,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 
         double Coeff = 1;
 
-        bool Test1, Test2;
+        OGRBoolean Test1, Test2;
         Test1 = Projete2->Intersects(Envelope); //Projete2 est dans le Polygon
         Test2 = (InterLS->getGeometryType() == wkbLineString || InterLS->getGeometryType() == wkbLineString25D); //Projete2 n'a pas traverse d'interioring Ring car l'intersection serait alors un MutliLineString puisqu'elle serait coupee en deux
         while (Test1 && Test2)//Tant que Projete2 est inclus dans le Polygon et que nous n'avons pas traverse d'InteriorRing
