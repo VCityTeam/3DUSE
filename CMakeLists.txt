@@ -423,10 +423,10 @@ if( BUILD_PCL )
 
   ##### Dealing with PCL (post find_package) oddities:
   if( WIN32 )
-    # FIXME: instead of having to use a new variable (PCL_DEFINITIONS_VCITY)
+    # Note: instead of having to use a new variable (PCL_DEFINITIONS_VCITY)
     # in order to pass around compile flag definitions, we could have 
     # extended the content of the PCL provided (and already existing)
-    # PCL_DEFINITIONS variable. Yet the PCL_definitions sems to be usgin
+    # PCL_DEFINITIONS variable. Yet the PCL_definitions seems to be using
     # a syntax of the form "-DSYMBOL_A;-DSYMBOL_B" (that is a list) which
     # doesn't seem to be easily extensible by writing things like
     #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS} -DMY_NEW_SYMBOL" ) or the
@@ -445,11 +445,11 @@ if( BUILD_PCL )
     # linking the PCL using code one get a "LINK : fatal error LNK1104" 
     # described as "cannot open file libboost_thread-vc140-mt-1_59.lib" (it is
     # important to notice that the filename is LIBboost_thread-* i.e. it gets
-    # prefixed with "LIB".
+    # prefixed with "LIB").
     # This is due to an interference between find_package( Boost) and the
     # VC++ auto-linking mechanisms that is documented e.g. here:
     # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9 You could disable 
-    # In order to disable the auto-linking mechanisme we thus resolve to
+    # In order to disable the auto-linking mechanism we thus resolve to
     # using the following additional compile flag:
     set( PCL_DEFINITIONS_VCITY "BOOST_ALL_DYN_LINK=1" )
 
@@ -487,6 +487,7 @@ if( BUILD_PCL )
     # For some odd reason some pcl libraries do not come linked against
     # some of their boost dependencies. Hence ce following "syntactic sugar".
     set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
+    set( Boost_LIBRARIES boost_filesystem )
   endif()
 
   if( NOT WIN32 )
@@ -641,6 +642,7 @@ configure_file(
 
 add_library( VCityGui STATIC
 ### The core
+  # Refer to comment of the name of the vcitycore library.
   src/core/RayBox.cpp
   src/core/abstractlayer.cpp
   src/core/algo.cpp
