@@ -638,8 +638,6 @@ bool MainWindow::loadCSV(const QString& CSVfilepath, const QString& DIRfilepath)
             cpt++;
          }
          v_position.push_back(osg::Vec3(x, y, z));
-
-         std::cout<< "mw pos " <<x <<" "<<y<<"\n";
       }
 
       for (std::size_t i = 0; i < v_filepath.size(); ++i)
