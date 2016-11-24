@@ -17,7 +17,7 @@ int main(int narg, char** argv)
    ////////////////////
    cout << "Mandatory library dependencies:" << endl;
 
-   string assimpLibrary( "@ASSIMP_LIBRARY@" );
+   string assimpLibrary = R"##(@ASSIMP_LIBRARY@)##";
    replace( assimpLibrary.begin(), assimpLibrary.end(), '\\', '/' );
    cout << " - Assimp library: " << assimpLibrary << endl; 
 
@@ -27,21 +27,21 @@ int main(int narg, char** argv)
              << @Boost_VERSION@ << ")"
              << endl; 
 
-   string boostLibraries( "@Boost_LIBRARIES@" );
+   string boostLibraries = R"##(@Boost_LIBRARIES@)##";
    replace( boostLibraries.begin(), boostLibraries.end(), '\\', '/' );
    cout << "   - library: " << boostLibraries<< endl; 
 
-   string gdalLibrary( "@GDAL_LIBRARY@" );
+   string gdalLibrary = R"##(@GDAL_LIBRARY@)##";
    replace( gdalLibrary.begin(), gdalLibrary.end(), '\\', '/' );
    cout << " - GDAL library: " << gdalLibrary << endl; 
 
-   string laslibLibrary( "@LASLIB_LIBRARY@" );
+   string laslibLibrary = R"##(@LASLIB_LIBRARY@)##";
    replace( laslibLibrary.begin(), laslibLibrary.end(), '\\', '/' );
    cout << " - LASLIB library: " << laslibLibrary << endl; 
 
    cout << " - LibXml2:" << endl;
    cout << "   - version: @LIBXML2_VERSION_STRING@" << endl; 
-   string libxml2Libraries( "@LIBXML2_LIBRARIES@" );
+   string libxml2Libraries = R"##(@LIBXML2_LIBRARIES@)##";
    replace( libxml2Libraries.begin(), libxml2Libraries.end(), '\\', '/' );
    cout << "   - library: " << libxml2Libraries << endl; 
    
@@ -70,7 +70,7 @@ int main(int narg, char** argv)
    {
      cout << "   - OpenSceneGraph:"                     << endl;
      cout << "     o version: @OPENSCENEGRAPH_VERSION@" << endl;
-     string openSceneGraphLibraries( "@OPENSCENEGRAPH_LIBRARIES@" );
+     string openSceneGraphLibraries = R"##(@OPENSCENEGRAPH_LIBRARIES@)##";
      replace( openSceneGraphLibraries.begin(),
               openSceneGraphLibraries.end(),
               '\\', '/');
@@ -82,13 +82,13 @@ int main(int narg, char** argv)
    {
      cout << " - PCL:" << endl;
      cout << "   o version: @PCL_VERSION@"     << endl;
-     string pclLibraries( "@PCL_LIBRARIES@" );
+     string pclLibraries = R"##(@PCL_LIBRARIES@)##";
      replace( pclLibraries.begin(), pclLibraries.end(), '\\', '/' );
      cout << "   o libraries: " << pclLibraries << endl;
 
      if( !strcmp( "@FLANN_FOUND@", "TRUE" ) )
      {
-       string flannLibraries( "@FLANN_LIBRARIES@" );
+       string flannLibraries = R"##(@FLANN_LIBRARIES@)##";
        replace( flannLibraries.begin(), flannLibraries.end(), '\\', '/' );
        cout << "   - Flann library: " << flannLibraries << endl; 
      }
