@@ -218,7 +218,7 @@ if( BUILD_GUI_QT4 )
 endif()
 
 ##### Find Boost
-if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
+if( APPLE )
   # In some recent OSX contexts (e.g. with cmake 3.6.x and boost 1.60), and
   # strangely enough, Boost is only found with a small caps leading b. And
   # trying a "find_package( Boost)" seems to always fail. Hence the current
