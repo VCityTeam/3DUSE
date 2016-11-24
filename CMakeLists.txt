@@ -218,7 +218,7 @@ if( BUILD_GUI_QT4 )
 endif()
 
 ##### Find Boost
-if( APPLE )
+if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
   # In some recent OSX contexts (e.g. with cmake 3.6.x and boost 1.60), and
   # strangely enough, Boost is only found with a small caps leading b. And
   # trying a "find_package( Boost)" seems to always fail. Hence the current
@@ -228,23 +228,14 @@ if( APPLE )
   # PCLConfig.cmake for the explicit and complete list of PCL required boot
   # components) which is not really clean. Indeed this adds some unnecessary
   # requirements (on some boost components) when building without PCL...
-  find_package( boost COMPONENTS
-    date_time filesystem                          # Mandatory
-    chrono iostreams serialization system thread  # For PCL
-    REQUIRED )
+  find_package( boost COMPONENTS date_time REQUIRED )
   include_directories(${Boost_INCLUDE_DIRS})
   set (Boost_LIBRARIES boost_date_time)
-else()  # Linux and MSVC together in perfect harmony (mind you)
-  find_package( Boost COMPONENTS
-    date_time filesystem                          # Mandatory
-    chrono iostreams serialization system thread  # For PCL
-    REQUIRED )
-  if( UNIX )
-    # FIXME: do we need this ?
-    set (Boost_LIBRARIES boost_date_time)
-  endif()
+else()  # Linux and MSVC together or Cmake < 3.4.3
+  find_package( Boost COMPONENTS date_time REQUIRED )
+  set (Boost_LIBRARIES boost_date_time)
+  include_directories( ${Boost_INCLUDE_DIRS} )
 endif ()
-include_directories( ${Boost_INCLUDE_DIRS} )
 
 ##### Find OpenGL
 # FIXME: the only dependency towards OpenGL occurs in
