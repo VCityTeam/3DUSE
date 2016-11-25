@@ -507,8 +507,7 @@ if( BUILD_PCL )
     # For some odd reason some pcl libraries do not come linked against
     # some of their boost dependencies. Hence ce following "syntactic sugar".
     set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
-    set( Boost_LIBRARIES boost_date_time )
-    set( Boost_LIBRARIES boost_filesystem )
+    set( Boost_LIBRARIES boost_date_time boost_filesystem )
   endif()
 
   if( NOT WIN32 )
@@ -838,6 +837,7 @@ add_executable( ${APP_NAME} MACOSX_BUNDLE
 target_include_directories( ${APP_NAME} PUBLIC
   ${CITYGML_INCLUDE_DIR}   # FIXME: there is a mismatch between the included
   ${FILTERS_INCLUDE_DIR}   #        directories and the linked libraries.
+  ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries( ${APP_NAME}
