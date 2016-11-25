@@ -229,12 +229,8 @@ if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
   # components) which is not really clean. Indeed this adds some unnecessary
   # requirements (on some boost components) when building without PCL...
   find_package( boost COMPONENTS date_time REQUIRED )
-  include_directories(${Boost_INCLUDE_DIRS})
-  set (Boost_LIBRARIES boost_date_time)
 else()  # Linux and MSVC together or Cmake < 3.4.3
   find_package( Boost COMPONENTS date_time REQUIRED )
-  set (Boost_LIBRARIES boost_date_time)
-  include_directories( ${Boost_INCLUDE_DIRS} )
 endif ()
 
 ##### Find OpenGL
