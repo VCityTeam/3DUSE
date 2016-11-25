@@ -4,6 +4,7 @@ add_library( filters SHARED
   ChangeDetection/ChangeDetection.cpp
   EnhanceCityGML/EnhanceMNT.cpp
   EnhanceCityGML/LinkCityGMLShape.cpp
+  ExtractRoof/ExtractRoof.cpp
   raytracing/Hit.cpp
   raytracing/Ray.cpp
   raytracing/RayTracing.cpp
