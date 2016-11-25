@@ -745,6 +745,7 @@ target_include_directories( VCityGui PUBLIC
   ${CITYGMLUTILS_INCLUDE_DIR}
   ${FILTERS_INCLUDE_DIR}
   ${CMAKE_BINARY_DIR}/src/gui #For configFileLayout.h
+  ${Boost_INCLUDE_DIRS}
 )
 
 if( BUILD_GUI_QT4 )
