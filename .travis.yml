@@ -125,9 +125,8 @@ install:
     # default cut off): 
     # FIXME: consider adding the --without-apps --without-tools brew install
     # option in order to save building time of pcl...
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60 brew install homebrew/science/pcl --without-vtk; fi
-    # DEBUG
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cat /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60
+      brew install homebrew/science/pcl --without-vtk --without-apps; fi
     # PCL config files looks for the Boost package (whith a capital B) which
     # will fail starting with cmake version 3.5 (previous version seem not
     # be case dependent on the find_package argument) with a message of the
