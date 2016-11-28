@@ -40,11 +40,13 @@ public:
 	CityGMLHandlerLibXml2( const ParserParams& params ) : CityGMLHandler( params ) {}
     virtual ~CityGMLHandlerLibXml2() { xmlCleanupParser(); }
 
+  using CityGMLHandler::startElement;
 	void startElement( const xmlChar* name, const xmlChar** attrs ) 
 	{
 		CityGMLHandler::startElement( wstos( name ), attrs );
 	}
 
+  using CityGMLHandler::endElement;
 	void endElement( const xmlChar* name )
 	{
 		CityGMLHandler::endElement( wstos( name ) );

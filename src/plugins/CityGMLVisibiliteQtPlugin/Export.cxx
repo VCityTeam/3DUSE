@@ -518,7 +518,6 @@ void ExportImageRoofWall(std::string dirTile, ViewPoint* viewpoint, std::string 
 void ExportImageZBuffer(std::string dirTile, ViewPoint* viewpoint, std::string filePrefix)
 {
 	QImage imageZBuffer(viewpoint->width,viewpoint->height,QImage::Format::Format_ARGB32);//Zbuffer image
-	TVec3d light1 = viewpoint->lightDir;
 	for(unsigned int i = 0; i < viewpoint->width; i++)
 	{
 		for(unsigned int j = 0; j < viewpoint->height; j++)

@@ -21,7 +21,10 @@ namespace citygml
 {
 ////////////////////////////////////////////////////////////////////////////////
 Object::Object(const std::string& id)
-    : _id( id ), _isXlink(xLinkState::NONE), _isInVersion(false), _isInWorkspace(false)
+   : _isXlink(xLinkState::NONE),
+     _isInVersion(false),
+     _isInWorkspace(false),
+     _id( id )
 {
     if( _id == "" )
     {

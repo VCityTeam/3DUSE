@@ -61,17 +61,6 @@ namespace vcity
 
         outFile << "{\n";
 
-        unsigned int cpt = 1;
-        /*for(std::vector<LayerLas_LASpoint>::iterator it=m_LASpoints.begin(); it<m_LASpoints.end(); ++it)
-        {
-            outFile << "    "; // indent
-            outFile << "\"pts_" << cpt++ << "\":[" << (*it).X << "," << (*it).Y << "," << (*it).Z  << "," << (int)((*it).classification) << "]";
-
-            if ((it+1)<m_LASpoints.end())
-                outFile << ",\n";
-            else
-                outFile << "\n"; // last
-        }*/
         outFile << "    "; // indent
         outFile << "\"vertices\":[";
         bool test = false;
@@ -86,8 +75,6 @@ namespace vcity
                 outFile << "," << (*it).X << "," << (*it).Y << "," << (*it).Z;
             test = true;
 
-            //if ((it+1)<m_LASpoints.end())
-            //	outFile << ",";
         }
         outFile << "],\n"; // last
 

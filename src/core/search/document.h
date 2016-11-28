@@ -9,8 +9,8 @@ class Document
 {
     std::string name;
     std::string provider;
-    int lod_level;
-    std::time_t publicationDate;
+    // FIXME int lod_level;
+    // FIXME std::time_t publicationDate;
 
 public:
     Document();

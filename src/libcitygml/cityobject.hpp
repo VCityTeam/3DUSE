@@ -16,13 +16,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_CITYOBJECT_HPP__
 #define __CITYGML_CITYOBJECT_HPP__
-////////////////////////////////////////////////////////////////////////////////
+
 #include <ostream>
 #include "object.hpp"
 #include "geometry.hpp"
 #include "URI.hpp"
 #include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
+#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
+#pragma warning(disable: 4251) // export problem on STL members
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 //forward declaration
@@ -49,10 +52,10 @@ enum CityObjectsType {
     COT_WaterBody                   = 1 << 14,
     COT_TINRelief                   = 1 << 15,
     COT_LandUse                     = 1 << 16,
-    COT_Tunnel						= 1 << 17,
-    COT_Bridge						= 1 << 18,
-    COT_BridgeConstructionElement	= 1 << 19,
-    COT_BridgeInstallation			= 1 << 20,
+    COT_Tunnel                      = 1 << 17,
+    COT_Bridge                      = 1 << 18,
+    COT_BridgeConstructionElement   = 1 << 19,
+    COT_BridgeInstallation          = 1 << 20,
     COT_BridgePart                  = 1 << 21,
     COT_BuildingPart                = 1 << 22,
 

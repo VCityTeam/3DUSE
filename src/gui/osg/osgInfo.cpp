@@ -511,7 +511,7 @@ void osgInfo::setTransparency(float alpha)
 
 void osgInfo::updateScale( int screenX, int screenY)
 {
-    float scale;
+    float scale = 0.0;
     float maxscale = std::sqrt(screenX*screenX+screenY*screenY);
     if(m_DSC)
         scale = m_DSC/maxscale;

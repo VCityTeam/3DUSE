@@ -251,99 +251,125 @@ namespace citygml
 		return NULL;
 	}
 	////////////////////////////////////////////////////////////////////////////////
-    xmlNodePtr ExporterCityGML::exportCityObjetGenericXml(const citygml::CityObject& obj, const std::string& nodeType, xmlNodePtr parent, bool isSurface)
-	{
-		if (obj._isXlink==xLinkState::LINKED)
-		{
+xmlNodePtr
+ExporterCityGML::exportCityObjetGenericXml( const citygml::CityObject& obj,
+                                            const std::string& nodeType,
+                                            xmlNodePtr parent,
+                                            bool isSurface)
+{
+   if (obj._isXlink==xLinkState::LINKED)
+   {
 			xmlNodePtr res;
 			if (isSurface) 
 			{
 				std::string ns = nodeType.substr(0,nodeType.find_first_of(":"));
-				xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST (ns+":boundedBy").c_str(), NULL);
+				xmlNodePtr nodebb = xmlNewChild( parent, NULL,
+                                         BAD_CAST (ns+":boundedBy").c_str(),
+                                         NULL );
 				res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
 			} 
 			else res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
 			std::string query = obj.getAttribute("xlink");
 			xmlNewProp(res, BAD_CAST "xlink:href", BAD_CAST query.c_str());
 			return res;
-		}
-        if(isSurface)
-        {
-			std::string ns = nodeType.substr(0,nodeType.find_first_of(":"));
-			xmlNodePtr nodebb = xmlNewChild(parent, NULL, BAD_CAST (ns+":boundedBy").c_str(), NULL);// Ajoute car present dans les CityGML de Lyon et Paris
+   }
 
-            xmlNodePtr res = xmlNewChild(nodebb, NULL, BAD_CAST nodeType.c_str(), NULL);
-            xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
+   if(isSurface)
+   {
+      std::string ns = nodeType.substr(0,nodeType.find_first_of(":"));
+      // Added because it is present in Lyon and Paris CityGMLs
+      xmlNodePtr nodebb = xmlNewChild( parent, NULL,
+                                       BAD_CAST (ns+":boundedBy").c_str(),
+                                       NULL);
 
-            // children are not handled here, but in the upper call level (exportCityObjetXml)
-            /*for(const auto& child : obj.getChildren())
-            {
-            exportCityObjetXml(child, res);
-            }*/
+      xmlNodePtr res = xmlNewChild( nodebb, NULL,
+                                    BAD_CAST nodeType.c_str(),
+                                    NULL );
+      xmlNewProp( res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str() );
 
-            // attributes
-            for(const auto& attr : obj.getAttributes())
-            {
-				std::string attrName = attr.first; 
-				if(attrName=="yearOfConstruction"||attrName=="yearOfDemolition")
-				{
-					std::string cName = "bldg:"+attrName;
-					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
-				}
-				else if (attrName=="creationDate"||attrName=="terminationDate")
-				{					
-					std::string cName = "core:"+attrName;
-					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
-				}
-				else if (attrName=="identifier") xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST ("gml:"+attrName).c_str(), BAD_CAST attr.second.c_str());
-				else
-				{
-					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
-					xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
-					xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
-				}
-            }
+      // Children are not handled here, but in the upper call level that
+      // is exportCityObjetXml. First deal with attributes:
+      for(const auto& attr : obj.getAttributes())
+      {
+         std::string attrName = attr.first; 
+         if(attrName=="yearOfConstruction"||attrName=="yearOfDemolition")
+         {
+            (void)xmlNewChild( res, NULL,
+                               BAD_CAST ("bldg:"+attrName).c_str(),
+                               BAD_CAST attr.second.c_str() );
+         }
+         else if (attrName=="creationDate"||attrName=="terminationDate")
+         {
+            (void)xmlNewChild( res, NULL,
+                               BAD_CAST ("core:"+attrName).c_str(),
+                               BAD_CAST attr.second.c_str() );
+         }
+         else if (attrName=="identifier")
+         { 
+            (void)xmlNewChild( res, NULL,
+                               BAD_CAST ("gml:"+attrName).c_str(),
+                               BAD_CAST attr.second.c_str() );
+         }
+         else
+         {
+            xmlNodePtr attrNode = xmlNewChild( res, NULL,
+                                               BAD_CAST "gen:stringAttribute",
+                                               NULL);
+            xmlNewProp( attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str() );
+            (void)xmlNewChild( attrNode, NULL,
+                              BAD_CAST "gen:value",
+                              BAD_CAST attr.second.c_str());
+         }
+      }
+      return res;
+   }
+   else
+   {
+      // FIXME a lot of code looks redudant with the above code...
+      xmlNodePtr res = xmlNewChild( parent, NULL,
+                                    BAD_CAST nodeType.c_str(),
+                                    NULL);
+      xmlNewProp( res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str() );
 
-            return res;
-        }
-        else
-        {
-            xmlNodePtr res = xmlNewChild(parent, NULL, BAD_CAST nodeType.c_str(), NULL);
-            xmlNewProp(res, BAD_CAST "gml:id", BAD_CAST obj.getId().c_str());
-
-            // children are not handled here, but in the upper call level (exportCityObjetXml)
-            /*for(const auto& child : obj.getChildren())
-            {
-            exportCityObjetXml(child, res);
-            }*/
-
-            // attributes
-            for(const auto& attr : obj.getAttributes())
-            {
-				std::string attrName = attr.first; 
-				if(attrName=="yearOfConstruction"||attrName=="yearOfDemolition")
-				{
-					std::string cName = "bldg:"+attrName;
-					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
-				}
-				else if (attrName=="creationDate"||attrName=="terminationDate")
-				{					
-					std::string cName = "core:"+attrName;
-					xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST cName.c_str(), BAD_CAST attr.second.c_str());
-				}
-				else if (attrName=="identifier") xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST ("gml:"+attrName).c_str(), BAD_CAST attr.second.c_str());
-				else
-				{
-                xmlNodePtr attrNode = xmlNewChild(res, NULL, BAD_CAST "gen:stringAttribute", NULL);
-                xmlNewProp(attrNode, BAD_CAST "name", BAD_CAST attr.first.c_str());
-                xmlNewChild(attrNode, NULL, BAD_CAST "gen:value", BAD_CAST attr.second.c_str());
-				}
-            }
-
-            return res;
-        }
-
-	}
+      // Children are not handled here, but in the upper call level that
+      // is exportCityObjetXml. First deal with attributes:
+      for(const auto& attr : obj.getAttributes())
+      {
+         std::string attrName = attr.first; 
+         if(attrName=="yearOfConstruction"||attrName=="yearOfDemolition")
+         {
+            (void)xmlNewChild( res, NULL,
+                               BAD_CAST ("bldg:"+attrName).c_str(),
+                               BAD_CAST attr.second.c_str() );
+         }
+         else if (attrName=="creationDate"||attrName=="terminationDate")
+         {
+            (void)xmlNewChild( res, NULL,
+                               BAD_CAST ("core:"+attrName).c_str(),
+                               BAD_CAST attr.second.c_str() );
+         }
+         else if (attrName=="identifier")
+         {
+            (void)xmlNewChild( res, NULL,
+                               BAD_CAST ("gml:"+attrName).c_str(),
+                               BAD_CAST attr.second.c_str() );
+         }
+         else
+         {
+            xmlNodePtr attrNode = xmlNewChild( res, NULL,
+                                               BAD_CAST "gen:stringAttribute",
+                                               NULL );
+            xmlNewProp( attrNode,
+                        BAD_CAST "name",
+                        BAD_CAST attr.first.c_str() );
+            xmlNewChild( attrNode, NULL,
+                         BAD_CAST "gen:value",
+                         BAD_CAST attr.second.c_str() );
+         }
+      }
+      return res;
+   }
+}
 	////////////////////////////////////////////////////////////////////////////////
 	xmlNodePtr ExporterCityGML::exportCityObjetXml(const citygml::CityObject& obj, xmlNodePtr parent, bool rootLevel)
 	{
@@ -500,7 +526,6 @@ namespace citygml
 			{
 				case COT_TINRelief:
 					{
-						xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST( type + "lod").c_str(), BAD_CAST std::to_string(obj.getGeometry(0)->getLOD()).c_str());
 						xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST( type + "tin").c_str(), NULL);
 						xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:TriangulatedSurface", NULL);
 						std::string id = obj.getId() + "_POLY";
