@@ -219,10 +219,14 @@ if( BUILD_GUI_QT4 )
 endif()
 
 # Find OpenGL
-# FIXME: the only dependency towards OpenGL occurs 
-# src/libcitygml/tesselator.hpp which includes glu.h. Deport this
-# dependency to libCityGML (and even better try to remove it completely
-# by using self contained code or CGAL tesselators).
+# FIXME: the only dependency towards OpenGL occurs within
+# src/libcitygml/tesselator.hpp which includes glu.h (in need for
+# openG's GLUtessellator). Tesselator.hpp gets included ia
+# appearancemanager.hpp that is itself included in citymodel.hpp that
+# is ubiquitous in the code. At least deport this dependency towards
+# libCityGML sub-library. Even better, try to remove it completely
+# by using self contained code (or CGAL tesselators: but depending from
+# CGAL is probably worse than depending from OpenGL ?).
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 

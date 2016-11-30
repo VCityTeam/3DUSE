@@ -19,18 +19,20 @@
 
 #include <vector>
 
-#ifdef __APPLE__
-  #include <OpenGL/glu.h>
-#else
-  #include <GL/glu.h>
-#endif
-
 #ifdef _MSC_VER                  // Inhibit dll-interface warnings concerning
   #pragma warning(disable: 4251) // export problem on STL members
   #	include <windows.h>
 #else
   #	define CALLBACK
   #	define APIENTRY
+#endif
+
+#ifdef __APPLE__
+  #include <OpenGL/glu.h>
+#else
+  // Win32 caveat emptor: must always be _preceded_ (as opposed to
+  // succeeded) by the inclusion of windows.h
+  #include <GL/glu.h>
 #endif
 
 #include "vecs.hpp"
