@@ -66,10 +66,12 @@ endif()
 target_include_directories( citygml PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}       # Required for generated citygml_export.h
+  ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries( citygml
   ${ASSIMP_LIBRARY}
+  ${Boost_LIBRARIES}
   ${LIBXML2_LIBRARIES}
   ${GDAL_LIBRARY}
   ${OPENGL_LIBRARIES}    # FIXME: tesselation dependency 

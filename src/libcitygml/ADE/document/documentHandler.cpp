@@ -6,6 +6,7 @@
 #include <libxml/SAX.h>
 #include <libxml/xlink.h>
 #include <libxml/xpath.h>
+#include <boost/algorithm/string.hpp>
 #include "../../object.hpp"
 
 DocumentHandler::DocumentHandler(void):ADEHandler()
@@ -59,31 +60,31 @@ void DocumentHandler::startElement(std::string name, void* attributes)
 
     name = removeNamespace(name);
 
-    if (name == "documentobject")
+    if (boost::iequals(name,"DocumentObject"))
     {
        _currentDocument = new documentADE::DocumentObject(getGmlIdAttribute( attributes ));
         std::cout << "document object: " <<_currentDocument->getId()<< std::endl;
         _documents.push_back(_currentDocument);
         pushObject(_currentDocument);
     }
-    else if (name == "reference")
+    else if (boost::iequals(name,"reference"))
     {
         _currentReference = new documentADE::Reference(getGmlIdAttribute( attributes ));
         std::cout << "reference: " <<_currentReference->getId()<< std::endl;
         _references.push_back(_currentReference);
     }
-    else if (name == "tag")
+    else if (boost::iequals(name, "tag"))
     {
        _currentTag = new documentADE::Tag(getGmlIdAttribute( attributes ));
         std::cout << "tag: " <<_currentTag->getId()<< std::endl;
     }
-    else if (name == "referringTo")
+    else if (boost::iequals(name,"referringTo"))
     {
         citygml::GenericCityObject* cityObject = new  citygml::GenericCityObject(getGmlIdAttribute( attributes ));
        _currentReference->setReferencedCityObject(cityObject);
 
     }
-    else if (name == "referredBy")
+    else if (boost::iequals(name, "referredBy"))
     {
         documentADE::DocumentObject* document = new documentADE::DocumentObject(getGmlIdAttribute( attributes ));
        _currentReference->setReferenceDocument(document);
@@ -113,31 +114,31 @@ void DocumentHandler::endElement(std::string name)
 
     name = removeNamespace(name);
 
-    if (name == "documentobject")
+    if (boost::iequals(name,"DocumentObject"))
     {
         citygml::CityModel** model = getModel();
         (*model)->addCityObjectAsRoot(_currentDocument);
     }
-    else if (name == "reference")
+    else if (boost::iequals(name,"reference"))
     {
        _currentReference = nullptr;
     }
-    else if (name == "title" ||
-             name == "identifier" ||
-             name == "creator" ||
-             name == "publicationDate"
+    else if (boost::iequals(name,"title") ||
+             boost::iequals(name,"identifier") ||
+             boost::iequals(name,"creator") ||
+             boost::iequals(name,"publicationDate")
              )
     {
         setDocumentAttributeValue(name);
     }
-    else if (name == "text")
+    else if (boost::iequals(name, "text"))
     {
         std::stringstream buffer;
         buffer << trim(getBuff()->str());
         std::cout << name << ": " << buffer.str() << std::endl;
         _currentTag->setText(buffer.str());
     }
-    else if (name == "count")
+    else if (boost::iequals(name,"count"))
     {
         std::stringstream buffer;
         buffer << trim(getBuff()->str());

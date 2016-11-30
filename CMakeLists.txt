@@ -217,13 +217,30 @@ if( BUILD_GUI_QT4 )
   include( ${QT_USE_FILE} )
 endif()
 
-# Find OpenGL
-# FIXME: the only dependency towards OpenGL occurs 
+##### Find Boost
+if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
+  # In some recent OSX contexts (e.g. with cmake 3.6.x and boost 1.60), and
+  # strangely enough, Boost is only found with a small caps leading b. And
+  # trying a "find_package( Boost)" seems to always fail. Hence the current
+  # kludge. Note that the project central code only requires (for the time 
+  # being) filesystem and date_time components.
+  # Note that we also check for PCL related needed components (refer to
+  # PCLConfig.cmake for the explicit and complete list of PCL required boot
+  # components) which is not really clean. Indeed this adds some unnecessary
+  # requirements (on some boost components) when building without PCL...
+  find_package( boost COMPONENTS date_time REQUIRED )
+else()  # Linux and MSVC together or Cmake < 3.4.3
+  find_package( Boost COMPONENTS date_time REQUIRED )
+endif ()
+
+##### Find OpenGL
+# FIXME: the only dependency towards OpenGL occurs in
 # src/libcitygml/tesselator.hpp which includes glu.h. Deport this
 # dependency to libCityGML (and even better try to remove it completely
 # by using self contained code or CGAL tesselators).
 find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
+
 
 # Find ASSIMP
 find_package(ASSIMP)
@@ -364,8 +381,10 @@ if( BUILD_PCL )
   # simplify the context of PCL failing dependency (when find_package
   # fails on PCL because of a missing suv-dependency the error message is 
   # really sketchy and hard to interpret):
-  ### Assert boost is found: refer to PCLConfig.cmake for the explicit
-  # list of required boot components.
+  ### Asserting Boost is installed:
+  # Boost being a mandatory dependency of this application this was already
+  # previsously (look above) taken care about.
+
   if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
     # Context: cmake 3.6.x, boost 1.60
     # Strangely enough boost if only found with a small caps leading b
@@ -381,6 +400,7 @@ if( BUILD_PCL )
       message(WARNING "PCL requires Boost which cannot be found.")
     endif ()
   endif()
+
   ### Assert Flann is installed:
   # There is no simple way to assert that Flann package is installed. If one
   # tries a find_package( Flann ) on Win32 then a side effect of this test
@@ -487,7 +507,7 @@ if( BUILD_PCL )
     # For some odd reason some pcl libraries do not come linked against
     # some of their boost dependencies. Hence ce following "syntactic sugar".
     set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
-    set( Boost_LIBRARIES boost_filesystem )
+    set( Boost_LIBRARIES boost_date_time boost_filesystem )
   endif()
 
   if( NOT WIN32 )
@@ -725,6 +745,7 @@ target_include_directories( VCityGui PUBLIC
   ${CITYGMLUTILS_INCLUDE_DIR}
   ${FILTERS_INCLUDE_DIR}
   ${CMAKE_BINARY_DIR}/src/gui #For configFileLayout.h
+  ${Boost_INCLUDE_DIRS}
 )
 
 if( BUILD_GUI_QT4 )
@@ -817,6 +838,7 @@ add_executable( ${APP_NAME} MACOSX_BUNDLE
 target_include_directories( ${APP_NAME} PUBLIC
   ${CITYGML_INCLUDE_DIR}   # FIXME: there is a mismatch between the included
   ${FILTERS_INCLUDE_DIR}   #        directories and the linked libraries.
+  ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries( ${APP_NAME}
@@ -825,6 +847,7 @@ target_link_libraries( ${APP_NAME}
   ${VCITY_GUI_LIB}
   ${VCITYCORE_LIBRARY}
   ${FILTERS_LIBRARIES}
+  ${Boost_LIBRARIES}
   ${CITYGML_LIBRARIES}
   ${CITYGMLUTILS_LIBRARIES}
 )
@@ -985,3 +1008,4 @@ ENDIF(WIN32)
 #--------------------------------------------------------------------------------
 # Now the installation stuff : end
 #--------------------------------------------------------------------------------
+
