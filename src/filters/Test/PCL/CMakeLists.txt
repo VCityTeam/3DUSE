@@ -24,6 +24,7 @@ target_include_directories( TestPCLExtractVegetionLidar PUBLIC
   ${CITYGML_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
   ${PCL_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
 )
 
 if( WIN32 )

@@ -11,6 +11,7 @@ environment:
   # the pre_build section:
   QT5_DIR: C:\Qt\5.6\msvc2015_64
   BOOST_ROOT: C:\Libraries\boost_1_59_0
+#
   KIT_ROOT: C:\local_vs2015_64
   #
   matrix:

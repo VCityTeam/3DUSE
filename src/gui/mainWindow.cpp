@@ -8,6 +8,13 @@
 #include <QMessageBox>
 #include <QPluginLoader>
 #include <ctime>
+
+#ifdef _MSC_VER
+#define BOOST_ALL_DYN_LINK 1
+#endif
+#include <boost/date_time.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include <time.h>
 
 #include "ui_mainWindow.h"
@@ -718,8 +725,8 @@ bool MainWindow::loadCSV( const QString& CSVfilepath, const QString& DIRfilepath
       }
 
 
-      std::ofstream ofs;
-      ofs.open( sourcepath, std::ofstream::in | std::ofstream::out );
+   /*   std::ofstream ofs;
+      ofs.open(sourcepath, std::ofstream::in | std::ofstream::out);
       ofs << "height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate" << std::endl;
       for ( osgInfo* i : v_info )
       {
@@ -729,7 +736,7 @@ bool MainWindow::loadCSV( const QString& CSVfilepath, const QString& DIRfilepath
             << i->m_anchoring << "," << i->m_priority << "," << i->m_publicationDate << std::endl;
       }
       ofs.close();
-
+*/
 
 
 
@@ -1311,12 +1318,13 @@ void MainWindow::exportCityGML()
 
    citygml::ExporterCityGML exporter( filename.toStdString() );
 
-   // check temporal params
-   if ( m_useTemporal )
-   {
-      exporter.setTemporalExport( true );
-      exporter.setDate( m_ui->dateTimeEdit->dateTime() );
-   }
+    // check temporal params
+    if (m_useTemporal)
+    {
+       exporter.setTemporalExport(true);
+       exporter.setDate(boost::posix_time::time_from_string(
+                             m_ui->dateTimeEdit->dateTime().toString().toStdString()));
+    }
 
    // check if something is picked
    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();

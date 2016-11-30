@@ -61,34 +61,28 @@ void UpdateInfo::operator()( osg::Node* node, osg::NodeVisitor* nv )
                         time_t publicationTime = mktime(&ptime);
                         if(year<1900) {
                             if(year < appGui().getMainWindow()->m_currentDate.date().year()){
-                                 std::cout <<"no display" <<year << "," << appGui().getMainWindow()->m_currentDate.date().year() <<std::endl;
                              info->setDisplayable(false);
                             }
                             else if(year > appGui().getMainWindow()->m_currentDate.date().year()
                                     && year-appGui().getMainWindow()->m_currentDate.date().year()>80){
-                              std::cout <<"no display2" <<year << "," << appGui().getMainWindow()->m_currentDate.date().year() <<std::endl;
                              info->setDisplayable(false);
                             }
                         }
                         else if(year<1970 && year >=1900 ){
                             if(year < appGui().getMainWindow()->m_currentDate.date().year()){
-                                 std::cout <<"no display3" <<year << "," << appGui().getMainWindow()->m_currentDate.date().year() <<std::endl;
                              info->setDisplayable(false);
                             }
                             else if(year > appGui().getMainWindow()->m_currentDate.date().year()
                                     && year-appGui().getMainWindow()->m_currentDate.date().year()>80){
-                              std::cout <<"no display4" <<year << "," << appGui().getMainWindow()->m_currentDate.date().year() <<std::endl;
                              info->setDisplayable(false);
                             }
                         }
                         else{
-                            std::cout <<"ptime" <<appGui().getMainWindow()->m_currentDate.toTime_t() <<","<<publicationTime<<","<<year  <<std::endl;
                             if(publicationTime < appGui().getMainWindow()->m_currentDate.toTime_t()){
                              info->setDisplayable(false);
                             }
                             else if(publicationTime > appGui().getMainWindow()->m_currentDate.toTime_t()
                                     &&  publicationTime-appGui().getMainWindow()->m_currentDate.toTime_t()-publicationTime > 4533000){
-                                std::cout <<"difference" <<appGui().getMainWindow()->m_currentDate.toTime_t()-publicationTime <<std::endl;
                              info->setDisplayable(false);
                             }
                         }

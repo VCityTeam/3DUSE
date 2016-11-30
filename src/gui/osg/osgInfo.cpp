@@ -1,6 +1,8 @@
 // -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 #include "osgInfo.hpp"
+#include "core/dataprofile.hpp"
+#include "gui/applicationGui.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 osgInfo::osgInfo()
@@ -41,8 +43,14 @@ osgInfo::osgInfo(float height, float width, osg::Vec3 pos, double ang, osg::Vec3
     m_geode = new osg::Geode;
     m_pat = new osg::PositionAttitudeTransform;
 
-    m_initposition = pos;
-    m_currentposition = pos;
+    //Convert position given EPSG: 3946 in to the tile position
+    const vcity::DataProfile& dp = appGui().getSettings().getDataProfile();
+    float x =pos.x()-dp.getTileXOffset();
+    float y = pos.y()-dp.getTileYOffset();
+    osg::Vec3 position(x, y, pos.z());
+
+    m_initposition = position;
+    m_currentposition = position;
     m_angle = ang;
     m_axe = axis;
 
