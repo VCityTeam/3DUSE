@@ -89,7 +89,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
 
 **Optional installations**
   * GUI support: `brew install qt` (which installs Qt4) or `brew install qt5` (which installs Qt5)
-  * Documentation: brew install doxygen graphviz`
+  * Documentation: `brew install doxygen graphviz`
   * [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake): `brew install homebrew/science/pcl --without-vtk --without-apps`
   
 ### Building from sources
