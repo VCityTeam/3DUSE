@@ -396,10 +396,8 @@ void cutPicture( std::string filename, std::string workingDir, int tileSizeX, in
       float cornerY = NW_y - ( y*pxSize_y );
       int dvX = cornerX / tileSizeX;
       int dvY = ( cornerY - 1 ) / tileSizeY;
-      float tileXmin = dvX*tileSizeX;
       float tileXmax = ( dvX + 1 )*tileSizeX;
       float tileYmin = dvY*tileSizeY;
-      float tileYmax = ( dvY + 1 )*tileSizeY;
 
       int width = ceil( ( tileXmax - NW_x ) / pxSize_x ) - x + 1;
       int height = ceil( ( NW_y - tileYmin ) / pxSize_y ) - y + 1;

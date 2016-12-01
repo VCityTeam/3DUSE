@@ -525,7 +525,6 @@ ExporterCityGML::exportCityObjetGenericXml( const citygml::CityObject& obj,
 			{
 				case COT_TINRelief:
 					{
-						xmlNodePtr node1 = xmlNewChild(res, NULL, BAD_CAST( type + "lod").c_str(), BAD_CAST std::to_string(obj.getGeometry(0)->getLOD()).c_str());
 						xmlNodePtr node2 = xmlNewChild(res, NULL, BAD_CAST( type + "tin").c_str(), NULL);
 						xmlNodePtr node3 = xmlNewChild(node2, NULL, BAD_CAST "gml:TriangulatedSurface", NULL);
 						std::string id = obj.getId() + "_POLY";
