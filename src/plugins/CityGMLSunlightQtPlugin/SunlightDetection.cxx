@@ -192,6 +192,11 @@ void RayTraceTriangles(const std::string& filepath, const citygml::CityObjectsTy
     delete tmpHits;
 }
 
+///
+/// \brief writeInLogFile Print a text in an output txt file.
+/// \param filepath path to the output file.
+/// \param text text to print.
+///
 void writeInLogFile(const std::string& filepath, const std::string& text )
 {
     std::ofstream logfile;
