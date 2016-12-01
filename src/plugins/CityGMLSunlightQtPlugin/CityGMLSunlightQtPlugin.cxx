@@ -33,18 +33,6 @@ void CityGMLSunlightQtPlugin::ChangePolyColor(QDateTime datetime)
     if(m_visu) //If visualization started
     {
         int idatetime = encodeDateTime(datetime); //encode datetime into int value
-//        int idatetime5h = encodeDateTime(2016,8,10,5);
-//        int idatetime19h = encodeDateTime(2016,8,10,19);
-
-//        if(idatetime == idatetime5h || idatetime == idatetime19h)
-//        {
-//            //std::map<std::string,bool>* bah = m_sunlightInfo[idatetime];
-
-//            for(auto iterator = (m_sunlightInfo[idatetime])->begin(); iterator != (m_sunlightInfo[idatetime])->end(); iterator++)
-//            {
-//                iterator->second = false;
-//            }
-//        }
         appGui().getOsgScene()->changePolyColor(m_sunlightInfo[idatetime]);
     }
 }
