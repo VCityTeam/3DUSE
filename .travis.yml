@@ -13,15 +13,14 @@ cache: apt     # feature available only for private repositories
 #   - clang: Debug and Release over Qt4
 # - osx:
 #   - clang: Debug and Release over Qt4 and Qt5
-#     NOTE: under the hood OSX does in fact tow sub-jobs per job,
+#     NOTE: under the hood OSX does in fact two sub-jobs per job,
 #           since two Qt versions 4 and 5 are sequentially tested.
 # - Win32:  (not dealt with by Travis bu through Appveyor)
 #   - VC++: Debug and Release over Qt4 and Qt5
 
 os:
   - linux      # Ubuntu 14.04 Trusty Tahr
-  - osx        # Default is OSX 10.9 (2013). Other versions are
-               # available, including OSX 10.11 (2015), refer to
+  - osx        # Default is OSX 10.11.6 (2015): refer to
                # https://docs.travis-ci.com/user/osx-ci-environment/ 
 
 compiler:
@@ -29,8 +28,8 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_CityGMLVisibiliteQtPlugin=ON -DBUILD_CityGMLFloodARQtPlugin=ON -DBUILD_CityGMLSunlightQtPlugin=ON"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
+  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
 
 matrix:
   fast_finish: true
@@ -42,49 +41,151 @@ matrix:
 addons:
   apt:
     packages:
+      - libboost-date-time-dev
+      - libboost-filesystem-dev
       - libqt4-dev
-      - libxerces-c-dev
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
       - doxygen
+      - libboost-dev
+      - libboost-date-time-dev
       - graphviz
+      # Point Cloud Library (PCL) dependencies. PCL itself not being an
+      # available package (do not get confused with the Portable Coroutine
+      # Library packaged as libpcl1-dev), it is manually "gotten" (refer
+      # to install section)
+      - libboost-chrono-dev
+      - libboost-dev
+      - libboost-iostreams-dev
+      - libboost-serialization-dev
+      - libboost-system-dev
+      - libboost-thread-dev
+      - libeigen3-dev
+      - libflann-dev
+      - libqhull-dev
+
 
 install:
   - export TRAVIS=YES
   - cmake --version
-  # OSX install done through brew:
+  #
+  ### OSX dependencies install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update; fi
+    # Installing boost directly (through "brew install boost" triggers a
+    # re-install that ends up considered as an (false positive) error by Travis.
+    # A work around (documented here 
+    #  https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages )
+    # consists in using the following odd form or install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew outdated boost || brew upgrade boost; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install assimp; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install graphviz; fi
+    ### Open-Scene-Graph
+    # Travis feeds on Homebrew that switched its default version of OSG to
+    # be 3.5.5 (which seems not even official, refer to 
+    # http://www.openscenegraph.org/index.php/download-section/developer-releases).
+    # This breaks the embarked version 34 of OSG-QT. We thus trick Homebrew to 
+    # install version 3.4.4 by overwriting the associated formula. This must be 
+    # done just before installing OSG since Homebrew default behavior is now to 
+    # check for updates on a per command basis a.k.a. auto-update (e.g. each
+    # time a sub-dependency is installed) and thus in order to prevent any
+    # change (overwrite to 3.5.5) that could happen (within the Homebrew
+    # repository) in between the "brew update" and the following "brew
+    # install" of OSG:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt xerces-c assimp doxygen graphviz; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install open-scene-graph; fi
-    # Fix unstatified dependency of libgdal.1.dylib that looks for
-    # libspatialite.5.dylib (version 5) when the libspatialite formula installs
-    # libspatialite.7.dylib (version 7). Trick libgdal in getting what it needs:
-    # refer to issue #121. [osx_image: beta-xcode6.1]
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then  ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula  &&
+      mv open-scene-graph.rb open-scene-graph.rb.old  &&
+      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
+      cd $TRAVIS_BUILD_DIR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install open-scene-graph; fi
+    ### Gdal
+    # "brew install gdal" is skipped because was already (indirectly) pulled.
+    # Yet we need to fix an unstatified dependency of libgdal.1.dylib that
+    # looks for libspatialite.5.dylib (version 5) when the libspatialite
+    # formula installs libspatialite.7.dylib (version 7). We thus trick
+    # libgdal in getting what it needs:
+    #     refer to issue #121. [osx_image: beta-xcode6.1]
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
+    # PCL related install: 
+    # The following sub-dependencies are manually installed (instead of
+    # letting them be pulled indirectly by pcl) just to make sub-dependencies
+    # more explicit.
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install homebrew/science/flann; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
+    # Pcl itself takes a long time to be poured (more than Travis's 10' 
+    # default cut off): 
+    # FIXME: consider adding the --without-apps --without-tools brew install
+    # option in order to save building time of pcl...
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60
+      brew install homebrew/science/pcl --without-vtk --without-apps; fi
+    # PCL config files looks for the Boost package (whith a capital B) which
+    # will fail starting with cmake version 3.5 (previous version seem not
+    # be case dependent on the find_package argument) with a message of the
+    # form:
+    #    CMake Error at /usr/local/share/pcl-1.7/PCLConfig.cmake:45 (message):
+    #      common is required but boost was not found
+    # Hence the following kludgy fix
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
+  #
+  ###### Linux depedency installation
+    # We are here only concerned with dependencies that were not already
+    # installed in above section addons:apt:packages.
+    ### Point Cloud Library (not be confused with another library carrying
+    # package under the same "pcl" name):
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      cd /tmp &&
+      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz &&
+      tar zxf pcl-pcl-1.7.2.travis-trusty.tgz &&
+      cd pcl-pcl-1.7.2/buildR &&
+      sudo make install && 
+      cd $TRAVIS_BUILD_DIR; fi
 
 script:
+  # FIXME: try to deport laslib installation to install target
   - cd externals/laslib
   - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF; make; sudo make install
+  # Proceed with building:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
-  - mkdir build && cd build && cmake .. $BTYPE
+  - mkdir build && cd build
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  cmake .. $BTYPE; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - make
-  - ctest
-  # OSX only: previous test was against qt4. Try the same but this time
-  # against qt5. The following is a perversion of the script target since
+  - ctest -V
+  #### Test the Qt5 version
+  # Previous test were against qt4 which is the default version
+  # for both linux and osx. Try building and testing as above
+  # but this time against qt5. Note that since we need to first install
+  # the required Qt5 packages (for both platforms) the following
+  # is thus a perversion of the script target. 
   # we start by an internalized sub-install that installs Qt5.
-  # Unlinking qt4 suffices to avoid collisions with upcoming install of qt5
+    #### OSX Qt5 tests:
+    # First the install of Qt5
+    # Unlinking qt4 suffices to avoid collisions with upcoming install
+    # of qt5. Note that open-scene-graph is not re-installed and
+    # hence the native OSG-Qt (that links against Qt4) cannot be used 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
+    # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
-    # FIXME: make it so the QT5_DIR is not necessary (simplify cmake files)
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DWITH_QT5=YES -DQT5_DIR=/usr/local/opt/qt5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest -V; fi
 
-  # OSX only: previous test was against qt4. Try the same but this time against qt5.
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi # ---> now install qt5
+    ####  Linux Qt5 tests:
+    # First the install of Qt5
+    # Same remark as for OSX concerning the Qt version mismatch of libOSG-Qt
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi
+    # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DWITH_QT5=YES; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest -V; fi

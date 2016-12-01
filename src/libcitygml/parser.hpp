@@ -174,12 +174,6 @@ namespace citygml
 		NODETYPE( BridgeConstructionElement ),
 		NODETYPE( BridgeInstallation ),
 		NODETYPE( BridgePart ),
-
-        //document
-        NODETYPE( Document ),
-        NODETYPE( title ),
-        NODETYPE( creator ),
-        NODETYPE( publicationDate ),
 		
 		// app
 		NODETYPE( SimpleTexture ),	
@@ -196,7 +190,7 @@ namespace citygml
 		NODETYPE( preferWorldFile ),
 
 		NODETYPE( X3DMaterial ),
-		NODETYPE( Material ),
+        NODETYPE( Material ),
 		NODETYPE( appearanceMember ),
 		NODETYPE( surfaceDataMember ),
 		NODETYPE( shininess ),
@@ -218,7 +212,7 @@ namespace citygml
 
 		~CityGMLHandler( void );
 
-		virtual void startDocument( void ) {}
+        virtual void startDocument( void ) {}
 
 		virtual void endDocument( void );
 
@@ -364,11 +358,6 @@ namespace citygml
 		void* _geoTransform;
 
 		bool _useXLink;
-
-        // temporal ext
-        CityObjectState* m_currentState;
-        CityObjectDynState* m_currentDynState;
-        CityObjectTag* m_currentTag;
 
     protected: // MT
 

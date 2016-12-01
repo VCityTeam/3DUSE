@@ -39,7 +39,7 @@ _currentGeometry( 0 ), _currentPolygon( 0 ), _currentRing( 0 ),
 _currentAppearance( 0 ), _currentLOD( params.minLOD ), 
 _filterNodeType( false ), _filterDepth( 0 ), _exterior( true ),
 _currentGeometryType( GT_Unknown ), _geoTransform( 0 ),
-m_currentState(nullptr), m_currentDynState(nullptr), m_currentTag(nullptr), _useXLink(false)
+_useXLink(false)
 { 
 	_objectsMask = getCityObjectsTypeMaskFromString( _params.objectsMask );
 	initNodes();
@@ -221,12 +221,7 @@ void CityGMLHandler::initNodes( void )
 	INSERTNODETYPE( ambientIntensity );
 	INSERTNODETYPE( isFront );
 
-    //Document
-    INSERTNODETYPE( Document );
-    INSERTNODETYPE( title );
-    INSERTNODETYPE( creator );
-    INSERTNODETYPE( publicationDate );
-	// Set the known namespaces
+    // Set the known namespaces
 
 #define INSERTKNOWNNAMESPACE(_t_) s_knownNamespace.push_back( #_t_ );
 
@@ -400,40 +395,8 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
-            pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
-            \
-            if(_params.temporalImport)\
-            {\
-                std::string id = getGmlIdAttribute( attributes );\
-                auto it = id.find("_TAG");\
-                auto it1 = id.find("_STATE");\
-                auto it2 = id.find("_DYNSTATE");\
-                if(it!=std::string::npos)\
-                {\
-                    m_currentTag = new CityObjectTag(0, _currentCityObject);\
-                    CityObject* o = _model->getNodeById(id.substr(0, it));\
-                    o->addTag(m_currentTag);\
-                    m_currentTag->m_parent = o;\
-                    o->checkTags();\
-                    _currentCityObject->m_temporalUse = true;\
-                }\
-                else if(it1!=std::string::npos)\
-                {\
-                    m_currentState = new CityObjectState(_currentCityObject);\
-                    CityObject* o = _model->getNodeById(id.substr(0, it1));\
-                    o->addState(m_currentState);\
-                    m_currentState->m_parent = o;\
-                    _currentCityObject->m_temporalUse = true;\
-                }\
-                else if(it2!=std::string::npos)\
-                {\
-                    m_currentDynState = new CityObjectDynState(_currentCityObject);\
-                    CityObject* o = _model->getNodeById(id.substr(0, it2));\
-                    o->addState(m_currentDynState);\
-                    m_currentDynState->m_parent = o;\
-                    _currentCityObject->m_temporalUse = true;\
-                }\
-            }\
+            pushObject( _currentCityObject );\
+           std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;\
         }\
         else\
         {\
@@ -466,7 +429,6 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		MANAGE_OBJECT( BridgeConstructionElement );
 		MANAGE_OBJECT( BridgeInstallation );
 		MANAGE_OBJECT( BridgePart );
-        MANAGE_OBJECT( Document );
 #undef MANAGE_OBJECT
 
 		// BoundarySurfaceType
@@ -484,40 +446,6 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
             pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
-            \
-            if(_params.temporalImport)\
-            {\
-                std::string id = getGmlIdAttribute( attributes );\
-                auto it = id.find("_TAG");\
-                auto it1 = id.find("_STATE");\
-                auto it2 = id.find("_DYNSTATE");\
-                if(it!=std::string::npos)\
-                {\
-                    m_currentTag = new CityObjectTag(0, _currentCityObject);\
-                    _currentCityObject->m_path = _params.m_basePath;\
-                    CityObject* o = _model->getNodeById(id.substr(0, it));\
-                    o->addTag(m_currentTag);\
-                    m_currentTag->m_parent = o;\
-                    o->checkTags();\
-                    _currentCityObject->m_temporalUse = true;\
-                }\
-                else if(it1!=std::string::npos)\
-                {\
-                    m_currentState = new CityObjectState(_currentCityObject);\
-                    CityObject* o = _model->getNodeById(id.substr(0, it1));\
-                    o->addState(m_currentState);\
-                    m_currentState->m_parent = o;\
-                    _currentCityObject->m_temporalUse = true;\
-                }\
-                else if(it2!=std::string::npos)\
-                {\
-                    m_currentDynState = new CityObjectDynState(_currentCityObject);\
-                    CityObject* o = _model->getNodeById(id.substr(0, it2));\
-                    o->addState(m_currentDynState);\
-                    m_currentDynState->m_parent = o;\
-                    _currentCityObject->m_temporalUse = true;\
-                }\
-            }\
         }\
         else\
         {\
@@ -746,27 +674,11 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( FloorSurface ):
 	case NODETYPE( InteriorWallSurface ):
 	case NODETYPE( CeilingSurface ):
-    case NODETYPE( Document ):
-		MODEL_FILTER();
+        MODEL_FILTER();
 		if ( _currentCityObject && ( _currentCityObject->size() > 0 || _currentCityObject->getChildCount() > 0 || !_params.pruneEmptyObjects ) ) 
-        {	// Prune empty objects
-            if(_params.temporalImport && _currentCityObject->m_temporalUse)
-            {
-                // this is a cityobject for a tag or state, do not add to citymodel
-                m_currentTag = nullptr;
-                m_currentState = nullptr;
-                m_currentDynState = nullptr;
-            }
-			/*else if (_currentCityObject->_isXlink==xLinkState::TARGET)
-			{
-				//do nothing
-			}*/
-			else
-            {
-                _model->addCityObject( _currentCityObject );
-                if ( _cityObjectStack.size() == 1 ) _model->addCityObjectAsRoot( _currentCityObject );
-            }
-			
+        {
+            _model->addCityObject( _currentCityObject );
+            if ( _cityObjectStack.size() == 1 ) _model->addCityObjectAsRoot( _currentCityObject );
 		}
 		else delete _currentCityObject; 
 		popCityObject();
@@ -793,7 +705,7 @@ void CityGMLHandler::endElement( const std::string& name )
 				_translate[1] = _model->_envelope._lowerBound.y;
 				_translate[2] = _model->_envelope._lowerBound.z;
 
-				// Possible optimization 1: Make a first scan through whole document
+                // Possible optimization 1: Make a first scan through whole DocumentObject
 				// and compute correct envelope if no one is present. Afterwards
 				// start the real parsing.
 
@@ -871,9 +783,6 @@ void CityGMLHandler::endElement( const std::string& name )
 	case NODETYPE( postalCode ):
 	case NODETYPE( city ):
 	case NODETYPE( measuredHeight ):
-    case NODETYPE( title ):
-    case NODETYPE( creator ):
-    case NODETYPE( publicationDate ):
     case NODETYPE( informationSystem):
     case NODETYPE( uri):
 	case NODETYPE( creationDate ):
@@ -882,9 +791,9 @@ void CityGMLHandler::endElement( const std::string& name )
 		break;
 
 	case NODETYPE( identifier ):
-		{
-			std::string identifier = buffer.str();
-			_currentCityObject->_isXlink=xLinkState::TARGET;
+        {
+            std::string identifier = buffer.str();
+            _currentCityObject->_isXlink=xLinkState::TARGET;
 			if ( _currentCityObject ) _currentCityObject->setAttribute( localname, identifier, false );
 			CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
 			if ( it == _identifiersMap.end() )
@@ -893,8 +802,9 @@ void CityGMLHandler::endElement( const std::string& name )
 				v.push_back( _currentCityObject );
 				_identifiersMap[ identifier ] = v;
 			}
-			else it->second.push_back( _currentCityObject );
-		}
+            else it->second.push_back( _currentCityObject );
+            std::cout<<"john id "<<identifier<<std::endl;
+        }
 		break;
 
     case NODETYPE( value ):
@@ -902,12 +812,6 @@ void CityGMLHandler::endElement( const std::string& name )
         {
             if ( _currentObject ) _currentObject->setAttribute( _attributeName, buffer.str(), false );
             else if ( _model && getPathDepth() == 1 ) _model->setAttribute( _attributeName, buffer.str(), false );
-
-            if(_params.temporalImport && m_currentTag && _attributeName == "date")
-            {
-                m_currentTag->m_date = QDateTime::fromString(buffer.str().c_str(), Qt::ISODate);
-                m_currentTag->m_parent->checkTags();
-            }
         }
         break;
 
@@ -1153,8 +1057,8 @@ void CityGMLHandler::endDocument( )
 {
 	for(std::map<std::string,ADEHandler*>::iterator it = _ADEHandlers.begin(); it != _ADEHandlers.end(); it++)
 	{
-		try {it->second->endDocument();}
-		catch (...) {}
+        try {it->second->endDocument();}
+        catch (...) {}
 	}
 	if(_useXLink) 
 		for(auto* child : _model->_roots)
@@ -1165,13 +1069,20 @@ void CityGMLHandler::endDocument( )
 
 void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 {
-	if(node->_isXlink==xLinkState::UNLINKED)
+    if(node != NULL && node->_isXlink==xLinkState::UNLINKED)
     {
-		std::string query = node->getAttribute("xlink");
+        std::cout<<"fetchVersionedCityObjectsRec id "<<node->getId()<<std::endl;
+        std::cout<<"_identifiersMap size "<<_identifiersMap.size()<<std::endl;
+        std::cout<<"node->_isXlink "<<node->_isXlink<<std::endl;
+
+         std::cout<<"fetchVersionedCityObjectsRec 1.1"<<std::endl;
+        std::string query = node->getAttribute("xlink");
+                 std::cout<<"fetchVersionedCityObjectsRec 1.2"<<std::endl;
 		std::string identifier = getXLinkQueryIdentifier(query);
+                 std::cout<<"fetchVersionedCityObjectsRec 1.3"<<std::endl;
 		//if query contains an identifier
 		if (!(identifier==""))
-		{
+        {
 			CityObjectIdentifiersMap::iterator it = _identifiersMap.find( identifier );
 			if ( it != _identifiersMap.end() )
 			{
@@ -1192,7 +1103,9 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 		//if the query starts with a "#", what follows the hash is a gml:id
 		else if (query.find("#")==0)
 		{
-			std::string id = query.substr(1);
+                     std::cout<<"fetchVersionedCityObjectsRec 1.4"<<std::endl;
+            std::string id = query.substr(1);
+                     std::cout<<"fetchVersionedCityObjectsRec 1.5"<<std::endl;
 			CityObject* target = _model->getNodeById(id);
 			if (target)
 			{
@@ -1203,9 +1116,13 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 		}
 		else {std::cerr<<"ERROR: XLink expression not supported! : \""<<node->getAttribute("xlink")<<"\""<<std::endl;}
     }
+             std::cout<<"fetchVersionedCityObjectsRec 1.6 "<<node << std::endl;
+             if(node!=NULL){
     for(auto* child : node->getChildren())
     {
+                 std::cout<<"fetchVersionedCityObjectsRec 1.7"<<std::endl;
         fetchVersionedCityObjectsRec(child);
+                 std::cout<<"fetchVersionedCityObjectsRec 1.8"<<std::endl;
 		if (node->_isXlink==xLinkState::LINKED) child->_parent=node->_parent;
-    }
+    }}
 }

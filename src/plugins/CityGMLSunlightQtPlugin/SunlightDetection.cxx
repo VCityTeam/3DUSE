@@ -252,7 +252,6 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
 
     for(FileInfo* f : filenames) //Loop through files
     {
-
         std::cout << "===================================================" << std::endl;
         std::cout << "Computation of file " << f->WithPrevFolderAndGMLExtension() << "..." << std::endl;
         std::cout << "===================================================" << std::endl;

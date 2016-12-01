@@ -20,7 +20,6 @@
 #include <ostream>
 #include "object.hpp"
 #include "geometry.hpp"
-#include "temporalExt.hpp"
 #include "URI.hpp"
 #include "citygml_export.h"
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
@@ -64,8 +63,6 @@ enum CityObjectsType {
     COT_FloorSurface                = 1 << 27,
     COT_InteriorWallSurface         = 1 << 28,
     COT_CeilingSurface              = 1 << 29,
-    COT_Document                    = 1 << 30,
-
     COT_All                         = 0xFFFFFFFF
 };
 typedef unsigned int CityObjectsTypeMask;
@@ -97,7 +94,7 @@ public:
     virtual TVec4f getDefaultColor( void ) const = 0;
 
     // Get the number of geometries contains in the object
-    unsigned int size( void ) const;
+    size_t size( void ) const;
 
     // Access the geometries
     const Geometry* getGeometry( unsigned int i ) const;
@@ -106,7 +103,7 @@ public:
     const std::vector< Geometry* >& getGeometries() const;
 
     // Access the children
-    unsigned int getChildCount( void ) const;
+    size_t getChildCount( void ) const;
 
     const CityObject* getChild( unsigned int i ) const;
 
@@ -136,40 +133,6 @@ public:
     /// \param uri uri pointing to requested node
 	CityObject* getNode(const vcity::URI& uri);
 
-    /// Add a State
-    void addState(CityObjectState* state);
-
-    /// Get States vector
-    std::vector<CityObjectState*>& getStates();
-
-    /// Get States vector (const)
-    const std::vector<CityObjectState*>& getStates() const;
-
-    /// Get a State by name
-    /// \param name State name
-    CityObjectState* getState(const std::string& name);
-
-    /// Add a TAg
-    void addTag(CityObjectTag* tag);
-
-    /// Get Tags vector
-    std::vector<CityObjectTag*>& getTags();
-
-    /// get Tags vector (const)
-    const std::vector<CityObjectTag*>& getTags() const;
-
-    /// Internal method to reorganize Tags, reorder them by date
-    void checkTags();
-
-    /// Temporal check : tell if the object is temporal
-    /// \return true if has Tags of States
-    bool isTemporal() const;
-
-    /// Get an attribute for a specific date (use when temporal)
-    /// \param attribName Attribute name
-    /// \param date Date wanted
-    std::string getAttributeTemporal(const std::string& attribName, const QDateTime& date) const;
-
 //protected:
     void finish( AppearanceManager&, const ParserParams& );
 
@@ -182,9 +145,6 @@ protected:
 
     std::vector< Geometry* > _geometries;
     std::vector< CityObject* > _children;
-
-    std::vector<CityObjectState*> m_states;
-    std::vector<CityObjectTag*> m_tags;
 
 public:
     CityObject* _parent; // MT (MAC OS X problem...)

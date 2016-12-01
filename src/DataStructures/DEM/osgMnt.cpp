@@ -6,7 +6,7 @@
 #include "osgMnt.hpp"
 
 #ifdef _MSC_VER
-#pragma warning(disable : 4996) // TEMP MT
+#pragma warning(disable : 4996)
 #endif
 ////////////////////////////////////////////////////////////////////////////////
 MNT::MNT()
@@ -145,6 +145,15 @@ bool MNT::charge(const char* nom_fichier, const char* type_fichier)
             r = fscanf(fp, "%f", &pas_x);				// pas en x
             printf("cellsize: %f\n", pas_x);
             pas_y = pas_x;						// pas en y
+        }
+        else if ((strcmp(chaine, "dx") == 0))
+        {
+            r = fscanf(fp, "%f", &pas_x);				// pas en x
+            printf("cellsize_x: %f\n", pas_x);
+
+            r = fscanf(fp, "%s", chaine);
+            r = fscanf(fp, "%f", &pas_y);				// pas en y
+            printf("cellsize_y: %f\n", pas_y);
         }
         r = fscanf(fp, "%s", chaine);
         if (strcmp(chaine, "NODATA_value") == 0 || strcmp(chaine, "nodata_value") == 0)

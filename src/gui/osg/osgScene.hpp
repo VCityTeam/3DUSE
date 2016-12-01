@@ -29,6 +29,7 @@
 #include <osg/Node>
 #include <osg/Group>
 #include <osg/Geode>
+#include <QDateTime>
 #include <osg/Geometry>
 #include <osg/TextureCubeMap>
 #include "osgCityGML.hpp"
@@ -98,6 +99,9 @@ public:
     /// Enable / disable osg shadows
     void setShadow(bool shadow);
 
+    /// Enable / disable skybox
+    void toggleSkybox(bool skybox);
+
     /// Set date for temporal use, use -4000 as year to disable temporal
     void setDate(const QDateTime& date);
 
@@ -156,10 +160,6 @@ public:
     osg::ref_ptr<osg::Node> buildTile(const vcity::URI& uri, const vcity::Tile& tile);
     void buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* node, ReaderOsgCityGML& reader, int depth = 0, osg::ref_ptr<osg::Group> nodeVersion = NULL, osg::ref_ptr<osg::Group> nodeWorkspace = NULL);
 
-    /// Build osg node from CityGML temporal data
-    void buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile);
-    void buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj);
-
     bool m_shadow;                          ///< flag to use osg shadows or not
     osg::Vec4 m_shadowVec;
 
@@ -168,14 +168,13 @@ public:
     osg::ref_ptr<osg::Group> m_effectNone;
     osg::ref_ptr<osg::Group> m_effectShadow;
 
+    osg::Node* m_skybox;
+
 private:
     void setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node);
     void changePolyColorRec(osg::ref_ptr<osg::Node> node, std::map<std::string, bool> *sunlightInfo);
 
     osg::TextureCubeMap* readCubeMap();
-    osg::Node* createSkybox();
-
-    std::map<std::string, osg::ref_ptr<osg::Texture2D> > m_texManager;  ///< texture manager for DynStates
 };
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief osgSceneBuild will create an osg tree (for rendering with osg) from a tile

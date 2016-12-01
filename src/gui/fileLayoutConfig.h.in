@@ -1,0 +1,1 @@
+#define SKYBOX_DIR_PATH "@CMAKE_SOURCE_DIR@/resources/skybox"

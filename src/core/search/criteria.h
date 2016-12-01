@@ -6,15 +6,15 @@
 class Criteria
 {
 private:
-    float getSpatialSatisfactionDegree(int currentLOD, int documentLOD);
-    float getTemporalSatisfactionDegree(time_t time1, time_t time2);
-    float getProviderSatisfactionDegree();
-    float getThematicSatisfactionDegree();
-    float getContentSatisfactionDegree();
+    double getSpatialSatisfactionDegree(int currentLOD, int documentLOD);
+    double getTemporalSatisfactionDegree(time_t time1, time_t time2);
+    double getProviderSatisfactionDegree();
+    double getThematicSatisfactionDegree();
+    double getContentSatisfactionDegree();
 
 public:
     Criteria();
-    float getOverallSatisfactionDegree(Document);
+    double getOverallSatisfactionDegree(Document);
 };
 
 #endif // CRITERA_H

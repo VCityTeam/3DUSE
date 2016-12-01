@@ -14,17 +14,26 @@ Depending on your packaging system you **might need** to manually pull the follo
  * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
  * [GEOS](https://trac.osgeo.org/geos/) as gdal sub-dependency
 
-Dependencies under discussion (open questions for MTO):
- * `Find_package` directives found in VCity CMakeLists:
-   * OpenMesh
- * some MTO's installation docs (exchanged through emails) also mention
-   * Python: really needed ? Sub-dependency ? Not needed at all ?
-   * xerces-c: really needed ? Sub-dependency ? Not needed at all ?
+## General introduction to building VCity
+VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/runningcmake/). Here is a short list of option flags that can be used to customize the building VCity:
+ * `BUILD_GUI_QT4` and `BUILD_GUI_QT5` enable to build the Graphical User Interface (GUI) of VCity respectively with using [QT4](http://doc.qt.io/qt-4.8/) or [QT5](http://qt-project.org/qt5)
+ * Flags of the form `BUILD_CityGML<something>QtPlugin` (e.g. `BUILD_CityGMLCutQtPlugin` or `BUILD_CityGMLSunlightQtPlugin`) toggle the build of optional VCity plugins (based on QT plugin mechanism). Unsurprisingly enough the `BUILD_ALL_PLUGINS` option flag will trigger the build of all plugins.
+ * `BUILD_DOCUMENTATION` enables the building of the [Doxygen](http://www.doxygen.org/) based documentation of VCity.
+ * `BUILD_EMBARKED_OSG-QT_32` and `BUILD_EMBARKED_OSG-QT_34` enable to build a VCity embarked version of the interface of [OpenSceneGraph (OSG)](http://www.openscenegraph.org/) within [QT](http://qt-project.org/)
+
 
 ## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
     * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
+    * `apt-get install libboost-all-dev`
+    * When building with the [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake):
+      * Install sub-dependencies: `apt-get install libeigen3-dev libflann-dev libqhull-dev`
+      * Easy (recommended for [newbie](https://en.wikipedia.org/wiki/Newbie)) Point Cloud library installation out of VCity provided [tarball](https://en.wikipedia.org/wiki/Tar_(computing) (pre-configured sources):
+        * `cd /tmp && wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz`
+        * `tar zxf pcl-pcl-1.7.2.travis-trusty.tgz && cd pcl-pcl-1.7.2/buildR`
+        * `sudo make install`
+      * Alternatively (more advanced installer) proceed with PCL standard installation (out of git repository): refer e.g. to [LarryLisky's install notes](https://larrylisky.com/2014/03/03/installing-pcl-on-ubuntu/).
  * Manual installation of LASlib
    * With access rigths to `/usr/local/`:
      * `cd VCity/externals/laslib`
@@ -94,11 +103,12 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * Unrar the downloaded archive file (e.g. with [7-zip](http://www.7-zip.org/)
    * Enter the extracted folder (`Express 2015 up2 pour Wndowds Desktop`) and launch the installer `wdexpress_full.exe`
    * On first invocation Visual Studio will ask for an email/passwd to "Connect to Visual Studio". Simply close this connection sub-window and proceed. You will be automatically granted with a 30 days free evaluation license. After this trial period: 
-     * lauch Visual Studio, 
-     * go to the `Help` menu, 
+     * lauch Visual Studio,
+     * go to the `Help` menu,
      * select the "A propos Microsoft Visual Studio..." entry
      * select the "State of the license" link (at the top of window)
-     * on the right column (not the Connect youself one) proceed by providing an Outlook junk email (google on Outlook email in order to create it)
+     * on the right column (not the Connect youself one) proceed by providing e.g. some Outlook junk email (google on Outlook email in order to create it).
+   * That pesky Express 2015 might complain from time to time that your licensed expired. In fact it didn't but MicroSpank is just "making sure" (hey it's a free version but they still keep you leash). In the right section of the pop-up window select "Search for a license update" provide the same email you already gave away (refer to previous section) and proceed with MicroSpank's lenghty (you might have to give your password three times, receive email codes...) "verification process".
  * VCity binary kit:
    * download [binary installer](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/kits/VCITY_local_vs2015_64.7z)
    * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
@@ -110,10 +120,6 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * Extract NSIS from `VCITY_local_vs2015_64\_utils_\nsis-2.50-setup.exe``
  * Setting VCity related [environment variables](https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653%28v=vs.85%29.aspx):
    * Warnings: for those upgrading from a previous VCity version, make sure to remove any `3DUse` related variable. Also make sure to remove any previously set `vs2012` variable
-   * Setup a new `VCITY_KIT_ROOT` environment variable to be `C:/VCITY_local_vs2015_64`. Watch out: this is truly slash (`/`) character !
-   * Add `";C:\VCITY_local_vs2015_64\_bin_"` to your `Path` environment variable
-     * Don't forget to add the proper `";"` path separator
-     * Prepending your Path variable with this new directory path might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
 
 **Optional dependencies**
  * [Nullsoft Scriptable Install System (NSIS)](https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System)
@@ -122,7 +128,35 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
    * [Graphviz](http://www.graphviz.org/)
 
+### Set up environment variables
+In order to **build the "solution"** you will first need to setup the following new environment variables (in order to define the building context i.e. in order to indicate where the dependency libraries are to be found):
+ * `VCITY_KIT_ROOT` to be `C:/VCITY_local_vs2015_64`.
+ * `BOOST_ROOT` to be `%VCITY_KIT_ROOT%/boost_1_59_0`
+ * When building with Qt5: `QT5_DIR` to be `%VCITY_KIT_ROOT%/Qt/Qt5.6.0/5.6/msvc2015_64`
 
-### Building VCity with Cmake
- * Use cmake (`cmake-gui.exe`)
+**Watch out**: notice that for the above variables used path definitions where the separator is a  (`/`) character and NOT backslash (`\`) character ! (Note: this is because those variables are used by CMake which internally uses the Unix convention for path separators)
+
+Once the "solution" is build (see below), and for the impatient user, in order to **run the application** you will also need to:
+ * Add a traling`";C:\VCITY_local_vs2015_64\_bin_"` to your `PATH` environment variable (in order for the dynamic loader to find the dynamic libraries of the application dependencies)
+ * Assuming you build the solution in e.g. the `c:\Users\MyLogin\VCity\MyBuild` directory add the following entries to your `PATH` environment variable:
+  * Release mode `c:\Users\MyLogin\VCity\MyBuild\Release`
+  * Debug mode `c:\Users\MyLogin\VCity\MyBuild\Debug`
+
+**Watch out**: notice that for the above run time variables the separator is now classically for Windows a backslash (`\`) character !
+
+**Tips and notes**:
+ * in order to assert that the environement variables are properly set open a dos command and either use `set` and look for the variable(s) you are checking or check a specific variable with e.g. `echo %BOOST_ROOT%`.
+ * When editing your `PATH` environment variable (and for versions of Windows requiring the edition of the pull `PATH` as a string) don't forget to add the proper `";" as  path separator
+ * Note that prepending (as opposed to trailing) your `PATH` variable with the above mentionned directory paths might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
+
+### Building from sources
+ * Clone the [sources](https://github.com/MEPP-team/VCity.git) with a git client (e.g. [Tortoise git](https://tortoisegit.org/)
+
+* Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
    * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
+   * Set the optional cmake build flag `BUILD_EMBARKED_OSG-QT_34`to `ON`.
+   * Unless you are a developer working on improving the regression tests, turn the cmake build flag `BUILD_UNMATURE_TESTS`to `OFF`.
+   * Open (with Visual Studio) the resulting project `3DUSE.sln` located in your build subdirectory (`Bin` most often) and generate the solution
+
+### Run the regresion tests
+Select the `RUN_TESTS` project and launch (right click) the tests by invoking `Debug->Start a new instance`

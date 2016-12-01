@@ -12,15 +12,6 @@
 #include <osgText/Text>
 #include <osgUtil/Optimizer>
 
-#include <osg/Depth>
-#include <osg/CullFace>
-#include <osg/TexMat>
-#include <osg/TexGen>
-#include <osg/TexEnv>
-#include <osg/TexEnvCombine>
-#include <osg/VertexProgram>
-#include <osg/ShapeDrawable>
-
 #include "gui/applicationGui.hpp"
 #include "gui/moc/mainWindow.hpp"
 #include "osgCityGML.hpp"
@@ -33,10 +24,10 @@
 #include "osgInfoDataType.hpp"
 #include "osgUpdateInfo.hpp"
 #include "core/dateTime.hpp"
+#include "osgSkybox.hpp"
 
 #include <string>
 
-//#include <typeinfo>
 ////////////////////////////////////////////////////////////////////////////////
 /** Provide an simple example of customizing the default UserDataContainer.*/
 class MyUserDataContainer : public osg::DefaultUserDataContainer
@@ -97,101 +88,6 @@ protected:
     osg::ref_ptr<osg::Node> _node;
 };
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-//** Skybox related classes
-osg::TextureCubeMap* OsgScene::readCubeMap()
-{
-    osg::TextureCubeMap* cubemap = new osg::TextureCubeMap;
-
-    osg::ref_ptr<osg::Image>imagePosX = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/right.png");
-    osg::ref_ptr<osg::Image>imageNegX = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/left.png");
-    osg::ref_ptr<osg::Image>imagePosY = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/bottom.png");
-    osg::ref_ptr<osg::Image>imageNegY = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/top.png");
-    osg::ref_ptr<osg::Image>imagePosZ = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/back.png");
-    osg::ref_ptr<osg::Image>imageNegZ = osgDB::readRefImageFile("/home/vincent/Documents/VCity_Project/Data/skybox/SkyboxSet1/TropicalSunnyDay/front.png");
-
-
-    if (imagePosX && imageNegX && imagePosY && imageNegY && imagePosZ && imageNegZ)
-    {
-        cubemap->setImage(osg::TextureCubeMap::POSITIVE_X, imagePosX);
-        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_X, imageNegX);
-        cubemap->setImage(osg::TextureCubeMap::POSITIVE_Y, imagePosY);
-        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_Y, imageNegY);
-        cubemap->setImage(osg::TextureCubeMap::POSITIVE_Z, imagePosZ);
-        cubemap->setImage(osg::TextureCubeMap::NEGATIVE_Z, imageNegZ);
-
-        cubemap->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP_TO_EDGE);
-        cubemap->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP_TO_EDGE);
-        cubemap->setWrap(osg::Texture::WRAP_R, osg::Texture::CLAMP_TO_EDGE);
-
-        cubemap->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
-        cubemap->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-    }
-
-    return cubemap;
-}
-
-// Update texture matrix for cubemaps
-struct TexMatCallback : public osg::NodeCallback
-{
-public:
-
-    TexMatCallback(osg::TexMat& tm) :
-        _texMat(tm)
-    {
-    }
-
-    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
-    {
-        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
-        if (cv)
-        {
-            const osg::Matrix& MV = *(cv->getModelViewMatrix());
-            const osg::Matrix R = osg::Matrix::rotate(osg::DegreesToRadians(112.0f), 0.0f, 0.0f, 1.0f)*
-                osg::Matrix::rotate(osg::DegreesToRadians(90.0f), 1.0f, 0.0f, 0.0f);
-
-            osg::Quat q = MV.getRotate();
-            const osg::Matrix C = osg::Matrix::rotate(q.inverse());
-
-            _texMat.setMatrix(C*R);
-        }
-
-        traverse(node, nv);
-    }
-
-    osg::TexMat& _texMat;
-};
-
-
-class MoveEarthySkyWithEyePointTransform : public osg::Transform
-{
-public:
-    /** Get the transformation matrix which moves from local coords to world coords.*/
-    virtual bool computeLocalToWorldMatrix(osg::Matrix& matrix, osg::NodeVisitor* nv) const
-    {
-        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
-        if (cv)
-        {
-            osg::Vec3 eyePointLocal = cv->getEyeLocal();
-            matrix.preMultTranslate(eyePointLocal);
-        }
-        return true;
-    }
-
-    /** Get the transformation matrix which moves from world coords to local coords.*/
-    virtual bool computeWorldToLocalMatrix(osg::Matrix& matrix, osg::NodeVisitor* nv) const
-    {
-        osgUtil::CullVisitor* cv = dynamic_cast<osgUtil::CullVisitor*>(nv);
-        if (cv)
-        {
-            osg::Vec3 eyePointLocal = cv->getEyeLocal();
-            matrix.postMultTranslate(-eyePointLocal);
-        }
-        return true;
-    }
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 OsgScene::OsgScene()
@@ -199,69 +95,6 @@ OsgScene::OsgScene()
 {
     init();
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//**** Skybox Creation ***//
-
-
-osg::Node* OsgScene::createSkybox()
-{
-    osg::StateSet* stateset = new osg::StateSet();
-
-    osg::TexEnv* te = new osg::TexEnv;
-    te->setMode(osg::TexEnv::REPLACE);
-
-    stateset->setTextureAttributeAndModes(0, te, osg::StateAttribute::ON);
-
-    osg::TexGen *tg = new osg::TexGen;
-    tg->setMode(osg::TexGen::NORMAL_MAP);
-
-    stateset->setTextureAttributeAndModes(0, tg, osg::StateAttribute::ON);
-
-    osg::TexMat *tm = new osg::TexMat;
-
-    stateset->setTextureAttribute(0, tm);
-
-    osg::TextureCubeMap* skymap = readCubeMap();
-
-    stateset->setTextureAttributeAndModes(0, skymap, osg::StateAttribute::ON);
-    stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-    stateset->setMode(GL_CULL_FACE, osg::StateAttribute::OFF);
-
-    // clear the depth to the far plane.
-    osg::Depth* depth = new osg::Depth;
-
-    depth->setFunction(osg::Depth::ALWAYS);
-    depth->setRange(1.0, 1.0);
-
-    stateset->setAttributeAndModes(depth, osg::StateAttribute::ON);
-    stateset->setRenderBinDetails(-1, "RenderBin");
-
-    osg::Drawable* drawable = new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f, 0.0f, 0.0f), 100.f));
-    osg::Geode* geode = new osg::Geode;
-
-    geode->setCullingActive(false);
-    geode->setStateSet(stateset);
-    geode->addDrawable(drawable);
-
-    osg::Transform* transform = new MoveEarthySkyWithEyePointTransform;
-
-    transform->setCullingActive(false);
-    transform->addChild(geode);
-
-    osg::ClearNode* clearNode = new osg::ClearNode;
-
-    //  clearNode->setRequiresClear(false);
-    clearNode->setCullCallback(new TexMatCallback(*tm));
-    clearNode->addChild(transform);
-
-    return clearNode;
-
-}
-
-//**** End of Skybox Creation ***//
-
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::init()
 {
@@ -323,9 +156,6 @@ void OsgScene::init()
         addChild(m_effectNone);
     }
 
-    //build skybox
-    //addChild(createSkybox());
-
     // build layers node
     m_layers = new osg::Group();
     m_layers->setName("layers");
@@ -364,6 +194,9 @@ void OsgScene::init()
     m_layers->addChild(layer5);
 
     updateGrid();
+
+    //Create Skybox Node but don't display it
+    m_skybox = createSkybox();
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
@@ -380,7 +213,6 @@ void OsgScene::addTile(const vcity::URI& uriLayer, const vcity::Tile& tile)
             uri.resetCursor();
             osg::ref_ptr<osg::Node> osgTile = buildTile(uri, tile);
             layerGroup->addChild(osgTile);
-            buildTemporalNodes(uri, tile);
         }
     }
 }
@@ -394,7 +226,6 @@ void OsgScene::initInfo(const vcity::URI& uriLayer, std::vector<osgInfo*> info)
         osg::ref_ptr<osg::Group> layerGroup = layerNode->asGroup();
         if(layerGroup)
         {
-            std::cout<<"[osgScene > initInfo].....if(layerGroup)"<<std::endl;
             osg::ref_ptr<osg::Switch> switchRoot = new osg::Switch;
             switchRoot->setName("switch_root");
             layerGroup->addChild(switchRoot);
@@ -685,7 +516,19 @@ void OsgScene::setShadow(bool shadow)
     m_shadow = shadow;
 }
 ////////////////////////////////////////////////////////////////////////////////
-void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::ref_ptr<osg::Texture2D> texture)
+void OsgScene::toggleSkybox(bool skybox)
+{
+    if(skybox)
+    {
+        m_skybox = createSkybox();
+        addChild(m_skybox);
+    }
+    else
+        removeChild(m_skybox);
+
+}
+////////////////////////////////////////////////////////////////////////////////
+void setTexture(osg::ref_ptr<osg::Node> node, osg::ref_ptr<osg::Texture2D> texture)
 {
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if (grp)
@@ -693,7 +536,7 @@ void setTexture(osg::ref_ptr<osg::Node> node, citygml::CityObjectTag* tag, osg::
         for (unsigned int i = 0; i < grp->getNumChildren(); ++i)
         {
             osg::ref_ptr<osg::Node> child = grp->getChild(i);
-            setTexture(child, tag, texture);
+            setTexture(child, texture);
         }
     }
 
@@ -718,49 +561,6 @@ void OsgScene::setDateRec(const QDateTime& date, osg::ref_ptr<osg::Node> node)
     osg::ref_ptr<osg::Group> grp = node->asGroup();
     if (grp)
     {
-        // dyntag
-        /*double val;
-        bool hasFlag = node->getUserValue("TAGPTR", val);
-        if(hasFlag)
-        {
-        citygml::CityObjectTag* tag;
-        memcpy(&tag, &val, sizeof(tag));
-        std::string texturePath = tag->getAttribute("texture", date);
-        if(texturePath != "none")
-        {
-        std::cout << date.toString().toStdString() << " : texture : " << texturePath << std::endl;
-
-        // check cache
-        osg::ref_ptr<osg::Texture2D> texture = nullptr;
-        std::map<std::string, osg::ref_ptr<osg::Texture2D> >::iterator it = m_texManager.find(texturePath);
-        if(it!=m_texManager.end())
-        {
-        texture = it->second;
-        }
-        else
-        {
-        if(osg::Image* image = osgDB::readImageFile(texturePath))
-        {
-        //osg::notify(osg::NOTICE) << "  Info: Texture " << m_settings.m_filepath+"/"+t->getUrl() << " loaded." << std::endl;
-        //std::cout << "  Loading texture " << t->getUrl() << " for polygon " << p->getId() << "..." << std::endl;
-        texture = new osg::Texture2D;
-        texture->setImage( image );
-        texture->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-        texture->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
-        texture->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-        texture->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-        texture->setWrap( osg::Texture::WRAP_R, osg::Texture::REPEAT );
-
-        m_texManager[texturePath] = texture;
-        }
-        else
-        osg::notify(osg::NOTICE) << "  Warning: Texture " << texturePath << " not found!" << std::endl;
-        }
-
-        setTexture(node, tag, texture);
-        }
-        }*/
-
         // get attributes in cityobject
 #if 0
         vcity::URI uri = osgTools::getURI(node);
@@ -1138,36 +938,6 @@ void OsgScene::optim()
 {
     osgUtil::Optimizer optimizer;
     optimizer.optimize(this, osgUtil::Optimizer::ALL_OPTIMIZATIONS);
-}
-////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildTemporalNodes(const vcity::URI& uri, const vcity::Tile& tile)
-{
-    for (citygml::CityObject* child : tile.getCityModel()->getCityObjectsRoots())
-    {
-        vcity::URI u = uri;
-        u.append(child->getId(), child->getTypeAsString());
-        u.resetCursor();
-        buildTemporalNodesRec(u, child);
-    }
-}
-////////////////////////////////////////////////////////////////////////////////
-void OsgScene::buildTemporalNodesRec(const vcity::URI& uri, citygml::CityObject* obj)
-{
-    // add tags geom
-    for (citygml::CityObjectTag* tag : obj->getTags())
-    {
-        appGui().getControllerGui().addTag(uri, tag);
-    }
-    //add yearOfConstruction and yearOfDemolition to tags geom
-    obj->checkTags();
-    // recursive call
-    for (citygml::CityObject* child : obj->getChildren())
-    {
-        vcity::URI u = uri;
-        u.append(obj->getId(), obj->getTypeAsString());
-        u.resetCursor();
-        buildTemporalNodesRec(u, child);
-    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void OsgScene::buildCityObject(const vcity::URI& uri, osg::ref_ptr<osg::Group> nodeOsg, citygml::CityObject* obj, ReaderOsgCityGML& reader, int depth, osg::ref_ptr<osg::Group> nodeVersion, osg::ref_ptr<osg::Group> nodeWorkspace)

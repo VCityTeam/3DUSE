@@ -53,9 +53,8 @@ void DialogLink::initComboBox()
 		<< "ClosureSurface"			//25
 		<< "FloorSurface"			//26
 		<< "InteriorWallSurface"	//27
-        << "CeilingSurface"  		//28
-        << "Document";		        //29
-	ui->comboBox->addItems(cityObjectTypes);
+        << "CeilingSurface" ; 		//28
+    ui->comboBox->addItems(cityObjectTypes);
 }
 
 citygml::CityObject* DialogLink::createXLink(int index)
@@ -90,7 +89,6 @@ citygml::CityObject* DialogLink::createXLink(int index)
 	case 26 : return new citygml::FloorSurface(""); break;
 	case 27 : return new citygml::InteriorWallSurface(""); break;
 	case 28 : return new citygml::CeilingSurface(""); break;
-    case 29 : return new citygml::Document(""); break;
 	default : return new citygml::GenericCityObject(""); break;
 	}
 }

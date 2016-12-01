@@ -298,23 +298,6 @@ void TreeView::addCityObject(QTreeWidgetItem* parent, citygml::CityObject* node)
 	{
         addCityObject(item,(citygml::CityObject*) *it);
     }
-    // add temporal elements after
-    for(auto* tag : node->getTags())
-    {
-        item->addChild(createItemGeneric(tag->getStringId().c_str(), "Tag"));
-    }
-
-    for(auto* state : node->getStates())
-    {
-        if(dynamic_cast<citygml::CityObjectDynState*>(state))
-        {
-            item->addChild(createItemGeneric(state->getStringId().c_str(), "DynState"));
-        }
-        else
-        {
-            item->addChild(createItemGeneric(state->getStringId().c_str(), "State"));
-        }
-    }
 }
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::addTile(const vcity::URI& uriLayer, vcity::Tile& tile)
@@ -813,11 +796,8 @@ void searchNode(TreeView* tv, QTreeWidgetItem* node, const QString& filter)
 ////////////////////////////////////////////////////////////////////////////////
 void TreeView::slotFilter()
 {
-    //std::cout << "[treeView > slotFilter ].....filtre : -" << appGui().getMainWindow()->getFilter()->text().toStdString() <<"-"<<std::endl;
-
     appGui().getControllerGui().resetSelection();
     searchNode(this, m_tree->topLevelItem(0), appGui().getMainWindow()->getFilter()->text());
-    //appGui().getOsgScene()->filterInfo(appGui().getMainWindow()->getFilter()->text());
 
 }
 ////////////////////////////////////////////////////////////////////////////////

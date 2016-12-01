@@ -12,6 +12,7 @@
 #include "libcitygml/import/importer.hpp"
 #include "libcitygml/citygml.hpp"
 #include "citygmlutils_export.h"
+#include <QString>
 
 namespace citygml
 {
@@ -34,14 +35,14 @@ public:
 
       /// Read filename with assimp and converts it to CityGML
       /// \param fileName Input file path
-      CityModel* import(const std::string& fileName, bool detectRoof = true);
+      CityModel* import(const std::string& fileName, bool detectRoof = true, QString Prefix = "");
 
    private:
       /// Interal method : CityGML converter
-      CityModel* assimpSceneToCityGML(const struct aiScene* aiScene);
+      CityModel* assimpSceneToCityGML(const struct aiScene* aiScene, QString Prefix = "");
 
       /// Internal method : recursive method doing the conversion
-      void assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent);
+      void assimpNodeToCityGML(const struct aiScene* aiScene, const struct aiNode* aiNode, CityObject* parent, QString Prefix = "");
 
       bool _detectRoof;
 

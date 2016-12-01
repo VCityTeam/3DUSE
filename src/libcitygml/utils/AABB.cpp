@@ -193,22 +193,25 @@ std::map<std::string, std::pair<TVec3d, TVec3d>> DoBuildAABB(std::string dir, Ti
             TVec3d min(FLT_MAX, FLT_MAX, FLT_MAX);
             TVec3d max(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
-            TriangleList* list = BuildTriangleList(FileName, type);
-
-            for (Triangle* t : list->triangles) //Pour eliminer les points anormaux (qui ont des coordonnees z absurdes), on fait un petit filtre en verifiant ces valeurs de z.
+            QFile File(QString(FileName.c_str()));
+            if (File.exists())
             {
-                min.x = std::min(t->a.x, min.x); min.y = std::min(t->a.y, min.y); if (t->a.z > -500) min.z = std::min(t->a.z, min.z);
-                min.x = std::min(t->b.x, min.x); min.y = std::min(t->b.y, min.y); if (t->b.z > -500) min.z = std::min(t->b.z, min.z);
-                min.x = std::min(t->c.x, min.x); min.y = std::min(t->c.y, min.y); if (t->b.z > -500) min.z = std::min(t->c.z, min.z);
-                max.x = std::max(t->a.x, max.x); max.y = std::max(t->a.y, max.y); if (t->a.z < 1000) max.z = std::max(t->a.z, max.z);
-                max.x = std::max(t->b.x, max.x); max.y = std::max(t->b.y, max.y); if (t->b.z < 1000) max.z = std::max(t->b.z, max.z);
-                max.x = std::max(t->c.x, max.x); max.y = std::max(t->c.y, max.y); if (t->c.z < 1000) max.z = std::max(t->c.z, max.z);
+                TriangleList* list = BuildTriangleList(FileName, type);
+
+                for (Triangle* t : list->triangles) //Pour eliminer les points anormaux (qui ont des coordonnees z absurdes), on fait un petit filtre en verifiant ces valeurs de z.
+                {
+                    min.x = std::min(t->a.x, min.x); min.y = std::min(t->a.y, min.y); if (t->a.z > -500) min.z = std::min(t->a.z, min.z);
+                    min.x = std::min(t->b.x, min.x); min.y = std::min(t->b.y, min.y); if (t->b.z > -500) min.z = std::min(t->b.z, min.z);
+                    min.x = std::min(t->c.x, min.x); min.y = std::min(t->c.y, min.y); if (t->b.z > -500) min.z = std::min(t->c.z, min.z);
+                    max.x = std::max(t->a.x, max.x); max.y = std::max(t->a.y, max.y); if (t->a.z < 1000) max.z = std::max(t->a.z, max.z);
+                    max.x = std::max(t->b.x, max.x); max.y = std::max(t->b.y, max.y); if (t->b.z < 1000) max.z = std::max(t->b.z, max.z);
+                    max.x = std::max(t->c.x, max.x); max.y = std::max(t->c.y, max.y); if (t->c.z < 1000) max.z = std::max(t->c.z, max.z);
+                }
+                delete list;
             }
 
             AABBs.insert(std::make_pair(L.Name + "/" + std::to_string(x) + "_" + std::to_string(y) + "/" + std::to_string(x) + "_" + std::to_string(y) + L.Name + ".gml", std::make_pair(min, max)));
             std::cout << "File : " << L.Name + "/" + std::to_string(x) + "_" + std::to_string(y) + "/" + std::to_string(x) + "_" + std::to_string(y) + L.Name + ".gml" << std::endl;
-
-            delete list;
         }
     }
 
@@ -279,17 +282,17 @@ void doBuildBuildingAABBs(std::string filepath)
     citygml::CityModel *city = tile->getCityModel();
 
     //Size of Building Parts AABB
-    int AABBsize = 0;
+    size_t AABBsize = 0;
 
     //Create and open files
     std::ofstream ofs_B_AABB; // Building AABB
     std::ofstream ofs_BP_AABB; // Building Parts AABB
 
-    int extensionPos = filepath.find(".gml");
+    size_t extensionPos = filepath.find(".gml");
     std::string filename_B_AABB = filepath.substr(0, extensionPos) + "_Building_AABB.dat";
     std::string filename_BP_AABB = filepath.substr(0, extensionPos) + "_BuildingParts_AABB.dat";
 
-    ofs_B_AABB.open (filename_B_AABB, std::ofstream::trunc);
+    ofs_B_AABB.open(filename_B_AABB, std::ofstream::trunc);
 
     citygml::CityObjects cityobjects = city->getCityObjectsRoots();
 
@@ -317,7 +320,7 @@ void doBuildBuildingAABBs(std::string filepath)
     ofs_B_AABB.close();
 
     //Write in Building Parts AABB File
-    ofs_BP_AABB.open(filename_BP_AABB,std::ofstream::trunc);
+    ofs_BP_AABB.open(filename_BP_AABB, std::ofstream::trunc);
 
     ofs_BP_AABB << AABBsize << std::endl;
 
@@ -352,9 +355,9 @@ void BuildBuildingAABBs(QString buildingFilesFolder)
     QDirIterator it(buildingFilesFolder, QDirIterator::Subdirectories);
     while (it.hasNext())
     {
-        if(it.filePath().contains("_BATI"))
+        if (it.filePath().contains("_BATI"))
         {
-            if(it.fileName().contains(".gml"))
+            if (it.fileName().contains(".gml"))
             {
                 std::cout << "File : " << it.fileName().toStdString() << std::endl;
                 doBuildBuildingAABBs(it.filePath().toStdString());

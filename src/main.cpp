@@ -5,9 +5,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
-    std::cout << "3D-Use version 0.3.2" << std::endl;
 
 #ifdef Q_WS_X11
+    // FIXME: how come there is no equivalent for QT5 (that renamed
+    // the Q_WS_X11 preprocessing symbol to be Q_OS_X11) ?
     QCoreApplication::setAttribute(Qt::AA_X11InitThreads);
 #endif
 

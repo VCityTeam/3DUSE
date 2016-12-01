@@ -2,6 +2,7 @@
 #define DOCUMENTOBJECT_HPP
 
 #include "../../cityobject.hpp"
+#include <ctime>
 #include "tag.hpp"
 
 namespace documentADE
@@ -45,10 +46,11 @@ namespace documentADE
       RT_PUBLIC=0,
       RT_PRIVATE
   };
+
   class DocumentObject:  public citygml::CityObject
   {
   public:
-      DocumentObject( const std::string& id ) : citygml::CityObject( id, citygml::COT_Document ){}
+      DocumentObject( const std::string& id ) : citygml::CityObject( id, citygml::COT_GenericCityObject ){}
       inline TVec4f getDefaultColor( void ) const
       {
          return MAKE_RGB( 10, 230, 1 );
@@ -64,9 +66,9 @@ namespace documentADE
       void setPublisher(std::string);
       void setCurrentKnownPossessor(std::string);
       void setCurrentRightsHolder(std::string);
-      void setCurrentPossessionDate(QDateTime);
-      void setCurrentRightsObtainedDate(QDateTime);
-      void setPublicationDate(QDateTime);
+      void setCurrentPossessionDate(time_t);
+      void setCurrentRightsObtainedDate(time_t);
+      void setPublicationDate(time_t);
       void setDocumentType(DocumentType);
       void setRights(RightsType);
       void setFormat(FormatType);
@@ -87,9 +89,9 @@ namespace documentADE
       std::string getPublisher();
       std::string getCurrentKnownPossessor();
       std::string getCurrentRightsHolder();
-      QDateTime getCurrentPossessionDate();
-      QDateTime getCurrentRightsObtainedDate();
-      QDateTime getPublicationDate();
+      time_t getCurrentPossessionDate();
+      time_t getCurrentRightsObtainedDate();
+      time_t getPublicationDate();
       DocumentType getDocumentType();
       RightsType getRights();
       FormatType getFormat();
@@ -107,13 +109,13 @@ namespace documentADE
     std::string _usage;
     std::string _description;
     std::string _mandate;
-    QDateTime _publicationDate;
+    time_t _publicationDate;
     std::string _creator;
     std::string _publisher;
     std::string _currentKnownPossessor;
     std::string _currentRightsHolder;
-    QDateTime _currentPossessionDate;
-    QDateTime _currentRightsObtainedDate;
+    time_t _currentPossessionDate;
+    time_t _currentRightsObtainedDate;
     DocumentType _documentType;
     RightsType _rights;
     FormatType _format;
