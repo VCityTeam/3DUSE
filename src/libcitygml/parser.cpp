@@ -396,7 +396,6 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
             pushObject( _currentCityObject );\
-           std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;\
         }\
         else\
         {\
