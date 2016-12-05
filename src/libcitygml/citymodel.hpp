@@ -16,7 +16,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_CITYMODEL_HPP__
 #define __CITYGML_CITYMODEL_HPP__
-////////////////////////////////////////////////////////////////////////////////
+
 #include <vector>
 #include <map>
 #include <ostream>
@@ -35,7 +35,9 @@
 #include <map>
 #include <ostream>
 #include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
+#pragma warning(disable: 4251) // export problem on STL members
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml

@@ -54,8 +54,6 @@ std::string ProcessLasShpVeget(std::string dirTile)
 				OGRFeature *poFeature;
 				poLayer->ResetReading();
 
-				unsigned int cpt = 0;
-
 				while( (poFeature = poLayer->GetNextFeature()) != NULL )
 				{
 					std::string name="noid";

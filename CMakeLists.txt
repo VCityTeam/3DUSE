@@ -112,10 +112,11 @@ endif()
 
 ##### Clang compiler specifics (export CXX=clang++ CC=clang)
 if( ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang" )
-  set( ENABLE_CXX11 "-std=c++11" )
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLE_CXX11} -Qunused-arguments" )
-  set( CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} ${ENABLE_CXX11}   -Qunused-arguments" )
-  message( STATUS "Clang compiler detected (with ${ENABLE_CXX11} activated)" )
+  set( VCITY_CXX_EXTRA_FLAGS "-std=c++11 -Qunused-arguments -Wall" )
+  add_compile_options( -std=c++11 )
+  add_compile_options( -Qunused-arguments )
+  add_compile_options( -Wall )
+  message( STATUS "Clang compiler detected: ${VCITY_CXX_EXTRA_FLAGS} flags activated" )
 endif()
 
 ##### Micro$oft Visual C++ compiler specifics (aka VC++)
@@ -217,6 +218,18 @@ if( BUILD_GUI_QT4 )
   include( ${QT_USE_FILE} )
 endif()
 
+# Find OpenGL
+# FIXME: the only dependency towards OpenGL occurs within
+# src/libcitygml/tesselator.hpp which includes glu.h (in need for
+# openG's GLUtessellator). Tesselator.hpp gets included ia
+# appearancemanager.hpp that is itself included in citymodel.hpp that
+# is ubiquitous in the code. At least deport this dependency towards
+# libCityGML sub-library. Even better, try to remove it completely
+# by using self contained code (or CGAL tesselators: but depending from
+# CGAL is probably worse than depending from OpenGL ?).
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
+
 ##### Find Boost
 if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
   # In some recent OSX contexts (e.g. with cmake 3.6.x and boost 1.60), and
@@ -233,16 +246,7 @@ else()  # Linux and MSVC together or Cmake < 3.4.3
   find_package( Boost COMPONENTS date_time REQUIRED )
 endif ()
 
-##### Find OpenGL
-# FIXME: the only dependency towards OpenGL occurs in
-# src/libcitygml/tesselator.hpp which includes glu.h. Deport this
-# dependency to libCityGML (and even better try to remove it completely
-# by using self contained code or CGAL tesselators).
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIR})
-
-
-# Find ASSIMP
+##### Find ASSIMP
 find_package(ASSIMP)
 if(ASSIMP_FOUND)
   include_directories(${ASSIMP_INCLUDE_PATH})

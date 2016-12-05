@@ -85,10 +85,6 @@ SegmentationPointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
            it != cluster_indices.end ();
          ++it )
    {
-      double r = 255 * rand() / (RAND_MAX + 1.0f);
-      double g = 255 * rand() / (RAND_MAX + 1.0f);
-      double b = 255 * rand() / (RAND_MAX + 1.0f);
-
       pcl::PointCloud<pcl::PointXYZ>::Ptr
          cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
       for ( std::vector<int>::const_iterator pit  = it->indices.begin ();

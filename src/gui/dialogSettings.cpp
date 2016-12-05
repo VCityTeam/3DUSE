@@ -9,8 +9,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 DialogSettings::DialogSettings(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::DialogSettings),
-    m_updateDataProfile(false)
+    m_updateDataProfile(false),
+    ui(new Ui::DialogSettings)
 {
     ui->setupUi(this);
     if (appGui().getMainWindow()->m_unlockLevel < 1)

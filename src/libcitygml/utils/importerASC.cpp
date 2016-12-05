@@ -342,7 +342,6 @@ namespace citygml
       { //some polys on the seam may have a Z coordinate no corrected during the 'Difference' operation, we fix this here
           for (int j = 0; j < pRes->getExteriorRing()->getNumPoints(); j++)
           {
-          int npts = pRes->getExteriorRing()->getNumPoints();
             OGRPoint* pt = new OGRPoint();
             pRes->getExteriorRing()->getPoint(j, pt);
             for (OGRPolygon* iPoly : intersectingPolys)
