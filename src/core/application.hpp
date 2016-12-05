@@ -10,7 +10,11 @@
 #include "algo.hpp"
 #include "algo2.hpp"
 #include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+
+// FIXME: assert the following prama is still useful.
+#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
+#pragma warning(disable: 4251) // export problem on STL members
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace vcity

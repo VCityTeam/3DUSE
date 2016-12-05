@@ -19,7 +19,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "object.hpp"
 #include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
+# pragma warning(disable:4251) // gdal-1.11.4 internals (cpl_string.h) when
+#endif 
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml

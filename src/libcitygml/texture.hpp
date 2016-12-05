@@ -20,7 +20,9 @@
 #include "appearance.hpp"
 #include "vecs.hpp"
 #include "citygml_export.h"
+#ifdef _MSC_VER
 #pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml

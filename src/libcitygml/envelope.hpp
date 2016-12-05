@@ -13,19 +13,20 @@
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 * GNU Lesser General Public License for more details.
 */
-////////////////////////////////////////////////////////////////////////////////
 #ifndef __CITYGML_ENVELOPE_HPP__
 #define __CITYGML_ENVELOPE_HPP__
-////////////////////////////////////////////////////////////////////////////////
-#include "vecs.hpp"
-#include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
 
 #include <ostream>
-////////////////////////////////////////////////////////////////////////////////
+#include "vecs.hpp"
+#include "citygml_export.h"
+
+#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
+#pragma warning(disable: 4251) // export problem on STL members
+#endif
+
 namespace citygml
 {
-////////////////////////////////////////////////////////////////////////////////
+
 class CITYGML_EXPORT Envelope
 {
     friend class CityGMLHandler;
@@ -44,9 +45,9 @@ protected:
     TVec3d _lowerBound;
     TVec3d _upperBound;
 };
-////////////////////////////////////////////////////////////////////////////////
+
 std::ostream& operator<<( std::ostream&, const citygml::Envelope& );
-////////////////////////////////////////////////////////////////////////////////
+
 } // namespace citygml
-////////////////////////////////////////////////////////////////////////////////
+
 #endif // __CITYGML_ENVELOPE_HPP__

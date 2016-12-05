@@ -2,17 +2,19 @@
 
 ## List of VCity dependencies
 **Direct dependencies**
- * [QT version 4.8](http://doc.qt.io/qt-4.8/) (Concerning QT5 possible support refer to [issue #91](https://github.com/MEPP-team/VCity/issues/91))
+ * [Boost](http://www.boost.org/)
  * [Open Scene Graph](http://www.openscenegraph.org/) (a.k.a. OSG)
  * [GDAL](http://www.gdal.org/) (Geospatial Data Abstraction Library)
  * [Assimp](http://www.assimp.org)
  * [LASlib](https://github.com/LAStools/LAStools/tree/master/LASlib): note that VCity [embarks its own copy](https://github.com/MEPP-team/VCity/tree/master/externals/laslib)
- * [Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html): when building the documentation (optional).
-
-Depending on your packaging system you **might need** to manually pull the following indirect dependencies:
- * [X11 server](https://en.wikipedia.org/wiki/X_Window_System) as [QT sub-dependency](http://doc.qt.io/qt-4.8/requirements-x11.html)
- * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
- * [GEOS](https://trac.osgeo.org/geos/) as gdal sub-dependency
+ * Depending on your packaging system you **might need** to manually pull the following indirect dependencies:
+   * [X11 server](https://en.wikipedia.org/wiki/X_Window_System) as [QT sub-dependency](http://doc.qt.io/qt-4.8/requirements-x11.html)
+   * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
+   * [GEOS](https://trac.osgeo.org/geos/) as gdal sub-dependency
+ 
+**Optional dependencies**
+ * [QT4 above version 4.8](http://doc.qt.io/qt-4.8/) or [QT5 above version 5.4](http://download.qt.io/official_releases/qt/5.4/): when building the [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface)
+ * [Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html): when building the documentation (optional)
 
 ## General introduction to building VCity
 VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/runningcmake/). Here is a short list of option flags that can be used to customize the building VCity:
@@ -52,7 +54,7 @@ VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/running
 ### Building from sources
  * `git clone https://github.com/MEPP-team/VCity.git`
  * `cd VCity`
- * `Build && cd Build`
+ * `mkdir Build && cd Bin`
  * `cmake ..`
  * `make`
 
@@ -62,10 +64,10 @@ Post-install goodies (not VCity related):
 ## Mac OS X install
 ### Installing dependencies
  * Obtain and install [Homebrew](http://brew.sh/)
+ * `brew upgrade boost`
  * `brew install Caskroom/cask/xquartz`(X11 server)
  * `brew install gdal`
  * `brew install open-scene-graph --with-qt gdal`
- * `brew install qt` (which installs qt4)
  * `brew install assimp`
  * Install laslib:
    * The careful version with stow (`brew install stow`):
@@ -85,10 +87,15 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * `brew instal proj` (which is [proj4](https://github.com/OSGeo/proj.4/wiki))
  * `brew install geos`
 
+**Optional installations**
+  * GUI support: `brew install qt` (which installs Qt4) or `brew install qt5` (which installs Qt5)
+  * Documentation: `brew install doxygen graphviz`
+  * [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake): `brew install homebrew/science/pcl --without-vtk --without-apps`
+  
 ### Building from sources
  * `git clone https://github.com/MEPP-team/VCity.git`
  * `cd VCity``
- * `Build && cd Build`
+ * `mkdir Bin && cd Bin`
  * `cmake ..`
  * `make`
 

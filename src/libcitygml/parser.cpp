@@ -341,13 +341,11 @@ std::string CityGMLHandler::getNodeName( const std::string& name )
 std::string CityGMLHandler::getXLinkQueryIdentifier( const std::string& query)
 {
 	// query should be under the format "//identifier[text()='XXXXXXXX']/.."
-	//std::cout<<"XLink query found : "<<query<<std::endl;
 	size_t pos1 = query.find("//identifier[text()='");
 	size_t pos2 = query.find("']/",pos1);
 	if (pos1!=std::string::npos && pos2!=std::string::npos)
 	{
 		std::string identifier = query.substr(pos1+21,pos2-(pos1+21));
-		//std::cout<<"Identifier = "<<identifier<<std::endl;
 		return identifier;
 	}
 	return "";
@@ -444,7 +442,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 				_currentCityObject->setAttribute( "xlink", xLinkQuery, false );\
 				_currentCityObject->_isXlink = xLinkState::UNLINKED;\
 			}\
-            pushObject( _currentCityObject ); /*std::cout << "new "<< #_t_ " - " << _currentCityObject->getId() << std::endl;*/\
+            pushObject( _currentCityObject ); \
         }\
         else\
         {\
@@ -588,7 +586,7 @@ void CityGMLHandler::startElement( const std::string& name, void* attributes )
 		break;
 
 	default:
-        //std::cout << localname << std::endl;
+
 		break;
 	};
 }
@@ -623,8 +621,6 @@ void CityGMLHandler::endElement( const std::string& name )
 		_model->finish( _params );
 		if ( _geoTransform )
 		{
-			std::cout << "The coordinates were transformed from " << _model->_srsName << " to "
-								<< ((GeoTransform*)_geoTransform)->getDestURN() << std::endl;
 			_model->_srsName = ((GeoTransform*)_geoTransform)->getDestURN();
 		}
 		if ( _model->_srsName == "" )
@@ -635,8 +631,6 @@ void CityGMLHandler::endElement( const std::string& name )
 		}
 		
 		_model->_translation = _translate;
-        //std::cout << std::fixed << "The model coordinates were translated by x:" << _translate.x
-        //		      << " y:" << _translate.y << " z:" << _translate.z << std::endl;
 		
 		popObject();
 		break;
@@ -1070,15 +1064,8 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 {
     if(node != NULL && node->_isXlink==xLinkState::UNLINKED)
     {
-        std::cout<<"fetchVersionedCityObjectsRec id "<<node->getId()<<std::endl;
-        std::cout<<"_identifiersMap size "<<_identifiersMap.size()<<std::endl;
-        std::cout<<"node->_isXlink "<<node->_isXlink<<std::endl;
-
-         std::cout<<"fetchVersionedCityObjectsRec 1.1"<<std::endl;
         std::string query = node->getAttribute("xlink");
-                 std::cout<<"fetchVersionedCityObjectsRec 1.2"<<std::endl;
 		std::string identifier = getXLinkQueryIdentifier(query);
-                 std::cout<<"fetchVersionedCityObjectsRec 1.3"<<std::endl;
 		//if query contains an identifier
 		if (!(identifier==""))
         {
@@ -1102,9 +1089,7 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 		//if the query starts with a "#", what follows the hash is a gml:id
 		else if (query.find("#")==0)
 		{
-                     std::cout<<"fetchVersionedCityObjectsRec 1.4"<<std::endl;
             std::string id = query.substr(1);
-                     std::cout<<"fetchVersionedCityObjectsRec 1.5"<<std::endl;
 			CityObject* target = _model->getNodeById(id);
 			if (target)
 			{
@@ -1115,13 +1100,10 @@ void CityGMLHandler::fetchVersionedCityObjectsRec(CityObject* node)
 		}
 		else {std::cerr<<"ERROR: XLink expression not supported! : \""<<node->getAttribute("xlink")<<"\""<<std::endl;}
     }
-             std::cout<<"fetchVersionedCityObjectsRec 1.6 "<<node << std::endl;
              if(node!=NULL){
     for(auto* child : node->getChildren())
     {
-                 std::cout<<"fetchVersionedCityObjectsRec 1.7"<<std::endl;
         fetchVersionedCityObjectsRec(child);
-                 std::cout<<"fetchVersionedCityObjectsRec 1.8"<<std::endl;
 		if (node->_isXlink==xLinkState::LINKED) child->_parent=node->_parent;
     }}
 }

@@ -23,18 +23,21 @@
 #include <vector>
 
 #include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL _Id member
+#ifdef _MSC_VER                // Inhibit dll-interface warnings concerning
+#pragma warning(disable: 4251) // export problem on STL members
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 namespace citygml
 {
-////////////////////////////////////////////////////////////////////////////////
+
 enum xLinkState { NONE, LINKED, UNLINKED, TARGET };
-////////////////////////////////////////////////////////////////////////////////
+
 typedef std::map< std::string, std::string > AttributesMap;
 
 ///////////////////////////////////////////////////////////////////////////////
-// Base object associated with an unique id and a set of attributes (key-value pairs)
+// Base object associated with an unique id and a set of attributes
+// (key-value pairs)
 class CITYGML_EXPORT Object
 {
     friend class CityGMLHandler;
@@ -50,15 +53,6 @@ public:
     const AttributesMap& getAttributes() const;
 
     AttributesMap& getAttributes();
-
-    //inline osg::ref_ptr<osg::Group> getOsgNode() { return m_osgNode; } FIXME
-    //inline void setOsgNode(osg::ref_ptr<osg::Group> node)
-    //                                             { m_osgNode = node; } FIXME
-
-    //inline osg::Group* getOsgNode() { return m_osgNode; }              FIXME
-    //inline void setOsgNode(osg::Group* node)
-    //              { m_osgNode->ref(); m_osgNode = node; }              FIXME
-    //inline void setOsgNode(osg::Group* node) { m_osgNode = node; }     FIXME
 
     void setAttribute( const std::string& name, const std::string& value, bool forceOnExist = true );
 
@@ -76,12 +70,10 @@ protected:
 
     std::vector<Object*> _xLinkTargets;
 
-    //osg::ref_ptr<osg::Group> m_osgNode;  FIXME
-    //osg::Group* m_osgNode;               FIXME
 };
-////////////////////////////////////////////////////////////////////////////////
+
 std::ostream& operator<<( std::ostream&, const citygml::Object& );
-////////////////////////////////////////////////////////////////////////////////
+
 } // namespace citygml
-////////////////////////////////////////////////////////////////////////////////
+
 #endif // __CITYGML_OBJECT_HPP__
