@@ -40,7 +40,7 @@ void createFileFolder(FileInfo* file, const QString& sOutputDir)
         outputDir.mkpath(outputDir.absolutePath());
 }
 
-void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo* file, int iStartDate, int iEndDate, QString outputDir)
+void exportLightningToCSV(std::map<int,bool>& sunInfo, Triangle* t, FileInfo* file, int iStartDate, int iEndDate, QString &outputDir)
 {
     int nb_days = (iEndDate - iStartDate + 1) / 24;
 
