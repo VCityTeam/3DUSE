@@ -377,7 +377,7 @@ void MainWindow::openRecentFile()
 bool MainWindow::loadFile( const QString& filepath )
 {
    // date check
-   if ( QDate::currentDate() > QDate( 2016, 12, 31 ) )
+   if ( QDate::currentDate() > QDate( 2017, 12, 31 ) )
    {
       QMessageBox( QMessageBox::Critical, "Error", "Expired" ).exec();
       return false;
