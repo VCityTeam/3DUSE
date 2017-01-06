@@ -133,17 +133,17 @@ std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, int iStartDate, in
             std::getline(lineStream,cell,';'); //jump second cell of line
 
             //Encode 27 march and 30 november (dates when time changes : summer hour <-> winter hour)
-//            int twentySevenMarch = encodeDateTime(2016,3,27,0);
-//            int thirtyNovember = encodeDateTime(2016,11,30,0);
-//            bool timeshift = false;
+            int twentySevenMarch = encodeDateTime(2016,3,27,0);
+            int thirtyNovember = encodeDateTime(2016,11,30,0);
+            bool timeshift = false;
 
-//            if(iCurrentDate < twentySevenMarch || iCurrentDate >= thirtyNovember)
-//            {
-//                //Skip first two cells -> shift time back from hour
-//                std::getline(lineStream,cell,';');
-//                std::getline(lineStream,cell,';');
-//                timeshift = true;
-//            }
+            if(iCurrentDate < twentySevenMarch || iCurrentDate >= thirtyNovember)
+            {
+                //Skip first two cells -> shift time back from hour
+                std::getline(lineStream,cell,';');
+                std::getline(lineStream,cell,';');
+                timeshift = true;
+            }
 
             int hour = 0;
             while(std::getline(lineStream,cell,';'))
@@ -176,12 +176,12 @@ std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, int iStartDate, in
                 ++hour;
             }
 
-//            if(timeshift)
-//            {
-//                //Add nul beam direction for last hour of the day
-//                int dateTime = encodeDateTime(sCurrentDate,hour);
-//                SunBeamDir[dateTime] = TVec3d(0.0,0.0,0.0);
-//            }
+            if(timeshift)
+            {
+                //Add nul beam direction for last hour of the day
+                int dateTime = encodeDateTime(sCurrentDate,hour);
+                SunBeamDir[dateTime] = TVec3d(0.0,0.0,0.0);
+            }
         }
         else if(iCurrentDate > iEndDate)
             exit_loop = true;
