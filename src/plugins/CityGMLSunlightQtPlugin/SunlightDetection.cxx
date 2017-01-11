@@ -388,8 +388,6 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
 
                     }
 
-                    rayboxBuilding->raysBB.clear();
-
                     delete rayboxBuilding;
 
                 }
