@@ -43,6 +43,7 @@ endif()
 add_library( CityGMLFloodARQtPlugin SHARED
   ${CityGMLFloodAR_Qt_Plugin_HEADER}
   ${CityGMLFloodAR_Qt_Plugin_SRC}
+  ## FIXME: it seems that we don't need the embarked OSGQT code
   ${EMBARKED_OSGQT_SRC}
   CityGMLFloodARQtPlugin.cxx
   Dialogs/dialogFloodAR.cxx

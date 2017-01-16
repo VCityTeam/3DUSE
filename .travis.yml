@@ -20,8 +20,10 @@ cache: apt     # feature available only for private repositories
 
 os:
   - linux      # Ubuntu 14.04 Trusty Tahr
-  - osx        # Default is OSX 10.11.6 (2015): refer to
+  - osx        # Default is OSX 10.11.6 (2015) and XCode 7.3.1: refer to
                # https://docs.travis-ci.com/user/osx-ci-environment/ 
+
+osx_image: xcode8.2
 
 compiler:
   - gcc
@@ -67,7 +69,9 @@ addons:
 
 
 install:
+  # FIXME: remove this now hopefully useless environment variable
   - export TRAVIS=YES
+  - export WGET="wget --no-check-certificate "
   - cmake --version
   #
   ### OSX dependencies install:
@@ -100,7 +104,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula  &&
       mv open-scene-graph.rb open-scene-graph.rb.old  &&
-      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
+      $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
       cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew install open-scene-graph; fi
@@ -143,7 +147,7 @@ install:
     # package under the same "pcl" name):
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       cd /tmp &&
-      wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz &&
+      $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz &&
       tar zxf pcl-pcl-1.7.2.travis-trusty.tgz &&
       cd pcl-pcl-1.7.2/buildR &&
       sudo make install && 
@@ -178,6 +182,7 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
+    # Eventually run the tests
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest -V; fi
 
     ####  Linux Qt5 tests:
@@ -188,4 +193,5 @@ script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
+    # Eventually run the tests
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest -V; fi
