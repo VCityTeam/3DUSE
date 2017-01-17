@@ -400,7 +400,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 
     if (LineFound || Outside) //On veut prolonger pour voir si on peut fixer le projete plus loin tout en restant dans le PolygonGMLDiffShape, sinon on ne fait rien car cela signifie qu'il n'y a vraisemblablement pas besoin de couper le polygone en deux
     {
-        TVec2f Vecteur;
+        TVec2d Vecteur;
         Vecteur.x = projete->getX() - Point->getX();
         Vecteur.y = projete->getY() - Point->getY();
 
@@ -439,7 +439,7 @@ OGRPoint* ProjectPointOnEnvelope(OGRPoint* Point, OGRPolygon* Envelope, OGRLineS
 
         double Coeff = 1;
 
-        bool Test1, Test2;
+        OGRBoolean Test1, Test2;
         Test1 = Projete2->Intersects(Envelope); //Projete2 est dans le Polygon
         Test2 = (InterLS->getGeometryType() == wkbLineString || InterLS->getGeometryType() == wkbLineString25D); //Projete2 n'a pas traverse d'interioring Ring car l'intersection serait alors un MutliLineString puisqu'elle serait coupee en deux
         while (Test1 && Test2)//Tant que Projete2 est inclus dans le Polygon et que nous n'avons pas traverse d'InteriorRing

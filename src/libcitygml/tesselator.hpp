@@ -17,23 +17,26 @@
 #ifndef __TESSELATOR_H__
 #define __TESSELATOR_H__
 
-#ifdef WIN32
-#	include <windows.h>
+#include <vector>
+
+#ifdef _MSC_VER                  // Inhibit dll-interface warnings concerning
+  #pragma warning(disable: 4251) // export problem on STL members
+  #	include <windows.h>
 #else
-#	define CALLBACK
-#	define APIENTRY
+  #	define CALLBACK
+  #	define APIENTRY
 #endif
 
 #ifdef __APPLE__
   #include <OpenGL/glu.h>
 #else
+  // Win32 caveat emptor: must always be _preceded_ (as opposed to
+  // succeeded) by the inclusion of windows.h
   #include <GL/glu.h>
 #endif
 
 #include "vecs.hpp"
 #include "citygml_export.h"
-#pragma warning(disable: 4251) // VC++ DLL jejune complains on STL members
-#include <vector>
 
 // GLU based polygon tesselator
 class CITYGML_EXPORT Tesselator 

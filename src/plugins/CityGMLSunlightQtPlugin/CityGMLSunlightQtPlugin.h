@@ -48,6 +48,8 @@ public slots:
     void stopVisuAction();
 
 private:
+    // To prevent overloaded virtual function warning
+    using Generic_PluginInterface::init; 
     ///
     /// \brief init Initialize plugin (create dialog, connect signals,..)
     /// \return 0

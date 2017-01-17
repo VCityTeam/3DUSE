@@ -19,6 +19,8 @@
 #include <cmath>
 #include <stdio.h>
 
+#include <boost/filesystem.hpp>
+
 #include "ogrsf_frmts.h"
 
 #include <lasreader.hpp>
@@ -83,10 +85,6 @@ SegmentationPointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
            it != cluster_indices.end ();
          ++it )
    {
-      double r = 255 * rand() / (RAND_MAX + 1.0f);
-      double g = 255 * rand() / (RAND_MAX + 1.0f);
-      double b = 255 * rand() / (RAND_MAX + 1.0f);
-
       pcl::PointCloud<pcl::PointXYZ>::Ptr
          cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
       for ( std::vector<int>::const_iterator pit  = it->indices.begin ();
@@ -399,14 +397,16 @@ Create3DTriangulatedVegetationFromPointCloud(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-std::string FilterVegetationFromLidar( std::string LiDAR_Path )
+boost::filesystem::path
+FilterVegetationFromLidar( boost::filesystem::path LiDAR_Path,
+                           boost::filesystem::path outPutDir )
 {
-   std::string LiDAR_PathOutput = LiDAR_Path;
-
-   LiDAR_PathOutput.insert(LiDAR_Path.find(".las"), "_Filtered");
+   boost::filesystem::path LiDAR_PathOutput = outPutDir;
+   LiDAR_PathOutput += 
+     LiDAR_Path.filename().replace_extension( "_Filtered.las" );
 
    LASreadOpener lasreadopener;
-   lasreadopener.set_file_name(LiDAR_Path.c_str());
+   lasreadopener.set_file_name( LiDAR_Path.string().c_str() );
    LASreader* lasreader = lasreadopener.open();
    if( !lasreader )
    {
@@ -418,7 +418,7 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
    std::cerr << "  LAS reader opened." << std::endl;
 
    LASwriteOpener laswriteopener;
-   laswriteopener.set_file_name(LiDAR_PathOutput.c_str());
+   laswriteopener.set_file_name( LiDAR_PathOutput.string().c_str() );
 
    LASheader lasheader = lasreader->header;
 
@@ -426,7 +426,7 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
    laspoint.init( &lasheader, lasheader.point_data_format,
                   lasheader.point_data_record_length, 0 );
 
-   LASwriter* laswriter = laswriteopener.open(&lasheader);
+   LASwriter* laswriter = laswriteopener.open( &lasheader );
    if( !laswriter )
    {
      std::cerr << "  Unable to retrieve the laswriter." << std::endl;
@@ -476,15 +476,15 @@ std::string FilterVegetationFromLidar( std::string LiDAR_Path )
    return LiDAR_PathOutput;
 }
 
-void Create3DVegetation( std::string LiDAR_Path,
-                         std::string outputFileName )
+void Create3DVegetation( boost::filesystem::path LiDAR_Path,
+                         boost::filesystem::path outputFileName )
 {
    std::cerr << "  Starting the computation of the 3D vegetation."
              << std::endl;
 
     /// Retrieve the LIDAR data as a PCL point cloud
     LASreadOpener lasreadopener;
-    lasreadopener.set_file_name( LiDAR_Path.c_str() );
+    lasreadopener.set_file_name( LiDAR_Path.string().c_str() );
     LASreader* LiDAR = lasreadopener.open();
 
     pcl::PointXYZ point;
@@ -527,7 +527,7 @@ void Create3DVegetation( std::string LiDAR_Path,
    /// Writing down the result as a CityGML file:
    std::cerr << "  Writing the vegetation created content as CityGML file "
              << outputFileName << std::endl;
-    citygml::ExporterCityGML exporter( outputFileName );
+    citygml::ExporterCityGML exporter( outputFileName.string() );
     ModelOut->computeEnvelope( );
     exporter.exportCityModel( *ModelOut );
 
@@ -556,15 +556,20 @@ void usage( int narg, char** argv )
 
 int main( int narg, char** argv )
 {
+   namespace fs = boost::filesystem;
+
    std::cerr << "  Entering test " << argv[0] << std::endl;
    usage( narg, argv );
-   std::string inputFileName  = argv[1];
-   std::string outputFileName = argv[2];
-   std::cerr << "  Using file " << inputFileName  << " as input." << std::endl;
-   std::cerr << "  Using file " << outputFileName << " as output." << std::endl;
+   fs::path  inputFileName( argv[1] );
+   fs::path outputFileName( argv[2] );
+   std::cout << "  Using file " << inputFileName  << " as input."  << std::endl;
+   std::cout << "  Using file " << outputFileName << " as output." << std::endl;
 
-   std::cerr << "  Entering FilterVegetationFromLidar." << std::endl;
-   std::string LiDAR_Filtered_Path = FilterVegetationFromLidar( inputFileName );
+   std::cout << "  Entering FilterVegetationFromLidar." << std::endl;
+   fs::path outPutDir = fs::path( outputFileName ).parent_path();
+   fs::path LiDAR_Filtered_Path = FilterVegetationFromLidar( inputFileName,
+                                                             outPutDir );
+
    std::cerr << "  FilterVegetationFromLidar done." << std::endl;
 
    Create3DVegetation( LiDAR_Filtered_Path, outputFileName );

@@ -10,22 +10,25 @@ void DetectionToitsPlats(std::string path, float minArea, float slopeFactor)
 	vcity::Tile* tile = new vcity::Tile(path);
 	citygml::CityModel * model = tile->getCityModel();
 
-	OGRMultiPolygon* toitsPlats = new OGRMultiPolygon;//Carte contenant uniquement les toits plats
-	OGRMultiPolygon* toits = new OGRMultiPolygon;//Carte de tous les toits.
+  //Carte contenant uniquement les toits plats
+	OGRMultiPolygon* toitsPlats = new OGRMultiPolygon;
+  //Carte de tous les toits.
+	OGRMultiPolygon* toits = new OGRMultiPolygon;
 
 	for(citygml::CityObject* obj : model->getCityObjectsRoots())
 	{
 		if(obj->getType() == citygml::COT_Building)
 		{
-			OGRMultiPolygon* Building = new OGRMultiPolygon;//Version OGR du bâtiment qui va être remplie
-
-			for(citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du bâtiment
+      //On parcourt les objets (Wall, Roof, ...) du batiment
+			for(citygml::CityObject* object : obj->getChildren())
 			{
 				if(object->getType() == citygml::COT_RoofSurface)
 				{
-					for(citygml::Geometry* Geometry : object->getGeometries()) //pour chaque géométrie
+          // Pour chaque geometrie
+					for(citygml::Geometry* Geometry : object->getGeometries())
 					{
-						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
+            // Pour chaque polygone
+						for(citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
 						{
 							const std::vector<TVec3f>& norms = PolygonCityGML->getNormals();
 
@@ -39,14 +42,17 @@ void DetectionToitsPlats(std::string path, float minArea, float slopeFactor)
 
 							OgrRing->closeRings();
 
-							if(OgrRing->getNumPoints() > 3)//Vérification qu'on a bien un triangle
+              //Verification qu'on a bien un triangle
+							if(OgrRing->getNumPoints() > 3)
 							{
 								OgrPoly->addRingDirectly(OgrRing);
-								if(OgrPoly->IsValid())//Vérification que notre triangle n'est pas dégénéré
+                // Verification que notre triangle n'est pas degenere
+								if(OgrPoly->IsValid())
 								{
 									toits->addGeometryDirectly(OgrPoly);
 									TVec3f norm = norms.at(0);
-									if(norm.z >= slopeFactor)//On test la normal à notre triangle
+                  // On test la normal a notre triangle
+									if(norm.z >= slopeFactor)
 									{
 										toitsPlats->addGeometry(OgrPoly);
 									}

@@ -1,0 +1,138 @@
+#include <algorithm>
+#include <cstring>
+#include <iostream>
+#include <string>
+using namespace std;
+
+int main(int narg, char** argv)
+{
+   cout << "@APP_NAME@ version number: " 
+        << @PRJ_VERSION_MAJOR@ << "."
+        << @PRJ_VERSION_MINOR@ << "."
+        << @PRJ_VERSION_PATCH@
+        << endl;
+   
+   cout << "Cmake version: @CMAKE_VERSION@" << endl;
+
+   ////////////////////
+   cout << "Mandatory library dependencies:" << endl;
+
+   string assimpLibrary = R"##(@ASSIMP_LIBRARY@)##";
+   replace( assimpLibrary.begin(), assimpLibrary.end(), '\\', '/' );
+   cout << " - Assimp library: " << assimpLibrary << endl; 
+
+   cout << " - Boost:" << endl;
+
+   cout << "   - version: @Boost_LIB_VERSION@ ("
+             << @Boost_VERSION@ << ")"
+             << endl; 
+
+   string boostLibraries = R"##(@Boost_LIBRARIES@)##";
+   replace( boostLibraries.begin(), boostLibraries.end(), '\\', '/' );
+   cout << "   - library: " << boostLibraries<< endl; 
+
+   string gdalLibrary = R"##(@GDAL_LIBRARY@)##";
+   replace( gdalLibrary.begin(), gdalLibrary.end(), '\\', '/' );
+   cout << " - GDAL library: " << gdalLibrary << endl; 
+
+   string laslibLibrary = R"##(@LASLIB_LIBRARY@)##";
+   replace( laslibLibrary.begin(), laslibLibrary.end(), '\\', '/' );
+   cout << " - LASLIB library: " << laslibLibrary << endl; 
+
+   cout << " - LibXml2:" << endl;
+   cout << "   - version: @LIBXML2_VERSION_STRING@" << endl; 
+   string libxml2Libraries = R"##(@LIBXML2_LIBRARIES@)##";
+   replace( libxml2Libraries.begin(), libxml2Libraries.end(), '\\', '/' );
+   cout << "   - library: " << libxml2Libraries << endl; 
+   
+   ////////////////////
+   cout << "Optional library dependencies:" << endl;
+   if( !strcmp( "@BUILD_GUI_QT4@", "ON" ) )
+   {
+     cout << " - QT4 version: "
+               << "@QT_VERSION_MAJOR@" << "."
+               << "@QT_VERSION_MINOR@" << "."
+               << "@QT_VERSION_PATCH@"
+               << endl;
+   }
+
+   if( !strcmp( "@BUILD_GUI_QT5@", "ON" ) )
+   {
+     cout << " - QT5 version: "
+               << "@QT_VERSION_MAJOR@" << "."
+               << "@QT_VERSION_MINOR@" << "."
+               << "@QT_VERSION_PATCH@"
+               << endl;
+   }
+
+   if(   !strcmp( "@BUILD_GUI_QT4@", "ON" )
+      || !strcmp( "@BUILD_GUI_QT5@", "ON" ) )
+   {
+     cout << "   - OpenSceneGraph:"                     << endl;
+     cout << "     o version: @OPENSCENEGRAPH_VERSION@" << endl;
+     string openSceneGraphLibraries = R"##(@OPENSCENEGRAPH_LIBRARIES@)##";
+     replace( openSceneGraphLibraries.begin(),
+              openSceneGraphLibraries.end(),
+              '\\', '/');
+     cout << "     o library: " << openSceneGraphLibraries << endl;
+   }
+
+
+   if( !strcmp( "@BUILD_PCL@", "ON" ) )
+   {
+     cout << " - PCL:" << endl;
+     cout << "   o version: @PCL_VERSION@"     << endl;
+     string pclLibraries = R"##(@PCL_LIBRARIES@)##";
+     replace( pclLibraries.begin(), pclLibraries.end(), '\\', '/' );
+     cout << "   o libraries: " << pclLibraries << endl;
+
+     if( !strcmp( "@FLANN_FOUND@", "TRUE" ) )
+     {
+       string flannLibraries = R"##(@FLANN_LIBRARIES@)##";
+       replace( flannLibraries.begin(), flannLibraries.end(), '\\', '/' );
+       cout << "   - Flann library: " << flannLibraries << endl; 
+     }
+   }
+
+   ////////////////////
+   cout << "Optional module and/or plugins:" << endl;
+
+   if( !strcmp( "@BUILD_EMBARKED_OSG-QT_32@", "ON" ) )
+   {
+     cout << " - OSG-QT embarked version: 32" << endl;
+   }
+
+   if( !strcmp( "@BUILD_EMBARKED_OSG-QT_34@", "ON" ) )
+   {
+     cout << " - OSG-QT embarked version: 3.4" << endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLCutQtPlugin@", "ON" ) )
+   {
+     cout << " - Cut plugin" << endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLEmptyQtPlugin@", "ON" ) )
+   {
+     cout << " - Empty plugin" << endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLFloodARQtPlugin@", "ON" ) )
+   {
+     cout << " - FloodAR plugin" << endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLSunlightQtPlugin@", "ON" ) )
+   {
+     cout << " - Sunlight plugin" << endl;
+   }
+
+   if( !strcmp( "@BUILD_CityGMLVisibiliteQtPlugin@", "ON" ) )
+   {
+     cout << " - Visibility plugin" << endl;
+   }
+
+   cout << endl;
+
+   return EXIT_SUCCESS;
+}

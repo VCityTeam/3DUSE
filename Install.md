@@ -2,17 +2,19 @@
 
 ## List of VCity dependencies
 **Direct dependencies**
- * [QT version 4.8](http://doc.qt.io/qt-4.8/) (Concerning QT5 possible support refer to [issue #91](https://github.com/MEPP-team/VCity/issues/91))
+ * [Boost](http://www.boost.org/)
  * [Open Scene Graph](http://www.openscenegraph.org/) (a.k.a. OSG)
  * [GDAL](http://www.gdal.org/) (Geospatial Data Abstraction Library)
  * [Assimp](http://www.assimp.org)
  * [LASlib](https://github.com/LAStools/LAStools/tree/master/LASlib): note that VCity [embarks its own copy](https://github.com/MEPP-team/VCity/tree/master/externals/laslib)
- * [Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html): when building the documentation (optional).
-
-Depending on your packaging system you **might need** to manually pull the following indirect dependencies:
- * [X11 server](https://en.wikipedia.org/wiki/X_Window_System) as [QT sub-dependency](http://doc.qt.io/qt-4.8/requirements-x11.html)
- * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
- * [GEOS](https://trac.osgeo.org/geos/) as gdal sub-dependency
+ * Depending on your packaging system you **might need** to manually pull the following indirect dependencies:
+   * [X11 server](https://en.wikipedia.org/wiki/X_Window_System) as [QT sub-dependency](http://doc.qt.io/qt-4.8/requirements-x11.html)
+   * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
+   * [GEOS](https://trac.osgeo.org/geos/) as gdal sub-dependency
+ 
+**Optional dependencies**
+ * [QT4 above version 4.8](http://doc.qt.io/qt-4.8/) or [QT5 above version 5.4](http://download.qt.io/official_releases/qt/5.4/): when building the [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface)
+ * [Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html): when building the documentation (optional)
 
 ## General introduction to building VCity
 VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/runningcmake/). Here is a short list of option flags that can be used to customize the building VCity:
@@ -52,7 +54,7 @@ VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/running
 ### Building from sources
  * `git clone https://github.com/MEPP-team/VCity.git`
  * `cd VCity`
- * `Build && cd Build`
+ * `mkdir Build && cd Bin`
  * `cmake ..`
  * `make`
 
@@ -62,10 +64,10 @@ Post-install goodies (not VCity related):
 ## Mac OS X install
 ### Installing dependencies
  * Obtain and install [Homebrew](http://brew.sh/)
+ * `brew upgrade boost`
  * `brew install Caskroom/cask/xquartz`(X11 server)
  * `brew install gdal`
  * `brew install open-scene-graph --with-qt gdal`
- * `brew install qt` (which installs qt4)
  * `brew install assimp`
  * Install laslib:
    * The careful version with stow (`brew install stow`):
@@ -85,10 +87,15 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * `brew instal proj` (which is [proj4](https://github.com/OSGeo/proj.4/wiki))
  * `brew install geos`
 
+**Optional installations**
+  * GUI support: `brew install qt` (which installs Qt4) or `brew install qt5` (which installs Qt5)
+  * Documentation: `brew install doxygen graphviz`
+  * [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake): `brew install homebrew/science/pcl --without-vtk --without-apps`
+  
 ### Building from sources
  * `git clone https://github.com/MEPP-team/VCity.git`
  * `cd VCity``
- * `Build && cd Build`
+ * `mkdir Bin && cd Bin`
  * `cmake ..`
  * `make`
 
@@ -121,18 +128,6 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * Setting VCity related [environment variables](https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653%28v=vs.85%29.aspx):
    * Warnings: for those upgrading from a previous VCity version, make sure to remove any `3DUse` related variable. Also make sure to remove any previously set `vs2012` variable
 
-### Set up environment variables (to define the building context)
-Setup the following new environment variables (**watch out**: notice that the following variable path definitions use slash (`/`) character and NOT backslash (`\`) character !):
- * `VCITY_KIT_ROOT` to be `C:/VCITY_local_vs2015_64`.
- * `BOOST_ROOT` to be `%VCITY_KIT_ROOT%/boost_1_59_0`
- * When building with Qt5: `QT5_DIR` to be `%VCITY_KIT_ROOT%/Qt/Qt5.6.0/5.6/msvc2015_64`
- * Add a traling`";C:\VCITY_local_vs2015_64\_bin_"` to your `Path` environment variable
-   * Don't forget to add the proper `";"` path separator
-   * Note that prepending (as opposed to trailing) your Path variable with this new directory path might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
-
-**Tip**: in order to assert that the environement variables are properly set open a dos command and either use `set` and look for the variable(s) you are checking or check a specific variable with e.g. `echo %BOOST_ROOT%`.
- 
-
 **Optional dependencies**
  * [Nullsoft Scriptable Install System (NSIS)](https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System)
    * only needed if you need to package VCity versions for redistribution
@@ -140,9 +135,35 @@ Setup the following new environment variables (**watch out**: notice that the fo
    * [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
    * [Graphviz](http://www.graphviz.org/)
 
+### Set up environment variables
+In order to **build the "solution"** you will first need to setup the following new environment variables (in order to define the building context i.e. in order to indicate where the dependency libraries are to be found):
+ * `VCITY_KIT_ROOT` to be `C:/VCITY_local_vs2015_64`.
+ * `BOOST_ROOT` to be `%VCITY_KIT_ROOT%/boost_1_59_0`
+ * When building with Qt5: `QT5_DIR` to be `%VCITY_KIT_ROOT%/Qt/Qt5.6.0/5.6/msvc2015_64`
+
+**Watch out**: notice that for the above variables used path definitions where the separator is a  (`/`) character and NOT backslash (`\`) character ! (Note: this is because those variables are used by CMake which internally uses the Unix convention for path separators)
+
+Once the "solution" is build (see below), and for the impatient user, in order to **run the application** you will also need to:
+ * Add a traling`";C:\VCITY_local_vs2015_64\_bin_"` to your `PATH` environment variable (in order for the dynamic loader to find the dynamic libraries of the application dependencies)
+ * Assuming you build the solution in e.g. the `c:\Users\MyLogin\VCity\MyBuild` directory add the following entries to your `PATH` environment variable:
+  * Release mode `c:\Users\MyLogin\VCity\MyBuild\Release`
+  * Debug mode `c:\Users\MyLogin\VCity\MyBuild\Debug`
+
+**Watch out**: notice that for the above run time variables the separator is now classically for Windows a backslash (`\`) character !
+
+**Tips and notes**:
+ * in order to assert that the environement variables are properly set open a dos command and either use `set` and look for the variable(s) you are checking or check a specific variable with e.g. `echo %BOOST_ROOT%`.
+ * When editing your `PATH` environment variable (and for versions of Windows requiring the edition of the pull `PATH` as a string) don't forget to add the proper `";" as  path separator
+ * Note that prepending (as opposed to trailing) your `PATH` variable with the above mentionned directory paths might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
 
 ### Building from sources
-Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
-  * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
-  * Set the optional cmake build flag `BUILD_EMBARKED_OSG-QT_34`to `ON`.
-  * Open the resulting `3DUSE.sln` located in `Bin` subdirectory
+ * Clone the [sources](https://github.com/MEPP-team/VCity.git) with a git client (e.g. [Tortoise git](https://tortoisegit.org/)
+
+* Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
+   * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).
+   * Set the optional cmake build flag `BUILD_EMBARKED_OSG-QT_34`to `ON`.
+   * Unless you are a developer working on improving the regression tests, turn the cmake build flag `BUILD_UNMATURE_TESTS`to `OFF`.
+   * Open (with Visual Studio) the resulting project `3DUSE.sln` located in your build subdirectory (`Bin` most often) and generate the solution
+
+### Run the regresion tests
+Select the `RUN_TESTS` project and launch (right click) the tests by invoking `Debug->Start a new instance`

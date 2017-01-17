@@ -24,6 +24,7 @@ target_include_directories( TestPCLExtractVegetionLidar PUBLIC
   ${CITYGML_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
   ${PCL_INCLUDE_DIRS}
+  ${Boost_INCLUDE_DIRS}
 )
 
 if( WIN32 )
@@ -38,6 +39,7 @@ target_link_libraries( TestPCLExtractVegetionLidar
   ${LASLIB_LIBRARY}
   ${PCL_LIBRARIES} ${PCL_SEARCH_LIBRARY} ${PCL_SEGMENTATION_LIBRARY}
   ${CITYGMLUTILS_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 if(   BUILD_UNMATURE_TESTS

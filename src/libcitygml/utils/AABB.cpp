@@ -261,9 +261,18 @@ void BuildLayersAABBs(std::string dir)
         else if (L.Name.find("_WATER") != std::string::npos)
             type = citygml::CityObjectsType::COT_WaterBody;
         else if (L.Name.find("_VEGET") != std::string::npos)
+        {
             type = citygml::CityObjectsType::COT_SolitaryVegetationObject;
+        }
+        else
+        {
+            // Dummy value acting as a default fuse value:
+            type = citygml::CityObjectsType::COT_All;
+        }
 
-        std::map<std::string, std::pair<TVec3d, TVec3d>> AABBs = DoBuildAABB(dir, L, type); //Pour chaque tuile "string", bounding box : min-max
+        // Pour chaque tuile "string", bounding box : min-max
+        std::map<std::string, std::pair<TVec3d, TVec3d>> AABBs =
+                                                   DoBuildAABB(dir, L, type);
 
         DoSaveAABB(dir + L.Name + "_AABB.dat", AABBs);
     }

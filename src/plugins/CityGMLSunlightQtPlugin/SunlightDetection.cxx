@@ -1,6 +1,9 @@
 #include <osgDB/fstream>
 #include <queue>
 
+#include <fstream>
+#include <string>
+
 #include "SunlightDetection.h"
 #include "AABB.hpp"
 #include "Triangle.hpp"
@@ -189,6 +192,18 @@ void RayTraceTriangles(const std::string& filepath, const citygml::CityObjectsTy
     delete tmpHits;
 }
 
+///
+/// \brief writeInLogFile Print a text in an output txt file.
+/// \param filepath path to the output file.
+/// \param text text to print.
+///
+void writeInLogFile(const std::string& filepath, const std::string& text )
+{
+    std::ofstream logfile;
+    logfile.open(filepath, std::ofstream::app);
+
+    logfile << text << std::endl;
+}
 
 void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, std::string sunpathFile, std::string startDate, std::string endDate, QString outputDir)
 {
@@ -200,6 +215,9 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
 
     //Create output folders
     createOutputFolders(outputDir);
+
+    //Log file
+    std::string logFilePath = outputDir.toStdString() + "/SunlightOutput/logFile.txt";
 
     //Convert dates to integer
     int iStartDate = encodeDateTime(startDate,0);
@@ -243,6 +261,10 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
         std::cout << "Computation of file " << f->WithPrevFolderAndGMLExtension() << "..." << std::endl;
         std::cout << "===================================================" << std::endl;
 
+        //Log file
+        std::string text = "File " + f->WithPrevFolderAndGMLExtension();
+        writeInLogFile(logFilePath, text);
+
         //Load TriangleList of file to compute sunlight for
         TriangleList* trianglesfile;
 
@@ -252,6 +274,10 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
             trianglesfile = BuildTriangleList(f->m_filepath,citygml::CityObjectsType::COT_TINRelief);
         else
             trianglesfile = new TriangleList();
+
+        //Log file
+        text = "Triangles Number : " + std::to_string(trianglesfile->triangles.size());
+        writeInLogFile(logFilePath, text);
 
         //Create csv file where results will be written
         createFileFolder(f, outputDir);
@@ -400,6 +426,11 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
         std::cout << "===================================================" << std::endl;
         std::cout << "file " << cpt_files << " of " << filenames.size() << " done in : " << static_cast<double>(time.elapsed())/1000.0 << "s" << std::endl;
         std::cout << "===================================================" << std::endl;
+
+        //Log file
+        text = "Computation time : " + std::to_string(static_cast<double>(time.elapsed())/1000.0) + " s";
+        writeInLogFile(logFilePath, text);
+        writeInLogFile(logFilePath, ""); //Skip one line
 
         time_tot += static_cast<double>(time.elapsed())/1000.0;
         time.restart();

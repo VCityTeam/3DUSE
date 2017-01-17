@@ -38,7 +38,10 @@ namespace vcity
         std::string m_dataPathCityGML;  ///< default path for CityGML data
         int m_id;                   ///< id of the data profile
         std::string m_name;         ///< name of the data profile
-
+        float  getTileWidth() const;
+        float  getTileHeight() const;
+        double getTileXOffset() const;
+        double getTileYOffset() const;
     private:
     };
     ////////////////////////////////////////////////////////////////////////////////
