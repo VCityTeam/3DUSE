@@ -88,7 +88,11 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * `brew install geos`
 
 **Optional installations**
-  * GUI support: `brew install qt` (which installs Qt4) or `brew install qt5` (which installs Qt5)
+  * GUI support: either with Qt4 or Qt5
+    * Qt4:
+       * Prior to El Capitan (10.10): `brew install qt` (which installs Qt4)
+       * Starting with Sierra (10.12): `brew install cartr/qt4/qt` (refer to [Homebrew-qt4](https://github.com/cartr/homebrew-qt4)
+    * Qt5: `brew install qt5`
   * Documentation: `brew install doxygen graphviz`
   * [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake): `brew install homebrew/science/pcl --without-vtk --without-apps`
   
