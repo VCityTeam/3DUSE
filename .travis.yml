@@ -141,8 +141,8 @@ install:
     #      common is required but boost was not found
     # Hence the following kludgy fix
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
-  #
-  ###### Linux depedency installation
+    #
+    ###### Linux depedency installation
     # We are here only concerned with dependencies that were not already
     # installed in above section addons:apt:packages.
     ### Point Cloud Library (not be confused with another library carrying
@@ -156,23 +156,23 @@ install:
       cd $TRAVIS_BUILD_DIR; fi
 
 script:
-  # FIXME: try to deport laslib installation to install target
+    # FIXME: try to deport laslib installation to install target
   - cd externals/laslib
   - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF; make; sudo make install
-  # Proceed with building:
+    # Proceed with building:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  cmake .. $BTYPE; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - make
   - ctest -V
-  #### Test the Qt5 version
-  # Previous test were against qt4 which is the default version
-  # for both linux and osx. Try building and testing as above
-  # but this time against qt5. Note that since we need to first install
-  # the required Qt5 packages (for both platforms) the following
-  # is thus a perversion of the script target.
-  # We start with an internalized sub-install that installs Qt5.
+    #### Test the Qt5 version
+    # Previous test were against qt4 which is the default version
+    # for both linux and osx. Try building and testing as above
+    # but this time against qt5. Note that since we need to first install
+    # the required Qt5 packages (for both platforms) the following
+    # is thus a perversion of the script target.
+    # We start with an internalized sub-install that installs Qt5.
     #### OSX Qt5 tests:
     # First the install of Qt5. Unlinking (as opposed to unsintalling) qt4
     # suffices to avoid collisions with upcoming install of qt5.
