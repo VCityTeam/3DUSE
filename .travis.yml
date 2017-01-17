@@ -84,7 +84,9 @@ install:
     # consists in using the following odd form or install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew outdated boost || brew upgrade boost; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt; fi
+    # As of december 2016, Homebrew no longer offers qt (qt4): refer to
+    #    https://github.com/cartr/homebrew-qt4/issues/5 
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 100 brew install cartr/qt4/qt; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install assimp; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install doxygen; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install graphviz; fi
@@ -129,8 +131,8 @@ install:
     # default cut off): 
     # FIXME: consider adding the --without-apps --without-tools brew install
     # option in order to save building time of pcl...
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 60
-      brew install homebrew/science/pcl --without-vtk --without-apps; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 100
+      brew install homebrew/science/pcl --without-apps; fi
     # PCL config files looks for the Boost package (whith a capital B) which
     # will fail starting with cmake version 3.5 (previous version seem not
     # be case dependent on the find_package argument) with a message of the
@@ -169,15 +171,16 @@ script:
   # for both linux and osx. Try building and testing as above
   # but this time against qt5. Note that since we need to first install
   # the required Qt5 packages (for both platforms) the following
-  # is thus a perversion of the script target. 
-  # we start by an internalized sub-install that installs Qt5.
+  # is thus a perversion of the script target.
+  # We start with an internalized sub-install that installs Qt5.
     #### OSX Qt5 tests:
-    # First the install of Qt5
-    # Unlinking qt4 suffices to avoid collisions with upcoming install
-    # of qt5. Note that open-scene-graph is not re-installed and
-    # hence the native OSG-Qt (that links against Qt4) cannot be used 
+    # First the install of Qt5. Unlinking (as opposed to unsintalling) qt4
+    # suffices to avoid collisions with upcoming install of qt5.
+    # Note: open-scene-graph is not re-installed and hence the native OSG-Qt
+    # (that links against Qt4) cannot be used.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt5 --force; fi
     # Now building 3DUse
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
