@@ -1,14 +1,19 @@
 See also the [reflexions on libCityGML next generation](https://github.com/MEPP-team/VCity/wiki/libCityGML_NG) and [Xerces vs libXML2 issue](https://github.com/MEPP-team/VCity/issues/164)
 
-## Dependencies: to be asserted
+## LibCityGML dependencies (to be asserted)
+Warning: `grep -rih "#include" src/libcitygml | sort -rn  | uniq` only tells one part of the story because it includes headers from non sub-directories like utils, DataStrcutures...
 
 | Package         |    License    | Included headers / Notes |
 | --------------- | ------------- | ------------------------ |
-| [libXml2](http://www.xmlsoft.org/) | [MIT licence](http://www.xmlsoft.org/) ||
 |[ASSIMP](http://assimp.sourceforge.net/main_doc.html) | [BSD](http://assimp.sourceforge.net/main_license.html)|[OSGPL](http://trac.openscenegraph.org/projects/osg//wiki/Legal) an LGPL variant|
-|[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)||Sub-libraries: osgDB |
+|[Boost libraries](http://www.boost.org/) | [Boost license 1.0](http://www.boost.org/users/license.html) | License seems to fall within the permissive [MIT license grade/category](http://law.stackexchange.com/questions/91/is-there-any-difference-in-meaning-between-the-boost-and-mit-software-licenses) |
+| [libXml2](http://www.xmlsoft.org/) | [MIT licence](http://www.xmlsoft.org/) ||
+|[GDAL](http://www.gdal.org/) | [X11/MIT style](https://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse)| forfile [ogrsf__frmts.h](http://www.gdal.org/ogrsf__frmts_8h_source.html) |
+|[OpenGL](https://www.opengl.org/)|[BSD/X/Mozilla like](https://www.sgi.com/tech/opengl/)|Depends on harware vendor|
+|GL|||
+|[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)|[OSGPL (OpenSceneGraph Public License)](http://trac.openscenegraph.org/projects/osg/wiki/Legal)|Sub-libraries: osgDB |
 
-**IMPORTANT NOTE: [citymodel.cpp](https://github.com/MEPP-team/VCity/blob/master/src/libcitygml/citymodel.cpp) very suspiciously includes `gui/applicationGui.hpp` which annouces some unwanted QT dependency !!!**
+**IMPORTANT NOTE: they are some inclusions of Qfile, QString, QDir... which announces some unwanted QT dependency !!!**
 
 ## General notes
  * No written use cases for the current development work focused on a scenario extension (blended or "on top" of the temporal extension). 
