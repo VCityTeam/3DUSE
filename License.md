@@ -29,6 +29,7 @@ Note: many of libCityGML library [sub-dependencies could be removed](https://git
 
 ## Optional dependencies
 * PCL extensions:
+
 | Package         |    License    | Included headers / Notes |
 | --------------- | ------------- | ------------------------ |
 |[PCL (Point Cloud Library)](https://en.wikipedia.org/wiki/Point_Cloud_Library)| [BSD](http://pointclouds.org/)| |
