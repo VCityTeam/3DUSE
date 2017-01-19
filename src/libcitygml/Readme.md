@@ -10,7 +10,7 @@
 |[GDAL](http://www.gdal.org/) | [X11/MIT style](https://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse)| forfile [ogrsf__frmts.h](http://www.gdal.org/ogrsf__frmts_8h_source.html) |
 |[OpenGL](https://www.opengl.org/)|[BSD/X/Mozilla like](https://www.sgi.com/tech/opengl/)|Depends on harware vendor|
 |[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)|[OSGPL (OpenSceneGraph Public License)](http://trac.openscenegraph.org/projects/osg/wiki/Legal)|Sub-libraries: osgDB |
-|[QT](https://en.wikipedia.org/wiki/Qt_(software)| [LGPLV2.1, LGPLv3](https://en.wikipedia.org/wiki/Qt_(software)#Licensing). Some modules are GPL !| QDir, QDirIterator, QFile, QString. |
+|[QT](https://en.wikipedia.org/wiki/Qt_(software))| [LGPLV2.1, LGPLv3. Warning: some modules are GPL!](https://en.wikipedia.org/wiki/Qt_(software)#Licensing). | QDir, QDirIterator, QFile, QString. |
 
 **Warning**: `grep -rih "#include" src/libcitygml | sort -rn  | uniq` only tells one part of the story because it includes headers from non sub-directories like utils, DataStrcutures...
 
