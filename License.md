@@ -1,3 +1,5 @@
+## Library dependencies of 3DUse
+
 | Package         |    License    | Included headers / Notes |
 | --------------- | ------------- | ------------------------ |
 |[ASSIMP](http://assimp.sourceforge.net/main_doc.html) | [BSD](http://assimp.sourceforge.net/main_license.html)|[OSGPL](http://trac.openscenegraph.org/projects/osg//wiki/Legal) an LGPL variant|
