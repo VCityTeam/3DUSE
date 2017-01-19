@@ -10,7 +10,7 @@ Warning: `grep -rih "#include" src/libcitygml | sort -rn  | uniq` only tells one
 | [libXml2](http://www.xmlsoft.org/) | [MIT licence](http://www.xmlsoft.org/) ||
 |[GDAL](http://www.gdal.org/) | [X11/MIT style](https://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse)| forfile [ogrsf__frmts.h](http://www.gdal.org/ogrsf__frmts_8h_source.html) |
 |[OpenGL](https://www.opengl.org/)|[BSD/X/Mozilla like](https://www.sgi.com/tech/opengl/)|Depends on harware vendor|
-|GL|||
+|[GLUT](https://en.wikipedia.org/wiki/OpenGL_Utility_Toolkit)|Implementation dependent: MIT for [FreeGLut](https://en.wikipedia.org/wiki/FreeGLUT), [SGI's GLUT](ftp://ftp.sgi.com/opengl/glut/index.html)|For GL/glu.h|
 |[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)|[OSGPL (OpenSceneGraph Public License)](http://trac.openscenegraph.org/projects/osg/wiki/Legal)|Sub-libraries: osgDB |
 
 **IMPORTANT NOTE: they are some inclusions of Qfile, QString, QDir... which announces some unwanted QT dependency !!!**
