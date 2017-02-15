@@ -9,7 +9,38 @@
 |[LASlib]() | [LGPLv2.1](https://github.com/LAStools/LAStools/blob/master/LICENSE.txt) | |
 |[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)|[OSGPL (LGPL like)](http://trac.openscenegraph.org/projects/osg/wiki/Legal)|Used sub-libraries: osgDB, osgGA, osgFX, osgQT, osgShadow, osgText,osgUtil osgViewer...|
 |[Proj.4](http://proj4.org/)|[MIT](http://proj4.org/license.html)| For GDAL.|
-|[Qt (4 or 5)](https://en.wikipedia.org/wiki/Qt_(software))| [LGPLV2.1, LGPLv3, but some modules are GPL](https://www.qt.io/licensing/). | Core module ([QQueue](http://doc.qt.io/qt-5/qqueue.html), [QSet](http://doc.qt.io/qt-5/qset.html), [QSettings](http://doc.qt.io/qt-5/qsettings.html), [QString](http://doc.qt.io/qt-5/QString.html), [QStringList](http://doc.qt.io/qt-5/qstringlist.html), [Qtime](http://doc.qt.io/qt-5/qtime.html) and [QTimer](http://doc.qt.io/qt-5/qtimer.html), [QTextStream](http://doc.qt.io/qt-5/qtextstream.html) ), Gui module ( [QFont](http://doc.qt.io/qt-5/qfont.html), [QResizeEvent](http://doc.qt.io/archives/qt-5.5/qresizeevent.html) ), Widgets module ( [QTextBrowser](http://doc.qt.io/qt-5/qtextbrowser.html), [QTreeWidget](http://doc.qt.io/archives/qt-5.5/qtreewidgetitem.html) ), unknown module ([QtGlobal](http://doc.qt.io/qt-5/qtglobal.html), [QtPlugin](http://doc.qt.io/qt-5/qtplugin.html)) QDir, QDirIterator, QFile, QString. [QtWebKit](https://wiki.qt.io/Qt_WebKit) and QtWebKitWidgets (used by osgQt) |
+|[Qt (4 or 5)](https://en.wikipedia.org/wiki/Qt_(software))| [LGPLV2.1, LGPLv3, but some modules are GPL](https://www.qt.io/licensing/). | Core module ([QQueue](http://doc.qt.io/qt-5/qqueue.html), [QSet](http://doc.qt.io/qt-5/qset.html), [QSettings](http://doc.qt.io/qt-5/qsettings.html), [QString](http://doc.qt.io/qt-5/QString.html), [QStringList](http://doc.qt.io/qt-5/qstringlist.html), [Qtime](http://doc.qt.io/qt-5/qtime.html) and [QTimer](http://doc.qt.io/qt-5/qtimer.html), [QTextStream](http://doc.qt.io/qt-5/qtextstream.html) ), Gui module ( [QFont](http://doc.qt.io/qt-5/qfont.html), [QResizeEvent](http://doc.qt.io/archives/qt-5.5/qresizeevent.html) ), Widgets module ( [QTextBrowser](http://doc.qt.io/qt-5/qtextbrowser.html), [QTreeWidget](http://doc.qt.io/archives/qt-5.5/qtreewidgetitem.html) ), unknown module ([QtGlobal](http://doc.qt.io/qt-5/qtglobal.html), [QtPlugin](http://doc.qt.io/qt-5/qtplugin.html)), [QtWebKit](https://wiki.qt.io/Qt_WebKit) and QtWebKitWidgets (used by osgQt). |
+Still missing to document: 
+QDebug
+QDialog
+QDir
+QDirIterator
+QEvent
+QFile
+QFileDialog
+QFileInfo
+QGLWidget
+QGraphicsScene
+QGraphicsView
+QGridLayout
+QHeaderView
+QIcon
+QImage
+QImageReader
+QInputEvent
+QLabel
+QLineEdit
+QListView
+QListWidget
+QMainWindow
+QMenu
+QMessageBox
+QMutex
+QPainter
+QPluginLoader
+QPointer
+QProgressDialog
+QPushButton 
 
 Note: obtaining the list of used QT modules is merely a comment of the `grep -rh include src ui | grep -i Q | grep -v CityGML | grep -v QtEvents | grep -v osgQt | sort | uniq` command (QtEvents being used by `osgQt/QGraphicsViewAdapter` and `osgQt` belonging to [OSG](https://github.com/openscenegraph/osgQt) ).
 
