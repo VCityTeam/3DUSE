@@ -9,7 +9,7 @@
 |[LASlib]() | [LGPLv2.1](https://github.com/LAStools/LAStools/blob/master/LICENSE.txt) | |
 |[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)|[OSGPL (LGPL like)](http://trac.openscenegraph.org/projects/osg/wiki/Legal)|Used sub-libraries: osgDB, osgGA, osgFX, osgQT, osgShadow, osgText,osgUtil osgViewer...|
 |[Proj.4](http://proj4.org/)|[MIT](http://proj4.org/license.html)| For GDAL.|
-|[Qt (4 or 5)](https://en.wikipedia.org/wiki/Qt_(software))| [LGPLV2.1, LGPLv3, but some modules are GPL](https://www.qt.io/licensing/). | [Core: LGPLV2 or V3](http://doc.qt.io/qt-5/qtcore-index.html#licenses-and-attributions), [Gui](http://doc.qt.io/qt-5/qtgui-index.html#licenses-and-attributions), QTWidgets license ??(Ref: [QTWidgets module](http://doc.qt.io/qt-5/qtwidgets-index.html), [licenses in QT](http://doc.qt.io/archives/qt-5.5/licensing.html#licenses-used-in-qt) |
+|[Qt (4 or 5)](https://en.wikipedia.org/wiki/Qt_(software))| [LGPLV2.1, LGPLv3, but some modules are GPL](https://www.qt.io/licensing/). | [Core: LGPLV2 or V3](http://doc.qt.io/qt-5/qtcore-index.html#licenses-and-attributions), [Gui: LGPLV2 or V3](http://doc.qt.io/qt-5/qtgui-index.html#licenses-and-attributions), QTWidgets: license ?? (References: [QTWidgets module](http://doc.qt.io/qt-5/qtwidgets-index.html), [licenses in QT](http://doc.qt.io/archives/qt-5.5/licensing.html#licenses-used-in-qt)) |
 
 Note concerning the QT modules:
  * [Licenses used in QT](http://doc.qt.io/archives/qt-5.5/licensing.html#licenses-used-in-qt) gateway.
