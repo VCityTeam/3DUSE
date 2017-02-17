@@ -33,7 +33,7 @@ Note: many of libCityGML library [sub-dependencies could be removed](https://git
 |[libXml2](http://www.xmlsoft.org/) |[MIT licence](http://www.xmlsoft.org/)|-|
 |[OpenGL](https://www.opengl.org/)|[BSD/X/Mozilla like](https://www.sgi.com/tech/opengl/)|License depends on harware vendor.|
 |[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)|[OSGPL (LGPL like)](http://trac.openscenegraph.org/projects/osg/wiki/Legal)|Used sub-library: osgDB.|
-|[Qt (4 or 5)](https://en.wikipedia.org/wiki/Qt_(software)| [LGPLV2.1, LGPLv3, but some modules are GPL!](https://www.qt.io/licensing/). | QDir, QDirIterator, QFile, QString. |
+|[Qt (4 or 5)](https://en.wikipedia.org/wiki/Qt_(software))| [LGPLV2.1, LGPLv3, but some modules are GPL!](https://www.qt.io/licensing/). | QDir, QDirIterator, QFile, QString. |
 
 **Warning**: `grep -rih "#include" src/libcitygml | sort -rn  | uniq` only tells one part of the story because it includes headers from non sub-directories like utils, DataStrcutures...
 
