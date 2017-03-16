@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <fstream>
-//FIXME #include <osgDB/fstream> // MT 09/03/2016
 #include <map>
 
 #include "Triangle.hpp"

@@ -66,7 +66,6 @@ else()
   option( BUILD_CityGMLVisibiliteQtPlugin "Build the Visibilite plugin." OFF)
 endif()
 
-
 if( BUILD_TESTING )
   enable_testing()
 endif()
@@ -231,20 +230,26 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
 ##### Find Boost
-if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
-  # In some recent OSX contexts (e.g. with cmake 3.6.x and boost 1.60), and
-  # strangely enough, Boost is only found with a small caps leading b. And
-  # trying a "find_package( Boost)" seems to always fail. Hence the current
-  # kludge. Note that the project central code only requires (for the time 
-  # being) filesystem and date_time components.
-  # Note that we also check for PCL related needed components (refer to
-  # PCLConfig.cmake for the explicit and complete list of PCL required boot
-  # components) which is not really clean. Indeed this adds some unnecessary
-  # requirements (on some boost components) when building without PCL...
-  find_package( boost COMPONENTS date_time REQUIRED )
-else()  # Linux and MSVC together or Cmake < 3.4.3
-  find_package( Boost COMPONENTS date_time REQUIRED )
-endif ()
+# In some OSX contexts (e.g. with cmake 3.6.x and boost 1.60), and
+# strangely enough, Boost is only found with a small caps leading b. And
+# trying a "find_package( Boost REQUIRED)" seems to always fail. Hence the
+# following kludge:
+#  - we first look for Boost (capital b) as a test to discover wether
+#    we should stick to Boost or swith to boost 
+#  - on apple and when this fails we look for boost (small caps b)
+#    and also the required components
+#  - but when Boost was found we eventually assert that the required 
+#    components are indeed found.
+# Note that the spurious "Imported targets not available for Boost" warning
+# messages that might be spawn by the find_package() with the components
+# option are not due to our multiple invocation strategy, and that alas
+# they can not be silenced out with at QUIET toggle argument to find_package().
+find_package( Boost )
+if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
+  find_package( boost COMPONENTS filesystem date_time thread REQUIRED )
+else()
+  find_package( Boost COMPONENTS filesystem date_time thread REQUIRED )
+endif()
 
 ##### Find ASSIMP
 find_package(ASSIMP)
@@ -385,25 +390,40 @@ if( BUILD_PCL )
   # simplify the context of PCL failing dependency (when find_package
   # fails on PCL because of a missing suv-dependency the error message is 
   # really sketchy and hard to interpret):
-  ### Asserting Boost is installed:
-  # Boost being a mandatory dependency of this application this was already
-  # previsously (look above) taken care about.
 
-  if( APPLE AND CMAKE_VERSION VERSION_GREATER 3.4.3 )
-    # Context: cmake 3.6.x, boost 1.60
-    # Strangely enough boost if only found with a small caps leading b
-    # (that is trying to find_package on Boost will fail)...
+  ### Asserting that Boost has the PCL required components.
+  # Boost being a mandatory dependency of this application the availabilit
+  # of boost and some of its components was already previsously (look above)
+  # already taken care about. We just need to seek the additional components
+  # required by PCL. Nevertheless we will again look for all the needed
+  # components (the ones for the "core" together with the additional ones
+  # for PCL because FindBoost.cmake warns that 
+  #   "multiple calls to find_package(Boost) in the same directory [...] 
+  #    will not override the values of the targets created by the first call."
+  #
+  # Additionally we still have to take care of the Boost vs boost (capital
+  # vs small caps) difficulty on OSX (refer above to the first boost 
+  # package assessment.
+
+  find_package( Boost )
+  if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
     find_package( boost COMPONENTS
-      system filesystem thread date_time iostreams serialization chrono 
+      filesystem date_time thread               # for the "core"
+      system iostreams serialization chrono     # for PCL
       REQUIRED
     )
-  else()   # Linux and MSVC (mind you)
+  else()
     find_package( Boost COMPONENTS
-      system filesystem thread date_time iostreams serialization chrono)
+      filesystem date_time thread               # for the "core"
+      system iostreams serialization chrono     # for PCL
+      REQUIRED
+    )
     if( NOT Boost_FOUND )
       message(WARNING "PCL requires Boost which cannot be found.")
     endif ()
   endif()
+  
+  set( PCL_SAFE_COPY_OF_Boost_LIBRARIES ${Boost_LIBRARIES} )
 
   ### Assert Flann is installed:
   # There is no simple way to assert that Flann package is installed. If one
@@ -443,7 +463,6 @@ if( BUILD_PCL )
     message ( FATAL_ERROR
               "Try building with PCL support disabled (set BUILD_PCL off).")
   endif ()
-
 
   ##### Dealing with PCL (post find_package) oddities:
   if( WIN32 )
@@ -499,19 +518,32 @@ if( BUILD_PCL )
     get_filename_component( VCITY_PCL_LIBRARY_DIRECTORY
                             ${PCL_COMMON_LIBRARY} DIRECTORY )
     # FIXME: decline this symmetrically with release/debug
+    set( PCL_FILTERS_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_filters_release.lib )
+    set( PCL_FEATURES_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_features_release.lib )
+    set( PCL_SAMPLE_CONSENSUS_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_sample_consensus_release.lib )
     set( PCL_SEARCH_LIBRARY
          ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_search_release.lib )
     set( PCL_SEGMENTATION_LIBRARY
          ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_segmentation_release.lib )
+    set( PCL_SURFACE_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_surface_release.lib )
+    set( PCL_VISUALIZATION_LIBRARY
+         ${VCITY_PCL_LIBRARY_DIRECTORY}/pcl_visualization_release.lib )
   endif()
 
   ### Still dealing with PCL post find_package oddities
   if( APPLE )
     # Context: cmake 3.6.x, PCL 1.8, boost 1.60
-    # For some odd reason some pcl libraries do not come linked against
+    # For some odd reason PCL package detection seems to break away the
+    # Boost_LIBRARIES content as obtained from previous find_package(Boost...)
+    # invocations. We thus restore it manually.
+    set( Boost_LIBRARIES ${PCL_SAFE_COPY_OF_Boost_LIBRARIES} )
+    # For some other odd reason some pcl libraries do not come linked against
     # some of their boost dependencies. Hence ce following "syntactic sugar".
-    set( PCL_LIBRARIES ${PCL_LIBRARIES} boost_system )
-    set( Boost_LIBRARIES boost_date_time boost_filesystem )
+    set( PCL_LIBRARIES ${PCL_LIBRARIES} ${Boost_LIBRARIES} )
   endif()
 
   if( NOT WIN32 )
@@ -519,9 +551,40 @@ if( BUILD_PCL )
     # seems to be partial (only a subset of available libraries is accessible
     # through the variable that were set). Define them manually (and cross
     # fingers for them to be present):
-    set( PCL_SEARCH_LIBRARY       pcl_search )
-    set( PCL_SEGMENTATION_LIBRARY pcl_segmentation )
+    set( PCL_FILTERS_LIBRARY          pcl_filters )
+    set( PCL_FEATURES_LIBRARY         pcl_features )
+    set( PCL_SAMPLE_CONSENSUS_LIBRARY pcl_sample_consensus )
+    set( PCL_SEARCH_LIBRARY           pcl_search )
+    set( PCL_SEGMENTATION_LIBRARY     pcl_segmentation )
+    set( PCL_SURFACE_LIBRARY          pcl_surface )
+    set( PCL_VISUALIZATION_LIBRARY    pcl_visualization )
   endif( )
+
+  ### Eventually find out whether PCL was build with VTK support or not
+  find_file( PCL_WITH_VISUALIZER_FILENAME
+    pcl/visualization/cloud_viewer.h
+    PATHS ${PCL_INCLUDE_DIRS}
+    NO_DEFAULT_PATH )
+  # We assume that PCL_COMMON_LIBRARY was properly found and look for
+  # pcl_visualization library to be aside
+  get_filename_component( VCITY_PCL_LIBRARY_DIRECTORY
+                          ${PCL_COMMON_LIBRARY} DIRECTORY )
+  find_library( PCL_WITH_VISUALIZER_LIBRARY
+    ${PCL_VISUALIZATION_LIBRARY}
+    PATHS ${VCITY_PCL_LIBRARY_DIRECTORY}
+    NO_DEFAULT_PATH )
+
+  if( PCL_WITH_VISUALIZER_FILENAME AND PCL_WITH_VISUALIZER_LIBRARY)
+    set( WITH_PCL_WITH_VISUALIZER  ON CACHE BOOL
+         "PCL has vtk based visualization support" FORCE
+    )
+  else()
+    set( WITH_PCL_WITH_VISUALIZER  OFF CACHE BOOL
+         "PCL has vtk based visualization support" FORCE
+    )
+    message ( STATUS "PCL doesn't have VTK based visualization support" )
+  endif()
+
 endif ()
 
 # Find osgQt
