@@ -1,6 +1,7 @@
 #include "TilingCityGML.hpp"
 ////////////////////////////////////////////////////////////////////////////////
 #include "libcitygml/utils/CityGMLtools.hpp"
+#include "libcitygml/utils/ConvertTextures.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtoShpWriter.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtools.hpp"
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,17 +82,7 @@ citygml::CityModel* TileCityGML_assign( vcity::Tile* Tile, std::vector<TextureCi
                bool HasTexture = ( PolygonCityGML->getTexture() != nullptr );
 
                if ( HasTexture && PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture" ) //Ce sont des coordonnees georeferences qu'il faut convertir en coordonnees de texture standard
-               {
-                  //////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D negatif (donnees de LYON)
-                  int i = 0;
-                  for ( TVec2f UV : TexUV )
-                  {
-                     UV.x = UV.x / 4095;
-                     UV.y = 1 + UV.y / 4095;//Car D est negatif
-                     TexUV.at( i ) = UV;
-                     ++i;
-                  }
-               }
+                  TexUV = ConvertGeoreferencedTextures( TexUV );
 
                std::string Url;
                citygml::Texture::WrapMode WrapMode;
@@ -348,33 +339,7 @@ citygml::CityModel* TileCityGML_cut( vcity::Tile* Tile, std::vector<TextureCityG
                bool HasTexture = ( PolygonCityGML->getTexture() != nullptr );
 
                if ( HasTexture && PolygonCityGML->getTexture()->getType() == "GeoreferencedTexture" ) //Ce sont des coordonnees georeferences qu'il faut convertir en coordonnees de texture standard
-               {
-                  /*double A, B, C ,D; //Voir fr.wikipedia.org/wiki/World_file : Taille pixel, rotation, retournement //Pour faire une conversion propre.
-                  double offset_x;
-                  double offset_y;
-
-                  std::string path = PathFolder + "/" + PolygonCityGML->getTexture()->getUrl().substr(0, PolygonCityGML->getTexture()->getUrl().find_last_of('.'))+".jgw";
-                  std::cout << path << std::endl;
-                  std::ifstream fichier(path, std::ios::in);
-
-                  if(fichier)
-                  {
-                  fichier >> A >> B >> C >> D >> offset_x >> offset_y;
-                  fichier.close();
-                  }
-                  std::cout << A << " " << B << " " << C << " " << D << " " << offset_x << " " << offset_y << std::endl;*/
-
-
-                  //////////////////////////////// MARCHE POUR DES TEXTURES 4096x4096 avec un D negatif (donnees de LYON)
-                  int i = 0;
-                  for ( TVec2f UV : TexUV )
-                  {
-                     UV.x = UV.x / 4095;
-                     UV.y = 1 + UV.y / 4095;//Car D est negatif
-                     TexUV.at( i ) = UV;
-                     ++i;
-                  }
-               }
+                  TexUV = ConvertGeoreferencedTextures( TexUV );
 
                OgrRing->closeRings();
 

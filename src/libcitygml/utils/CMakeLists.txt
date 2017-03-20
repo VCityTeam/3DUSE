@@ -9,6 +9,7 @@ add_library( citygmlutils SHARED
   tile.cpp
   TiledFilesLayout.cpp
   Triangle.cpp
+  ConvertTextures.cpp
 )
 
 if(MSVC)
