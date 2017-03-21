@@ -1,3 +1,4 @@
+add_subdirectory( Examples )
 add_subdirectory( filters )
 add_subdirectory( plugins )
 add_subdirectory( libcitygml )

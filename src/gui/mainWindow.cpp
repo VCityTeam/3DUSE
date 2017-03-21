@@ -530,13 +530,6 @@ bool MainWindow::loadCSV( const QString& CSVfilepath, const QString& DIRfilepath
 {
    std::string sourcepath = "/home/pers/clement.chagnaud/Documents/Data/spreadsheet_testnolod.csv";
 
-   // date check
-   if ( QDate::currentDate() > QDate( 2016, 12, 31 ) )
-   {
-      QMessageBox( QMessageBox::Critical, "Error", "Expired" ).exec();
-      return false;
-   }
-
    QApplication::setOverrideCursor( Qt::WaitCursor );
    QFileInfo file( CSVfilepath );
 

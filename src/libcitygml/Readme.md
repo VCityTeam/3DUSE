@@ -1,16 +1,7 @@
-See also the [reflexions on libCityGML next generation](https://github.com/MEPP-team/VCity/wiki/libCityGML_NG) and [Xerces vs libXML2 issue](https://github.com/MEPP-team/VCity/issues/164)
-
-## Dependencies: to be asserted
-
-| Package         |    License    | Included headers / Notes |
-| --------------- | ------------- | ------------------------ |
-| [libXml2](http://www.xmlsoft.org/) | [MIT licence](http://www.xmlsoft.org/) ||
-|[ASSIMP](http://assimp.sourceforge.net/main_doc.html) | [BSD](http://assimp.sourceforge.net/main_license.html)|[OSGPL](http://trac.openscenegraph.org/projects/osg//wiki/Legal) an LGPL variant|
-|[OpenSceneGraph (OSG)](http://www.openscenegraph.org/)||Sub-libraries: osgDB |
-
-**IMPORTANT NOTE: [citymodel.cpp](https://github.com/MEPP-team/VCity/blob/master/src/libcitygml/citymodel.cpp) very suspiciously includes `gui/applicationGui.hpp` which annouces some unwanted QT dependency !!!**
-
-## General notes
+## General notes / issues concerning LibCityGML current implementation
+ * Refer to [reflexions on libCityGML next generation](https://github.com/MEPP-team/VCity/wiki/libCityGML_NG)
+ * See also [Xerces vs libXML2 issue](https://github.com/MEPP-team/VCity/issues/164)
+ * [Remove unnecessary dependencies issue](https://github.com/MEPP-team/VCity/issues/69)
  * No written use cases for the current development work focused on a scenario extension (blended or "on top" of the temporal extension). 
  * Since they are no use cases, they are no requirements nor design notes. Current coding work is thus totally informal although some major structural difficulties are foreseen e.g. :
     * How will the Temporal ADE (Application Domain Extension) be articulated with the upcoming scenarios ADE ? How to compose ADEs ? How is this forwarded to the manually crafted implementation (see below for the alignment issue) ?
