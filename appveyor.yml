@@ -55,6 +55,9 @@ before_build:
   - cd %KIT_ROOT%
   #
   ##### Install VCITY dependencies:
+  # Changing the path for curl to be found: refer to
+  #  https://github.com/appveyor/ci/issues/1426
+  - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
   - set CURL_FLAGS=-k --connect-timeout 60 --max-time 600 -s -O
   # Note: many libraries come pre-installed by Appveyor. Refer to
   #   https://www.appveyor.com/docs/installed-software/ for a list.
