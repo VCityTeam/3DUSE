@@ -1240,9 +1240,7 @@ void MainWindow::updateTemporalParams( int value )
    if ( m_useTemporal )
    {
       m_osgScene->setDate( datetime );
-
-      //Send signal to Sunlight Plugin which will trap it if visu is activated
-      emit activateVisuSunlightPlugin( m_currentDate );
+      emit timeSliderChanged( m_currentDate );
    }
 }
 ////////////////////////////////////////////////////////////////////////////////
