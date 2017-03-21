@@ -203,6 +203,8 @@ void writeInLogFile(const std::string& filepath, const std::string& text )
     logfile.open(filepath, std::ofstream::app);
 
     logfile << text << std::endl;
+
+    logfile.close();
 }
 
 void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, std::string sunpathFile, std::string startDate, std::string endDate, QString outputDir)
