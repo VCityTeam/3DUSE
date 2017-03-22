@@ -9,9 +9,9 @@ This document presents how to use the Sunlight Plugin of 3D-USE.
 In order to use the Sunlight plugin, you must have the following files :
 
 - A set of CityGML files organized in layers (_BATI, _MNT, _WATER, _VEGET).
-- Axis Aligned Bounding Boxes (AABB) of the citygml files by layers. They can be generated using the AABB computation process in Visibility Plugin. For more informations, please refer to [this](https://github.com/MEPP-team/VCity/blob/master/doc/Visibilite/Doc-PluginVisibilite.pdf) documentation.
+- Axis Aligned Bounding Boxes (AABB) of the citygml files by layers. They can be generated using the AABB computation process in Visibility Plugin. For more informations, please refer to [this](../Visibilite/Doc-PluginVisibilite.pdf) documentation.
 - AABB of Buildings and Building Parts of Tiles of the _BATI layer. In order to generate these, you need to use the "Build Buildings AABB" option in 3D-USE menu.
-- An input file giving the path of the sun during the period you want to run the computation of sunlight and shadow. An example file can be found in : .... This example file has been generated for the city of Lyon using this tool (which doesn't seems to work anymore) : http://www.sunearthtools.com/dp/tools/pos_sun.php?lang=fr
+- An input file giving the path of the sun during the period you want to run the computation of sunlight and shadow. [An example file](../../src/plugins/CityGMLSunlightQtPlugin/Data/AnnualSunPath_Lyon.csv) has been generated for the city of Lyon using this tool (which doesn't seems to work anymore) : http://www.sunearthtools.com/dp/tools/pos_sun.php?lang=fr
 
 *Note : The parser of the above-mentionned input file is in `src/plugins/CityGMLSunlightQtPlugin/IO.cxx`, function  `std::map<int,TVec3d> loadSunpathFile(std::string sunpathFile, int iStartDate, int iEndDate)` and needs to be modified if another input file is used.*
 
