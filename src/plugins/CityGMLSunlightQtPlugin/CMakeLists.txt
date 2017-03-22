@@ -112,3 +112,6 @@ endif()
 if( NOT ( BUILD_EMBARKED_OSG-QT_32 OR BUILD_EMBARKED_OSG-QT_34 ) )
   target_link_libraries( CityGMLSunlightQtPlugin ${OSGQT_LIBRARIES} )
 endif()
+
+####### Copy data file of plugin into binaries
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Data/AnnualSunPath_Lyon.csv ${CMAKE_CURRENT_BINARY_DIR}/Data/AnnualSunPath_Lyon.csv COPYONLY)

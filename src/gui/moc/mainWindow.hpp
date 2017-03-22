@@ -71,8 +71,9 @@ public:
 
 
 signals:
-   // Signal used for Sunlight Plugin (visualisation part)
-   void activateVisuSunlightPlugin(QDateTime d);
+   // Signal emitted when HorizontalSlider (time slider) value changes.
+   // It is for instance used in Sunlight Plugin (visualisation part)
+   void timeSliderChanged(QDateTime d);
 
 private:
     // plugins

@@ -54,7 +54,7 @@ void createFileFolder(FileInfo* file, const QString &sOutputDir);
 /// \param iEndDate End date of sunlight computation encoded as int
 /// \param outputDir Full path to output directory
 ///
-void exportLightningToCSV(std::map<int,bool> sunInfo, Triangle* t, FileInfo *file, int iStartDate, int iEndDate, QString outputDir);
+void exportLightningToCSV(std::map<int, bool> &sunInfo, Triangle* t, FileInfo *file, int iStartDate, int iEndDate, QString &outputDir);
 
 ///
 /// \brief loadSunpathFile Loads file containing the path of the sun for a year

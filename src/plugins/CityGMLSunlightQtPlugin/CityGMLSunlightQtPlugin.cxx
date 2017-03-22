@@ -17,7 +17,7 @@ int CityGMLSunlightQtPlugin::init(void)
 
     m_visu = false;
 
-    connect(appGui().getMainWindow(),SIGNAL(activateVisuSunlightPlugin(QDateTime)),this,SLOT(ChangePolyColor(QDateTime))); //when current datetime changes in mainwindow
+    connect(appGui().getMainWindow(),SIGNAL(timeSliderChanged(QDateTime)),this,SLOT(ChangePolyColor(QDateTime))); //when current datetime changes in mainwindow
     connect(dialSunlight,SIGNAL(startVisu(QStringList, QDateTime, QDateTime)),this,SLOT(startVisuAction(QStringList, QDateTime, QDateTime))); //when click on start visu button
     connect(dialSunlight,SIGNAL(stopVisu()),this,SLOT(stopVisuAction())); //when click on stop visu button
 
