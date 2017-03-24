@@ -76,20 +76,13 @@ TVec3d LinearRing::computeNormal( void ) const
 ////////////////////////////////////////////////////////////////////////////////
 void LinearRing::finish( TexCoords* texCoords )
 {
-    // Remove duplicated vertex
-    unsigned int len = (unsigned int)_vertices.size();
-    if ( len < 2 ) return;
+    // Remove last vertex which is supposed to be the same as the first one
 
-    for ( unsigned int i = 0; i < len; i++ )
-    {
-        if ( ( _vertices[i] - _vertices[ ( i + 1 ) % len ] ).sqrLength() <= std::numeric_limits<float>::epsilon() )
-        {
-            _vertices.erase( _vertices.begin() + i );
-            if ( texCoords && texCoords->size() > i) texCoords->erase( texCoords->begin() + i );
-            finish( texCoords );
-            return;
-        }
-    }
+   unsigned int len = (unsigned int)_vertices.size();
+   if ( len < 2 ) return;
+
+   if ( ( _vertices[0] - _vertices[len - 1] ).sqrLength() <= std::numeric_limits<double>::epsilon() )
+      _vertices.erase( _vertices.begin() + len - 1 );
 }
 ////////////////////////////////////////////////////////////////////////////////
 } // namespace citygml
