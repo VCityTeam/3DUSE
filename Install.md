@@ -126,6 +126,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * Note: the extracted directory name (`VCITY_local_vs2015_64`) can be renamed if you need to.
  * Obtain VCity sources:
    * Install (from github) the [git for Windows](https://git-for-windows.github.io/) client
+   * If you are using [TortoiseGit](https://tortoisegit.org/) here are some [configuration notes](http://liris.cnrs.fr/mepp/mepp-git-doc.html)
  * [Cmake version 3.4.3.](https://cmake.org/cmake/help/v3.4/release/3.4.html) (this version is Visual Studio 2015 aware):
    * Extract cmake from `VCITY_local_vs2015_64\_utils_\cmake-3.4.3-win32-x86.zip`
    * Extract NSIS from `VCITY_local_vs2015_64\_utils_\nsis-2.50-setup.exe``
