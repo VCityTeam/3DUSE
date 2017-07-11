@@ -126,26 +126,26 @@ build_script:
     # mirrors the definition of the various <package>_DIR variables used
     # to drive cmake's find_package (required at compile time): refer to
     # file cmake/msvc/kit_vs2015-64_v01-common.cmake.
-  - set PATH=%PATH%;%QT5_DIR%\bin
-  - set PATH=%PATH%;%KIT_ROOT%\Qt\qt-4.8.7-x64-msvc2015\bin
-  - set PATH=%PATH%;%KIT_ROOT%\assimp-3.2\lib
+  - set PATH=%QT5_DIR%\bin;%PATH%
+  - set PATH=%KIT_ROOT%\Qt\qt-4.8.7-x64-msvc2015\bin;%PATH%
+  - set PATH=%KIT_ROOT%\assimp-3.2\lib;%PATH%
     # The "kit" stores some of Gdal sub-dependencies like geotiff.dll not
     # within gdal directory but within _bin_...
-  - set PATH=%PATH%;%KIT_ROOT%\gdal\gdal-1.11.4\bin
-  - set PATH=%PATH%;%KIT_ROOT%\gdal-3rdparty-runtime
+  - set PATH=%KIT_ROOT%\gdal\gdal-1.11.4\bin;%PATH%
+  - set PATH=%KIT_ROOT%\gdal-3rdparty-runtime;%PATH%
     # Laslib: the binary kit only provides the static library.
-  - set PATH=%PATH%;%KIT_ROOT%\libxml2-2.9.3\bin
-  - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin
-  - set PATH=%PATH%;%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin\osgPlugins-3.4.0
-  - set PATH=%PATH%;%KIT_ROOT%\osg-3rdparty-runtime
+  - set PATH=%KIT_ROOT%\libxml2-2.9.3\bin;%PATH%
+  - set PATH=%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin;%PATH%
+  - set PATH=%KIT_ROOT%\osg\OpenSceneGraph-3.4.0\bin\osgPlugins-3.4.0;%PATH%
+  - set PATH=%KIT_ROOT%\osg-3rdparty-runtime;%PATH%
     # PCL and its sub-dependencies
-  - set PATH=%PATH%;%KIT_ROOT%\PCL\pcl-1.7.2\bin
-  - set PATH=%PATH%;%BOOST_ROOT%\lib
-  - set PATH=%PATH%;%KIT_ROOT%\PCL\flann-1.8.4\bin
-  - set PATH=%PATH%;%KIT_ROOT%\PCL\qhull-2015.2\bin
+  - set PATH=%KIT_ROOT%\PCL\pcl-1.7.2\bin;%PATH%
+  - set PATH=%BOOST_ROOT%\lib;%PATH%
+  - set PATH=%KIT_ROOT%\PCL\flann-1.8.4\bin;%PATH%
+  - set PATH=%KIT_ROOT%\PCL\qhull-2015.2\bin;%PATH%
     # Eventually add the path to VCity internal dynamic libraries and plugins
     # located in either Release or Debug subdirectory (environment variable
     # CONFIGURATION in the matrix):
-  - set PATH=%PATH%;%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%
+  - set PATH=%APPVEYOR_BUILD_FOLDER%\%CONFIGURATION%;%PATH%
     # We can now proceed with the sweet test suite
   - ctest -V
