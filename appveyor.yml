@@ -3,8 +3,7 @@
 #---------------------------------#
 
 # Operating system (build VM template)
-#os: Visual Studio 2015
-os: Previous Visual Studio 2015
+os: Visual Studio 2015
 
 # environment variables
 environment:
@@ -65,9 +64,6 @@ before_build:
   #   VCity currently uses: 
   #    * QT5:   C:\Qt\5.6\msvc2015_64
   #    * Boost: C:\Libraries\boost_1_59_0
-  ### CMake 3.7.2
-  - curl %CURL_FLAGS% https://cmake.org/files/v3.7/cmake-3.7.2-win32-x86.zip
-  - 7z x cmake-3.7.2-win32-x86.zip > nul
   ### Qt4
   - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
   - 7z x qt-4.8.7-x64-msvc2015.7z > nul
@@ -110,9 +106,7 @@ before_build:
     #    BUILD_GUI_QT5 to OFF in the matrix. QT4 gets then used because
     #    BUILD_GUI_QT4 is ON by default...
     #  - BUILD_UNMATURE_TESTS is ON by default
-#  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_UNMATURE_TESTS=OFF
-  - C:\local_vs2015_64\cmake-3.7.2-win32-x86\bin\cmake --version
-  - C:\local_vs2015_64\cmake-3.7.2-win32-x86\bin\cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_UNMATURE_TESTS=OFF
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_UNMATURE_TESTS=OFF
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
