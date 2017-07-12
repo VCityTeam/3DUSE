@@ -46,6 +46,7 @@ addons:
       - libboost-date-time-dev
       - libboost-filesystem-dev
       - libqt4-dev
+      - libqt4-opengl-dev
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
@@ -152,6 +153,8 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula  &&
+      mv wget.rb wget.rb.old   &&
+      wget --no-check-certificate https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/wget119/wget.rb  &&
       mv open-scene-graph.rb open-scene-graph.rb.old  &&
       $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
       cd $TRAVIS_BUILD_DIR; fi
@@ -225,7 +228,7 @@ script:
     # suffices to avoid collisions with upcoming install of qt5.
     # Note: open-scene-graph is not re-installed and hence the native OSG-Qt
     # (that links against Qt4) cannot be used.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt; fi 
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt@4; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt5 --force; fi
     # Now building 3DUse
