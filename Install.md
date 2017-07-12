@@ -162,7 +162,11 @@ Once the "solution" is build (see below), and for the impatient user, in order t
  * Note that prepending (as opposed to trailing) your `PATH` variable with the above mentionned directory paths might be safer (it will avoid possible conflicts with otherwise installed versions of QT or Graphviz...)
 
 ### Building from sources
- * Clone the [sources](https://github.com/MEPP-team/VCity.git) with a git client (e.g. [Tortoise git](https://tortoisegit.org/)
+ * Clone the [sources](https://github.com/MEPP-team/VCity.git) with some git client e.g.
+   - [Tortoise git](https://tortoisegit.org/)
+   - [Git for Windows](https://git-for-windows.github.io/) (provided by github). Configuring "git Bash" is [documented here](https://help.github.com/articles/about-ssh/) and the [toubleshooting guide](https://help.github.com/articles/troubleshooting-ssh/) might be helpful. When debugging "cloning" the following commands should work:
+     * `ssh -T git@github.com` (refer [here](https://help.github.com/articles/testing-your-ssh-connection/))
+     * `git clone --verbose git@github.com:MEPP-team/VCity.git`
 
 * Proceed with using cmake ([`cmake-gui.exe`](https://cmake.org/runningcmake/))
    * **Configure stage warning**: on the pop-up window that raises when configuring the cmake project assert that cmake detects the generator as being "Visual Studio 14 2015 **Win64**". Not only assert that the generator is Visual Studio 2015 (which is the 14th of Visual Studio) but also **assert that the generated code is 64 bits (Win64)**. If it is not properly set then set it manually (with the rolling down menu).

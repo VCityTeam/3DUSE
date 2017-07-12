@@ -37,3 +37,4 @@
        add_test( NAME trash COMMAND ${CMAKE_COMMAND} -E environment)
      endif()
 ```
+
