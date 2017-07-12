@@ -11,10 +11,10 @@ std::pair<OGRGeometry*, OGRGeometry*> sortRoofs( citygml::CityModel* city )
    citygml::ParserParams params;
 
    roofs = city->getCityObjectsByType( citygml::CityObjectsType::COT_RoofSurface );
-   //Récupération des toits
+   //Recuperation des toits
    if ( !roofs )
       return output;
-   //Creation des OGR pour ensuite creer les fichier shapefiles et pouvoirvisualiser le résultat
+   //Creation des OGR pour ensuite creer les fichier shapefiles et pouvoirvisualiser le resultat
    OGRMultiPolygon* toitsPlats = new OGRMultiPolygon(); //OGR toits plats
    OGRMultiPolygon * autresToits = new OGRMultiPolygon(); //OGR toits penches
    for ( citygml::CityObject* obj : *( roofs ) ) //Parcours de tous les toits
@@ -36,14 +36,14 @@ std::pair<OGRGeometry*, OGRGeometry*> sortRoofs( citygml::CityModel* city )
                //Ajout du point courant au contour du polygone OGR
             }
             ogrRing->closeRings(); //Fermeture du contour du polygone OGR
-            if ( ogrRing->getNumPoints() > 3 )//Le polygone ne sera créé qu'à partir de 4 points
+            if ( ogrRing->getNumPoints() > 3 )//Le polygone ne sera cree qu'a partir de 4 points
             {
                ogrPoly->addRingDirectly( ogrRing ); //Ajout du contour au polygone OFR
                if ( ogrPoly->IsValid() ) //Si le polygone est valide
                {
                   //Compute scalar product to know if flat roof or not
                   if ( normal.dot( TVec3d( 0., 0., 1. ) ) >= 0.9999 )
-                     toitsPlats->addGeometryDirectly( ogrPoly ); // Ajout du polygone à la geometrie Toits plats( une OGRGeometry peut etre un OGRMultiPolygon, un OGRPolygon... )
+                     toitsPlats->addGeometryDirectly( ogrPoly ); // Ajout du polygone a la geometrie Toits plats( une OGRGeometry peut etre un OGRMultiPolygon, un OGRPolygon... )
                   else
                      autresToits->addGeometryDirectly( ogrPoly );
                }

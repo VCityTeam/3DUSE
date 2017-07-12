@@ -12,7 +12,7 @@
 #include "vcitycore_export.h"
 #include "vecs.hpp"
 
-/// Précision pour les points des Wall qui ne se superposent pas parfaitement
+/// Precision pour les points des Wall qui ne se superposent pas parfaitement
 /// aux emprises au sol issue du Roff
 static double Precision_Vect = 0.00001;
 

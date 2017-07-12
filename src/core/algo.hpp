@@ -303,7 +303,7 @@ namespace vcity
             BBox = (OGRPolygon*)Feature->GetGeometryRef()->clone();
         delete DS_BBox;
 
-        //Ouverture du fichier LiDAR décomposé en ensemble de points voisins pouvant représenter des bâtiments
+        //Ouverture du fichier LiDAR decompose en ensemble de points voisins pouvant representer des batiments
 
         pcl::PCDReader reader;
         pcl::PCDWriter writer;
@@ -330,7 +330,7 @@ namespace vcity
                     OGRGeometry* Test1 = PointsCloud->Buffer(2);
                     OGRGeometry* Test2 = Test1->Buffer(-2);
                     std::cout << Test2->getGeometryName() << std::endl;
-                    if(Test2->getGeometryType() == wkbMultiPolygon || Test2->getGeometryType() == wkbMultiPolygon25D)//MultiPolygon à traiter : l'érosion peut couper en deux des polygones
+                    if(Test2->getGeometryType() == wkbMultiPolygon || Test2->getGeometryType() == wkbMultiPolygon25D)//MultiPolygon a traiter : l'erosion peut couper en deux des polygones
                     {
                         OGRMultiPolygon* MP = (OGRMultiPolygon*)Test2;
                         for(int p = 0; p < MP->getNumGeometries(); ++p)
@@ -365,7 +365,7 @@ namespace vcity
         while((Feature = Layer->GetNextFeature()) != NULL)
             CloudPolygons->addGeometry(Feature->GetGeometryRef());
 
-        //Ouverture des emprises au sol représentant les bâtiments connus
+        //Ouverture des emprises au sol representant les batiments connus
 
         OGRDataSource* DS_Batis = OGRSFDriverRegistrar::Open("BatisNew.shp");
         OGRLayer* L_Batis = DS_Batis->GetLayer(0);
@@ -382,7 +382,7 @@ namespace vcity
         }
         delete DS_Batis;
 
-        //Comparaison des deux jeux de données
+        //Comparaison des deux jeux de donnees
 
         OGRGeometryCollection* CloudPolygons3 = new OGRMultiPolygon;
 

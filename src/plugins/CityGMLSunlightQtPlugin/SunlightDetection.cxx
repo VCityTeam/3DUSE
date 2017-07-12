@@ -162,7 +162,7 @@ RayCollection CreateRays(const std::string& currentBBName, const RayBoxCollectio
 /// \brief RayTraceTriangles Load triangle list, run raytracing algorithm and update sunshine information.
 /// \param filepath Path to file to check intersection with (current tile)
 /// \param fileType Type of the file to check intersection with (current tile)
-/// \param cityObjId Id of cityObject to test intersection with (Multi-résolution for _BATI)
+/// \param cityObjId Id of cityObject to test intersection with (Multi-resolution for _BATI)
 /// \param rayColl Collection of Rays.
 /// \param datetimeSunInfo Map holding sun and shadow information for current triangle.
 ///
@@ -344,7 +344,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
 
                 std::string cityObjId = "";
 
-                if(fBoxHit.m_type == fileType::_BATI) //If _BATI, Multi-Résolution
+                if(fBoxHit.m_type == fileType::_BATI) //If _BATI, Multi-Resolution
                 {
                     //Create RayBoxes
                     RayBoxCollection* rayboxBuilding = new RayBoxCollection();
@@ -393,7 +393,7 @@ void SunlightDetection(std::string fileDir, std::vector<FileInfo*> filenames, st
                     delete rayboxBuilding;
 
                 }
-                else if(fBoxHit.m_type == fileType::_MNT) //If _MNT, no multirésolution
+                else if(fBoxHit.m_type == fileType::_MNT) //If _MNT, no multiresolution
                 {
                     RayCollection raysTemp = CreateRays(fileName_boxhit, raysboxes, datetimeSunInfo);
 
