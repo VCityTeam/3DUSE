@@ -1,4 +1,3 @@
-// -*-c++-*- VCity project, 3DUSE, Liris, 2013, 2014
 ////////////////////////////////////////////////////////////////////////////////
 // OSG plugin for reading OGC CityGML v0.3 - v1.0 format using libcitygml
 // http://code.google.com/p/libcitygml
