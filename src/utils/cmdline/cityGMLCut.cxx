@@ -1,3 +1,8 @@
+// Copyright University of Lyon, 2012 - 2017
+// Distributed under the GNU Lesser General Public License Version 2.1 (LGPLv2)
+// (Refer to accompanying file LICENSE.md or copy at
+//  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html )
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -11,7 +16,7 @@
 #include <float.h> // MT : for DBL_MAX on MAC OS X
 
 #define TEXTURE_PROCESS			1
-#define TRIANGULATE_PROCESS     1 // mettre à 0 pour ne pas trianguler les polygones
+#define TRIANGULATE_PROCESS 1 // mettre a 0 pour ne pas trianguler les polygones
 
 #define MAX_POINTS_IN_POSLIST	200	// TEMP
 
@@ -40,7 +45,11 @@ void process_All_textureCoordinates(xmlNodePtr noeud, std::map<std::string, xmlN
    }
 }
 
-void parcours_prefixe_All_textureCoordinates(xmlNodePtr noeud, fct_process_All_textureCoordinates f, std::map<std::string, xmlNodePtr> *UUID_uvm)
+void parcours_prefixe_All_textureCoordinates(
+                xmlNodePtr noeud,
+                fct_process_All_textureCoordinates f,
+                std::map<std::string,
+                xmlNodePtr> *UUID_uvm)
 {
    xmlNodePtr n;
 
@@ -105,10 +114,12 @@ bool is_inf_or_nan(double x)
 }
 
 // ABC forment un triangle
-// M est le point où on fait le calcul (M est dans ABC)
-bool calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M, bool uv, TVec2d uvA, TVec2d uvB, TVec2d uvC, TVec2d *uvM)
+// M est le point ou on fait le calcul (M est dans ABC)
+bool calcule_Z_uv(TVec3d A, TVec3d B, TVec3d C, TVec3d *M,
+                  bool uv, TVec2d uvA, TVec2d uvB, TVec2d uvC, TVec2d *uvM)
 {
-   // on va se servir des coordonnées x et y qui sont toutes connues pour déterminer s et t qui nous permettrons ensuite de calculer le z du point M
+   // On va se servir des coordonnees x et y qui sont toutes connues pour
+   // determiner s et t qui nous permettrons ensuite de calculer le z du point M
 
    TVec3d AB = B - A;
    TVec3d AC = C - A;
@@ -1132,7 +1143,7 @@ int CityGMLCut::Run(char *xml_file_in, char *xml_file_out, double xmin, double y
                      if (VERBOSE)
                         fprintf(stdout, "%s: %s - %s (min: %lf %lf) (max: %lf %lf)\n", n->name, n->children->name, xmlGetProp(n->children, BAD_CAST "id"), xmin_Building, ymin_Building, xmax_Building, ymax_Building);
 
-                     //xmlNs ns = { 0 }; // initialisation à zéro de tous les membres
+                     //xmlNs ns = { 0 }; // initialisation a zero de tous les membres
                      xmlNodePtr copy_node2 = xmlCopyNode(n, 1);
                      //xmlSetNs(copy_node2, &ns); //xmlSetNs(copy_node2, NULL);
 

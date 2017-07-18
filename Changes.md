@@ -1,5 +1,19 @@
 # 3DUse Changes
 
+0.5.0 (18 July 2017)
+--------------------
+ * Removal of webgl (now within a separate github repo)
+ * Added a license; license headers homogeneous for all files
+ * Adaptation to Appveryor/Travis CI evolutions
+ * User information added to Tiling interface window
+ * Sunlight plugin:
+   - sun-pathes file now part of sources
+   - code clean-up
+   - updated Sunligh plugin user's guide
+ * Cleaner definition/handling of QT-signal for time slider changes
+ * Removed the hardwired texture picture dimension
+ * Added new PCL test and example (LIDAR data). 
+
 0.4.0 (17 January 2016)
 -----------------------
 ### Enhancements

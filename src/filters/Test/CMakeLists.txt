@@ -4,7 +4,8 @@ endif()
 
 add_subdirectory( PCL )
 
-###### Lonely tests:
+###### Tests not requiring a specific contest (as opposed to tests requiring
+# a context that are gathered in their respective subdirectory):
 add_executable( TestComputeEnvelope TestComputeEnvelope.cpp )
 
 target_include_directories( TestComputeEnvelope PUBLIC

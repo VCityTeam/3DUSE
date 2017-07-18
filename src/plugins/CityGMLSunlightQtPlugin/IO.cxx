@@ -1,3 +1,8 @@
+// Copyright University of Lyon, 2012 - 2017
+// Distributed under the GNU Lesser General Public License Version 2.1 (LGPLv2)
+// (Refer to accompanying file LICENSE.md or copy at
+//  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html )
+
 #include "IO.h"
 
 #include "Triangle.hpp"
@@ -80,7 +85,7 @@ TVec3d computeBeamDir(double azimutAngle, double elevationAngle)
     TVec3d ARotAxis = TVec3d(0.0,0.0,1.0);
     TVec3d ERotAxis = TVec3d(-1.0,0.0,0.0);
 
-    //if sun to low (angle < 1°), return nul beam direction
+    //if sun to low (angle < 1 degree), return nul beam direction
     if (elevationAngle <= 0.01 || azimutAngle <= 0.01)
         return TVec3d(0.0,0.0,0.0);
 

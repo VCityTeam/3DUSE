@@ -1,3 +1,8 @@
+// Copyright University of Lyon, 2012 - 2017
+// Distributed under the GNU Lesser General Public License Version 2.1 (LGPLv2)
+// (Refer to accompanying file LICENSE.md or copy at
+//  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html )
+
 #include "BelvedereDB.h"
 
 #include <qfileinfo.h>
@@ -94,7 +99,13 @@ void BelvedereDB::ExportViewpointData(ViewPoint* viewpoint)
 				{
 					if(viewpoint->hits[i][j].intersect)
 					{
-						tilePolyData[viewpoint->hits[i][j].triangle.tileFile][viewpoint->hits[i][j].triangle.polygonId].HitCount++; //Dans tilePolyData, créer élément "viewpoint->hits[i][j].triangle.tileFile" dans la première map, qui est lui même une map et on lui crée alors un élément "viewpoint->hits[i][j].triangle.polygonId" qui est un PolygonData et que l'on va donc remplir.
+						tilePolyData[viewpoint->hits[i][j].triangle.tileFile][viewpoint->hits[i][j].triangle.polygonId].HitCount++;
+            // Dans tilePolyData, creer element
+            //    "viewpoint->hits[i][j].triangle.tileFile"
+            // dans la premiere map, qui est lui meme une map et on lui cree
+            // alors un element
+            //    "viewpoint->hits[i][j].triangle.polygonId"
+            // qui est un PolygonData et que l'on va donc remplir.
 						tilePolyData[viewpoint->hits[i][j].triangle.tileFile][viewpoint->hits[i][j].triangle.polygonId].CityObjectId = viewpoint->hits[i][j].triangle.objectId;
 						tilePolyData[viewpoint->hits[i][j].triangle.tileFile][viewpoint->hits[i][j].triangle.polygonId].PolygonId = viewpoint->hits[i][j].triangle.polygonId;
 						tilePolyData[viewpoint->hits[i][j].triangle.tileFile][viewpoint->hits[i][j].triangle.polygonId].Tile = viewpoint->hits[i][j].triangle.tileFile;

@@ -1,3 +1,8 @@
+// Copyright University of Lyon, 2012 - 2017
+// Distributed under the GNU Lesser General Public License Version 2.1 (LGPLv2)
+// (Refer to accompanying file LICENSE.md or copy at
+//  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html )
+
 #ifndef __AABB_HPP__
 #define __AABB_HPP__
 
@@ -39,13 +44,13 @@ struct CITYGMLUTILS_EXPORT BoxOrder
 CITYGMLUTILS_EXPORT bool operator<(const BoxOrder& a, const BoxOrder& b);
 
 /**
-*	@brief Pour une box, contient un certain nombre d'informations liés aux rayons que l'on aura tenté d'intersecter avec celle ci.
+*	@brief Pour une box, contient un certain nombre d'informations lies aux rayons que l'on aura tente d'intersecter avec celle ci.
 */
 struct CITYGMLUTILS_EXPORT BoxwithRays
 {
-    AABB box; //  Box concernée
-    std::vector<int> IndicesRays; //Contient les indices des rayons qui ont intersecté cette box
-    float minDistance; //Distance minimale entre la box et la caméra
+    AABB box; //  Box concernee
+    std::vector<int> IndicesRays; //Contient les indices des rayons qui ont intersecte cette box
+    float minDistance; //Distance minimale entre la box et la camera
 };
 
 CITYGMLUTILS_EXPORT bool operator<(const BoxwithRays& a, const BoxwithRays& b);
