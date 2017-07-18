@@ -3,6 +3,7 @@
 // (Refer to accompanying file LICENSE.md or copy at
 //  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html )
 
+#ifndef PLUGINDIALOG_H
 #define PLUGINDIALOG_H
 
 #include <QDialog>
