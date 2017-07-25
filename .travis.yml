@@ -33,8 +33,4 @@ addons:
 install:
   - cmake --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-       # FIXME: following comment seems to be a history glitch...
-       # Note: open-scene-graph is not re-installed and hence the native OSG-Qt
-       # (that links against Qt4) cannot be used.
-       brew install qt5 &&
-       brew link qt5 --force; fi
+       brew install qt5
