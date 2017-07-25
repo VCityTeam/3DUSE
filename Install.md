@@ -27,8 +27,8 @@
 ## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
-    * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
-    * `apt-get install libboost-all-dev`
+    * `sudo apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
+    * `sudo apt-get install libboost-all-dev`
     * When building with the [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake):
       * Install sub-dependencies: `apt-get install libeigen3-dev libflann-dev libqhull-dev`
       * Easy (recommended for [newbie](https://en.wikipedia.org/wiki/Newbie)) Point Cloud library installation out of 3DUSE provided [tarball](https://en.wikipedia.org/wiki/Tar_(computing) (pre-configured sources):
