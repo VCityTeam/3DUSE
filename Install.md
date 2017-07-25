@@ -1,12 +1,12 @@
-# Installing VCity 
+# Installing 3DUSE 
 
-## List of VCity dependencies
+## List of 3DUSE dependencies
 **Direct dependencies**
  * [Boost](http://www.boost.org/)
  * [Open Scene Graph](http://www.openscenegraph.org/) (a.k.a. OSG)
  * [GDAL](http://www.gdal.org/) (Geospatial Data Abstraction Library)
  * [Assimp](http://www.assimp.org)
- * [LASlib](https://github.com/LAStools/LAStools/tree/master/LASlib): note that VCity [embarks its own copy](https://github.com/MEPP-team/VCity/tree/master/externals/laslib)
+ * [LASlib](https://github.com/LAStools/LAStools/tree/master/LASlib): note that 3DUSE [embarks its own copy](https://github.com/MEPP-team/3DUSE/tree/master/externals/laslib)
  * Depending on your packaging system you **might need** to manually pull the following indirect dependencies:
    * [X11 server](https://en.wikipedia.org/wiki/X_Window_System) as [QT sub-dependency](http://doc.qt.io/qt-4.8/requirements-x11.html)
    * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
@@ -16,12 +16,12 @@
  * [QT4 above version 4.8](http://doc.qt.io/qt-4.8/) or [QT5 above version 5.4](http://download.qt.io/official_releases/qt/5.4/): when building the [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface)
  * [Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html): when building the documentation (optional)
 
-## General introduction to building VCity
-VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/runningcmake/). Here is a short list of option flags that can be used to customize the building VCity:
- * `BUILD_GUI_QT4` and `BUILD_GUI_QT5` enable to build the Graphical User Interface (GUI) of VCity respectively with using [QT4](http://doc.qt.io/qt-4.8/) or [QT5](http://qt-project.org/qt5)
- * Flags of the form `BUILD_CityGML<something>QtPlugin` (e.g. `BUILD_CityGMLCutQtPlugin` or `BUILD_CityGMLSunlightQtPlugin`) toggle the build of optional VCity plugins (based on QT plugin mechanism). Unsurprisingly enough the `BUILD_ALL_PLUGINS` option flag will trigger the build of all plugins.
- * `BUILD_DOCUMENTATION` enables the building of the [Doxygen](http://www.doxygen.org/) based documentation of VCity.
- * `BUILD_EMBARKED_OSG-QT_32` and `BUILD_EMBARKED_OSG-QT_34` enable to build a VCity embarked version of the interface of [OpenSceneGraph (OSG)](http://www.openscenegraph.org/) within [QT](http://qt-project.org/)
+## General introduction to building 3DUSE
+3DUSE is build (compiled, linked, installed) [`cmake`](https://cmake.org/runningcmake/). Here is a short list of option flags that can be used to customize the building 3DUSE:
+ * `BUILD_GUI_QT4` and `BUILD_GUI_QT5` enable to build the Graphical User Interface (GUI) of 3DUSE respectively with using [QT4](http://doc.qt.io/qt-4.8/) or [QT5](http://qt-project.org/qt5)
+ * Flags of the form `BUILD_CityGML<something>QtPlugin` (e.g. `BUILD_CityGMLCutQtPlugin` or `BUILD_CityGMLSunlightQtPlugin`) toggle the build of optional 3DUSE plugins (based on QT plugin mechanism). Unsurprisingly enough the `BUILD_ALL_PLUGINS` option flag will trigger the build of all plugins.
+ * `BUILD_DOCUMENTATION` enables the building of the [Doxygen](http://www.doxygen.org/) based documentation of 3DUSE.
+ * `BUILD_EMBARKED_OSG-QT_32` and `BUILD_EMBARKED_OSG-QT_34` enable to build a 3DUSE embarked version of the interface of [OpenSceneGraph (OSG)](http://www.openscenegraph.org/) within [QT](http://qt-project.org/)
 
 
 ## Ubuntu install (Ubuntu 14.04)
@@ -31,34 +31,34 @@ VCity is build (compiled, linked, installed) [`cmake`](https://cmake.org/running
     * `apt-get install libboost-all-dev`
     * When building with the [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake):
       * Install sub-dependencies: `apt-get install libeigen3-dev libflann-dev libqhull-dev`
-      * Easy (recommended for [newbie](https://en.wikipedia.org/wiki/Newbie)) Point Cloud library installation out of VCity provided [tarball](https://en.wikipedia.org/wiki/Tar_(computing) (pre-configured sources):
+      * Easy (recommended for [newbie](https://en.wikipedia.org/wiki/Newbie)) Point Cloud library installation out of 3DUSE provided [tarball](https://en.wikipedia.org/wiki/Tar_(computing) (pre-configured sources):
         * `cd /tmp && wget https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz`
         * `tar zxf pcl-pcl-1.7.2.travis-trusty.tgz && cd pcl-pcl-1.7.2/buildR`
         * `sudo make install`
       * Alternatively (more advanced installer) proceed with PCL standard installation (out of git repository): refer e.g. to [LarryLisky's install notes](https://larrylisky.com/2014/03/03/installing-pcl-on-ubuntu/).
  * Manual installation of LASlib
    * With access rigths to `/usr/local/`:
-     * `cd VCity/externals/laslib`
+     * `cd 3DUSE/externals/laslib`
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_BUILD_TYPE=Release && make`
      * `sudo make install`
      * Proceed with building of Vcity
    * Without access rights to `/usr/local/`:
-     * `cd VCity/externals/laslib`
+     * `cd 3DUSE/externals/laslib`
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_INSTALL_PREFIX=~/local/LASlib` (or choose an alternate installation directory in your home directory or a stable direcory why proper access rights)
-     * `cd VCity`
+     * `cd 3DUSE`
      * `mkdir Build && cd Build`
      * `ccmake .. -DLASLIB_INCLUDE_DIR=~/local/include -DLASLIB_LIBRARY=~/local/lib/liblaslib.a`
 
 ### Building from sources
  * `git clone https://github.com/MEPP-team/3DUSE.git`
- * `cd VCity`
+ * `cd 3DUSE`
  * `mkdir Build && cd Bin`
  * `cmake ..`
  * `make`
 
-Post-install goodies (not VCity related):
+Post-install goodies (not 3DUSE related):
  * QtCreator : `apt-get install qtcreator`
 
 ## Mac OS X install
@@ -71,14 +71,14 @@ Post-install goodies (not VCity related):
  * `brew install assimp`
  * Install laslib:
    * The careful version with stow (`brew install stow`):
-     * `cd VCity/externals/laslib`
+     * `cd 3DUSE/externals/laslib`
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/stow/laslib`
      * `make install`
      * `cd /usr/local/stow``
      * `stow laslib``
    * The careless version:
-     * `cd VCity/externals/laslib`
+     * `cd 3DUSE/externals/laslib`
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/stow/laslib`
      * `make install`
@@ -98,7 +98,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
   
 ### Building from sources
  * `git clone https://github.com/MEPP-team/3DUSE.git`
- * `cd VCity``
+ * `cd 3DUSE`
  * `mkdir Bin && cd Bin`
  * `cmake ..`
  * `make`
@@ -120,22 +120,22 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
      * select the "State of the license" link (at the top of window)
      * on the right column (not the Connect youself one) proceed by providing e.g. some Outlook junk email (google on Outlook email in order to create it).
    * That pesky Express 2015 might complain from time to time that your licensed expired. In fact it didn't but MicroSpank is just "making sure" (hey it's a free version but they still keep you leash). In the right section of the pop-up window select "Search for a license update" provide the same email you already gave away (refer to previous section) and proceed with MicroSpank's lenghty (you might have to give your password three times, receive email codes...) "verification process".
- * VCity binary kit:
+ * 3DUSE binary kit:
    * download [binary installer](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/kits/VCITY_local_vs2015_64.7z)
    * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
    * Note: the extracted directory name (`VCITY_local_vs2015_64`) can be renamed if you need to.
- * Obtain VCity sources:
+ * Obtain 3DUSE sources:
    * Install (from github) the [git for Windows](https://git-for-windows.github.io/) client
    * If you are using [TortoiseGit](https://tortoisegit.org/) here are some [configuration notes](http://liris.cnrs.fr/mepp/mepp-git-doc.html)
  * [Cmake version 3.4.3.](https://cmake.org/cmake/help/v3.4/release/3.4.html) (this version is Visual Studio 2015 aware):
    * Extract cmake from `VCITY_local_vs2015_64\_utils_\cmake-3.4.3-win32-x86.zip`
    * Extract NSIS from `VCITY_local_vs2015_64\_utils_\nsis-2.50-setup.exe``
- * Setting VCity related [environment variables](https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653%28v=vs.85%29.aspx):
-   * Warnings: for those upgrading from a previous VCity version, make sure to remove any `3DUse` related variable. Also make sure to remove any previously set `vs2012` variable
+ * Setting 3DUSE related [environment variables](https://msdn.microsoft.com/en-us/library/windows/desktop/ms682653%28v=vs.85%29.aspx):
+   * Warnings: for those upgrading from a previous 3DUSE version, make sure to remove any `3DUse` related variable. Also make sure to remove any previously set `vs2012` variable
 
 **Optional dependencies**
  * [Nullsoft Scriptable Install System (NSIS)](https://en.wikipedia.org/wiki/Nullsoft_Scriptable_Install_System)
-   * only needed if you need to package VCity versions for redistribution
+   * only needed if you need to package 3DUSE versions for redistribution
  * In order to build the documentation:
    * [Doxygen](http://www.stack.nl/~dimitri/doxygen/)
    * [Graphviz](http://www.graphviz.org/)
@@ -150,9 +150,9 @@ In order to **build the "solution"** you will first need to setup the following 
 
 Once the "solution" is build (see below), and for the impatient user, in order to **run the application** you will also need to:
  * Add a traling`";C:\VCITY_local_vs2015_64\_bin_"` to your `PATH` environment variable (in order for the dynamic loader to find the dynamic libraries of the application dependencies)
- * Assuming you build the solution in e.g. the `c:\Users\MyLogin\VCity\MyBuild` directory add the following entries to your `PATH` environment variable:
-  * Release mode `c:\Users\MyLogin\VCity\MyBuild\Release`
-  * Debug mode `c:\Users\MyLogin\VCity\MyBuild\Debug`
+ * Assuming you build the solution in e.g. the `c:\Users\MyLogin\3DUSE\MyBuild` directory add the following entries to your `PATH` environment variable:
+  * Release mode `c:\Users\MyLogin\3DUSE\MyBuild\Release`
+  * Debug mode `c:\Users\MyLogin\3DUSE\MyBuild\Debug`
 
 **Watch out**: notice that for the above run time variables the separator is now classically for Windows a backslash (`\`) character !
 
