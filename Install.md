@@ -54,7 +54,7 @@
 ### Building from sources
  * `git clone https://github.com/MEPP-team/3DUSE.git`
  * `cd 3DUSE`
- * `mkdir Build && cd Bin`
+ * `mkdir Build && cd Build`
  * `cmake ..`
  * `make`
 
