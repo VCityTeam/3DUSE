@@ -30,8 +30,13 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - BTYPE="-DCMAKE_BUILD_TYPE=Debug   -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
-  - BTYPE="-DCMAKE_BUILD_TYPE=Release -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
+  global:
+    - CMAKE_COMMON_FLAGS="-DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
+  matrix:
+    - QT="4" BTYPE="Debug"
+    - QT="4" BTYPE="Release"
+    - QT="5" BTYPE="Debug"
+    - QT="5" BTYPE="Release"
 
 matrix:
   fast_finish: true
@@ -45,8 +50,13 @@ addons:
     packages:
       - libboost-date-time-dev
       - libboost-filesystem-dev
+      # We install both QT4 and QT5 although each build will use only
+      # a single one of them. This avoids matrix test at install stage
+      # at an extra cost of the installation of an extra unused package
       - libqt4-dev
       - libqt4-opengl-dev
+      - qtbase5-dev 
+      - qt5-default
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
@@ -128,10 +138,16 @@ install:
     # default provided version 1.62...
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
        brew info boost; fi
-    # As of december 2016, Homebrew no longer offers qt (qt4): refer to
-    #    https://github.com/cartr/homebrew-qt4/issues/5 
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-       travis_wait 100 brew install cartr/qt4/qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ] and ["$QT"=="4"]]; then
+       # As of december 2016, Homebrew no longer offers qt (qt4): refer to
+       #    https://github.com/cartr/homebrew-qt4/issues/5 
+       travis_wait 50 brew install cartr/qt4/qt; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ] and ["$QT"=="5"]]; then
+       # FIXME: following comment seems to be a history glitch...
+       # Note: open-scene-graph is not re-installed and hence the native OSG-Qt
+       # (that links against Qt4) cannot be used.
+       brew install qt5 &&
+       brew link qt5 --force; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
        brew install assimp; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -175,7 +191,8 @@ install:
     # more explicit.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew install homebrew/science/flann; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install homebrew/science/qhull; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
     # Pcl itself takes a long time to be poured (more than Travis's 10' 
     # default cut off). Note that using brew options like --without-apps
@@ -213,39 +230,15 @@ script:
     # Proceed with building:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then  cmake .. $BTYPE; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then  cmake .. $BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ] and ["$QT"=="4"]]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$BTYPE $CMAKE_COMMON_FLAGS; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ] and ["$QT"=="5"]]; then
+      cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ] and ["$QT"=="4"]]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$BTYPE $CMAKE_COMMON_FLAGS -DBUILD_EMBARKED_OSG-QT_34=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ] and ["$QT"=="5"]]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$BTYPE $CMAKE_COMMON_FLAGS -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
+    # Now building 3DUse
   - make
+    # Eventually run the tests
   - ctest -V
-    #### Test the Qt5 version
-    # Previous test were against qt4 which is the default version
-    # for both linux and osx. Try building and testing as above
-    # but this time against qt5. Note that since we need to first install
-    # the required Qt5 packages (for both platforms) the following
-    # is thus a perversion of the script target.
-    # We start with an internalized sub-install that installs Qt5.
-    #### OSX Qt5 tests:
-    # First the install of Qt5. Unlinking (as opposed to unsintalling) qt4
-    # suffices to avoid collisions with upcoming install of qt5.
-    # Note: open-scene-graph is not re-installed and hence the native OSG-Qt
-    # (that links against Qt4) cannot be used.
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink qt@4; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew link qt5 --force; fi
-    # Now building 3DUse
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd $TRAVIS_BUILD_DIR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir build_osx_qt5 && cd build_osx_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then make; fi
-    # Eventually run the tests
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ctest -V; fi
-
-    ####  Linux Qt5 tests:
-    # First the install of Qt5
-    # Same remark as for OSX concerning the Qt version mismatch of libOSG-Qt
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install qtbase5-dev qt5-default; fi
-    # Now building 3DUse
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then mkdir build_linux_qt5 && cd build_linux_qt5 && cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make; fi
-    # Eventually run the tests
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ctest -V; fi
