@@ -42,7 +42,7 @@
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_BUILD_TYPE=Release && make`
      * `sudo make install`
-     * Proceed with building of Vcity
+     * Proceed with building of 3DUSE
    * Without access rights to `/usr/local/`:
      * `cd 3DUSE/externals/laslib`
      * `mkdir Build && cd Build`
