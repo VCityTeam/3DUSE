@@ -3,21 +3,12 @@ sudo: required # need by trusty
 dist: trusty   # Ubuntu 14.04 Trusty Tahr
 
 os:
-  - linux      # Ubuntu 14.04 Trusty Tahr
-  - osx        # Default is OSX 10.11.6 (2015) and XCode 7.3.1: refer to
-               # https://docs.travis-ci.com/user/osx-ci-environment/ 
-
-osx_image: xcode8.2
-
-compiler:
-  - gcc
-  - clang      # Under OSX the backend is Apple's LLVM
+  - linux
+  - osx
 
 env:
-    - QT="4" BTYPE="Debug"
-    - QT="4" BTYPE="Release"
-    - QT="5" BTYPE="Debug"
-    - QT="5" BTYPE="Release"
+    - BTYPE="Debug"
+    - BTYPE="Release"
 
 matrix:
   fast_finish: true
