@@ -122,7 +122,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * That pesky Express 2015 might complain from time to time that your licensed expired. In fact it didn't but MicroSpank is just "making sure" (hey it's a free version but they still keep you leash). In the right section of the pop-up window select "Search for a license update" provide the same email you already gave away (refer to previous section) and proceed with MicroSpank's lenghty (you might have to give your password three times, receive email codes...) "verification process".
  * 3DUSE binary kit:
    * download [binary installer](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/kits/VCITY_local_vs2015_64.7z)
-   * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
+   * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Documents").
    * Note: the extracted directory name (`VCITY_local_vs2015_64`) can be renamed if you need to.
  * Obtain 3DUSE sources:
    * Install (from github) the [git for Windows](https://git-for-windows.github.io/) client
