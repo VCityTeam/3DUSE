@@ -35,6 +35,60 @@ install:
   - export TRAVIS=YES
   - export WGET="wget --no-check-certificate"
   - cmake --version
+  #
+  ### OSX dependencies install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew update; fi
+    # Dealing with boost on OSX is messy. The difficulty is for cmake to
+    # find (when using find_package()) its boost required dependency: 
+    #   - sometimes it will find it under the Boost name (capital B to Boost
+    #     it works for other paltforms)
+    #   - sometimes it will find it under the boost name (lower case b to boost)
+    #     which is very OSX specific.
+    # The additional difficulty is that this Boost vs boost confusiong depends
+    # (still for OSX) on a combination of two parameters:
+    #  - cmake version number,
+    #  - boost packages version number.
+    # In order to illustrate this difficulty, the follwing table illustrates
+    # the "fluctations" encountered in the history of the platform
+    #                  |  3.4.1  |  3.4.3  |  3.7.1  | CMake version
+    #    ---------------------------------------------
+    #      < 1.60      |  Boost  |  boost  |         |
+    #        1.62      |         |         |  Boost  |
+    #        1.63      |         |         |  boost  |
+    #    ---------------------------------------------
+    #    Boost version |
+    # In other terms, with cmake version smaller to 3.4.1 you had to find
+    # "Boost". Then when cmake came to version 3.4.1 you had to find the
+    # lower case version "boost". When cmake upgraded to 3.7.1 one has to
+    # fold back to a capital "Boost". But when boost package changed from
+    # 1.62 to 1.63, one had to use the small caps "boost" again.
+    # This succession of situations becomes hellish when you know that Travis
+    # upgrades (that impact on OSX version that impacts on brew version)
+    # are decoralated from Homebrew upgrade choices for the current
+    # cmake version vs boost version...
+    # 
+    # This would be already chanlenging to maintain if another tranversal
+    # difficulty (due to Travis) didn't kick in: sometimes when Travis
+    # instals boost directly (through "brew install boost") then brew triggers
+    # a re-install that ends up considered as an (false positive) error by
+    # Travis. A work around (documented here 
+    #  https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages )
+    # consists in using the following odd form or install:
+    #      brew outdated boost || brew upgrade boost; fi
+    # All the above histoty is to say that, when installing boost for OSX on
+    # Travis, you can expect some unstability and time (version dependent)
+    # kludgy (ad-hoc) fixes. Here goes the historical notes:
+    #   Prior to 2017 we upgraded boost (to obtain version 1.62) which
+    #   made "Boost" available (OSX would behave as the other platforms again):
+    #   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    #      brew outdated boost || brew upgrade boost; fi
+    #   As for January 2017, upgrading boost would switch to version 1.63
+    #   which means switching from Boost to boost again (refer to the above
+    # table). So we choose _not_ to upgrade and stick with version the 
+    # default provided version 1.62...
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+       brew info boost; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ] and ["$QT"=="4"]]; then
        # As of december 2016, Homebrew no longer offers qt (qt4): refer to
        #    https://github.com/cartr/homebrew-qt4/issues/5 
@@ -44,3 +98,97 @@ install:
        # Note: open-scene-graph is not re-installed and hence the native OSG-Qt
        # (that links against Qt4) cannot be used.
        brew install qt5
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+       brew install assimp; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+       brew install doxygen; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+       brew install graphviz; fi
+    ### Open-Scene-Graph
+    # Travis feeds on Homebrew that switched its default version of OSG to
+    # be 3.5.5 (which seems not even official, refer to 
+    # http://www.openscenegraph.org/index.php/download-section/developer-releases).
+    # This breaks the embarked version 34 of OSG-QT. We thus trick Homebrew to 
+    # install version 3.4.4 by overwriting the associated formula. This must be 
+    # done just before installing OSG since Homebrew default behavior is now to 
+    # check for updates on a per command basis a.k.a. auto-update (e.g. each
+    # time a sub-dependency is installed) and thus in order to prevent any
+    # change (overwrite to 3.5.5) that could happen (within the Homebrew
+    # repository) in between the "brew update" and the following "brew
+    # install" of OSG:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula  &&
+      mv wget.rb wget.rb.old   &&
+      wget --no-check-certificate https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/wget119/wget.rb  &&
+      mv open-scene-graph.rb open-scene-graph.rb.old  &&
+      $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
+      cd $TRAVIS_BUILD_DIR; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install open-scene-graph; fi
+    ### Gdal
+    # "brew install gdal" is skipped because was already (indirectly) pulled.
+    # Yet we need to fix an unstatified dependency of libgdal.1.dylib that
+    # looks for libspatialite.5.dylib (version 5) when the libspatialite
+    # formula installs libspatialite.7.dylib (version 7). We thus trick
+    # libgdal in getting what it needs:
+    #     refer to issue #121. [osx_image: beta-xcode6.1]
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
+    # PCL related install: 
+    # The following sub-dependencies are manually installed (instead of
+    # letting them be pulled indirectly by pcl) just to make sub-dependencies
+    # more explicit.
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install homebrew/science/flann; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install homebrew/science/qhull; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
+    # Pcl itself takes a long time to be poured (more than Travis's 10' 
+    # default cut off). Note that using brew options like --without-apps
+    # or --without-tools triggers a pull of sources and a rebuild which is
+    # much too long for hoping to this build finish properly. We the 
+    # just pour the plain pcl package
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40
+      brew install homebrew/science/pcl; fi
+    # PCL config files looks for the Boost package (whith a capital B) which
+    # will fail starting with cmake version 3.5 (previous version seem not
+    # be case dependent on the find_package argument) with a message of the
+    # form:
+    #    CMake Error at /usr/local/share/pcl-1.7/PCLConfig.cmake:45 (message):
+    #      common is required but boost was not found
+    # Hence the following kludgy fix
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
+    #
+    ###### Linux depedency installation
+    # We are here only concerned with dependencies that were not already
+    # installed in above section addons:apt:packages.
+    ### Point Cloud Library (not be confused with another library carrying
+    # package under the same "pcl" name):
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      cd /tmp &&
+      $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz &&
+      tar zxf pcl-pcl-1.7.2.travis-trusty.tgz &&
+      cd pcl-pcl-1.7.2/buildR &&
+      sudo make install && 
+      cd $TRAVIS_BUILD_DIR; fi
+
+script:
+    # FIXME: try to deport laslib installation to install target
+  - cd externals/laslib
+  - mkdir buildR; cd buildR; cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF; make; sudo make install
+    # Proceed with building:
+  - cd $TRAVIS_BUILD_DIR               # that is our $HOME
+  - mkdir build && cd build
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ] and ["$QT"=="4"]]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$BTYPE $CMAKE_COMMON_FLAGS; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ] and ["$QT"=="5"]]; then
+      cmake .. $BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ] and ["$QT"=="4"]]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$BTYPE $CMAKE_COMMON_FLAGS -DBUILD_EMBARKED_OSG-QT_34=ON; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ] and ["$QT"=="5"]]; then
+      cmake .. -DCMAKE_BUILD_TYPE=$BTYPE $CMAKE_COMMON_FLAGS -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
+    # Now building 3DUse
+  - make
+    # Eventually run the tests
+  - ctest -V
