@@ -2,18 +2,6 @@ language: cpp
 sudo: required # need by trusty
 dist: trusty   # Ubuntu 14.04 Trusty Tahr
 
-##### Matrix definition
-# For C++ projects, the env, compiler and os (provided as arrays)
-# multiply to construct the build matrix. The shallow (refer to 
-# excluded configurations) resulting matrix yields 8 + 4 = 12 jobs:
-# - linux:
-#   - gcc:   Debug and Release over Qt4 and Qt5
-#   - clang: Debug and Release over Qt4 and Qt5
-# - osx:
-#   - clang: Debug and Release over Qt4 and Qt5
-# - Win32:  (not dealt with by Travis but through Appveyor)
-#   - VC++: Debug and Release over Qt4 and Qt5
-
 os:
   - linux      # Ubuntu 14.04 Trusty Tahr
   - osx        # Default is OSX 10.11.6 (2015) and XCode 7.3.1: refer to
@@ -26,9 +14,6 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  global:
-    - CMAKE_COMMON_FLAGS="-DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
-  matrix:
     - QT="4" BTYPE="Debug"
     - QT="4" BTYPE="Release"
     - QT="5" BTYPE="Debug"
