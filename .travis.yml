@@ -2,8 +2,6 @@ language: cpp
 sudo: required # need by trusty
 dist: trusty   # Ubuntu 14.04 Trusty Tahr
 
-cache: apt     # feature available only for private repositories
-
 ##### Matrix definition
 # For C++ projects, the env, compiler and os (provided as arrays)
 # multiply to construct the build matrix. The shallow (refer to 
@@ -55,7 +53,7 @@ addons:
       # at an extra cost of the installation of an extra unused package
       - libqt4-dev
       - libqt4-opengl-dev
-      - qtbase5-dev 
+      - qtbase5-dev
       - qt5-default
       - libassimp-dev
       - libopenscenegraph-dev
