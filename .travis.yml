@@ -1,8 +1,9 @@
 language: cpp
-sudo: required
-dist: trusty
+sudo: required # need by trusty
+dist: trusty   # Ubuntu 14.04 Trusty Tahr
 
 os:
+  - linux
   - osx
 
 env:
@@ -11,12 +12,26 @@ env:
 
 matrix:
   fast_finish: true
+  exclude:
+    - os: osx
+      compiler: gcc
 
+##### 
 addons:
   apt:
     packages:
       - libboost-date-time-dev
       - libboost-filesystem-dev
+      - libassimp-dev
+      - libopenscenegraph-dev
+      - libgdal-dev
+      - doxygen
+      - libboost-dev
+      - libboost-date-time-dev
+      - graphviz
 
 install:
+  # FIXME: remove this now hopefully useless environment variable
+  - export TRAVIS=YES
+  - export WGET="wget --no-check-certificate"
   - cmake --version
