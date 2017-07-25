@@ -5,15 +5,13 @@ dist: trusty   # Ubuntu 14.04 Trusty Tahr
 ##### Matrix definition
 # For C++ projects, the env, compiler and os (provided as arrays)
 # multiply to construct the build matrix. The shallow (refer to 
-# excluded configurations) resulting matrix yields 6 jobs:
+# excluded configurations) resulting matrix yields 8 + 4 = 12 jobs:
 # - linux:
-#   - gcc:   Debug and Release over Qt4 
-#   - clang: Debug and Release over Qt4
+#   - gcc:   Debug and Release over Qt4 and Qt5
+#   - clang: Debug and Release over Qt4 and Qt5
 # - osx:
 #   - clang: Debug and Release over Qt4 and Qt5
-#     NOTE: under the hood OSX does in fact two sub-jobs per job,
-#           since two Qt versions 4 and 5 are sequentially tested.
-# - Win32:  (not dealt with by Travis bu through Appveyor)
+# - Win32:  (not dealt with by Travis but through Appveyor)
 #   - VC++: Debug and Release over Qt4 and Qt5
 
 os:
@@ -80,7 +78,7 @@ addons:
 install:
   # FIXME: remove this now hopefully useless environment variable
   - export TRAVIS=YES
-  - export WGET="wget --no-check-certificate "
+  - export WGET="wget --no-check-certificate"
   - cmake --version
   #
   ### OSX dependencies install:
