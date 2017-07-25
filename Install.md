@@ -27,7 +27,7 @@
 ## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
-    * `sudo apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
+    * `sudo apt-get install qt4-default libopenscenegraph-dev libassimp-dev`
     * `sudo apt-get install libboost-all-dev`
     * When building with the [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake):
       * Install sub-dependencies: `apt-get install libeigen3-dev libflann-dev libqhull-dev`
@@ -50,7 +50,16 @@
      * `cd 3DUSE`
      * `mkdir Build && cd Build`
      * `ccmake .. -DLASLIB_INCLUDE_DIR=~/local/include -DLASLIB_LIBRARY=~/local/lib/liblaslib.a`
-
+  * Manual installation of gdal (3DUSE currently uses gdal version 1.11.4 and is not aligned with versions 2.xxx)
+     * `cd /tmp`
+     * `wget http://download.osgeo.org/gdal/1.11.4/gdal-1.11.4.tar.gz`
+     * `tar zxvf gdal-1.11.4.tar.gz`
+     * `cd gdal-1.11.4`
+     * `mkdir $HOME/local/`
+     * `./configure --prefix=$HOME/local/<my-package>`
+     * `make`
+     * `make install`
+     
 ### Building from sources
  * `git clone https://github.com/MEPP-team/3DUSE.git`
  * `cd 3DUSE`
