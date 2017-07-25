@@ -32,7 +32,7 @@ addons:
 
 install:
   - cmake --version
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ] && ["$QT"=="5"]]; then
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
        # FIXME: following comment seems to be a history glitch...
        # Note: open-scene-graph is not re-installed and hence the native OSG-Qt
        # (that links against Qt4) cannot be used.
