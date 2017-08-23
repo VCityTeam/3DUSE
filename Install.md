@@ -27,8 +27,8 @@
 ## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
  * Classic package installation with `apt-get` command:
-    * `apt-get install qt4-default libopenscenegraph-dev libgdal-dev libassimp-dev`
-    * `apt-get install libboost-all-dev`
+    * `sudo apt-get install qt4-default libopenscenegraph-dev libassimp-dev`
+    * `sudo apt-get install libboost-all-dev`
     * When building with the [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake):
       * Install sub-dependencies: `apt-get install libeigen3-dev libflann-dev libqhull-dev`
       * Easy (recommended for [newbie](https://en.wikipedia.org/wiki/Newbie)) Point Cloud library installation out of 3DUSE provided [tarball](https://en.wikipedia.org/wiki/Tar_(computing) (pre-configured sources):
@@ -42,7 +42,7 @@
      * `mkdir Build && cd Build`
      * `cmake .. -DCMAKE_BUILD_TYPE=Release && make`
      * `sudo make install`
-     * Proceed with building of Vcity
+     * Proceed with building of 3DUSE
    * Without access rights to `/usr/local/`:
      * `cd 3DUSE/externals/laslib`
      * `mkdir Build && cd Build`
@@ -50,7 +50,16 @@
      * `cd 3DUSE`
      * `mkdir Build && cd Build`
      * `ccmake .. -DLASLIB_INCLUDE_DIR=~/local/include -DLASLIB_LIBRARY=~/local/lib/liblaslib.a`
-
+  * Manual installation of gdal (3DUSE currently uses gdal version 1.11.4 and is not aligned with versions 2.xxx)
+     * `cd /tmp`
+     * `wget http://download.osgeo.org/gdal/1.11.4/gdal-1.11.4.tar.gz`
+     * `tar zxvf gdal-1.11.4.tar.gz`
+     * `cd gdal-1.11.4`
+     * `mkdir $HOME/local/`
+     * `./configure --prefix=$HOME/local/<my-package>`
+     * `make`
+     * `make install`
+     
 ### Building from sources
  * `git clone https://github.com/MEPP-team/3DUSE.git`
  * `cd 3DUSE`
@@ -122,7 +131,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * That pesky Express 2015 might complain from time to time that your licensed expired. In fact it didn't but MicroSpank is just "making sure" (hey it's a free version but they still keep you leash). In the right section of the pop-up window select "Search for a license update" provide the same email you already gave away (refer to previous section) and proceed with MicroSpank's lenghty (you might have to give your password three times, receive email codes...) "verification process".
  * 3DUSE binary kit:
    * download [binary installer](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/kits/VCITY_local_vs2015_64.7z)
-   * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Dcouments").
+   * extract content (installation will require 3.1 Go of free disk space) to a target directory which full path name length (from `C:\`) must be shorter than 50 characters: placing the extracted directory, named `VCITY_local_vs2015_64`,  into `C:\` or `C:\Programs` is ok (avoid unstable directories like "Desktop" or "My Documents").
    * Note: the extracted directory name (`VCITY_local_vs2015_64`) can be renamed if you need to.
  * Obtain 3DUSE sources:
    * Install (from github) the [git for Windows](https://git-for-windows.github.io/) client
