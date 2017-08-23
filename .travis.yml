@@ -30,13 +30,10 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  global:
-    - CMAKE_COMMON_FLAGS="-DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
-  matrix:
-    - QT="4" BTYPE="Debug"
-    - QT="4" BTYPE="Release"
-    - QT="5" BTYPE="Debug"
-    - QT="5" BTYPE="Release"
+  - CONFIG="QT4,Debug"
+  - CONFIG="QT4,Release"
+  - CONFIG="QT5,Debug"
+  - CONFIG="QT5,Release"
 
 matrix:
   fast_finish: true
@@ -78,11 +75,17 @@ addons:
       - libflann-dev
       - libqhull-dev
 
+before_install:
+  # FIXME: remove this now hopefully useless TRAVIS environment variable
+  - export TRAVIS=YES
+  - export WGET="wget --no-check-certificate"
+  - export CMAKE_COMMON_FLAGS="-DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DBUILD_UNMATURE_TESTS=OFF"
+  - if [ $CONFIG == "QT4,Debug" ];   then export QT="4"; export BTYPE="Debug";   fi
+  - if [ $CONFIG == "QT4,Release" ]; then export QT="4"; export BTYPE="Release"; fi
+  - if [ $CONFIG == "QT5,Debug" ];   then export QT="5"; export BTYPE="Debug";   fi
+  - if [ $CONFIG == "QT5,Release" ]; then export QT="5"; export BTYPE="Release"; fi
 
 install:
-  # FIXME: remove this now hopefully useless environment variable
-  - export TRAVIS=YES
-  - export WGET="wget --no-check-certificate "
   - cmake --version
   #
   ### OSX dependencies install:
