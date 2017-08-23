@@ -45,8 +45,13 @@ addons:
     packages:
       - libboost-date-time-dev
       - libboost-filesystem-dev
+      # We install both QT4 and QT5 although each build will use only
+      # a single one of them. This avoids matrix test at install stage
+      # at an extra cost of the installation of an extra unused package
       - libqt4-dev
       - libqt4-opengl-dev
+      - qtbase5-dev
+      - qt5-default
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
@@ -68,11 +73,12 @@ addons:
       - libflann-dev
       - libqhull-dev
 
-
-install:
-  # FIXME: remove this now hopefully useless environment variable
+before_install:
+  # FIXME: remove this now hopefully useless TRAVIS environment variable
   - export TRAVIS=YES
   - export WGET="wget --no-check-certificate "
+
+install:
   - cmake --version
   #
   ### OSX dependencies install:
