@@ -236,8 +236,8 @@ script:
     # Proceed with building:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
-  - if [[ "$TRAVIS_OS_NAME" == "linux" && "$QT"=="4" ]]; then
-      cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then if [[ "$QT"=="4" ]]; then 
+      cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE; fi; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   && "$QT"=="4" ]]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$QT"=="5" ]]; then
