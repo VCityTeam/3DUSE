@@ -84,11 +84,11 @@ before_install:
   - if [[ $CONFIG == "QT4,Release" ]]; then export QT="4"; export BTYPE="Release"; fi
   - if [[ $CONFIG == "QT5,Debug"   ]]; then export QT="5"; export BTYPE="Debug";   fi
   - if [[ $CONFIG == "QT5,Release" ]]; then export QT="5"; export BTYPE="Release"; fi
+
+install:
   - echo $CONFIG
   - echo $QT
   - echo $BTYPE
-
-install:
   - cmake --version
   #
   ### OSX dependencies install:
@@ -237,7 +237,7 @@ script:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then if [[ "$QT"=="4" ]]; then 
-      cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE; fi; fi
+      echo $QT && cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE; fi; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx"   && "$QT"=="4" ]]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$QT"=="5" ]]; then
