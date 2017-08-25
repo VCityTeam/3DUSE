@@ -18,21 +18,21 @@
 #include "filters_export.h"
 
 FILTERS_EXPORT void CreateRoadsOnMNT(
-  vcity::Tile* MNT,
-  OGRDataSource* Roads,
-  citygml::CityModel* MNT_roads,
-  std::vector<TextureCityGML*>* TexturesList_roads,
-  citygml::CityModel* MNT_ground,
-  std::vector<TextureCityGML*>* TexturesList_ground
+   vcity::Tile* MNT,
+   GDALDataset* Roads,
+   citygml::CityModel* MNT_roads,
+   std::vector<TextureCityGML*>* TexturesList_roads,
+   citygml::CityModel* MNT_ground,
+   std::vector<TextureCityGML*>* TexturesList_ground
 );
 
 FILTERS_EXPORT void CreateVegetationOnMNT(
-  vcity::Tile* MNT,
-  OGRDataSource* Vegetation,
-  citygml::CityModel* MNT_vegetation,
-  std::vector<TextureCityGML*>* TexturesList_vegetation,
-  citygml::CityModel* MNT_ground,
-  std::vector<TextureCityGML*>* TexturesList_ground
+   vcity::Tile* MNT,
+   GDALDataset* Vegetation,
+   citygml::CityModel* MNT_vegetation,
+   std::vector<TextureCityGML*>* TexturesList_vegetation,
+   citygml::CityModel* MNT_ground,
+   std::vector<TextureCityGML*>* TexturesList_ground
 );
 
 #endif // __ENHANCEMNT_HPP__

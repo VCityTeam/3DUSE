@@ -74,7 +74,7 @@ namespace vcity
         }
     }
     ////////////////////////////////////////////////////////////////////////////////
-    void Controller::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
+    void Controller::addShpNode(const vcity::URI& uriLayer, GDALDataset* poDS, std::string name)
     {
         abstractLayer* layer = app().getScene().getLayer(uriLayer);
         if (layer)

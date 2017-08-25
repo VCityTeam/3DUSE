@@ -16,7 +16,7 @@ typedef std::vector<TVec3d> LRing;
 *	@brief Extrude a chosen Shp file
 */
 FILTERS_EXPORT citygml::CityModel* ShpExtrusion(
-  OGRDataSource* poDS,
+   GDALDataset* poDS,
   std::string dir
 );
 
