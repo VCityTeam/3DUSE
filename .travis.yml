@@ -54,6 +54,7 @@ addons:
       - libqt4-opengl-dev
       - qtbase5-dev
       - qt5-default
+      - libqt5opengl5
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
@@ -90,6 +91,14 @@ install:
   - echo $QT
   - echo $BTYPE
   - cmake --version
+  # FIXME: clean that up 
+  ### Linux dependencies install:
+  # Because of QT4/QT5 co-existence conflicts at the cmake level
+  # (refer e.g. to https://bugzilla.redhat.com/show_bug.cgi?id=1330761 )
+  # we refrain from co-installing those two packages
+  #- if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "4" ]; then
+  #  sudo apt-get -y install qtbase5-dev qt5-default; fi
+  #  sudo apt-get -y install qtbase5-dev qt5-default; fi
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -196,7 +205,8 @@ install:
     # letting them be pulled indirectly by pcl) just to make sub-dependencies
     # more explicit.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install flann; fi
+      echo "Flann installed ommitted on purpose"; fi
+      # brew install flann; fi
       # FIXME brew install homebrew/science/flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew install homebrew/science/qhull; fi
