@@ -144,11 +144,11 @@ install:
     # default provided version 1.62...
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
        brew info boost; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" && "$QT" == "4" ]]; then
+  - if [ "$TRAVIS_OS_NAME" == "osx" -a "$QT" == "4" ]; then
        travis_wait 50 brew install cartr/qt4/qt; fi
        # As of december 2016, Homebrew no longer offers qt (qt4): refer to
        #    https://github.com/cartr/homebrew-qt4/issues/5 
-  - if [[ "$TRAVIS_OS_NAME" == "osx" && "$QT" == "5" ]]; then
+  - if [ "$TRAVIS_OS_NAME" == "osx" -a "$QT" == "5" ]; then
        brew install qt5 &&
        brew link qt5 --force; fi
        # FIXME: following comment seems to be a historical glitch...
@@ -241,13 +241,13 @@ script:
   - if [[ "$QT==4" ]]; then echo "Second 4"; fi
   - if [[ "$QT" == "4" ]]; then echo "Third 4"; fi
   - if [[ "$QT"=="4" ]]; then echo "Fourth 4"; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux", "$QT == 4" ]]; then 
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT == 4" ]; then 
       echo "$QT" && echo "4" && cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   && "$QT"=="4" ]]; then
+  - if [  "$TRAVIS_OS_NAME" == "osx"  -a "$QT"=="4" ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux", "$QT" == "5" ]]; then
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "5" ]; then
       echo "$QT" && echo "5" && cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx"   && "$QT"=="5" ]]; then
+  - if [ "$TRAVIS_OS_NAME" == "osx"   -a "$QT"=="5"  ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_34=ON; fi
     # Now building 3DUse
   - make
