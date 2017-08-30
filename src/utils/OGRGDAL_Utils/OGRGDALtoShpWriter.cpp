@@ -50,7 +50,12 @@ void SaveGeometrytoShape( std::string name, const OGRGeometryCollection* G )
       OGRFeature * Feature = OGRFeature::CreateFeature( Layer->GetLayerDefn() );
 
       Feature->SetGeometry( Geometry );
-      Layer->CreateFeature( Feature );
+
+      if ( Layer->CreateFeature( Feature ) != OGRERR_NONE )
+      {
+         printf( "Failed to create feature in shapefile.\n" );
+         exit( 1 );
+      }
 
       OGRFeature::DestroyFeature( Feature );
    }

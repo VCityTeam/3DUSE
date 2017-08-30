@@ -291,7 +291,12 @@ void ExportData( std::string dirTile, ViewPoint* viewpoint, std::string filePref
             Feature->SetField( "Z", hit.point.z );
 
             Feature->SetGeometry( Geometry );
-            LayerViewshed->CreateFeature( Feature );
+
+            if ( LayerViewshed->CreateFeature( Feature ) != OGRERR_NONE )
+            {
+               printf( "Failed to create feature in shapefile.\n" );
+               exit( 1 );
+            }
 
             OGRFeature::DestroyFeature( Feature );
          }
@@ -342,7 +347,12 @@ void ExportData( std::string dirTile, ViewPoint* viewpoint, std::string filePref
       Feature->SetField( "PercentInV", ( it->second.Cpt / cpt * 100.f ) );
 
       Feature->SetGeometry( Geometry );
-      LayerCityObjectData->CreateFeature( Feature );
+
+      if ( LayerCityObjectData->CreateFeature( Feature ) != OGRERR_NONE )
+      {
+         printf( "Failed to create feature in shapefile.\n" );
+         exit( 1 );
+      }
 
       OGRFeature::DestroyFeature( Feature );
    }
@@ -395,7 +405,12 @@ void ExportData( std::string dirTile, ViewPoint* viewpoint, std::string filePref
 
 
       Feature->SetGeometry( Geometry );
-      LayerSkylinePoints->CreateFeature( Feature );
+
+      if ( LayerSkylinePoints->CreateFeature( Feature ) != OGRERR_NONE )
+      {
+         printf( "Failed to create feature in shapefile.\n" );
+         exit( 1 );
+      }
 
       cptCount++;
 
@@ -429,7 +444,12 @@ void ExportData( std::string dirTile, ViewPoint* viewpoint, std::string filePref
       Feature->SetField( "StdDevRadi", viewpoint->skyline.StandardDeviation );
 
       Feature->SetGeometry( skylineLine );
-      LayerSkylineLine->CreateFeature( Feature );
+
+      if ( LayerSkylineLine->CreateFeature( Feature ) != OGRERR_NONE )
+      {
+         printf( "Failed to create feature in shapefile.\n" );
+         exit( 1 );
+      }
 
       OGRFeature::DestroyFeature( Feature );
    }
@@ -453,7 +473,12 @@ void ExportData( std::string dirTile, ViewPoint* viewpoint, std::string filePref
 
 
       Feature->SetGeometry( Geometry );
-      LayerViewpoint->CreateFeature( Feature );
+
+      if ( LayerViewpoint->CreateFeature( Feature ) != OGRERR_NONE )
+      {
+         printf( "Failed to create feature in shapefile.\n" );
+         exit( 1 );
+      }
 
       OGRFeature::DestroyFeature( Feature );
    }

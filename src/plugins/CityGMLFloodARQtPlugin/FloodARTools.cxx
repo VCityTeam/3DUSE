@@ -584,7 +584,11 @@ void CutShapeFile( std::string workingDir, int tilesize_x, int tilesize_y, std::
                   for ( int i = 0; i < poFeature->GetFieldCount(); ++i )
                      Feature->SetField( poFeature->GetFieldDefnRef( i )->GetNameRef(), poFeature->GetFieldAsString( i ) );
 
-                  Layer->CreateFeature( Feature );
+                  if ( Layer->CreateFeature( Feature ) != OGRERR_NONE )
+                  {
+                     printf( "Failed to create feature in shapefile.\n" );
+                     exit( 1 );
+                  }
 
                   OGRFeature::DestroyFeature( Feature );
                }

@@ -42,7 +42,7 @@ osg::ref_ptr<osg::Geode> buildOsgGDAL( GDALDataset* poDS, std::string name )
 
          OGRFeature *poFeature;
          poLayer->ResetReading();
-         printf( "nb feature %d\n", poLayer->GetFeatureCount() );
+         printf( "nb feature %d\n", (int)(poLayer->GetFeatureCount()) );
          while ( ( poFeature = poLayer->GetNextFeature() ) != NULL )
          {
             OGRGeometry* poGeometry = poFeature->GetGeometryRef();
