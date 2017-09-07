@@ -92,10 +92,10 @@ install:
       wget http://download.osgeo.org/gdal/2.1.1/gdal-2.1.1.tar.gz &&
       tar zxvf gdal-2.1.1.tar.gz &&
       cd gdal-2.1.1 &&
-      ./configure &&
-      make &&
-      make install &&
-      ldconfig; fi
+      mkdir $HOME/local/ &&
+      ./configure --prefix=$HOME/local/gdal-2.1.1 &&
+      make -j 2 &&
+      make install; fi
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -250,13 +250,13 @@ script:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "4" ]; then 
-      cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE; fi
+      cmake .. $CMAKE_COMMON_FLAGS -DGDAL_DIR=$HOME/local/gdal-2.1.1 -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE; fi
   - if [ "$TRAVIS_OS_NAME" == "osx"  -a "$QT" == "4" ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
     # Note: for QT5 open-scene-graph is not re-installed and hence the native OSG-Qt
     # (that links against Qt4) cannot be used and we thus use the "embarked" versions
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "5" ]; then
-      cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
+      cmake .. $CMAKE_COMMON_FLAGS -DGDAL_DIR=$HOME/local/gdal-2.1.1 -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
   - if [ "$TRAVIS_OS_NAME" == "osx"   -a "$QT" == "5"  ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
     # End build at make level:
