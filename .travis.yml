@@ -50,7 +50,6 @@ addons:
       - libboost-filesystem-dev
       - libassimp-dev
       - libopenscenegraph-dev
-      - libgdal-dev
       - doxygen
       - libboost-dev
       - libboost-date-time-dev
@@ -90,6 +89,14 @@ install:
      sudo apt-get -y install libqt4-dev libqt4-opengl-dev; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "5" ]; then
      sudo apt-get -y install qtbase5-dev qt5-default libqt5opengl5; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      wget http://download.osgeo.org/gdal/2.1.1/gdal-2.1.1.tar.gz &&
+      tar zxvf gdal-2.1.1.tar.gz &&
+      cd gdal-2.1.1 &&
+      ./configure &&
+      make &&
+      make install &&
+      ldconfig; fi
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
