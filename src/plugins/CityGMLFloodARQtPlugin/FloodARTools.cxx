@@ -448,16 +448,18 @@ void CutShapeFile( std::string workingDir, int tilesize_x, int tilesize_y, std::
    QDir dir( workingDir.c_str() );
 
    const char * DriverName = "ESRI Shapefile";
-   OGRSFDriver * Driver;
+   GDALDriver * Driver;
 
-   OGRRegisterAll();
-   Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName( DriverName );
+   GDALAllRegister();
+   Driver = GetGDALDriverManager()->GetDriverByName( DriverName );
+
    if ( Driver == NULL )
    {
       printf( "%s driver not available.\n", DriverName );
       return;
    }
-   OGRDataSource* poDS = OGRSFDriverRegistrar::Open( filename.c_str(), FALSE );
+
+   GDALDataset * poDS = Driver->Create( filename.c_str(), 0, 0, 0, GDT_Unknown, NULL );
 
    double Xmin = 100000000, Xmax = -100000000, Ymin = 100000000, Ymax = -100000000;
 
@@ -541,7 +543,7 @@ void CutShapeFile( std::string workingDir, int tilesize_x, int tilesize_y, std::
             std::string name = dir.path().toStdString() + "/tmp/_BATI/" + tilenumber + "/" + tilenumber + "_" + file.baseName().toStdString() + ".shp";
 
             remove( name.c_str() );
-            OGRDataSource * DS = Driver->CreateDataSource( name.c_str(), NULL );
+            GDALDataset * DS = Driver->Create( name.c_str(), 0, 0, 0, GDT_Unknown, NULL );
 
             OGRLayer * Layer = DS->CreateLayer( "Layer1" );
 
@@ -582,12 +584,16 @@ void CutShapeFile( std::string workingDir, int tilesize_x, int tilesize_y, std::
                   for ( int i = 0; i < poFeature->GetFieldCount(); ++i )
                      Feature->SetField( poFeature->GetFieldDefnRef( i )->GetNameRef(), poFeature->GetFieldAsString( i ) );
 
-                  Layer->CreateFeature( Feature );
+                  if ( Layer->CreateFeature( Feature ) != OGRERR_NONE )
+                  {
+                     printf( "Failed to create feature in shapefile.\n" );
+                     exit( 1 );
+                  }
 
                   OGRFeature::DestroyFeature( Feature );
                }
             }
-            OGRDataSource::DestroyDataSource( DS );
+            GDALClose( DS );
             //delete Tuile; //Memory access violation exception thrown when deleting
             Tuile->empty();
          }
@@ -595,6 +601,7 @@ void CutShapeFile( std::string workingDir, int tilesize_x, int tilesize_y, std::
          progress.setValue( cpt + 1 );
       }
    }
+   GDALClose( poDS );
    std::cout << "\rTiling done     " << std::endl;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -637,13 +644,14 @@ void ShapeExtrusion( std::string workingDir )
 
       if ( ext == "shp" )
       {
-         OGRDataSource* poDS = OGRSFDriverRegistrar::Open( file.absoluteFilePath().toStdString().c_str(), FALSE );
+         GDALDataset* poDS = (GDALDataset*)GDALOpenEx( file.absoluteFilePath().toStdString().c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
+
          std::cout << "Shp loaded" << std::endl;
          std::cout << "Processing..." << std::endl;
 
          citygml::CityModel* ModelOut = ShpExtrusion( poDS, workingDir + "/" );
 
-         delete poDS;
+         GDALClose( poDS );
 
          citygml::ExporterCityGML exporter( outputfile );
          exporter.exportCityModel( *ModelOut );

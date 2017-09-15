@@ -45,7 +45,7 @@ public:
     virtual void addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<osg::Node> node);
 
     // Shp
-    virtual void addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS) override;
+    virtual void addShpNode(const vcity::URI& uriLayer, GDALDataset* poDS, std::string name) override;
 
     // selection
     virtual void resetSelection() override;

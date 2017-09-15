@@ -19,8 +19,8 @@ endif()
 
 set(ASSIMP_ROOT_DIR     ${VCITY_KIT_ROOT}/assimp-3.2)
 
-set(GDAL_INCLUDE_DIR    ${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/include)
-set(GDAL_LIBRARY        ${VCITY_KIT_ROOT}/gdal/gdal-1.11.4/lib/gdal_i.lib)
+set(GDAL_INCLUDE_DIR    ${VCITY_KIT_ROOT}/gdal/gdal-2.0.2/include)
+set(GDAL_LIBRARY        ${VCITY_KIT_ROOT}/gdal/gdal-2.0.2/lib/gdal_i.lib)
 
 set(LASLIB_INCLUDE_DIR  ${VCITY_KIT_ROOT}/laslib/include)
 set(LASLIB_LIBRARY      ${VCITY_KIT_ROOT}/laslib/lib/Release/laslib.lib)

@@ -228,12 +228,9 @@ void ControllerGui::addLasNode(const vcity::URI& uriLayer, const osg::ref_ptr<os
     appGui().getOsgScene()->addLasNode(uriLayer, node);
 }
 ////////////////////////////////////////////////////////////////////////////////
-void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
+void ControllerGui::addShpNode(const vcity::URI& uriLayer, GDALDataset* poDS, std::string name)
 {
-    Controller::addShpNode(uriLayer, poDS);
-
-    std::string name = poDS->GetName();
-    name = name.substr(name.rfind('/') + 1);
+    Controller::addShpNode(uriLayer, poDS, name);
 
     // fill treeview
     uriLayer.resetCursor();
@@ -241,7 +238,7 @@ void ControllerGui::addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS)
 
     // fill osg scene
     uriLayer.resetCursor();
-    osg::ref_ptr<osg::Node> osgNode = buildOsgGDAL(poDS);
+    osg::ref_ptr<osg::Node> osgNode = buildOsgGDAL(poDS, name);
 
     //We use a MatrixTransform instead of a basic group to be able to move the shp in the scene
     osg::ref_ptr<osg::Group> grp = new osg::MatrixTransform();

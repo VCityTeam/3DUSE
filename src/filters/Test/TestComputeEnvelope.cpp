@@ -73,8 +73,8 @@ int main(int narg, char** argv)
   // FIXME: remove the following line and make the test _really_ effective !
   return 0;
 
-  OGRDataSource* BatiShapeFile = 
-     OGRSFDriverRegistrar::Open( Shape_filename.c_str(), FALSE);
+  GDALDataset* BatiShapeFile = (GDALDataset*)GDALOpenEx( Shape_filename.c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
+
   if( !BatiShapeFile )
   {
     std::cout << "OGR could not read shape file named "
@@ -105,7 +105,7 @@ int main(int narg, char** argv)
   {
      delete Tex;
   }
-  delete BatiShapeFile;
+  GDALClose( BatiShapeFile );
   delete BatiLOD2CityGML;
   // Note: for some obscure yet well know reasons, one cannot delete both
   // ModelOut and BatiLOD2CityGML...
