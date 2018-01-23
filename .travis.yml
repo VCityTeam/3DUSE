@@ -175,7 +175,7 @@ install:
     # letting them be pulled indirectly by pcl) just to make sub-dependencies
     # more explicit.
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install homebrew/science/flann; fi
+      brew install flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
     # Pcl itself takes a long time to be poured (more than Travis's 10'
