@@ -178,7 +178,7 @@ install:
       # Flann depends on gcc-7.2.x that fails on install, refer to
       #   https://github.com/travis-ci/travis-ci/issues/8826
       # that recommends uninstalling oclint (the culprit under the hood)
-      brew cask uninstall oclint
+      brew cask uninstall oclint &&
       brew install flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/qhull; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install eigen; fi
