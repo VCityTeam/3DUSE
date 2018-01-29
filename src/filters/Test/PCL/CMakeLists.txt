@@ -50,10 +50,11 @@ if(   BUILD_UNMATURE_TESTS
       OR
         ( UNIX AND ( NOT APPLE ) 
                AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) 
-               AND ( CMAKE_BUILD_TYPE      MATCHES "Debug" )
         )
-        # Segfaults on Travis (Ubuntu ???) with clan when on Debug mode (after 26s
-        # without any debug message). Note that it runs smoothly in release mode.
+        # Segfaults on Travis (Ubuntu ???) with clang (after 26s without any
+        # debug message). Note that it used to run smoothly in release mode
+        # but became unstable at the beginning of 2018 cf
+        #      https://travis-ci.org/MEPP-team/3DUSE/jobs/331822946
         # Unable to reproduce any segfault in interactive mode on an
         # Ubuntu 14.04.3 LTS server.
       )
