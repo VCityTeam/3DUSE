@@ -1,15 +1,16 @@
 language: cpp
 sudo: required # need by trusty
 dist: trusty   # Ubuntu 14.04 Trusty Tahr
+group: deprecated-2017Q4 # use the previous linux iso file in order to have cmake
 
 cache: apt     # feature available only for private repositories
 
 ##### Matrix definition
 # For C++ projects, the env, compiler and os (provided as arrays)
-# multiply to construct the build matrix. The shallow (refer to 
+# multiply to construct the build matrix. The shallow (refer to
 # excluded configurations) resulting matrix yields 6 jobs:
 # - linux:
-#   - gcc:   Debug and Release over Qt4 
+#   - gcc:   Debug and Release over Qt4
 #   - clang: Debug and Release over Qt4
 # - osx:
 #   - clang: Debug and Release over Qt4 and Qt5
@@ -21,7 +22,7 @@ cache: apt     # feature available only for private repositories
 os:
   - linux      # Ubuntu 14.04 Trusty Tahr
   - osx        # Default is OSX 10.11.6 (2015) and XCode 7.3.1: refer to
-               # https://docs.travis-ci.com/user/osx-ci-environment/ 
+               # https://docs.travis-ci.com/user/osx-ci-environment/
 
 osx_image: xcode8.2
 
@@ -41,7 +42,7 @@ matrix:
     - os: osx
       compiler: gcc
 
-##### 
+#####
 addons:
   apt:
     packages:
@@ -100,7 +101,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew update; fi
     # Dealing with boost on OSX is messy. The difficulty is for cmake to
-    # find (when using find_package()) its boost required dependency: 
+    # find (when using find_package()) its boost required dependency:
     #   - sometimes it will find it under the Boost name (capital B to Boost
     #     it works for other paltforms)
     #   - sometimes it will find it under the boost name (lower case b to boost)
@@ -127,12 +128,12 @@ install:
     # upgrades (that impact on OSX version that impacts on brew version)
     # are decoralated from Homebrew upgrade choices for the current
     # cmake version vs boost version...
-    # 
+    #
     # This would be already chanlenging to maintain if another tranversal
     # difficulty (due to Travis) didn't kick in: sometimes when Travis
     # instals boost directly (through "brew install boost") then brew triggers
     # a re-install that ends up considered as an (false positive) error by
-    # Travis. A work around (documented here 
+    # Travis. A work around (documented here
     #  https://docs.travis-ci.com/user/osx-ci-environment/#A-note-on-upgrading-packages )
     # consists in using the following odd form or install:
     #      brew outdated boost || brew upgrade boost; fi
@@ -145,7 +146,7 @@ install:
     #      brew outdated boost || brew upgrade boost; fi
     #   As for January 2017, upgrading boost would switch to version 1.63
     #   which means switching from Boost to boost again (refer to the above
-    # table). So we choose _not_ to upgrade and stick with version the 
+    # table). So we choose _not_ to upgrade and stick with version the
     # default provided version 1.62...
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
        brew info boost; fi
@@ -167,11 +168,11 @@ install:
        brew install graphviz; fi
     ### Open-Scene-Graph
     # Travis feeds on Homebrew that switched its default version of OSG to
-    # be 3.5.5 (which seems not even official, refer to 
+    # be 3.5.5 (which seems not even official, refer to
     # http://www.openscenegraph.org/index.php/download-section/developer-releases).
-    # This breaks the embarked version 34 of OSG-QT. We thus trick Homebrew to 
-    # install version 3.4.4 by overwriting the associated formula. This must be 
-    # done just before installing OSG since Homebrew default behavior is now to 
+    # This breaks the embarked version 34 of OSG-QT. We thus trick Homebrew to
+    # install version 3.4.4 by overwriting the associated formula. This must be
+    # done just before installing OSG since Homebrew default behavior is now to
     # check for updates on a per command basis a.k.a. auto-update (e.g. each
     # time a sub-dependency is installed) and thus in order to prevent any
     # change (overwrite to 3.5.5) that could happen (within the Homebrew
@@ -196,15 +197,36 @@ install:
     #     refer to issue #121. [osx_image: beta-xcode6.1]
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
-    # Gdal also refers to libjpg.8.dylib. Since they are no other dependency
-    # towards jpeg9, it then suffice to downgrade:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew switch jpeg 8d; fi
+    ### PCL related install:
+    # The following sub-dependencies are manually installed (instead of
+    # letting them be pulled indirectly by pcl) just to make sub-dependencies
+    # more explicit.
     #
-    # PCL is much too long to be installed on the free version of Travis.
-    # PCL on OSX is only tested in the old and private repository. Refer to
-    #      https://github.com/MEPP-team/VCity/blob/master/.travis.yml#L172
-    # for an OSX install of PCL 1.7
+    # Flann depends on gcc-7.2.x that fails on install, refer to
+    #   https://github.com/travis-ci/travis-ci/issues/8826
+    # that recommends uninstalling oclint (the culprit under the hood)
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew cask uninstall oclint &&
+      brew install flann; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install homebrew/science/qhull; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install eigen; fi
+    # Pcl itself takes a long time to be poured (more than Travis's 10'
+    # default cut off). Note that using brew options like --without-apps
+    # or --without-tools triggers a pull of sources and a rebuild which is
+    # much too long for hoping to this build finish properly. We the
+    # just pour the plain pcl package
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40
+      brew install homebrew/science/pcl; fi
+    # PCL config files looks for the Boost package (whith a capital B) which
+    # will fail starting with cmake version 3.5 (previous version seem not
+    # be case dependent on the find_package argument) with a message of the
+    # form:
+    #    CMake Error at /usr/local/share/pcl-1.7/PCLConfig.cmake:45 (message):
+    #      common is required but boost was not found
+    # Hence the following kludgy fix
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
     #
     ###### Linux depedency installation
     # We are here only concerned with dependencies that were not already
@@ -216,7 +238,7 @@ install:
       $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-trusty/pcl-pcl-1.7.2.travis-trusty.tgz &&
       tar zxf pcl-pcl-1.7.2.travis-trusty.tgz &&
       cd pcl-pcl-1.7.2/buildR &&
-      sudo make install && 
+      sudo make install &&
       cd $TRAVIS_BUILD_DIR; fi
 
 script:
