@@ -98,6 +98,9 @@ install:
       ./configure --prefix=$TRAVIS_BUILD_DIR/local/gdal-2.1.1 &&
       make -j 2 &&
       make install; fi
+  ### CLEAN UP THE FOLLOWING DEBUGING LINE
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      ls -R $TRAVIS_BUILD_DIR/local/gdal-2.1.1/include; fi
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
