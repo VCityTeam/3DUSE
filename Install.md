@@ -1,4 +1,4 @@
-# Installing 3DUSE 
+# Installing 3DUSE
 
 ## List of 3DUSE dependencies
 **Direct dependencies**
@@ -11,7 +11,7 @@
    * [X11 server](https://en.wikipedia.org/wiki/X_Window_System) as [QT sub-dependency](http://doc.qt.io/qt-4.8/requirements-x11.html)
    * [Proj4](https://github.com/OSGeo/proj.4/wiki) as gdal sub-dependency
    * [GEOS](https://trac.osgeo.org/geos/) as gdal sub-dependency
- 
+
 **Optional dependencies**
  * [QT4 above version 4.8](http://doc.qt.io/qt-4.8/) or [QT5 above version 5.4](http://download.qt.io/official_releases/qt/5.4/): when building the [GUI](https://en.wikipedia.org/wiki/Graphical_user_interface)
  * [Doxygen](http://www.stack.nl/~dimitri/doxygen/index.html): when building the documentation (optional)
@@ -56,15 +56,18 @@
      * `tar zxvf gdal-1.11.4.tar.gz`
      * `cd gdal-1.11.4`
      * `mkdir $HOME/local/`
-     * `./configure --prefix=$HOME/local/<my-package>`
+     * `./configure --prefix=$HOME/local/gdal-1.11.4.tar.gz`
      * `make`
      * `make install`
-     
+
 ### Building from sources
  * `git clone https://github.com/MEPP-team/3DUSE.git`
  * `cd 3DUSE`
  * `mkdir Build && cd Build`
- * `cmake ..`
+ * `ccmake ..`
+ *  Position the following configuration variables:
+    * GDAL_INCLUDE_DIR=$HOME/local/gdal-1.11.4/include
+    * GDAL_LIBRARY=$HOME/local/gdal-1.11.4/lib/libgdal.so
  * `make`
 
 Post-install goodies (not 3DUSE related):
@@ -104,7 +107,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
     * Qt5: `brew install qt5`
   * Documentation: `brew install doxygen graphviz`
   * [PCL](http://pointclouds.org/) extension (`BUILD_PCL` set to ON within cmake): `brew install homebrew/science/pcl --without-vtk --without-apps`
-  
+
 ### Building from sources
  * `git clone https://github.com/MEPP-team/3DUSE.git`
  * `cd 3DUSE`
@@ -122,7 +125,7 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
    * dowload [LIRIS local copy](https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/Visual%20Studio%20Express%202015/Visual%20Studio%20Express%202015%20pour%20Windows%20Desktop.rar)
    * Unrar the downloaded archive file (e.g. with [7-zip](http://www.7-zip.org/)
    * Enter the extracted folder (`Express 2015 up2 pour Wndowds Desktop`) and launch the installer `wdexpress_full.exe`
-   * On first invocation Visual Studio will ask for an email/passwd to "Connect to Visual Studio". Simply close this connection sub-window and proceed. You will be automatically granted with a 30 days free evaluation license. After this trial period: 
+   * On first invocation Visual Studio will ask for an email/passwd to "Connect to Visual Studio". Simply close this connection sub-window and proceed. You will be automatically granted with a 30 days free evaluation license. After this trial period:
      * lauch Visual Studio,
      * go to the `Help` menu,
      * select the "A propos Microsoft Visual Studio..." entry
