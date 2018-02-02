@@ -31,10 +31,13 @@ compiler:
   - clang      # Under OSX the backend is Apple's LLVM
 
 env:
-  - CONFIG="QT4,Debug"
-  - CONFIG="QT4,Release"
-  - CONFIG="QT5,Debug"
-  - CONFIG="QT5,Release"
+  global:
+    - MAKEFLAGS="-j 2"
+  matrix:
+    - CONFIG="QT4,Debug"
+    - CONFIG="QT4,Release"
+    - CONFIG="QT5,Debug"
+    - CONFIG="QT5,Release"
 
 matrix:
   fast_finish: true
@@ -71,7 +74,7 @@ addons:
 before_install:
   # FIXME: remove this now hopefully useless TRAVIS environment variable
   - export TRAVIS=YES
-  - export WGET="wget --no-check-certificate "
+  - export WGET="wget --no-check-certificate --no-verbose "
   - export CMAKE_COMMON_FLAGS="-DBUILD_ALL_PLUGINS=ON -DBUILD_UNMATURE_TESTS=OFF"
   - if [[ $CONFIG == "QT4,Debug"   ]]; then export QT="4"; export BTYPE="Debug";   fi
   - if [[ $CONFIG == "QT4,Release" ]]; then export QT="4"; export BTYPE="Release"; fi
@@ -80,6 +83,7 @@ before_install:
 
 install:
   - cmake --version
+  - make  --version
   #
   ### Linux dependencies install:
   # Because of QT4/QT5 co-existence conflicts at the cmake level
@@ -93,12 +97,12 @@ install:
       # GDAL 2.1.1 fails to compile on OSX 10.13.3 with an uptodate brew
       # We thus choose to try 2.2.3
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      wget http://download.osgeo.org/gdal/2.2.3/gdal-2.2.3.tar.gz &&
-      tar zxvf gdal-2.2.3.tar.gz &&
+      $WGET http://download.osgeo.org/gdal/2.2.3/gdal-2.2.3.tar.gz &&
+      tar zxf gdal-2.2.3.tar.gz &&
       cd gdal-2.2.3 &&
       mkdir $TRAVIS_BUILD_DIR/local/ &&
       ./configure --prefix=$TRAVIS_BUILD_DIR/local/gdal-2.2.3 &&
-      make -j 2 &&
+      make >/dev/null &&
       make install; fi
   #
   ### OSX dependencies install:
@@ -186,7 +190,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       cd /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core/Formula  &&
       mv wget.rb wget.rb.old   &&
-      wget --no-check-certificate https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/wget119/wget.rb  &&
+      $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/wget119/wget.rb  &&
       mv open-scene-graph.rb open-scene-graph.rb.old  &&
       $WGET https://download.gforge.liris.cnrs.fr/meppbin/travis-osx/Formula/osg34/open-scene-graph.rb &&
       cd $TRAVIS_BUILD_DIR; fi
@@ -199,6 +203,7 @@ install:
     # formula installs libspatialite.7.dylib (version 7). We thus trick
     # libgdal in getting what it needs:
     #     refer to issue #121. [osx_image: beta-xcode6.1]
+    # FIXME: this is probably not needed anymore
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
     #
@@ -258,7 +263,7 @@ script:
     #   https://github.com/Kitware/CMake/blob/master/Modules/FindGDAL.cmake#L47)
     # We thus need to define an environment variable as opposed to using the
     # "-DGDAL_DOR:STRING=<...>" cmake argument syntax. 
-  - export GDAL_DIR=$TRAVIS_BUILD_DIR/local/gdal-2.2.3 && echo "aaaaaaaaaaaaaaaaaaaaaaaaaa" && echo $GDAL_DIR
+  - export GDAL_DIR=$TRAVIS_BUILD_DIR/local/gdal-2.2.3
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "4" ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE; fi
   - if [ "$TRAVIS_OS_NAME" == "osx"  -a "$QT" == "4" ]; then
