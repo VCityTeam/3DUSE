@@ -90,17 +90,16 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "5" ]; then
      sudo apt-get -y install qtbase5-dev qt5-default libqt5opengl5; fi
   ### GDAL version 2.1.X packages are not available (Linux and OSX).
+      # GDAL 2.1.1 fails to compile on OSX 10.13.3 with an uptodate brew
+      # We thus choose to try 2.2.3
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      wget http://download.osgeo.org/gdal/2.1.1/gdal-2.1.1.tar.gz &&
-      tar zxvf gdal-2.1.1.tar.gz &&
-      cd gdal-2.1.1 &&
+      wget http://download.osgeo.org/gdal/2.2.3/gdal-2.2.3.tar.gz &&
+      tar zxvf gdal-2.2.3.tar.gz &&
+      cd gdal-2.2.3 &&
       mkdir $TRAVIS_BUILD_DIR/local/ &&
-      ./configure --prefix=$TRAVIS_BUILD_DIR/local/gdal-2.1.1 &&
+      ./configure --prefix=$TRAVIS_BUILD_DIR/local/gdal-2.2.3 &&
       make -j 2 &&
       make install; fi
-  ### CLEAN UP THE FOLLOWING DEBUGING LINE
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      ls -R $TRAVIS_BUILD_DIR/local/gdal-2.1.1/include; fi
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -254,12 +253,19 @@ script:
     # Proceed with cmake building:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
+    # Oddly enough the find_path() within FindGDAL.cmake only considers the
+    # GDAL_DIR as hint when it is an environment variable (refer to
+    #   https://github.com/Kitware/CMake/blob/master/Modules/FindGDAL.cmake#L47)
+    # We thus need to define an environment variable as opposed to using the
+    # "-DGDAL_DOR:STRING=<...>" cmake argument syntax. 
+  - export GDAL_DIR=$TRAVIS_BUILD_DIR/local/gdal-2.2.3 && echo "aaaaaaaaaaaaaaaaaaaaaaaaaa" && echo $GDAL_DIR
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "4" ]; then
-      cmake .. $CMAKE_COMMON_FLAGS -DGDAL_DIR=$TRAVIS_BUILD_DIR/local/gdal-2.1.1 -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE; fi
+      cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE; fi
   - if [ "$TRAVIS_OS_NAME" == "osx"  -a "$QT" == "4" ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
-    # Note: for QT5 open-scene-graph is not re-installed and hence the native OSG-Qt
-    # (that links against Qt4) cannot be used and we thus use the "embarked" versions
+    # Note: for QT5 open-scene-graph is not re-installed and hence the native
+    # OSG-Qt (that links against Qt4) cannot be used and we thus use the
+    #  "embarked" versions
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "5" ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
   - if [ "$TRAVIS_OS_NAME" == "osx"   -a "$QT" == "5"  ]; then
