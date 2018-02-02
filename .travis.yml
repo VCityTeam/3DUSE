@@ -96,7 +96,7 @@ install:
   ### GDAL version 2.X.Y packages are not available (Linux and OSX).
     # GDAL 2.1.1 fails to compile on OSX 10.13.3 even with an uptodate brew
     # We thus choose to try 2.2.3.
-  - $WGET http://download.osgeo.org/gdal/2.2.3/gdal-2.2.3.tar.gz &&
+  - travis_wait 20 $WGET http://download.osgeo.org/gdal/2.2.3/gdal-2.2.3.tar.gz &&
     tar zxf gdal-2.2.3.tar.gz &&
     cd gdal-2.2.3 &&
     mkdir $TRAVIS_BUILD_DIR/local/ &&
