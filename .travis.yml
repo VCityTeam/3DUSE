@@ -93,17 +93,16 @@ install:
      sudo apt-get -y install libqt4-dev libqt4-opengl-dev; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "5" ]; then
      sudo apt-get -y install qtbase5-dev qt5-default libqt5opengl5; fi
-  ### GDAL version 2.1.X packages are not available (Linux and OSX).
-      # GDAL 2.1.1 fails to compile on OSX 10.13.3 with an uptodate brew
-      # We thus choose to try 2.2.3
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-      $WGET http://download.osgeo.org/gdal/2.2.3/gdal-2.2.3.tar.gz &&
-      tar zxf gdal-2.2.3.tar.gz &&
-      cd gdal-2.2.3 &&
-      mkdir $TRAVIS_BUILD_DIR/local/ &&
-      ./configure --prefix=$TRAVIS_BUILD_DIR/local/gdal-2.2.3 &&
-      make >/dev/null &&
-      make install; fi
+  ### GDAL version 2.X.Y packages are not available (Linux and OSX).
+    # GDAL 2.1.1 fails to compile on OSX 10.13.3 even with an uptodate brew
+    # We thus choose to try 2.2.3.
+  - $WGET http://download.osgeo.org/gdal/2.2.3/gdal-2.2.3.tar.gz &&
+    tar zxf gdal-2.2.3.tar.gz &&
+    cd gdal-2.2.3 &&
+    mkdir $TRAVIS_BUILD_DIR/local/ &&
+    ./configure --prefix=$TRAVIS_BUILD_DIR/local/gdal-2.2.3 &&
+    make >/dev/null &&
+    make install
   #
   ### OSX dependencies install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
