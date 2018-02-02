@@ -13,66 +13,71 @@
 * @param name Nom du shape a enregistrer
 * @param G Geometry a enregistrer
 */
-void SaveGeometrytoShape(std::string name, const OGRGeometryCollection* G)
+void SaveGeometrytoShape( std::string name, const OGRGeometryCollection* G )
 {
-    if (name.find('/') != std::string::npos)
-    {
-        std::string Path = name.substr(0, name.find_last_of('/'));
+   if ( name.find( '/' ) != std::string::npos )
+   {
+      std::string Path = name.substr( 0, name.find_last_of( '/' ) );
 
-        if (!QDir(QString::fromStdString(Path)).exists())
-            QDir().mkdir(QString::fromStdString(Path));
-    }
+      if ( !QDir( QString::fromStdString( Path ) ).exists() )
+         QDir().mkdir( QString::fromStdString( Path ) );
+   }
 
-    const char * DriverName = "ESRI Shapefile";
-    OGRSFDriver * Driver;
+   const char * DriverName = "ESRI Shapefile";
+   GDALDriver * Driver;
 
-    OGRRegisterAll();
-    Driver = OGRSFDriverRegistrar::GetRegistrar()->GetDriverByName(DriverName);
-    if (Driver == NULL)
-    {
-        printf("%s driver not available.\n", DriverName);
-        return;
-    }
+   GDALAllRegister();
+   Driver = GetGDALDriverManager()->GetDriverByName( DriverName );
+   if ( Driver == NULL )
+   {
+      printf( "%s driver not available.\n", DriverName );
+      return;
+   }
 
-    remove(name.c_str());
-    OGRDataSource * DS = Driver->CreateDataSource(name.c_str(), NULL);
+   remove( name.c_str() );
+   GDALDataset * DS = Driver->Create( name.c_str(), 0, 0, 0, GDT_Unknown, NULL );
 
-    //OGRSpatialReference * SRS = new OGRSpatialReference;
-    //SRS->importFromEPSG(3946);
+   //OGRSpatialReference * SRS = new OGRSpatialReference;
+   //SRS->importFromEPSG(3946);
 
-    //OGRLayer * Layer = DS->CreateLayer("Layer1", SRS);
-    OGRLayer * Layer = DS->CreateLayer("Layer1");
+   //OGRLayer * Layer = DS->CreateLayer("Layer1", SRS);
+   OGRLayer * Layer = DS->CreateLayer( "Layer1" );
 
-    for (int i = 0; i < G->getNumGeometries(); ++i)
-    {
-        OGRGeometry * Geometry = G->getGeometryRef(i)->clone();
+   for ( int i = 0; i < G->getNumGeometries(); ++i )
+   {
+      OGRGeometry * Geometry = G->getGeometryRef( i )->clone();
 
-        OGRFeature * Feature = OGRFeature::CreateFeature(Layer->GetLayerDefn());
+      OGRFeature * Feature = OGRFeature::CreateFeature( Layer->GetLayerDefn() );
 
-        Feature->SetGeometry(Geometry);
-        Layer->CreateFeature(Feature);
+      Feature->SetGeometry( Geometry );
 
-        OGRFeature::DestroyFeature(Feature);
-    }
-    OGRDataSource::DestroyDataSource(DS);
+      if ( Layer->CreateFeature( Feature ) != OGRERR_NONE )
+      {
+         printf( "Failed to create feature in shapefile.\n" );
+         exit( 1 );
+      }
 
-    std::cout << "Fichier " << name << " cree." << std::endl;
+      OGRFeature::DestroyFeature( Feature );
+   }
+   GDALClose( DS );
+
+   std::cout << "Fichier " << name << " cree." << std::endl;
 }
 
 ////////////////////////////////////
 
-void SaveGeometrytoShape(std::string name, const OGRGeometry* G)
+void SaveGeometrytoShape( std::string name, const OGRGeometry* G )
 {
-    if (G->getGeometryType() == wkbPolygon || G->getGeometryType() == wkbPolygon25D || G->getGeometryType() == wkbPoint || G->getGeometryType() == wkbPoint25D || G->getGeometryType() == wkbLineString || G->getGeometryType() == wkbLineString25D)
-    {
-        OGRGeometryCollection * Temp = new OGRGeometryCollection;
-        Temp->addGeometry(G);
-        SaveGeometrytoShape(name, Temp);
-        delete Temp;
-    }
-    else if (G->getGeometryType() == wkbMultiPolygon || G->getGeometryType() == wkbMultiPolygon25D || G->getGeometryType() == wkbMultiLineString || G->getGeometryType() == wkbMultiLineString25D || G->getGeometryType() == wkbGeometryCollection || G->getGeometryType() == wkbGeometryCollection25D)
-    {
-        SaveGeometrytoShape(name, (OGRGeometryCollection *)G);
-    }
+   if ( G->getGeometryType() == wkbPolygon || G->getGeometryType() == wkbPolygon25D || G->getGeometryType() == wkbPoint || G->getGeometryType() == wkbPoint25D || G->getGeometryType() == wkbLineString || G->getGeometryType() == wkbLineString25D )
+   {
+      OGRGeometryCollection * Temp = new OGRGeometryCollection;
+      Temp->addGeometry( G );
+      SaveGeometrytoShape( name, Temp );
+      delete Temp;
+   }
+   else if ( G->getGeometryType() == wkbMultiPolygon || G->getGeometryType() == wkbMultiPolygon25D || G->getGeometryType() == wkbMultiLineString || G->getGeometryType() == wkbMultiLineString25D || G->getGeometryType() == wkbGeometryCollection || G->getGeometryType() == wkbGeometryCollection25D )
+   {
+      SaveGeometrytoShape( name, (OGRGeometryCollection *)G );
+   }
 }
 

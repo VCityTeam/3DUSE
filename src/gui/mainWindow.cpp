@@ -504,9 +504,13 @@ bool MainWindow::loadFile( const QString& filepath )
    else if ( ext == "dxf" )
    {
       std::cout << "load dxf file : " << filepath.toStdString() << std::endl;
-      OGRDataSource* poDS = OGRSFDriverRegistrar::Open( filepath.toStdString().c_str(), FALSE );
+      std::string name = filepath.toStdString();
 
-      m_osgScene->m_layers->addChild( buildOsgGDAL( poDS ) );
+      GDALDataset* poDS = (GDALDataset*)GDALOpenEx( name.c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
+
+      name = name.substr( name.rfind( '/' ) + 1 );
+
+      m_osgScene->m_layers->addChild( buildOsgGDAL( poDS, name ) );
    }
    else if ( ext == "ecw" )
    {
@@ -721,18 +725,18 @@ bool MainWindow::loadCSV( const QString& CSVfilepath, const QString& DIRfilepath
       }
 
 
-   /*   std::ofstream ofs;
-      ofs.open(sourcepath, std::ofstream::in | std::ofstream::out);
-      ofs << "height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate" << std::endl;
-      for ( osgInfo* i : v_info )
-      {
-         ofs << std::to_string( i->m_height ) << "," << std::to_string( i->m_width ) << "," << i->m_initposition.x() << "," << i->m_initposition.y() << "," << i->m_initposition.z()
-            << "," << std::to_string( i->m_angle ) << ",";
-         ofs << "z" << "," << i->m_filepath << "," << i->m_name << "," << i->m_filetype << "," << i->m_sourcetype << "," << i->m_LOD << ","
-            << i->m_anchoring << "," << i->m_priority << "," << i->m_publicationDate << std::endl;
-      }
-      ofs.close();
-*/
+      /*   std::ofstream ofs;
+         ofs.open(sourcepath, std::ofstream::in | std::ofstream::out);
+         ofs << "height,width,position x,position y,position z,angle,axe,filepath,name,filetype,sourcetype,LOD,ancrage,priority,publicationdate" << std::endl;
+         for ( osgInfo* i : v_info )
+         {
+            ofs << std::to_string( i->m_height ) << "," << std::to_string( i->m_width ) << "," << i->m_initposition.x() << "," << i->m_initposition.y() << "," << i->m_initposition.z()
+               << "," << std::to_string( i->m_angle ) << ",";
+            ofs << "z" << "," << i->m_filepath << "," << i->m_name << "," << i->m_filetype << "," << i->m_sourcetype << "," << i->m_LOD << ","
+               << i->m_anchoring << "," << i->m_priority << "," << i->m_publicationDate << std::endl;
+         }
+         ofs.close();
+   */
 
 
 
@@ -1312,13 +1316,13 @@ void MainWindow::exportCityGML()
 
    citygml::ExporterCityGML exporter( filename.toStdString() );
 
-    // check temporal params
-    if (m_useTemporal)
-    {
-       exporter.setTemporalExport(true);
-       exporter.setDate(boost::posix_time::time_from_string(
-                             m_ui->dateTimeEdit->dateTime().toString().toStdString()));
-    }
+   // check temporal params
+   if ( m_useTemporal )
+   {
+      exporter.setTemporalExport( true );
+      exporter.setDate( boost::posix_time::time_from_string(
+         m_ui->dateTimeEdit->dateTime().toString().toStdString() ) );
+   }
 
    // check if something is picked
    const std::vector<vcity::URI>& uris = appGui().getSelectedNodes();
@@ -2242,7 +2246,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
 
    vcity::Tile* BatiLOD2CityGML = new vcity::Tile( filepath1.toStdString() );
 
-   OGRDataSource* BatiShapeFile = OGRSFDriverRegistrar::Open( filepath2.toStdString().c_str(), FALSE );
+   GDALDataset* BatiShapeFile = (GDALDataset*)GDALOpenEx( filepath2.toStdString().c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
 
    QApplication::setOverrideCursor( Qt::WaitCursor );
 
@@ -2252,7 +2256,7 @@ void MainWindow::slotCutCityGMLwithShapefile()
    std::vector<TextureCityGML*> ListTextures;
    citygml::CityModel* ModelOut = CutCityGMLwithShapefile( BatiLOD2CityGML, BatiShapeFile, &ListTextures );
 
-   delete BatiShapeFile;
+   GDALClose( BatiShapeFile );
 
    ModelOut->computeEnvelope();
 
@@ -2627,7 +2631,7 @@ void MainWindow::slotCutMNTwithShapefile()
 
    vcity::Tile* MNT = new vcity::Tile( filepath1.toStdString() );
 
-   OGRDataSource* CutPolygons = OGRSFDriverRegistrar::Open( filepath2.toStdString().c_str(), FALSE );
+   GDALDataset* CutPolygons = (GDALDataset*)GDALOpenEx( filepath2.toStdString().c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
 
    QApplication::setOverrideCursor( Qt::WaitCursor );
 
@@ -2649,7 +2653,7 @@ void MainWindow::slotCutMNTwithShapefile()
    QApplication::restoreOverrideCursor();
 
    delete MNT;
-   delete CutPolygons;
+   GDALClose( CutPolygons );
 }
 ////////////////////////////////////////////////////////////////////////////////
 void MainWindow::slotCreateRoadOnMNT()
@@ -2696,7 +2700,7 @@ void MainWindow::slotCreateRoadOnMNT()
 
    vcity::Tile* MNT = new vcity::Tile( filepath1.toStdString() );
 
-   OGRDataSource* Roads = OGRSFDriverRegistrar::Open( filepath2.toStdString().c_str(), FALSE );
+   GDALDataset* Roads = (GDALDataset*)GDALOpenEx( filepath2.toStdString().c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
 
    QApplication::setOverrideCursor( Qt::WaitCursor );
 
@@ -2727,7 +2731,7 @@ void MainWindow::slotCreateRoadOnMNT()
    QApplication::restoreOverrideCursor();
 
    delete MNT;
-   delete Roads;
+   GDALClose( Roads );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2775,15 +2779,9 @@ void MainWindow::slotCreateVegetationOnMNT()
 
    vcity::Tile* MNT = new vcity::Tile( filepath1.toStdString() );
 
-   OGRDataSource* Vegetation = OGRSFDriverRegistrar::Open( filepath2.toStdString().c_str(), FALSE );
+   GDALDataset* Vegetation = (GDALDataset*)GDALOpenEx( filepath2.toStdString().c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
 
    QApplication::setOverrideCursor( Qt::WaitCursor );
-
-   //////////////////
-   //vcity::Tile* MNT = new vcity::Tile("D:/Donnees/Data/Lyon01/LYON01_MNT.gml");
-
-   //OGRDataSource* Roads = OGRSFDriverRegistrar::Open("D:/Donnees/Data/Lyon01/Routes_Lyon01.shp", TRUE);
-   //////////////////
 
    QTime time;
    time.start();
@@ -2812,7 +2810,7 @@ void MainWindow::slotCreateVegetationOnMNT()
    QApplication::restoreOverrideCursor();
 
    delete MNT;
-   delete Vegetation;
+   GDALClose( Vegetation );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3049,19 +3047,25 @@ void MainWindow::test5()
 void MainWindow::loadShpFile( const QString& filepath )
 {
    std::cout << "load shp file : " << filepath.toStdString() << std::endl;
-   OGRDataSource* poDS = OGRSFDriverRegistrar::Open( filepath.toStdString().c_str(), TRUE/*FALSE*/ ); //False pour read only et TRUE pour pouvoir modifier
+   std::string name = filepath.toStdString();
+
+   GDALDataset* poDS = (GDALDataset*)GDALOpenEx( name.c_str(), GDAL_OF_VECTOR, NULL, NULL, NULL );
+
+   name = name.substr( name.rfind( '/' ) + 1 );
 
    //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
 
    if ( poDS )
    {
       vcity::URI uriLayer = m_app.getScene().getDefaultLayer( "LayerShp" )->getURI();
-      appGui().getControllerGui().addShpNode( uriLayer, poDS );
+      appGui().getControllerGui().addShpNode( uriLayer, poDS, name );
 
       addRecentFile( filepath );
 
       //m_osgScene->m_layers->addChild(buildOsgGDAL(poDS));
    }
+
+   GDALClose( poDS );
 
    //OGRSFDriverRegistrar::GetRegistrar()->ReleaseDataSource(poDS);
 }

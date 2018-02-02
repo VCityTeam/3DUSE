@@ -43,7 +43,7 @@ namespace vcity
         virtual void setTileName(const vcity::URI& uri, const std::string& name);
 
         // Shp
-        virtual void addShpNode(const vcity::URI& uriLayer, OGRDataSource* poDS);
+        virtual void addShpNode(const vcity::URI& uriLayer, GDALDataset* poDS, std::string name);
 
         // selection
         virtual void resetSelection();

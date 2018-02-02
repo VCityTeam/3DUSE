@@ -72,7 +72,7 @@ OGRGeometry* BuildRoads( OGRLayer* Layer )
 * @param MNT_ground : Contiendra le CityModel de sortie avec les autres polygones du terrain
 * @param TexturesList_ground : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_ground
 */
-void CreateRoadsOnMNT( vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityModel* MNT_roads, std::vector<TextureCityGML*>* TexturesList_roads, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground )
+void CreateRoadsOnMNT( vcity::Tile* MNT, GDALDataset* Roads, citygml::CityModel* MNT_roads, std::vector<TextureCityGML*>* TexturesList_roads, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground )
 {
    ///// TODO : ne pas prendre en comptes les tunnels !!!! /////
 
@@ -471,7 +471,7 @@ void CreateRoadsOnMNT( vcity::Tile* MNT, OGRDataSource* Roads, citygml::CityMode
 * @param MNT_ground : Contiendra le CityModel de sortie avec les autres polygones du terrain
 * @param TexturesList_ground : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie pour MNT_ground
 */
-void CreateVegetationOnMNT( vcity::Tile* MNT, OGRDataSource* Vegetation, citygml::CityModel* MNT_vegetation, std::vector<TextureCityGML*>* TexturesList_vegetation, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground )
+void CreateVegetationOnMNT( vcity::Tile* MNT, GDALDataset* Vegetation, citygml::CityModel* MNT_vegetation, std::vector<TextureCityGML*>* TexturesList_vegetation, citygml::CityModel* MNT_ground, std::vector<TextureCityGML*>* TexturesList_ground )
 {
    OGRLayer* Layer = Vegetation->GetLayer( 0 );
 

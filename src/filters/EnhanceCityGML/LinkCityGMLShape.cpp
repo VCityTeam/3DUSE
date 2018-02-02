@@ -3219,7 +3219,7 @@ void CompareFootprints( std::vector<OGRPolygon*> FootprintsCityGML, std::vector<
 * @param DataSource Contient les donnees du fichier Shapefile ouvert : il doit contenir un ensemble d'emprises au sol definissant les batiments de la zone etudiee
 * @param TexturesList : La fonction va remplir ce vector avec tous les appels de texture qu'il faudra enregistrer dans le CityGML en sortie;
 */
-citygml::CityModel* CutCityGMLwithShapefile( vcity::Tile* Tile, OGRDataSource* DataSource, std::vector<TextureCityGML*>* TexturesList )
+citygml::CityModel* CutCityGMLwithShapefile( vcity::Tile* Tile, GDALDataset* DataSource, std::vector<TextureCityGML*>* TexturesList )
 {
    citygml::CityModel* Model = Tile->getCityModel();
    OGRLayer* Layer = DataSource->GetLayer( 0 );
@@ -3612,7 +3612,7 @@ citygml::CityModel* SplitBuildingsFromCityGML( vcity::Tile* Tile, std::vector<Te
 * @param Shapefile : Contient le ou les polygones definissant la zone de MNT a conserver
 * @param TexturesList : Contient la liste des textures liees aux polygones du CityModel de sortie
 */
-citygml::CityModel* CutMNTwithShapefile( vcity::Tile* Tile, OGRDataSource* ShapeFile, std::vector<TextureCityGML*>* TexturesList )
+citygml::CityModel* CutMNTwithShapefile( vcity::Tile* Tile, GDALDataset* ShapeFile, std::vector<TextureCityGML*>* TexturesList )
 {
    OGRLayer* Layer = ShapeFile->GetLayer( 0 );
 

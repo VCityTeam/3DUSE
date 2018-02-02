@@ -23,13 +23,13 @@ FILTERS_EXPORT citygml::CityModel* SplitBuildingsFromCityGML(
 );
 
 FILTERS_EXPORT citygml::CityModel* CutCityGMLwithShapefile(
-  vcity::Tile* Tile, OGRDataSource* ShapeFile,
+  vcity::Tile* Tile, GDALDataset* ShapeFile,
   std::vector<TextureCityGML*>* TexturesList
 );
 
 FILTERS_EXPORT citygml::CityModel* CutMNTwithShapefile(
   vcity::Tile* Tile,
-  OGRDataSource* ShapeFile,
+  GDALDataset* ShapeFile,
   std::vector<TextureCityGML*>* TexturesList
 );
 

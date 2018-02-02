@@ -13,6 +13,6 @@
 #include <ogrsf_frmts.h>
 #include <osg/Geode>
 
-osg::ref_ptr<osg::Geode> buildOsgGDAL(OGRDataSource* poDS);
+osg::ref_ptr<osg::Geode> buildOsgGDAL( GDALDataset* poDS, std::string name );
 
 #endif // __OSGGDAL_HPP__

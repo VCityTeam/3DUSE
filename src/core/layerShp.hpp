@@ -39,7 +39,7 @@ namespace vcity
         void dump() override;
 
     public:
-        OGRDataSource* m_shp;
+        GDALDataset* m_shp;
     };
     ////////////////////////////////////////////////////////////////////////////////
     typedef std::shared_ptr<LayerShp> LayerShpPtr;
