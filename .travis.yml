@@ -147,7 +147,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "osx" -a "$QT" == "4" ]; then
        travis_wait 50 brew install cartr/qt4/qt; fi
        # As of december 2016, Homebrew no longer offers qt (qt4): refer to
-       #    https://github.com/cartr/homebrew-qt4/issues/5 
+       #    https://github.com/cartr/homebrew-qt4/issues/5
   - if [ "$TRAVIS_OS_NAME" == "osx" -a "$QT" == "5" ]; then
        brew install qt5 &&
        brew link qt5 --force; fi
@@ -203,7 +203,7 @@ install:
       brew cask uninstall oclint &&
       brew install flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install homebrew/science/qhull; fi
+      brew install homebrew/core/qhull; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew install eigen; fi
     # Pcl itself takes a long time to be poured (more than Travis's 10'
@@ -212,7 +212,7 @@ install:
     # much too long for hoping to this build finish properly. We the
     # just pour the plain pcl package
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40
-      brew install homebrew/science/pcl; fi
+      brew install homebrew/core/pcl; fi
     # PCL config files looks for the Boost package (whith a capital B) which
     # will fail starting with cmake version 3.5 (previous version seem not
     # be case dependent on the find_package argument) with a message of the
@@ -242,14 +242,14 @@ script:
     # Proceed with cmake building:
   - cd $TRAVIS_BUILD_DIR               # that is our $HOME
   - mkdir build && cd build
-  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "4" ]; then 
-      cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "4" ]; then
+      cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=OFF -DCMAKE_BUILD_TYPE=$BTYPE; fi
   - if [ "$TRAVIS_OS_NAME" == "osx"  -a "$QT" == "4" ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_EMBARKED_OSG-QT_34=ON; fi
     # Note: for QT5 open-scene-graph is not re-installed and hence the native OSG-Qt
     # (that links against Qt4) cannot be used and we thus use the "embarked" versions
   - if [ "$TRAVIS_OS_NAME" == "linux" -a "$QT" == "5" ]; then
-      cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
+      cmake .. $CMAKE_COMMON_FLAGS -DBUILD_PCL=OFF -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DBUILD_EMBARKED_OSG-QT_32=ON; fi
   - if [ "$TRAVIS_OS_NAME" == "osx"   -a "$QT" == "5"  ]; then
       cmake .. $CMAKE_COMMON_FLAGS -DCMAKE_BUILD_TYPE=$BTYPE -DBUILD_GUI_QT5=ON -DQT5_DIR=/usr/local/opt/qt5 -DBUILD_EMBARKED_OSG-QT_34=ON; fi
     # End build at make level:
