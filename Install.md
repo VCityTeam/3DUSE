@@ -79,7 +79,25 @@ Post-install goodies (not 3DUSE related):
  * `brew upgrade boost`
  * `brew install Caskroom/cask/xquartz`(X11 server)
  * `brew install gdal`
- * `brew install open-scene-graph --with-qt gdal`
+ * `brew install open-scene-graph`
+ *  Install OSGQT
+    * Important note: **contratry** to what is [written in this issue](https://github.com/Homebrew/homebrew-core/issues/3039) `brew install open-scene-graph --with-qt` won't work with recent (say above OSG version 3.5.X) !
+    * Installation should be made out of [osgQT](https://github.com/openscenegraph/osgQt) independent library:
+      ````
+      mkdir /usr/local/stow
+      cd /tmp
+      git clone https://github.com/openscenegraph/osgQt.git
+      cd osgQt
+      mkdir Bin
+      cd Bin
+      cmake -DCMAKE_INSTALL_PREFIX=/usr/local/stow/osgqt
+      make
+      make instal
+      cd /usr/local/stow
+      stow osgqt
+      stow osgqt
+      ````
+      You might run into [this issue](https://github.com/openscenegraph/osgQt/issues/5) (3DUSE complains about `osgQt not found`) which can be solved (among other solutions) with providing an extra `-DOSGQT_LIBRARY=/usr/local/lib/libosgQt5.dylib` cmake flag when configuring 3DUSE.
  * `brew install assimp`
  * Install laslib:
    * The careful version with stow (`brew install stow`):
