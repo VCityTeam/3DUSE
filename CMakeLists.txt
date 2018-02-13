@@ -246,9 +246,13 @@ include_directories(${OPENGL_INCLUDE_DIR})
 # they can not be silenced out with at QUIET toggle argument to find_package().
 find_package( Boost )
 if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
-  find_package( boost COMPONENTS filesystem date_time thread REQUIRED )
+  find_package( boost
+                COMPONENTS filesystem date_time thread program_options
+                REQUIRED )
 else()
-  find_package( Boost COMPONENTS filesystem date_time thread REQUIRED )
+  find_package( Boost
+                COMPONENTS filesystem date_time thread program_options
+                REQUIRED )
 endif()
 
 ##### Find ASSIMP

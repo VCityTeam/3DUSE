@@ -30,6 +30,12 @@ endif()
 target_include_directories( filters PUBLIC
   ${VCITYCORE_INCLUDE_DIR}
   ${CITYGMLUTILS_INCLUDE_DIR}
+  # FIXME: 
+  #  - in fact we should add _all_ the filters sub-directories (holding an .h)
+  #  - we should only do this for sub-directories whose code was actually 
+  #    build (i.e. not flagged out by a cmake configuration flag) 
+  ${CMAKE_CURRENT_SOURCE_DIR}/ChangeDetection
+  ${CMAKE_CURRENT_BINARY_DIR} # Required for the cmake generated filters_export.h
 )
 
 target_link_libraries(filters

@@ -49,6 +49,7 @@ endif()
 
 target_include_directories( vcitycore PUBLIC
   ${CITYGML_INCLUDE_DIR}         # FIXME: OGRGDALtools.hpp includes vecs.hpp !
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/OGRGDAL_Utils/
   ${CMAKE_CURRENT_BINARY_DIR}    # For generated vcitycore_export.h
 )
 
