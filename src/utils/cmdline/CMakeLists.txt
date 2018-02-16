@@ -11,9 +11,14 @@ add_executable( extractBuildingDates
   extractBuildingsConstructionDemolitionDates.cxx
 )
 
+if( WIN32 )
+  target_compile_definitions( extractBuildingDates PUBLIC
+                              "-DBOOST_ALL_DYN_LINK")
+endif()
+
 target_link_libraries(extractBuildingDates
-  ${Boost_LIBRARIES}
   vcitycore     ## For SaveGeometrytoShape()
   citygmlutils  ## For the Tile class
   filters       ## For ChangeDetection()
+  ${Boost_LIBRARIES}
 )

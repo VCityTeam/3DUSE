@@ -33,7 +33,7 @@ init:
   - cmake --version
   #  - msbuild /version
   #  - dir C:\Libraries
-  - dir %BOOST_ROOT%
+  - dir %BOOST_ROOT%\lib64-msvc-14.0
 
 #---------------------------------#
 #       build configuration       #
