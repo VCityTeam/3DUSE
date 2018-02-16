@@ -56,7 +56,7 @@
      * `tar zxvf gdal-1.11.4.tar.gz`
      * `cd gdal-1.11.4`
      * `mkdir $HOME/local/`
-     * `./configure --prefix=$HOME/local/gdal-1.11.4.tar.gz`
+     * `./configure --prefix=$HOME/local/gdal-1.11.4`
      * `make`
      * `make install`
 
