@@ -48,12 +48,13 @@ addons:
     packages:
       - libboost-date-time-dev
       - libboost-filesystem-dev
+      - libboost-dev
+      - libboost-date-time-dev
+      - libboost-program-options-dev
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
       - doxygen
-      - libboost-dev
-      - libboost-date-time-dev
       - graphviz
       # Point Cloud Library (PCL) dependencies. PCL itself not being an
       # available package (do not get confused with the Portable Coroutine

@@ -33,6 +33,7 @@ init:
   - cmake --version
   #  - msbuild /version
   #  - dir C:\Libraries
+  - dir %BOOST_ROOT%
 
 #---------------------------------#
 #       build configuration       #
