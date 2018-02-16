@@ -123,7 +123,7 @@ if(MSVC)
   # /MP sets the usage of multiple compilation units (cl.exe) ; without any
   #     value, as argument the /MP compile flag will be set automatically
   #     according to available number of main threads
-  # NOMINMAX (preprocessing flag): by default VC++ preprocessor defines the 
+  # NOMINMAX (preprocessing flag): by default VC++ preprocessor defines the
   #     'min' and 'max' symbols. Setting the NOMINMAX preprocessing symbol
   #     inhibits this default behavior i.e. it will prevent windows.h from
   #     defining the 'min' and 'max' symbols (and avoid further collisions).
@@ -139,8 +139,8 @@ if(MSVC)
   endif()
 
   include( "${CMAKE_SOURCE_DIR}/cmake/msvc/kit.cmake" )
- 
-  # For each available configuration type (refer to CMAKE_CONFIGURATION_TYPES) 
+
+  # For each available configuration type (refer to CMAKE_CONFIGURATION_TYPES)
   # gather all the binaries (executables, archives and dynamic libraries) within
   # the same (configuration dependent) directory.
   # The objective is to have the executables to sit side by side with the dlls
@@ -200,7 +200,7 @@ if( BUILD_GUI_QT5 )
   endif()
 endif()
 
-##### Find Qt4 
+##### Find Qt4
 if( BUILD_GUI_QT4 )
   # FIXME: note that the "corresponding"
   #     add_definitions( "-DBUILD_GUI_QT5" )
@@ -235,10 +235,10 @@ include_directories(${OPENGL_INCLUDE_DIR})
 # trying a "find_package( Boost REQUIRED)" seems to always fail. Hence the
 # following kludge:
 #  - we first look for Boost (capital b) as a test to discover wether
-#    we should stick to Boost or swith to boost 
+#    we should stick to Boost or swith to boost
 #  - on apple and when this fails we look for boost (small caps b)
 #    and also the required components
-#  - but when Boost was found we eventually assert that the required 
+#  - but when Boost was found we eventually assert that the required
 #    components are indeed found.
 # Note that the spurious "Imported targets not available for Boost" warning
 # messages that might be spawn by the find_package() with the components
@@ -246,12 +246,14 @@ include_directories(${OPENGL_INCLUDE_DIR})
 # they can not be silenced out with at QUIET toggle argument to find_package().
 find_package( Boost )
 if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
-  find_package( boost
-                COMPONENTS filesystem date_time thread program_options
+  find_package( boost COMPONENTS
+                filesystem date_time thread   # For the "core"
+                program_options               # For extractBuildings
                 REQUIRED )
 else()
-  find_package( Boost
-                COMPONENTS filesystem date_time thread program_options
+  find_package( Boost COMPONENTS
+                filesystem date_time thread   # For the "core"
+                program_options               # For extractBuildings
                 REQUIRED )
 endif()
 
@@ -358,7 +360,7 @@ endif(GDAL_FOUND)
 #    grep -r "#include" * | grep -i libxml
 # LibXml2 is used only within libCityGML (which is a fair usage) and
 # src/utils/cmdline/cityGMLCut.h which (besides from the command line
-# src/utils/cmdline/cityGMLCut.cxx) gets strangely included in 
+# src/utils/cmdline/cityGMLCut.cxx) gets strangely included in
 #     src/plugins/CityGMLCutQtPlugin/CityGMLCutQtPlugin.cxx.
 # Assert with FDE that is not a real need and deport the remaining
 # find_package to LibXml2 where it belongs i.e. in the libCityGML
@@ -392,33 +394,35 @@ if( BUILD_PCL )
   ##### PCL module dectection:
   # Assert manually that the PCL dependencies are satisfied in order to
   # simplify the context of PCL failing dependency (when find_package
-  # fails on PCL because of a missing suv-dependency the error message is 
+  # fails on PCL because of a missing suv-dependency the error message is
   # really sketchy and hard to interpret):
 
   ### Asserting that Boost has the PCL required components.
-  # Boost being a mandatory dependency of this application the availabilit
-  # of boost and some of its components was already previsously (look above)
+  # Boost being a mandatory dependency of this application the availability
+  # of boost and some of its components was already previously (look above)
   # already taken care about. We just need to seek the additional components
   # required by PCL. Nevertheless we will again look for all the needed
   # components (the ones for the "core" together with the additional ones
-  # for PCL because FindBoost.cmake warns that 
-  #   "multiple calls to find_package(Boost) in the same directory [...] 
+  # for PCL because FindBoost.cmake warns that
+  #   "multiple calls to find_package(Boost) in the same directory [...]
   #    will not override the values of the targets created by the first call."
   #
   # Additionally we still have to take care of the Boost vs boost (capital
-  # vs small caps) difficulty on OSX (refer above to the first boost 
+  # vs small caps) difficulty on OSX (refer above to the first boost
   # package assessment.
 
   find_package( Boost )
   if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
     find_package( boost COMPONENTS
       filesystem date_time thread               # for the "core"
+      program_options                           # For extractBuildings
       system iostreams serialization chrono     # for PCL
       REQUIRED
     )
   else()
     find_package( Boost COMPONENTS
       filesystem date_time thread               # for the "core"
+      program_options                           # For extractBuildings
       system iostreams serialization chrono     # for PCL
       REQUIRED
     )
@@ -426,7 +430,7 @@ if( BUILD_PCL )
       message(WARNING "PCL requires Boost which cannot be found.")
     endif ()
   endif()
-  
+
   set( PCL_SAFE_COPY_OF_Boost_LIBRARIES ${Boost_LIBRARIES} )
 
   ### Assert Flann is installed:
@@ -455,7 +459,7 @@ if( BUILD_PCL )
       else ()
         message ( " WARNING: FLANN_ROOT variable was not set by VCity's Win32")
         message ( "      binary kit which looks screwy... You might end up ")
-        message ( "      with PCL failing in finding the Flann library...") 
+        message ( "      with PCL failing in finding the Flann library...")
       endif ()
     endif ()
   endif ()
@@ -471,31 +475,31 @@ if( BUILD_PCL )
   ##### Dealing with PCL (post find_package) oddities:
   if( WIN32 )
     # Note: instead of having to use a new variable (PCL_DEFINITIONS_VCITY)
-    # in order to pass around compile flag definitions, we could have 
+    # in order to pass around compile flag definitions, we could have
     # extended the content of the PCL provided (and already existing)
     # PCL_DEFINITIONS variable. Yet the PCL_definitions seems to be using
     # a syntax of the form "-DSYMBOL_A;-DSYMBOL_B" (that is a list) which
     # doesn't seem to be easily extensible by writing things like
     #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS} -DMY_NEW_SYMBOL" ) or the
     # same with no whitespace separator,
-    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS}-DMY_NEW_SYMBOL" ) or 
+    #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS}-DMY_NEW_SYMBOL" ) or
     # with the quotes only around the extension
     #   set( PCL_DEFINITIONS ${PCL_DEFINITIONS} "-DMY_NEW_SYMBOL" ) or
     # eventually a blending of notations ("-DSYMBOL" and "SYMBOL=1)
     #   set( PCL_DEFINITIONS "${PCL_DEFINITIONS} DMY_NEW_SYMBOL=1" )...
     # Hence the usage of this extra variable.
-   
+
     # There is a strange interference between find_package( Boost) and the
     # VC++ auto-linking mechanisms. Indeed the Boost components get properly
-    # detected and the Boost_<Component>_LIBRARY get proper content e.g. 
+    # detected and the Boost_<Component>_LIBRARY get proper content e.g.
     # C:\Libraries\boost_1_59_0\lib\boost_thread-vc140-mt-1_59.lib". Yet when
-    # linking the PCL using code one get a "LINK : fatal error LNK1104" 
+    # linking the PCL using code one get a "LINK : fatal error LNK1104"
     # described as "cannot open file libboost_thread-vc140-mt-1_59.lib" (it is
     # important to notice that the filename is LIBboost_thread-* i.e. it gets
     # prefixed with "LIB").
     # This is due to an interference between find_package( Boost) and the
     # VC++ auto-linking mechanisms that is documented e.g. here:
-    # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9 You could disable 
+    # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9 You could disable
     # In order to disable the auto-linking mechanism we thus resolve to
     # using the following additional compile flag:
     set( PCL_DEFINITIONS_VCITY "BOOST_ALL_DYN_LINK=1" )
@@ -507,10 +511,10 @@ if( BUILD_PCL )
          ${PCL_DEFINITIONS_VCITY} "_USE_MATH_DEFINES=1" )
 
     # PCL seems to forget to point to its sub-dependencies includes like
-    # Flann. This must be fixed in order to avoid compile time messages 
+    # Flann. This must be fixed in order to avoid compile time messages
     # of the form "Cannot open include file flann/flann.hpp" that PCL's
     # pcl/kdtree/flann.h includes itself:
-    if( FLANN_ROOT ) 
+    if( FLANN_ROOT )
       set( PCL_INCLUDE_DIRS ${PCL_INCLUDE_DIRS} ${FLANN_ROOT}/include )
     endif()
 
@@ -681,7 +685,7 @@ endif()
 ##### Local libraries
 # The following variable definitions add syntactic sugat in an attempt
 # to unify notations between external libraries and internal (defined
-# within this project) libraries. 
+# within this project) libraries.
 # FIXME: those definition should be deported to their respective
 # sub-directories and defined as set( <variable> <value> CACHE INTERNAL )
 
@@ -726,7 +730,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 ################### General
 ### Config files
-configure_file( 
+configure_file(
   src/gui/fileLayoutConfig.h.in
   ${CMAKE_BINARY_DIR}/src/gui/fileLayoutConfig.h
   @ONLY )
@@ -755,7 +759,7 @@ add_library( VCityGui STATIC
   src/core/tools/log.cpp
   src/core/search/criteria.cpp
   src/core/search/document.cpp
-### The gui  
+### The gui
   src/gui/applicationGui.cpp
   src/gui/controllerGui.cpp
   src/gui/dialogAbout.cpp
@@ -778,7 +782,7 @@ add_library( VCityGui STATIC
   src/gui/mainWindow.cpp
   src/gui/plugindialog.cpp
   src/gui/treeView.cpp
-  
+
   src/gui/osg/osgAssimp.cpp
   src/gui/osg/osgCityGML.cpp
   src/gui/osg/osgGDAL.cpp
@@ -791,7 +795,7 @@ add_library( VCityGui STATIC
   src/gui/osg/osgInfoDataType.cpp
   src/gui/osg/osgUpdateInfo.cpp
   src/gui/osg/osgSkybox.cpp
-  
+
 ### Utilities
   # Depends on citygml/exportCityGML.hpp
   src/utils/CityGMLFusion.cpp
@@ -820,7 +824,7 @@ target_include_directories( VCityGui PUBLIC
 )
 
 if( BUILD_GUI_QT4 )
-  # Strangely enough we are missing the ad-hoc target_include_directories() 
+  # Strangely enough we are missing the ad-hoc target_include_directories()
 endif()
 
 if( BUILD_GUI_QT5 )
@@ -852,7 +856,7 @@ if( BUILD_GUI_QT4 )
   set( VCITY_GUI_LIB ${VCITY_GUI_LIB} ${QT_LIBRARIES} )
 endif()
 
-# FIXME: get rid of this my_COMPILE_DEFINITIONS variable 
+# FIXME: get rid of this my_COMPILE_DEFINITIONS variable
 set(my_COMPILE_DEFINITIONS "")
 if( BUILD_GUI_QT5 )
   set(my_COMPILE_DEFINITIONS ${my_COMPILE_DEFINITIONS} ";BUILD_GUI_QT5")
@@ -901,7 +905,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
   set(LINUX_FLAGS -lpthread)   # FIXME: assert this is needed
 endif()
 
-add_executable( ${APP_NAME} MACOSX_BUNDLE 
+add_executable( ${APP_NAME} MACOSX_BUNDLE
   src/main.cpp
   ${VCITY_GUI_ICON}
 )
@@ -1079,4 +1083,3 @@ ENDIF(WIN32)
 #--------------------------------------------------------------------------------
 # Now the installation stuff : end
 #--------------------------------------------------------------------------------
-
