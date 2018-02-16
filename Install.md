@@ -49,7 +49,7 @@
      * `cmake .. -DCMAKE_INSTALL_PREFIX=~/local/LASlib` (or choose an alternate installation directory in your home directory or a stable direcory why proper access rights)
      * `cd 3DUSE`
      * `mkdir Build && cd Build`
-     * `ccmake .. -DLASLIB_INCLUDE_DIR=~/local/include -DLASLIB_LIBRARY=~/local/lib/liblaslib.a`
+     * `ccmake .. -DLASLIB_INCLUDE_DIR=~/local/LASlib/include -DLASLIB_LIBRARY=~/local/LASlib/lib/liblaslib.a`
   * Manual installation of gdal (3DUSE currently uses gdal version 1.11.4 and is not aligned with versions 2.xxx)
      * `cd /tmp`
      * `wget http://download.osgeo.org/gdal/1.11.4/gdal-1.11.4.tar.gz`
