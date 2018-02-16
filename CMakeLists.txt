@@ -248,12 +248,12 @@ find_package( Boost )
 if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
   find_package( boost COMPONENTS
                 filesystem date_time thread   # For the "core"
-                program_options               # For extractBuildings
+                program_options system        # For extractBuildings
                 REQUIRED )
 else()
   find_package( Boost COMPONENTS
                 filesystem date_time thread   # For the "core"
-                program_options               # For extractBuildings
+                program_options system        # For extractBuildings
                 REQUIRED )
 endif()
 
