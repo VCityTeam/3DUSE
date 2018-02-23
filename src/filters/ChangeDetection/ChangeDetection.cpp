@@ -21,6 +21,23 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
                std::vector<OGRMultiPolygon *> Geo2P )
 {
     std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Res; //Enregistre les liens entre les polygones. Pour un polygone donnee de Geo1, si il est en lien avec un de Geo2, l'indice sera precede de -1 ou -2 pour inchange/change
+    //   [    // The first vector encodes what has become of "old" buildings
+    //  first[0] = [ -1, 0]   // Building 0 keeps same index and unchanged
+    //  first[1] = [ -1, 2]   // Building 1 relabeled to become building 2
+    //  first[2] = [ -1, 1]   // Building 2 relabeled to become building 1
+    //  first[3] = [ -2, 4]   // Building 3 changed height and relabeled to 4
+    //  first[4] = []         // Building 4 disappeared
+    //  first[5] = [ -2, 6, -2, 7] // Building 5 was split into 6 and 7
+    //  ,    // The second vector encodes where the "new" buildings come from
+    //  second[0]= [ -1, 0]   // Building 0 is unchanged
+    //  second[1]= [ -1, 2]   // Building 1 was known as building 2
+    //  second[2]= [ -1, 1]   // Building 2 was known as building 1
+    //  second[3]= []         // Building 3 is a totally new building
+    //  second[4]= [ -2, 3]   // Was previously known as 3 and changed height
+    //  second[5]= []         // Another entirely new building (just as 3)
+    //  second[6]= [ -2, 5]   // Was previously known as 3 a part of 5
+    //  second[7]= [ -2, 5]   // Just as 6, 7 was previously 3 a part of 5
+    //   ]
 
     int NbGeo1 = Geo1->getNumGeometries(); //Nb de batiments de la date1
     int NbGeo2 = Geo2->getNumGeometries(); //Nb de batiments de la date2
@@ -384,7 +401,7 @@ ChangeDetectionRes CompareTiles(std::string Folder,
       // Reminder: the reconstructed buildings might NOT correspond to the
       // CityGML original (semantic) buildings: refer to the above warning
       // about erroneously lumped building (successive geometrical unions)
-      // as a pretreatment of data realized prior to the usage of the present
+      // as a pr-etreatment of data realized prior to the usage of the present
       // algorithm. In other terms the provided CityGML already contains
       // "corrupted data" (e.g. the fusion of spatially separated buildings
       // within a single CityGML "logical building).
@@ -533,6 +550,96 @@ ChangeDetectionRes CompareTiles(std::string Folder,
     Res.BatiInchanges = BatiInchanges;
     Res.BatiModifies1 = BatiModifies1;
     Res.BatiModifies2 = BatiModifies2;
+
+    // Kludgy temporary exploratory code
+    std::pair< std::vector<std::vector<std::string> >,
+               std::vector<std::vector<std::string> > > BuildingCorrespondencies;
+    int nbrInitialBuilding = EnveloppeCityU[0]->getNumGeometries();
+    int   nbrFinalBuilding = EnveloppeCityU[1]->getNumGeometries();
+
+    BuildingCorrespondencies.first.resize( nbrInitialBuilding );
+    BuildingCorrespondencies.second.resize( nbrFinalBuilding );
+
+    for (int building = 0;
+             building < nbrInitialBuilding;
+             building++)
+    {
+      std::cout << PolygonBuildingID[0][building];
+      // The encoded vector of encoded correspondences
+      auto correspondence = Compare.first[building];
+      std::size_t nbrCorrespondents = correspondence.size();
+      if ( nbrCorrespondents == 0 )
+      {
+          BuildingCorrespondencies.first[building].push_back("Destroyed");
+          std::cout << ": destroyed." << std::endl;
+          continue;
+      }
+      // The building has one or possibly many associated future Buildings
+      if( ! nbrCorrespondents %2 )
+      {
+        std::cout << "ERROR: The encoding of Compare should always be even!"
+                  << std::endl;
+      }
+
+      int changed =  Compare.first[building][0];
+      if (changed == -1)
+      {
+         std::cout << ": unchanged.";
+      }
+      else if (changed == -2)
+      {
+         std::cout << ": changed to ";
+      }
+      else
+      {
+        std::cout << "ERROR: change status must be -1 or -2"
+                  << std::endl;
+      }
+      for (std::size_t j = 0; j < nbrCorrespondents; j += 2)
+      {
+          // Test wheter all the nature of changes (-1 or -2) are coherent
+          // (they should all be the same). Not that when then is only
+          // single corresponding building this is a dummy comparison...
+          if (Compare.first[building][j] != changed)
+          {
+             std::cout << "ERROR: change status are not homogeneous..."
+                       << std::endl;
+          }
+          if (Compare.first[building][j] == -1)
+          {
+              if( PolygonBuildingID[0][building] != PolygonBuildingID[1][Compare.first[building][j + 1]] )
+              std::cout << "renumbered to "
+                        << PolygonBuildingID[1][Compare.first[building][j + 1]]
+                        << " (oldindex: " << Compare.first[building][j + 1]
+                        << "), ";
+              continue;
+          }
+          if (Compare.first[building][j] == -2)
+          {
+              std::cout << PolygonBuildingID[1][Compare.first[building][j + 1]]
+                        << " (oldindex: " << Compare.first[building][j + 1]
+                        << "), ";
+              continue;
+          }
+          std::cout << "ERROR" << std::endl;
+      }
+      std::cout << std::endl;
+    }
+
+    for (int newBuilding = 0;
+             newBuilding < nbrFinalBuilding;
+             newBuilding++)
+    {
+      // The encoded vector of encoded possible correspondences
+      auto correspondence = Compare.second[newBuilding];
+      if ( correspondence.size() == 0 )
+      {
+          std::cout << PolygonBuildingID[1][newBuilding]
+                    << " : Created."
+                    << std::endl;
+          continue;
+      }
+    }
 
     return Res;
 }
