@@ -235,7 +235,7 @@ include_directories(${OPENGL_INCLUDE_DIR})
 # trying a "find_package( Boost REQUIRED)" seems to always fail. Hence the
 # following kludge:
 #  - we first look for Boost (capital b) as a test to discover wether
-#    we should stick to Boost or swith to boost
+#    we should stick to Boost or switch to boost
 #  - on apple and when this fails we look for boost (small caps b)
 #    and also the required components
 #  - but when Boost was found we eventually assert that the required
@@ -244,13 +244,16 @@ include_directories(${OPENGL_INCLUDE_DIR})
 # messages that might be spawn by the find_package() with the components
 # option are not due to our multiple invocation strategy, and that alas
 # they can not be silenced out with at QUIET toggle argument to find_package().
+message( STATUS ${APP_NAME} ": first search on Boost package" )
 find_package( Boost )
 if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
+  message( STATUS ${APP_NAME} ": second search on boost and components" )
   find_package( boost COMPONENTS
                 filesystem date_time thread   # For the "core"
                 program_options system        # For extractBuildings
                 REQUIRED )
 else()
+  message( STATUS ${APP_NAME} ": second search on Boost and components" )
   find_package( Boost COMPONENTS
                 filesystem date_time thread   # For the "core"
                 program_options system        # For extractBuildings
@@ -410,9 +413,10 @@ if( BUILD_PCL )
   # Additionally we still have to take care of the Boost vs boost (capital
   # vs small caps) difficulty on OSX (refer above to the first boost
   # package assessment.
-
+  message( STATUS ${APP_NAME} ": third search on Boost package (for PCL)" )
   find_package( Boost )
   if( NOT Boost_FOUND AND APPLE AND ( CMAKE_VERSION VERSION_GREATER 3.4.3 ) )
+    message( STATUS ${APP_NAME} ": fourth search on boost and PCL components" )
     find_package( boost COMPONENTS
       filesystem date_time thread               # for the "core"
       program_options                           # For extractBuildings
@@ -420,6 +424,7 @@ if( BUILD_PCL )
       REQUIRED
     )
   else()
+    message( STATUS ${APP_NAME} ": fourth search on Boost and PCL components" )
     find_package( Boost COMPONENTS
       filesystem date_time thread               # for the "core"
       program_options                           # For extractBuildings
@@ -543,12 +548,15 @@ if( BUILD_PCL )
   endif()
 
   ### Still dealing with PCL post find_package oddities
-  if( APPLE )
+  if( APPLE OR WIN32 )
     # Context: cmake 3.6.x, PCL 1.8, boost 1.60
     # For some odd reason PCL package detection seems to break away the
     # Boost_LIBRARIES content as obtained from previous find_package(Boost...)
     # invocations. We thus restore it manually.
     set( Boost_LIBRARIES ${PCL_SAFE_COPY_OF_Boost_LIBRARIES} )
+  endif()
+
+  if( APPLE )
     # For some other odd reason some pcl libraries do not come linked against
     # some of their boost dependencies. Hence ce following "syntactic sugar".
     set( PCL_LIBRARIES ${PCL_LIBRARIES} ${Boost_LIBRARIES} )
