@@ -499,7 +499,7 @@ if( BUILD_PCL )
     # prefixed with "LIB").
     # This is due to an interference between find_package( Boost) and the
     # VC++ auto-linking mechanisms that is documented e.g. here:
-    # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9 You could disable
+    # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9
     # In order to disable the auto-linking mechanism we thus resolve to
     # using the following additional compile flag:
     set( PCL_DEFINITIONS_VCITY "BOOST_ALL_DYN_LINK=1" )

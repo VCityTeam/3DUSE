@@ -141,12 +141,13 @@ int main(int argc, char** argv)
     fs::create_directory( OutputDirectory ); 
   }
 
-  std::vector< vcity::Tile* > tiles(maxNumberOfDates);
+  // Shared_ptr used as a lazy memory leak avoidance mechanism
+  std::vector< std::shared_ptr<vcity::Tile> > tiles(maxNumberOfDates);
   for(int date=0; date <= numberOfDates; date++)
   {
     std::string filename = vm[optionFilenames[date]].as<std::string>();
     AssertFileHasCityGMLExtension( filename );
-    tiles[date] = new vcity::Tile( filename );
+    tiles[date] = std::shared_ptr<vcity::Tile>(new vcity::Tile( filename ));
     std::cout << "CityGML " 
               << optionDateOrders[date] 
               << " file loaded :" << filename << std::endl;

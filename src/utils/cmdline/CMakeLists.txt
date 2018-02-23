@@ -12,8 +12,11 @@ add_executable( extractBuildingDates
 )
 
 if( WIN32 )
-  target_compile_definitions( extractBuildingDates PUBLIC
-                              "-DBOOST_ALL_DYN_LINK")
+  # Fix the odd interference between find_package( Boost) and the
+  # VC++ auto-linking mechanisms that is documented e.g. here:
+  # http://stackoverflow.com/questions/6468681/problem-linking-to-boost-library-with-cmake-generated-project-file-for-msvc9
+  target_compile_definitions( extractBuildingDates PRIVATE
+                              "BOOST_ALL_DYN_LINK=1" )
 endif()
 
 target_link_libraries(extractBuildingDates

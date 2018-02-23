@@ -218,135 +218,281 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
 }
 ////////////////////////////////////////////////////////////////////////////////
 /**
-* @brief Compare deux fichiers CityGML d'une meme zone obtenus a deux dates differentes en donnant les modifications entre leurs batiments
+* @brief Compare two CityGML descrition of a same geographical zone
+*        corresponding to two different dates (moments) in order to retrieve
+*        the difference (modifications) of the geometries of the Buildings.
+* @note  This function uses the OGR (provided by GDAL) based representation
+*        for the geometries (polygons) it manipulates.
+* @warning The reconstructed buildings, resulting from this algorithm, do NOT
+*        necessarily correspond to the "original" CityGML (semantic) buildings.
+*        Such a difference will happen when the original CityGML model
+*        erroneously lumped many semantical buildings into a single cityGML
+*        building (for example all the buildings of a block are described, at
+*        the CityGML as a single building). When such an erroneous input occurs
+*        the algorithm will set appart buildings that are geometrical
+*        disconnected (not sharing a vertex, an edge or a face and of course
+*        not spatially intersecting) although they were described within the
+*        input as a single building.
+* @param[in] City1 The "oldest" of the two modesl to be compared
+* @param[in] City2 The "youngest" of the two modesl to be compared
 */
-ChangeDetectionRes CompareTiles(std::string Folder, citygml::CityModel* City1, citygml::CityModel* City2)//Version GDAL
+ChangeDetectionRes CompareTiles(std::string Folder,
+                                citygml::CityModel* City1,
+                                citygml::CityModel* City2)
 {
+    // Keep in mind the strong made assumption: 0 is the index of the oldest
+    // model while 1 is the thus the index of the "youngest" model.
     std::vector<citygml::CityModel *> tiles;
     tiles.push_back(City1);
     tiles.push_back(City2);
 
-    //On part du principe que le plus vieux est dans le 0 et le plus recent dans le 1
-    std::vector<OGRMultiPolygon *> EnveloppeCity[2];//Version avec un ensemble de polygones pour chaque batiment (un batiment = un polygone distinct apres union)
-    OGRMultiPolygon * EnveloppeCityU[2];//Version avec des polygones unis pour representer le batiment (ce n'est pas l'ensemble de polygones bruts)
+    // The version of the building envelopes each of which described as
+    // a set of its original/raw polygons of its constituting CityGML::Objects
+    // (wall, roof..). This representation holds an OGR convertion of the
+    // original CityGML building constituting objects prior to any other
+    // treatment.
+    std::vector<OGRMultiPolygon *> EnveloppeCity[2];
 
+    // Each of the above building envelopes has its own corresponding original
+    // CityGML identifier.
+    // Note that std::string stands here as the type representing a CityGML
+    // object Id (refer to cityGML::object.getId() method).
+    std::vector<std::string> BuildingID[2];
+
+    // United version of the building envelopes: each building is thus here
+    // represented as a single United polygone (i.e. the result of the union
+    // of the original/raw polygons of its constituting CityGML::Objects.
+    // This United polygonal representation of a building is better adapted
+    // when wishing to identify each building with its single polygon envelope.
+    OGRMultiPolygon * EnveloppeCityU[2];
     EnveloppeCityU[0] = new OGRMultiPolygon;//nullptr;
     EnveloppeCityU[1] = new OGRMultiPolygon;//nullptr;
 
+    // Sets of geometries (used as auxillary within the scope of this
+    // algorithm) holding all the polygons constituting the buildings of
+    // the respective models.
+    OGRMultiPolygon * ModelPolygons[2];
+    ModelPolygons[0] = new OGRMultiPolygon;
+    ModelPolygons[1] = new OGRMultiPolygon;
+
+    // The CityGML building Id orginally associated to a considered Geometry
+    // (of a building). The index of this vector correspond to the index
+    // of the corresponding geometry within ModelPolygons.
+    // Note that std::string stands here as the type representing a CityGML
+    // object Id (refer to cityGML::object.getId() method).
+    std::vector<std::string> PolygonBuildingID[2];
+
+    // For each of the two models convert the CityGML geometries of all of
+    // their respective buildings into a set (OGRMultiPolygon) of polygons
+    // (OGRPolygon).
     for (int i = 0; i < 2; ++i)
     {
+        std::cout << "Model " << i + 1 << ": " << std::endl << std::flush;
         citygml::CityModel* model = tiles[i];
-
-        int cpt = 0;
-
-        OGRMultiPolygon * ModelPolygons = new OGRMultiPolygon;//Contient tous les polygones composant le model courant
+        int buildingNumber = 0;
 
         for (citygml::CityObject* obj : model->getCityObjectsRoots())
         {
-            if (obj->getType() == citygml::COT_Building)
+            if (obj->getType() != citygml::COT_Building)
             {
-                OGRMultiPolygon* Building = new OGRMultiPolygon;//Version OGR du batiment qui va etre remplie
-
-                for (citygml::CityObject* object : obj->getChildren())//On parcourt les objets (Wall, Roof, ...) du batiment
-                {
-                    if (object->getType() == citygml::COT_RoofSurface)
-                    {
-                        for (citygml::Geometry* Geometry : object->getGeometries()) //pour chaque geometrie
-                        {
-                            for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons()) //Pour chaque polygone
-                            {
-                                OGRPolygon * OgrPoly = new OGRPolygon;
-                                OGRLinearRing * OgrRing = new OGRLinearRing;
-
-                                for (TVec3d Point : PolygonCityGML->getExteriorRing()->getVertices())
-                                {
-                                    OgrRing->addPoint(Point.x, Point.y, Point.z);
-                                }
-
-                                OgrRing->closeRings();
-
-                                if (OgrRing->getNumPoints() > 3)
-                                {
-                                    OgrPoly->addRingDirectly(OgrRing);
-                                    if (OgrPoly->IsValid())
-                                    {
-                                        Building->addGeometry(OgrPoly);
-                                        ModelPolygons->addGeometryDirectly(OgrPoly);
-                                    }
-                                }
-                                else
-                                    delete OgrRing;
-                            }
-                        }
-                    }
-                }
-
-                if (Building->IsEmpty())
-                {
-                    cpt++;
-                    std::cout << "Avancement tuile " << i + 1 << " : " << cpt << "/" << model->getCityObjectsRoots().size() << " batiments traites.\r" << std::flush;
-                    continue;
-                }
-
-                OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
-                if (EnveloppeCityU[i] == nullptr)
-                    EnveloppeCityU[i] = Enveloppe;
-                else
-                {
-                    OGRMultiPolygon * tmp = EnveloppeCityU[i];
-                    EnveloppeCityU[i] = (OGRMultiPolygon *)tmp->Union(Enveloppe);
-                    delete tmp;
-                }
-            }
-
-            cpt++;
-            std::cout << "Avancement tuile " << i + 1 << " : " << cpt << "/" << model->getCityObjectsRoots().size() << " batiments traites.\r" << std::flush;
-        }
-        std::cout << std::endl;
-
-        //SaveGeometrytoShape("ModelInit.shp", ModelPolygons);
-
-        //Creation de EnveloppeCity : pour chaque batiment distinct, il contient la liste des polygones qui le composent. Ces batiments ne correspondent pas a ceux du CityGML, mais
-        //aux polygones distincts apparus avec les unions successives.
-
-        for (int g = 0; g < EnveloppeCityU[i]->getNumGeometries(); ++g)
-        {
-            OGRPolygon * CurrBati = (OGRPolygon *)EnveloppeCityU[i]->getGeometryRef(g); //On parcourt chaque "batiment" (batiment = un polygon isole apres l'union)
-
-            if (!CurrBati->IsValid())
-            {
-                EnveloppeCityU[i]->removeGeometry(g);
-                g--;
                 continue;
             }
 
-            OGRMultiPolygon * Bati = new OGRMultiPolygon;//Contiendra liste des polygones pour batiment i
+            // A building is here reduced to its geometry represented
+            // as an OGRMultiPolygon
+            OGRMultiPolygon* Building = new OGRMultiPolygon;
 
-            //std::cout << "G = " << g << "/" << EnveloppeCityU[i]->getNumGeometries() << std::endl;
-            for (int j = 0; j < ModelPolygons->getNumGeometries(); ++j)//Pour le batiment courant, on va chercher dans ModelPolygons quels sont les polygones qui le composent.
+            // Iteration on all the (cityGML) objects (Wall, Roof, ...)
+            // that belong to the considered building:
+            for (citygml::CityObject* object : obj->getChildren())
             {
-                if (ModelPolygons->getGeometryRef(j)->Intersects(CurrBati))//Ce polygone appartient bien a CurrBati
+                if (object->getType() != citygml::COT_RoofSurface)
                 {
-                    OGRGeometry * Inter = ModelPolygons->getGeometryRef(j)->Intersection(CurrBati);
-                    if (Inter->getGeometryType() == wkbPolygon || Inter->getGeometryType() == wkbPolygon25D || Inter->getGeometryType() == wkbMultiPolygon || Inter->getGeometryType() == wkbMultiPolygon25D) //L'intersection n'est pas un simple point
+                    continue;
+                }
+
+                std::string buildingID = object->getId();
+
+                // Iteration on each geometry of the constituting object
+                for (citygml::Geometry* Geometry : object->getGeometries())
+                {
+                    // Iteration on each polygone
+                    for (citygml::Polygon * PolygonCityGML : Geometry->getPolygons())
                     {
-                        Bati->addGeometry(ModelPolygons->getGeometryRef(j));
-                        ModelPolygons->removeGeometry(j);//On le retire de ModelPolygons car il est maintenant associe a CurrBati
-                        j--;
+                        OGRPolygon    * OgrPoly = new OGRPolygon;
+                        OGRLinearRing * OgrRing = new OGRLinearRing;
+
+                        for (TVec3d Point :
+                              PolygonCityGML->getExteriorRing()->getVertices())
+                        {
+                          OgrRing->addPoint(Point.x, Point.y, Point.z);
+                        }
+
+                        OgrRing->closeRings();
+
+                        if (OgrRing->getNumPoints() > 3)
+                        {
+                          OgrPoly->addRingDirectly(OgrRing);
+                          if (OgrPoly->IsValid())
+                          {
+                            // Use the newly constructed OGR polygon:
+                            Building->addGeometry(OgrPoly);
+                            ModelPolygons[i]->addGeometryDirectly(OgrPoly);
+                            PolygonBuildingID[i].push_back( buildingID );
+                          }
+                        }
+                        else
+                        {
+                          delete OgrRing;
+                        }
                     }
                 }
             }
-            EnveloppeCity[i].push_back(Bati);
-        }
+
+            // Displaying of algorithm progress
+            if (!Building->IsEmpty())
+            {
+                // Construction of the United representation of the building
+                // envelopes (refer above on the distinction between
+                // EnveloppeCity and EnveloppeCityU).
+                OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
+                if (EnveloppeCityU[i] == nullptr)
+                {
+                  EnveloppeCityU[i] = Enveloppe;
+                }
+                else
+                {
+                  OGRMultiPolygon * tmp = EnveloppeCityU[i];
+                  EnveloppeCityU[i] = (OGRMultiPolygon *)tmp->Union(Enveloppe);
+                  delete tmp;
+                }
+            }
+
+            // Displaying the algorithm progress
+            buildingNumber++;
+            std::cout << "    Converting building: "
+            << buildingNumber << "/" << model->getCityObjectsRoots().size()
+            << " \r" << std::flush;
+
+        } // for loop on CityGML objects
+        std::cout << std::endl << "Done." << std::endl;
     }
 
-    std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compare = CompareBati(Folder, EnveloppeCityU[0], EnveloppeCityU[1], EnveloppeCity[0], EnveloppeCity[1]);
+    // For each of the two models, proceed with the creation de EnveloppeCity.
+    for (int model = 0; model < 2; ++model)
+    {
+      // Reminder: the reconstructed buildings might NOT correspond to the
+      // CityGML original (semantic) buildings: refer to the above warning
+      // about erroneously lumped building (successive geometrical unions)
+      // as a pretreatment of data realized prior to the usage of the present
+      // algorithm. In other terms the provided CityGML already contains
+      // "corrupted data" (e.g. the fusion of spatially separated buildings
+      // within a single CityGML "logical building).
+      //
+      // The algorithm (below) reconstructs each independent building of the
+      // resulting EnveloppeCity by spatially disassociating the "original"
+      // polygons that composed the lumped (United) building.
+      // Note that we are constrained to reconstruct such a constituting
+      // list precisely because the considered United buildings were
+      // previously lumped/fusioned/merged through logical lumping.
+      // Otherwise it would be possible to construct such lists directly
+      // (in the above construction of EnveloppeCityU[i]) only if we
+      // considered the CityGML "semantical" buildings.
+      //
+      // Iterate on the buildings each of which is represented as a single
+      // isolated polygon (since we consider EnveloppeCityU i.e. the United
+      // geometrical representation)
+      for (int g = 0; g < EnveloppeCityU[model]->getNumGeometries(); ++g)
+      {
+        OGRPolygon * originalBuilding =
+        (OGRPolygon*)EnveloppeCityU[model]->getGeometryRef(g);
+
+        // Disregard the geometries that are not valid (United) building
+        // representations by dropping them...
+        if (!originalBuilding->IsValid())
+        {
+          EnveloppeCityU[model]->removeGeometry(g);
+          g--;
+          continue;
+        }
+
+        // The target set of the original polygons constituting the
+        // ith United Building:
+        OGRMultiPolygon * finalBuilding = new OGRMultiPolygon;
+        std::string finalBuildingID = "_UNSET_";
+
+        // We look within ModelPolygons[i] in order to retrieve the polygons
+        // matching (through intersection) the Current Building
+        for (int j = 0; j < ModelPolygons[model]->getNumGeometries(); ++j)
+        {
+          auto geomRef = ModelPolygons[model]->getGeometryRef(j);
+          // When this polygon matches/belongs to originalBuilding
+          if(geomRef->Intersects(originalBuilding))
+          {
+            OGRGeometry * Inter = geomRef->Intersection(originalBuilding);
+            // When the intersection (between the current original
+            // polygon and the current United single building polygon)
+            // is not reduced to a single point, THEN we associate it
+            // to the finalBuilding polygon list and thus remove
+            // it from the ModelPolygons[i] list:
+            if (   Inter->getGeometryType() == wkbPolygon
+            || Inter->getGeometryType() == wkbPolygon25D
+            || Inter->getGeometryType() == wkbMultiPolygon
+            || Inter->getGeometryType() == wkbMultiPolygon25D)
+            {
+              finalBuilding->addGeometry(geomRef);
+              ModelPolygons[model]->removeGeometry(j);
+
+              if( finalBuildingID == "_UNSET_" )
+              {
+                finalBuildingID = PolygonBuildingID[model][j];
+              }
+              else
+              {
+                // Asserting that all is well
+                if( finalBuildingID != PolygonBuildingID[model][j] )
+                {
+                   std::cout << "WARNING"
+                             << "   All polygon ID of this building shoud be "
+                             << std::endl
+                             << "   "
+                             << finalBuildingID
+                             << std::endl
+                             << "   but instead this identifier was found "
+                             << std::endl
+                             << "   "
+                             << PolygonBuildingID[model][j]
+                             << std::endl;
+                }
+              }
+              // Purge the associated BuildingID in order to keep
+              // ModelPolygons[i] and PolygonBuildingID[i] aligned.
+              PolygonBuildingID[model].erase(
+                                       PolygonBuildingID[model].begin() + j );
+              j--;
+            }
+          }
+        }
+        EnveloppeCity[model].push_back(finalBuilding);
+        BuildingID[model].push_back(finalBuildingID);
+      }
+    } // for model
+
+    /////////////
+    // Based on the above convertions, the following part of the algorithm
+    // can now trace the becoming of a building between its "oldest"
+    // version to its "newest" version (or possibly versions).
+    std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compare = CompareBati(Folder,
+                          EnveloppeCityU[0],
+                          EnveloppeCityU[1],
+                          EnveloppeCity[0],
+                          EnveloppeCity[1]);
 
     for (auto& it : EnveloppeCity[0]) delete it;
     for (auto& it : EnveloppeCity[1]) delete it;
 
-    OGRMultiPolygon* BatiDetruits = new OGRMultiPolygon;
-    OGRMultiPolygon* BatiCrees = new OGRMultiPolygon;
+    OGRMultiPolygon* BatiDetruits  = new OGRMultiPolygon;
+    OGRMultiPolygon* BatiCrees     = new OGRMultiPolygon;
     OGRMultiPolygon* BatiModifies1 = new OGRMultiPolygon;
     OGRMultiPolygon* BatiModifies2 = new OGRMultiPolygon;
     OGRMultiPolygon* BatiInchanges = new OGRMultiPolygon;
