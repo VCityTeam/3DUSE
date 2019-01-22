@@ -89,7 +89,7 @@ before_build:
   - 7z x libxml2-2.9.3.rar > nul
   ### PCL and its sub-dependencies
   ### Boost: kludgy renaming of appveyor provided version
-  - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
+  # FIXME - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
   ### eigen
   - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
   - 7z x eigen-3.2.8.rar > nul
