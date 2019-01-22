@@ -197,11 +197,7 @@ install:
     # letting them be pulled indirectly by pcl) just to make sub-dependencies
     # more explicit.
     #
-    # Flann depends on gcc-7.2.x that fails on install, refer to
-    #   https://github.com/travis-ci/travis-ci/issues/8826
-    # that recommends uninstalling oclint (the culprit under the hood)
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew cask uninstall oclint &&
       brew install flann; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       brew install homebrew/core/qhull; fi
