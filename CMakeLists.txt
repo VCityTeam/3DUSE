@@ -548,13 +548,13 @@ if( BUILD_PCL )
   endif()
 
   ### Still dealing with PCL post find_package oddities
-  if( APPLE OR WIN32 )
-    # Context: cmake 3.6.x, PCL 1.8, boost 1.60
-    # For some odd reason PCL package detection seems to break away the
-    # Boost_LIBRARIES content as obtained from previous find_package(Boost...)
-    # invocations. We thus restore it manually.
-    set( Boost_LIBRARIES ${PCL_SAFE_COPY_OF_Boost_LIBRARIES} )
-  endif()
+  # For some odd reason PCL package detection seems to break away the
+  # Boost_LIBRARIES content as obtained from previous find_package(Boost...)
+  # invocations. We thus restore it manually.
+  # Context where this nasty side effect was reported:
+  # - APPLE OR WIN32: cmake 3.6.x, PCL 1.8, boost 1.60
+  # - UBUNTU: cmake 3.0.2, PCL 1.7.2, boost 1.55
+  set( Boost_LIBRARIES ${PCL_SAFE_COPY_OF_Boost_LIBRARIES} )
 
   if( APPLE )
     # For some other odd reason some pcl libraries do not come linked against
