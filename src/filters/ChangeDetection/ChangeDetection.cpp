@@ -20,7 +20,14 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
                std::vector<OGRMultiPolygon* > Geo1P,
                std::vector<OGRMultiPolygon *> Geo2P )
 {
-    std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Res; //Enregistre les liens entre les polygones. Pour un polygone donnee de Geo1, si il est en lien avec un de Geo2, l'indice sera precede de -1 ou -2 pour inchange/change
+    // The result of this function is an encoding of the discovered 
+    // relationships that exist between the Geo1 and Geo2 polygones.
+    // When a given sub-polygon of Geo1 is in (geometrical) relationship
+    // with some sub-polygon of Geo1, then 
+    //   - the index is preceded by -1 to indicate it is unchanged
+    //   - the index is preceded by -2 to indicate it has changed. 
+    // The follogwing result illustrates the different cases that can be
+    // discoverd and encoded:
     //   [    // The first vector encodes what has become of "old" buildings
     //  first[0] = [ -1, 0]   // Building 0 keeps same index and unchanged
     //  first[1] = [ -1, 2]   // Building 1 relabeled to become building 2
@@ -38,6 +45,8 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
     //  second[6]= [ -2, 5]   // Was previously known as 3 a part of 5
     //  second[7]= [ -2, 5]   // Just as 6, 7 was previously 3 a part of 5
     //   ]
+    std::pair<std::vector<std::vector<int> >,
+              std::vector<std::vector<int> > > Res;
 
     int NbGeo1 = Geo1->getNumGeometries(); //Nb de batiments de la date1
     int NbGeo2 = Geo2->getNumGeometries(); //Nb de batiments de la date2
@@ -551,90 +560,153 @@ ChangeDetectionRes CompareTiles(std::string Folder,
     Res.BatiModifies1 = BatiModifies1;
     Res.BatiModifies2 = BatiModifies2;
 
-    // Kludgy temporary exploratory code
-    std::pair< std::vector<std::vector<std::string> >,
-               std::vector<std::vector<std::string> > > BuildingCorrespondencies;
+    //////////////////////////
+    // The following is kludgy temporary exploratory code designed to
+    // output an interpretation of the geometrical comparison.
+    //FIXME WIP std::pair< std::vector<std::vector<std::string> >,
+    //FIXME WIP            std::vector<std::vector<std::string> > > BuildingCorrespondencies;
     int nbrInitialBuilding = EnveloppeCityU[0]->getNumGeometries();
     int   nbrFinalBuilding = EnveloppeCityU[1]->getNumGeometries();
 
-    BuildingCorrespondencies.first.resize( nbrInitialBuilding );
-    BuildingCorrespondencies.second.resize( nbrFinalBuilding );
+    //FIXME WIP BuildingCorrespondencies.first.resize( nbrInitialBuilding );
+    //FIXME WIP BuildingCorrespondencies.second.resize( nbrFinalBuilding );
 
-    for (int building = 0;
-             building < nbrInitialBuilding;
-             building++)
+    for (int building_index = 0;
+             building_index < nbrInitialBuilding;
+             building_index++)
     {
-      std::cout << PolygonBuildingID[0][building];
-      // The encoded vector of encoded correspondences
-      auto correspondence = Compare.first[building];
-      std::size_t nbrCorrespondents = correspondence.size();
-      if ( nbrCorrespondents == 0 )
+      std::cout << PolygonBuildingID[0][building_index];
+      // The correspondence (the first vector returned by CompareBati())
+      // encodes what has become of an "old" building (the following is
+      // a derived copy of an illustration encountered in CompareBati()):
+      // correspondence[0]=[ -1, 0]: building 0 keeps same index and unchanged
+      // correspondence[1]=[ -1, 2]: building 1 relabeled to become building 2
+      // correspondence[2]=[ -1, 1]: building 2 relabeled to become building 1
+      // correspondence[3]=[ -2, 4]: building 3 changed height and relabeled
+      //                             to 4
+      // correspondence[4]=[]:       building 4 disappeared
+      // correspondence[5]=[ -2, 6, -2, 7]: building 5 was split into buildings
+      //                                    6 and 7
+      auto correspondence = Compare.first[building_index];
+      std::size_t corresondence_length = correspondence.size();
+      if ( corresondence_length == 0 )
       {
-          BuildingCorrespondencies.first[building].push_back("Destroyed");
+          //FIXME WIP BuildingCorrespondencies.first[building_index].push_back("Destroyed");
           std::cout << ": destroyed." << std::endl;
           continue;
       }
-      // The building has one or possibly many associated future Buildings
-      if( ! nbrCorrespondents %2 )
+      // The building has one or possibly many associated future buildings
+      // but the encoding is a succession of (change_status, building_new_index)
+      // pairs and must thus have an even length.
+      if( ! corresondence_length %2 )
       {
-        std::cout << "ERROR: The encoding of Compare should always be even!"
+        std::cout << "ERRONEOUS encoding of Compare: should always be even!"
                   << std::endl;
+        continue;
       }
 
-      int changed =  Compare.first[building][0];
-      if (changed == -1)
+      if ( corresondence_length == 2 )
       {
-         std::cout << ": unchanged.";
+         int change_status =  Compare.first[building_index][0];
+         int new_index     =  Compare.first[building_index][1];
+         auto new_id       =  PolygonBuildingID[1][new_index];
+     
+         if (change_status == -1)
+         {
+            if(building_index == new_index)
+            {
+               std::cout << ": unchanged (same geometry, same ID)."
+                         << std::endl;
+               continue;
+            } 
+            else 
+            {
+               std::cout << ": re-ided (same geometry, different ID) to ";
+               std::cout << new_id
+                         << std::endl;
+               continue;
+            } 
+            
+         }
+         else if (change_status == -2)
+         {
+            if(building_index == new_index)
+            {
+               // Debugging test
+               std::cout << "DAMNED YOU CAN CHANGE AND KEEP YOUR ID !?"
+                         << std::endl
+                         << "INQUIRE ON THIS !"
+                         << std::endl;
+               continue;
+            } 
+
+            std::cout << ": heightened (same footprint) to ";
+            std::cout << new_id
+                      << std::endl;
+            continue;
+         }
+         else
+         {
+            std::cout << "ERRONEOUS change status: must be -1 or -2."
+                      << std::endl;
+            continue;
+         }
       }
-      else if (changed == -2)
+         
+      // We have more than one correpondent. The original building was
+      // thus either 
+      //   * split in sub-parts (while preserving its outside geometry)
+      //   * revamped to new buildings (with a new total footprint included
+      //     in the footprint of the original building): ASSERT THIS!
+
+      std::cout << ": subdivided into " << std::endl;
+      for (std::size_t j = 0; j < corresondence_length; j += 2)
       {
-         std::cout << ": changed to ";
+         int change_status =  Compare.first[building_index][j];
+         int new_index     =  Compare.first[building_index][j+1];
+         auto new_id       =  PolygonBuildingID[1][new_index];
+
+         // Is it possible to have a change_status of -1 (geometry unchanged)
+         // and still have many corresponding objects ?
+         // (they should all be the same). 
+         if (change_status != -1)
+         {
+            // Debugging test
+            std::cout << "ERROR: yes they is an occurence of a change "
+                      << " status that is not -1 and its value is: "
+                      << change_status
+                      << std::endl;
+            continue;
+         } 
+         std::cout << "          " << new_id;
+         if( j+2 < corresondence_length)
+         {
+            // Not the last item
+            std::cout << ",";
+         }
+         else
+         {
+            // This is the last item  
+            std::cout << ".";
+         }
+         std::cout << std::endl;
       }
-      else
-      {
-        std::cout << "ERROR: change status must be -1 or -2"
-                  << std::endl;
-      }
-      for (std::size_t j = 0; j < nbrCorrespondents; j += 2)
-      {
-          // Test wheter all the nature of changes (-1 or -2) are coherent
-          // (they should all be the same). Not that when then is only
-          // single corresponding building this is a dummy comparison...
-          if (Compare.first[building][j] != changed)
-          {
-             std::cout << "ERROR: change status are not homogeneous..."
-                       << std::endl;
-          }
-          if (Compare.first[building][j] == -1)
-          {
-              if( PolygonBuildingID[0][building] != PolygonBuildingID[1][Compare.first[building][j + 1]] )
-              std::cout << "renumbered to "
-                        << PolygonBuildingID[1][Compare.first[building][j + 1]]
-                        << " (oldindex: " << Compare.first[building][j + 1]
-                        << "), ";
-              continue;
-          }
-          if (Compare.first[building][j] == -2)
-          {
-              std::cout << PolygonBuildingID[1][Compare.first[building][j + 1]]
-                        << " (oldindex: " << Compare.first[building][j + 1]
-                        << "), ";
-              continue;
-          }
-          std::cout << "ERROR" << std::endl;
-      }
-      std::cout << std::endl;
     }
 
-    for (int newBuilding = 0;
-             newBuilding < nbrFinalBuilding;
-             newBuilding++)
+    // Now deal with the new buildings that are to be found in the
+    // the second list of geometries
+    for (int building_index = 0;
+             building_index < nbrFinalBuilding;
+             building_index++)
     {
-      // The encoded vector of encoded possible correspondences
-      auto correspondence = Compare.second[newBuilding];
+      // Among the buildings of the second geometries only the ones with
+      // no correspondent in the first geometries are considered as new
+      // ones.
+      auto correspondence = Compare.second[building_index];
       if ( correspondence.size() == 0 )
       {
-          std::cout << PolygonBuildingID[1][newBuilding]
+          auto new_id = PolygonBuildingID[1][building_index];
+          std::cout << new_id
                     << " : Created."
                     << std::endl;
           continue;
