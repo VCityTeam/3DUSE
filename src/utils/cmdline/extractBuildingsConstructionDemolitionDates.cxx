@@ -161,6 +161,10 @@ int main(int argc, char** argv)
                                            tiles[date]->getCityModel(),
                                            tiles[date+1]->getCityModel() );
 
+    DumpIDCorrespondances(Res, vm["first_date"].as<int>(),
+                               vm["second_date"].as<int>());
+
+    // Save the resulting shape files:
     SaveGeometrytoShape( outputFolderPathName + "/BatisOld.shp",
                          Res.EnveloppeCityU1 );
     SaveGeometrytoShape( outputFolderPathName + "/BatisNew.shp",

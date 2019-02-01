@@ -13,12 +13,12 @@
 * @param Geo1P Premier ensemble de geometries non unies : pour un polygone de Geo1, il donne la liste des polygones non unis qui le composent
 * @param Geo2P Second ensemble de geometries non unies
 */
-std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
-  CompareBati( std::string Folder,
-               OGRMultiPolygon * Geo1,
-               OGRMultiPolygon * Geo2,
-               std::vector<OGRMultiPolygon* > Geo1P,
-               std::vector<OGRMultiPolygon *> Geo2P )
+ChangeDetectionRes::BuildingFullCorrespondence*
+CompareBati( std::string Folder,
+             OGRMultiPolygon * Geo1,
+             OGRMultiPolygon * Geo2,
+             std::vector<OGRMultiPolygon* > Geo1P,
+             std::vector<OGRMultiPolygon *> Geo2P )
 {
     // The result of this function is an encoding of the discovered 
     // relationships that exist between the Geo1 and Geo2 polygones.
@@ -45,14 +45,14 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
     //  second[6]= [ -2, 5]   // Was previously known as 3 a part of 5
     //  second[7]= [ -2, 5]   // Just as 6, 7 was previously 3 a part of 5
     //   ]
-    std::pair<std::vector<std::vector<int> >,
-              std::vector<std::vector<int> > > Res;
+    ChangeDetectionRes::BuildingFullCorrespondence* Res
+                      = new ChangeDetectionRes::BuildingFullCorrespondence;
 
     int NbGeo1 = Geo1->getNumGeometries(); //Nb de batiments de la date1
     int NbGeo2 = Geo2->getNumGeometries(); //Nb de batiments de la date2
 
-    Res.first.resize(NbGeo1);
-    Res.second.resize(NbGeo2);
+    Res->first.resize(NbGeo1);
+    Res->second.resize(NbGeo2);
 
     //OGRMultiPolygon* PolyZonesCommunes = new OGRMultiPolygon;
 
@@ -95,23 +95,30 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
             double val1 = (Bati1->get_Area() - Area) / Area;
             double val2 = (Bati2->get_Area() - Area) / Area;
 
-            if (val1 < 0.01 && val2 < 0.01 && Bati1->get_Area() - Area < 5 && Bati2->get_Area() - Area < 5)//Les polygons sont identiques
+            if (   val1 < 0.01 
+                && val2 < 0.01
+                && Bati1->get_Area() - Area < 5
+                && Bati2->get_Area() - Area < 5)
+            // We consider the polygons to be identical:
             {
-                if (DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 1)//Si la distance de Hausdorff entre les deux batiments est inferieure a 5m.
+                if (DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 1)
+                //The Hausdorff distance between the two buildings is less
+                // than 5 meters:
                 {
-                    Res.first[i].push_back(-1);
-                    Res.second[j].push_back(-1);
-                    Res.first[i].push_back(j);
-                    Res.second[j].push_back(i);
+                    Res->first[i].push_back(-1);
+                    Res->second[j].push_back(-1);
+                    Res->first[i].push_back(j);
+                    Res->second[j].push_back(i);
                     delete Bati2;
                     continue;
                 }
-                else//Batiment modifie en "hauteur"
+                else
                 {
-                    Res.first[i].push_back(-2);
-                    Res.second[j].push_back(-2);
-                    Res.first[i].push_back(j);
-                    Res.second[j].push_back(i);
+                    // Only the height of the building was changed:
+                    Res->first[i].push_back(-2);
+                    Res->second[j].push_back(-2);
+                    Res->first[i].push_back(j);
+                    Res->second[j].push_back(i);
                     delete Bati2;
                     continue;
                 }
@@ -201,10 +208,10 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
                 OGRPolygon* Poly = (OGRPolygon*)ZonesCommunes;
                 if (Poly->get_Area() > 10) //La zone commune est un polygone d'aire superieure a 10m² -> Batiment modifie car une zone est restee identique
                 {
-                    Res.first[i].push_back(-2);
-                    Res.second[j].push_back(-2);
-                    Res.first[i].push_back(j);
-                    Res.second[j].push_back(i);
+                    Res->first[i].push_back(-2);
+                    Res->second[j].push_back(-2);
+                    Res->first[i].push_back(j);
+                    Res->second[j].push_back(i);
                     //PolyZonesCommunes->addGeometry(Poly);
                 }
             }
@@ -215,18 +222,17 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
                 for (int k = 0; k < MultiPoly->getNumGeometries(); ++k)
                 {
                     OGRPolygon* Poly = (OGRPolygon*)MultiPoly->getGeometryRef(k);
-                    if (Poly->get_Area() > 10) //La zone commune comporte au moins un polygone d'aire superieure a 10m² -> Batiment modifie car une zone est restee identique
+                    if (Poly->get_Area() > 10)
+                    //La zone commune comporte au moins un polygone d'aire
+                    // superieure a 10m² -> Batiment modifie car une zone
+                    // est restee identique
                     {
-                        //if(!Modified) //Seulement pour avoir un PolyZonesCommunes complet, inutile pour l'algo : a retirer ce test et remettre break pour gain de temps
-                        //{
-                        Res.first[i].push_back(-2);
-                        Res.second[j].push_back(-2);
-                        Res.first[i].push_back(j);
-                        Res.second[j].push_back(i);
-                        Modified = true;
-                        //}
-                        //PolyZonesCommunes->addGeometry(Poly);
-                        break;
+                       Res->first[i].push_back(-2);
+                       Res->second[j].push_back(-2);
+                       Res->first[i].push_back(j);
+                       Res->second[j].push_back(i);
+                       Modified = true;
+                       break;
                     }
                 }
             }
@@ -234,14 +240,14 @@ std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > >
             delete Bati2;
         }
         delete Bati1;
-        std::cout << "Avancement de CompareGeos : " << i + 1 << " / " << NbGeo1 << "\r" << std::flush;
+        std::cout << "Avancement de CompareGeos : "
+                  << i + 1 << " / " << NbGeo1 << "\r" << std::flush;
     }
     std::cout << "\n";
 
-    //SaveGeometrytoShape(Folder + "/ZonesCommunes.shp", PolyZonesCommunes);
-
     return Res;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 /**
 * @brief Compare two CityGML descrition of a same geographical zone
@@ -283,7 +289,9 @@ ChangeDetectionRes CompareTiles(std::string Folder,
     // CityGML identifier.
     // Note that std::string stands here as the type representing a CityGML
     // object Id (refer to cityGML::object.getId() method).
-    std::vector<std::string> BuildingID[2];
+    ChangeDetectionRes::CityGMLidAsStringVector * BuildingID[2];
+    BuildingID[0] = new ChangeDetectionRes::CityGMLidAsStringVector;
+    BuildingID[1] = new ChangeDetectionRes::CityGMLidAsStringVector;
 
     // United version of the building envelopes: each building is thus here
     // represented as a single United polygone (i.e. the result of the union
@@ -404,13 +412,13 @@ ChangeDetectionRes CompareTiles(std::string Folder,
         std::cout << std::endl << "Done." << std::endl;
     }
 
-    // For each of the two models, proceed with the creation de EnveloppeCity.
+    // For each of the two models, proceed with the creation of EnveloppeCity.
     for (int model = 0; model < 2; ++model)
     {
       // Reminder: the reconstructed buildings might NOT correspond to the
       // CityGML original (semantic) buildings: refer to the above warning
       // about erroneously lumped building (successive geometrical unions)
-      // as a pr-etreatment of data realized prior to the usage of the present
+      // as a pre-treatment of data realized prior to the usage of the present
       // algorithm. In other terms the provided CityGML already contains
       // "corrupted data" (e.g. the fusion of spatially separated buildings
       // within a single CityGML "logical building).
@@ -419,7 +427,7 @@ ChangeDetectionRes CompareTiles(std::string Folder,
       // resulting EnveloppeCity by spatially disassociating the "original"
       // polygons that composed the lumped (United) building.
       // Note that we are constrained to reconstruct such a constituting
-      // list precisely because the considered United buildings were
+      // list precisely because the considered united buildings were
       // previously lumped/fusioned/merged through logical lumping.
       // Otherwise it would be possible to construct such lists directly
       // (in the above construction of EnveloppeCityU[i]) only if we
@@ -498,9 +506,9 @@ ChangeDetectionRes CompareTiles(std::string Folder,
               j--;
             }
           }
-        }
+        } // for ModelPolygons[model]->getNumGeometries()
         EnveloppeCity[model].push_back(finalBuilding);
-        BuildingID[model].push_back(finalBuildingID);
+        BuildingID[model]->push_back(finalBuildingID);
       }
     } // for model
 
@@ -508,11 +516,12 @@ ChangeDetectionRes CompareTiles(std::string Folder,
     // Based on the above convertions, the following part of the algorithm
     // can now trace the becoming of a building between its "oldest"
     // version to its "newest" version (or possibly versions).
-    std::pair<std::vector<std::vector<int> >, std::vector<std::vector<int> > > Compare = CompareBati(Folder,
-                          EnveloppeCityU[0],
-                          EnveloppeCityU[1],
-                          EnveloppeCity[0],
-                          EnveloppeCity[1]);
+    ChangeDetectionRes::BuildingFullCorrespondence* Compare
+                                          = CompareBati(Folder,
+                                                        EnveloppeCityU[0],
+                                                        EnveloppeCityU[1],
+                                                        EnveloppeCity[0],
+                                                        EnveloppeCity[1]);
 
     for (auto& it : EnveloppeCity[0]) delete it;
     for (auto& it : EnveloppeCity[1]) delete it;
@@ -525,28 +534,30 @@ ChangeDetectionRes CompareTiles(std::string Folder,
 
     for (int i = 0; i < EnveloppeCityU[0]->getNumGeometries(); ++i)
     {
-        if (Compare.first[i].size() == 0)
+        if (Compare->first[i].size() == 0)
             BatiDetruits->addGeometry(EnveloppeCityU[0]->getGeometryRef(i));
         else
         {
             bool modifie = false;
-            for (std::size_t j = 0; j < Compare.first[i].size(); j += 2)
+            for (std::size_t j = 0; j < Compare->first[i].size(); j += 2)
             {
-                if (Compare.first[i][j] == -2)
+                if (Compare->first[i][j] == -2)
                 {
                     modifie = true;
-                    BatiModifies2->addGeometry(EnveloppeCityU[1]->getGeometryRef(Compare.first[i][j + 1]));
+                    BatiModifies2->addGeometry(
+                       EnveloppeCityU[1]->getGeometryRef(
+                          Compare->first[i][j + 1]));
                 }
             }
             if (modifie)
                 BatiModifies1->addGeometry(EnveloppeCityU[0]->getGeometryRef(i));
             else
-                BatiInchanges->addGeometry(EnveloppeCityU[1]->getGeometryRef(Compare.first[i][1]));
+                BatiInchanges->addGeometry(EnveloppeCityU[1]->getGeometryRef(Compare->first[i][1]));
         }
     }
     for (int i = 0; i < EnveloppeCityU[1]->getNumGeometries(); ++i)
     {
-        if (Compare.second[i].size() == 0)
+        if (Compare->second[i].size() == 0)
             BatiCrees->addGeometry(EnveloppeCityU[1]->getGeometryRef(i));
     }
 
@@ -559,23 +570,26 @@ ChangeDetectionRes CompareTiles(std::string Folder,
     Res.BatiInchanges = BatiInchanges;
     Res.BatiModifies1 = BatiModifies1;
     Res.BatiModifies2 = BatiModifies2;
+    Res.BuildingID1   = BuildingID[0];
+    Res.BuildingID2   = BuildingID[1];
+    Res.Compare       = Compare;
 
-    //////////////////////////
-    // The following is kludgy temporary exploratory code designed to
-    // output an interpretation of the geometrical comparison.
-    //FIXME WIP std::pair< std::vector<std::vector<std::string> >,
-    //FIXME WIP            std::vector<std::vector<std::string> > > BuildingCorrespondencies;
-    int nbrInitialBuilding = EnveloppeCityU[0]->getNumGeometries();
-    int   nbrFinalBuilding = EnveloppeCityU[1]->getNumGeometries();
+    return Res;
+}
 
-    //FIXME WIP BuildingCorrespondencies.first.resize( nbrInitialBuilding );
-    //FIXME WIP BuildingCorrespondencies.second.resize( nbrFinalBuilding );
+void DumpIDCorrespondances(ChangeDetectionRes change,
+                           int time_stamp1,
+                           int time_stamp2)
+{
+    // WIP
+    int nbrInitialBuilding = change.EnveloppeCityU1->getNumGeometries();
+    int   nbrFinalBuilding = change.EnveloppeCityU2->getNumGeometries();
 
     for (int building_index = 0;
              building_index < nbrInitialBuilding;
              building_index++)
     {
-      std::cout << PolygonBuildingID[0][building_index];
+      std::cout << (*change.BuildingID1)[building_index];
       // The correspondence (the first vector returned by CompareBati())
       // encodes what has become of an "old" building (the following is
       // a derived copy of an illustration encountered in CompareBati()):
@@ -587,11 +601,10 @@ ChangeDetectionRes CompareTiles(std::string Folder,
       // correspondence[4]=[]:       building 4 disappeared
       // correspondence[5]=[ -2, 6, -2, 7]: building 5 was split into buildings
       //                                    6 and 7
-      auto correspondence = Compare.first[building_index];
+      auto correspondence = change.Compare->first[building_index];
       std::size_t corresondence_length = correspondence.size();
       if ( corresondence_length == 0 )
       {
-          //FIXME WIP BuildingCorrespondencies.first[building_index].push_back("Destroyed");
           std::cout << ": destroyed." << std::endl;
           continue;
       }
@@ -607,9 +620,9 @@ ChangeDetectionRes CompareTiles(std::string Folder,
 
       if ( corresondence_length == 2 )
       {
-         int change_status =  Compare.first[building_index][0];
-         int new_index     =  Compare.first[building_index][1];
-         auto new_id       =  PolygonBuildingID[1][new_index];
+         int change_status =  change.Compare->first[building_index][0];
+         int new_index     =  change.Compare->first[building_index][1];
+         auto new_id       =  (*change.BuildingID2)[new_index];
      
          if (change_status == -1)
          {
@@ -662,18 +675,18 @@ ChangeDetectionRes CompareTiles(std::string Folder,
       std::cout << ": subdivided into " << std::endl;
       for (std::size_t j = 0; j < corresondence_length; j += 2)
       {
-         int change_status =  Compare.first[building_index][j];
-         int new_index     =  Compare.first[building_index][j+1];
-         auto new_id       =  PolygonBuildingID[1][new_index];
+         int change_status =  change.Compare->first[building_index][j];
+         int new_index     =  change.Compare->first[building_index][j+1];
+         auto new_id       =  (*change.BuildingID2)[new_index];
 
          // Is it possible to have a change_status of -1 (geometry unchanged)
          // and still have many corresponding objects ?
          // (they should all be the same). 
-         if (change_status != -1)
+         if (change_status != -2)
          {
             // Debugging test
-            std::cout << "ERROR: yes they is an occurence of a change "
-                      << " status that is not -1 and its value is: "
+            std::cout << "ERROR: yes there is an occurence of a change "
+                      << " status that is not -2 and its value is: "
                       << change_status
                       << std::endl;
             continue;
@@ -702,16 +715,14 @@ ChangeDetectionRes CompareTiles(std::string Folder,
       // Among the buildings of the second geometries only the ones with
       // no correspondent in the first geometries are considered as new
       // ones.
-      auto correspondence = Compare.second[building_index];
+      auto correspondence = change.Compare->second[building_index];
       if ( correspondence.size() == 0 )
       {
-          auto new_id = PolygonBuildingID[1][building_index];
-          std::cout << new_id
-                    << " : Created."
-                    << std::endl;
-          continue;
+         auto new_id = (*change.BuildingID2)[building_index];
+         std::cout << new_id
+                   << " : Created."
+                   << std::endl;
+         continue;
       }
     }
-
-    return Res;
 }
