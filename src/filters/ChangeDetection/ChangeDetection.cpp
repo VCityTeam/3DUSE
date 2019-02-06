@@ -332,6 +332,8 @@ ChangeDetectionRes CompareTiles(std::string Folder,
                 continue;
             }
 
+            std::string buildingID = obj->getId();
+
             // A building is here reduced to its geometry represented
             // as an OGRMultiPolygon
             OGRMultiPolygon* Building = new OGRMultiPolygon;
@@ -345,7 +347,6 @@ ChangeDetectionRes CompareTiles(std::string Folder,
                     continue;
                 }
 
-                std::string buildingID = object->getId();
 
                 // Iteration on each geometry of the constituting object
                 for (citygml::Geometry* Geometry : object->getGeometries())
@@ -575,154 +576,4 @@ ChangeDetectionRes CompareTiles(std::string Folder,
     Res.Compare       = Compare;
 
     return Res;
-}
-
-void DumpIDCorrespondances(ChangeDetectionRes change,
-                           int time_stamp1,
-                           int time_stamp2)
-{
-    // WIP
-    int nbrInitialBuilding = change.EnveloppeCityU1->getNumGeometries();
-    int   nbrFinalBuilding = change.EnveloppeCityU2->getNumGeometries();
-
-    for (int building_index = 0;
-             building_index < nbrInitialBuilding;
-             building_index++)
-    {
-      std::cout << (*change.BuildingID1)[building_index];
-      // The correspondence (the first vector returned by CompareBati())
-      // encodes what has become of an "old" building (the following is
-      // a derived copy of an illustration encountered in CompareBati()):
-      // correspondence[0]=[ -1, 0]: building 0 keeps same index and unchanged
-      // correspondence[1]=[ -1, 2]: building 1 relabeled to become building 2
-      // correspondence[2]=[ -1, 1]: building 2 relabeled to become building 1
-      // correspondence[3]=[ -2, 4]: building 3 changed height and relabeled
-      //                             to 4
-      // correspondence[4]=[]:       building 4 disappeared
-      // correspondence[5]=[ -2, 6, -2, 7]: building 5 was split into buildings
-      //                                    6 and 7
-      auto correspondence = change.Compare->first[building_index];
-      std::size_t corresondence_length = correspondence.size();
-      if ( corresondence_length == 0 )
-      {
-          std::cout << ": destroyed." << std::endl;
-          continue;
-      }
-      // The building has one or possibly many associated future buildings
-      // but the encoding is a succession of (change_status, building_new_index)
-      // pairs and must thus have an even length.
-      if( ! corresondence_length %2 )
-      {
-        std::cout << "ERRONEOUS encoding of Compare: should always be even!"
-                  << std::endl;
-        continue;
-      }
-
-      if ( corresondence_length == 2 )
-      {
-         int change_status =  change.Compare->first[building_index][0];
-         int new_index     =  change.Compare->first[building_index][1];
-         auto new_id       =  (*change.BuildingID2)[new_index];
-     
-         if (change_status == -1)
-         {
-            if(building_index == new_index)
-            {
-               std::cout << ": unchanged (same geometry, same ID)."
-                         << std::endl;
-               continue;
-            } 
-            else 
-            {
-               std::cout << ": re-ided (same geometry, different ID) to ";
-               std::cout << new_id
-                         << std::endl;
-               continue;
-            } 
-            
-         }
-         else if (change_status == -2)
-         {
-            if(building_index == new_index)
-            {
-               // Debugging test
-               std::cout << "DAMNED YOU CAN CHANGE AND KEEP YOUR ID !?"
-                         << std::endl
-                         << "INQUIRE ON THIS !"
-                         << std::endl;
-               continue;
-            } 
-
-            std::cout << ": heightened (same footprint) to ";
-            std::cout << new_id
-                      << std::endl;
-            continue;
-         }
-         else
-         {
-            std::cout << "ERRONEOUS change status: must be -1 or -2."
-                      << std::endl;
-            continue;
-         }
-      }
-         
-      // We have more than one correpondent. The original building was
-      // thus either 
-      //   * split in sub-parts (while preserving its outside geometry)
-      //   * revamped to new buildings (with a new total footprint included
-      //     in the footprint of the original building): ASSERT THIS!
-
-      std::cout << ": subdivided into " << std::endl;
-      for (std::size_t j = 0; j < corresondence_length; j += 2)
-      {
-         int change_status =  change.Compare->first[building_index][j];
-         int new_index     =  change.Compare->first[building_index][j+1];
-         auto new_id       =  (*change.BuildingID2)[new_index];
-
-         // Is it possible to have a change_status of -1 (geometry unchanged)
-         // and still have many corresponding objects ?
-         // (they should all be the same). 
-         if (change_status != -2)
-         {
-            // Debugging test
-            std::cout << "ERROR: yes there is an occurence of a change "
-                      << " status that is not -2 and its value is: "
-                      << change_status
-                      << std::endl;
-            continue;
-         } 
-         std::cout << "          " << new_id;
-         if( j+2 < corresondence_length)
-         {
-            // Not the last item
-            std::cout << ",";
-         }
-         else
-         {
-            // This is the last item  
-            std::cout << ".";
-         }
-         std::cout << std::endl;
-      }
-    }
-
-    // Now deal with the new buildings that are to be found in the
-    // the second list of geometries
-    for (int building_index = 0;
-             building_index < nbrFinalBuilding;
-             building_index++)
-    {
-      // Among the buildings of the second geometries only the ones with
-      // no correspondent in the first geometries are considered as new
-      // ones.
-      auto correspondence = change.Compare->second[building_index];
-      if ( correspondence.size() == 0 )
-      {
-         auto new_id = (*change.BuildingID2)[building_index];
-         std::cout << new_id
-                   << " : Created."
-                   << std::endl;
-         continue;
-      }
-    }
 }

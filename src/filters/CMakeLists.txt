@@ -2,6 +2,7 @@ add_subdirectory( Test )
 
 add_library( filters SHARED
   ChangeDetection/ChangeDetection.cpp
+  ChangeDetection/ChangeDetectionDump.cpp
   EnhanceCityGML/EnhanceMNT.cpp
   EnhanceCityGML/LinkCityGMLShape.cpp
   ExtractRoof/ExtractRoof.cpp

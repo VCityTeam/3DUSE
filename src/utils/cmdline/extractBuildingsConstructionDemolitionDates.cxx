@@ -11,9 +11,13 @@
 namespace fs = boost::filesystem;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
+#include <boost/property_tree/json_parser.hpp> // Used for Json dump
+namespace pt = boost::property_tree;
+#include <boost/algorithm/string/join.hpp>
 
 #include "libcitygml/utils/tile.hpp"
 #include "filters/ChangeDetection/ChangeDetection.hpp"
+#include "filters/ChangeDetection/ChangeDetectionDump.hpp"
 #include "OGRGDALtoShpWriter.hpp"
 
 
@@ -161,8 +165,25 @@ int main(int argc, char** argv)
                                            tiles[date]->getCityModel(),
                                            tiles[date+1]->getCityModel() );
 
-    DumpIDCorrespondances(Res, vm["first_date"].as<int>(),
-                               vm["second_date"].as<int>());
+    ////////// Save the result as a GraphML Json version output file:
+
+    // Prepare the traces for the record into the file of the command line
+    // to be associated with the computed data:
+    pt::ptree comments;
+
+    comments.put("_comment-a",
+         std::string("This is the output of 3DUse ChangeDetection algorithm")
+                   + "of 3DUse, launched with the following command line");
+
+    std::vector<std::string> params(argv, argv+argc);
+    std::string cmd_line = boost::algorithm::join(params, " ");
+    comments.put("_comment-b", cmd_line);
+
+    DumpIDCorrespondancesJson(Res, 
+                              vm["first_date"].as<int>(),
+                              vm["second_date"].as<int>(),
+                              outputFolderPathName + "/DifferencesAsGraph.json",
+                              comments);
 
     // Save the resulting shape files:
     SaveGeometrytoShape( outputFolderPathName + "/BatisOld.shp",
