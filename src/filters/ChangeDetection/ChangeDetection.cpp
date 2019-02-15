@@ -20,12 +20,12 @@ CompareBati( std::string Folder,
              std::vector<OGRMultiPolygon* > Geo1P,
              std::vector<OGRMultiPolygon *> Geo2P )
 {
-    // The result of this function is an encoding of the discovered 
+    // The result of this function is an encoding of the discovered
     // relationships that exist between the Geo1 and Geo2 polygones.
     // When a given sub-polygon of Geo1 is in (geometrical) relationship
-    // with some sub-polygon of Geo1, then 
+    // with some sub-polygon of Geo1, then
     //   - the index is preceded by -1 to indicate it is unchanged
-    //   - the index is preceded by -2 to indicate it has changed. 
+    //   - the index is preceded by -2 to indicate it has changed.
     // The follogwing result illustrates the different cases that can be
     // discoverd and encoded:
     //   [    // The first vector encodes what has become of "old" buildings
@@ -53,7 +53,10 @@ CompareBati( std::string Folder,
 
     Res->first.resize(NbGeo1);
     Res->second.resize(NbGeo2);
-
+    std::cout << "Building number for initial timestamp : " << NbGeo1
+              << std::endl;
+    std::cout << "Building number for final timestamp : " << NbGeo2
+              << std::endl;
     //OGRMultiPolygon* PolyZonesCommunes = new OGRMultiPolygon;
 
     for (int i = 0; i < NbGeo1; ++i)
@@ -95,7 +98,7 @@ CompareBati( std::string Folder,
             double val1 = (Bati1->get_Area() - Area) / Area;
             double val2 = (Bati2->get_Area() - Area) / Area;
 
-            if (   val1 < 0.01 
+            if (   val1 < 0.01
                 && val2 < 0.01
                 && Bati1->get_Area() - Area < 5
                 && Bati2->get_Area() - Area < 5)
@@ -337,6 +340,12 @@ ChangeDetectionRes CompareTiles(std::string Folder,
             // A building is here reduced to its geometry represented
             // as an OGRMultiPolygon
             OGRMultiPolygon* Building = new OGRMultiPolygon;
+
+            // In CityGML version 2 a BuildingPart is inserted
+            if (obj->getChildren()[0]->getType() == citygml::COT_BuildingPart)
+            {
+                obj = obj->getChildren()[0];
+            }
 
             // Iteration on all the (cityGML) objects (Wall, Roof, ...)
             // that belong to the considered building:

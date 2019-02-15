@@ -15,7 +15,7 @@ namespace pt = boost::property_tree;
 
 // The global (accross all time stamps) identifier is a string with
 //  - a time stamp followed by
-//  - a double colon ("::") 
+//  - a double colon ("::")
 //  - the GmlId of some building
 std::string to_global_id(int time_stamp, std::string gmlId )
 {
@@ -33,7 +33,7 @@ std::string to_global_id(int time_stamp, std::string gmlId )
  * At this level of abstraction (where geometry is set aside) the
  * correspondance between buildings considered at two time stamps can
  * be seen as a graph where the nodes are the building identifiers and
- * the edges the correspondences between old and new building. 
+ * the edges the correspondences between old and new building.
  * Such a graph can be expressed in THE de facto standard graph format
  * that is GraphML. Nevertheless we here chose to use the Json adaptation
  * of  GraphML instead of its standard XML format.
@@ -70,7 +70,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
 
   pt::ptree nodes;
 
-  // And first with register the nodes corresponding to the first time_stamp1 
+  // And first with register the nodes corresponding to the first time_stamp1
   int nbrInitialBuilding = change.EnveloppeCityU1->getNumGeometries();
   for (int building_index = 0;
            building_index < nbrInitialBuilding;
@@ -85,7 +85,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
     nodes.push_back(std::make_pair("", node));
   }
 
-  // Then register the nodes corresponding to the second time_stamp1 
+  // Then register the nodes corresponding to the second time_stamp1
   int   nbrFinalBuilding = change.EnveloppeCityU2->getNumGeometries();
   for (int building_index = 0;
            building_index < nbrFinalBuilding;
@@ -169,45 +169,34 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
         exit (EXIT_FAILURE);
       }
       int target_node_id = iter->second;
-     
+
       if (change_status == -1)
       {
-        if(building_index == new_index)
+        pt::ptree edge;
+        edge.put("id", boost::lexical_cast<std::string>(edge_index++));
+        edge.put("source", source_node_id);
+        edge.put("target", target_node_id);
+        std::string building_GMLid = (*change.BuildingID1)[building_index];
+        std::string      new_GMLid = (*change.BuildingID2)[new_index];
+
+        if(building_GMLid == new_GMLid)
         {
           // The building is unchanged: same geometry, same (gml) ID.
           // Define an edge:
-          pt::ptree edge;
-          edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-          edge.put("source", source_node_id);
-          edge.put("target", target_node_id);
-          edge.put("comment", "Unchanged: same geometry, same ID");
-          edges.push_back(std::make_pair("", edge));
-          continue;
-        } 
-        else 
+          edge.put("comment", "Unchanged: same geometry, same GML ID");
+        }
+        else
         {
           // The building was re-ided: same geometry, different (gml) ID
           // Define an edge:
-          pt::ptree edge;
-          edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-          edge.put("source", source_node_id);
-          edge.put("target", target_node_id);
-          edge.put("comment", "Re-ided: same geometry, different ID");
-          edges.push_back(std::make_pair("", edge));
-          continue;
-        } 
+          edge.put("comment", "Re-ided: same geometry, different GML ID");
+        }
+        edges.push_back(std::make_pair("", edge));
+        continue;
       }
       else if (change_status == -2)
       {
-        if(building_index == new_index)
-        {
-          std::cout << "DAMNED YOU CAN CHANGE AND KEEP YOUR ID !?"
-                    << std::endl
-                    << "INQUIRE ON THIS !"
-                    << std::endl;
-          exit (EXIT_FAILURE);
-        } 
-  
+
         // The building footprint is unchanged but its geometry has changed
         // e.g. it was heightened: same footprint geometry, different (gml) ID
         pt::ptree edge;
@@ -224,10 +213,10 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
                   << std::endl;
         exit (EXIT_FAILURE);
       }
-    } // correspondence_length == 2 
-         
+    } // correspondence_length == 2
+
     // We have more than one building correpondent. The original building was
-    // thus either 
+    // thus either
     //   * split in sub-parts (while preserving its outside geometry)
     //   * revamped to new buildings (with a new total footprint included
     //     in the footprint of the original building): ASSERT THIS!
@@ -240,7 +229,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
                                            (*change.BuildingID2)[new_index]);
       iter = ReverseNodeIndex.find(target_id);
       if (iter == ReverseNodeIndex.end())
-      { 
+      {
         std::cout << "Unfound target id within ReverseNodeIndex: "
                   << target_id
                   << std::endl;
@@ -250,7 +239,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
 
       // Is it possible to have a change_status of -1 (geometry unchanged)
       // and still have many corresponding objects ?
-      // (they should all be the same). 
+      // (they should all be the same).
       if (change_status != -2)
       {
          std::cout << "ERROR: yes there is an occurence of a change "
@@ -258,7 +247,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
                    << change_status
                    << std::endl;
          exit (EXIT_FAILURE);
-      } 
+      }
 
       // The building has many correspondent building and hence was subdivided
       // in many buldings: add an edge for each correpsonding building:
@@ -287,7 +276,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
 void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
                            int time_stamp1,
                            int time_stamp2)
-{    
+{
   int nbrInitialBuilding = change.EnveloppeCityU1->getNumGeometries();
   int   nbrFinalBuilding = change.EnveloppeCityU2->getNumGeometries();
   for (int building_index = 0;
@@ -328,7 +317,7 @@ void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
        int change_status =  change.Compare->first[building_index][0];
        int new_index     =  change.Compare->first[building_index][1];
        auto new_id       =  (*change.BuildingID2)[new_index];
-   
+
        if (change_status == -1)
        {
           if(building_index == new_index)
@@ -336,15 +325,15 @@ void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
              std::cout << ": unchanged (same geometry, same ID)."
                        << std::endl;
              continue;
-          } 
-          else 
+          }
+          else
           {
              std::cout << ": re-ided (same geometry, different ID) to ";
              std::cout << new_id
                        << std::endl;
              continue;
-          } 
-          
+          }
+
        }
        else if (change_status == -2)
        {
@@ -356,7 +345,7 @@ void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
                        << "INQUIRE ON THIS !"
                        << std::endl;
              continue;
-          } 
+          }
 
           std::cout << ": heightened (same footprint) to ";
           std::cout << new_id
@@ -370,9 +359,9 @@ void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
           continue;
        }
     }
-       
+
     // We have more than one correpondent. The original building was
-    // thus either 
+    // thus either
     //   * split in sub-parts (while preserving its outside geometry)
     //   * revamped to new buildings (with a new total footprint included
     //     in the footprint of the original building): ASSERT THIS!
@@ -386,7 +375,7 @@ void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
 
        // Is it possible to have a change_status of -1 (geometry unchanged)
        // and still have many corresponding objects ?
-       // (they should all be the same). 
+       // (they should all be the same).
        if (change_status != -2)
        {
           // Debugging test
@@ -395,7 +384,7 @@ void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
                     << change_status
                     << std::endl;
           continue;
-       } 
+       }
        std::cout << "          " << new_id;
        if( j+2 < corresondence_length)
        {
@@ -404,7 +393,7 @@ void DumpIDCorrespondancesDebug(ChangeDetectionRes change,
        }
        else
        {
-          // This is the last item  
+          // This is the last item
           std::cout << ".";
        }
        std::cout << std::endl;
