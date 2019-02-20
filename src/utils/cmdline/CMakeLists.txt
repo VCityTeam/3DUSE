@@ -25,3 +25,22 @@ target_link_libraries(extractBuildingDates
   filters       ## For ChangeDetection()
   ${Boost_LIBRARIES}
 )
+
+### Split buildings
+add_executable( splitCityGMLBuildings
+  splitCityGMLBuildings.cxx
+)
+
+if( WIN32 )
+  # Refer above
+  target_compile_definitions( splitCityGMLBuildings PRIVATE
+                              "BOOST_ALL_DYN_LINK=1")
+endif()
+
+target_link_libraries(splitCityGMLBuildings
+  vcitycore     ## For SaveGeometrytoShape()
+  citygmlutils  ## For the Tile class
+  filters       ## For SplitBuildingsFromCityGML (in EnhanceCityGML)
+  ${Boost_LIBRARIES}
+)
+

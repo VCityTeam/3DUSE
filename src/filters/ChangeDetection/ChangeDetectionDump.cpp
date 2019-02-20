@@ -60,6 +60,13 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
   //     https://github.com/gregors/graphml2json
   //   Reference: some graphml (XML) example files look here
   //     https://gephi.org/users/supported-graph-formats/graphml-format/
+  //
+  // Note concerning boost::ptree's write_json is well known for not conforming
+  // to JSON standard: refer to e.g.
+  //  - https://svn.boost.org/trac10/ticket/9721
+  //  - https://stackoverflow.com/questions/2855741/why-boost-property-tree-write-json-saves-everything-as-string-is-it-possible-to
+  // The undesired side effect is that Node and Edge ids will be serialized as
+  // json strings (e.g. "45") as oppose to json integers (e.g. 45)
   pt::ptree graph;
   graph.add_child("_comments", comment);
 
