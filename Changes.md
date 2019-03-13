@@ -1,5 +1,6 @@
 # 3DUse Changes
 
+
 0.5.0 (18 July 2017)
 --------------------
  * Removal of webgl (now within a separate github repo)
