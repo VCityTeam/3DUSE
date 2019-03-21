@@ -95,6 +95,7 @@ CompareBati( std::string Folder,
                 delete tmp;
             }
 
+
             double val1 = (Bati1->get_Area() - Area) / Area;
             double val2 = (Bati2->get_Area() - Area) / Area;
 
@@ -484,31 +485,25 @@ ChangeDetectionRes CompareTiles(std::string Folder,
             || Inter->getGeometryType() == wkbMultiPolygon
             || Inter->getGeometryType() == wkbMultiPolygon25D)
             {
-              finalBuilding->addGeometry(geomRef);
-              ModelPolygons[model]->removeGeometry(j);
+              // If it is already set to another ID, then we create a new
+              // final building because we happen to encounter a  building
+              // that was semantically separated in multiple
+              // sub-buildings in the original loaded dataset
+              // (but its semantically defined sub-buildings
+              // are geometrically lumped)
+              if( finalBuildingID != "_UNSET_" &&
+               finalBuildingID != PolygonBuildingID[model][j] )
+              {
+                continue;
+              }
 
               if( finalBuildingID == "_UNSET_" )
               {
                 finalBuildingID = PolygonBuildingID[model][j];
               }
-              else
-              {
-                // Asserting that all is well
-                if( finalBuildingID != PolygonBuildingID[model][j] )
-                {
-                   std::cout << "WARNING"
-                             << "   All polygon ID of this building shoud be "
-                             << std::endl
-                             << "   "
-                             << finalBuildingID
-                             << std::endl
-                             << "   but instead this identifier was found "
-                             << std::endl
-                             << "   "
-                             << PolygonBuildingID[model][j]
-                             << std::endl;
-                }
-              }
+
+              finalBuilding->addGeometry(geomRef);
+              ModelPolygons[model]->removeGeometry(j);
               // Purge the associated BuildingID in order to keep
               // ModelPolygons[i] and PolygonBuildingID[i] aligned.
               PolygonBuildingID[model].erase(
