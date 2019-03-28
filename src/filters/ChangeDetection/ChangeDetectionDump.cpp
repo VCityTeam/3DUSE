@@ -85,11 +85,18 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
   {
     std::string global_id = to_global_id(time_stamp1,
                                           (*change.BuildingID1)[building_index]);
-    ReverseNodeIndex.emplace(global_id, node_index);
-    pt::ptree node;
-    node.put("id", boost::lexical_cast<std::string>(node_index++));
-    node.put("globalid", global_id);
-    nodes.push_back(std::make_pair("", node));
+    // Check if this global id is already in the map (i.e. in the nodes of the graph) to avoid
+    // duplications. This can happen because, at the begining of ChangeDetection,
+    // "semantic buildings" as defined in CityGML are split in parts which are in a connected space.
+    // Hence, if a "semantic building" (having one ID) is split into multiple parts,
+    // each part will have the the same ID (of the original "semantic building").
+    if (ReverseNodeIndex.count(global_id) == 0) {
+        ReverseNodeIndex.emplace(global_id, node_index);
+        pt::ptree node;
+        node.put("id", boost::lexical_cast<std::string>(node_index++));
+        node.put("globalid", global_id);
+        nodes.push_back(std::make_pair("", node));
+    }
   }
 
   // Then register the nodes corresponding to the second time_stamp1
@@ -100,11 +107,13 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
   {
     std::string global_id = to_global_id(time_stamp2,
                                          (*change.BuildingID2)[building_index]);
-    ReverseNodeIndex.emplace(global_id, node_index);
-    pt::ptree node;
-    node.put("id", boost::lexical_cast<std::string>(node_index++));
-    node.put("globalid", global_id);
-    nodes.push_back(std::make_pair("", node));
+    if (ReverseNodeIndex.count(global_id) == 0) {
+        ReverseNodeIndex.emplace(global_id, node_index);
+        pt::ptree node;
+        node.put("id", boost::lexical_cast<std::string>(node_index++));
+        node.put("globalid", global_id);
+        nodes.push_back(std::make_pair("", node));
+    }
   }
 
   // We are done with the nodes.
@@ -222,7 +231,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
       }
     } // correspondence_length == 2
 
-    // We have more than one building correpondent. The original building was
+    // We have more than one building correspondent. The original building was
     // thus either
     //   * split in sub-parts (while preserving its outside geometry)
     //   * revamped to new buildings (with a new total footprint included
@@ -257,7 +266,7 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
       }
 
       // The building has many correspondent building and hence was subdivided
-      // in many buldings: add an edge for each correpsonding building:
+      // in many buldings: add an edge for each corresponding building:
       pt::ptree edge;
       edge.put("id", boost::lexical_cast<std::string>(edge_index++));
       edge.put("source", source_node_id);
