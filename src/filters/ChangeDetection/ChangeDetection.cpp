@@ -5,9 +5,11 @@
 
 #include "ChangeDetection.hpp"
 #include "utils/OGRGDAL_Utils/OGRGDALtools.hpp"
+#include <typeinfo>
 
 /**
-* @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens : si un polygone se retrouve de maniere identique dans les deux ensembles de geometries, dans un seul ou s'il a ete modifie
+* @brief Compare deux ensembles de geometries en retournant les liens entre leurs polygones et l'information sur ces liens :
+* si un polygone se retrouve de maniere identique dans les deux ensembles de geometries, dans un seul ou s'il a ete modifie
 * @param Geo1 Premier ensemble de geometries qui ont ete unies : deux triangles voisins sont reunis en un rectangle par exemple
 * @param Geo2 Second ensemble de geometries qui ont ete unies
 * @param Geo1P Premier ensemble de geometries non unies : pour un polygone de Geo1, il donne la liste des polygones non unis qui le composent
@@ -59,6 +61,8 @@ CompareBati( std::string Folder,
               << std::endl;
     //OGRMultiPolygon* PolyZonesCommunes = new OGRMultiPolygon;
 
+    // Comparison of all the buildings from Geo1 (i.e. EnveloppeCityU[0]) with all
+    // the buildings from Geo2 (i.e. EnveloppecityU[1])
     for (int i = 0; i < NbGeo1; ++i)
     {
         OGRPolygon * Bati1 = (OGRPolygon *)Geo1->getGeometryRef(i)->clone();
@@ -76,6 +80,7 @@ CompareBati( std::string Folder,
 
             OGRwkbGeometryType Type = Intersection->getGeometryType();
 
+            // Manage GDAL different possible types
             if (Type == OGRwkbGeometryType::wkbPolygon || Type == OGRwkbGeometryType::wkbPolygon25D)
             {
                 OGRPolygon * tmp = (OGRPolygon *)(Intersection);
@@ -95,16 +100,22 @@ CompareBati( std::string Folder,
                 delete tmp;
             }
 
-
+            // Compute relative difference between intersection area (Area)
+            // and the area of each building; i.e. relative error computation
             double val1 = (Bati1->get_Area() - Area) / Area;
             double val2 = (Bati2->get_Area() - Area) / Area;
 
+            // ** Detection of identical buildings
+            // If relative error is less than 1% and absolute error is
+            // relatively small, the polygons are consired identical i.e.
+            // the footprints of the buildings are identical
             if (   val1 < 0.01
                 && val2 < 0.01
                 && Bati1->get_Area() - Area < 5
                 && Bati2->get_Area() - Area < 5)
-            // We consider the polygons to be identical:
             {
+                // Compute Hausdorff distance to check whether the building has been
+                // heightened or not
                 if (DistanceHausdorff(Geo1P.at(i), Geo2P.at(j)) < 1)
                 //The Hausdorff distance between the two buildings is less
                 // than 5 meters:
@@ -128,14 +139,34 @@ CompareBati( std::string Folder,
                 }
             }
 
-            //// Si on arrive jusqu'ici, les premiers tests disent que les deux batiments sont respectivement detruit/construit. Dernier test pour extraire les batiments qui ont des parties identiques => batiment modifie
+            // ** Detection of possibly subdivided and fused buildings
+            // abs(val1) < 0.01 => multiple buildings are fused into Bati2 and Bati1 is one of them
+            // abs(val2) < 0.01 => Bati1 is subdivided in multiple buildings and Bati2 is one of them
+            if (abs(val1) < 0.01 || abs(val2) < 0.01) {
+                // We push a modification relationship (-2) with the relevant indices (i and j).
+                // This will be interpreted as a subdivision (resp. fusion) in ChangeDetectionDump.cpp
+                // if there is more than one building found corresponding to Bati1 (resp. Bati2)
+                Res->first[i].push_back(-2);
+                Res->second[j].push_back(-2);
+                Res->first[i].push_back(j);
+                Res->second[j].push_back(i);
+                continue;
+            }
+
+            // ** Obscure comparisons which also seems to test for subdivision?
+            //// Si on arrive jusqu'ici, les premiers tests disent que les deux
+            /// batiments sont respectivement detruit/construit. Dernier test pour extraire
+            /// les batiments qui ont des parties identiques => batiment modifie
             OGRMultiPolygon* ZonesCommunes = new OGRMultiPolygon;
 
+            // Loop on every polygon on current building (from Geo1P i.e. EnveloppeCity)
             for (int u = 0; u < Geo1P.at(i)->getNumGeometries(); ++u)
             {
+                // Poly1 = u-th polygon within i-th building
                 OGRPolygon* Poly1 = (OGRPolygon*)Geo1P.at(i)->getGeometryRef(u);
                 if (Poly1 == NULL)
                     continue;
+
                 for (int v = 0; v < Geo2P.at(j)->getNumGeometries(); ++v)
                 {
                     OGRPolygon* Poly2 = (OGRPolygon*)Geo2P.at(j)->getGeometryRef(v);
@@ -303,8 +334,8 @@ ChangeDetectionRes CompareTiles(std::string Folder,
     // This United polygonal representation of a building is better adapted
     // when wishing to identify each building with its single polygon envelope.
     OGRMultiPolygon * EnveloppeCityU[2];
-    EnveloppeCityU[0] = new OGRMultiPolygon;//nullptr;
-    EnveloppeCityU[1] = new OGRMultiPolygon;//nullptr;
+    EnveloppeCityU[0] = new OGRMultiPolygon;
+    EnveloppeCityU[1] = new OGRMultiPolygon;
 
     // Sets of geometries (used as auxillary within the scope of this
     // algorithm) holding all the polygons constituting the buildings of
@@ -401,15 +432,10 @@ ChangeDetectionRes CompareTiles(std::string Folder,
                 // envelopes (refer above on the distinction between
                 // EnveloppeCity and EnveloppeCityU).
                 OGRMultiPolygon * Enveloppe = GetEnveloppe(Building);
-                if (EnveloppeCityU[i] == nullptr)
+
+                for (int g = 0; g < Enveloppe->getNumGeometries(); ++g)
                 {
-                  EnveloppeCityU[i] = Enveloppe;
-                }
-                else
-                {
-                  OGRMultiPolygon * tmp = EnveloppeCityU[i];
-                  EnveloppeCityU[i] = (OGRMultiPolygon *)tmp->Union(Enveloppe);
-                  delete tmp;
+                    EnveloppeCityU[i]->addGeometry((OGRPolygon*)Enveloppe->getGeometryRef(g));
                 }
             }
 
@@ -418,11 +444,11 @@ ChangeDetectionRes CompareTiles(std::string Folder,
             std::cout << "    Converting building: "
             << buildingNumber << "/" << model->getCityObjectsRoots().size()
             << " \r" << std::flush;
-
         } // for loop on CityGML objects
         std::cout << std::endl << "Done." << std::endl;
     }
 
+    std::cout << "Internal buildings pre-processing..." << std::endl;
     // For each of the two models, proceed with the creation of EnveloppeCity.
     for (int model = 0; model < 2; ++model)
     {
@@ -485,12 +511,12 @@ ChangeDetectionRes CompareTiles(std::string Folder,
             || Inter->getGeometryType() == wkbMultiPolygon
             || Inter->getGeometryType() == wkbMultiPolygon25D)
             {
-              // If it is already set to another ID, then we create a new
-              // final building because we happen to encounter a  building
-              // that was semantically separated in multiple
-              // sub-buildings in the original loaded dataset
-              // (but its semantically defined sub-buildings
-              // are geometrically lumped)
+              // If it is already set to another ID, then we skip this polygon
+              // because we happen to encounter a polygon from another building
+              // that also intersects the current final building.
+              // This is also called the leaning tower of Pisa ('Tour de Pise') problem
+              // Note: To manage this case correctly, we should store all the different identifiers
+              // found for a given building and keep the one for which there is the most occurences.
               if( finalBuildingID != "_UNSET_" &&
                finalBuildingID != PolygonBuildingID[model][j] )
               {
@@ -516,6 +542,7 @@ ChangeDetectionRes CompareTiles(std::string Folder,
         BuildingID[model]->push_back(finalBuildingID);
       }
     } // for model
+    std::cout << "Done." << std::endl;
 
     /////////////
     // Based on the above convertions, the following part of the algorithm
