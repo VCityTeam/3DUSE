@@ -170,110 +170,141 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
       continue;
     }
 
-    if ( correspondence_length == 2 )
+    int change_status = change.Compare->first[building_index][0];
+
+    if (change_status == -1)
     {
-      int change_status     =  change.Compare->first[building_index][0];
-      int new_index         =  change.Compare->first[building_index][1];
-      std::string target_id = to_global_id(time_stamp2,
-                                           (*change.BuildingID2)[new_index]);
-      iter = ReverseNodeIndex.find(target_id);
-      if (iter == ReverseNodeIndex.end())
-      {
-        std::cout << "Unfound target id within ReverseNodeIndex: "
-                  << target_id
-                  << std::endl;
-        exit (EXIT_FAILURE);
-      }
-      int target_node_id = iter->second;
+        // The geometry of the building is unchanged
+        if (correspondence_length == 2) {
+            int new_index         =  change.Compare->first[building_index][1];
+            std::string target_id = to_global_id(time_stamp2,
+                                               (*change.BuildingID2)[new_index]);
+            iter = ReverseNodeIndex.find(target_id);
+            if (iter == ReverseNodeIndex.end())
+            {
+                std::cout << "Unfound target id within ReverseNodeIndex: "
+                          << target_id
+                          << std::endl;
+                exit (EXIT_FAILURE);
+            }
+            int target_node_id = iter->second;
 
-      if (change_status == -1)
-      {
-        pt::ptree edge;
-        edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-        edge.put("source", source_node_id);
-        edge.put("target", target_node_id);
-        std::string building_GMLid = (*change.BuildingID1)[building_index];
-        std::string      new_GMLid = (*change.BuildingID2)[new_index];
+            pt::ptree edge;
+            edge.put("id", boost::lexical_cast<std::string>(edge_index++));
+            edge.put("source", source_node_id);
+            edge.put("target", target_node_id);
+            std::string building_GMLid = (*change.BuildingID1)[building_index];
+            std::string      new_GMLid = (*change.BuildingID2)[new_index];
 
-        if(building_GMLid == new_GMLid)
-        {
-          // The building is unchanged: same geometry, same (gml) ID.
-          // Define an edge:
-          edge.put("comment", "Unchanged: same geometry, same GML ID");
+            if(building_GMLid == new_GMLid)
+            {
+              // The building is unchanged: same geometry, same (gml) ID.
+              // Define an edge:
+              edge.put("comment", "Unchanged: same geometry, same GML ID");
+            }
+            else
+            {
+              // The building was re-ided: same geometry, different (gml) ID
+              // Define an edge:
+              edge.put("comment", "Re-ided: same geometry, different GML ID");
+            }
+            edges.push_back(std::make_pair("", edge));
+            continue;
         }
         else
         {
-          // The building was re-ided: same geometry, different (gml) ID
-          // Define an edge:
-          edge.put("comment", "Re-ided: same geometry, different GML ID");
+           // ERROR change status == -1 implies that there is only one correspondent
+           std::cout << "ERROR: Occurence of unchanged object but having "
+                     << " multiple correspondents. "
+                     << std::endl;
+           exit (EXIT_FAILURE);
         }
-        edges.push_back(std::make_pair("", edge));
-        continue;
-      }
-      else if (change_status == -2)
-      {
+    }
+    else if (change_status == -2)
+    {
+        // The geometry of the building has changed
+        if(correspondence_length == 2)
+        {
+            // The original building has either been modified or merged (with other
+            // buildings) into the target building
+            int new_index = change.Compare->first[building_index][1];
+            std::string target_id = to_global_id(time_stamp2,
+                                               (*change.BuildingID2)[new_index]);
+            iter = ReverseNodeIndex.find(target_id);
+            if (iter == ReverseNodeIndex.end())
+            {
+                std::cout << "Unfound target id within ReverseNodeIndex: "
+                          << target_id
+                          << std::endl;
+                exit (EXIT_FAILURE);
+            }
+            int target_node_id = iter->second;
 
-        // The building footprint is unchanged but its geometry has changed
-        // e.g. it was heightened: same footprint geometry, different (gml) ID
-        pt::ptree edge;
-        edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-        edge.put("source", source_node_id);
-        edge.put("target", target_node_id);
-        edge.put("comment", "Heightened: same footprint geometry, different ID");
-        edges.push_back(std::make_pair("", edge));
-        continue;
-      }
-      else
-      {
+            pt::ptree edge;
+            edge.put("id", boost::lexical_cast<std::string>(edge_index++));
+            edge.put("source", source_node_id);
+            edge.put("target", target_node_id);
+
+            // Check the length of the correspondence of the target building
+            // to find out if the original building has been modified (1->1 relationship)
+            // or merged with others into the target building
+            auto reverse_correspondence = change.Compare->second[new_index];
+            std::size_t reverse_correspondence_length = reverse_correspondence.size();
+
+            if(reverse_correspondence_length == 2) {
+                // The building geometry has changed
+                // e.g. it was heightened; its footprint geometry changed, etc.
+                edge.put("comment", "Modification: Modified geometry, different ID");
+            }
+            else {
+                // The target building has more than one correspondent in the original buildings
+                // list (i.e. the original building has been merged with others in the target building)
+                // Note that the other nodes merged with the current original building into the target
+                // building will be managed later in this building for loop
+                edge.put("comment", "Fusion: Merged (with others) into target");
+            }
+            edges.push_back(std::make_pair("", edge));
+            continue;
+        }
+
+        // We have more than one building correspondent. The original building was
+        // thus either
+        //   * split in sub-parts (while preserving its outside geometry)
+        //   * revamped to new buildings (with a new total footprint included
+        //     in the footprint of the original building): ASSERT THIS!
+
+        for (std::size_t j = 0; j < correspondence_length; j += 2)
+        {
+          int change_status =  change.Compare->first[building_index][j];
+          int new_index     =  change.Compare->first[building_index][j+1];
+          std::string target_id = to_global_id(time_stamp2,
+                                               (*change.BuildingID2)[new_index]);
+          iter = ReverseNodeIndex.find(target_id);
+          if (iter == ReverseNodeIndex.end())
+          {
+            std::cout << "Unfound target id within ReverseNodeIndex: "
+                      << target_id
+                      << std::endl;
+            exit (EXIT_FAILURE);
+          }
+          int target_node_id = iter->second;
+
+          // The building has many correspondent building and hence was subdivided
+          // in many buldings: add an edge for each corresponding building:
+          pt::ptree edge;
+          edge.put("id", boost::lexical_cast<std::string>(edge_index++));
+          edge.put("source", source_node_id);
+          edge.put("target", target_node_id);
+          edge.put("comment", "Subdivided into (many) buildings");
+          edges.push_back(std::make_pair("", edge));
+        }  // for on correspondence_length
+    }
+    else
+    {
         std::cout << "ERRONEOUS change status: must be -1 or -2."
                   << std::endl;
         exit (EXIT_FAILURE);
-      }
-    } // correspondence_length == 2
-
-    // We have more than one building correspondent. The original building was
-    // thus either
-    //   * split in sub-parts (while preserving its outside geometry)
-    //   * revamped to new buildings (with a new total footprint included
-    //     in the footprint of the original building): ASSERT THIS!
-
-    for (std::size_t j = 0; j < correspondence_length; j += 2)
-    {
-      int change_status =  change.Compare->first[building_index][j];
-      int new_index     =  change.Compare->first[building_index][j+1];
-      std::string target_id = to_global_id(time_stamp2,
-                                           (*change.BuildingID2)[new_index]);
-      iter = ReverseNodeIndex.find(target_id);
-      if (iter == ReverseNodeIndex.end())
-      {
-        std::cout << "Unfound target id within ReverseNodeIndex: "
-                  << target_id
-                  << std::endl;
-        exit (EXIT_FAILURE);
-      }
-      int target_node_id = iter->second;
-
-      // Is it possible to have a change_status of -1 (geometry unchanged)
-      // and still have many corresponding objects ?
-      // (they should all be the same).
-      if (change_status != -2)
-      {
-         std::cout << "ERROR: yes there is an occurence of a change "
-                   << " status that is not -2 and its value is: "
-                   << change_status
-                   << std::endl;
-         exit (EXIT_FAILURE);
-      }
-
-      // The building has many correspondent building and hence was subdivided
-      // in many buldings: add an edge for each corresponding building:
-      pt::ptree edge;
-      edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-      edge.put("source", source_node_id);
-      edge.put("target", target_node_id);
-      edge.put("comment", "Subdivided into (many) buildings");
-      edges.push_back(std::make_pair("", edge));
-    }  // for on correspondence_length
+    }
   }  // For on buildings
 
   // We are done with the nodes.

@@ -139,7 +139,7 @@ CompareBati( std::string Folder,
                 }
             }
 
-            // ** Detection of possibly subdivided and fused buildings
+            // ** Detection of possibly subdivided and merged buildings
             // abs(val1) < 0.01 => multiple buildings are fused into Bati2 and Bati1 is one of them
             // abs(val2) < 0.01 => Bati1 is subdivided in multiple buildings and Bati2 is one of them
             if (abs(val1) < 0.01 || abs(val2) < 0.01) {
