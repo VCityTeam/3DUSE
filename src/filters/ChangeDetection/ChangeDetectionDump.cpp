@@ -67,6 +67,9 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
   //  - https://stackoverflow.com/questions/2855741/why-boost-property-tree-write-json-saves-everything-as-string-is-it-possible-to
   // The undesired side effect is that Node and Edge ids will be serialized as
   // json strings (e.g. "45") as oppose to json integers (e.g. 45)
+  //
+  // Concerning the output attributes, see:
+  // https://github.com/MEPP-team/VCity/wiki/DesignNote037#ouput-of-extractbuildingsconstructiondemolitiondates
   pt::ptree graph;
   graph.add_child("_comments", comment);
 
@@ -201,15 +204,15 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
 
         if(building_GMLid == new_GMLid)
         {
-          // The building is unchanged: same geometry, same (gml) ID.
-          // Define an edge:
-          edge.put("comment", "Unchanged: same geometry, same GML ID");
+            // The building is unchanged: same geometry, same (gml) ID.
+            edge.put("type", "replace");
+            edge.put("tags", "unchanged");
         }
         else
         {
-          // The building has been re-ided: same geometry, different (gml) ID
-          // Define an edge:
-          edge.put("comment", "Re-ided: same geometry, different GML ID");
+            // The building has been re-ided: same geometry, different (gml) ID
+            edge.put("type", "replace");
+            edge.put("tags", "re-ided");
         }
         edges.push_back(std::make_pair("", edge));
         continue;
@@ -246,16 +249,18 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
             std::size_t reverse_correspondence_length = reverse_correspondence.size();
 
             if(reverse_correspondence_length == 2) {
-                // The building geometry has changed
+                // The building geometry and ID have changed
                 // e.g. it was heightened; its footprint geometry changed, etc.
-                edge.put("comment", "Modification: Modified geometry, different ID");
+                edge.put("type", "replace");
+                edge.put("tags", "modified");
             }
             else {
                 // The target building has more than one correspondent in the original buildings
                 // list (i.e. the original building has been merged with others in the target building)
                 // Note that the other nodes merged with the current original building into the target
                 // building will be managed later in this building for loop
-                edge.put("comment", "Fusion: Merged (with others) into target");
+                edge.put("type", "replace");
+                edge.put("tags", "fused");
             }
             edges.push_back(std::make_pair("", edge));
             continue;
@@ -289,7 +294,8 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
           edge.put("id", boost::lexical_cast<std::string>(edge_index++));
           edge.put("source", source_node_id);
           edge.put("target", target_node_id);
-          edge.put("comment", "Subdivided into (many) buildings");
+          edge.put("type", "replace");
+          edge.put("tags", "subdivided");
           edges.push_back(std::make_pair("", edge));
         }  // for on correspondence_length
     }
