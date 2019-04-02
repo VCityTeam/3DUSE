@@ -175,50 +175,44 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
     if (change_status == -1)
     {
         // The geometry of the building is unchanged
-        if (correspondence_length == 2) {
-            int new_index         =  change.Compare->first[building_index][1];
-            std::string target_id = to_global_id(time_stamp2,
-                                               (*change.BuildingID2)[new_index]);
-            iter = ReverseNodeIndex.find(target_id);
-            if (iter == ReverseNodeIndex.end())
-            {
-                std::cout << "Unfound target id within ReverseNodeIndex: "
-                          << target_id
-                          << std::endl;
-                exit (EXIT_FAILURE);
-            }
-            int target_node_id = iter->second;
+        // Normally the correspondence_length should be equal to 2 in this case
+        // but it might happen that there is a -1,Ida and a -2,Idb when the
+        // geometry is not splitted correctly.... In this case, we ignore the
+        // -2,Idb information
+        int new_index         =  change.Compare->first[building_index][1];
+        std::string target_id = to_global_id(time_stamp2,
+                                           (*change.BuildingID2)[new_index]);
+        iter = ReverseNodeIndex.find(target_id);
+        if (iter == ReverseNodeIndex.end())
+        {
+            std::cout << "Unfound target id within ReverseNodeIndex: "
+                      << target_id
+                      << std::endl;
+            exit (EXIT_FAILURE);
+        }
+        int target_node_id = iter->second;
 
-            pt::ptree edge;
-            edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-            edge.put("source", source_node_id);
-            edge.put("target", target_node_id);
-            std::string building_GMLid = (*change.BuildingID1)[building_index];
-            std::string      new_GMLid = (*change.BuildingID2)[new_index];
+        pt::ptree edge;
+        edge.put("id", boost::lexical_cast<std::string>(edge_index++));
+        edge.put("source", source_node_id);
+        edge.put("target", target_node_id);
+        std::string building_GMLid = (*change.BuildingID1)[building_index];
+        std::string      new_GMLid = (*change.BuildingID2)[new_index];
 
-            if(building_GMLid == new_GMLid)
-            {
-              // The building is unchanged: same geometry, same (gml) ID.
-              // Define an edge:
-              edge.put("comment", "Unchanged: same geometry, same GML ID");
-            }
-            else
-            {
-              // The building was re-ided: same geometry, different (gml) ID
-              // Define an edge:
-              edge.put("comment", "Re-ided: same geometry, different GML ID");
-            }
-            edges.push_back(std::make_pair("", edge));
-            continue;
+        if(building_GMLid == new_GMLid)
+        {
+          // The building is unchanged: same geometry, same (gml) ID.
+          // Define an edge:
+          edge.put("comment", "Unchanged: same geometry, same GML ID");
         }
         else
         {
-           // ERROR change status == -1 implies that there is only one correspondent
-           std::cout << "ERROR: Occurence of unchanged object but having "
-                     << " multiple correspondents. "
-                     << std::endl;
-           exit (EXIT_FAILURE);
+          // The building has been re-ided: same geometry, different (gml) ID
+          // Define an edge:
+          edge.put("comment", "Re-ided: same geometry, different GML ID");
         }
+        edges.push_back(std::make_pair("", edge));
+        continue;
     }
     else if (change_status == -2)
     {
