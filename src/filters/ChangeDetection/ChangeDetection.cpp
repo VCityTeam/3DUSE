@@ -78,6 +78,15 @@ CompareBati( std::string Folder,
 
             OGRGeometry* Intersection = Bati1->Intersection(Bati2);
 
+            // In some cases, Bati1->Intersects(Bati2) is true but Bati1->Intersection(Bati2)
+            // returns a nullptr and an output is generated in the console (e.g. ERROR 1:
+            // TopologyException: found non-noded intersection between LINESTRING (x,y,z)
+            // and LINESTRING (x2,y2,z2) at x3 y3 z3) but an error is not thrown by GDAL and
+            // a SEGFAULT is generated when we try to access the type of the intersection.
+            // This test avoids that by ignoring such (very very rare) cases.
+            if (Intersection == nullptr)
+                continue;
+
             OGRwkbGeometryType Type = Intersection->getGeometryType();
 
             // Manage GDAL different possible types
