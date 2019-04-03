@@ -41,7 +41,8 @@ void fillCorrespondencesMaps(ChangeDetectionRes change,
                              int time_stamp1,
                              int time_stamp2,
                              std::map<std::string, Correspondences> &buildingsCorrespondences,
-                             std::map<std::string, Correspondences> &reverseBuildingsCorrespondences){
+                             std::map<std::string, Correspondences> &reverseBuildingsCorrespondences)
+{
 
     int nbrInitialBuilding = change.Compare->first.size();
     for (int building_index = 0;
@@ -76,32 +77,50 @@ void fillCorrespondencesMaps(ChangeDetectionRes change,
         // We have one or more building correspondents.
         // Iterate over correspondences to fill the buildingsCorrespondences
         // and reverseBuildingsCorrespondes maps
-        Correspondences currentBuildingCorrespondences;
         for (std::size_t i = 0; i < correspondences_length; i += 2)
         {
-          int change_status =  change.Compare->first[building_index][i];
-          int new_index     =  change.Compare->first[building_index][i+1];
-          std::string target_global_id = to_global_id(time_stamp2,
+            int change_status =  change.Compare->first[building_index][i];
+            int new_index     =  change.Compare->first[building_index][i+1];
+            std::string target_global_id = to_global_id(time_stamp2,
                                                (*change.BuildingID2)[new_index]);
 
-          singleCorrespondence currentCorres;
-          currentCorres.change_status = change_status;
-          currentCorres.building_id = target_global_id;
+            // Create the current correspondence
+            singleCorrespondence currentCorres;
+            currentCorres.change_status = change_status;
+            currentCorres.building_id = target_global_id;
 
-          currentBuildingCorrespondences.push_back(currentCorres);
-        }
+            // Fill the buildingsCorrespondences map
+            // if there is no entry for the current source_global_id, create it
+            if (buildingsCorrespondences.count(source_global_id) == 0)
+            {
+              Correspondences currentBuildingCorrespondences;
+              currentBuildingCorrespondences.push_back(currentCorres);
+              buildingsCorrespondences.emplace(source_global_id, currentBuildingCorrespondences);
+            }
+            // else, add the current correspondences to the correspondences of the building with id
+            // source_global_id
+            else {
+              buildingsCorrespondences[source_global_id].push_back(currentCorres);
+            }
 
-        // if there is no entry for the current source_global_id, create it
-        if (buildingsCorrespondences.count(source_global_id) == 0)
-        {
-            buildingsCorrespondences.emplace(source_global_id, currentBuildingCorrespondences);
-        }
-        // else, add the current correspondences to the correspondences of the building with id
-        // source_global_id
-        else {
-            buildingsCorrespondences[source_global_id].insert(buildingsCorrespondences[source_global_id].end(),
-                                                              currentBuildingCorrespondences.begin(),
-                                                              currentBuildingCorrespondences.end());
+            // Create the reverse correspondence
+            singleCorrespondence reverseCorres;
+            reverseCorres.change_status = change_status;
+            reverseCorres.building_id = source_global_id;
+
+            // Fill the ReverseBuildingsCorrespondences map
+            // if there is no entry for the current target_global_id, create it
+            if (reverseBuildingsCorrespondences.count(target_global_id) == 0)
+            {
+              Correspondences currentReverseBuildingCorrespondences;
+              currentReverseBuildingCorrespondences.push_back(reverseCorres);
+              reverseBuildingsCorrespondences.emplace(target_global_id, currentReverseBuildingCorrespondences);
+            }
+            // else, add the current correspondences to the correspondences of the building with id
+            // target_global_id
+            else {
+              reverseBuildingsCorrespondences[target_global_id].push_back(reverseCorres);
+            }
         }
     }
 }
