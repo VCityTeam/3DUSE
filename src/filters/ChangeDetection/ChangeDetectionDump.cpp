@@ -12,6 +12,18 @@ namespace pt = boost::property_tree;
 #include "ChangeDetectionDump.hpp"
 #include "ChangeDetection.hpp"
 
+// Express a single correspondence: a change status and a building id
+struct singleCorrespondence
+{
+    public:
+        int change_status;
+        std::string building_id;
+};
+
+// Holds multiple "single correspondence" and will be mapped to a building
+// to express all of its correspondences
+typedef std::vector<singleCorrespondence> Correspondences;
+
 
 // The global (accross all time stamps) identifier is a string with
 //  - a time stamp followed by
@@ -22,6 +34,76 @@ std::string to_global_id(int time_stamp, std::string gmlId )
   return   boost::lexical_cast<std::string>(time_stamp)
          + "::"
          + gmlId;
+}
+
+
+void fillCorrespondencesMaps(ChangeDetectionRes change,
+                             int time_stamp1,
+                             int time_stamp2,
+                             std::map<std::string, Correspondences> &buildingsCorrespondences,
+                             std::map<std::string, Correspondences> &reverseBuildingsCorrespondences){
+
+    int nbrInitialBuilding = change.Compare->first.size();
+    for (int building_index = 0;
+             building_index < nbrInitialBuilding;
+             building_index++)
+    {
+        // compute global id of source building
+        std::string source_global_id = to_global_id(time_stamp1,
+                                             (*change.BuildingID1)[building_index]);
+
+        // get object correspondences
+        auto correspondences = change.Compare->first[building_index];
+
+        std::size_t correspondences_length = correspondences.size();
+        if ( correspondences_length == 0 )
+        {
+            // no correspondence to store
+            continue;
+        }
+        // The building has one or possibly many associated future buildings
+        // but the encoding is a succession of (change_status, building_new_index)
+        // pairs and must thus have an even length.
+        if( ! correspondences_length %2 )
+        {
+          std::cout << "ERRONEOUS encoding of Compare (should always be even) "
+                    << "   of building with id: "
+                    << building_index
+                    << std::endl;
+          continue;
+        }
+
+        // We have one or more building correspondents.
+        // Iterate over correspondences to fill the buildingsCorrespondences
+        // and reverseBuildingsCorrespondes maps
+        Correspondences currentBuildingCorrespondences;
+        for (std::size_t i = 0; i < correspondences_length; i += 2)
+        {
+          int change_status =  change.Compare->first[building_index][i];
+          int new_index     =  change.Compare->first[building_index][i+1];
+          std::string target_global_id = to_global_id(time_stamp2,
+                                               (*change.BuildingID2)[new_index]);
+
+          singleCorrespondence currentCorres;
+          currentCorres.change_status = change_status;
+          currentCorres.building_id = target_global_id;
+
+          currentBuildingCorrespondences.push_back(currentCorres);
+        }
+
+        // if there is no entry for the current source_global_id, create it
+        if (buildingsCorrespondences.count(source_global_id) == 0)
+        {
+            buildingsCorrespondences.emplace(source_global_id, currentBuildingCorrespondences);
+        }
+        // else, add the current correspondences to the correspondences of the building with id
+        // source_global_id
+        else {
+            buildingsCorrespondences[source_global_id].insert(buildingsCorrespondences[source_global_id].end(),
+                                                              currentBuildingCorrespondences.begin(),
+                                                              currentBuildingCorrespondences.end());
+        }
+    }
 }
 
 /*
@@ -123,6 +205,11 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
   graph.add_child("nodes", nodes);
 
   //////////////////  Proceed with the edges
+
+  std::map<std::string, Correspondences> buildingsCorrespondences;
+  std::map<std::string, Correspondences> reverseBuildingsCorrespondences;
+  fillCorrespondencesMaps(change, time_stamp1, time_stamp2, buildingsCorrespondences, reverseBuildingsCorrespondences);
+
   int edge_index = 0;
   ReverseNodeIndexType::iterator iter;
   pt::ptree edges;
