@@ -3,6 +3,11 @@
 // (Refer to accompanying file LICENSE.md or copy at
 //  https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html )
 
+// This file holds the functions for interpreting the output from ChangeDetection
+// filter to create a graphML-JSON file expressing the changes between the
+// buildings of the two vintages provided in input. The entrance point is the
+// function DumpIDCorrespondancesJson().
+
 #include <stdlib.h>                      // exit, EXIT_FAILURE
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -12,7 +17,11 @@ namespace pt = boost::property_tree;
 #include "ChangeDetectionDump.hpp"
 #include "ChangeDetection.hpp"
 
-// Express a single correspondence: a change status and a building id
+// Denotes a single correspondence between buildings (i.e. a change).
+// It is composed of a change status and a building id which
+// corresponds to the target of the correspondence. It will
+// be mapped to the id of the building source of the correspondence
+// in buildingCorres and reverseBuildingCorres maps
 struct singleCorrespondence
 {
     public:
@@ -36,9 +45,11 @@ std::string to_global_id(int time_stamp, std::string gmlId )
          + gmlId;
 }
 
-void addCorrespondenceToMap(std::map<std::string, Correspondences> &correspondenceMap,
+// Adds a singleCorrespondence to the corresponceMap (maps each building to a Correspondences
+// object)
+void AddSingleCorrespondenceToMap(std::map<std::string, Correspondences> &correspondenceMap,
                             std::string building_id,
-                            singleCorrespondence correspondence)
+                            singleCorrespondence &correspondence)
 {
     // If there is no entry in the map for the building_id
     if (correspondenceMap.count(building_id) == 0)
@@ -57,7 +68,14 @@ void addCorrespondenceToMap(std::map<std::string, Correspondences> &corresponden
     }
 }
 
-void fillCorrespondencesMaps(ChangeDetectionRes change,
+// Fills the buildingsCorrespondences and reverseBuildingsCorrespondences maps from the
+// change object.
+// change is the output structure from ChangeDetection filter mapping the changes between
+// building footprints
+// buildingsCorrespondences and reverseBuildingsCorrespondences map the changes between
+// "semantical buildings" (i.e. identified through their global_id) respectively of
+// time_stamp1 and of time_stamp2
+void fillCorrespondencesMaps(ChangeDetectionRes &change,
                              int time_stamp1,
                              int time_stamp2,
                              std::map<std::string, Correspondences> &buildingsCorrespondences,
@@ -77,11 +95,11 @@ void fillCorrespondencesMaps(ChangeDetectionRes change,
         auto correspondences = change.Compare->first[building_index];
 
         std::size_t correspondences_length = correspondences.size();
+
         if ( correspondences_length == 0 )
-        {
             // no correspondence to store
             continue;
-        }
+
         // The building has one or possibly many associated future buildings
         // but the encoding is a succession of (change_status, building_new_index)
         // pairs and must thus have an even length.
@@ -110,7 +128,7 @@ void fillCorrespondencesMaps(ChangeDetectionRes change,
             currentCorres.building_id = target_global_id;
 
             // Fill the buildingsCorrespondences map with it
-            addCorrespondenceToMap(buildingsCorrespondences, source_global_id, currentCorres);
+            AddSingleCorrespondenceToMap(buildingsCorrespondences, source_global_id, currentCorres);
 
             // Create the reverse correspondence
             singleCorrespondence reverseCorres;
@@ -118,9 +136,123 @@ void fillCorrespondencesMaps(ChangeDetectionRes change,
             reverseCorres.building_id = source_global_id;
 
             // Fill the ReverseBuildingsCorrespondences map with it
-            addCorrespondenceToMap(reverseBuildingsCorrespondences, target_global_id, reverseCorres);
+            AddSingleCorrespondenceToMap(reverseBuildingsCorrespondences, target_global_id, reverseCorres);
         }
     }
+}
+
+// this function maps the buildings id to their area. This will be used to determine
+// fusions and subdivision
+// note that it could be refactored in one function and called for time_stamp1 and for timestamp2
+std::map<std::string, double> ComputeBuildingAreas(ChangeDetectionRes &change,
+                                                int time_stamp1,
+                                                int time_stamp2) {
+
+    // first time_stamp
+    std::map<std::string, double> buildingAreas;
+
+    // start by the initial buildings (i.e. from timestamp 1)
+    int nbrInitialBuilding = change.EnveloppeCityU1->getNumGeometries();
+    for (int building_index = 0;
+             building_index < nbrInitialBuilding;
+             building_index++)
+    {
+        // compute area of current building footprints
+        OGRPolygon * currentBuilding = (OGRPolygon *)change.EnveloppeCityU1->getGeometryRef(building_index)->clone();
+        double area = currentBuilding->get_Area();
+
+        // compute global id corresponding to the current building footprints
+        std::string building_global_id = to_global_id(time_stamp1,
+                                             (*change.BuildingID1)[building_index]);
+
+        // If there is no entry in the map for the building_global_id
+        if (buildingAreas.count(building_global_id) == 0)
+        {
+            // Map the buildingAreas to the Area of the current building fooprints
+            buildingAreas.emplace(building_global_id, area);
+        }
+        // else (building_global_id corresponds to a building having several parts
+        // which are not in a connected space).
+        else {
+            // Add the area of the current building footprints to already
+            // computed area
+            buildingAreas[building_global_id] += area;
+        }
+    }
+
+    // second time_stamp
+    // continue with the final buildings (i.e. from timestamp 2)
+    int   nbrFinalBuilding = change.EnveloppeCityU2->getNumGeometries();
+    for (int building_index = 0;
+             building_index < nbrFinalBuilding;
+             building_index++)
+    {
+        // compute area of current building footprints
+        OGRPolygon * currentBuilding = (OGRPolygon *)change.EnveloppeCityU2->getGeometryRef(building_index)->clone();
+        double area = currentBuilding->get_Area();
+
+        // compute global id corresponding to the current building footprints
+        std::string building_global_id = to_global_id(time_stamp2,
+                                             (*change.BuildingID2)[building_index]);
+
+        // If there is no entry in the map for the building_global_id
+        if (buildingAreas.count(building_global_id) == 0)
+        {
+            // Map the buildingAreas to the Area of the current building fooprints
+            buildingAreas.emplace(building_global_id, area);
+        }
+        // else (building_global_id corresponds to a building having several parts
+        // which are not in a connected space).
+        else {
+            // Add the area of the current building footprints to already
+            // computed area
+            buildingAreas[building_global_id] += area;
+        }
+    }
+
+    return buildingAreas;
+}
+
+/*
+ * This function compares the change statuses of each singleCorespondence
+ * from the argument correspondences and returns:
+ *   * 0 if correspondences is empty
+ *   * -1 if all change statuses are -1
+ *   * -2 if all change statuses are -2
+ *   * -3 if change statuses are a mix of -1 and -2
+ */
+int compareChangeStatuses(const Correspondences &correspondences) {
+
+    if(correspondences.size() == 0)
+        return 0;
+
+    int unified_change_status = correspondences[0].change_status;
+
+    for(int i = 1; i < correspondences.size() ; ++i)
+    {
+        // if change status is not the same as the first/the previous change
+        // statuses, then it is a mix and we return -3
+        if(correspondences[i].change_status != unified_change_status)
+            return -3;
+    }
+
+    return unified_change_status;
+}
+
+/*
+ * This function initialize an edge of the graph with an id, a source and a
+ * target.
+ */
+pt::ptree initEdge(int edge_id, int source_node_id, int target_node_id) {
+
+    pt::ptree edge;
+
+    edge.put("id", boost::lexical_cast<std::string>(edge_id)); // TODO: assert cast is needed
+    edge.put("source", source_node_id);
+    edge.put("target", target_node_id);
+    edge.put("type", "replace"); // TODO: remove type
+
+    return edge;
 }
 
 /*
@@ -223,199 +355,227 @@ void DumpIDCorrespondancesJson(ChangeDetectionRes change,
 
   //////////////////  Proceed with the edges
 
+  // Create two maps to ease the creation of the edges:
+  //   * buildingCorrespondences which maps the id of each building from time_stamp1 to its
+  //     correspondences with buildings from time_stamp2 expressed as a Correspondences object
+  //   * reverseBuildingsCorrespondences which maps the id of each building from time_stamp 2 to its
+  //     correspondences with buildings from time_stamp1 expressed as a Correspondences object
+  // However, note that buildings having no correspondences with are not sotred as they won't have any edge generated
   std::map<std::string, Correspondences> buildingsCorrespondences;
   std::map<std::string, Correspondences> reverseBuildingsCorrespondences;
-  fillCorrespondencesMaps(change, time_stamp1, time_stamp2, buildingsCorrespondences, reverseBuildingsCorrespondences);
+
+  fillCorrespondencesMaps(change, time_stamp1, time_stamp2,
+                          buildingsCorrespondences, reverseBuildingsCorrespondences);
+
+  // buildings area are used for subdivision and fusions
+  std::map<std::string, double> buildingAreas = ComputeBuildingAreas(change, time_stamp1, time_stamp2);
+  double areas_comparison_epsilon = 2;
 
   int edge_index = 0;
   ReverseNodeIndexType::iterator iter;
   pt::ptree edges;
 
-  for (int building_index = 0;
-           building_index < nbrInitialBuilding;
-           building_index++)
+  // iterate through the buildings having correspondences to create the
+  // associated edges
+  for (const auto& OneBuildingCorrespondences : buildingsCorrespondences)
   {
-    std::string source_id = to_global_id(time_stamp1,
-                                         (*change.BuildingID1)[building_index]);
-    iter = ReverseNodeIndex.find(source_id);
-    if (iter == ReverseNodeIndex.end())
-    {
-      std::cout << "Unfound source id within ReverseNodeIndex: "
-                << source_id
-                << std::endl;
-      exit (EXIT_FAILURE);
-    }
-    int source_node_id = iter->second;
-    // The correspondence (the first vector returned by CompareBati())
-    // encodes what has become of an "old" building (the following is
-    // a derived copy of an illustration encountered in CompareBati()):
-    // correspondence[0]=[ -1, 0]: building 0 keeps same index and unchanged
-    // correspondence[1]=[ -1, 2]: building 1 relabeled to become building 2
-    // correspondence[2]=[ -1, 1]: building 2 relabeled to become building 1
-    // correspondence[3]=[ -2, 4]: building 3 changed height and relabeled
-    //                             to 4
-    // correspondence[4]=[]:       building 4 disappeared
-    // correspondence[5]=[ -2, 6, -2, 7]: building 5 was split into buildings
-    //                                    6 and 7
-    auto correspondence = change.Compare->first[building_index];
-    std::size_t correspondence_length = correspondence.size();
-    if ( correspondence_length == 0 )
-    {
-        // The building was destroyed: no edge to declare (i.e. the node will
-        // have no adjacent edge between time_stamp1 and time_stamp2)
-        continue;
-    }
-    // The building has one or possibly many associated future buildings
-    // but the encoding is a succession of (change_status, building_new_index)
-    // pairs and must thus have an even length.
-    if( ! correspondence_length %2 )
-    {
-      std::cout << "ERRONEOUS encoding of Compare (should always be even) "
-                << "   of building with id: "
-                << building_index
-                << std::endl;
-      continue;
-    }
+      std::string buildingId = OneBuildingCorrespondences.first;
+      Correspondences buildingCorres = OneBuildingCorrespondences.second;
+      std::size_t correspondence_length = buildingCorres.size();
 
-    int change_status = change.Compare->first[building_index][0];
+      if (correspondence_length == 0)
+      {
+          std::cout << "Correspondence map should only store buildings with correspondences"
+                    << std::endl;
+          exit (EXIT_FAILURE);
+      }
 
-    if (change_status == -1)
-    {
-        // The geometry of the building is unchanged
-        // Normally the correspondence_length should be equal to 2 in this case
-        // but it might happen that there is a -1,Ida and a -2,Idb when the
-        // geometry is not splitted correctly.... In this case, we ignore the
-        // -2,Idb information
-        int new_index         =  change.Compare->first[building_index][1];
-        std::string target_id = to_global_id(time_stamp2,
-                                           (*change.BuildingID2)[new_index]);
-        iter = ReverseNodeIndex.find(target_id);
-        if (iter == ReverseNodeIndex.end())
-        {
-            std::cout << "Unfound target id within ReverseNodeIndex: "
-                      << target_id
-                      << std::endl;
-            exit (EXIT_FAILURE);
-        }
-        int target_node_id = iter->second;
+      // Get source_node_id which is the id of the node of the graph
+      // corresponding to buildingId
+      iter = ReverseNodeIndex.find(buildingId);
+      if (iter == ReverseNodeIndex.end())
+      {
+        std::cout << "Unfound source id within ReverseNodeIndex: "
+                  << buildingId
+                  << std::endl;
+        exit (EXIT_FAILURE);
+      }
+      int source_node_id = iter->second;
 
-        pt::ptree edge;
-        edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-        edge.put("source", source_node_id);
-        edge.put("target", target_node_id);
-        std::string building_GMLid = (*change.BuildingID1)[building_index];
-        std::string      new_GMLid = (*change.BuildingID2)[new_index];
+      if (correspondence_length == 1)
+      {
+          int change_status = buildingCorres[0].change_status;
+          std::string targetBuildingId = buildingCorres[0].building_id;
 
-        if(building_GMLid == new_GMLid)
-        {
-            // The building is unchanged: same geometry, same (gml) ID.
-            edge.put("type", "replace");
-            edge.put("tags", "unchanged");
-        }
-        else
-        {
-            // The building has been re-ided: same geometry, different (gml) ID
-            edge.put("type", "replace");
-            edge.put("tags", "re-ided");
-        }
-        edges.push_back(std::make_pair("", edge));
-        continue;
-    }
-    else if (change_status == -2)
-    {
-        // The geometry of the building has changed
-        if(correspondence_length == 2)
-        {
-            // The original building has either been modified or merged (with other
-            // buildings) into the target building
-            int new_index = change.Compare->first[building_index][1];
-            std::string target_id = to_global_id(time_stamp2,
-                                               (*change.BuildingID2)[new_index]);
-            iter = ReverseNodeIndex.find(target_id);
-            if (iter == ReverseNodeIndex.end())
-            {
-                std::cout << "Unfound target id within ReverseNodeIndex: "
-                          << target_id
-                          << std::endl;
-                exit (EXIT_FAILURE);
-            }
-            int target_node_id = iter->second;
-
-            pt::ptree edge;
-            edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-            edge.put("source", source_node_id);
-            edge.put("target", target_node_id);
-
-            // Check the length of the correspondence of the target building
-            // to find out if the original building has been modified (1->1 relationship)
-            // or merged with others into the target building
-            auto reverse_correspondence = change.Compare->second[new_index];
-            std::size_t reverse_correspondence_length = reverse_correspondence.size();
-
-            if(reverse_correspondence_length == 2) {
-                // The building geometry and ID have changed
-                // e.g. it was heightened; its footprint geometry changed, etc.
-                edge.put("type", "replace");
-                edge.put("tags", "modified");
-            }
-            else {
-                // The target building has more than one correspondent in the original buildings
-                // list (i.e. the original building has been merged with others in the target building)
-                // Note that the other nodes merged with the current original building into the target
-                // building will be managed later in this building for loop
-                edge.put("type", "replace");
-                edge.put("tags", "fused");
-            }
-            edges.push_back(std::make_pair("", edge));
-            continue;
-        }
-
-        // We have more than one building correspondent. The original building was
-        // thus either
-        //   * split in sub-parts (while preserving its outside geometry)
-        //   * revamped to new buildings (with a new total footprint included
-        //     in the footprint of the original building): ASSERT THIS!
-
-        for (std::size_t j = 0; j < correspondence_length; j += 2)
-        {
-          int change_status =  change.Compare->first[building_index][j];
-          int new_index     =  change.Compare->first[building_index][j+1];
-          std::string target_id = to_global_id(time_stamp2,
-                                               (*change.BuildingID2)[new_index]);
-          iter = ReverseNodeIndex.find(target_id);
+          // Get target_node_id which is the id of the node of the graph
+          // corresponding to targerBuildingId
+          iter = ReverseNodeIndex.find(targetBuildingId);
           if (iter == ReverseNodeIndex.end())
           {
-            std::cout << "Unfound target id within ReverseNodeIndex: "
-                      << target_id
-                      << std::endl;
-            exit (EXIT_FAILURE);
+              std::cout << "Unfound target id within ReverseNodeIndex: "
+                        << targetBuildingId
+                        << std::endl;
+              exit (EXIT_FAILURE);
           }
           int target_node_id = iter->second;
 
-          // The building has many correspondent building and hence was subdivided
-          // in many buldings: add an edge for each corresponding building:
-          pt::ptree edge;
-          edge.put("id", boost::lexical_cast<std::string>(edge_index++));
-          edge.put("source", source_node_id);
-          edge.put("target", target_node_id);
-          edge.put("type", "replace");
-          edge.put("tags", "subdivided");
-          edges.push_back(std::make_pair("", edge));
-        }  // for on correspondence_length
-    }
-    else
-    {
-        std::cout << "ERRONEOUS change status: must be -1 or -2."
-                  << std::endl;
-        exit (EXIT_FAILURE);
-    }
-  }  // For on buildings
+          Correspondences reverseBuildingCorres = reverseBuildingsCorrespondences[targetBuildingId];
+          std::size_t reverse_correspondence_size_length = reverseBuildingCorres.size();
+
+          if(reverse_correspondence_size_length == 1)
+          {
+              if (change_status == -1)
+              {
+                  pt::ptree edge = initEdge(edge_index++, source_node_id, target_node_id);
+
+                  if(buildingId == targetBuildingId)
+                      // Unchanged building: same geometry, same (gml) ID.
+                      edge.put("tags", "unchanged");
+                  else
+                      // The building has been re-ided: same geometry, different (gml) ID
+                      edge.put("tags", "re-ided");
+
+                  edges.push_back(std::make_pair("", edge));
+                  continue;
+              }
+              else if (change_status == -2)
+              {
+                  pt::ptree edge = initEdge(edge_index++, source_node_id, target_node_id);
+
+                  // The building geometry and ID have changed
+                  // e.g. it was heightened; its footprint geometry changed, etc.
+                  edge.put("tags", "modified");
+
+                  edges.push_back(std::make_pair("", edge));
+                  continue;
+              }
+              else
+              {
+                  std::cout << "ERRONEOUS change status: must be -1 or -2."
+                            << std::endl;
+                  exit (EXIT_FAILURE);
+              }
+          }
+          else // reverse_correspondence_size_length > 1
+          {
+              // In this case we need to check the change status of each singleCorrespondence in
+              // reverseBuildingCorres. It can be:
+              //   * multiple -1 which indicates a split building that didn't work for both timestamps
+              //     and which then denotes a logical fusion
+              //   * multiple -2 only which indicates a fusion or a split building problem + modifications
+              //   * multiple -2 and -1 which indicates a split building problems + modifications
+              int change_statuses_comparison = compareChangeStatuses(reverseBuildingCorres);
+
+              std::string edge_tag;
+              if (change_statuses_comparison == -1)
+                  edge_tag = "fused";
+              else if (change_statuses_comparison == -2)
+              {
+                  // Compute building area of source buildings by looping on reverseBuildingCorres
+                  double source_buildings_area = 0;
+                  for(int i = 0; i < reverse_correspondence_size_length; ++i)
+                  {
+                      std::string currentSourceBuildingId = reverseBuildingCorres[i].building_id;
+                      source_buildings_area += buildingAreas[currentSourceBuildingId];
+                  }
+
+                  // Compute building area of target building
+                  double target_building_area = buildingAreas[targetBuildingId];
+
+                  // if building areas are equal then fusion, otherwise: modified
+                  if (fabs(target_building_area - source_buildings_area) < areas_comparison_epsilon)
+                      edge_tag = "fused";
+                  else
+                      edge_tag = "modified";
+
+              }
+              else if (change_statuses_comparison == -3)
+                  edge_tag = "modified";
+              else
+              {
+                  std::cout << "ERRONEOUS change statuses comparison: must be -1, -2 or -3."
+                            << std::endl;
+                  exit (EXIT_FAILURE);
+              }
+
+              pt::ptree edge = initEdge(edge_index++, source_node_id, target_node_id);
+              edge.put("tags", edge_tag);
+
+              edges.push_back(std::make_pair("", edge));
+              continue;
+          }
+      }
+      else // current building has more than one correspondent
+      {
+          // In this case we need to check the change status of each singleCorrespondence in
+          // buildingCorres. It can be:
+          //   * multiple -1 which indicates a split building that didn't work for both timestamps
+          //     and which then denotes a logical subdivision
+          //   * multiple -2 only which indicates a subdivision or a split building problem + modifications
+          //   * multiple -2 and -1 which indicates a split building problems + modifications
+          int change_statuses_comparison = compareChangeStatuses(buildingCorres);
+
+          std::string edge_tag;
+          if (change_statuses_comparison == -1)
+              edge_tag = "subdivided";
+          else if (change_statuses_comparison == -2)
+          {
+              // Get building area of source building
+              double source_buildings_area = buildingAreas[buildingId];
+
+              // Get target buildings area by looping through buildingCorres
+              double target_building_area = 0;
+              for(int i = 0; i < correspondence_length; ++i)
+              {
+                  std::string currentTargetBuildingId = buildingCorres[i].building_id;
+                  target_building_area += buildingAreas[currentTargetBuildingId];
+              }
+
+              // if building areas are equal then fusion, otherwise: modified
+              if (fabs(target_building_area - source_buildings_area) < areas_comparison_epsilon)
+                  edge_tag = "subdivided";
+              else
+                  edge_tag = "modified";
+
+          }
+          else if (change_statuses_comparison == -3)
+              edge_tag = "modified";
+          else
+          {
+              std::cout << "ERRONEOUS change statuses comparison: must be -1, -2 or -3."
+                        << std::endl;
+              exit (EXIT_FAILURE);
+          }
+
+          // create one edge per correspondent
+          for (int i = 0; i < correspondence_length; ++i)
+          {
+              std::string targetBuildingId = buildingCorres[i].building_id;
+
+              // Get ith target_node_id which is the id of the node of the graph
+              // corresponding to targerBuildingId
+              iter = ReverseNodeIndex.find(targetBuildingId);
+              if (iter == ReverseNodeIndex.end())
+              {
+                  std::cout << "Unfound target id within ReverseNodeIndex: "
+                            << targetBuildingId
+                            << std::endl;
+                  exit (EXIT_FAILURE);
+              }
+              int target_node_id = iter->second;
+
+              pt::ptree edge = initEdge(edge_index++, source_node_id, target_node_id);
+              edge.put("tags", edge_tag);
+
+              edges.push_back(std::make_pair("", edge));
+          }
+      }
+  }
 
   // We are done with the nodes.
   graph.add_child("edges", edges);
 
   pt::write_json(filename, graph);
-
 }
 
 /*
