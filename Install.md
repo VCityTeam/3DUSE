@@ -26,6 +26,7 @@
 
 ## Ubuntu install (Ubuntu 14.04)
 ### Installing dependencies
+ * Note: a [Docker](https://www.docker.com/)-aware impatient might make good use of [this DockerFile](Docker/Dockerfile)
  * Classic package installation with `apt-get` command:
     * `sudo apt-get install qt4-default libopenscenegraph-dev libassimp-dev`
     * `sudo apt-get install libboost-all-dev`
