@@ -1,6 +1,9 @@
 FROM ubuntu:18.04
 LABEL vendor="RICT project"
 
+# Where the local installs end-up (thinking of a manual install
+# that is outside of the docker context)
+RUN mkdir $HOME/local/
 
 # Core dependencies
 RUN apt-get update
@@ -28,15 +31,17 @@ RUN apt-get -y install libxml2-dev
 # and e.g. OGRPolygon::IsValid() will always return false.
 # Prior to the "manual" install we thus need to pull the mandatory GDAL
 # dependencies.
-sudo apt-get install libgeos-dev
-cd /tmp
-wget http://download.osgeo.org/gdal/1.11.4/gdal-1.11.4.tar.gz
-tar zxvf gdal-1.11.4.tar.gz
-cd gdal-1.11.4
-mkdir $HOME/local/
-./configure --prefix=$HOME/local/gdal-1.11.4 --enable-shared
-make
-make install
+RUN apt-get install libproj13-dev
+RUN apt-get install libgeos-dev
+RUN apt-get install libtiff-dev
+RUN apt-get install libjson-c-dev
+RUN cd /tmp                                                       && \
+    wget http://download.osgeo.org/gdal/1.11.4/gdal-1.11.4.tar.gz && \
+    tar zxvf gdal-1.11.4.tar.gz                                   && \
+    cd gdal-1.11.4                                                && \
+    ./configure --prefix=$HOME/local/gdal-1.11.4 --enable-shared  && \
+    make                                                          && \
+    make install
 
 # Graphical User Interface dependencies
 RUN apt-get -y install libopenscenegraph-dev
@@ -89,17 +94,16 @@ RUN cd                                                 && \
 RUN cd ~/3DUSE                                      && \
     mkdir Build                                     && \
     cd Build                                        && \
-    cmake --verbose                                    \
+    cmake .. --verbose                                 \
     -DBUILD_GUI_QT4=ON                                 \
     -DLASLIB_INCLUDE_DIR=~/local/laslib/include        \
     -DLASLIB_LIBRARY=~/local/laslib/lib/liblaslib.a    \
     -DGDAL_LIBRARY=~/local/gdal-1.11.4/lib/libgdal.so  \
-    -DGDAL_INCLUDE_DIR=~/local/gdal-1.11.4/include     \ 
-    ..                                              && \
+    -DGDAL_INCLUDE_DIR=~/local/gdal-1.11.4/include  && \
     make
     # Make install is brain damaged (and has been for quite
     # a long time)
-    make install
+    # make install
 
 ### Notes
 # Devel tools
