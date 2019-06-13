@@ -1,9 +1,14 @@
 FROM ubuntu:18.04
 LABEL vendor="RICT project"
 
+# Supposedly in order to avoid pesky messages of the form
+#   "debconf: unable to initialize frontend: <...>"
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Core dependencies
 RUN apt-get update
+RUN apt-get -y install sudo
+RUN apt-get -y install wget
 RUN apt-get -y install libboost-all-dev
 RUN apt-get -y install libassimp-dev
 RUN apt-get -y install libxml2-dev
@@ -28,15 +33,15 @@ RUN apt-get -y install libxml2-dev
 # and e.g. OGRPolygon::IsValid() will always return false.
 # Prior to the "manual" install we thus need to pull the mandatory GDAL
 # dependencies.
-sudo apt-get install libgeos-dev
-cd /tmp
-wget http://download.osgeo.org/gdal/1.11.4/gdal-1.11.4.tar.gz
-tar zxvf gdal-1.11.4.tar.gz
-cd gdal-1.11.4
-mkdir $HOME/local/
-./configure --prefix=$HOME/local/gdal-1.11.4 --enable-shared
-make
-make install
+RUN sudo apt-get -y install libgeos-dev
+RUN cd /tmp                                                       && \
+    wget http://download.osgeo.org/gdal/1.11.4/gdal-1.11.4.tar.gz && \
+    tar zxf gdal-1.11.4.tar.gz                                    && \
+    cd gdal-1.11.4                                                && \
+    mkdir $HOME/local/                                            && \
+    ./configure --prefix=$HOME/local/gdal-1.11.4 --enable-shared  && \
+    make                                                          && \
+    make install
 
 # Graphical User Interface dependencies
 RUN apt-get -y install libopenscenegraph-dev
@@ -98,8 +103,32 @@ RUN cd ~/3DUSE                                      && \
     make
     # Make install is brain damaged (and has been for quite
     # a long time)
-    make install
+    # make install
 
-### Notes
-# Devel tools
+# For the GUI to run without the error message
+#    ../../src/xcb_io.c:259: poll_for_event: Assertion
+#    `!xcb_xlib_threads_sequence_lost' failed.
+
+# Reference: the October 18, 2017 RGD2 entry of
+# https://github.com/jessfraz/dockerfiles/issues/253 
+RUN apt install -y nvidia-340
+
+# Reference: tlbtlbtlb comment of
+# https://github.com/openai/gym/issues/509 
+# Note: the nvidia-docker way of things pointed by
+#       this issue fails on OSX (the nvidia-docker
+#       command is not supported on OSX as of Q2 2019)
+RUN apt install -y mesa-utils libgl1-mesa-glx
+
+# FIXME: try without the following line
+# Reference: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=890882
+ENV LIBGL_DRI3_DISABLE=true
+
+ENV HOME /root
+CMD /root/3DUSE/Build/3DUSE
+
+### Notes 
+# When running the container in interactive mode (-it) you might need
+# some developement tools
 #  - ccmake: sudo apt install cmake-curses-gui
+#  - cgdb:   sudo apt install cgdb
