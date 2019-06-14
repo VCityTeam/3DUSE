@@ -47,7 +47,6 @@ RUN cd /tmp                                                       && \
 RUN apt-get -y install libopenscenegraph-dev
 RUN apt-get -y install qt4-default libqt4-opengl-dev libqt4-dev
 
-
 # Software engineering tools (build stages)
 RUN apt-get -y install build-essential g++ # Pulls gcc, make...
 RUN apt-get -y install git
@@ -55,6 +54,7 @@ RUN apt-get -y install cmake
 RUN apt-get -y install wget
 
 # PCL
+# TRY TO FIX PCL INSTALL WITH https://larrylisky.com/2016/11/03/point-cloud-library-on-ubuntu-16-04-lts/
 # No luck with PCL support on Ubuntu 18.04 because of the following error
 # at compile time:
 #    pcl-pcl-1.7.2/registration/include/pcl/registration/correspondence_estimation_normal_shooting.h:184:41:
