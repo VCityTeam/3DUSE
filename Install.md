@@ -91,11 +91,10 @@ Post-install goodies (not 3DUSE related):
       cd osgQt
       mkdir Bin
       cd Bin
-      cmake -DCMAKE_INSTALL_PREFIX=/usr/local/stow/osgqt
+      cmake -DCMAKE_INSTALL_PREFIX=/usr/local/stow/osgqt ..
       make
       make instal
       cd /usr/local/stow
-      stow osgqt
       stow osgqt
       ````
       You might run into [this issue](https://github.com/openscenegraph/osgQt/issues/5) (3DUSE complains about `osgQt not found`) which can be solved (among other solutions) with providing an extra `-DOSGQT_LIBRARY=/usr/local/lib/libosgQt5.dylib` cmake flag when configuring 3DUSE.
@@ -133,6 +132,17 @@ Assert that proj and geos sub-dependencies where installed (e.g. with `brew list
  * `mkdir Bin && cd Bin`
  * `cmake ..`
  * `make`
+
+### Preparatory notes for OSX Mojave (10.14.5)
+The following is a must when working on (but alas it **does not suffice** to get3DUSE compiled):
+ - OSX 10.14.5 (Mojave)
+ - homebrew (brew config): 2.1.11 (37714b5ce1e4909d4d61de2af98343c7012f7cd9)
+ * Before the cmake configuration of you might need to define
+   ```
+   export Qt5_DIR=/usr/local/opt/qt/     # Because qt5 is keg only
+   ``` 
+ * For GUI support with Mojave you should forget about Qt4 and opt for Qt5
+   `brew install qt5`
 
 ## Windows install
 ### Supported Windows platforms:

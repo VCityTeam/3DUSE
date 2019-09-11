@@ -82,6 +82,7 @@ target_link_libraries( citygml
 # FIXME The dependence of this library towards QT is both undue and a drag.
 # This dependence is due to two files:
 #  - exporter.cpp (uses a QTdate)
+#  - utils/AABB.hpp (uses a QString)
 if( BUILD_GUI_QT4 )
   target_link_libraries( citygml ${QT_LIBRARIES} )
 endif()
