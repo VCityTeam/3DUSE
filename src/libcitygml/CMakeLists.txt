@@ -103,5 +103,8 @@ if( BUILD_GUI_QT5 )
   target_link_libraries( citygml Qt5::Core )
 endif ()
 
+install(TARGETS citygml
+        LIBRARY DESTINATION lib)
+
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
 GENERATE_EXPORT_HEADER( citygml ) 

@@ -37,5 +37,8 @@ target_link_libraries( citygmlutils
    ${VCITYCORE_LIBRARY}
 )
 
+install(TARGETS citygmlutils
+        LIBRARY DESTINATION lib)
+
 # Dealing with VC++ oddities: generates the export header citygmlutils_exports.h 
 GENERATE_EXPORT_HEADER( citygmlutils )

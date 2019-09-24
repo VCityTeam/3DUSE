@@ -44,4 +44,7 @@ target_link_libraries(filters
   ${CITYGMLUTILS_LIBRARIES}
 )
 
+install(TARGETS filters
+	LIBRARY DESTINATION lib)
+
 GENERATE_EXPORT_HEADER( filters )

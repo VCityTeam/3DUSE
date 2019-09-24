@@ -26,6 +26,10 @@ target_link_libraries(extractBuildingDates
   ${Boost_LIBRARIES}
 )
 
+install(TARGETS extractBuildingDates
+	RUNTIME DESTINATION bin
+	PERMISSIONS WORLD_EXECUTE)
+
 ### Split buildings
 add_executable( splitCityGMLBuildings
   splitCityGMLBuildings.cxx
@@ -44,3 +48,6 @@ target_link_libraries(splitCityGMLBuildings
   ${Boost_LIBRARIES}
 )
 
+install(TARGETS splitCityGMLBuildings
+	RUNTIME DESTINATION bin
+	PERMISSIONS WORLD_EXECUTE)
