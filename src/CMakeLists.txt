@@ -77,6 +77,9 @@ if( BUILD_GUI_QT4 )
   target_link_libraries( vcitycore ${QT_LIBRARIES} )
 endif()
 
+install(TARGETS vcitycore
+        LIBRARY DESTINATION lib)
+
 # Dealing with VC++ oddities: generates the export header core_exports.h 
 include (GenerateExportHeader)
 GENERATE_EXPORT_HEADER( vcitycore )
