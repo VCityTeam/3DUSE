@@ -10,7 +10,7 @@ environment:
   # The following environement variable definitions are only used within
   # the pre_build section:
   QT5_DIR: C:\Qt\5.6\msvc2015_64
-  BOOST_ROOT: C:\Libraries\boost_1_59_0
+  BOOST_ROOT: C:\Libraries\boost_1_67_0
 #
   KIT_ROOT: C:\local_vs2015_64
   #
@@ -31,8 +31,10 @@ matrix:
 init:
   # Leaving traces of the context:
   - cmake --version
+  # Debugging traces
   #  - msbuild /version
   #  - dir C:\Libraries
+  #  - dir %BOOST_ROOT%\lib64-msvc-14.0
 
 #---------------------------------#
 #       build configuration       #
@@ -60,10 +62,10 @@ before_build:
   - set PATH=C:\Program Files\Git\mingw64\bin;%PATH%
   - set CURL_FLAGS=-k --connect-timeout 60 --max-time 2000 -s -O
   # Note: many libraries come pre-installed by Appveyor. Refer to
-  #   https://www.appveyor.com/docs/installed-software/ for a list.
+  #   https://www.appveyor.com/docs/windows-images-software/#visual-studio-2015 for a list.
   #   VCity currently uses: 
   #    * QT5:   C:\Qt\5.6\msvc2015_64
-  #    * Boost: C:\Libraries\boost_1_59_0
+  #    * Boost: C:\Libraries\boost_1_67_0
   ### Qt4
   - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/qt-4.8.7-x64-msvc2015.7z
   - 7z x qt-4.8.7-x64-msvc2015.7z > nul
@@ -87,14 +89,13 @@ before_build:
   - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/VCITY/packages/clean/libxml2-2.9.3.rar
   - 7z x libxml2-2.9.3.rar > nul
   ### PCL and its sub-dependencies
-  ### Boost: kludgy renaming of appveyor provided version
-  - ren C:\Libraries\boost_1_59_0\lib64-msvc-14.0 lib
+  # Disabling PCL install because it PCL support is too expensive and unstable
   ### eigen
-  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
-  - 7z x eigen-3.2.8.rar > nul
+  #- curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/eigen-3.2.8.rar
+  #- 7z x eigen-3.2.8.rar > nul
   ### PCL, flann, qhull
-  - curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
-  - 7z x PCL-1.7.2.7z > nul
+  #- curl %CURL_FLAGS% https://download.gforge.liris.cnrs.fr/meppbin/windows/vs2015/MEPP/packages/clean/PCL-1.7.2.7z
+  #- 7z x PCL-1.7.2.7z > nul
   #
   ##### Eventually we can configure the building (with cmake):
   - cd %APPVEYOR_BUILD_FOLDER%
@@ -106,7 +107,7 @@ before_build:
     #    BUILD_GUI_QT5 to OFF in the matrix. QT4 gets then used because
     #    BUILD_GUI_QT4 is ON by default...
     #  - BUILD_UNMATURE_TESTS is ON by default
-  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_UNMATURE_TESTS=OFF
+  - cmake . -G"Visual Studio 14 2015 Win64" -DVCITY_KIT_ROOT=%KIT_ROOT% -DBUILD_GUI_QT5=%B_USE_QT5% -DBUILD_EMBARKED_OSG-QT_34=ON -DBUILD_ALL_PLUGINS=ON -DBUILD_PCL=OFF -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DBUILD_UNMATURE_TESTS=OFF
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:

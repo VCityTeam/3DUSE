@@ -48,12 +48,13 @@ addons:
     packages:
       - libboost-date-time-dev
       - libboost-filesystem-dev
+      - libboost-dev
+      - libboost-date-time-dev
+      - libboost-program-options-dev
       - libassimp-dev
       - libopenscenegraph-dev
       - libgdal-dev
       - doxygen
-      - libboost-dev
-      - libboost-date-time-dev
       - graphviz
       # Point Cloud Library (PCL) dependencies. PCL itself not being an
       # available package (do not get confused with the Portable Coroutine
@@ -192,27 +193,26 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       ln -s /usr/local/lib/libspatialite.dylib /usr/local/lib/libspatialite.5.dylib; fi
     ### PCL related install:
+    # PCL INSTALLATION IS A MESS. It pulls too many heavy dependencies which
+    # eventually times out Travis. We thus disable it.
+    #
     # The following sub-dependencies are manually installed (instead of
     # letting them be pulled indirectly by pcl) just to make sub-dependencies
     # more explicit.
     #
-    # Flann depends on gcc-7.2.x that fails on install, refer to
-    #   https://github.com/travis-ci/travis-ci/issues/8826
-    # that recommends uninstalling oclint (the culprit under the hood)
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew cask uninstall oclint &&
-      brew install flann; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install homebrew/core/qhull; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      brew install eigen; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    # brew install flann; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    #  brew install homebrew/core/qhull; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    # brew install eigen; fi
     # Pcl itself takes a long time to be poured (more than Travis's 10'
     # default cut off). Note that using brew options like --without-apps
     # or --without-tools triggers a pull of sources and a rebuild which is
     # much too long for hoping to this build finish properly. We the
     # just pour the plain pcl package
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40
-      brew install homebrew/core/pcl; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40
+    # brew install homebrew/core/pcl --without-vtk --without-apps; fi
     # PCL config files looks for the Boost package (whith a capital B) which
     # will fail starting with cmake version 3.5 (previous version seem not
     # be case dependent on the find_package argument) with a message of the
@@ -220,7 +220,7 @@ install:
     #    CMake Error at /usr/local/share/pcl-1.7/PCLConfig.cmake:45 (message):
     #      common is required but boost was not found
     # Hence the following kludgy fix
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then printf ",s/find_package(Boost/find_package(boost/\nwq\n" | ed /usr/local/Cellar/pcl/1.8.*/share/pcl-1.8/PCLConfig.cmake; fi
     #
     ###### Linux depedency installation
     # We are here only concerned with dependencies that were not already

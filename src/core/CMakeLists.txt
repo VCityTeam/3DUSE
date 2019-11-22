@@ -16,3 +16,6 @@ add_library( core SHARED
   settings.cpp
   RayBox.cpp
 )
+
+install(TARGETS core
+        LIBRARY DESTINATION lib)

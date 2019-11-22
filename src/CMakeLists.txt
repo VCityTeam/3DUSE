@@ -49,6 +49,7 @@ endif()
 
 target_include_directories( vcitycore PUBLIC
   ${CITYGML_INCLUDE_DIR}         # FIXME: OGRGDALtools.hpp includes vecs.hpp !
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/OGRGDAL_Utils/
   ${CMAKE_CURRENT_BINARY_DIR}    # For generated vcitycore_export.h
 )
 
@@ -75,6 +76,9 @@ endif()
 if( BUILD_GUI_QT4 )
   target_link_libraries( vcitycore ${QT_LIBRARIES} )
 endif()
+
+install(TARGETS vcitycore
+        LIBRARY DESTINATION lib)
 
 # Dealing with VC++ oddities: generates the export header core_exports.h 
 include (GenerateExportHeader)

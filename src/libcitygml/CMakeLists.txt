@@ -63,9 +63,19 @@ if(MSVC)
   endforeach()
 endif()
 
+### FIXME note: when using the citygml headers the source code should include
+# libcitygml/citygml.hpp and not simply citygml.hpp (this is for source code
+# clarity and also to avoid possible library collisions. We thus declare in
+# the following undue pathes just to satisfy wrongly written inclusion.
+# Once such erroneous inclusions are cleaned up the following declaration
+# can also be simplified...
 target_include_directories( citygml PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR}       # Required for generated citygml_export.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/..    # OK: libcitygml/citygml.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}       # NOK: citygml.hpp
+  # Required for the cmake generated citygml_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/..    # OK: libcitygml/utils/citygmlutils_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}       # NOK: utils/citygmlutils_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/utils # NOK: citygmlutils_export.h
   ${Boost_INCLUDE_DIRS}
 )
 
@@ -93,6 +103,9 @@ if( BUILD_GUI_QT5 )
   )
   target_link_libraries( citygml Qt5::Core )
 endif ()
+
+install(TARGETS citygml
+        LIBRARY DESTINATION lib)
 
 # Dealing with VC++ oddities: generates the export header citygml_exports.h 
 GENERATE_EXPORT_HEADER( citygml ) 
