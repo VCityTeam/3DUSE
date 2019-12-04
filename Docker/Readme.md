@@ -1,4 +1,4 @@
-## Building thje image
+## Building the image
  ```
  docker build -t 3duse 18.04
  ```
