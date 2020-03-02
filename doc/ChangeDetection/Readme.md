@@ -1,7 +1,7 @@
 ## To test change detection
 
 ### Find docker file :
-[3DUse-DockerContext](https://github.com/VCityTeam/UD-Reproducibility/tree/master/Articles/2020-IJGIS-Temporal/Compute3DTiles/Shared/Docker/3DUse-DockerContext")
+[3DUse-DockerContext](https://github.com/VCityTeam/UD-Reproducibility/tree/master/Articles/2020-IJGIS-Temporal/Compute3DTiles/Shared/Docker/3DUse-DockerContext)
 
 ### Build it : 
 `$docker build -t liris:3DUse 3DUse-DockerContext` 
