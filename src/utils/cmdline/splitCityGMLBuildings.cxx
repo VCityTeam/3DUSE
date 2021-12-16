@@ -85,7 +85,7 @@ int main(int argc, char** argv)
       std::cout << "Creating output directory "
                 << outputFolderPathName
                 << std::endl;
-      fs::create_directory( OutputDirectory );
+      fs::create_directories( OutputDirectory );
     }
     fullOutputFilename = outputFolderPathName + "/" + fullOutputFilename;
   }
