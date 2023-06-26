@@ -21,6 +21,8 @@ You will see the tiling window :
 Step 3: Set the folder containing all gml to Tiles in "CityGML data path" and
 set the output path to get your beautiful Tiles.
 
+If the process was successful, you will have all your Tiles in your output path.
+
 # Tiling Window Parameters
 - CityGML data path : The root folder containing all the gml files use for the tiling.
 - Output path : Directory containing all tiles.
