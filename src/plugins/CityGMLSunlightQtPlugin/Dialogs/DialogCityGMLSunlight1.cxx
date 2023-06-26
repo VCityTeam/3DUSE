@@ -429,23 +429,29 @@ bool DialogCityGMLSunlight1::ListContains(QListWidget* list, QString item)
 ////////////////////////////////////////////////////////////////////////////////
 void DialogCityGMLSunlight1::AddItemsFromDirToList(QString dirpath)
 {
+	// In folders _BATI / _MNT
     QDir dirfiles(dirpath);
-    for(QFileInfo f : dirfiles.entryInfoList()) //for each file/folder in dirfiles
+    for(auto& layerFolderInfos : dirfiles.entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs))
     {
-        if(f.isDir() == true && (f.fileName() == "_BATI" || f.fileName() == "_MNT")) //we only compute sunlight for _BATI and _MNT
+        if(layerFolderInfos.fileName() == "_BATI" || layerFolderInfos.fileName() == "_MNT") //we only compute sunlight for _BATI and _MNT
         {
-            QDir dir(f.filePath());
+			// Read in all tiles folder
+			QDir layerDir(layerFolderInfos.filePath());
+			for (auto& tileFolder : layerDir.entryInfoList(QDir::NoDotAndDotDot | QDir::Dirs)) //for each folder in layerFolder
+			{
+				// Find all gml files 
+				QDir dir(tileFolder.filePath());
+				for (QString file : dir.entryList(QDir::Files)) //for all files
+				{
+					if (file.contains(".gml"))
+					{
+						QString filename = layerFolderInfos.fileName() + "/" + tileFolder.fileName() + "/" + file; // filename ex : _BATI/3070_10383
 
-            for(QString file : dir.entryList()) //for all files
-            {
-                if(file.contains(".gml"))
-                {
-                    QString filename = f.fileName() + "/" + file; // filename ex : _BATI/3070_10383
-
-                    if(!ListContains(ui->SelectedFiles_List,filename))  //if not already in selected list
-                        ui->NonSelectedFiles_List->addItem(filename);
-                }
-            }
+						if (!ListContains(ui->SelectedFiles_List, filename))  //if not already in selected list
+							ui->NonSelectedFiles_List->addItem(filename);
+					}
+				}
+			}
         }
     }
 }
