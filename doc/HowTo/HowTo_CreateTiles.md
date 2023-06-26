@@ -1,10 +1,10 @@
 # How to create Tiles in 3DUSE
 
 # Introduction
-We will explain how to make a Tile in 3DUSE that can be used in every plugin of 3DUSE. A Tile is the product of cutting a larger gml with a regular grid.
+We will explain how to make a Tile in 3DUSE that can be used in every plugin of 3DUSE. A Tile is the product of cutting a larger gml in a regular grid.
 
 # Prerequisites
-- 3DUSE installed on your computer, here a [link](https://github.com/VCityTeam/3DUSE/blob/master/Install.md) https://github.com/VCityTeam/3DUSE/blob/master/Install.md on installing 3DUSE.
+- 3DUSE installed on your computer, here a [link](https://github.com/VCityTeam/3DUSE/blob/master/Install.md) on installing 3DUSE.
 - A basic gml file.
 
 # How to create Tiles
@@ -18,7 +18,8 @@ You will see the tiling window :
 
 ![Tools Menu](./images/HowToCreateTiles2.png)
 
-Step 3: Set the different parameter present in the window.
+Step 3: Set the folder containing all gml to Tiles in "CityGML data path" and
+set the output path to get your beautiful Tiles.
 
 # Tiling Window Parameters
 - CityGML data path : The root folder containing all the gml files use for the tiling.
