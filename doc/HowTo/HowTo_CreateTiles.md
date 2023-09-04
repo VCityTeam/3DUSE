@@ -30,3 +30,5 @@ If the process was successful, you will have all your Tiles in your output path.
 - Geometry processing : How to dispatch each cityobjects in a tile :
   - Assign : Tiling by assigning cityobjects according to the position of their center of gravity.
   - Cut : Tiling by cutting geometries according to the tile boundaries.
+
+The output Tiles will be renamed based on coordinate. Ex: 3689_10348.gml is a Tile of 500 x 500 with real coordinate : 3 689 * 500 = 1 844 500 and 10 348 * 500 = 5 174 000.
